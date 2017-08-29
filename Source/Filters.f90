@@ -40,8 +40,8 @@ CONTAINS
 
 			! Save signals for next time step
 
-        InputSignalLast (inst)  = InputSignal
-        OutputSignalLast (inst) = LPFilter
+        InputSignalLast(inst)  = InputSignal
+        OutputSignalLast(inst) = LPFilter
 
     END FUNCTION LPFilter
     !-------------------------------------------------------------------------------------------------------------------------------
