@@ -98,6 +98,7 @@ REAL(4), PARAMETER           :: VS_Rgn3MP     	=	0.01745329                	! Mi
 REAL(4), PARAMETER           :: VS_RtGnSp     	=	121.6805                    ! Rated generator speed (HSS side), [rad/s]. -- chosen to be 99% of PC_RefSpd
 REAL(4)                      :: VS_RtTq                                         ! Rated torque, [Nm].
 REAL(4), PARAMETER           :: VS_RtPwr      	=	5296610.0                   ! Rated generator generator power in Region 3, [W]. -- chosen to be 5MW divided by the electrical generator efficiency of 94.4%
+REAL(4)						 :: VS_RtSpd										! Rated generator speed [rad/s]
 REAL(4), SAVE                :: VS_Slope15                                      ! Torque/speed slope of region 1 1/2 cut-in torque ramp , [Nm/(rad/s)].
 REAL(4), SAVE                :: VS_Slope25                                      ! Torque/speed slope of region 2 1/2 induction generator, [Nm/(rad/s)].
 REAL(4), PARAMETER           :: VS_SlPc       	=	10.0                       	! Rated generator slip percentage in Region 2 1/2, [%].
@@ -135,24 +136,25 @@ CHARACTER(SIZE(avcMSG)-1)    :: ErrMsg                                          
 
 
    ! Load variables from calling program (See Appendix A of Bladed User's Guide):
-
-BlPitch  (1) =       avrSWAP( 4)
-BlPitch  (2) =       avrSWAP(33)
-BlPitch  (3) =       avrSWAP(34)
-DT           =       avrSWAP( 3)
-GenSpeed     =       avrSWAP(20)
-HorWindV     =       avrSWAP(27)
-IPC_aziAngle =       avrSWAP(60)
 iStatus      = NINT( avrSWAP( 1) )
-NumBl        = NINT( avrSWAP(61) )
-PC_MinPit    =       avrSWAP( 6)
+Time         =       avrSWAP( 2)
+DT           =       avrSWAP( 3)
+BlPitch  (1) =       avrSWAP( 4)
 PC_SetPnt    =       avrSWAP( 5)
+PC_MinPit    =       avrSWAP( 6)
+VS_RtSpd     =       avrSWAP(19)
+GenSpeed     =       avrSWAP(20)
+VS_RtTq      =       avrSWAP(22)
+Y_MErr       =       avrSWAP(24)
+HorWindV     =       avrSWAP(27)
 rootMOOP (1) =       avrSWAP(30)
 rootMOOP (2) =       avrSWAP(31)
 rootMOOP (3) =       avrSWAP(32)
-Time         =       avrSWAP( 2)
-Y_MErr       =       avrSWAP(24)
-VS_RtTq      =       avrSWAP(22)
+BlPitch  (2) =       avrSWAP(33)
+BlPitch  (3) =       avrSWAP(34)
+IPC_aziAngle =       avrSWAP(60)
+NumBl        = NINT( avrSWAP(61) )
+
 
 !print *, 'from_sc: ', from_sc(1:4)
 !to_sc(1) = 5.0;
@@ -438,7 +440,7 @@ IF ( ( iStatus >= 0 ) .AND. ( aviFAIL >= 0 ) )  THEN  ! Only compute control cal
 
 		! Filter the HSS (generator) speed measurement:
 		! Apply Low-Pass Filter
-	GenSpeedF = LPFilter( GenSpeed, DT, CornerFreq, iStatus, 1)     ! This is the first instance of LPFilter
+	GenSpeedF = LPFilter(GenSpeed, DT, CornerFreq, iStatus, 1)     ! This is the first instance of LPFilter
 
 
 	!..............................................................................................................................
@@ -461,13 +463,14 @@ IF ( ( iStatus >= 0 ) .AND. ( aviFAIL >= 0 ) )  THEN  ! Only compute control cal
 	ELSEIF ( GenSpeedF <  VS_TrGnSp )  THEN                                    ! We are in region 2 - optimal torque is proportional to the square of the generator speed
 		GenTrq = VS_Rgn2K*GenSpeedF*GenSpeedF
 	ELSE                                                                       ! We are in region 2 1/2 - simple induction generator transition region
-		GenTrq = VS_Slope25*( GenSpeedF - VS_SySp   )
+		GenTrq = PI(VS_RtSpd-GenSpeedF,real(-4200),real(-2100),real(35233.0),VS_RtTq,DT,real(35233.0),1)
+		!GenTrq = VS_Slope25*( GenSpeedF - VS_SySp   )
 	ENDIF
 
 
 		! Saturate the commanded torque using the maximum torque limit:
 
-	GenTrq  = MIN( GenTrq , VS_MaxTq  )						! Saturate the command using the maximum torque limit
+	GenTrq  = MIN(GenTrq , VS_MaxTq)						! Saturate the command using the maximum torque limit
 
 
 		! Saturate the commanded torque using the torque rate limit:
