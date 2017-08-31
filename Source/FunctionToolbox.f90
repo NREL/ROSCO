@@ -1,7 +1,7 @@
 ! This module contains basic functions
 MODULE FunctionToolbox
 
-    IMPLICIT NONE
+IMPLICIT NONE
 
 CONTAINS
 	!-------------------------------------------------------------------------------------------------------------------------------
@@ -22,7 +22,6 @@ CONTAINS
 	! PI controller, with output saturation
 	REAL FUNCTION PI(error, kp, ki, minValue, maxValue, DT, I0, inst)
 	!
-
 		IMPLICIT NONE
 
 			! Inputs
@@ -36,17 +35,17 @@ CONTAINS
 		REAL(4), INTENT(IN)		:: I0
 		
 			! Local
-		INTEGER(4)						:: i					! Counter for making arrays
-		REAL(4)                         :: PTerm				! Proportional term
-		REAL(4), DIMENSION(99), SAVE    :: ITerm				! Integral term, current.
-		REAL(4), DIMENSION(99), SAVE    :: ITermLast			! Integral term, the last time this controller was called. Supports 99 separate instances.
-		INTEGER(4), DIMENSION(99), SAVE :: FirstCall = (/ (1, i=1,99) /)		! First call of this function?
+		INTEGER(4)						:: i									! Counter for making arrays
+		REAL(4)							:: PTerm								! Proportional term
+		REAL(4), DIMENSION(99), SAVE	:: ITerm								! Integral term, current.
+		REAL(4), DIMENSION(99), SAVE	:: ITermLast							! Integral term, the last time this controller was called. Supports 99 separate instances.
+		INTEGER(4), DIMENSION(99), SAVE	:: FirstCall = (/ (1, i=1,99) /)		! First call of this function?
 		
 			! Debugging
-		INTEGER(4), PARAMETER			:: UnDb = 90                            ! I/O unit for the debugging information
-		CHARACTER(LEN=6), PARAMETER		:: RootName = "PI_DBG"
-		CHARACTER(1), PARAMETER			:: Tab = CHAR(9)                       ! The tab character.
-		CHARACTER(25), PARAMETER		:: FmtDat = "(F8.3,99('"//Tab//"',ES10.3E2,:))"	! The format of the debugging data
+		! INTEGER(4), PARAMETER			:: UnDb = 90									! I/O unit for the debugging information
+		! CHARACTER(LEN=6), PARAMETER	:: RootName = "PI_DBG"							! 
+		! CHARACTER(1), PARAMETER		:: Tab = CHAR(9)								! The tab character.
+		! CHARACTER(25), PARAMETER		:: FmtDat = "(F8.3,99('"//Tab//"',ES10.3E2,:))"	! The format of the debugging data
 		
 			! Initialize persistent variables/arrays, and set inital condition for integrator term
 		IF ( FirstCall(inst) == 1 ) THEN
@@ -56,9 +55,9 @@ CONTAINS
 			ITerm(inst) = I0
 			ITermLast(inst) = I0
 			
-			OPEN ( UnDb, FILE=TRIM( RootName )//'.dbg', STATUS='REPLACE' )
-			WRITE (UnDb,'(/////)')
-			WRITE (UnDb,'(A)')  'FirstCall(inst)'  //Tab//'ITerm(inst)' //Tab//'error ' //Tab//'kp  ' //Tab//'ki ' //Tab//'DT'
+			! OPEN ( UnDb, FILE=TRIM( RootName )//'.dbg', STATUS='REPLACE' )
+			! WRITE (UnDb,'(/////)')
+			! WRITE (UnDb,'(A)')  'FirstCall(inst)'  //Tab//'ITerm(inst)' //Tab//'error ' //Tab//'kp  ' //Tab//'ki ' //Tab//'DT'
 			
 			FirstCall(inst) = 0
 		END IF
@@ -71,7 +70,7 @@ CONTAINS
 
 		ITermLast(inst) = ITerm(inst)
 		
-		WRITE (UnDb,FmtDat)  real(FirstCall(inst)),	ITerm(inst),	error,	kp,	ki,	DT
+		! WRITE (UnDb,FmtDat)  real(FirstCall(inst)),	ITerm(inst),	error,	kp,	ki,	DT
 	END FUNCTION PI
 	!-------------------------------------------------------------------------------------------------------------------------------
 END MODULE FunctionToolbox
