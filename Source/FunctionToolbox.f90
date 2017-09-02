@@ -73,4 +73,33 @@ CONTAINS
 		! WRITE (UnDb,FmtDat)  real(FirstCall(inst)),	ITerm(inst),	error,	kp,	ki,	DT
 	END FUNCTION PI
 	!-------------------------------------------------------------------------------------------------------------------------------
+	
+	!-------------------------------------------------------------------------------------------------------------------------------
+	! interp1 1-D interpolation (table lookup), xData and yData should be monotonically increasing
+	REAL FUNCTION interp1d(xData, yData, xq)
+	!
+		IMPLICIT NONE
+			! Inputs
+		REAL(4), DIMENSION(:), INTENT(IN)		:: xData		! Provided x data (vector), to be interpolated
+		REAL(4), DIMENSION(:), INTENT(IN)		:: yData		! Provided y data (vector), to be interpolated
+		REAL(4), INTENT(IN)						:: xq			! x-value for which the y value has to be interpolated
+		INTEGER(4)								:: I			! Iteration index
+		
+		IF (xq <= MINVAL(xData)) THEN
+			interp1d = MINVAL(yData)
+		ELSEIF (xq >= MAXVAL(xData)) THEN
+			interp1d = MAXVAL(yData)
+		ELSE
+			DO I = 1, SIZE(xData)
+				IF (xData(I) >= xq) THEN
+					interp1d = yData(I-1) + (yData(I) - yData(I-1))/(xData(I) - xData(I-1))*(xq - xData(I-1))
+					EXIT
+				ELSE
+					CONTINUE
+				END IF
+			END DO
+		END IF
+		
+	END FUNCTION interp1d
+	
 END MODULE FunctionToolbox

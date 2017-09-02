@@ -9,39 +9,40 @@ CONTAINS
 
     !-------------------------------------------------------------------------------------------------------------------------------
     ! Discrete time Low-Pass Filter
-    REAL FUNCTION LPFilter( InputSignal, DT, CornerFreq, iStatus, inst)
+    REAL FUNCTION LPFilter( InputSignal, DT, CornerFreq, iStatus, reset, inst)
     !...............................................................................................................................
 
-        IMPLICIT NONE
+		IMPLICIT NONE
 
 			! Inputs
 
-        REAL(4), INTENT(IN)     :: InputSignal
-		REAL(4), INTENT(IN)     :: DT						! time step [s]
-		REAL(4), INTENT(IN)     :: CornerFreq				! corner frequency [rad/s]
-        INTEGER, INTENT(IN)		:: iStatus					! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
-        INTEGER, INTENT(IN)		:: inst						! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
+		REAL(4), INTENT(IN)		:: InputSignal
+		REAL(4), INTENT(IN)		:: DT						! time step [s]
+		REAL(4), INTENT(IN)		:: CornerFreq				! corner frequency [rad/s]
+		INTEGER, INTENT(IN)		:: iStatus					! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
+		INTEGER, INTENT(IN)		:: inst						! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
+		LOGICAL(4), INTENT(IN)	:: reset					! Reset the filter to the input signal
 
 			! Local
 
-        REAL(4), DIMENSION(99), SAVE :: InputSignalLast		! Input signal the last time this filter was called. Supports 99 separate instances.
-        REAL(4), DIMENSION(99), SAVE :: OutputSignalLast	! Output signal the last time this filter was called. Supports 99 separate instances.
+        REAL(4), DIMENSION(99), SAVE	:: InputSignalLast		! Input signal the last time this filter was called. Supports 99 separate instances.
+        REAL(4), DIMENSION(99), SAVE	:: OutputSignalLast	! Output signal the last time this filter was called. Supports 99 separate instances.
 
 			! Initialization
 
-        IF ( iStatus == 0 )  THEN
-           OutputSignalLast (inst) = InputSignal
-           InputSignalLast (inst) = InputSignal
-        ENDIF
+		IF ((iStatus == 0) .OR. reset) THEN
+			OutputSignalLast(inst) = InputSignal
+			InputSignalLast(inst) = InputSignal
+		ENDIF
 
 			! Body
 
-        LPFilter = (DT*CornerFreq*InputSignal + DT*CornerFreq*InputSignalLast(inst) - (DT*CornerFreq-2.0)*OutputSignalLast(inst))/(DT*CornerFreq+2.0)
+		LPFilter = (DT*CornerFreq*InputSignal + DT*CornerFreq*InputSignalLast(inst) - (DT*CornerFreq-2.0)*OutputSignalLast(inst))/(DT*CornerFreq+2.0)
 
 			! Save signals for next time step
 
-        InputSignalLast(inst)  = InputSignal
-        OutputSignalLast(inst) = LPFilter
+		InputSignalLast(inst)  = InputSignal
+		OutputSignalLast(inst) = LPFilter
 
     END FUNCTION LPFilter
     !-------------------------------------------------------------------------------------------------------------------------------

@@ -110,7 +110,9 @@ REAL(4), PARAMETER			:: Y_YawRate = 0.005235988							! Yaw rate [rad/s].
 REAL(4)						:: Y_MErr											! Measured yaw error [rad].
 REAL(4), PARAMETER			:: Y_omegaLPFast = 1.0								! Corner frequency fast low pass filter, [Hz].
 REAL(4), PARAMETER			:: Y_omegaLPSlow = 0.016666667						! Corner frequency slow low pass filter, 1/60 [Hz].
-REAL(4), SAVE				:: Y_YawEndT										! Yaw end time, [s]. Indicates the time up until which the yaws with a fixed rate.
+REAL(4), SAVE				:: Y_YawEndT										! Yaw end time, [s]. Indicates the time up until which yaw is active with a fixed rate.
+
+REAL(4)						:: testValue										! TestValue
 
 INTEGER(4)					:: I												! Generic index.
 INTEGER(4)					:: iStatus											! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
@@ -376,22 +378,22 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 
 		! If we're debugging, open the debug file and write the header:
 
-	IF (DbgOut)  THEN
+	IF (DbgOut) THEN
 
 		OPEN (UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='REPLACE')
-		WRITE (UnDb,'(/////)')
+		! WRITE (UnDb,'(/////)')
 		WRITE (UnDb,'(A)')	'   Time '  //Tab//'ElapTime  ' //Tab//'HorWindV ' //Tab//'GenSpeed  ' //Tab//'GenSpeedF ' //Tab//'RelSpdErr ' //Tab// &
 							'PC_SpdErr    '//Tab//'PC_GK    ' //Tab//'MErr      ' //Tab// &
 							'PitRate1  '  //Tab//'PitRate2  ' //Tab//'PitRate3 ' //Tab//'PitCom1   ' //Tab//'PitCom2   ' //Tab//'PitCom3   ' //Tab// &
 							'BlPitch1  '  //Tab//'BlPitch2  ' //Tab//'BlPitch3 ' //Tab//'rootMOOP1 ' //Tab//'rootMOOP2 ' //Tab//'rootMOOP3 ' //Tab// &
 							'PitComF1  '  //Tab//'PitComF2  ' //Tab//'PitComF3 ' //Tab//'PitComT  ' //Tab// 'ErrLPFFast ' //Tab//'ErrLPFSlow' //Tab//&
-							'Y_AccErr ' //Tab//'Y_YawEndT '
+							'Y_AccErr ' //Tab//'Y_YawEndT '  //Tab//'testValue'
 		WRITE (UnDb,'(A)')	'   (sec) ' //Tab//'(sec)    '  //Tab//'(m/sec) ' //Tab//'(rpm)   '   //Tab//'(rpm)   '   //Tab//'(%)     '   //Tab// &
 							'(rad/s)   '  //Tab//'(-)     '   //Tab//'(deg)   '   //Tab//'(deg)   '   //Tab//'(deg)   '   //Tab// &
 							'(deg/s)   '  //Tab//'(deg/s)  '  //Tab//'(deg/s) ' //Tab//'(deg)   '   //Tab//'(deg)   '   //Tab//'(deg)   '   //Tab// &
 							'(deg)     '  //Tab//'(deg)    '  //Tab//'(deg)   ' //Tab//'(Nm)    '   //Tab//'(Nm)    '   //Tab//'(Nm)    '   //Tab// &
 							'(deg)     '  //Tab//'(deg)    '  //Tab//'(deg)   ' //Tab//'(deg)   '   //Tab//'(deg)   '   //Tab//'(deg)   '   //Tab// &
-							'(deg)     '  //Tab//'(deg)    '  //Tab//'(deg*s) ' //Tab//'(sec)   '
+							'(deg)     '  //Tab//'(deg)    '  //Tab//'(deg*s) ' //Tab//'(sec)   '   //Tab//'(TEST)   '
 
 		OPEN(UnDb2, FILE=TRIM(RootName)//'.dbg2', STATUS='REPLACE')
 		WRITE(UnDb2,'(/////)')
@@ -434,7 +436,7 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 
 		! Filter the HSS (generator) speed measurement:
 		! Apply Low-Pass Filter
-	GenSpeedF = LPFilter(GenSpeed, DT, CornerFreq, iStatus, 1)     ! This is the first instance of LPFilter
+	GenSpeedF = LPFilter(GenSpeed, DT, CornerFreq, iStatus, .FALSE., 1)     ! This is the first instance of LPFilter
 
 	!..............................................................................................................................
 	! VARIABLE-SPEED TORQUE CONTROL:
@@ -556,12 +558,21 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 	!..............................................................................................................................
 
 	avrSWAP(29) = 0															! Yaw control parameter: 0 = yaw rate control
-
-	IF (Y_YawEndT <= Time) THEN												! Check if the turbine is currently yawing
+	! IF ((Time >= 50.0) .AND. (Time < 100.0)) THEN
+		! avrSWAP(48) = 0.0087
+	! ELSEIF ((Time >= 100.0) .AND. (Time < 200.0)) THEN
+		! avrSWAP(48) = 0
+	! ELSEIF ((Time >= 200.0) .AND. (Time < 250.0)) THEN
+		! avrSWAP(48) = 0.0087
+	! ELSE
+		! avrSWAP(48) = 0
+	! END IF
+	
+	IF (Time >=  Y_YawEndT) THEN											! Check if the turbine is currently yawing
 		avrSWAP(48) = 0.0													! Set yaw rate to zero
 
-		Y_ErrLPFFast = LPFilter(Y_MErr, DT, Y_omegaLPFast, iStatus, 2)		! Fast low pass filtered yaw error with a frequency of 1
-		Y_ErrLPFSlow = LPFilter(Y_MErr, DT, Y_omegaLPSlow, iStatus, 3)		! Slow low pass filtered yaw error with a frequency of 1/60
+		Y_ErrLPFFast = LPFilter(Y_MErr, DT, Y_omegaLPFast, iStatus, .FALSE., 2)		! Fast low pass filtered yaw error with a frequency of 1
+		Y_ErrLPFSlow = LPFilter(Y_MErr, DT, Y_omegaLPSlow, iStatus, .FALSE., 3)		! Slow low pass filtered yaw error with a frequency of 1/60
 
 		Y_AccErr = Y_AccErr + ElapTime*SIGN(Y_ErrLPFFast**2, Y_ErrLPFFast)	! Integral of the fast low pass filtered yaw error
 
@@ -569,14 +580,19 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 			Y_YawEndT = ABS(Y_ErrLPFSlow/Y_YawRate) + Time					! Yaw to compensate for the slow low pass filtered error
 		END IF
 	ELSE
-		avrSWAP(48) = SIGN(Y_YawRate, Y_MErr)	! Set yaw rate to predefined yaw rate, the sign of the error is copied to the rate
-		Y_ErrLPFFast = 0.0							! Reset all errors
-		Y_ErrLPFSlow = 0.0							! "
+		avrSWAP(48) = SIGN(Y_YawRate, Y_MErr)		! Set yaw rate to predefined yaw rate, the sign of the error is copied to the rate
+		Y_ErrLPFFast = LPFilter(Y_MErr, DT, Y_omegaLPFast, iStatus, .TRUE., 2)		! Fast low pass filtered yaw error with a frequency of 1
+		Y_ErrLPFSlow = LPFilter(Y_MErr, DT, Y_omegaLPSlow, iStatus, .TRUE., 3)		! Slow low pass filtered yaw error with a frequency of 1/60
+		! Y_ErrLPFFast = 0.0							! Reset all errors
+		! Y_ErrLPFSlow = 0.0							! "
 		Y_AccErr = 0.0								! "
 	END IF
 
 	!..............................................................................................................................
-
+	
+		! TEST interp1d
+	testValue = interp1d((/ 0., 1., 2., 3. /), (/ 0., 10., 20., 30. /), 4.0*SIN(Time))
+	
 		! Output debugging information if requested:
 
 	IF (DbgOut)  THEN
@@ -585,13 +601,14 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 							 PitRate*R2D,		PitCom*R2D,&
 							 BlPitch*R2D,		rootMOOP,&
 							 IPC_PitComF*R2D,	PitComT*R2D,&
-							 Y_ErrLPFFast*R2D,  Y_ErrLPFSlow*R2D,	Y_AccErr*R2D,	Y_YawEndT
+							 Y_ErrLPFFast*R2D,	Y_ErrLPFSlow*R2D,	Y_AccErr*R2D,	Y_YawEndT,	testValue
 
 		WRITE (UnDb2,FmtDat) Time, avrSWAP(1:85)
 	END IF
 
 		! Reset the value of LastTime to the current value:
 	LastTime = Time
+	
 ENDIF
 
 avcMSG = TRANSFER(TRIM(ErrMsg)//C_NULL_CHAR, avcMSG, SIZE(avcMSG))
