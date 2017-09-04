@@ -52,12 +52,13 @@ REAL(4)						:: GenSpeedF										! Filtered HSS (generator) speed [rad/s].
 REAL(4)						:: GenTrq											! Electrical generator torque, [Nm].
 REAL(4)						:: HorWindV											! Horizontal wind speed at hub-height, [m/s].
 REAL(4), PARAMETER			:: IPC_KI = 8E-10									! Integral gain for the individual pitch controller, [-].
-REAL(4), PARAMETER			:: IPC_KNotch = 1									! Notch filter gain for the individual pitch controller, [-].
-REAL(4), PARAMETER			:: IPC_omegaLP = 1000.0								! Low pass filter corner frequency for the individual pitch controller, [Hz].
-REAL(4), PARAMETER			:: IPC_omegaNotch = 1.269330365						! Notch filter corner frequency for the individual pitch controller, [Hz].
+REAL(4), PARAMETER			:: IPC_omegaHP = 0.3141592							! High-pass filter cut-in frequency used to separate yaw-by-IPC contribution from blade load reduction contribution, [rad/s].
+REAL(4), PARAMETER			:: IPC_omegaLP = 0.6283185							! Low-pass filter corner frequency for the individual pitch controller, [rad/s].
+REAL(4), PARAMETER			:: IPC_omegaNotch = 1.269330365						! Notch filter corner frequency for the individual pitch controller, [rad/s].
 REAL(4), PARAMETER			:: IPC_phi = 0.436332313							! Phase offset added to the azimuth angle for the individual pitch controller, [rad].
 REAL(4)						:: IPC_PitComF(3)									! Commanded pitch of each blade as calculated by the individual pitch controller, F stands for low pass filtered, [rad].
-REAL(4), PARAMETER			:: IPC_zetaLP = 1.0									! Low pass filter damping factor for the individual pitch controller, [-].
+REAL(4), PARAMETER			:: IPC_zetaHP = 0.70								! High-pass filter damping value, [-].
+REAL(4), PARAMETER			:: IPC_zetaLP = 1.0									! Low-pass filter damping factor for the individual pitch controller, [-].
 REAL(4), PARAMETER			:: IPC_zetaNotch = 0.5								! Notch filter damping factor for the individual pitch controller, [-].
 REAL(4), SAVE				:: LastGenTrq										! Commanded electrical generator torque the last time the controller was called, [Nm].
 REAL(4), SAVE				:: LastTime											! Last time this DLL was called, [s].
@@ -320,11 +321,6 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 		ErrMsg  = 'IPC_KI must be greater than zero.'
 	ENDIF
 
-	IF (IPC_KNotch <= 0.0)  THEN
-		aviFAIL = -1
-		ErrMsg  = 'IPC_KNotch must be greater than zero.'
-	ENDIF
-
 	IF (IPC_omegaLP <= 0.0)  THEN
 		aviFAIL = -1
 		ErrMsg  = 'IPC_omegaLP must be greater than zero.'
@@ -450,7 +446,7 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 	IF (PitComT >= VS_Rgn3MP) THEN												! We are in region 3 - power is constant
 		GenTrq = VS_RtTq
 	ELSE
-		GenTrq = PI(VS_SpdErr, VS_KP, VS_KI, VS_Rgn2MaxTq, VS_RtTq, DT, VS_Rgn2MaxTq, 1)
+		GenTrq = PIController(VS_SpdErr, VS_KP, VS_KI, VS_Rgn2MaxTq, VS_RtTq, DT, VS_Rgn2MaxTq, 1)
 		IF (GenTrq >= VS_Rgn2MaxTq*1.01) THEN
 			CONTINUE
 		ELSEIF (GenSpeedF <= VS_CtInSp)  THEN										! We are in region 1 - torque is zero
@@ -512,22 +508,20 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 		! Compute the pitch commands associated with the proportional and integral
 		!   gains:
 
-	PitcomT = PI(PC_SpdErr, PC_GK*PC_KP, PC_GK*PC_KI, PC_SetPnt, PC_MaxPitVar, ElapTime, PC_SetPnt, 2)
+	PitcomT = PIController(PC_SpdErr, PC_GK*PC_KP, PC_GK*PC_KI, PC_SetPnt, PC_MaxPitVar, ElapTime, PC_SetPnt, 2)
 
 		! Individual pitch control
 
-	CALL IPC(rootMOOP, Azimuth, DT, IPC_KI, IPC_KNotch, IPC_omegaLP, IPC_omegaNotch, IPC_phi, IPC_zetaLP, IPC_zetaNotch, iStatus, NumBl, IPC_PitComF)
+	CALL IPC(rootMOOP, Azimuth, IPC_phi, Y_MErr, DT, IPC_KI, IPC_omegaHP, IPC_omegaLP, IPC_omegaNotch, IPC_zetaHP, IPC_zetaLP, IPC_zetaNotch, iStatus, NumBl, IPC_PitComF)
 
 		! Combine and saturate all pitch commands:
 
 	DO K = 1,NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
-
 		PitComT_IPC(K) = PitComT + IPC_PitComF(K)							! Add the individual pitch command
 		PitComT_IPC(K) = saturate(PitComT_IPC(K), PC_MinPit, PC_MaxPit)			! Saturate the overall command using the pitch angle limits
 		
 		PitCom(K) = ratelimit(PitComT_IPC(K), BlPitch(K), -PC_MaxRat, PC_MaxRat, DT)	! Saturate the overall command of blade K using the pitch rate limit
 		PitCom(K) = saturate(PitComT_IPC(K), PC_MinPit, PC_MaxPit)						! Saturate the overall command using the pitch angle limits
-
 	ENDDO
 
 		! Set the pitch override to yes and command the pitch demanded from the last

@@ -100,23 +100,23 @@ CONTAINS
 
 			! Inputs
 
-        REAL(4), INTENT(IN)     :: InputSignal
-		REAL(4), INTENT(IN)     :: DT						! time step [s]
-		REAL(4), INTENT(IN)     :: CornerFreq				! corner frequency [rad/s]
+        REAL(4), INTENT(IN)		:: InputSignal
+		REAL(4), INTENT(IN)		:: DT						! time step [s]
+		REAL(4), INTENT(IN)		:: CornerFreq				! corner frequency [rad/s]
         INTEGER, INTENT(IN)		:: iStatus					! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
         INTEGER, INTENT(IN)		:: inst						! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
 
 			! Local
 
-		REAL(4)                 :: K						! Constant gain
-        REAL(4), DIMENSION(99), SAVE :: InputSignalLast		! Input signal the last time this filter was called. Supports 99 separate instances.
-        REAL(4), DIMENSION(99), SAVE :: OutputSignalLast	! Output signal the last time this filter was called. Supports 99 separate instances.
+		REAL(4)							:: K						! Constant gain
+        REAL(4), DIMENSION(99), SAVE	:: InputSignalLast		! Input signal the last time this filter was called. Supports 99 separate instances.
+        REAL(4), DIMENSION(99), SAVE	:: OutputSignalLast	! Output signal the last time this filter was called. Supports 99 separate instances.
 
 			! Initialization
 
         IF ( iStatus == 0 )  THEN
-            OutputSignalLast(inst)    = InputSignal
-            InputSignalLast(inst)     = InputSignal
+            OutputSignalLast(inst) = InputSignal
+            InputSignalLast(inst) = InputSignal
         ENDIF
 
         K = 2.0 / DT
@@ -133,7 +133,7 @@ CONTAINS
     END FUNCTION HPFilter
     !-------------------------------------------------------------------------------------------------------------------------------
     ! Discrete time inverted Notch Filter
-    REAL FUNCTION NotchFilter(InputSignal, DT, K, CornerFreq, Damp, iStatus, inst)
+    REAL FUNCTION NotchFilter(InputSignal, DT, CornerFreq, Damp, iStatus, inst)
     !...............................................................................................................................
 
         IMPLICIT NONE
@@ -144,7 +144,6 @@ CONTAINS
 		REAL(4), INTENT(IN)     :: DT						! time step [s]
 		REAL(4), INTENT(IN)     :: CornerFreq				! corner frequency [rad/s]
 		REAL(4), INTENT(IN)     :: Damp						! Dampening constant
-		REAL(4), INTENT(IN)     :: K						! Constant gain
         INTEGER, INTENT(IN)		:: iStatus					! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
         INTEGER, INTENT(IN)		:: inst						! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
 
@@ -168,7 +167,7 @@ CONTAINS
 
         NotchFilter = 1.0/(4.0+2.0*DT*Damp*CornerFreq+DT**2.0*CornerFreq**2.0) * ( (8.0-2.0*DT**2.0*CornerFreq**2.0)*OutputSignalLast1(inst) &
 						+ (-4.0+2.0*DT*Damp*CornerFreq-DT**2.0*CornerFreq**2.0)*OutputSignalLast2(inst) + &
-							(2.0*DT*Damp*CornerFreq*K)*InputSignal + (-2.0*DT*Damp*CornerFreq*K)*InputSignalLast2(inst) )
+							(2.0*DT*Damp*CornerFreq)*InputSignal + (-2.0*DT*Damp*CornerFreq)*InputSignalLast2(inst) )
 
 			! Save signals for next time step
 

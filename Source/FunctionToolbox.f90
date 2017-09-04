@@ -40,7 +40,7 @@ CONTAINS
 	END FUNCTION ratelimit
 	!-------------------------------------------------------------------------------------------------------------------------------
 	! PI controller, with output saturation
-	REAL FUNCTION PI(error, kp, ki, minValue, maxValue, DT, I0, inst)
+	REAL FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, inst)
 	!
 		IMPLICIT NONE
 
@@ -68,7 +68,7 @@ CONTAINS
 		! CHARACTER(25), PARAMETER		:: FmtDat = "(F8.3,99('"//Tab//"',ES10.3E2,:))"	! The format of the debugging data
 		
 			! Initialize persistent variables/arrays, and set inital condition for integrator term
-		IF ( FirstCall(inst) == 1 ) THEN
+		IF (FirstCall(inst) == 1) THEN
 			ITerm(1:99) = (/ (real(9999.9), i = 1,99) /)
 			ITermLast(1:99) = (/ (real(9999.9), i = 1,99) /)
 			
@@ -85,13 +85,13 @@ CONTAINS
 		PTerm = kp*error
 		ITerm(inst) = ITerm(inst) + DT*ki*error
 		ITerm(inst) = saturate(ITerm(inst), minValue, maxValue)
-		PI = PTerm + ITerm(inst)
-		PI = saturate(PI, minValue, maxValue)
+		PIController = PTerm + ITerm(inst)
+		PIController = saturate(PIController, minValue, maxValue)
 
 		ITermLast(inst) = ITerm(inst)
 		
 		! WRITE (UnDb,FmtDat)  real(FirstCall(inst)),	ITerm(inst),	error,	kp,	ki,	DT
-	END FUNCTION PI
+	END FUNCTION PIController
 	!-------------------------------------------------------------------------------------------------------------------------------
 	
 	!-------------------------------------------------------------------------------------------------------------------------------
