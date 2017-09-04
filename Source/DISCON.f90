@@ -65,9 +65,12 @@ REAL(4), SAVE				:: LastTime											! Last time this DLL was called, [s].
 REAL(4), SAVE				:: LastTimePC										! Last time the pitch  controller was called, [s].
 REAL(4), SAVE				:: LastTimeVS										! Last time the torque controller was called, [s].
 REAL(4)						:: PC_GK											! Current value of the gain correction factor, used in the gain scheduling law of the pitch controller, [-].
-REAL(4), PARAMETER			:: PC_KI = 0.001									! Integral gain for pitch controller at rated pitch (zero), [-].
-REAL(4), PARAMETER			:: PC_KK = 0.1099965								! Pitch angle where the the derivative of the aerodynamic power w.r.t. pitch has increased by a factor of two relative to the derivative at rated pitch (zero), [rad].
-REAL(4), PARAMETER			:: PC_KP = 0.003									! Proportional gain for pitch controller at rated pitch (zero), [s].
+INTEGER(4), SAVE							:: PC_GS_n
+REAL(4), DIMENSION(:), ALLOCATABLE, SAVE	:: PC_GS_angles
+REAL(4), DIMENSION(:), ALLOCATABLE, SAVE	:: PC_GS_kp
+REAL(4), DIMENSION(:), ALLOCATABLE, SAVE	:: PC_GS_ki
+REAL(4)						:: PC_KI											! Integral gain for pitch controller at rated pitch (zero), [-].
+REAL(4)						:: PC_KP											! Proportional gain for pitch controller at rated pitch (zero), [s].
 REAL(4), PARAMETER			:: PC_MaxPit = 1.570796								! Maximum physical pitch limit, [rad].
 REAL(4)						:: PC_MaxPitVar										! Maximum pitch setting in pitch controller (variable) [rad].
 REAL(4), PARAMETER			:: PC_MaxRat = 0.1396263							! Maximum pitch  rate (in absolute value) in pitch  controller, [rad/s].
@@ -207,7 +210,6 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 		!       below for simplicity, not here.
 	
 	PitCom		= BlPitch							! This will ensure that the variable speed controller picks the correct control region and the pitch controller picks the correct gain on the first call
-	PC_GK		= 1.0/(1.0 + PitCom(1)/PC_KK)		! This will ensure that the pitch angle is unchanged if the initial SpdErr is zero
 	Y_AccErr	= 0.0								! This will ensure that the accumulated yaw error starts at zero
 	Y_YawEndT	= -1.0								! This will ensure that the initial yaw end time is lower than the actual time to prevent initial yawing
 
@@ -215,6 +217,20 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 	LastTimePC	= Time - DT							! This will ensure that the pitch  controller is called on the first pass
 	LastTimeVS	= Time - DT							! This will ensure that the torque controller is called on the first pass
 
+	!..............................................................................................................................
+	! Read gain-scheduled PI pitch controller gains from file
+	!..............................................................................................................................
+	OPEN(unit=99, file='PitchGains.IN', status='old', action='read')
+	READ(99, *) PC_GS_n
+	
+	ALLOCATE(PC_GS_angles(PC_GS_n))
+	READ(99,*) PC_GS_angles
+	
+	ALLOCATE(PC_GS_kp(PC_GS_n))
+	READ(99,*) PC_GS_kp
+	
+	ALLOCATE(PC_GS_ki(PC_GS_n))
+	READ(99,*) PC_GS_ki
 
 	!..............................................................................................................................
 	! Check validity of input parameters:
@@ -274,21 +290,6 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 	IF (VS_MaxTq < VS_RtTq) THEN
 		aviFAIL = -1
 		ErrMsg  = 'VS_RtTq must not be greater than VS_MaxTq.'
-	ENDIF
-
-	IF (PC_KI <= 0.0) THEN
-		aviFAIL = -1
-		ErrMsg  = 'PC_KI must be greater than zero.'
-	ENDIF
-
-	IF (PC_KK <= 0.0) THEN
-		aviFAIL = -1
-		ErrMsg  = 'PC_KK must be greater than zero.'
-	ENDIF
-
-	IF (PC_KP <= 0.0) THEN
-		aviFAIL = -1
-		ErrMsg  = 'PC_KP must be greater than zero.'
 	ENDIF
 
 	IF (VS_KP > 0.0) THEN
@@ -375,20 +376,9 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 	IF (DbgOut) THEN
 
 		OPEN (UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='REPLACE')
-		! WRITE (UnDb,'(/////)')
-		WRITE (UnDb,'(A)')	'   Time '  //Tab//'ElapTime  ' //Tab//'HorWindV ' //Tab//'GenSpeed  ' //Tab//'GenSpeedF ' //Tab//'RelSpdErr ' //Tab// &
-							'PC_SpdErr    '//Tab//'PC_GK    ' //Tab//'MErr      ' //Tab// &
-							'PitCom1   ' //Tab//'PitCom2   ' //Tab//'PitCom3   ' //Tab// &
-							'BlPitch1  '  //Tab//'BlPitch2  ' //Tab//'BlPitch3 ' //Tab//'rootMOOP1 ' //Tab//'rootMOOP2 ' //Tab//'rootMOOP3 ' //Tab// &
-							'PitComF1  '  //Tab//'PitComF2  ' //Tab//'PitComF3 ' //Tab//'PitComT  ' //Tab// 'ErrLPFFast ' //Tab//'ErrLPFSlow' //Tab//&
-							'Y_AccErr ' //Tab//'Y_YawEndT '  //Tab//'testValue'
-		WRITE (UnDb,'(A)')	'   (sec) ' //Tab//'(sec)    '  //Tab//'(m/sec) ' //Tab//'(rpm)   '   //Tab//'(rpm)   '   //Tab//'(%)     '   //Tab// &
-							'(rad/s)   '  //Tab//'(-)     '   //Tab//'(deg)   '   //Tab//'(deg)   '   //Tab//'(deg)   '   //Tab// &
-							'(deg/s)   '  //Tab//'(deg/s)  '  //Tab//'(deg/s) ' //Tab//'(deg)   '   //Tab//'(deg)   '   //Tab//'(deg)   '   //Tab// &
-							'(deg)     '  //Tab//'(deg)    '  //Tab//'(deg)   ' //Tab//'(Nm)    '   //Tab//'(Nm)    '   //Tab//'(Nm)    '   //Tab// &
-							'(deg)     '  //Tab//'(deg)    '  //Tab//'(deg)   ' //Tab//'(deg)   '   //Tab//'(deg)   '   //Tab//'(deg)   '   //Tab// &
-							'(deg)     '  //Tab//'(deg)    '  //Tab//'(deg*s) ' //Tab//'(sec)   '   //Tab//'(TEST)   '
-
+		WRITE (UnDb,'(A)')	'   Time '  //Tab//'PitComT  ' //Tab//'PC_KP ' //Tab//'PC_KI  ' //Tab//'Y_MErr  '
+		WRITE (UnDb,'(A)')	'   (sec) ' //Tab//'(rad)    '  //Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   '
+		
 		OPEN(UnDb2, FILE=TRIM(RootName)//'.dbg2', STATUS='REPLACE')
 		WRITE(UnDb2,'(/////)')
 		WRITE(UnDb2,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'Time ', (i,i=1,85)
@@ -462,7 +452,7 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 
 		! Saturate the commanded torque using the maximum torque limit:
 
-	GenTrq  = MIN(GenTrq , VS_MaxTq)						! Saturate the command using the maximum torque limit
+	GenTrq = MIN(GenTrq, VS_MaxTq)						! Saturate the command using the maximum torque limit
 
 		! Saturate the commanded torque using the torque rate limit:
 
@@ -498,17 +488,18 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 		! Compute the gain scheduling correction factor based on the previously
 		!   commanded pitch angle for blade 1:
 
-	PC_GK = 1.0/(1.0 + PitComT/PC_KK)
+	PC_KP = interp1d(PC_GS_angles, PC_GS_kp, PitComT)
+	PC_KI = interp1d(PC_GS_angles, PC_GS_ki, PitComT)
 
 		! Compute the current speed error and its integral w.r.t. time; saturate the
 		!   integral term using the pitch angle limits:
 
-	PC_SpdErr = GenSpeedF - PC_RefSpd									! Current speed error
+	PC_SpdErr = PC_RefSpd - GenSpeedF									! Current speed error
 
 		! Compute the pitch commands associated with the proportional and integral
 		!   gains:
 
-	PitcomT = PIController(PC_SpdErr, PC_GK*PC_KP, PC_GK*PC_KI, PC_SetPnt, PC_MaxPitVar, ElapTime, PC_SetPnt, 2)
+	PitComT = PIController(PC_SpdErr, PC_KP, PC_KI, PC_SetPnt, PC_MaxPitVar, ElapTime, PC_SetPnt, 2)
 
 		! Individual pitch control
 
@@ -545,16 +536,6 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 	!..............................................................................................................................
 
 	avrSWAP(29) = 0															! Yaw control parameter: 0 = yaw rate control
-	! IF ((Time >= 50.0) .AND. (Time < 100.0)) THEN
-		! avrSWAP(48) = 0.0087
-	! ELSEIF ((Time >= 100.0) .AND. (Time < 200.0)) THEN
-		! avrSWAP(48) = 0
-	! ELSEIF ((Time >= 200.0) .AND. (Time < 250.0)) THEN
-		! avrSWAP(48) = 0.0087
-	! ELSE
-		! avrSWAP(48) = 0
-	! END IF
-	
 	IF (Time >=  Y_YawEndT) THEN											! Check if the turbine is currently yawing
 		avrSWAP(48) = 0.0													! Set yaw rate to zero
 
@@ -574,20 +555,10 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 	END IF
 
 	!..............................................................................................................................
-	
-		! TEST interp1d
-	testValue = interp1d((/ 0., 1., 2., 3. /), (/ 0., 10., 20., 30. /), 4.0*SIN(Time))
-	
 		! Output debugging information if requested:
 
 	IF (DbgOut)  THEN
-		WRITE (UnDb,FmtDat)  Time,				ElapTime,			HorWindV,		GenSpeed*RPS2RPM,	GenSpeedF*RPS2RPM,	100.0*PC_SpdErr/PC_RefSpd,&
-							 PC_SpdErr,			PC_GK,				Y_MErr*R2D,&
-							 PitCom*R2D,&
-							 BlPitch*R2D,		rootMOOP,&
-							 IPC_PitComF*R2D,	PitComT*R2D,&
-							 Y_ErrLPFFast*R2D,	Y_ErrLPFSlow*R2D,	Y_AccErr*R2D,	Y_YawEndT,	testValue
-
+		WRITE (UnDb,FmtDat)	Time,	PitComT,	PC_KP,	PC_KI,	Y_MErr
 		WRITE (UnDb2,FmtDat) Time, avrSWAP(1:85)
 	END IF
 

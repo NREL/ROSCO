@@ -121,5 +121,30 @@ CONTAINS
 		END IF
 		
 	END FUNCTION interp1d
+	!-------------------------------------------------------------------------------------------------------------------------------
+	! Read gain gain scheduled pitch gains from file PitchGains.IN
+	! SUBROUTINE readPitchGains(angles, kp, ki)
+	
+		! IMPLICIT NONE
+
+		! REAL, DIMENSION(:), ALLOCATABLE, INTENT(OUT)	:: angles, kp, ki
+		! INTEGER											:: n
+
+		! OPEN(unit=99, file='PitchGains.IN', status='old', action='read')
+		! READ(99, *) n
+		
+		! ALLOCATE(angles(n))
+		! READ(99,*) angles
+		! WRITE(*,*) angles
+		
+		! ALLOCATE(kp(n))
+		! READ(99,*) kp
+		! WRITE(*,*) kp
+		
+		! ALLOCATE(ki(n))
+		! READ(99,*) ki
+		! WRITE(*,*) ki
+		
+	! END SUBROUTINE readPitchGains
 	
 END MODULE FunctionToolbox
