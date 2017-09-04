@@ -19,6 +19,26 @@ CONTAINS
 
 	END FUNCTION saturate
 	!-------------------------------------------------------------------------------------------------------------------------------
+	! Saturates inputValue. Makes sure it is not smaller than minValue and not larger than maxValue
+	REAL FUNCTION ratelimit(refSignal, measSignal, minRate, maxRate, DT)
+	!
+		IMPLICIT NONE
+
+		REAL(4), INTENT(IN)		:: refSignal
+		REAL(4), INTENT(IN)		:: measSignal
+		REAL(4), INTENT(IN)		:: minRate
+		REAL(4), INTENT(IN)		:: maxRate
+		REAL(4), INTENT(IN)		:: DT
+		
+		! Local variables
+		REAL(4)					:: rate
+
+		rate = (refSignal - measSignal)/DT						! Signal rate (unsaturated)
+		rate = saturate(rate, minRate, maxRate)					! Saturate the signal rate
+		ratelimit = measSignal + rate*DT						! Saturate the overall command using the rate limit
+
+	END FUNCTION ratelimit
+	!-------------------------------------------------------------------------------------------------------------------------------
 	! PI controller, with output saturation
 	REAL FUNCTION PI(error, kp, ki, minValue, maxValue, DT, I0, inst)
 	!
