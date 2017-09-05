@@ -65,17 +65,18 @@ REAL(4), SAVE				:: LastTime											! Last time this DLL was called, [s].
 REAL(4), SAVE				:: LastTimePC										! Last time the pitch  controller was called, [s].
 REAL(4), SAVE				:: LastTimeVS										! Last time the torque controller was called, [s].
 REAL(4)						:: PC_GK											! Current value of the gain correction factor, used in the gain scheduling law of the pitch controller, [-].
-INTEGER(4), SAVE							:: PC_GS_n
-REAL(4), DIMENSION(:), ALLOCATABLE, SAVE	:: PC_GS_angles
-REAL(4), DIMENSION(:), ALLOCATABLE, SAVE	:: PC_GS_kp
-REAL(4), DIMENSION(:), ALLOCATABLE, SAVE	:: PC_GS_ki
+INTEGER(4), SAVE							:: PC_GS_n							! Amount of gain-scheduling table entries
+REAL(4), DIMENSION(:), ALLOCATABLE, SAVE	:: PC_GS_angles						! Gain-schedule table: pitch angles
+REAL(4), DIMENSION(:), ALLOCATABLE, SAVE	:: PC_GS_kp							! Gain-schedule table: pitch controller kp gainspitch angles
+REAL(4), DIMENSION(:), ALLOCATABLE, SAVE	:: PC_GS_ki							! Gain-schedule table: pitch controller ki gainspitch angles
 REAL(4)						:: PC_KI											! Integral gain for pitch controller at rated pitch (zero), [-].
 REAL(4)						:: PC_KP											! Proportional gain for pitch controller at rated pitch (zero), [s].
-REAL(4), PARAMETER			:: PC_MaxPit = 1.570796								! Maximum physical pitch limit, [rad].
+REAL(4)						:: PC_MaxPit										! Maximum physical pitch limit, [rad].
 REAL(4)						:: PC_MaxPitVar										! Maximum pitch setting in pitch controller (variable) [rad].
-REAL(4), PARAMETER			:: PC_MaxRat = 0.1396263							! Maximum pitch  rate (in absolute value) in pitch  controller, [rad/s].
+REAL(4)						:: PC_MaxRat										! Maximum pitch rate (in absolute value) in pitch controller, [rad/s].
 REAL(4)						:: PC_MinPit										! Minimum physical pitch limit, [rad].
-REAL(4), PARAMETER			:: PC_RefSpd = 122.9096								! Desired (reference) HSS speed for pitch controller, [rad/s].
+REAL(4)						:: PC_MinRat										! Minimum pitch rate (in absolute value) in pitch controller, [rad/s].
+REAL(4)						:: PC_RefSpd										! Desired (reference) HSS speed for pitch controller, [rad/s].
 REAL(4)						:: PC_RtTq99										! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
 REAL(4)						:: PC_SetPnt										! Fine pitch angle, [rad].
 REAL(4)						:: PC_SpdErr										! Current speed error (pitch control) [rad/s].
@@ -89,13 +90,13 @@ REAL(4)						:: Time												! Current simulation time, [s].
 REAL(4), PARAMETER			:: VS_CtInSp = 70.16224								! Transitional generator speed (HSS side) between regions 1 and 1 1/2, [rad/s].
 REAL(4), PARAMETER			:: VS_KP = -4200.0									! Proportional gain for generator PI torque controller, used in the transitional 2.5 region
 REAL(4), PARAMETER			:: VS_KI = -2100.0									! Integral gain for generator PI torque controller, used in the transitional 2.5 region
+REAL(4)						:: VS_MaxOM											! Optimal mode maximum speed, [rad/s].
 REAL(4), PARAMETER			:: VS_MaxRat = 15000.0								! Maximum torque rate (in absolute value) in torque controller, [Nm/s].
 REAL(4), PARAMETER			:: VS_MaxTq = 47402.91								! Maximum generator torque in Region 3 (HSS side), [Nm]. -- chosen to be 10% above VS_RtTq
-REAL(4), PARAMETER			:: VS_Rgn2K = 2.332287								! Generator torque constant in Region 2 (HSS side), N-m/(rad/s)^2.
+REAL(4)						:: VS_Rgn2K											! Generator torque constant in Region 2 (HSS side), N-m/(rad/s)^2.
 REAL(4), PARAMETER			:: VS_Rgn2Sp = 91.21091								! Transitional generator speed (HSS side) between regions 1 1/2 and 2, [rad/s].
 REAL(4), SAVE				:: VS_Rgn2MaxTq										! Maximum torque at the end of the below-rated region 2, [Nm]
 REAL(4), SAVE				:: VS_Rgn3MP										! Minimum pitch angle at which the torque is computed as if we are in region 3 regardless of the generator speed, [rad]. -- chosen to be 1.0 degree above PC_SetPnt
-REAL(4), PARAMETER			:: VS_RtGnSp = 121.6805								! Rated generator speed (HSS side), [rad/s]. -- chosen to be 99% of PC_RefSpd
 REAL(4)						:: VS_RtTq											! Rated torque, [Nm].
 REAL(4)						:: VS_RtSpd											! Rated generator speed [rad/s]
 REAL(4), SAVE				:: VS_Slope15										! Torque/speed slope of region 1 1/2 cut-in torque ramp , [Nm/(rad/s)].
@@ -105,10 +106,11 @@ REAL(4)						:: VS_SpdErr										! Current speed error (generator torque contr
 REAL(4), SAVE				:: VS_SySp											! Synchronous speed of region 2 1/2 induction generator, [rad/s].
 REAL(4), SAVE				:: VS_TrGnSp										! Transitional generator speed (HSS side) between regions 2 and 2 1/2, [rad/s].
 REAL(4), SAVE				:: Y_AccErr											! Accumulated yaw error [rad].
+INTEGER(4), SAVE			:: Y_ControlMode									! Yaw control mode: (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC)
 REAL(4)						:: Y_ErrLPFFast										! Filtered yaw error by fast low pass filter [rad].
 REAL(4)						:: Y_ErrLPFSlow										! Filtered yaw error by slow low pass filter [rad].
 REAL(4), PARAMETER			:: Y_ErrThresh = 1.745329252						! Error threshold [rad]. Turbine begins to yaw when it passes this. (104.71975512).
-REAL(4), PARAMETER			:: Y_YawRate = 0.005235988							! Yaw rate [rad/s].
+REAL(4), SAVE				:: Y_YawRate										! Yaw rate [rad/s].
 REAL(4)						:: Y_MErr											! Measured yaw error [rad].
 REAL(4), PARAMETER			:: Y_omegaLPFast = 1.0								! Corner frequency fast low pass filter, [Hz].
 REAL(4), PARAMETER			:: Y_omegaLPSlow = 0.016666667						! Corner frequency slow low pass filter, 1/60 [Hz].
@@ -124,6 +126,7 @@ INTEGER(4), PARAMETER		:: UnDb = 85										! I/O unit for the debugging inform
 INTEGER(4), PARAMETER		:: UnDb2 = 86										! I/O unit for the debugging information
 INTEGER(4), PARAMETER		:: Un = 87											! I/O unit for pack/unpack (checkpoint & restart)
 INTEGER(4), PARAMETER		:: UnUser = 88										! I/O unit for user defined parameter file
+INTEGER(4), PARAMETER		:: UnPitchGains = 89								! I/O unit for user defined pitch gains parameter file
 
 LOGICAL(1), PARAMETER		:: DbgOut = .TRUE.									! Flag to indicate whether to output debugging information
 
@@ -142,7 +145,13 @@ DT				= avrSWAP(3)
 BlPitch(1)		= avrSWAP(4)
 PC_SetPnt		= avrSWAP(5)
 PC_MinPit		= avrSWAP(6)
+PC_MaxPit		= avrSWAP(7)
+PC_MinRat		= avrSWAP(8)
+PC_MaxRat		= avrSWAP(9)
+VS_Rgn2K		= avrSWAP(16)
+VS_MaxOM		= avrSWAP(18)
 VS_RtSpd		= avrSWAP(19)
+PC_RefSpd		= avrSWAP(19)
 GenSpeed		= avrSWAP(20)
 VS_RtTq			= avrSWAP(22)
 Y_MErr			= avrSWAP(24)
@@ -156,18 +165,18 @@ Azimuth			= avrSWAP(60)
 NumBl			= NINT(avrSWAP(61))
 
 PC_RtTq99		= VS_RtTq*0.99
-VS_Rgn2MaxTq	= VS_Rgn2K*VS_RtGnSp**2
+VS_Rgn2MaxTq	= VS_Rgn2K*VS_MaxOM**2
 VS_Rgn3MP		= PC_SetPnt + 1.0/R2D
 
    ! Convert C character arrays to Fortran strings:
 
 RootName = TRANSFER(avcOUTNAME(1:LEN(RootName)), RootName)
-I = INDEX(RootName,C_NULL_CHAR) - 1       ! if this has a c null character at the end...
-IF (I > 0) RootName = RootName(1:I)     ! remove it
+I = INDEX(RootName,C_NULL_CHAR) - 1			! if this has a c null character at the end...
+IF (I > 0) RootName = RootName(1:I)			! remove it
 
 InFile = TRANSFER(accINFILE(1:LEN(InFile)),  InFile)
-I = INDEX(InFile,C_NULL_CHAR) - 1         ! if this has a c null character at the end...
-IF (I > 0) InFile = InFile(1:I)         ! remove it
+I = INDEX(InFile,C_NULL_CHAR) - 1			! if this has a c null character at the end...
+IF (I > 0) InFile = InFile(1:I)				! remove it
 
    ! Initialize aviFAIL to 0:
 
@@ -193,16 +202,19 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 		READ(UnUser, *) avrSWAP(I)
 	END DO
 	CLOSE(UnUser)
-
+	
+	Y_ControlMode	= NINT(avrSWAP(120))
+	Y_YawRate		= avrSWAP(121)
+	
 		! Determine some torque control parameters not specified directly:
 
-	VS_SySp = VS_RtGnSp/(1.0 + 0.01*VS_SlPc)
+	VS_SySp = VS_RtSpd/(1.0 + 0.01*VS_SlPc)
 	VS_Slope15 = (VS_Rgn2K*VS_Rgn2Sp*VS_Rgn2Sp)/(VS_Rgn2Sp - VS_CtInSp)
-	VS_Slope25 = (VS_RtTq)/(VS_RtGnSp - VS_SySp)
+	VS_Slope25 = (VS_RtTq)/(VS_RtSpd - VS_SySp)
 	IF (VS_Rgn2K == 0.0) THEN		! .TRUE. if the Region 2 torque is flat, and thus, the denominator in the ELSE condition is zero
-	  VS_TrGnSp	= VS_SySp
+		VS_TrGnSp	= VS_SySp
 	ELSE							! .TRUE. if the Region 2 torque is quadratic with speed
-	  VS_TrGnSp = (VS_Slope25 - SQRT(VS_Slope25*(VS_Slope25 - 4.0*VS_Rgn2K*VS_SySp)))/(2.0*VS_Rgn2K)
+		VS_TrGnSp = (VS_Slope25 - SQRT(VS_Slope25*(VS_Slope25 - 4.0*VS_Rgn2K*VS_SySp)))/(2.0*VS_Rgn2K)
 	ENDIF
 
 		! Initialize the SAVEd variables:
@@ -220,17 +232,17 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 	!..............................................................................................................................
 	! Read gain-scheduled PI pitch controller gains from file
 	!..............................................................................................................................
-	OPEN(unit=99, file='PitchGains.IN', status='old', action='read')
-	READ(99, *) PC_GS_n
+	OPEN(unit=UnPitchGains, file='PitchGains.IN', status='old', action='read')
+	READ(UnPitchGains, *) PC_GS_n
 	
 	ALLOCATE(PC_GS_angles(PC_GS_n))
-	READ(99,*) PC_GS_angles
+	READ(UnPitchGains,*) PC_GS_angles
 	
 	ALLOCATE(PC_GS_kp(PC_GS_n))
-	READ(99,*) PC_GS_kp
+	READ(UnPitchGains,*) PC_GS_kp
 	
 	ALLOCATE(PC_GS_ki(PC_GS_n))
-	READ(99,*) PC_GS_ki
+	READ(UnPitchGains,*) PC_GS_ki
 
 	!..............................................................................................................................
 	! Check validity of input parameters:
@@ -282,9 +294,9 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 		ErrMsg  = 'VS_Rgn2K must not be negative.'
 	ENDIF
 
-	IF (VS_Rgn2K*VS_RtGnSp*VS_RtGnSp > VS_RtTq) THEN
+	IF (VS_Rgn2K*VS_RtSpd*VS_RtSpd > VS_RtTq) THEN
 		aviFAIL = -1
-		ErrMsg  = 'VS_Rgn2K*VS_RtGnSp^2 must not be greater than VS_RtTq.'
+		ErrMsg  = 'VS_Rgn2K*VS_RtSpd^2 must not be greater than VS_RtTq.'
 	ENDIF
 
 	IF (VS_MaxTq < VS_RtTq) THEN
@@ -374,21 +386,17 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 		! If we're debugging, open the debug file and write the header:
 
 	IF (DbgOut) THEN
-
 		OPEN (UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='REPLACE')
-		WRITE (UnDb,'(A)')	'   Time '  //Tab//'PitComT  ' //Tab//'PC_KP ' //Tab//'PC_KI  ' //Tab//'Y_MErr  '
-		WRITE (UnDb,'(A)')	'   (sec) ' //Tab//'(rad)    '  //Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   '
+		WRITE (UnDb,'(A)')	'   Time '  //Tab//'PitComT  ' //Tab//'PC_KP ' //Tab//'PC_KI  ' //Tab//'Y_MErr  ' //Tab//'rootMOOP(1)  '
+		WRITE (UnDb,'(A)')	'   (sec) ' //Tab//'(rad)    '  //Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   ' //Tab//'(?)   '
 		
 		OPEN(UnDb2, FILE=TRIM(RootName)//'.dbg2', STATUS='REPLACE')
 		WRITE(UnDb2,'(/////)')
 		WRITE(UnDb2,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'Time ', (i,i=1,85)
 		WRITE(UnDb2,'(A,85("'//Tab//'(-)"))')  '(s)'
-
-		
 	ENDIF
 
 ENDIF
-
 
 !------------------------------------------------------------------------------------------------------------------------------
 ! Main control calculations
@@ -405,7 +413,6 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 		aviFAIL = -1
 		ErrMsg  = 'Pitch angle actuator not requested.'
 	ENDIF
-
 
 		! Set unused outputs to zero (See Appendix A of Bladed User's Guide):
 
@@ -465,8 +472,8 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 	LastGenTrq = GenTrq
 
 		! Set the generator contactor status, avrSWAP(35), to main (high speed)
-		!   variable-speed generator, the torque override to yes, and command the
-		!   generator torque (See Appendix A of Bladed User's Guide):
+		! variable-speed generator, the torque override to yes, and command the
+		! generator torque (See Appendix A of Bladed User's Guide):
 
 	avrSWAP(35) = 1.0          ! Generator contactor status: 1=main (high speed) variable-speed generator
 	avrSWAP(56) = 0.0          ! Torque override: 0=yes
@@ -486,13 +493,13 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 	ElapTime = Time - LastTimePC
 
 		! Compute the gain scheduling correction factor based on the previously
-		!   commanded pitch angle for blade 1:
+		! commanded pitch angle for blade 1:
 
 	PC_KP = interp1d(PC_GS_angles, PC_GS_kp, PitComT)
 	PC_KI = interp1d(PC_GS_angles, PC_GS_ki, PitComT)
 
 		! Compute the current speed error and its integral w.r.t. time; saturate the
-		!   integral term using the pitch angle limits:
+		! integral term using the pitch angle limits:
 
 	PC_SpdErr = PC_RefSpd - GenSpeedF									! Current speed error
 
@@ -503,7 +510,7 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 
 		! Individual pitch control
 
-	CALL IPC(rootMOOP, Azimuth, IPC_phi, Y_MErr, DT, IPC_KI, IPC_omegaHP, IPC_omegaLP, IPC_omegaNotch, IPC_zetaHP, IPC_zetaLP, IPC_zetaNotch, iStatus, NumBl, IPC_PitComF)
+	CALL IPC(rootMOOP, Azimuth, IPC_phi, Y_MErr, DT, IPC_KI, IPC_omegaHP, IPC_omegaLP, IPC_omegaNotch, IPC_zetaHP, IPC_zetaLP, IPC_zetaNotch, iStatus, Y_ControlMode, NumBl, IPC_PitComF)
 
 		! Combine and saturate all pitch commands:
 
@@ -511,7 +518,7 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 		PitComT_IPC(K) = PitComT + IPC_PitComF(K)							! Add the individual pitch command
 		PitComT_IPC(K) = saturate(PitComT_IPC(K), PC_MinPit, PC_MaxPit)			! Saturate the overall command using the pitch angle limits
 		
-		PitCom(K) = ratelimit(PitComT_IPC(K), BlPitch(K), -PC_MaxRat, PC_MaxRat, DT)	! Saturate the overall command of blade K using the pitch rate limit
+		PitCom(K) = ratelimit(PitComT_IPC(K), BlPitch(K), PC_MinRat, PC_MaxRat, DT)	! Saturate the overall command of blade K using the pitch rate limit
 		PitCom(K) = saturate(PitComT_IPC(K), PC_MinPit, PC_MaxPit)						! Saturate the overall command using the pitch angle limits
 	ENDDO
 
@@ -530,35 +537,35 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 
 	LastTimePC = Time
 
-
 	!..............................................................................................................................
 	! Yaw control
 	!..............................................................................................................................
+	
+	IF (Y_ControlMode == 1) THEN
+		avrSWAP(29) = 0									! Yaw control parameter: 0 = yaw rate control
+		IF (Time >= Y_YawEndT) THEN											! Check if the turbine is currently yawing
+			avrSWAP(48) = 0.0													! Set yaw rate to zero
 
-	avrSWAP(29) = 0															! Yaw control parameter: 0 = yaw rate control
-	IF (Time >=  Y_YawEndT) THEN											! Check if the turbine is currently yawing
-		avrSWAP(48) = 0.0													! Set yaw rate to zero
+			Y_ErrLPFFast = LPFilter(Y_MErr, DT, Y_omegaLPFast, iStatus, .FALSE., 2)		! Fast low pass filtered yaw error with a frequency of 1
+			Y_ErrLPFSlow = LPFilter(Y_MErr, DT, Y_omegaLPSlow, iStatus, .FALSE., 3)		! Slow low pass filtered yaw error with a frequency of 1/60
 
-		Y_ErrLPFFast = LPFilter(Y_MErr, DT, Y_omegaLPFast, iStatus, .FALSE., 2)		! Fast low pass filtered yaw error with a frequency of 1
-		Y_ErrLPFSlow = LPFilter(Y_MErr, DT, Y_omegaLPSlow, iStatus, .FALSE., 3)		! Slow low pass filtered yaw error with a frequency of 1/60
+			Y_AccErr = Y_AccErr + ElapTime*SIGN(Y_ErrLPFFast**2, Y_ErrLPFFast)	! Integral of the fast low pass filtered yaw error
 
-		Y_AccErr = Y_AccErr + ElapTime*SIGN(Y_ErrLPFFast**2, Y_ErrLPFFast)	! Integral of the fast low pass filtered yaw error
-
-		IF (ABS(Y_AccErr) >= Y_ErrThresh) THEN								! Check if accumulated error surpasses the threshold
-			Y_YawEndT = ABS(Y_ErrLPFSlow/Y_YawRate) + Time					! Yaw to compensate for the slow low pass filtered error
+			IF (ABS(Y_AccErr) >= Y_ErrThresh) THEN								! Check if accumulated error surpasses the threshold
+				Y_YawEndT = ABS(Y_ErrLPFSlow/Y_YawRate) + Time					! Yaw to compensate for the slow low pass filtered error
+			END IF
+		ELSE
+			avrSWAP(48) = SIGN(Y_YawRate, Y_MErr)		! Set yaw rate to predefined yaw rate, the sign of the error is copied to the rate
+			Y_ErrLPFFast = LPFilter(Y_MErr, DT, Y_omegaLPFast, iStatus, .TRUE., 2)		! Fast low pass filtered yaw error with a frequency of 1
+			Y_ErrLPFSlow = LPFilter(Y_MErr, DT, Y_omegaLPSlow, iStatus, .TRUE., 3)		! Slow low pass filtered yaw error with a frequency of 1/60
+			Y_AccErr = 0.0								! "
 		END IF
-	ELSE
-		avrSWAP(48) = SIGN(Y_YawRate, Y_MErr)		! Set yaw rate to predefined yaw rate, the sign of the error is copied to the rate
-		Y_ErrLPFFast = LPFilter(Y_MErr, DT, Y_omegaLPFast, iStatus, .TRUE., 2)		! Fast low pass filtered yaw error with a frequency of 1
-		Y_ErrLPFSlow = LPFilter(Y_MErr, DT, Y_omegaLPSlow, iStatus, .TRUE., 3)		! Slow low pass filtered yaw error with a frequency of 1/60
-		Y_AccErr = 0.0								! "
 	END IF
-
 	!..............................................................................................................................
 		! Output debugging information if requested:
 
 	IF (DbgOut)  THEN
-		WRITE (UnDb,FmtDat)	Time,	PitComT,	PC_KP,	PC_KI,	Y_MErr
+		WRITE (UnDb,FmtDat)	Time,	PitComT,	PC_KP,	PC_KI,	Y_MErr,	rootMOOP(1)
 		WRITE (UnDb2,FmtDat) Time, avrSWAP(1:85)
 	END IF
 

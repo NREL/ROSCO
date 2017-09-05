@@ -1,6 +1,6 @@
 !-------------------------------------------------------------------------------------------------------------------------------
 ! Individual pitch control subroutine
-SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, omegaHP, omegaLP, omegaNotch, zetaHP, zetaLP, zetaNotch, iStatus, NumBl, PitComIPCF)
+SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, omegaHP, omegaLP, omegaNotch, zetaHP, zetaLP, zetaNotch, iStatus, Y_ControlMode, NumBl, PitComIPCF)
 !...............................................................................................................................
 
 	USE :: FunctionToolbox
@@ -28,8 +28,9 @@ SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, omegaHP, omegaLP, om
 	REAL(4), INTENT(IN)		:: zetaHP							! High-pass filter damping value
 	REAL(4), INTENT(IN)		:: zetaLP							! Low-pass filter damping value
 	REAL(4), INTENT(IN)		:: zetaNotch						! Notch filter damping value
-	INTEGER, INTENT(IN)		:: iStatus							! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
-	INTEGER, INTENT(IN)		:: NumBl							! Number of turbine blades
+	INTEGER(4), INTENT(IN)	:: iStatus							! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
+	INTEGER(4), INTENT(IN)	:: NumBl							! Number of turbine blades
+	INTEGER(4), INTENT(IN)	:: Y_ControlMode					! Yaw control mode
 
 		! Outputs
 
@@ -57,7 +58,7 @@ SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, omegaHP, omegaLP, om
 
 		! Calculate commanded IPC pitch angles
 
-	CALL CalculatePitCom(rootMOOPF, aziAngle, Y_MErr, DT, KInter, omegaHP, zetaHP, phi, iStatus, PitComIPC)
+	CALL CalculatePitCom(rootMOOPF, aziAngle, Y_MErr, DT, KInter, omegaHP, zetaHP, phi, iStatus, Y_ControlMode, PitComIPC)
 
 		! Filter PitComIPC with second order low pass filter
 
@@ -78,7 +79,7 @@ CONTAINS
 	! Calculates the commanded pitch angles.
 	! NOTE: if it is required for this subroutine to be used multiple times (for 1p and 2p IPC for example), the saved variables
 	! IntAxisTilt and IntAxisYaw need to be modified so that they support multiple instances (see LPFilter in the Filters module).
-	SUBROUTINE CalculatePitCom(rootMOOP, aziAngle, Y_MErr, DT, KInter, omegaHP, zetaHP, phi, iStatus, PitComIPC)
+	SUBROUTINE CalculatePitCom(rootMOOP, aziAngle, Y_MErr, DT, KInter, omegaHP, zetaHP, phi, iStatus, Y_ControlMode, PitComIPC)
 	!...............................................................................................................................
 
 		IMPLICIT NONE
@@ -92,8 +93,9 @@ CONTAINS
 		REAL(4), INTENT(IN)		:: omegaHP							! High-pass filter cut-in frequency
 		REAL(4), INTENT(IN)		:: phi								! Phase offset added to the azimuth angle
 		REAL(4), INTENT(IN)		:: zetaHP							! High-pass filter damping value
-		INTEGER, INTENT(IN)		:: iStatus							! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
-
+		INTEGER(4), INTENT(IN)	:: iStatus							! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
+		INTEGER(4), INTENT(IN)	:: Y_ControlMode					! Yaw control mode
+		
 			! Outputs
 
 		REAL(4), INTENT(OUT)	:: PitComIPC(3)						! Commanded pitch angle of each rotor blade
@@ -107,18 +109,18 @@ CONTAINS
 		REAL(4)					:: PitComIPC_woYaw(3)
 		
 			! Debugging
-		INTEGER(4), PARAMETER			:: UnDb = 95									! I/O unit for the debugging information
-		CHARACTER(LEN=7), PARAMETER	:: RootName = "IPC_DBG"								! 
-		CHARACTER(1), PARAMETER		:: Tab = CHAR(9)									! The tab character.
-		CHARACTER(25), PARAMETER		:: FmtDat = "(F8.3,99('"//Tab//"',ES10.3E2,:))"	! The format of the debugging data
-		INTEGER(4)					:: FirstCall = 1
+		! INTEGER(4), PARAMETER			:: UnDb = 95									! I/O unit for the debugging information
+		! CHARACTER(LEN=7), PARAMETER	:: RootName = "IPC_DBG"								! 
+		! CHARACTER(1), PARAMETER		:: Tab = CHAR(9)									! The tab character.
+		! CHARACTER(25), PARAMETER		:: FmtDat = "(F8.3,99('"//Tab//"',ES10.3E2,:))"	! The format of the debugging data
+		! INTEGER(4)					:: FirstCall = 1
 		
-		IF (FirstCall == 1) THEN
-			OPEN ( UnDb, FILE=TRIM( RootName )//'.dbg', STATUS='REPLACE' )
-			WRITE (UnDb,'(A)')  'Y_MErr'  //Tab//'Y_MErrF' //Tab//'Y_MErrF_IPC' //Tab//'axisYaw' //Tab//'axisYawF' //Tab//'IntAxisYaw'//Tab//'IntAxisYawIPC'//Tab//'PitComIPC1'//Tab//'PitComIPC2'//Tab//'PitComIPC3'//Tab//'PitComIPC_woYaw1'//Tab//'PitComIPC_woYaw2'//Tab//'PitComIPC_woYaw3'
+		! IF (FirstCall == 1) THEN
+			! OPEN ( UnDb, FILE=TRIM( RootName )//'.dbg', STATUS='REPLACE' )
+			! WRITE (UnDb,'(A)')  'Y_MErr'  //Tab//'Y_MErrF' //Tab//'Y_MErrF_IPC' //Tab//'axisYaw' //Tab//'axisYawF' //Tab//'IntAxisYaw'//Tab//'IntAxisYawIPC'//Tab//'PitComIPC1'//Tab//'PitComIPC2'//Tab//'PitComIPC3'//Tab//'PitComIPC_woYaw1'//Tab//'PitComIPC_woYaw2'//Tab//'PitComIPC_woYaw3'
 			
-			FirstCall = 0
-		END IF
+			! FirstCall = 0
+		! END IF
 
 			! Initialization
 
@@ -135,19 +137,21 @@ CONTAINS
 
 		CALL ColemanTransform(rootMOOP, aziAngle, axisTilt, axisYaw)
 
-			! High-pass filter the MBC yaw component
+			! High-pass filter the MBC yaw component and filter yaw alignment error
 		
-		axisYawF = HPFilter(axisYaw, DT, omegaHP, iStatus, 1)
+		IF (Y_ControlMode == 2) THEN
+			axisYawF = HPFilter(axisYaw, DT, omegaHP, iStatus, 1)
+			Y_MErrF = SecLPFilter(Y_MErr, DT, omegaLP, zetaLP, iStatus, 1)
+		ELSE
+			axisYawF = axisYaw
+			Y_MErrF = 0.0
+		END IF
 		
 			! Integrate the signal and multiply with the IPC gain
 
 		IntAxisTilt	= IntAxisTilt + DT * KInter * axisTilt
 		IntAxisYaw	= IntAxisYaw + DT * KInter * axisYawF
 		
-			! Filter yaw alignment error
-		
-		Y_MErrF = SecLPFilter(Y_MErr, DT, omegaLP, zetaLP, iStatus, K)
-			
 			! Compute and add the yaw-by-IPC contribution
 
 		Y_MErrF_IPC = PIController(Y_MErrF, -0.16, -0.002, -100.0, 100.0, DT, 0.0, 3)
@@ -156,9 +160,8 @@ CONTAINS
 			! Pass direct and quadrature axis through the inverse Coleman transform to get the commanded pitch angles
 		
 		CALL ColemanTransformInverse(IntAxisTilt, IntAxisYawIPC, aziAngle, phi, PitComIPC)
-		CALL ColemanTransformInverse(IntAxisTilt, IntAxisYaw, aziAngle, phi, PitComIPC_woYaw)
 		
-		WRITE (UnDb,FmtDat)  Y_MErr,	Y_MErrF,	Y_MErrF_IPC,	axisYaw, axisYawF,	IntAxisYaw,	IntAxisYawIPC,	PitComIPC,	PitComIPC_woYaw
+		! WRITE (UnDb,FmtDat)  Y_MErr,	Y_MErrF,	Y_MErrF_IPC,	axisYaw, axisYawF,	IntAxisYaw,	IntAxisYawIPC,	PitComIPC,	PitComIPC_woYaw
 		
 	END SUBROUTINE CalculatePitCom
 	!-------------------------------------------------------------------------------------------------------------------------------
