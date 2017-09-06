@@ -3,20 +3,16 @@
 SUBROUTINE DISCON (avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG) BIND (C, NAME='DISCON')
 !DEC$ ATTRIBUTES DLLEXPORT :: DISCON
 
-   ! 18/08/2017
+   ! 06/09/2017
 
    ! This Bladed-style DLL controller is used to implement a variable-speed
    ! generator-torque controller, PI collective blade pitch controller, individual pitch
    ! controller and yaw controller for the NREL Offshore 5MW baseline wind turbine.
-   ! This routine was extended by S. Mulders, J. Hoorneman and J. Govers of TU Delft.
-   ! The routine is based on the routine as written by J. Jonkman of NREL/NWTC for use
-   ! in the IEA Annex XXIII OC3 studies.
+   ! This routine was extended by S.P. Mulders, J. Hoorneman and J. Govers of TU Delft.
+   ! The routine is based on the routine as written by J. Jonkman of NREL/NWTC.
 
    ! DO NOT REMOVE or MODIFY LINES starting with "!DEC$" or "!GCC$"
    ! !DEC$ specifies attributes for IVF and !GCC$ specifies attributes for gfortran
-
-   ! Note that gfortran v5.x on Mac produces compiler errors with the DLLEXPORT attribute,
-   ! so the compiler directive IMPLICIT_DLLEXPORT is added.
 
 USE, INTRINSIC	:: ISO_C_Binding
 USE				:: FunctionToolbox
@@ -44,7 +40,7 @@ CHARACTER(KIND=C_CHAR), INTENT(INOUT)	:: avcMSG(NINT(avrSWAP(49)))		! MESSAGE (M
 
 REAL(4)						:: Azimuth											! Rotor azimuth angle [rad].
 REAL(4)						:: BlPitch(3)										! Current values of the blade pitch angles [rad].
-REAL(4), PARAMETER			:: CornerFreq = 0.7853981							! Corner frequency (-3dB point) in the recursive, single-pole, low-pass filter [rad/s]. -- chosen to be 1/4 the blade edgewise natural frequency (1/4 of approx. 1 [Hz] = 0.25 [Hz] = 1.570796 [rad/s]).
+REAL(4), PARAMETER			:: CornerFreq = 0.7853981							! Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
 REAL(4)						:: DT												! Time step [s].
 REAL(4)						:: ElapTime											! Elapsed time since the last call to the controller [s].
 REAL(4)						:: GenSpeed											! Current  HSS (generator) speed [rad/s].
@@ -87,24 +83,21 @@ REAL(4), PARAMETER			:: R2D = 57.295780									! Factor to convert radians to d
 REAL(4)						:: rootMOOP(3)										! Blade root out of plane bending moments, [Nm].
 REAL(4), PARAMETER			:: RPS2RPM = 9.5492966								! Factor to convert radians per second to revolutions per minute.
 REAL(4)						:: Time												! Current simulation time, [s].
-REAL(4), PARAMETER			:: VS_CtInSp = 70.16224								! Transitional generator speed (HSS side) between regions 1 and 1 1/2, [rad/s].
-REAL(4), PARAMETER			:: VS_KP = -4200.0									! Proportional gain for generator PI torque controller, used in the transitional 2.5 region
-REAL(4), PARAMETER			:: VS_KI = -2100.0									! Integral gain for generator PI torque controller, used in the transitional 2.5 region
+REAL(4), SAVE				:: VS_CtInSp										! Transitional generator speed (HSS side) between regions 1 and 1 1/2, [rad/s].
+INTEGER(4), SAVE			:: VS_n												! Number of controller gains
+REAL(4), DIMENSION(:), ALLOCATABLE, SAVE	:: VS_KP							! Proportional gain for generator PI torque controller, used in the transitional 2.5 region
+REAL(4), DIMENSION(:), ALLOCATABLE, SAVE	:: VS_KI							! Integral gain for generator PI torque controller, used in the transitional 2.5 region
 REAL(4)						:: VS_MaxOM											! Optimal mode maximum speed, [rad/s].
-REAL(4), PARAMETER			:: VS_MaxRat = 15000.0								! Maximum torque rate (in absolute value) in torque controller, [Nm/s].
-REAL(4), PARAMETER			:: VS_MaxTq = 47402.91								! Maximum generator torque in Region 3 (HSS side), [Nm]. -- chosen to be 10% above VS_RtTq
+REAL(4), SAVE				:: VS_MaxRat										! Maximum torque rate (in absolute value) in torque controller, [Nm/s].
+REAL(4)						:: VS_MaxTq											! Maximum generator torque in Region 3 (HSS side), [Nm]. -- chosen to be 10% above VS_RtTq
+REAL(4)						:: VS_MinOM											! Optimal mode minimum speed, [rad/s].
 REAL(4)						:: VS_Rgn2K											! Generator torque constant in Region 2 (HSS side), N-m/(rad/s)^2.
-REAL(4), PARAMETER			:: VS_Rgn2Sp = 91.21091								! Transitional generator speed (HSS side) between regions 1 1/2 and 2, [rad/s].
 REAL(4), SAVE				:: VS_Rgn2MaxTq										! Maximum torque at the end of the below-rated region 2, [Nm]
 REAL(4), SAVE				:: VS_Rgn3MP										! Minimum pitch angle at which the torque is computed as if we are in region 3 regardless of the generator speed, [rad]. -- chosen to be 1.0 degree above PC_SetPnt
 REAL(4)						:: VS_RtTq											! Rated torque, [Nm].
 REAL(4)						:: VS_RtSpd											! Rated generator speed [rad/s]
 REAL(4), SAVE				:: VS_Slope15										! Torque/speed slope of region 1 1/2 cut-in torque ramp , [Nm/(rad/s)].
-REAL(4), SAVE				:: VS_Slope25										! Torque/speed slope of region 2 1/2 induction generator, [Nm/(rad/s)].
-REAL(4), PARAMETER			:: VS_SlPc = 10.0									! Rated generator slip percentage in Region 2 1/2, [%].
 REAL(4)						:: VS_SpdErr										! Current speed error (generator torque control) [rad/s].
-REAL(4), SAVE				:: VS_SySp											! Synchronous speed of region 2 1/2 induction generator, [rad/s].
-REAL(4), SAVE				:: VS_TrGnSp										! Transitional generator speed (HSS side) between regions 2 and 2 1/2, [rad/s].
 REAL(4), SAVE				:: Y_AccErr											! Accumulated yaw error [rad].
 INTEGER(4), SAVE			:: Y_ControlMode									! Yaw control mode: (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC)
 REAL(4)						:: Y_ErrLPFFast										! Filtered yaw error by fast low pass filter [rad].
@@ -116,7 +109,7 @@ REAL(4), PARAMETER			:: Y_omegaLPFast = 1.0								! Corner frequency fast low p
 REAL(4), PARAMETER			:: Y_omegaLPSlow = 0.016666667						! Corner frequency slow low pass filter, 1/60 [Hz].
 REAL(4), SAVE				:: Y_YawEndT										! Yaw end time, [s]. Indicates the time up until which yaw is active with a fixed rate.
 
-REAL(4)						:: testValue										! TestValue
+! REAL(4)						:: testValue										! TestValue
 
 INTEGER(4)					:: I												! Generic index.
 INTEGER(4)					:: iStatus											! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
@@ -149,6 +142,7 @@ PC_MaxPit		= avrSWAP(7)
 PC_MinRat		= avrSWAP(8)
 PC_MaxRat		= avrSWAP(9)
 VS_Rgn2K		= avrSWAP(16)
+VS_MinOM		= avrSWAP(17)
 VS_MaxOM		= avrSWAP(18)
 VS_RtSpd		= avrSWAP(19)
 PC_RefSpd		= avrSWAP(19)
@@ -165,6 +159,7 @@ Azimuth			= avrSWAP(60)
 NumBl			= NINT(avrSWAP(61))
 
 PC_RtTq99		= VS_RtTq*0.99
+VS_MaxTq		= VS_RtTq*1.1
 VS_Rgn2MaxTq	= VS_Rgn2K*VS_MaxOM**2
 VS_Rgn3MP		= PC_SetPnt + 1.0/R2D
 
@@ -189,11 +184,11 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 
 		! Inform users that we are using this user-defined routine:
 
-	aviFAIL  = 1
-	ErrMsg   = 'Running with torque and pitch control of the NREL offshore '// &
-			  '5MW baseline wind turbine from DISCON.dll as written by J. '// &
-			  'Jonkman of NREL/NWTC for use in the IEA Annex XXIII OC3 '   // &
-			  'studies.'
+	aviFAIL = 1
+	ErrMsg = 'Running the Delft Research Controller (DRC) for the NREL'		// &
+			'5MW baseline wind turbine from DISCON.dll.'					// &
+			'Delft Univeristy of Technology'								// &
+			'Based on baseline NREL5MW controller by J. Jonkman'
 
 		! Read user defined parameter file
 
@@ -205,21 +200,16 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 	
 	Y_ControlMode	= NINT(avrSWAP(120))
 	Y_YawRate		= avrSWAP(121)
+	VS_CtInSp		= avrSWAP(122)
+	VS_MaxRat		= avrSWAP(123)
 	
 		! Determine some torque control parameters not specified directly:
 
-	VS_SySp = VS_RtSpd/(1.0 + 0.01*VS_SlPc)
-	VS_Slope15 = (VS_Rgn2K*VS_Rgn2Sp*VS_Rgn2Sp)/(VS_Rgn2Sp - VS_CtInSp)
-	VS_Slope25 = (VS_RtTq)/(VS_RtSpd - VS_SySp)
-	IF (VS_Rgn2K == 0.0) THEN		! .TRUE. if the Region 2 torque is flat, and thus, the denominator in the ELSE condition is zero
-		VS_TrGnSp	= VS_SySp
-	ELSE							! .TRUE. if the Region 2 torque is quadratic with speed
-		VS_TrGnSp = (VS_Slope25 - SQRT(VS_Slope25*(VS_Slope25 - 4.0*VS_Rgn2K*VS_SySp)))/(2.0*VS_Rgn2K)
-	ENDIF
+	VS_Slope15 = (VS_Rgn2K*VS_MinOM*VS_MinOM)/(VS_MinOM - VS_CtInSp)
 
-		! Initialize the SAVEd variables:
+	! Initialize the SAVEd variables:
 		! NOTE: LastGenTrq, though SAVEd, is initialized in the torque controller
-		!       below for simplicity, not here.
+		! below for simplicity, not here.
 	
 	PitCom		= BlPitch							! This will ensure that the variable speed controller picks the correct control region and the pitch controller picks the correct gain on the first call
 	Y_AccErr	= 0.0								! This will ensure that the accumulated yaw error starts at zero
@@ -230,7 +220,7 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 	LastTimeVS	= Time - DT							! This will ensure that the torque controller is called on the first pass
 
 	!..............................................................................................................................
-	! Read gain-scheduled PI pitch controller gains from file
+	! Read gain-scheduled PI pitch controller gains and torque controller gains from file
 	!..............................................................................................................................
 	OPEN(unit=UnPitchGains, file='PitchGains.IN', status='old', action='read')
 	READ(UnPitchGains, *) PC_GS_n
@@ -243,6 +233,14 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 	
 	ALLOCATE(PC_GS_ki(PC_GS_n))
 	READ(UnPitchGains,*) PC_GS_ki
+	
+	READ(UnPitchGains, *) VS_n
+	
+	ALLOCATE(VS_KP(VS_n))
+	READ(UnPitchGains,*) VS_KP
+	
+	ALLOCATE(VS_KI(VS_n))
+	READ(UnPitchGains,*) VS_KI
 
 	!..............................................................................................................................
 	! Check validity of input parameters:
@@ -264,19 +262,9 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 		ErrMsg  = 'VS_CtInSp must not be negative.'
 	ENDIF
 
-	IF (VS_Rgn2Sp <= VS_CtInSp) THEN
+	IF (VS_MinOM <= VS_CtInSp) THEN
 		aviFAIL = -1
-		ErrMsg  = 'VS_Rgn2Sp must be greater than VS_CtInSp.'
-	ENDIF
-
-	IF (VS_TrGnSp <  VS_Rgn2Sp) THEN
-		aviFAIL = -1
-		ErrMsg = 'VS_TrGnSp must not be less than VS_Rgn2Sp.'
-	ENDIF
-
-	IF (VS_SlPc <= 0.0) THEN
-		aviFAIL = -1
-		ErrMsg  = 'VS_SlPc must be greater than zero.'
+		ErrMsg  = 'VS_MinOM must be greater than VS_CtInSp.'
 	ENDIF
 
 	IF (VS_MaxRat <= 0.0) THEN
@@ -304,12 +292,12 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 		ErrMsg  = 'VS_RtTq must not be greater than VS_MaxTq.'
 	ENDIF
 
-	IF (VS_KP > 0.0) THEN
+	IF (VS_KP(1) > 0.0) THEN
 		aviFAIL = -1
 		ErrMsg  = 'VS_KP must be greater than zero.'
 	ENDIF
 
-	IF (VS_KI > 0.0) THEN
+	IF (VS_KI(1) > 0.0) THEN
 		aviFAIL = -1
 		ErrMsg  = 'VS_KI must be greater than zero.'
 	ENDIF
@@ -443,14 +431,14 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 	IF (PitComT >= VS_Rgn3MP) THEN												! We are in region 3 - power is constant
 		GenTrq = VS_RtTq
 	ELSE
-		GenTrq = PIController(VS_SpdErr, VS_KP, VS_KI, VS_Rgn2MaxTq, VS_RtTq, DT, VS_Rgn2MaxTq, 1)
+		GenTrq = PIController(VS_SpdErr, VS_KP(1), VS_KI(1), VS_Rgn2MaxTq, VS_RtTq, DT, VS_Rgn2MaxTq, 1)
 		IF (GenTrq >= VS_Rgn2MaxTq*1.01) THEN
 			CONTINUE
 		ELSEIF (GenSpeedF <= VS_CtInSp)  THEN										! We are in region 1 - torque is zero
 			GenTrq = 0.0
-		ELSEIF (GenSpeedF < VS_Rgn2Sp)  THEN										! We are in region 1 1/2 - linear ramp in torque from zero to optimal
+		ELSEIF (GenSpeedF < VS_MinOM)  THEN										! We are in region 1 1/2 - linear ramp in torque from zero to optimal
 			GenTrq = VS_Slope15*(GenSpeedF - VS_CtInSp)
-		ELSEIF (GenSpeedF < VS_TrGnSp)  THEN										! We are in region 2 - optimal torque is proportional to the square of the generator speed
+		ELSEIF (GenSpeedF < VS_MaxOM)  THEN										! We are in region 2 - optimal torque is proportional to the square of the generator speed
 			GenTrq = VS_Rgn2K*GenSpeedF*GenSpeedF
 		ELSE																		! We are in region 2 1/2 - simple induction generator transition region
 			GenTrq = VS_Rgn2MaxTq
@@ -565,8 +553,8 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 		! Output debugging information if requested:
 
 	IF (DbgOut)  THEN
-		WRITE (UnDb,FmtDat)	Time,	PitComT,	PC_KP,	PC_KI,	Y_MErr,	rootMOOP(1)
-		WRITE (UnDb2,FmtDat) Time, avrSWAP(1:85)
+		WRITE (UnDb,FmtDat)		Time,	PitComT,	PC_KP,	PC_KI,	Y_MErr,	rootMOOP(1)
+		WRITE (UnDb2,FmtDat)	Time, avrSWAP(1:85)
 	END IF
 
 		! Reset the value of LastTime to the current value:

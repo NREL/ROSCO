@@ -13,7 +13,7 @@ false         DLL_Ramp     - Whether a linear ramp should be used between DLL_DT
        -8.0   PtchRate_Min - Record  8: Minimum pitch rate (most negative value allowed) (deg/s) [used only with Bladed Interface]
         8.0   PtchRate_Max - Record  9: Maximum pitch rate  (deg/s) [used only with Bladed Interface]
    2.332287   Gain_OM      - Record 16: Optimal mode gain (Nm/(rad/s)^2) [used only with Bladed Interface]
-          0   GenSpd_MinOM - Record 17: Minimum generator speed (rpm) [used only with Bladed Interface]
+      871.0   GenSpd_MinOM - Record 17: Minimum generator speed (rpm) [used only with Bladed Interface]
     1173.70   GenSpd_MaxOM - Record 18: Optimal mode maximum speed (rpm) [used only with Bladed Interface]
     1173.70   GenSpd_Dem   - Record 19: Demanded generator speed above rated (rpm) [used only with Bladed Interface]
    43093.55   GenTrq_Dem   - Record 22: Demanded generator torque above rated (Nm) [used only with Bladed Interface]

@@ -9,7 +9,7 @@ CONTAINS
 
     !-------------------------------------------------------------------------------------------------------------------------------
     ! Discrete time Low-Pass Filter
-    REAL FUNCTION LPFilter( InputSignal, DT, CornerFreq, iStatus, reset, inst)
+    REAL FUNCTION LPFilter(InputSignal, DT, CornerFreq, iStatus, reset, inst)
     !...............................................................................................................................
 
 		IMPLICIT NONE
