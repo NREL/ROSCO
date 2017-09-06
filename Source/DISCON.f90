@@ -72,7 +72,7 @@ REAL(4)						:: PC_MaxPitVar										! Maximum pitch setting in pitch controlle
 REAL(4)						:: PC_MaxRat										! Maximum pitch rate (in absolute value) in pitch controller, [rad/s].
 REAL(4)						:: PC_MinPit										! Minimum physical pitch limit, [rad].
 REAL(4)						:: PC_MinRat										! Minimum pitch rate (in absolute value) in pitch controller, [rad/s].
-REAL(4)						:: PC_RefSpd										! Desired (reference) HSS speed for pitch controller, [rad/s].
+REAL(4), SAVE				:: PC_RefSpd										! Desired (reference) HSS speed for pitch controller, [rad/s].
 REAL(4)						:: PC_RtTq99										! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
 REAL(4)						:: PC_SetPnt										! Fine pitch angle, [rad].
 REAL(4)						:: PC_SpdErr										! Current speed error (pitch control) [rad/s].
@@ -145,7 +145,6 @@ VS_Rgn2K		= avrSWAP(16)
 VS_MinOM		= avrSWAP(17)
 VS_MaxOM		= avrSWAP(18)
 VS_RtSpd		= avrSWAP(19)
-PC_RefSpd		= avrSWAP(19)
 GenSpeed		= avrSWAP(20)
 VS_RtTq			= avrSWAP(22)
 Y_MErr			= avrSWAP(24)
@@ -202,6 +201,7 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 	Y_YawRate		= avrSWAP(121)
 	VS_CtInSp		= avrSWAP(122)
 	VS_MaxRat		= avrSWAP(123)
+	PC_RefSpd		= avrSWAP(124)
 	
 		! Determine some torque control parameters not specified directly:
 
