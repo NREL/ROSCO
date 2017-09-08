@@ -53,7 +53,7 @@ SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, omegaHP, omegaLP, om
 	DO K = 1,NumBl
 		! Instances 1-3 of the Notch Filter are reserved for this routine.
 		rootMOOPF(K) = rootMOOP(K)	! Notch filter currently not in use
-		!rootMOOPF(K) = NotchFilter(rootMOOP(K), DT, omegaNotch, zetaNotch, iStatus, K)
+		!rootMOOPF(K) = WHICHNOTCHFILTERFUNCTION(rootMOOP(K), DT, omegaNotch, zetaNotch, iStatus, K) !! CHECK
 	END DO
 
 		! Calculate commanded IPC pitch angles

@@ -61,12 +61,6 @@ CONTAINS
 		REAL(4), DIMENSION(99), SAVE	:: ITermLast							! Integral term, the last time this controller was called. Supports 99 separate instances.
 		INTEGER(4), DIMENSION(99), SAVE	:: FirstCall = (/ (1, i=1,99) /)		! First call of this function?
 		
-			! Debugging
-		! INTEGER(4), PARAMETER			:: UnDb = 90									! I/O unit for the debugging information
-		! CHARACTER(LEN=6), PARAMETER	:: RootName = "PI_DBG"							! 
-		! CHARACTER(1), PARAMETER		:: Tab = CHAR(9)								! The tab character.
-		! CHARACTER(25), PARAMETER		:: FmtDat = "(F8.3,99('"//Tab//"',ES10.3E2,:))"	! The format of the debugging data
-		
 			! Initialize persistent variables/arrays, and set inital condition for integrator term
 		IF (FirstCall(inst) == 1) THEN
 			ITerm(1:99) = (/ (real(9999.9), i = 1,99) /)
@@ -74,10 +68,6 @@ CONTAINS
 			
 			ITerm(inst) = I0
 			ITermLast(inst) = I0
-			
-			! OPEN ( UnDb, FILE=TRIM( RootName )//'.dbg', STATUS='REPLACE' )
-			! WRITE (UnDb,'(/////)')
-			! WRITE (UnDb,'(A)')  'FirstCall(inst)'  //Tab//'ITerm(inst)' //Tab//'error ' //Tab//'kp  ' //Tab//'ki ' //Tab//'DT'
 			
 			FirstCall(inst) = 0
 		END IF
@@ -92,8 +82,6 @@ CONTAINS
 		
 		! WRITE (UnDb,FmtDat)  real(FirstCall(inst)),	ITerm(inst),	error,	kp,	ki,	DT
 	END FUNCTION PIController
-	!-------------------------------------------------------------------------------------------------------------------------------
-	
 	!-------------------------------------------------------------------------------------------------------------------------------
 	! interp1 1-D interpolation (table lookup), xData and yData should be monotonically increasing
 	REAL FUNCTION interp1d(xData, yData, xq)
@@ -122,29 +110,35 @@ CONTAINS
 		
 	END FUNCTION interp1d
 	!-------------------------------------------------------------------------------------------------------------------------------
-	! Read gain gain scheduled pitch gains from file PitchGains.IN
-	! SUBROUTINE readPitchGains(angles, kp, ki)
-	
-		! IMPLICIT NONE
+	! PI controller, with output saturation
+	REAL FUNCTION DFController(error, Kd, Tf, DT, inst)
+	!
+		IMPLICIT NONE
 
-		! REAL, DIMENSION(:), ALLOCATABLE, INTENT(OUT)	:: angles, kp, ki
-		! INTEGER											:: n
+			! Inputs
+		REAL(4), INTENT(IN)		:: error
+		REAL(4), INTENT(IN)		:: kd
+		REAL(4), INTENT(IN)		:: tf
+		REAL(4), INTENT(IN)		:: DT
+		INTEGER(4), INTENT(IN)	:: inst
+		
+			! Local
+		REAL(4)							:: B									! 
+		INTEGER(4)						:: i									! Counter for making arrays
+		REAL(4), DIMENSION(99), SAVE	:: errorLast = (/ (0, i=1,99) /)		! 
+		REAL(4), DIMENSION(99), SAVE	:: DFControllerLast = (/ (0, i=1,99) /)	! 
+		INTEGER(4), DIMENSION(99), SAVE	:: FirstCall = (/ (1, i=1,99) /)		! First call of this function?
+		
+			! Initialize persistent variables/arrays, and set inital condition for integrator term
+		! IF (FirstCall(inst) == 1) THEN
+			! FirstCall(inst) = 0
+		! END IF
+		
+		B = 2.0/DT
+		DFController = (Kd*B)/(B*Tf+1.0)*error - (Kd*B)/(B*Tf+1.0)*errorLast(inst) - (1.0-B*Tf)/(B*Tf+1.0)*DFControllerLast(inst)
 
-		! OPEN(unit=99, file='PitchGains.IN', status='old', action='read')
-		! READ(99, *) n
-		
-		! ALLOCATE(angles(n))
-		! READ(99,*) angles
-		! WRITE(*,*) angles
-		
-		! ALLOCATE(kp(n))
-		! READ(99,*) kp
-		! WRITE(*,*) kp
-		
-		! ALLOCATE(ki(n))
-		! READ(99,*) ki
-		! WRITE(*,*) ki
-		
-	! END SUBROUTINE readPitchGains
-	
+		errorLast(inst) = error
+		DFControllerLast(inst) = DFController
+	END FUNCTION DFController
+	!-------------------------------------------------------------------------------------------------------------------------------
 END MODULE FunctionToolbox

@@ -40,7 +40,7 @@ CHARACTER(KIND=C_CHAR), INTENT(INOUT)	:: avcMSG(NINT(avrSWAP(49)))		! MESSAGE (M
 
 REAL(4)						:: Azimuth											! Rotor azimuth angle [rad].
 REAL(4)						:: BlPitch(3)										! Current values of the blade pitch angles [rad].
-REAL(4), PARAMETER			:: CornerFreq = 0.7853981							! Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
+REAL(4), PARAMETER			:: CornerFreq = 3.1415926							! Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
 REAL(4)						:: DT												! Time step [s].
 REAL(4)						:: ElapTime											! Elapsed time since the last call to the controller [s].
 REAL(4)						:: GenSpeed											! Current  HSS (generator) speed [rad/s].
@@ -63,10 +63,14 @@ REAL(4), SAVE				:: LastTimeVS										! Last time the torque controller was ca
 REAL(4)						:: PC_GK											! Current value of the gain correction factor, used in the gain scheduling law of the pitch controller, [-].
 INTEGER(4), SAVE							:: PC_GS_n							! Amount of gain-scheduling table entries
 REAL(4), DIMENSION(:), ALLOCATABLE, SAVE	:: PC_GS_angles						! Gain-schedule table: pitch angles
-REAL(4), DIMENSION(:), ALLOCATABLE, SAVE	:: PC_GS_kp							! Gain-schedule table: pitch controller kp gainspitch angles
-REAL(4), DIMENSION(:), ALLOCATABLE, SAVE	:: PC_GS_ki							! Gain-schedule table: pitch controller ki gainspitch angles
-REAL(4)						:: PC_KI											! Integral gain for pitch controller at rated pitch (zero), [-].
+REAL(4), DIMENSION(:), ALLOCATABLE, SAVE	:: PC_GS_kp							! Gain-schedule table: pitch controller kp gains
+REAL(4), DIMENSION(:), ALLOCATABLE, SAVE	:: PC_GS_ki							! Gain-schedule table: pitch controller ki gains
+REAL(4), DIMENSION(:), ALLOCATABLE, SAVE	:: PC_GS_kd							! Gain-schedule table: pitch controller kd gains
+REAL(4), DIMENSION(:), ALLOCATABLE, SAVE	:: PC_GS_tf							! Gain-schedule table: pitch controller tf gains (derivative filter)
 REAL(4)						:: PC_KP											! Proportional gain for pitch controller at rated pitch (zero), [s].
+REAL(4)						:: PC_KI											! Integral gain for pitch controller at rated pitch (zero), [-].
+REAL(4)						:: PC_KD											! 
+REAL(4)						:: PC_TF											! 
 REAL(4)						:: PC_MaxPit										! Maximum physical pitch limit, [rad].
 REAL(4)						:: PC_MaxPitVar										! Maximum pitch setting in pitch controller (variable) [rad].
 REAL(4)						:: PC_MaxRat										! Maximum pitch rate (in absolute value) in pitch controller, [rad/s].
@@ -233,6 +237,12 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 	
 	ALLOCATE(PC_GS_ki(PC_GS_n))
 	READ(UnPitchGains,*) PC_GS_ki
+	
+	ALLOCATE(PC_GS_kd(PC_GS_n))
+	READ(UnPitchGains,*) PC_GS_kd
+	
+	ALLOCATE(PC_GS_tf(PC_GS_n))
+	READ(UnPitchGains,*) PC_GS_tf
 	
 	READ(UnPitchGains, *) VS_n
 	
@@ -485,16 +495,18 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 
 	PC_KP = interp1d(PC_GS_angles, PC_GS_kp, PitComT)
 	PC_KI = interp1d(PC_GS_angles, PC_GS_ki, PitComT)
+	PC_KD = interp1d(PC_GS_angles, PC_GS_kd, PitComT)
+	PC_TF = interp1d(PC_GS_angles, PC_GS_tf, PitComT)
 
 		! Compute the current speed error and its integral w.r.t. time; saturate the
 		! integral term using the pitch angle limits:
 
-	PC_SpdErr = PC_RefSpd - GenSpeedF									! Current speed error
+	PC_SpdErr = PC_RefSpd - GenSpeedF									! Current speed error [UNFILTERED SIGNAL!!]
 
 		! Compute the pitch commands associated with the proportional and integral
 		!   gains:
 
-	PitComT = PIController(PC_SpdErr, PC_KP, PC_KI, PC_SetPnt, PC_MaxPitVar, ElapTime, PC_SetPnt, 2)
+	PitComT = PIController(PC_SpdErr, PC_KP, PC_KI, PC_SetPnt, PC_MaxPitVar, ElapTime, PC_SetPnt, 2) + DFController(PC_SpdErr, PC_KD, PC_TF, DT, 1)
 
 		! Individual pitch control
 

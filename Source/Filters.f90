@@ -132,50 +132,103 @@ CONTAINS
 
     END FUNCTION HPFilter
     !-------------------------------------------------------------------------------------------------------------------------------
-    ! Discrete time inverted Notch Filter
-    REAL FUNCTION NotchFilter(InputSignal, DT, CornerFreq, Damp, iStatus, inst)
+    ! Discrete time inverted Notch Filter with descending slopes, G = CornerFreq*s/(Damp*s^2+CornerFreq*s+Damp*CornerFreq^2)
+    REAL FUNCTION NotchFilterSlopes(InputSignal, DT, CornerFreq, Damp, iStatus, inst)
     !...............................................................................................................................
 
         IMPLICIT NONE
 
 			! Inputs
 
-        REAL(4), INTENT(IN)     :: InputSignal
+		REAL(4), INTENT(IN)     :: InputSignal
 		REAL(4), INTENT(IN)     :: DT						! time step [s]
 		REAL(4), INTENT(IN)     :: CornerFreq				! corner frequency [rad/s]
 		REAL(4), INTENT(IN)     :: Damp						! Dampening constant
-        INTEGER, INTENT(IN)		:: iStatus					! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
-        INTEGER, INTENT(IN)		:: inst						! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
+		INTEGER, INTENT(IN)		:: iStatus					! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
+		INTEGER, INTENT(IN)		:: inst						! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
 
 			! Local
 
-        REAL(4), DIMENSION(99), SAVE :: InputSignalLast1	! Input signal the last time this filter was called. Supports 99 separate instances.
+		REAL(4), DIMENSION(99), SAVE :: InputSignalLast1	! Input signal the last time this filter was called. Supports 99 separate instances.
 		REAL(4), DIMENSION(99), SAVE :: InputSignalLast2	! Input signal the next to last time this filter was called. Supports 99 separate instances.
-        REAL(4), DIMENSION(99), SAVE :: OutputSignalLast1	! Output signal the last time this filter was called. Supports 99 separate instances.
-        REAL(4), DIMENSION(99), SAVE :: OutputSignalLast2	! Output signal the next to last time this filter was called. Supports 99 separate instances.
+		REAL(4), DIMENSION(99), SAVE :: OutputSignalLast1	! Output signal the last time this filter was called. Supports 99 separate instances.
+		REAL(4), DIMENSION(99), SAVE :: OutputSignalLast2	! Output signal the next to last time this filter was called. Supports 99 separate instances.
 
 			! Initialization
 
-        IF ( iStatus == 0 )  THEN
-            OutputSignalLast1(inst)  = InputSignal
-            OutputSignalLast2(inst)  = InputSignal
-            InputSignalLast1(inst)   = InputSignal
-            InputSignalLast2(inst)   = InputSignal
-        ENDIF
+		IF ( iStatus == 0 ) THEN
+			OutputSignalLast1(inst)  = InputSignal
+			OutputSignalLast2(inst)  = InputSignal
+			InputSignalLast1(inst)   = InputSignal
+			InputSignalLast2(inst)   = InputSignal
+		ENDIF
 
 			! Body
 
-        NotchFilter = 1.0/(4.0+2.0*DT*Damp*CornerFreq+DT**2.0*CornerFreq**2.0) * ( (8.0-2.0*DT**2.0*CornerFreq**2.0)*OutputSignalLast1(inst) &
+		NotchFilterSlopes = 1.0/(4.0+2.0*DT*Damp*CornerFreq+DT**2.0*CornerFreq**2.0) * ( (8.0-2.0*DT**2.0*CornerFreq**2.0)*OutputSignalLast1(inst) &
 						+ (-4.0+2.0*DT*Damp*CornerFreq-DT**2.0*CornerFreq**2.0)*OutputSignalLast2(inst) + &
 							(2.0*DT*Damp*CornerFreq)*InputSignal + (-2.0*DT*Damp*CornerFreq)*InputSignalLast2(inst) )
 
 			! Save signals for next time step
 
-        InputSignalLast2(inst)   = InputSignalLast1(inst)
-        InputSignalLast1(inst)   = InputSignal			!Save input signal for next time step
-        OutputSignalLast2(inst)  = OutputSignalLast1(inst)		!Save input signal for next time step
-        OutputSignalLast1(inst)  = NotchFilter
+		InputSignalLast2(inst)   = InputSignalLast1(inst)
+		InputSignalLast1(inst)   = InputSignal			!Save input signal for next time step
+		OutputSignalLast2(inst)  = OutputSignalLast1(inst)		!Save input signal for next time step
+		OutputSignalLast1(inst)  = NotchFilter
 
-    END FUNCTION NotchFilter
-    !-------------------------------------------------------------------------------------------------------------------------------
-    END MODULE Filters
+	END FUNCTION NotchFilterSlopes
+	!-------------------------------------------------------------------------------------------------------------------------------
+	! Discrete time inverted Notch Filter with descending slopes, G = (s^2 + 2*omega*betaNum*s + omega^2)/(s^2 + 2*omega*betaDen*s + omega^2)
+	REAL FUNCTION NotchFilter(InputSignal, DT, omega, betaNum, betaDen, iStatus, inst)
+	!...............................................................................................................................
+
+		IMPLICIT NONE
+
+			! Inputs
+
+		REAL(4), INTENT(IN)     :: InputSignal
+		REAL(4), INTENT(IN)     :: DT						! time step [s]
+		REAL(4), INTENT(IN)     :: omega					! corner frequency [rad/s]
+		REAL(4), INTENT(IN)     :: betaNum					! Dampening constant in numerator of filter transfer function
+		REAL(4), INTENT(IN)     :: betaDen					! Dampening constant in denominator of filter transfer function
+		INTEGER, INTENT(IN)		:: iStatus					! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
+		INTEGER, INTENT(IN)		:: inst						! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
+
+			! Local
+		REAL(4)							:: K, P1, P2, P3, P4, P5	! Constant gain
+		REAL(4), DIMENSION(99), SAVE	:: InputSignalLast1			! Input signal the last time this filter was called. Supports 99 separate instances.
+		REAL(4), DIMENSION(99), SAVE	:: InputSignalLast2			! Input signal the next to last time this filter was called. Supports 99 separate instances.
+		REAL(4), DIMENSION(99), SAVE	:: OutputSignalLast1		! Output signal the last time this filter was called. Supports 99 separate instances.
+		REAL(4), DIMENSION(99), SAVE	:: OutputSignalLast2		! Output signal the next to last time this filter was called. Supports 99 separate instances.
+
+			! Initialization
+
+		IF ( iStatus == 0 ) THEN
+			OutputSignalLast1(inst)  = InputSignal
+			OutputSignalLast2(inst)  = InputSignal
+			InputSignalLast1(inst)   = InputSignal
+			InputSignalLast2(inst)   = InputSignal
+		ENDIF
+
+		K = 2/DT
+		P1 = (K**2 + 2*omega*BetaNum*K + omega**2)/(K**2 + 2*omega*BetaDen*K + omega**2)
+		P2 = (2*omega**2 - 2*K**2)  / (K**2 + 2*omega*BetaDen*K + omega**2);
+		P3 = (K**2 - 2*omega*BetaNum*K + omega**2) / (K**2 + 2*omega*BetaDen*K + omega**2)
+		P4 = (2*omega**2 - 2*K**2)  / (K**2 + 2*omega*BetaDen*K + omega**2)
+		P5 = (K**2 - 2*omega*BetaDen*K + omega**2)/ (K**2 + 2*omega*BetaDen*K + omega**2)
+		
+			! Body
+
+			
+		NotchFilter = P1*InputSignal + P2*InputSignalLast1(inst) + P3*InputSignalLast2(inst) - P4*OutputSignalLast1(inst) - P5*OutputSignalLast2(inst)
+
+			! Save signals for next time step
+
+		InputSignalLast2(inst)   = InputSignalLast1(inst)
+		InputSignalLast1(inst)   = InputSignal			!Save input signal for next time step
+		OutputSignalLast2(inst)  = OutputSignalLast1(inst)		!Save input signal for next time step
+		OutputSignalLast1(inst)  = NotchFilter
+
+	END FUNCTION NotchFilter
+	!-------------------------------------------------------------------------------------------------------------------------------
+	END MODULE Filters
