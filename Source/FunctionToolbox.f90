@@ -94,12 +94,12 @@ CONTAINS
 		INTEGER(4)								:: I			! Iteration index
 		
 		IF (xq <= MINVAL(xData)) THEN
-			interp1d = MINVAL(yData)
+			interp1d = yData(1)
 		ELSEIF (xq >= MAXVAL(xData)) THEN
-			interp1d = MAXVAL(yData)
+			interp1d = yData(SIZE(xData))
 		ELSE
 			DO I = 1, SIZE(xData)
-				IF (xData(I) >= xq) THEN
+				IF (xq <= xData(I)) THEN
 					interp1d = yData(I-1) + (yData(I) - yData(I-1))/(xData(I) - xData(I-1))*(xq - xData(I-1))
 					EXIT
 				ELSE

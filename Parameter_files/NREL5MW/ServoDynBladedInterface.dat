@@ -17,4 +17,4 @@ false         DLL_Ramp     - Whether a linear ramp should be used between DLL_DT
     1173.70   GenSpd_MaxOM - Record 18: Optimal mode maximum speed (rpm) [used only with Bladed Interface]
     1173.70   GenSpd_Dem   - Record 19: Demanded generator speed above rated (rpm) [used only with Bladed Interface]
    43093.55   GenTrq_Dem   - Record 22: Demanded generator torque above rated (Nm) [used only with Bladed Interface]
-          0   GenPwr_Dem   - Record 13: Demanded power (W) [used only with Bladed Interface]
+    5.0E+06   GenPwr_Dem   - Record 13: Demanded power (W) [used only with Bladed Interface]

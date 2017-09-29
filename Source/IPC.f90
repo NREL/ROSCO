@@ -1,6 +1,6 @@
 !-------------------------------------------------------------------------------------------------------------------------------
 ! Individual pitch control subroutine
-SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, omegaHP, omegaLP, omegaNotch, zetaHP, zetaLP, zetaNotch, iStatus, Y_ControlMode, NumBl, PitComIPCF)
+SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, omegaHP, omegaLP, omegaNotch, zetaHP, zetaLP, zetaNotch, iStatus, IPC_ControlMode, Y_ControlMode, NumBl, PitComIPCF)
 !...............................................................................................................................
 
 	USE :: FunctionToolbox
@@ -31,6 +31,7 @@ SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, omegaHP, omegaLP, om
 	INTEGER(4), INTENT(IN)	:: iStatus							! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
 	INTEGER(4), INTENT(IN)	:: NumBl							! Number of turbine blades
 	INTEGER(4), INTENT(IN)	:: Y_ControlMode					! Yaw control mode
+	INTEGER(4), INTENT(IN)	:: IPC_ControlMode					! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) on = 1/off = 1
 
 		! Outputs
 
@@ -58,7 +59,7 @@ SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, omegaHP, omegaLP, om
 
 		! Calculate commanded IPC pitch angles
 
-	CALL CalculatePitCom(rootMOOPF, aziAngle, Y_MErr, DT, KInter, omegaHP, zetaHP, phi, iStatus, Y_ControlMode, PitComIPC)
+	CALL CalculatePitCom(rootMOOPF, aziAngle, Y_MErr, DT, KInter, omegaHP, zetaHP, phi, iStatus, IPC_ControlMode, Y_ControlMode, PitComIPC)
 
 		! Filter PitComIPC with second order low pass filter
 
@@ -79,7 +80,7 @@ CONTAINS
 	! Calculates the commanded pitch angles.
 	! NOTE: if it is required for this subroutine to be used multiple times (for 1p and 2p IPC for example), the saved variables
 	! IntAxisTilt and IntAxisYaw need to be modified so that they support multiple instances (see LPFilter in the Filters module).
-	SUBROUTINE CalculatePitCom(rootMOOP, aziAngle, Y_MErr, DT, KInter, omegaHP, zetaHP, phi, iStatus, Y_ControlMode, PitComIPC)
+	SUBROUTINE CalculatePitCom(rootMOOP, aziAngle, Y_MErr, DT, KInter, omegaHP, zetaHP, phi, iStatus, IPC_ControlMode, Y_ControlMode, PitComIPC)
 	!...............................................................................................................................
 
 		IMPLICIT NONE
@@ -95,6 +96,7 @@ CONTAINS
 		REAL(4), INTENT(IN)		:: zetaHP							! High-pass filter damping value
 		INTEGER(4), INTENT(IN)	:: iStatus							! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
 		INTEGER(4), INTENT(IN)	:: Y_ControlMode					! Yaw control mode
+		INTEGER(4), INTENT(IN)	:: IPC_ControlMode					! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) on = 1/off = 1
 		
 			! Outputs
 
@@ -137,24 +139,28 @@ CONTAINS
 
 		CALL ColemanTransform(rootMOOP, aziAngle, axisTilt, axisYaw)
 
-			! High-pass filter the MBC yaw component and filter yaw alignment error
+			! High-pass filter the MBC yaw component and filter yaw alignment error, and compute the yaw-by-IPC contribution
 		
 		IF (Y_ControlMode == 2) THEN
 			axisYawF = HPFilter(axisYaw, DT, omegaHP, iStatus, 1)
 			Y_MErrF = SecLPFilter(Y_MErr, DT, omegaLP, zetaLP, iStatus, 1)
+			Y_MErrF_IPC = PIController(Y_MErrF, -0.16, -0.002, -100.0, 100.0, DT, 0.0, 3)
 		ELSE
 			axisYawF = axisYaw
 			Y_MErrF = 0.0
 		END IF
 		
 			! Integrate the signal and multiply with the IPC gain
-
-		IntAxisTilt	= IntAxisTilt + DT * KInter * axisTilt
-		IntAxisYaw	= IntAxisYaw + DT * KInter * axisYawF
+		IF (IPC_ControlMode == 1) THEN
+			IntAxisTilt	= IntAxisTilt + DT * KInter * axisTilt
+			IntAxisYaw	= IntAxisYaw + DT * KInter * axisYawF
+		ELSE
+			IntAxisTilt = 0.0
+			IntAxisYaw = 0.0
+		END IF
 		
-			! Compute and add the yaw-by-IPC contribution
+			! Add the yaw-by-IPC contribution
 
-		Y_MErrF_IPC = PIController(Y_MErrF, -0.16, -0.002, -100.0, 100.0, DT, 0.0, 3)
 		IntAxisYawIPC = IntAxisYaw + Y_MErrF_IPC
 
 			! Pass direct and quadrature axis through the inverse Coleman transform to get the commanded pitch angles

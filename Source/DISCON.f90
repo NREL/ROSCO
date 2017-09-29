@@ -40,7 +40,7 @@ CHARACTER(KIND=C_CHAR), INTENT(INOUT)	:: avcMSG(NINT(avrSWAP(49)))		! MESSAGE (M
 
 REAL(4)						:: Azimuth											! Rotor azimuth angle [rad].
 REAL(4)						:: BlPitch(3)										! Current values of the blade pitch angles [rad].
-REAL(4), PARAMETER			:: CornerFreq = 3.1415926							! Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
+REAL(4), PARAMETER			:: CornerFreq = 1.570796							! Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
 REAL(4)						:: DT												! Time step [s].
 REAL(4)						:: ElapTime											! Elapsed time since the last call to the controller [s].
 REAL(4)						:: GenSpeed											! Current  HSS (generator) speed [rad/s].
@@ -48,6 +48,7 @@ REAL(4)						:: GenSpeedF										! Filtered HSS (generator) speed [rad/s].
 REAL(4)						:: GenTrq											! Electrical generator torque, [Nm].
 REAL(4)						:: HorWindV											! Horizontal wind speed at hub-height, [m/s].
 REAL(4), PARAMETER			:: IPC_KI = 8E-10									! Integral gain for the individual pitch controller, [-].
+INTEGER(4), SAVE			:: IPC_ControlMode									! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) on = 1/off = 1
 REAL(4), PARAMETER			:: IPC_omegaHP = 0.3141592							! High-pass filter cut-in frequency used to separate yaw-by-IPC contribution from blade load reduction contribution, [rad/s].
 REAL(4), PARAMETER			:: IPC_omegaLP = 0.6283185							! Low-pass filter corner frequency for the individual pitch controller, [rad/s].
 REAL(4), PARAMETER			:: IPC_omegaNotch = 1.269330365						! Notch filter corner frequency for the individual pitch controller, [rad/s].
@@ -87,6 +88,7 @@ REAL(4), PARAMETER			:: R2D = 57.295780									! Factor to convert radians to d
 REAL(4)						:: rootMOOP(3)										! Blade root out of plane bending moments, [Nm].
 REAL(4), PARAMETER			:: RPS2RPM = 9.5492966								! Factor to convert radians per second to revolutions per minute.
 REAL(4)						:: Time												! Current simulation time, [s].
+INTEGER(4), SAVE			:: VS_ControlMode									! Generator torque control mode in above rated conditions, 0 = constant torque / 1 = constant power
 REAL(4), SAVE				:: VS_CtInSp										! Transitional generator speed (HSS side) between regions 1 and 1 1/2, [rad/s].
 INTEGER(4), SAVE			:: VS_n												! Number of controller gains
 REAL(4), DIMENSION(:), ALLOCATABLE, SAVE	:: VS_KP							! Proportional gain for generator PI torque controller, used in the transitional 2.5 region
@@ -98,6 +100,7 @@ REAL(4)						:: VS_MinOM											! Optimal mode minimum speed, [rad/s].
 REAL(4)						:: VS_Rgn2K											! Generator torque constant in Region 2 (HSS side), N-m/(rad/s)^2.
 REAL(4), SAVE				:: VS_Rgn2MaxTq										! Maximum torque at the end of the below-rated region 2, [Nm]
 REAL(4), SAVE				:: VS_Rgn3MP										! Minimum pitch angle at which the torque is computed as if we are in region 3 regardless of the generator speed, [rad]. -- chosen to be 1.0 degree above PC_SetPnt
+REAL(4), SAVE				:: VS_RtPwr											! Wind turbine rated power [W]
 REAL(4)						:: VS_RtTq											! Rated torque, [Nm].
 REAL(4)						:: VS_RtSpd											! Rated generator speed [rad/s]
 REAL(4), SAVE				:: VS_Slope15										! Torque/speed slope of region 1 1/2 cut-in torque ramp , [Nm/(rad/s)].
@@ -110,10 +113,12 @@ REAL(4), PARAMETER			:: Y_ErrThresh = 1.745329252						! Error threshold [rad]. 
 REAL(4), SAVE				:: Y_YawRate										! Yaw rate [rad/s].
 REAL(4)						:: Y_MErr											! Measured yaw error [rad].
 REAL(4), PARAMETER			:: Y_omegaLPFast = 1.0								! Corner frequency fast low pass filter, [Hz].
-REAL(4), PARAMETER			:: Y_omegaLPSlow = 0.016666667						! Corner frequency slow low pass filter, 1/60 [Hz].
+REAL(4), PARAMETER			:: Y_omegaLPSlow = 0.05								! Corner frequency slow low pass filter, 1/60 [Hz].
 REAL(4), SAVE				:: Y_YawEndT										! Yaw end time, [s]. Indicates the time up until which yaw is active with a fixed rate.
 
-! REAL(4)						:: testValue										! TestValue
+REAL(4), SAVE				:: testValue										! TestValue
+REAL(4)						:: PC_KPtest
+REAL(4)						:: PC_KItest
 
 INTEGER(4)					:: I												! Generic index.
 INTEGER(4)					:: iStatus											! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
@@ -145,6 +150,7 @@ PC_MinPit		= avrSWAP(6)
 PC_MaxPit		= avrSWAP(7)
 PC_MinRat		= avrSWAP(8)
 PC_MaxRat		= avrSWAP(9)
+VS_RtPwr		= avrSWAP(13)
 VS_Rgn2K		= avrSWAP(16)
 VS_MinOM		= avrSWAP(17)
 VS_MaxOM		= avrSWAP(18)
@@ -206,6 +212,12 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 	VS_CtInSp		= avrSWAP(122)
 	VS_MaxRat		= avrSWAP(123)
 	PC_RefSpd		= avrSWAP(124)
+	IPC_ControlMode	= avrSWAP(125)
+	VS_ControlMode	= avrSWAP(126)
+	
+		! Initialize testValue (debugging variable)
+		
+	testValue = 0.0
 	
 		! Determine some torque control parameters not specified directly:
 
@@ -385,8 +397,8 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 
 	IF (DbgOut) THEN
 		OPEN (UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='REPLACE')
-		WRITE (UnDb,'(A)')	'   Time '  //Tab//'PitComT  ' //Tab//'PC_KP ' //Tab//'PC_KI  ' //Tab//'Y_MErr  ' //Tab//'rootMOOP(1)  '
-		WRITE (UnDb,'(A)')	'   (sec) ' //Tab//'(rad)    '  //Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   ' //Tab//'(?)   '
+		WRITE (UnDb,'(A)')	'   Time '  //Tab//'PitComT  ' //Tab//'PC_SpdError  ' //Tab//'PC_KP ' //Tab//'PC_KI  ' //Tab//'Y_MErr  ' //Tab//'rootMOOP(1)  '//Tab//'VS_RtPwr  '//Tab//'GenTrq  '
+		WRITE (UnDb,'(A)')	'   (sec) ' //Tab//'(rad)    '  //Tab//'(rad/s) '//Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   ' //Tab//'(?)   ' //Tab//'(W)   '//Tab//'(Nm)  '
 		
 		OPEN(UnDb2, FILE=TRIM(RootName)//'.dbg2', STATUS='REPLACE')
 		WRITE(UnDb2,'(/////)')
@@ -437,9 +449,13 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 	
 		! Compute the generator torque, which depends on which region we are in:
 		
-	VS_SpdErr = VS_RtSpd - GenSpeedF											! Current speed error
-	IF (PitComT >= VS_Rgn3MP) THEN												! We are in region 3 - power is constant
-		GenTrq = VS_RtTq
+	VS_SpdErr = VS_RtSpd - GenSpeedF					! Current speed error
+	IF (PitComT >= VS_Rgn3MP) THEN						! We are in region 3
+		IF (VS_ControlMode == 1) THEN					! Constant power tracking
+			GenTrq = VS_RtPwr/GenSpeedF
+		ELSE											! Constant torque tracking
+			GenTrq = VS_RtTq
+		END IF
 	ELSE
 		GenTrq = PIController(VS_SpdErr, VS_KP(1), VS_KI(1), VS_Rgn2MaxTq, VS_RtTq, DT, VS_Rgn2MaxTq, 1)
 		IF (GenTrq >= VS_Rgn2MaxTq*1.01) THEN
@@ -481,11 +497,14 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 	! Pitch control
 	!..............................................................................................................................
 
-	IF (GenTrq > PC_RtTq99) THEN
+	IF (VS_ControlMode == 0 .AND. GenTrq > PC_RtTq99) THEN
+		PC_MaxPitVar = PC_MaxPit
+	ELSEIF (VS_ControlMode == 1 .AND. GenTrq >= VS_RtPwr/GenSpeedF*0.99) THEN
 		PC_MaxPitVar = PC_MaxPit
 	ELSE
 		PC_MaxPitVar = PC_SetPnt
 	END IF
+
 		! Compute the elapsed time since the last call to the controller:
 
 	ElapTime = Time - LastTimePC
@@ -497,29 +516,36 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 	PC_KI = interp1d(PC_GS_angles, PC_GS_ki, PitComT)
 	PC_KD = interp1d(PC_GS_angles, PC_GS_kd, PitComT)
 	PC_TF = interp1d(PC_GS_angles, PC_GS_tf, PitComT)
+	PC_KPtest = interp1d(PC_GS_angles, PC_GS_kp, testValue)
+	PC_KItest = interp1d(PC_GS_angles, PC_GS_ki, testValue)
+	testValue = testValue + 0.001
 
 		! Compute the current speed error and its integral w.r.t. time; saturate the
 		! integral term using the pitch angle limits:
 
-	PC_SpdErr = PC_RefSpd - GenSpeedF									! Current speed error [UNFILTERED SIGNAL!!]
+	PC_SpdErr = PC_RefSpd - GenSpeedF									! Current speed error
 
 		! Compute the pitch commands associated with the proportional and integral
 		!   gains:
 
 	PitComT = PIController(PC_SpdErr, PC_KP, PC_KI, PC_SetPnt, PC_MaxPitVar, ElapTime, PC_SetPnt, 2) + DFController(PC_SpdErr, PC_KD, PC_TF, DT, 1)
-
+	
 		! Individual pitch control
-
-	CALL IPC(rootMOOP, Azimuth, IPC_phi, Y_MErr, DT, IPC_KI, IPC_omegaHP, IPC_omegaLP, IPC_omegaNotch, IPC_zetaHP, IPC_zetaLP, IPC_zetaNotch, iStatus, Y_ControlMode, NumBl, IPC_PitComF)
+	IF (IPC_ControlMode == 1) THEN
+		CALL IPC(rootMOOP, Azimuth, IPC_phi, Y_MErr, DT, IPC_KI, IPC_omegaHP, IPC_omegaLP, IPC_omegaNotch, IPC_zetaHP, IPC_zetaLP, IPC_zetaNotch, iStatus, IPC_ControlMode, Y_ControlMode, NumBl, IPC_PitComF)
+	ELSE
+		IPC_PitComF = 0.0
+	END IF
 
 		! Combine and saturate all pitch commands:
 
 	DO K = 1,NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
-		PitComT_IPC(K) = PitComT + IPC_PitComF(K)							! Add the individual pitch command
-		PitComT_IPC(K) = saturate(PitComT_IPC(K), PC_MinPit, PC_MaxPit)			! Saturate the overall command using the pitch angle limits
+		PitComT_IPC(K) = PitComT + IPC_PitComF(K)									! Add the individual pitch command
+		PitComT_IPC(K) = saturate(PitComT_IPC(K), PC_MinPit, PC_MaxPit)				! Saturate the overall command using the pitch angle limits
 		
-		PitCom(K) = ratelimit(PitComT_IPC(K), BlPitch(K), PC_MinRat, PC_MaxRat, DT)	! Saturate the overall command of blade K using the pitch rate limit
-		PitCom(K) = saturate(PitComT_IPC(K), PC_MinPit, PC_MaxPit)						! Saturate the overall command using the pitch angle limits
+		! PitCom(K) = ratelimit(PitComT_IPC(K), BlPitch(K), PC_MinRat, PC_MaxRat, DT)	! Saturate the overall command of blade K using the pitch rate limit
+		PitCom(K) = saturate(PitComT_IPC(K), PC_MinPit, PC_MaxPit)					! Saturate the overall command using the pitch angle limits
+		PitCom(K) = LPFilter(PitCom(K), DT, CornerFreq, iStatus, .FALSE., K+3)
 	ENDDO
 
 		! Set the pitch override to yes and command the pitch demanded from the last
@@ -565,7 +591,7 @@ IF ((iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculati
 		! Output debugging information if requested:
 
 	IF (DbgOut)  THEN
-		WRITE (UnDb,FmtDat)		Time,	PitComT,	PC_KP,	PC_KI,	Y_MErr,	rootMOOP(1)
+		WRITE (UnDb,FmtDat)		Time,	PitComT,	PC_SpdErr,	PC_KP,	PC_KI,	Y_MErr,	rootMOOP(1), VS_RtPwr, GenTrq,	testValue,	PC_KPtest,	PC_KItest
 		WRITE (UnDb2,FmtDat)	Time, avrSWAP(1:85)
 	END IF
 
