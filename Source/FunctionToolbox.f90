@@ -40,7 +40,7 @@ CONTAINS
 	END FUNCTION ratelimit
 	!-------------------------------------------------------------------------------------------------------------------------------
 	! PI controller, with output saturation
-	REAL FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, inst)
+	REAL FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, reset, inst)
 	!
 		IMPLICIT NONE
 
@@ -53,34 +53,33 @@ CONTAINS
 		REAL(4), INTENT(IN)		:: DT
 		INTEGER(4), INTENT(IN)	:: inst
 		REAL(4), INTENT(IN)		:: I0
+		LOGICAL, INTENT(IN)		:: reset
 		
 			! Local
-		INTEGER(4)						:: i									! Counter for making arrays
-		REAL(4)							:: PTerm								! Proportional term
-		REAL(4), DIMENSION(99), SAVE	:: ITerm								! Integral term, current.
-		REAL(4), DIMENSION(99), SAVE	:: ITermLast							! Integral term, the last time this controller was called. Supports 99 separate instances.
-		INTEGER(4), DIMENSION(99), SAVE	:: FirstCall = (/ (1, i=1,99) /)		! First call of this function?
+		INTEGER(4)						:: i											! Counter for making arrays
+		REAL(4)							:: PTerm										! Proportional term
+		REAL(4), DIMENSION(99), SAVE	:: ITerm = (/ (real(9999.9), i = 1,99) /)		! Integral term, current.
+		REAL(4), DIMENSION(99), SAVE	:: ITermLast = (/ (real(9999.9), i = 1,99) /)	! Integral term, the last time this controller was called. Supports 99 separate instances.
+		INTEGER(4), DIMENSION(99), SAVE	:: FirstCall = (/ (1, i=1,99) /)				! First call of this function?
 		
 			! Initialize persistent variables/arrays, and set inital condition for integrator term
-		IF (FirstCall(inst) == 1) THEN
-			ITerm(1:99) = (/ (real(9999.9), i = 1,99) /)
-			ITermLast(1:99) = (/ (real(9999.9), i = 1,99) /)
-			
+		IF ((FirstCall(inst) == 1) .OR. reset) THEN
 			ITerm(inst) = I0
 			ITermLast(inst) = I0
 			
 			FirstCall(inst) = 0
+			PIController = I0
+		ELSE
+		
+			PTerm = kp*error
+			ITerm(inst) = ITerm(inst) + DT*ki*error
+			ITerm(inst) = saturate(ITerm(inst), minValue, maxValue)
+			PIController = PTerm + ITerm(inst)
+			PIController = saturate(PIController, minValue, maxValue)
+		
+			ITermLast(inst) = ITerm(inst)
 		END IF
 		
-		PTerm = kp*error
-		ITerm(inst) = ITerm(inst) + DT*ki*error
-		ITerm(inst) = saturate(ITerm(inst), minValue, maxValue)
-		PIController = PTerm + ITerm(inst)
-		PIController = saturate(PIController, minValue, maxValue)
-
-		ITermLast(inst) = ITerm(inst)
-		
-		! WRITE (UnDb,FmtDat)  real(FirstCall(inst)),	ITerm(inst),	error,	kp,	ki,	DT
 	END FUNCTION PIController
 	!-------------------------------------------------------------------------------------------------------------------------------
 	! interp1 1-D interpolation (table lookup), xData and yData should be monotonically increasing
