@@ -1,10 +1,10 @@
-0                                         =             User Variable 1: Yaw control mode (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC)
+0                                        =             User Variable 1: Yaw control mode (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC)
 0.005235988                               =             User Variable 2: Yaw rate, [rad/s]
 26.179938                                 =             User Variable 3: VS_CtInSp, cut-in speed, [rad/s]
 150000.0                                  =             User Variable 4: VS_MaxRat, maximum torque change rate, [Nm/s]
 50.26548                                  =             User Variable 5: PC_RefSpd, generator speed setpoint for the pitch controller, [rad/s]
-0                                         =             User Variable 6: IPC mode for load reductions (0 = off, 1 = on)
-0                                         =             User Variable 7: Above rated control (0 = constant torque control, 1 = constant power control)
-0.0                                       =             User Variable 8:
+0                                        =             User Variable 6: IPC mode for load reductions (0 = off, 1 = on)
+0                                        =             User Variable 7: Above rated control (0 = constant torque control, 1 = constant power control)
+0.00000                                     =             User Variable 8: Yaw alignment error, setpoint [rad]
 0.0                                       =             User Variable 9:
 0.0                                       =             User Variable 10:

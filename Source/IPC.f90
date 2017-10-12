@@ -1,6 +1,6 @@
 !-------------------------------------------------------------------------------------------------------------------------------
 ! Individual pitch control subroutine
-SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, omegaHP, omegaLP, omegaNotch, zetaHP, zetaLP, zetaNotch, iStatus, IPC_ControlMode, Y_ControlMode, NumBl, PitComIPCF)
+SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, Y_IPC_KP, Y_IPC_KI, omegaHP, omegaLP, omegaNotch, zetaHP, zetaLP, zetaNotch, iStatus, IPC_ControlMode, Y_ControlMode, NumBl, PitComIPCF)
 !...............................................................................................................................
 
 	USE :: FunctionToolbox
@@ -24,14 +24,16 @@ SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, omegaHP, omegaLP, om
 	REAL(4), INTENT(IN)		:: omegaNotch						! Notch filter frequency
 	REAL(4), INTENT(IN)		:: phi								! Phase offset added to the azimuth angle
 	REAL(4), INTENT(IN)		:: rootMOOP(3)						! Root out of plane bending moments of each blade
-	REAL(4), INTENT(IN)		:: Y_MErr							! Yaw alignment error [rad]
+	REAL(4), INTENT(IN)		:: Y_MErr							! Yaw alignment error, measured [rad]
 	REAL(4), INTENT(IN)		:: zetaHP							! High-pass filter damping value
 	REAL(4), INTENT(IN)		:: zetaLP							! Low-pass filter damping value
 	REAL(4), INTENT(IN)		:: zetaNotch						! Notch filter damping value
 	INTEGER(4), INTENT(IN)	:: iStatus							! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
 	INTEGER(4), INTENT(IN)	:: NumBl							! Number of turbine blades
 	INTEGER(4), INTENT(IN)	:: Y_ControlMode					! Yaw control mode
-	INTEGER(4), INTENT(IN)	:: IPC_ControlMode					! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) on = 1/off = 1
+	REAL(4), INTENT(IN)		:: Y_IPC_KP							! Yaw-by-IPC proportional controller gain Kp
+	REAL(4), INTENT(IN)		:: Y_IPC_KI							! Yaw-by-IPC integral controller gain Ki
+	INTEGER(4), INTENT(IN)	:: IPC_ControlMode					! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) on = 1/off = 0
 
 		! Outputs
 
@@ -59,7 +61,7 @@ SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, omegaHP, omegaLP, om
 
 		! Calculate commanded IPC pitch angles
 
-	CALL CalculatePitCom(rootMOOPF, aziAngle, Y_MErr, DT, KInter, omegaHP, zetaHP, phi, iStatus, IPC_ControlMode, Y_ControlMode, PitComIPC)
+	CALL CalculatePitCom(rootMOOPF, aziAngle, Y_MErr, DT, KInter, Y_IPC_KP, Y_IPC_KI, omegaHP, zetaHP, phi, iStatus, IPC_ControlMode, Y_ControlMode, PitComIPC)
 
 		! Filter PitComIPC with second order low pass filter
 
@@ -80,7 +82,7 @@ CONTAINS
 	! Calculates the commanded pitch angles.
 	! NOTE: if it is required for this subroutine to be used multiple times (for 1p and 2p IPC for example), the saved variables
 	! IntAxisTilt and IntAxisYaw need to be modified so that they support multiple instances (see LPFilter in the Filters module).
-	SUBROUTINE CalculatePitCom(rootMOOP, aziAngle, Y_MErr, DT, KInter, omegaHP, zetaHP, phi, iStatus, IPC_ControlMode, Y_ControlMode, PitComIPC)
+	SUBROUTINE CalculatePitCom(rootMOOP, aziAngle, Y_MErr, DT, KInter, Y_IPC_KP, Y_IPC_KI, omegaHP, zetaHP, phi, iStatus, IPC_ControlMode, Y_ControlMode, PitComIPC)
 	!...............................................................................................................................
 
 		IMPLICIT NONE
@@ -96,7 +98,10 @@ CONTAINS
 		REAL(4), INTENT(IN)		:: zetaHP							! High-pass filter damping value
 		INTEGER(4), INTENT(IN)	:: iStatus							! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
 		INTEGER(4), INTENT(IN)	:: Y_ControlMode					! Yaw control mode
-		INTEGER(4), INTENT(IN)	:: IPC_ControlMode					! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) on = 1/off = 1
+		REAL(4), INTENT(IN)		:: Y_MErr							! Yaw alignment error, measured [rad]
+		REAL(4), INTENT(IN)		:: Y_IPC_KP							! Yaw-by-IPC proportional controller gain Kp
+		REAL(4), INTENT(IN)		:: Y_IPC_KI							! Yaw-by-IPC integral controller gain Ki
+		INTEGER(4), INTENT(IN)	:: IPC_ControlMode					! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) on = 1/off = 0
 		
 			! Outputs
 
@@ -107,7 +112,7 @@ CONTAINS
 		REAL(4)					:: axisTilt, axisYaw, axisYawF		! Direct axis and quadrature axis outputted by Coleman transform
 		REAL(4), SAVE			:: IntAxisTilt, IntAxisYaw			! Integral of the direct axis and quadrature axis
 		REAL(4)					:: IntAxisYawIPC					! IPC contribution with yaw-by-IPC component
-		REAL(4)					:: Y_MErr, Y_MErrF, Y_MErrF_IPC		! Unfiltered and filtered yaw alignment error [rad]
+		REAL(4)					:: Y_MErrF, Y_MErrF_IPC		! Unfiltered and filtered yaw alignment error [rad]
 		REAL(4)					:: PitComIPC_woYaw(3)
 		
 			! Debugging
@@ -144,7 +149,7 @@ CONTAINS
 		IF (Y_ControlMode == 2) THEN
 			axisYawF = HPFilter(axisYaw, DT, omegaHP, iStatus, 1)
 			Y_MErrF = SecLPFilter(Y_MErr, DT, omegaLP, zetaLP, iStatus, 1)
-			Y_MErrF_IPC = PIController(Y_MErrF, -0.16, -0.002, -100.0, 100.0, DT, 0.0, 3)
+			Y_MErrF_IPC = PIController(Y_MErrF, Y_IPC_KP, Y_IPC_KI, -100.0, 100.0, DT, 0.0, .FALSE., 3)
 		ELSE
 			axisYawF = axisYaw
 			Y_MErrF = 0.0
