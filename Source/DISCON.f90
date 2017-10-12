@@ -212,7 +212,7 @@ IF (iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 
 	aviFAIL = 1
 	ErrMsg = 'Running the Delft Research Controller (DRC)\n'		// &
-			'Delft Univeristy of Technology\n'						// &
+			'Delft University of Technology\n'						// &
 			'Based on baseline NREL5MW controller by J. Jonkman'
 
 		! Read user defined parameter file
