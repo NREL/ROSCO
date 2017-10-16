@@ -109,7 +109,7 @@ CONTAINS
 		
 	END FUNCTION interp1d
 	!-------------------------------------------------------------------------------------------------------------------------------
-	! PI controller, with output saturation
+	! DF controller, with output saturation
 	REAL FUNCTION DFController(error, Kd, Tf, DT, inst)
 	!
 		IMPLICIT NONE
@@ -139,5 +139,45 @@ CONTAINS
 		errorLast(inst) = error
 		DFControllerLast(inst) = DFController
 	END FUNCTION DFController
+	!-------------------------------------------------------------------------------------------------------------------------------
+	! PRBS identification signal generator function
+	!REAL FUNCTION PRBSgen(mean, amplitude, cycleTime, seed, initValue, reset, inst)
+	!!
+	!	IMPLICIT NONE
+    !
+	!		! Inputs
+	!	REAL(4), INTENT(IN)		:: mean
+	!	REAL(4), INTENT(IN)		:: amplitude
+	!	INTEGER(4), INTENT(IN)	:: cycleTime
+	!	INTEGER(4), INTENT(IN)	:: seed
+	!	LOGICAL, INTENT(IN)		:: reset
+	!	REAL(4), INTENT(IN)		:: initValue
+	!	
+	!		! Local
+	!	INTEGER(4)				:: i											! Counter for making arrays
+	!	REAL(4)					:: randomNumber
+	!	INTEGER(4), DIMENSION(99), SAVE	:: FirstCall = (/ (1, i=1,99) /)
+	!	
+	!	IF ((FirstCall(inst) == 1) .OR. reset) THEN
+	!		RANDOM_NUMBER(1)
+	!		RAND(seed)
+	!		
+	!		FirstCall(inst) = 0
+	!		PRBSgen = initValue
+	!	ELSE
+	!		randomNumber = RAND()
+	!		
+	!		IF randomNumber > 0.5 THEN
+	!			randomNumber = 1
+	!		ELSE
+	!			randomNumber = 0
+	!		END IF
+	!		
+	!		randomNumber = randomNumber - 0.5
+	!		randomNumber = randomNumber*amplitude*2 + mean
+	!		PRBSgen = randomNumber
+	!	END IF
+	!	
+	!END FUNCTION PRBSgen
 	!-------------------------------------------------------------------------------------------------------------------------------
 END MODULE FunctionToolbox
