@@ -19,7 +19,7 @@ BITS = 32
 
 DLL_DIR     = .
 
-SOURCE_FILE = FunctionToolbox.f90 Filters.f90 IPC.f90 DISCON.f90
+SOURCE_FILE = DRC_Types.f90 ReadParameters.f90 FunctionToolbox.f90 Filters.f90 IPC.f90 DISCON.f90
 
 
    # Name of compiler to use and flags to use.
