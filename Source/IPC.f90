@@ -1,11 +1,12 @@
 !-------------------------------------------------------------------------------------------------------------------------------
 ! Individual pitch control subroutine
-SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, Y_IPC_KP, Y_IPC_KI, omegaHP, omegaLP, omegaNotch, zetaHP, zetaLP, zetaNotch, iStatus, IPC_ControlMode, Y_ControlMode, NumBl, PitComIPCF, objInst)
+!SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, Y_IPC_KP, Y_IPC_KI, omegaHP, omegaLP, omegaNotch, zetaHP, zetaLP, zetaNotch, iStatus, IPC_ControlMode, Y_ControlMode, NumBl, PitComIPCF, objInst)
+SUBROUTINE IPC(LocalVar, CntrPar, objInst)
 !...............................................................................................................................
 
 	USE :: FunctionToolbox
 	USE :: Filters
-	USE DRC_Types, ONLY : ObjectInstances
+	USE DRC_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
 
 	IMPLICIT NONE
 
@@ -15,37 +16,39 @@ SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, Y_IPC_KP, Y_IPC_KI, 
 
 		! Inputs
 
-	REAL(4), INTENT(IN)		:: aziAngle							! Rotor azimuth angle
-	REAL(4), INTENT(IN)		:: DT								! Time step
-	REAL(4), INTENT(IN)		:: KInter							! Gain for the integrator
-	REAL(4), INTENT(IN)		:: omegaHP							! High-pass filter cut-in frequency
-	REAL(4), INTENT(IN)		:: omegaLP							! Low-pass filter cut-off frequency
-	REAL(4), INTENT(IN)		:: omegaNotch						! Notch filter frequency
-	REAL(4), INTENT(IN)		:: phi								! Phase offset added to the azimuth angle
-	REAL(4), INTENT(IN)		:: rootMOOP(3)						! Root out of plane bending moments of each blade
-	REAL(4), INTENT(IN)		:: Y_MErr							! Yaw alignment error, measured [rad]
-	REAL(4), INTENT(IN)		:: zetaHP							! High-pass filter damping value
-	REAL(4), INTENT(IN)		:: zetaLP							! Low-pass filter damping value
-	REAL(4), INTENT(IN)		:: zetaNotch						! Notch filter damping value
-	INTEGER(4), INTENT(IN)	:: iStatus							! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
-	INTEGER(4), INTENT(IN)	:: NumBl							! Number of turbine blades
-	INTEGER(4), INTENT(IN)	:: Y_ControlMode					! Yaw control mode
-	REAL(4), INTENT(IN)		:: Y_IPC_KP							! Yaw-by-IPC proportional controller gain Kp
-	REAL(4), INTENT(IN)		:: Y_IPC_KI							! Yaw-by-IPC integral controller gain Ki
-	INTEGER(4), INTENT(IN)	:: IPC_ControlMode					! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) on = 1/off = 0
+	!REAL(4), INTENT(IN)		:: LocalVar%Azimuth							! Rotor azimuth angle
+	!REAL(4), INTENT(IN)		:: LocalVar%DT								! Time step
+	!REAL(4), INTENT(IN)		:: CntrPar%IPC_KI							! Gain for the integrator
+	!REAL(4), INTENT(IN)		:: CntrPar%IPC_omegaHP							! High-pass filter cut-in frequency
+	!REAL(4), INTENT(IN)		:: CntrPar%IPC_omegaLP							! Low-pass filter cut-off frequency
+	!REAL(4), INTENT(IN)		:: CntrPar%IPC_omegaNotch						! Notch filter frequency
+	!REAL(4), INTENT(IN)		:: CntrPar%IPC_phi								! Phase offset added to the azimuth angle
+	!REAL(4), INTENT(IN)		:: LocalVariables%rootMOOP(3)						! Root out of plane bending moments of each blade
+	!REAL(4), INTENT(IN)		:: LocalVariables%Y_MErr							! Yaw alignment error, measured [rad]
+	!REAL(4), INTENT(IN)		:: CntrPar%IPC_zetaHP							! High-pass filter damping value
+	!REAL(4), INTENT(IN)		:: CntrPar%IPC_zetaLP							! Low-pass filter damping value
+	!REAL(4), INTENT(IN)		:: CntrPar%IPC_zetaNotch						! Notch filter damping value
+	!INTEGER(4), INTENT(IN)	:: LocalVariables%iStatus							! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
+	!INTEGER(4), INTENT(IN)	:: LocalVariables%NumBl							! Number of turbine blades
+	!INTEGER(4), INTENT(IN)	:: CntrPar%Y_ControlMode					! Yaw control mode
+	!REAL(4), INTENT(IN)		:: CntrPar%Y_IPC_KP							! Yaw-by-IPC proportional controller gain Kp
+	!REAL(4), INTENT(IN)		:: CntrPar%Y_IPC_KI							! Yaw-by-IPC integral controller gain Ki
+	!INTEGER(4), INTENT(IN)	:: CntrPar%IPC_ControlMode					! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) on = 1/off = 0
 
 		! Outputs
 
-	REAL(4), INTENT(OUT)	:: PitComIPCF(3)					! Filtered pitch angle of each rotor blade
+	!REAL(4), INTENT(OUT)	:: LocalVar%IPC_PitComF(3)					! Filtered pitch angle of each rotor blade
 	
 		! Inputs/outputs
 		
+	TYPE(LocalVariables), INTENT(INOUT)		:: LocalVar
+	TYPE(ControlParameters), INTENT(IN)		:: CntrPar
 	TYPE(ObjectInstances), INTENT(INOUT)	:: objInst
 
 		! Local variables
 
 	REAL(4), PARAMETER		:: PI = 3.14159265359				! Mathematical constant pi
-	REAL(4)					:: rootMOOPF(3), PitComIPC(3)		! 
+	REAL(4)					:: PitComIPC(3)
 	INTEGER(4)				:: K								! Integer used to loop through turbine blades
 	REAL(4)					:: axisTilt, axisYaw, axisYawF		! Direct axis and quadrature axis outputted by Coleman transform
 	REAL(4), SAVE			:: IntAxisTilt, IntAxisYaw			! Integral of the direct axis and quadrature axis
@@ -62,19 +65,15 @@ SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, Y_IPC_KP, Y_IPC_KI, 
 	!------------------------------------------------------------------------------------------------------------------------------
 		! Filter rootMOOPs with notch filter
 
-	DO K = 1,NumBl
+	!DO K = 1,LocalVar%NumBl
 		! Instances 1-3 of the Notch Filter are reserved for this routine.
-		rootMOOPF(K) = rootMOOP(K)	! Notch filter currently not in use
-		!rootMOOPF(K) = WHICHNOTCHFILTERFUNCTION(rootMOOP(K), DT, omegaNotch, zetaNotch, iStatus, K) !! CHECK
-	END DO
-
-		! Calculate commanded IPC pitch angles
-	!CALL CalculatePitCom(rootMOOPF, aziAngle, Y_MErr, DT, KInter, Y_IPC_KP, Y_IPC_KI, omegaHP, omegaLP, zetaHP, zetaLP, phi, iStatus, IPC_ControlMode, Y_ControlMode, PitComIPC, objInst)
+	!	rootMOOPF(K) = LocalVar%rootMOOP(K)	! Notch filter currently not in use
+	!END DO
 
 		! Initialization
 			! Set integrals to be 0 in the first time step
 
-	IF(iStatus==0)  THEN
+	IF(LocalVar%iStatus==0)  THEN
 		IntAxisTilt = 0.0
 		IntAxisYaw = 0.0
 	END IF
@@ -82,23 +81,23 @@ SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, Y_IPC_KP, Y_IPC_KI, 
 		! Body
 			! Pass rootMOOPs through the Coleman transform to get the direct and quadrature axis
 
-	CALL ColemanTransform(rootMOOP, aziAngle, axisTilt, axisYaw)
+	CALL ColemanTransform(LocalVar%rootMOOP, LocalVar%Azimuth, axisTilt, axisYaw)
 
 		! High-pass filter the MBC yaw component and filter yaw alignment error, and compute the yaw-by-IPC contribution
 	
-	IF (Y_ControlMode == 2) THEN
-		axisYawF = HPFilter(axisYaw, DT, omegaHP, iStatus, .FALSE., objInst%instHPF)
-		Y_MErrF = SecLPFilter(Y_MErr, DT, omegaLP, zetaLP, iStatus, .FALSE., objInst%instSecLPF)
-		Y_MErrF_IPC = PIController(Y_MErrF, Y_IPC_KP, Y_IPC_KI, -100.0, 100.0, DT, 0.0, .FALSE., 3)
+	IF (CntrPar%Y_ControlMode == 2) THEN
+		axisYawF = HPFilter(axisYaw, LocalVar%DT, CntrPar%IPC_omegaHP, LocalVar%iStatus, .FALSE., objInst%instHPF)
+		Y_MErrF = SecLPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%IPC_omegaLP, CntrPar%IPC_zetaLP, LocalVar%iStatus, .FALSE., objInst%instSecLPF)
+		Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP(1), CntrPar%Y_IPC_KI(1), -100.0, 100.0, LocalVar%DT, 0.0, .FALSE., 3)
 	ELSE
 		axisYawF = axisYaw
 		Y_MErrF = 0.0
 	END IF
 	
 		! Integrate the signal and multiply with the IPC gain
-	IF (IPC_ControlMode == 1) THEN
-		IntAxisTilt	= IntAxisTilt + DT * KInter * axisTilt
-		IntAxisYaw	= IntAxisYaw + DT * KInter * axisYawF
+	IF (CntrPar%IPC_ControlMode == 1) THEN
+		IntAxisTilt	= IntAxisTilt + LocalVar%DT * CntrPar%IPC_KI * axisTilt
+		IntAxisYaw	= IntAxisYaw + LocalVar%DT * CntrPar%IPC_KI * axisYawF
 	ELSE
 		IntAxisTilt = 0.0
 		IntAxisYaw = 0.0
@@ -110,14 +109,14 @@ SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, Y_IPC_KP, Y_IPC_KI, 
 
 		! Pass direct and quadrature axis through the inverse Coleman transform to get the commanded pitch angles
 	
-	CALL ColemanTransformInverse(IntAxisTilt, IntAxisYawIPC, aziAngle, phi, PitComIPC)
+	CALL ColemanTransformInverse(IntAxisTilt, IntAxisYawIPC, LocalVar%Azimuth, CntrPar%IPC_phi, PitComIPC)
 
 	! Filter PitComIPC with second order low pass filter
 
-	DO K = 1,NumBl
+	DO K = 1,LocalVar%NumBl
 		! Instances 1-3 of the Second order Low-Pass Filter are reserved for this routine.
-		! PitComIPCF(K) = SecLPFilter(PitComIPC(K), DT, omegaLP, zetaLP, iStatus, K)
-		PitComIPCF(K) = PitComIPC(K)
+		! LocalVar%IPC_PitComF(K) = SecLPFilter(PitComIPC(K), LocalVar%DT, CntrPar%IPC_omegaLP, CntrPar%IPC_zetaLP, LocalVar%iStatus, K)
+		LocalVar%IPC_PitComF(K) = PitComIPC(K)
 	END DO
 
 CONTAINS

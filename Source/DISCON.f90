@@ -360,9 +360,9 @@ IF ((LocalVar%iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control 
 	
 		! Individual pitch control
 	IF ((CntrPar%IPC_ControlMode == 1) .OR. (CntrPar%Y_ControlMode == 2)) THEN
-		CALL IPC(LocalVar%rootMOOP, LocalVar%Azimuth, CntrPar%IPC_phi, LocalVar%Y_MErr, LocalVar%DT, CntrPar%IPC_KI, CntrPar%Y_IPC_KP, CntrPar%Y_IPC_KI, CntrPar%IPC_omegaHP, CntrPar%IPC_omegaLP, CntrPar%IPC_omegaNotch, CntrPar%IPC_zetaHP, CntrPar%IPC_zetaLP, CntrPar%IPC_zetaNotch, LocalVar%iStatus, CntrPar%IPC_ControlMode, CntrPar%Y_ControlMode, LocalVar%NumBl, LocalVar%IPC_PitComF, objInst)
+		CALL IPC(LocalVar, CntrPar, objInst)
 	ELSE
-		LocalVar%IPC_PitComF = 0.0
+		LocalVar%IPC_PitComF = 0.0 ! THIS IS AN ARRAY!!
 	END IF
 
 		! Combine and saturate all pitch commands:
