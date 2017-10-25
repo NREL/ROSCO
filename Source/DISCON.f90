@@ -18,6 +18,7 @@ USE, INTRINSIC	:: ISO_C_Binding
 USE				:: ReadParameters
 USE				:: FunctionToolbox
 USE				:: Filters
+USE DRC_Types, ONLY : ObjectInstances
 
 IMPLICIT NONE
 #ifndef IMPLICIT_DLLEXPORT
@@ -38,6 +39,10 @@ CHARACTER(KIND=C_CHAR), INTENT(IN)		:: accINFILE(NINT(avrSWAP(50)))		! The name 
 CHARACTER(KIND=C_CHAR), INTENT(IN)		:: avcOUTNAME(NINT(avrSWAP(51)))	! OUTNAME (Simulation RootName)
 CHARACTER(KIND=C_CHAR), INTENT(INOUT)	:: avcMSG(NINT(avrSWAP(49)))		! MESSAGE (Message from DLL to simulation code [ErrMsg])  The message which will be displayed by the calling program if aviFAIL <> 0.
 
+   ! Types
+
+TYPE(ObjectInstances)		:: objInst
+
    ! Local Variables:
 
 REAL(4), SAVE				:: LastGenTrq										! Commanded electrical generator torque the last time the controller was called, [Nm].
@@ -48,6 +53,7 @@ REAL(4), SAVE				:: Y_YawEndT										! Yaw end time, [s]. Indicates the time u
 REAL(4), SAVE				:: testValue										! TestValue
 
 INTEGER(4)					:: I												! Generic index.
+INTEGER(4)					:: instLPF											! Instance counter for all first-order low-pass filters
 INTEGER(4)					:: K												! Loops through blades.
 INTEGER(4), PARAMETER		:: UnDb = 85										! I/O unit for the debugging information
 INTEGER(4), PARAMETER		:: UnDb2 = 86										! I/O unit for the debugging information
@@ -67,6 +73,13 @@ CALL ReadAvrSWAP(avrSWAP)
 
    ! Initialize aviFAIL to 0:
 aviFAIL = 0
+
+   ! Initialize all filter instance counters at 1
+objInst%instLPF = 1
+objInst%instSecLPF = 1
+objInst%instHPF = 1
+objInst%instNotchSlopes = 1
+objInst%instNotch = 1
 
    ! Read any External Controller Parameters specified in the User Interface
    !   and initialize variables:
@@ -258,7 +271,7 @@ IF ((LocalVar%iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control 
 
 		! Filter the HSS (generator) speed measurement:
 		! Apply Low-Pass Filter
-	LocalVar%GenSpeedF = SecLPFilter(LocalVar%GenSpeed, LocalVar%DT, CntrPar%CornerFreq, 0.7, LocalVar%iStatus, 1)     ! This is the first instance of a second order LPFilter
+	LocalVar%GenSpeedF = SecLPFilter(LocalVar%GenSpeed, LocalVar%DT, CntrPar%CornerFreq, 0.7, LocalVar%iStatus, .FALSE., objInst%instSecLPF)     ! This is the first instance of a second order LPFilter
 
 		! Calculate yaw-alignment error
 	LocalVar%Y_MErr = LocalVar%Y_M + CntrPar%Y_MErrSet
@@ -347,7 +360,7 @@ IF ((LocalVar%iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control 
 	
 		! Individual pitch control
 	IF ((CntrPar%IPC_ControlMode == 1) .OR. (CntrPar%Y_ControlMode == 2)) THEN
-		CALL IPC(LocalVar%rootMOOP, LocalVar%Azimuth, CntrPar%IPC_phi, LocalVar%Y_MErr, LocalVar%DT, CntrPar%IPC_KI, CntrPar%Y_IPC_KP, CntrPar%Y_IPC_KI, CntrPar%IPC_omegaHP, CntrPar%IPC_omegaLP, CntrPar%IPC_omegaNotch, CntrPar%IPC_zetaHP, CntrPar%IPC_zetaLP, CntrPar%IPC_zetaNotch, LocalVar%iStatus, CntrPar%IPC_ControlMode, CntrPar%Y_ControlMode, LocalVar%NumBl, LocalVar%IPC_PitComF)
+		CALL IPC(LocalVar%rootMOOP, LocalVar%Azimuth, CntrPar%IPC_phi, LocalVar%Y_MErr, LocalVar%DT, CntrPar%IPC_KI, CntrPar%Y_IPC_KP, CntrPar%Y_IPC_KI, CntrPar%IPC_omegaHP, CntrPar%IPC_omegaLP, CntrPar%IPC_omegaNotch, CntrPar%IPC_zetaHP, CntrPar%IPC_zetaLP, CntrPar%IPC_zetaNotch, LocalVar%iStatus, CntrPar%IPC_ControlMode, CntrPar%Y_ControlMode, LocalVar%NumBl, LocalVar%IPC_PitComF, objInst)
 	ELSE
 		LocalVar%IPC_PitComF = 0.0
 	END IF
@@ -359,7 +372,7 @@ IF ((LocalVar%iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control 
 		
 		! PitCom(K) = ratelimit(PitComT_IPC(K), LocalVar%BlPitch(K), PC_MinRat, PC_MaxRat, LocalVar%DT)	! Saturate the overall command of blade K using the pitch rate limit
 		LocalVar%PitCom(K) = saturate(PitComT_IPC(K), CntrPar%PC_MinPit, CntrPar%PC_MaxPit)					! Saturate the overall command using the pitch angle limits
-		LocalVar%PitCom(K) = LPFilter(LocalVar%PitCom(K), LocalVar%DT, CntrPar%CornerFreq, LocalVar%iStatus, .FALSE., K+3)
+		LocalVar%PitCom(K) = LPFilter(LocalVar%PitCom(K), LocalVar%DT, CntrPar%CornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
 	END DO
 
 		! Set the pitch override to yes and command the pitch demanded from the last
@@ -382,8 +395,8 @@ IF ((LocalVar%iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control 
 		IF (LocalVar%Time >= Y_YawEndT) THEN											! Check if the turbine is currently yawing
 			avrSWAP(48) = 0.0													! Set yaw rate to zero
 
-			LocalVar%Y_ErrLPFFast = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPFast, LocalVar%iStatus, .FALSE., 2)		! Fast low pass filtered yaw error with a frequency of 1
-			LocalVar%Y_ErrLPFSlow = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPSlow, LocalVar%iStatus, .FALSE., 3)		! Slow low pass filtered yaw error with a frequency of 1/60
+			LocalVar%Y_ErrLPFFast = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPFast, LocalVar%iStatus, .FALSE., objInst%instLPF)		! Fast low pass filtered yaw error with a frequency of 1
+			LocalVar%Y_ErrLPFSlow = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPSlow, LocalVar%iStatus, .FALSE., objInst%instLPF)		! Slow low pass filtered yaw error with a frequency of 1/60
 
 			Y_AccErr = Y_AccErr + LocalVar%DT*SIGN(LocalVar%Y_ErrLPFFast**2, LocalVar%Y_ErrLPFFast)	! Integral of the fast low pass filtered yaw error
 
@@ -392,8 +405,8 @@ IF ((LocalVar%iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control 
 			END IF
 		ELSE
 			avrSWAP(48) = SIGN(CntrPar%Y_Rate, LocalVar%Y_MErr)		! Set yaw rate to predefined yaw rate, the sign of the error is copied to the rate
-			LocalVar%Y_ErrLPFFast = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPFast, LocalVar%iStatus, .TRUE., 2)		! Fast low pass filtered yaw error with a frequency of 1
-			LocalVar%Y_ErrLPFSlow = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPSlow, LocalVar%iStatus, .TRUE., 3)		! Slow low pass filtered yaw error with a frequency of 1/60
+			LocalVar%Y_ErrLPFFast = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPFast, LocalVar%iStatus, .TRUE., objInst%instLPF)		! Fast low pass filtered yaw error with a frequency of 1
+			LocalVar%Y_ErrLPFSlow = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPSlow, LocalVar%iStatus, .TRUE., objInst%instLPF)		! Slow low pass filtered yaw error with a frequency of 1/60
 			Y_AccErr = 0.0								! "
 		END IF
 	END IF

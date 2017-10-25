@@ -16,12 +16,12 @@ CONTAINS
 
 			! Inputs
 
-		REAL(4), INTENT(IN)		:: InputSignal
-		REAL(4), INTENT(IN)		:: DT						! time step [s]
-		REAL(4), INTENT(IN)		:: CornerFreq				! corner frequency [rad/s]
-		INTEGER, INTENT(IN)		:: iStatus					! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
-		INTEGER, INTENT(IN)		:: inst						! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
-		LOGICAL(4), INTENT(IN)	:: reset					! Reset the filter to the input signal
+		REAL(4), INTENT(IN)			:: InputSignal
+		REAL(4), INTENT(IN)			:: DT						! time step [s]
+		REAL(4), INTENT(IN)			:: CornerFreq				! corner frequency [rad/s]
+		INTEGER(4), INTENT(IN)		:: iStatus					! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
+		INTEGER(4), INTENT(INOUT)	:: inst						! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
+		LOGICAL(4), INTENT(IN)		:: reset					! Reset the filter to the input signal
 
 			! Local
 
@@ -43,23 +43,25 @@ CONTAINS
 
 		InputSignalLast(inst)  = InputSignal
 		OutputSignalLast(inst) = LPFilter
+		inst = inst + 1
 
     END FUNCTION LPFilter
     !-------------------------------------------------------------------------------------------------------------------------------
     ! Discrete time second order Low-Pass Filter
-    REAL FUNCTION SecLPFilter(InputSignal, DT, CornerFreq, Damp, iStatus, inst)
+    REAL FUNCTION SecLPFilter(InputSignal, DT, CornerFreq, Damp, iStatus, reset, inst)
     !...............................................................................................................................
 
         IMPLICIT NONE
 
 			! Inputs
 
-        REAL(4), INTENT(IN)     :: InputSignal
-		REAL(4), INTENT(IN)     :: DT						! time step [s]
-		REAL(4), INTENT(IN)     :: CornerFreq				! corner frequency [rad/s]
-		REAL(4), INTENT(IN)     :: Damp						! Dampening constant
-        INTEGER, INTENT(IN)		:: iStatus					! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
-        INTEGER, INTENT(IN)		:: inst						! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
+        REAL(4), INTENT(IN)   		:: InputSignal
+		REAL(4), INTENT(IN) 		:: DT						! time step [s]
+		REAL(4), INTENT(IN)    		:: CornerFreq				! corner frequency [rad/s]
+		REAL(4), INTENT(IN)    		:: Damp						! Dampening constant
+        INTEGER(4), INTENT(IN)		:: iStatus					! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
+        INTEGER(4), INTENT(INOUT)	:: inst						! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
+		LOGICAL(4), INTENT(IN)		:: reset					! Reset the filter to the input signal
 
 			! Local
 
@@ -70,7 +72,7 @@ CONTAINS
 
 			! Initialization
 
-        IF ( iStatus == 0 )  THEN
+        IF ((iStatus == 0) .OR. reset )  THEN
             OutputSignalLast1(inst)  = InputSignal
             OutputSignalLast2(inst)  = InputSignal
             InputSignalLast1(inst)   = InputSignal
@@ -89,11 +91,12 @@ CONTAINS
         InputSignalLast1(inst)   = InputSignal
         OutputSignalLast2(inst)  = OutputSignalLast1 (inst)
         OutputSignalLast1(inst)  = SecLPFilter
+		inst = inst + 1
 
     END FUNCTION SecLPFilter
     !-------------------------------------------------------------------------------------------------------------------------------
     ! Discrete time High-Pass Filter
-    REAL FUNCTION HPFilter( InputSignal, DT, CornerFreq, iStatus, inst)
+    REAL FUNCTION HPFilter( InputSignal, DT, CornerFreq, iStatus, reset, inst)
     !...............................................................................................................................
 
         IMPLICIT NONE
@@ -104,7 +107,8 @@ CONTAINS
 		REAL(4), INTENT(IN)		:: DT						! time step [s]
 		REAL(4), INTENT(IN)		:: CornerFreq				! corner frequency [rad/s]
         INTEGER, INTENT(IN)		:: iStatus					! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
-        INTEGER, INTENT(IN)		:: inst						! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
+        INTEGER, INTENT(INOUT)	:: inst						! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
+		LOGICAL(4), INTENT(IN)	:: reset					! Reset the filter to the input signal
 
 			! Local
 
@@ -114,7 +118,7 @@ CONTAINS
 
 			! Initialization
 
-        IF ( iStatus == 0 )  THEN
+        IF ((iStatus == 0) .OR. reset)  THEN
             OutputSignalLast(inst) = InputSignal
             InputSignalLast(inst) = InputSignal
         ENDIF
@@ -129,11 +133,12 @@ CONTAINS
 
         InputSignalLast(inst)   = InputSignal
         OutputSignalLast(inst)  = HPFilter
+		inst = inst + 1
 
     END FUNCTION HPFilter
     !-------------------------------------------------------------------------------------------------------------------------------
     ! Discrete time inverted Notch Filter with descending slopes, G = CornerFreq*s/(Damp*s^2+CornerFreq*s+Damp*CornerFreq^2)
-    REAL FUNCTION NotchFilterSlopes(InputSignal, DT, CornerFreq, Damp, iStatus, inst)
+    REAL FUNCTION NotchFilterSlopes(InputSignal, DT, CornerFreq, Damp, iStatus, reset, inst)
     !...............................................................................................................................
 
         IMPLICIT NONE
@@ -145,7 +150,8 @@ CONTAINS
 		REAL(4), INTENT(IN)     :: CornerFreq				! corner frequency [rad/s]
 		REAL(4), INTENT(IN)     :: Damp						! Dampening constant
 		INTEGER, INTENT(IN)		:: iStatus					! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
-		INTEGER, INTENT(IN)		:: inst						! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
+		INTEGER, INTENT(INOUT)	:: inst						! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
+		LOGICAL(4), INTENT(IN)	:: reset					! Reset the filter to the input signal
 
 			! Local
 
@@ -156,7 +162,7 @@ CONTAINS
 
 			! Initialization
 
-		IF ( iStatus == 0 ) THEN
+		IF ((iStatus == 0) .OR. reset) THEN
 			OutputSignalLast1(inst)  = InputSignal
 			OutputSignalLast2(inst)  = InputSignal
 			InputSignalLast1(inst)   = InputSignal
@@ -175,11 +181,12 @@ CONTAINS
 		InputSignalLast1(inst)   = InputSignal			!Save input signal for next time step
 		OutputSignalLast2(inst)  = OutputSignalLast1(inst)		!Save input signal for next time step
 		OutputSignalLast1(inst)  = NotchFilter
+		inst = inst + 1
 
 	END FUNCTION NotchFilterSlopes
 	!-------------------------------------------------------------------------------------------------------------------------------
 	! Discrete time inverted Notch Filter with descending slopes, G = (s^2 + 2*omega*betaNum*s + omega^2)/(s^2 + 2*omega*betaDen*s + omega^2)
-	REAL FUNCTION NotchFilter(InputSignal, DT, omega, betaNum, betaDen, iStatus, inst)
+	REAL FUNCTION NotchFilter(InputSignal, DT, omega, betaNum, betaDen, iStatus, reset, inst)
 	!...............................................................................................................................
 
 		IMPLICIT NONE
@@ -192,7 +199,8 @@ CONTAINS
 		REAL(4), INTENT(IN)     :: betaNum					! Dampening constant in numerator of filter transfer function
 		REAL(4), INTENT(IN)     :: betaDen					! Dampening constant in denominator of filter transfer function
 		INTEGER, INTENT(IN)		:: iStatus					! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
-		INTEGER, INTENT(IN)		:: inst						! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
+		INTEGER, INTENT(INOUT)	:: inst						! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
+		LOGICAL(4), INTENT(IN)	:: reset					! Reset the filter to the input signal
 
 			! Local
 		REAL(4)							:: K, P1, P2, P3, P4, P5	! Constant gain
@@ -203,7 +211,7 @@ CONTAINS
 
 			! Initialization
 
-		IF ( iStatus == 0 ) THEN
+		IF ((iStatus == 0) .OR. reset) THEN
 			OutputSignalLast1(inst)  = InputSignal
 			OutputSignalLast2(inst)  = InputSignal
 			InputSignalLast1(inst)   = InputSignal
@@ -228,6 +236,7 @@ CONTAINS
 		InputSignalLast1(inst)   = InputSignal			!Save input signal for next time step
 		OutputSignalLast2(inst)  = OutputSignalLast1(inst)		!Save input signal for next time step
 		OutputSignalLast1(inst)  = NotchFilter
+		inst = inst + 1
 
 	END FUNCTION NotchFilter
 	!-------------------------------------------------------------------------------------------------------------------------------

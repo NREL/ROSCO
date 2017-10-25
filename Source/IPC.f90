@@ -1,10 +1,11 @@
 !-------------------------------------------------------------------------------------------------------------------------------
 ! Individual pitch control subroutine
-SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, Y_IPC_KP, Y_IPC_KI, omegaHP, omegaLP, omegaNotch, zetaHP, zetaLP, zetaNotch, iStatus, IPC_ControlMode, Y_ControlMode, NumBl, PitComIPCF)
+SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, Y_IPC_KP, Y_IPC_KI, omegaHP, omegaLP, omegaNotch, zetaHP, zetaLP, zetaNotch, iStatus, IPC_ControlMode, Y_ControlMode, NumBl, PitComIPCF, objInst)
 !...............................................................................................................................
 
 	USE :: FunctionToolbox
 	USE :: Filters
+	USE DRC_Types, ONLY : ObjectInstances
 
 	IMPLICIT NONE
 
@@ -12,7 +13,6 @@ SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, Y_IPC_KP, Y_IPC_KI, 
 	!------------------------------------------------------------------------------------------------------------------------------
 	! Variable declaration and initialization
 	!------------------------------------------------------------------------------------------------------------------------------
-
 
 		! Inputs
 
@@ -38,13 +38,16 @@ SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, Y_IPC_KP, Y_IPC_KI, 
 		! Outputs
 
 	REAL(4), INTENT(OUT)	:: PitComIPCF(3)					! Filtered pitch angle of each rotor blade
+	
+		! Inputs/outputs
+		
+	TYPE(ObjectInstances), INTENT(INOUT)	:: objInst
 
 		! Local variables
 
 	REAL(4), PARAMETER		:: PI = 3.14159265359				! Mathematical constant pi
 	REAL(4)					:: rootMOOPF(3), PitComIPC(3)		! 
 	INTEGER					:: K								! Integer used to loop through turbine blades
-
 
 	!------------------------------------------------------------------------------------------------------------------------------
 	! Body
@@ -61,7 +64,7 @@ SUBROUTINE IPC(rootMOOP, aziAngle, phi, Y_MErr, DT, KInter, Y_IPC_KP, Y_IPC_KI, 
 
 		! Calculate commanded IPC pitch angles
 
-	CALL CalculatePitCom(rootMOOPF, aziAngle, Y_MErr, DT, KInter, Y_IPC_KP, Y_IPC_KI, omegaHP, omegaLP, zetaHP, zetaLP, phi, iStatus, IPC_ControlMode, Y_ControlMode, PitComIPC)
+	CALL CalculatePitCom(rootMOOPF, aziAngle, Y_MErr, DT, KInter, Y_IPC_KP, Y_IPC_KI, omegaHP, omegaLP, zetaHP, zetaLP, phi, iStatus, IPC_ControlMode, Y_ControlMode, PitComIPC, objInst)
 
 		! Filter PitComIPC with second order low pass filter
 
@@ -82,7 +85,7 @@ CONTAINS
 	! Calculates the commanded pitch angles.
 	! NOTE: if it is required for this subroutine to be used multiple times (for 1p and 2p IPC for example), the saved variables
 	! IntAxisTilt and IntAxisYaw need to be modified so that they support multiple instances (see LPFilter in the Filters module).
-	SUBROUTINE CalculatePitCom(rootMOOP, aziAngle, Y_MErr, DT, KInter, Y_IPC_KP, Y_IPC_KI, omegaHP, omegaLP, zetaHP, zetaLP, phi, iStatus, IPC_ControlMode, Y_ControlMode, PitComIPC)
+	SUBROUTINE CalculatePitCom(rootMOOP, aziAngle, Y_MErr, DT, KInter, Y_IPC_KP, Y_IPC_KI, omegaHP, omegaLP, zetaHP, zetaLP, phi, iStatus, IPC_ControlMode, Y_ControlMode, PitComIPC, objInst)
 	!...............................................................................................................................
 
 		IMPLICIT NONE
@@ -108,6 +111,10 @@ CONTAINS
 			! Outputs
 
 		REAL(4), INTENT(OUT)	:: PitComIPC(3)						! Commanded pitch angle of each rotor blade
+		
+			! Inputs/outputs
+		
+		TYPE(ObjectInstances), INTENT(INOUT)	:: objInst
 
 			! Local variables
 
@@ -149,8 +156,8 @@ CONTAINS
 			! High-pass filter the MBC yaw component and filter yaw alignment error, and compute the yaw-by-IPC contribution
 		
 		IF (Y_ControlMode == 2) THEN
-			axisYawF = HPFilter(axisYaw, DT, omegaHP, iStatus, 1)
-			Y_MErrF = SecLPFilter(Y_MErr, DT, omegaLP, zetaLP, iStatus, 2)
+			axisYawF = HPFilter(axisYaw, DT, omegaHP, iStatus, .FALSE., objInst%instHPF)
+			Y_MErrF = SecLPFilter(Y_MErr, DT, omegaLP, zetaLP, iStatus, .FALSE., objInst%instSecLPF)
 			Y_MErrF_IPC = PIController(Y_MErrF, Y_IPC_KP, Y_IPC_KI, -100.0, 100.0, DT, 0.0, .FALSE., 3)
 		ELSE
 			axisYawF = axisYaw

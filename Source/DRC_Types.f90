@@ -10,13 +10,13 @@ REAL(4), PARAMETER			:: R2D = 57.295780						! Factor to convert radians to degr
 		INTEGER(4)							:: LoggingLevel					! 0 = write no debug files, 1 = write standard output .dbg-file, 2 = write standard output .dbg-file and complete avrSWAP-array .dbg2-file
 		REAL(4)								:: IPC_KI						! Integral gain for the individual pitch controller, [-]. 8E-10
 		INTEGER(4)							:: IPC_ControlMode				! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) on = 1/off = 0
-		REAL(4)								:: IPC_omegaHP					! High-pass filter cut-in frequency used to separate yaw-by-IPC contribution from blade load reduction contribution, [rad/s]. 0.3141592
-		REAL(4)								:: IPC_omegaLP					! Low-pass filter corner frequency for the individual pitch controller, [rad/s].0.6283185	
-		REAL(4)								:: IPC_omegaNotch				! Notch filter corner frequency for the individual pitch controller, [rad/s].1.269330365
-		REAL(4)								:: IPC_phi						! Phase offset added to the azimuth angle for the individual pitch controller, [rad]. 0.436332313
-		REAL(4)								:: IPC_zetaHP					! High-pass filter damping value, [-]. 0.70
-		REAL(4)								:: IPC_zetaLP					! Low-pass filter damping factor for the individual pitch controller, [-].1.0	
-		REAL(4)								:: IPC_zetaNotch				! Notch filter damping factor for the individual pitch controller, [-].0.5
+		REAL(4)								:: IPC_omegaHP					! High-pass filter cut-in frequency used to separate yaw-by-IPC contribution from blade load reduction contribution, [rad/s].
+		REAL(4)								:: IPC_omegaLP					! Low-pass filter corner frequency for the individual pitch controller, [rad/s].	
+		REAL(4)								:: IPC_omegaNotch				! Notch filter corner frequency for the individual pitch controller, [rad/s].
+		REAL(4)								:: IPC_phi						! Phase offset added to the azimuth angle for the individual pitch controller, [rad].
+		REAL(4)								:: IPC_zetaHP					! High-pass filter damping value, [-].
+		REAL(4)								:: IPC_zetaLP					! Low-pass filter damping factor for the individual pitch controller, [-].	
+		REAL(4)								:: IPC_zetaNotch				! Notch filter damping factor for the individual pitch controller, [-].
 		INTEGER(4)							:: PC_GS_n						! Amount of gain-scheduling table entries
 		REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_angles					! Gain-schedule table: pitch angles
 		REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_kp						! Gain-schedule table: pitch controller kp gains
@@ -62,6 +62,7 @@ REAL(4), PARAMETER			:: R2D = 57.295780						! Factor to convert radians to degr
 	END TYPE ControlParameters
 	
 	TYPE, PUBLIC :: LocalVariables
+		! From avrSWAP
 		INTEGER(4)							:: iStatus
 		REAL(4)								:: Time
 		REAL(4)								:: DT
@@ -74,6 +75,7 @@ REAL(4), PARAMETER			:: R2D = 57.295780						! Factor to convert radians to degr
 		REAL(4)								:: Azimuth
 		INTEGER(4)							:: NumBl
 		
+		! Internal controller variables
 		REAL(4)								:: GenSpeedF					! Filtered HSS (generator) speed [rad/s].
 		REAL(4)								:: GenTrq						! Electrical generator torque, [Nm].
 		REAL(4)								:: GenTrqAr						! Electrical generator torque, for above-rated PI-control [Nm].
@@ -93,6 +95,14 @@ REAL(4), PARAMETER			:: R2D = 57.295780						! Factor to convert radians to degr
 		REAL(4)								:: Y_ErrLPFSlow					! Filtered yaw error by slow low pass filter [rad].
 		REAL(4)								:: Y_MErr						! Measured yaw error, measured + setpoint [rad]
 	END TYPE LocalVariables
+	
+	TYPE, PUBLIC :: ObjectInstances
+		INTEGER(4)							:: instLPF
+		INTEGER(4)							:: instSecLPF
+		INTEGER(4)							:: instHPF
+		INTEGER(4)							:: instNotchSlopes
+		INTEGER(4)							:: instNotch
+	END TYPE ObjectInstances
 	
 	!TYPE, PUBLIC :: PersistentVariables
 	!END TYPE PersistentVariables
