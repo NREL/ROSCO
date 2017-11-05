@@ -1,6 +1,7 @@
 ! This module contains basic functions
 MODULE FunctionToolbox
 
+USE Constants
 IMPLICIT NONE
 
 CONTAINS
@@ -179,5 +180,142 @@ CONTAINS
 	!	END IF
 	!	
 	!END FUNCTION PRBSgen
+	!-------------------------------------------------------------------------------------------------------------------------------
+	! Stata machine, determines the state of the wind turbine to determine the corresponding control actions
+	! States:
+	! - 1, idling, wind ad rotor speed too low for start-up: set pitch to vane position and torque to minimum
+	! - 2, start-up mode, set pitch demand to start-up pitch angle for maximum aerodynamic torque and torque demand to minimum
+	! - 3, start-up2normal
+	! - 4, Region 1.5 operation, torque control to keep the rotor at cut-in speed towards the Cp-max operational curve
+	! - 5, Region 2, operation, maximum rotor power efficiency (Cp-max) tracking, keep TSR constant at a fixed fine-pitch angle
+	! - 6, Region 2.5, transition between below and above-rated operating conditions (near-rated region) using PI torque control
+	! - 7, Region 3, above-rated operation using pitch control
+	!REAL FUNCTION StateMachine(LocalVar, CntrPar)
+	!
+	!	USE DRC_Types, ONLY : LocalVariables, ControlParameters
+	!
+	!	IMPLICIT NONE
+    !
+	!		! Inputs
+	!	TYPE(ControlParameters), INTENT(IN)		:: CntrPar
+	!
+	!		! Inputs/outputs
+	!	TYPE(LocalVariables), INTENT(INOUT)		:: LocalVar
+	!	
+	!		! Local
+	!		
+	!	
+	!END FUNCTION StateMachine
+	!-------------------------------------------------------------------------------------------------------------------------------
+	SUBROUTINE Debug(LocalVar, CntrPar, avrSWAP, RootName, size_avcOUTNAME)
+		USE, INTRINSIC	:: ISO_C_Binding
+		USE DRC_Types, ONLY : LocalVariables, ControlParameters
+		
+		IMPLICIT NONE
+	
+		TYPE(ControlParameters), INTENT(IN)		:: CntrPar
+		TYPE(LocalVariables), INTENT(IN)		:: LocalVar
+	
+		INTEGER(4), INTENT(IN)						:: size_avcOUTNAME
+		INTEGER(4)									:: I				! Generic index.
+		CHARACTER(1), PARAMETER						:: Tab = CHAR(9)						! The tab character.
+		CHARACTER(25), PARAMETER					:: FmtDat = "(F8.3,99('"//Tab//"',ES10.3E2,:))	"	! The format of the debugging data
+		INTEGER(4), PARAMETER						:: UnDb = 85		! I/O unit for the debugging information
+		INTEGER(4), PARAMETER						:: UnDb2 = 86		! I/O unit for the debugging information, avrSWAP
+		REAL(C_FLOAT), INTENT(INOUT)				:: avrSWAP(*)	! The swap array, used to pass data to, and receive data from, the DLL controller.
+		CHARACTER(size_avcOUTNAME-1), INTENT(IN)	:: RootName		! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
+		
+		!..............................................................................................................................
+		! Initializing debug file
+		!..............................................................................................................................
+		IF (LocalVar%iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
+		! If we're debugging, open the debug file and write the header:
+			IF (CntrPar%LoggingLevel > 0) THEN
+				OPEN (UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='REPLACE')
+				WRITE (UnDb,'(A)')	'   LocalVar%Time '  //Tab//'LocalVar%PC_PitComT  ' //Tab//'LocalVar%PC_SpdErr  ' //Tab//'LocalVar%PC_KP ' //Tab//'LocalVar%PC_KI  ' //Tab//'LocalVar%Y_M  ' //Tab//'LocalVar%rootMOOP(1)  '//Tab//'VS_RtPwr  '//Tab//'LocalVar%GenTrq'
+				WRITE (UnDb,'(A)')	'   (sec) ' //Tab//'(rad)    '  //Tab//'(rad/s) '//Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   ' //Tab//'(?)   ' //Tab//'(W)   '//Tab//'(Nm)  '
+			END IF
+			
+			IF (CntrPar%LoggingLevel > 1) THEN
+				OPEN(UnDb2, FILE=TRIM(RootName)//'.dbg2', STATUS='REPLACE')
+				WRITE(UnDb2,'(/////)')
+				WRITE(UnDb2,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1,85)
+				WRITE(UnDb2,'(A,85("'//Tab//'(-)"))')  '(s)'
+			END IF
+		ELSE
+			!..............................................................................................................................
+			! Output debugging information if requested:
+			IF (CntrPar%LoggingLevel > 0) THEN
+				WRITE (UnDb,FmtDat)		LocalVar%Time,	LocalVar%PC_PitComT,	LocalVar%PC_SpdErr,	LocalVar%PC_KP,	LocalVar%PC_KI,	LocalVar%Y_MErr,	LocalVar%rootMOOP(1), CntrPar%VS_RtPwr, LocalVar%GenTrq
+			END IF
+			
+			IF (CntrPar%LoggingLevel > 1) THEN
+				WRITE (UnDb2,FmtDat)	LocalVar%Time, avrSWAP(1:85)
+			END IF
+		END IF
+		
+		IF (MODULO(LocalVar%Time, 10.0) == 0.0) THEN
+			!LocalVar%TestType = LocalVar%TestType + 10
+			!PRINT *, LocalVar%TestType
+		END IF
+	END SUBROUTINE Debug
+	!-------------------------------------------------------------------------------------------------------------------------------
+	!The Coleman or d-q axis transformation transforms the root out of plane bending moments of each turbine blade
+	!to a direct axis and a quadrature axis
+	SUBROUTINE ColemanTransform(rootMOOP, aziAngle, axisTilt, axisYaw)
+	!...............................................................................................................................
+
+		IMPLICIT NONE
+
+			! Inputs
+
+		REAL(4), INTENT(IN)		:: rootMOOP(3)						! Root out of plane bending moments of each blade
+		REAL(4), INTENT(IN)		:: aziAngle							! Rotor azimuth angle
+
+			! Outputs
+
+		REAL(4), INTENT(OUT)	:: axisTilt, axisYaw				! Direct axis and quadrature axis outputted by this transform
+
+			! Local
+
+		REAL(4), PARAMETER		:: phi2 = 2.0/3.0*PI				! Phase difference from first to second blade
+		REAL(4), PARAMETER		:: phi3 = 4.0/3.0*PI				! Phase difference from first to third blade
+
+			! Body
+
+		axisTilt	= 2.0/3.0 * (cos(aziAngle)*rootMOOP(1) + cos(aziAngle+phi2)*rootMOOP(2) + cos(aziAngle+phi3)*rootMOOP(3))
+		axisYaw		= 2.0/3.0 * (sin(aziAngle)*rootMOOP(1) + sin(aziAngle+phi2)*rootMOOP(2) + sin(aziAngle+phi3)*rootMOOP(3))
+
+	END SUBROUTINE ColemanTransform
+	!-------------------------------------------------------------------------------------------------------------------------------
+	!The inverse Coleman or d-q axis transformation transforms the direct axis and quadrature axis
+	!back to root out of plane bending moments of each turbine blade
+	SUBROUTINE ColemanTransformInverse(axisTilt, axisYaw, aziAngle, phi, PitComIPC)
+	!...............................................................................................................................
+
+		IMPLICIT NONE
+
+			! Inputs
+
+		REAL(4), INTENT(IN)		:: axisTilt, axisYaw			! Direct axis and quadrature axis
+		REAL(4), INTENT(IN)		:: aziAngle 						! Rotor azimuth angle
+		REAL(4), INTENT(IN)		:: phi								! Phase shift added to the azimuth angle
+
+			! Outputs
+
+		REAL(4), INTENT(OUT)	:: PitComIPC (3)					! Root out of plane bending moments of each blade
+
+			! Local
+
+		REAL(4), PARAMETER		:: phi2 = 2.0/3.0*PI				! Phase difference from first to second blade
+		REAL(4), PARAMETER		:: phi3 = 4.0/3.0*PI				! Phase difference from first to third blade
+
+			! Body
+
+		PitComIPC(1) = cos(aziAngle+phi)*axisTilt + sin(aziAngle+phi)*axisYaw
+		PitComIPC(2) = cos(aziAngle+phi+phi2)*axisTilt + sin(aziAngle+phi+phi2)*axisYaw
+		PitComIPC(3) = cos(aziAngle+phi+phi3)*axisTilt + sin(aziAngle+phi+phi3)*axisYaw
+
+	END SUBROUTINE ColemanTransformInverse
 	!-------------------------------------------------------------------------------------------------------------------------------
 END MODULE FunctionToolbox
