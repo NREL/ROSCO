@@ -50,7 +50,7 @@ CONTAINS
 		!   gains:
 		LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, CntrPar%PC_SetPnt, LocalVar%PC_MaxPitVar, LocalVar%DT, CntrPar%PC_SetPnt, .FALSE., 2) ! + DFController(LocalVar%PC_SpdErr, LocalVar%PC_KD, LocalVar%PC_TF, LocalVar%DT, 1)
 		IF (CntrPar%VS_ControlMode == 1) THEN
-			LocalVar%PC_PitComT = LocalVar%PC_PitComT + PIController(LocalVar%PC_PwrErr, -4.0E-09, -4.0E-09, CntrPar%PC_SetPnt, LocalVar%PC_MaxPitVar, LocalVar%DT, CntrPar%PC_SetPnt, .FALSE., 5)
+			LocalVar%PC_PitComT = LocalVar%PC_PitComT + PIController(LocalVar%PC_PwrErr, CntrPar%PC_ConstP_KP(1), CntrPar%PC_ConstP_KI(1), CntrPar%PC_SetPnt, LocalVar%PC_MaxPitVar, LocalVar%DT, CntrPar%PC_SetPnt, .FALSE., 5)
 		END IF
 		
 		! Individual pitch control
@@ -228,7 +228,7 @@ CONTAINS
 		IF (CntrPar%Y_ControlMode == 2) THEN
 			axisYawF = HPFilter(axisYaw, LocalVar%DT, CntrPar%IPC_omegaHP, LocalVar%iStatus, .FALSE., objInst%instHPF)
 			Y_MErrF = SecLPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%IPC_omegaLP, CntrPar%IPC_zetaLP, LocalVar%iStatus, .FALSE., objInst%instSecLPF)
-			Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP(1), CntrPar%Y_IPC_KI(1), -100.0, 100.0, LocalVar%DT, 0.0, .FALSE., 3)
+			Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP(1), CntrPar%Y_IPC_KI(1), -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, 0.0, .FALSE., 3)
 		ELSE
 			axisYawF = axisYaw
 			Y_MErrF = 0.0
@@ -237,7 +237,9 @@ CONTAINS
 		! Integrate the signal and multiply with the IPC gain
 		IF (CntrPar%IPC_ControlMode == 1) THEN
 			IntAxisTilt	= IntAxisTilt + LocalVar%DT * CntrPar%IPC_KI * axisTilt
-			IntAxisYaw	= IntAxisYaw + LocalVar%DT * CntrPar%IPC_KI * axisYawF
+			IntAxisYaw = IntAxisYaw + LocalVar%DT * CntrPar%IPC_KI * axisYawF
+			IntAxisTilt = saturate(IntAxisTilt, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
+			IntAxisYaw = saturate(IntAxisYaw, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
 		ELSE
 			IntAxisTilt = 0.0
 			IntAxisYaw = 0.0

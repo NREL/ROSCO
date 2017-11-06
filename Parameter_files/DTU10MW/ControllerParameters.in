@@ -1,5 +1,6 @@
 2.5132741				! CornerFreq		- Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
 0						! LoggingLevel		- 0 = write no debug files, 1 = write standard output .dbg-file, 2 = write standard output .dbg-file and complete avrSWAP-array .dbg2-file
+0.087266				! IPC_IntSat		- Integrator saturation (maximum signal amplitude contrbution to pitch from IPC), [rad]
 8E-10					! IPC_KI			- Integral gain for the individual pitch controller, [-]. 
 0						! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) on = 1/off = 0
 0.3141592				! IPC_omegaHP		- High-pass filter cut-in frequency used to separate yaw-by-IPC contribution from blade load reduction contribution, [rad/s]. 
@@ -15,6 +16,9 @@
 -0.0028 -0.0028 -0.0027 -0.0027 -0.0026 -0.0024 -0.0023 -0.0022 -0.002 -0.0019 -0.0018 -0.0016 -0.0015					! PC_GS_ki			- Gain-schedule table: pitch controller ki gains
 0 0 0 0 0 0 0 0 0 0 0 0 0						! PC_GS_kd			- Gain-schedule table: pitch controller kd gains
 0 0 0 0 0 0 0 0 0 0 0 0 0						! PC_GS_tf			- Gain-schedule table: pitch controller tf gains (derivative filter)
+1					! PC_ConstP_n - Amount of controller gains for the constant power contribution to collective pitch control
+-4.0E-09			! PC_ConstP_KP - Proportional gain(s), constant power contribution to collective pitch control
+-4.0E-09			! PC_ConstP_KI - Integral gain(s), constant power contribution to collective pitch control
 1.5707				! PC_MaxPit			- Maximum physical pitch limit, [rad].
 -0.087266				! PC_MinPit			- Minimum physical pitch limit, [rad].
 0.17453				! PC_MaxRat			- Maximum pitch rate (in absolute value) in pitch controller, [rad/s].
@@ -39,6 +43,7 @@
 -6134.68 				! VS_KI				- Integral gain for generator PI torque controller, used in the transitional 2.5 region, [1/rad Nm]
 2						! Y_ControlMode		- Yaw control mode: (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC)
 1.745329252			! Y_ErrThresh		- Yaw error threshold. Turbine begins to yaw when it passes this. [rad^2 s]
+0.17453				! Y_IPC_IntSat		- Integrator saturation (maximum signal amplitude contrbution to pitch from yaw-by-IPC), [rad]
 1						! Y_IPC_n			- Number of controller gains (yaw-by-IPC)
 -0.064				! Y_IPC_KP			- Yaw-by-IPC proportional controller gain Kp
 -0.0008				! Y_IPC_KI			- Yaw-by-IPC integral controller gain Ki

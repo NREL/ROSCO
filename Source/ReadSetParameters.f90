@@ -20,6 +20,7 @@ CONTAINS
 		READ(UnControllerParameters, *) CntrPar%LoggingLevel
 		
 		!------------------- IPC CONSTANTS -----------------------
+		READ(UnControllerParameters, *) CntrPar%IPC_IntSat
 		READ(UnControllerParameters, *) CntrPar%IPC_KI
 		READ(UnControllerParameters, *) CntrPar%IPC_ControlMode
 		READ(UnControllerParameters, *) CntrPar%IPC_omegaHP
@@ -32,7 +33,6 @@ CONTAINS
 		
 		!------------------- PITCH CONSTANTS -----------------------
 		READ(UnControllerParameters, *) CntrPar%PC_GS_n
-		
 		ALLOCATE(CntrPar%PC_GS_angles(CntrPar%PC_GS_n))
 		READ(UnControllerParameters,*) CntrPar%PC_GS_angles
 		
@@ -47,6 +47,13 @@ CONTAINS
 		
 		ALLOCATE(CntrPar%PC_GS_tf(CntrPar%PC_GS_n))
 		READ(UnControllerParameters,*) CntrPar%PC_GS_tf
+		
+		READ(UnControllerParameters, *) CntrPar%PC_ConstP_n
+		ALLOCATE(CntrPar%PC_ConstP_KP(CntrPar%PC_ConstP_n))
+		READ(UnControllerParameters,*) CntrPar%PC_ConstP_KP
+		
+		ALLOCATE(CntrPar%PC_ConstP_KI(CntrPar%PC_ConstP_n))
+		READ(UnControllerParameters,*) CntrPar%PC_ConstP_KI
 		
 		READ(UnControllerParameters, *) CntrPar%PC_MaxPit
 		READ(UnControllerParameters, *) CntrPar%PC_MinPit
@@ -80,6 +87,7 @@ CONTAINS
 		!------------------- YAW CONSTANTS -----------------------
 		READ(UnControllerParameters, *) CntrPar%Y_ControlMode
 		READ(UnControllerParameters, *) CntrPar%Y_ErrThresh
+		READ(UnControllerParameters, *) CntrPar%Y_IPC_IntSat
 		READ(UnControllerParameters, *) CntrPar%Y_IPC_n
 		
 		ALLOCATE(CntrPar%Y_IPC_KP(CntrPar%Y_IPC_n))
@@ -127,7 +135,6 @@ CONTAINS
 	END SUBROUTINE ReadAvrSWAP
 	
 	SUBROUTINE Assert(LocalVar, CntrPar, avrSWAP, aviFAIL, ErrMsg, size_avcMSG)
-		
 		USE, INTRINSIC	:: ISO_C_Binding
 		USE DRC_Types, ONLY : LocalVariables, ControlParameters
 	
@@ -274,7 +281,6 @@ CONTAINS
 	END SUBROUTINE Assert
 	
 	SUBROUTINE SetParameters(avrSWAP, aviFAIL, ErrMsg, size_avcMSG, CntrPar, LocalVar, objInst)
-		
 		USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
 		
 		INTEGER(4), INTENT(IN)					:: size_avcMSG

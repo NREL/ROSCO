@@ -5,6 +5,7 @@ IMPLICIT NONE
 TYPE, PUBLIC :: ControlParameters
 	REAL(4)								:: CornerFreq					! Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
 	INTEGER(4)							:: LoggingLevel					! 0 = write no debug files, 1 = write standard output .dbg-file, 2 = write standard output .dbg-file and complete avrSWAP-array .dbg2-file
+	REAL(4)								:: IPC_IntSat					! Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
 	REAL(4)								:: IPC_KI						! Integral gain for the individual pitch controller, [-]. 8E-10
 	INTEGER(4)							:: IPC_ControlMode				! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) on = 1/off = 0
 	REAL(4)								:: IPC_omegaHP					! High-pass filter cut-in frequency used to separate yaw-by-IPC contribution from blade load reduction contribution, [rad/s].
@@ -20,6 +21,9 @@ TYPE, PUBLIC :: ControlParameters
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_ki						! Gain-schedule table: pitch controller ki gains
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_kd						! Gain-schedule table: pitch controller kd gains
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_tf						! Gain-schedule table: pitch controller tf gains (derivative filter)
+	INTEGER(4)							:: PC_ConstP_n					! Amount of controller gains for the constant power contribution to collective pitch control
+	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_ConstP_KP					! Proportional gain(s), constant power contribution to collective pitch control
+	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_ConstP_KI					! Integral gain(s), constant power contribution to collective pitch control
 	REAL(4)								:: PC_MaxPit					! Maximum physical pitch limit, [rad].
 	REAL(4)								:: PC_MinPit					! Minimum physical pitch limit, [rad].
 	REAL(4)								:: PC_MaxRat					! Maximum pitch rate (in absolute value) in pitch controller, [rad/s].
@@ -44,6 +48,7 @@ TYPE, PUBLIC :: ControlParameters
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: VS_KI						! Integral gain for generator PI torque controller, used in the transitional 2.5 region
 	INTEGER(4)							:: Y_ControlMode				! Yaw control mode: (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC)
 	REAL(4)								:: Y_ErrThresh					! Error threshold [rad]. Turbine begins to yaw when it passes this. (104.71975512) -- 1.745329252
+	REAL(4)								:: Y_IPC_IntSat					! Integrator saturation (maximum signal amplitude contrbution to pitch from yaw-by-IPC)
 	INTEGER(4)							:: Y_IPC_n						! Number of controller gains (yaw-by-IPC)
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: Y_IPC_KP						! Yaw-by-IPC proportional controller gain Kp
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: Y_IPC_KI						! Yaw-by-IPC integral controller gain Ki
