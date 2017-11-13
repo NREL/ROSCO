@@ -111,5 +111,6 @@ TYPE, PUBLIC :: ObjectInstances
 	INTEGER(4)							:: instHPF
 	INTEGER(4)							:: instNotchSlopes
 	INTEGER(4)							:: instNotch
+	INTEGER(4)							:: instPI
 END TYPE ObjectInstances
 END MODULE DRC_Types

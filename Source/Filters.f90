@@ -180,7 +180,7 @@ CONTAINS
 		InputSignalLast2(inst)   = InputSignalLast1(inst)
 		InputSignalLast1(inst)   = InputSignal			!Save input signal for next time step
 		OutputSignalLast2(inst)  = OutputSignalLast1(inst)		!Save input signal for next time step
-		OutputSignalLast1(inst)  = NotchFilter
+		OutputSignalLast1(inst)  = NotchFilterSlopes
 		inst = inst + 1
 
 	END FUNCTION NotchFilterSlopes

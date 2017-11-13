@@ -301,6 +301,7 @@ CONTAINS
 		objInst%instHPF = 1
 		objInst%instNotchSlopes = 1
 		objInst%instNotch = 1
+		objInst%instPI = 1
 		
 		! Set unused outputs to zero (See Appendix A of Bladed User's Guide):
 		avrSWAP(36) = 0.0 ! Shaft brake status: 0=off

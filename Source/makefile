@@ -10,8 +10,8 @@
 #================================================================================#
 
    # 32-bit or 64-bit?
-BITS = 32
-#BITS = 64
+#BITS = 32
+BITS = 64
 
 
    # Location of source files for the DLL.

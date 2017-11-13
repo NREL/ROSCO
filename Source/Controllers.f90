@@ -48,9 +48,9 @@ CONTAINS
 			
 		! Compute the pitch commands associated with the proportional and integral
 		!   gains:
-		LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, CntrPar%PC_SetPnt, LocalVar%PC_MaxPitVar, LocalVar%DT, CntrPar%PC_SetPnt, .FALSE., 2) ! + DFController(LocalVar%PC_SpdErr, LocalVar%PC_KD, LocalVar%PC_TF, LocalVar%DT, 1)
+		LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, CntrPar%PC_SetPnt, LocalVar%PC_MaxPitVar, LocalVar%DT, CntrPar%PC_SetPnt, .FALSE., objInst%instPI)
 		IF (CntrPar%VS_ControlMode == 1) THEN
-			LocalVar%PC_PitComT = LocalVar%PC_PitComT + PIController(LocalVar%PC_PwrErr, CntrPar%PC_ConstP_KP(1), CntrPar%PC_ConstP_KI(1), CntrPar%PC_SetPnt, LocalVar%PC_MaxPitVar, LocalVar%DT, CntrPar%PC_SetPnt, .FALSE., 5)
+			LocalVar%PC_PitComT = LocalVar%PC_PitComT + PIController(LocalVar%PC_PwrErr, CntrPar%PC_ConstP_KP(1), CntrPar%PC_ConstP_KI(1), CntrPar%PC_SetPnt, LocalVar%PC_MaxPitVar, LocalVar%DT, CntrPar%PC_SetPnt, .FALSE., objInst%instPI)
 		END IF
 		
 		! Individual pitch control
@@ -103,16 +103,16 @@ CONTAINS
 		LocalVar%VS_SpdErrAr = CntrPar%VS_RtSpd - LocalVar%GenSpeedF					! Current speed error - Above-rated PI-control
 		LocalVar%VS_SpdErrBr = CntrPar%VS_MinOM - LocalVar%GenSpeedF					! Current speed error - Below-rated PI-control
 		IF (LocalVar%PC_PitComT >= CntrPar%VS_Rgn3MP) THEN						! We are in region 3
-			LocalVar%GenTrqAr = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_Rgn2MaxTq, CntrPar%VS_GenTrqArSatMax, LocalVar%DT, CntrPar%VS_GenTrqArSatMax, .TRUE., 1)
-			LocalVar%GenTrqBr = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_Rgn2MinTq, LocalVar%DT, CntrPar%VS_Rgn2MinTq, .TRUE., 4)
+			LocalVar%GenTrqAr = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_Rgn2MaxTq, CntrPar%VS_GenTrqArSatMax, LocalVar%DT, CntrPar%VS_GenTrqArSatMax, .TRUE., 80)
+			LocalVar%GenTrqBr = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_Rgn2MinTq, LocalVar%DT, CntrPar%VS_Rgn2MinTq, .TRUE., 81)
 			IF (CntrPar%VS_ControlMode == 1) THEN					! Constant power tracking
 				LocalVar%GenTrq = CntrPar%VS_RtPwr/LocalVar%GenSpeedF
 			ELSE											! Constant torque tracking
 				LocalVar%GenTrq = CntrPar%VS_RtTq
 			END IF
 		ELSE
-			LocalVar%GenTrqAr = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_Rgn2MaxTq, CntrPar%VS_GenTrqArSatMax, LocalVar%DT, CntrPar%VS_Rgn2MaxTq, .FALSE., 1)
-			LocalVar%GenTrqBr = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_Rgn2MinTq, LocalVar%DT, CntrPar%VS_Rgn2MinTq, .FALSE., 4)
+			LocalVar%GenTrqAr = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_Rgn2MaxTq, CntrPar%VS_GenTrqArSatMax, LocalVar%DT, CntrPar%VS_Rgn2MaxTq, .FALSE., 80)
+			LocalVar%GenTrqBr = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_Rgn2MinTq, LocalVar%DT, CntrPar%VS_Rgn2MinTq, .FALSE., 81)
 			IF (LocalVar%GenTrqAr >= CntrPar%VS_Rgn2MaxTq*1.01) THEN
 				LocalVar%GenTrq = LocalVar%GenTrqAr
 				CONTINUE
@@ -228,7 +228,7 @@ CONTAINS
 		IF (CntrPar%Y_ControlMode == 2) THEN
 			axisYawF = HPFilter(axisYaw, LocalVar%DT, CntrPar%IPC_omegaHP, LocalVar%iStatus, .FALSE., objInst%instHPF)
 			Y_MErrF = SecLPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%IPC_omegaLP, CntrPar%IPC_zetaLP, LocalVar%iStatus, .FALSE., objInst%instSecLPF)
-			Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP(1), CntrPar%Y_IPC_KI(1), -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, 0.0, .FALSE., 3)
+			Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP(1), CntrPar%Y_IPC_KI(1), -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, 0.0, .FALSE., objInst%instPI)
 		ELSE
 			axisYawF = axisYaw
 			Y_MErrF = 0.0

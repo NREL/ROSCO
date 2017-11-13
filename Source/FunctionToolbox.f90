@@ -243,7 +243,13 @@ CONTAINS
 				WRITE(UnDb2,'(A,85("'//Tab//'(-)"))')  '(s)'
 			END IF
 		ELSE
-			!..............................................................................................................................
+			! Print simulation status, every 10 seconds
+			IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
+				WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0 ! LocalVar%Time !/1000.0
+				100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW')
+				PRINT *, avrSWAP(15)/1000.0, avrSWAP(14)/1000.0
+			END IF
+			
 			! Output debugging information if requested:
 			IF (CntrPar%LoggingLevel > 0) THEN
 				WRITE (UnDb,FmtDat)		LocalVar%Time,	LocalVar%PC_PitComT,	LocalVar%PC_SpdErr,	LocalVar%PC_KP,	LocalVar%PC_KI,	LocalVar%Y_MErr,	LocalVar%rootMOOP(1), CntrPar%VS_RtPwr, LocalVar%GenTrq
