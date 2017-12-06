@@ -45,25 +45,25 @@ CONTAINS
 	!
 		IMPLICIT NONE
 
-			! Inputs
-		REAL(4), INTENT(IN)		:: error
-		REAL(4), INTENT(IN)		:: kp
-		REAL(4), INTENT(IN)		:: ki
-		REAL(4), INTENT(IN)		:: minValue
-		REAL(4), INTENT(IN)		:: maxValue
-		REAL(4), INTENT(IN)		:: DT
-		INTEGER(4), INTENT(IN)	:: inst
-		REAL(4), INTENT(IN)		:: I0
-		LOGICAL, INTENT(IN)		:: reset
+		! Inputs
+		REAL(4), INTENT(IN)			:: error
+		REAL(4), INTENT(IN)			:: kp
+		REAL(4), INTENT(IN)			:: ki
+		REAL(4), INTENT(IN)			:: minValue
+		REAL(4), INTENT(IN)			:: maxValue
+		REAL(4), INTENT(IN)			:: DT
+		INTEGER(4), INTENT(INOUT)	:: inst
+		REAL(4), INTENT(IN)			:: I0
+		LOGICAL, INTENT(IN)			:: reset
 		
-			! Local
+		! Local
 		INTEGER(4)						:: i											! Counter for making arrays
 		REAL(4)							:: PTerm										! Proportional term
 		REAL(4), DIMENSION(99), SAVE	:: ITerm = (/ (real(9999.9), i = 1,99) /)		! Integral term, current.
 		REAL(4), DIMENSION(99), SAVE	:: ITermLast = (/ (real(9999.9), i = 1,99) /)	! Integral term, the last time this controller was called. Supports 99 separate instances.
 		INTEGER(4), DIMENSION(99), SAVE	:: FirstCall = (/ (1, i=1,99) /)				! First call of this function?
 		
-			! Initialize persistent variables/arrays, and set inital condition for integrator term
+		! Initialize persistent variables/arrays, and set inital condition for integrator term
 		IF ((FirstCall(inst) == 1) .OR. reset) THEN
 			ITerm(inst) = I0
 			ITermLast(inst) = I0
@@ -71,7 +71,6 @@ CONTAINS
 			FirstCall(inst) = 0
 			PIController = I0
 		ELSE
-		
 			PTerm = kp*error
 			ITerm(inst) = ITerm(inst) + DT*ki*error
 			ITerm(inst) = saturate(ITerm(inst), minValue, maxValue)
@@ -80,6 +79,7 @@ CONTAINS
 		
 			ITermLast(inst) = ITerm(inst)
 		END IF
+		inst = inst + 1
 		
 	END FUNCTION PIController
 	!-------------------------------------------------------------------------------------------------------------------------------

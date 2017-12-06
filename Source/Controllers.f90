@@ -103,16 +103,16 @@ CONTAINS
 		LocalVar%VS_SpdErrAr = CntrPar%VS_RtSpd - LocalVar%GenSpeedF					! Current speed error - Above-rated PI-control
 		LocalVar%VS_SpdErrBr = CntrPar%VS_MinOM - LocalVar%GenSpeedF					! Current speed error - Below-rated PI-control
 		IF (LocalVar%PC_PitComT >= CntrPar%VS_Rgn3MP) THEN						! We are in region 3
-			LocalVar%GenTrqAr = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_Rgn2MaxTq, CntrPar%VS_GenTrqArSatMax, LocalVar%DT, CntrPar%VS_GenTrqArSatMax, .TRUE., 80)
-			LocalVar%GenTrqBr = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_Rgn2MinTq, LocalVar%DT, CntrPar%VS_Rgn2MinTq, .TRUE., 81)
+			LocalVar%GenTrqAr = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_Rgn2MaxTq, CntrPar%VS_GenTrqArSatMax, LocalVar%DT, CntrPar%VS_GenTrqArSatMax, .TRUE., objInst%instPI)
+			LocalVar%GenTrqBr = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_Rgn2MinTq, LocalVar%DT, CntrPar%VS_Rgn2MinTq, .TRUE., objInst%instPI)
 			IF (CntrPar%VS_ControlMode == 1) THEN					! Constant power tracking
 				LocalVar%GenTrq = CntrPar%VS_RtPwr/LocalVar%GenSpeedF
 			ELSE											! Constant torque tracking
 				LocalVar%GenTrq = CntrPar%VS_RtTq
 			END IF
 		ELSE
-			LocalVar%GenTrqAr = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_Rgn2MaxTq, CntrPar%VS_GenTrqArSatMax, LocalVar%DT, CntrPar%VS_Rgn2MaxTq, .FALSE., 80)
-			LocalVar%GenTrqBr = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_Rgn2MinTq, LocalVar%DT, CntrPar%VS_Rgn2MinTq, .FALSE., 81)
+			LocalVar%GenTrqAr = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_Rgn2MaxTq, CntrPar%VS_GenTrqArSatMax, LocalVar%DT, CntrPar%VS_Rgn2MaxTq, .FALSE., objInst%instPI)
+			LocalVar%GenTrqBr = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_Rgn2MinTq, LocalVar%DT, CntrPar%VS_Rgn2MinTq, .FALSE., objInst%instPI)
 			IF (LocalVar%GenTrqAr >= CntrPar%VS_Rgn2MaxTq*1.01) THEN
 				LocalVar%GenTrq = LocalVar%GenTrqAr
 				CONTINUE
