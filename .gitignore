@@ -3,5 +3,6 @@ ControllerSchematic.pptx
 Source/Obj_win32
 *.mod
 Source/x64/
+Source/Release/
 
 Scripts/CompileDISCONHereCopyRun\.cmd
