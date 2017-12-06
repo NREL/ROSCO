@@ -183,29 +183,47 @@ CONTAINS
 	!-------------------------------------------------------------------------------------------------------------------------------
 	! Stata machine, determines the state of the wind turbine to determine the corresponding control actions
 	! States:
-	! - 1, idling, wind ad rotor speed too low for start-up: set pitch to vane position and torque to minimum
-	! - 2, start-up mode, set pitch demand to start-up pitch angle for maximum aerodynamic torque and torque demand to minimum
-	! - 3, start-up2normal
-	! - 4, Region 1.5 operation, torque control to keep the rotor at cut-in speed towards the Cp-max operational curve
-	! - 5, Region 2, operation, maximum rotor power efficiency (Cp-max) tracking, keep TSR constant at a fixed fine-pitch angle
-	! - 6, Region 2.5, transition between below and above-rated operating conditions (near-rated region) using PI torque control
-	! - 7, Region 3, above-rated operation using pitch control
-	!REAL FUNCTION StateMachine(LocalVar, CntrPar)
-	!
-	!	USE DRC_Types, ONLY : LocalVariables, ControlParameters
-	!
-	!	IMPLICIT NONE
-    !
-	!		! Inputs
-	!	TYPE(ControlParameters), INTENT(IN)		:: CntrPar
-	!
-	!		! Inputs/outputs
-	!	TYPE(LocalVariables), INTENT(INOUT)		:: LocalVar
-	!	
-	!		! Local
-	!		
-	!	
-	!END FUNCTION StateMachine
+	! - 0, Error state, unknown state (for debugging purposes)
+	! - 10, idling, wind and rotor speed too low for start-up: set pitch to vane position and torque to minimum
+	! - 20, start-up mode, set pitch demand to start-up pitch angle for maximum aerodynamic torque and torque demand to minimum
+	! - 25, start-up2normal
+	! - 30, Region 1 operation
+	! - 40, Region 1.5 operation, torque control to keep the rotor at cut-in speed towards the Cp-max operational curve
+	! - 50, Region 2, operation, maximum rotor power efficiency (Cp-max) tracking, keep TSR constant at a fixed fine-pitch angle
+	! - 60, Region 2.5, transition between below and above-rated operating conditions (near-rated region) using PI torque control
+	! - 70, Region 2.75, above-rated operation using pitch control (constant torque mode)
+	! - 80, Region 3, above-rated operation using pitch control (constant torque mode)
+	! - 81, Region 3, above-rated operation using pitch control (constant power mode)
+	INTEGER FUNCTION StateMachine(CntrPar, LocalVar)
+		USE DRC_Types, ONLY : LocalVariables, ControlParameters
+		IMPLICIT NONE
+    
+			! Inputs
+		TYPE(ControlParameters), INTENT(IN)		:: CntrPar
+		TYPE(LocalVariables), INTENT(IN)		:: LocalVar
+		
+			! Local
+			! Pitch control state machine
+		IF ((CntrPar%VS_ControlMode == 0) .AND. (LocalVar%GenTrqAr >= CntrPar%PC_RtTq99)) THEN
+			StateMachine = 70
+			IF (LocalVar%PC_PitComT >= CntrPar%VS_Rgn3MP) THEN
+				StateMachine = 80
+			END IF
+		ELSEIF ((CntrPar%VS_ControlMode == 1) .AND. (LocalVar%GenTrqAr >= CntrPar%VS_GenTrqArSatMax*0.99)) THEN
+			StateMachine = 70
+			IF (LocalVar%PC_PitComT >= CntrPar%VS_Rgn3MP) THEN
+				StateMachine = 81
+			END IF
+		ELSEIF (LocalVar%GenTrqAr >= CntrPar%VS_Rgn2MaxTq*1.01) THEN
+			StateMachine = 60
+		ELSEIF (LocalVar%GenTrqBr <= CntrPar%VS_Rgn2MinTq*0.99) THEN
+			StateMachine = 40
+		ELSEIF (LocalVar%GenSpeedF < CntrPar%VS_MaxOM) THEN
+			StateMachine = 50
+		ELSE
+			StateMachine = 0
+		END IF
+	END FUNCTION StateMachine
 	!-------------------------------------------------------------------------------------------------------------------------------
 	SUBROUTINE Debug(LocalVar, CntrPar, avrSWAP, RootName, size_avcOUTNAME)
 		USE, INTRINSIC	:: ISO_C_Binding
@@ -247,7 +265,7 @@ CONTAINS
 			IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
 				WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0 ! LocalVar%Time !/1000.0
 				100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW')
-				PRINT *, avrSWAP(15)/1000.0, avrSWAP(14)/1000.0
+				PRINT *, LocalVar%GlobalState, LocalVar%PC_MaxPitVar, LocalVar%PC_PitComT
 			END IF
 			
 			! Output debugging information if requested:

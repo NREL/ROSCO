@@ -2,3 +2,6 @@
 ControllerSchematic.pptx
 Source/Obj_win32
 *.mod
+Source/x64/
+
+Scripts/CompileDISCONHereCopyRun\.cmd
