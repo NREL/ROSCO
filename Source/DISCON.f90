@@ -43,7 +43,7 @@ CALL ReadAvrSWAP(avrSWAP, LocalVar)
 CALL SetParameters(avrSWAP, aviFAIL, ErrMsg, SIZE(avcMSG), CntrPar, LocalVar, objInst)
 
 IF ((LocalVar%iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculations if no error has occurred and we are not on the last time step
-	LocalVar%GlobalState = StateMachine(CntrPar, LocalVar)
+	CALL StateMachine(CntrPar, LocalVar)
 	CALL VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst)
 	CALL PitchControl(avrSWAP, CntrPar, LocalVar, objInst)
 !	CALL YawRateControl(avrSWAP, CntrPar, LocalVar, objInst)

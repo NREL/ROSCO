@@ -181,49 +181,51 @@ CONTAINS
 	!	
 	!END FUNCTION PRBSgen
 	!-------------------------------------------------------------------------------------------------------------------------------
-	! Stata machine, determines the state of the wind turbine to determine the corresponding control actions
+	! Stata machines, determines the state of the wind turbine to determine the corresponding control actions
 	! States:
-	! - 0, Error state, unknown state (for debugging purposes)
-	! - 10, idling, wind and rotor speed too low for start-up: set pitch to vane position and torque to minimum
-	! - 20, start-up mode, set pitch demand to start-up pitch angle for maximum aerodynamic torque and torque demand to minimum
-	! - 25, start-up2normal
-	! - 30, Region 1 operation
-	! - 40, Region 1.5 operation, torque control to keep the rotor at cut-in speed towards the Cp-max operational curve
-	! - 50, Region 2, operation, maximum rotor power efficiency (Cp-max) tracking, keep TSR constant at a fixed fine-pitch angle
-	! - 60, Region 2.5, transition between below and above-rated operating conditions (near-rated region) using PI torque control
-	! - 70, Region 2.75, above-rated operation using pitch control (constant torque mode)
-	! - 80, Region 3, above-rated operation using pitch control (constant torque mode)
-	! - 81, Region 3, above-rated operation using pitch control (constant power mode)
-	INTEGER FUNCTION StateMachine(CntrPar, LocalVar)
+	! - VS/PC_State = 0, Error state, unknown state (for debugging purposes)
+	! - VS_State = 1, Region 1(.5) operation, torque control to keep the rotor at cut-in speed towards the Cp-max operational curve
+	! - VS_State = 2, Region 2, operation, maximum rotor power efficiency (Cp-max) tracking, keep TSR constant at a fixed fine-pitch angle
+	! - VS_State = 3, Region 2.5, transition between below and above-rated operating conditions (near-rated region) using PI torque control
+	! - VS_State = 4 + PC_State = 1, above-rated operation using pitch control (constant torque mode)
+	! - VS_State = 5 + PC_State = 2, above-rated operation using pitch and torque control (constant power mode)
+	SUBROUTINE StateMachine(CntrPar, LocalVar)
 		USE DRC_Types, ONLY : LocalVariables, ControlParameters
 		IMPLICIT NONE
     
 			! Inputs
 		TYPE(ControlParameters), INTENT(IN)		:: CntrPar
-		TYPE(LocalVariables), INTENT(IN)		:: LocalVar
+		TYPE(LocalVariables), INTENT(INOUT)		:: LocalVar
 		
 			! Local
 			! Pitch control state machine
-		IF ((CntrPar%VS_ControlMode == 0) .AND. (LocalVar%GenTrqAr >= CntrPar%PC_RtTq99)) THEN
-			StateMachine = 70
-			IF (LocalVar%PC_PitComT >= CntrPar%VS_Rgn3MP) THEN
-				StateMachine = 80
-			END IF
-		ELSEIF ((CntrPar%VS_ControlMode == 1) .AND. (LocalVar%GenTrqAr >= CntrPar%VS_GenTrqArSatMax*0.99)) THEN
-			StateMachine = 70
-			IF (LocalVar%PC_PitComT >= CntrPar%VS_Rgn3MP) THEN
-				StateMachine = 81
-			END IF
-		ELSEIF (LocalVar%GenTrqAr >= CntrPar%VS_Rgn2MaxTq*1.01) THEN
-			StateMachine = 60
-		ELSEIF (LocalVar%GenTrqBr <= CntrPar%VS_Rgn2MinTq*0.99) THEN
-			StateMachine = 40
-		ELSEIF (LocalVar%GenSpeedF < CntrPar%VS_MaxOM) THEN
-			StateMachine = 50
+		IF (CntrPar%VS_ControlMode == 0 .AND. LocalVar%GenTrq >= CntrPar%PC_RtTq99) THEN
+			LocalVar%PC_State = 1
+		ELSEIF (CntrPar%VS_ControlMode == 1 .AND. LocalVar%GenTrqAr >= CntrPar%VS_GenTrqArSatMax*0.99) THEN
+			LocalVar%PC_State = 2
 		ELSE
-			StateMachine = 0
+			LocalVar%PC_State = 0
 		END IF
-	END FUNCTION StateMachine
+		
+			! Torque control state machine		
+		IF (LocalVar%PC_PitComT >= CntrPar%VS_Rgn3MP) THEN            ! We are in region 3
+			IF (CntrPar%VS_ControlMode == 1) THEN          ! Constant power tracking
+				LocalVar%VS_State = 5
+			ELSE                      ! Constant torque tracking
+				LocalVar%VS_State = 4
+			END IF
+		ELSE
+			IF (LocalVar%GenTrqAr >= CntrPar%VS_Rgn2MaxTq*1.01) THEN
+				LocalVar%VS_State = 3
+			ELSEIF (LocalVar%GenTrqBr <= CntrPar%VS_Rgn2MinTq*0.99) THEN                ! We are in region 1 1/2
+				LocalVar%VS_State = 1
+			ELSEIF (LocalVar%GenSpeedF < CntrPar%VS_MaxOM)  THEN                    ! We are in region 2 - optimal torque is proportional to the square of the generator speed
+				LocalVar%VS_State = 2
+			ELSE                                    ! We are in region 2 1/2 - simple induction generator transition region
+				LocalVar%VS_State = 0
+			END IF
+		END IF
+	END SUBROUTINE StateMachine
 	!-------------------------------------------------------------------------------------------------------------------------------
 	SUBROUTINE Debug(LocalVar, CntrPar, avrSWAP, RootName, size_avcOUTNAME)
 		USE, INTRINSIC	:: ISO_C_Binding
@@ -265,7 +267,7 @@ CONTAINS
 			IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
 				WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0 ! LocalVar%Time !/1000.0
 				100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW')
-				PRINT *, LocalVar%GlobalState, LocalVar%PC_MaxPitVar, LocalVar%PC_PitComT
+				PRINT *, LocalVar%PC_State, LocalVar%VS_State, LocalVar%PC_MaxPitVar, LocalVar%PC_PitComT, LocalVar%GenTrq
 			END IF
 			
 			! Output debugging information if requested:

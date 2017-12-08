@@ -93,11 +93,13 @@ TYPE, PUBLIC :: LocalVariables
 	REAL(4)								:: PC_PitComT_IPC(3)			! Total command pitch based on the sum of the proportional and integral terms, including IPC term [rad].
 	REAL(4)								:: PC_PwrErr					! Power error with respect to rated power [W]
 	REAL(4)								:: PC_SpdErr					! Current speed error (pitch control) [rad/s].
+	INTEGER(4)							:: PC_State						! State of the pitch control system
 	REAL(4)								:: PitCom(3)					! Commanded pitch of each blade the last time the controller was called, [rad].
 	INTEGER(4)							:: TestType						! Test variable, no use
 	REAL(4)								:: VS_LastGenTrq				! Commanded electrical generator torque the last time the controller was called, [Nm].
 	REAL(4)								:: VS_SpdErrAr					! Current speed error (generator torque control) [rad/s].
 	REAL(4)								:: VS_SpdErrBr					! Current speed error (generator torque control) [rad/s].
+	INTEGER(4)							:: VS_State						! State of the torque control system
 	REAL(4)								:: Y_AccErr						! Accumulated yaw error [rad].
 	REAL(4)								:: Y_ErrLPFFast					! Filtered yaw error by fast low pass filter [rad].
 	REAL(4)								:: Y_ErrLPFSlow					! Filtered yaw error by slow low pass filter [rad].

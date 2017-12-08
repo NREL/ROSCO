@@ -25,7 +25,7 @@ CONTAINS
 		! Set the pitch override to yes
 		avrSWAP(55) = 0.0						! Pitch override: 0=yes
 		
-		IF (LocalVar%GlobalState >= 70) THEN
+		IF (LocalVar%PC_State >= 1) THEN
 			LocalVar%PC_MaxPitVar = CntrPar%PC_MaxPit
 		ELSE
 			LocalVar%PC_MaxPitVar = CntrPar%PC_SetPnt
@@ -100,22 +100,22 @@ CONTAINS
 			
 		LocalVar%VS_SpdErrAr = CntrPar%VS_RtSpd - LocalVar%GenSpeedF		! Current speed error - Above-rated PI-control
 		LocalVar%VS_SpdErrBr = CntrPar%VS_MinOM - LocalVar%GenSpeedF		! Current speed error - Below-rated PI-control
-		IF (LocalVar%GlobalState >= 80) THEN
+		IF (LocalVar%VS_State >= 4) THEN
 			LocalVar%GenTrqAr = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_Rgn2MaxTq, CntrPar%VS_GenTrqArSatMax, LocalVar%DT, CntrPar%VS_GenTrqArSatMax, .TRUE., objInst%instPI)
 			LocalVar%GenTrqBr = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_Rgn2MinTq, LocalVar%DT, CntrPar%VS_Rgn2MinTq, .TRUE., objInst%instPI)
-			IF (LocalVar%GlobalState == 80) THEN					! Constant torque tracking
+			IF (LocalVar%VS_State == 4) THEN					! Constant torque tracking
 				LocalVar%GenTrq = CntrPar%VS_RtTq
-			ELSEIF (LocalVar%GlobalState == 81) THEN				! Constant power tracking
+			ELSEIF (LocalVar%VS_State == 5) THEN				! Constant power tracking
 				LocalVar%GenTrq = CntrPar%VS_RtPwr/LocalVar%GenSpeedF
 			END IF
 		ELSE
 			LocalVar%GenTrqAr = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_Rgn2MaxTq, CntrPar%VS_GenTrqArSatMax, LocalVar%DT, CntrPar%VS_Rgn2MaxTq, .FALSE., objInst%instPI)
 			LocalVar%GenTrqBr = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_Rgn2MinTq, LocalVar%DT, CntrPar%VS_Rgn2MinTq, .FALSE., objInst%instPI)
-			IF (LocalVar%GlobalState == 60) THEN
+			IF (LocalVar%VS_State == 3) THEN
 				LocalVar%GenTrq = LocalVar%GenTrqAr
-			ELSEIF (LocalVar%GlobalState == 40) THEN	! We are in region 1 1/2
+			ELSEIF (LocalVar%VS_State == 1) THEN	! We are in region 1 1/2
 				LocalVar%GenTrq = LocalVar%GenTrqBr
-			ELSEIF (LocalVar%GlobalState == 50) THEN										! We are in region 2 - optimal torque is proportional to the square of the generator speed
+			ELSEIF (LocalVar%VS_State == 2) THEN										! We are in region 2 - optimal torque is proportional to the square of the generator speed
 				LocalVar%GenTrq = CntrPar%VS_Rgn2K*LocalVar%GenSpeedF*LocalVar%GenSpeedF
 			ELSE																		! We are in region 2 1/2 - simple induction generator transition region
 				LocalVar%GenTrq = CntrPar%VS_Rgn2MaxTq
