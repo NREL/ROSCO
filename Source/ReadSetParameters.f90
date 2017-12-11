@@ -7,11 +7,12 @@ CONTAINS
 	!..............................................................................................................................
 	! Read all constant control parameters from ControllerParameters.in parameter file
 	!..............................................................................................................................
-	SUBROUTINE ReadControlParameterFileSub(CntrPar)
-		USE DRC_Types, ONLY : ControlParameters
+	SUBROUTINE ReadControlParameterFileSub(CntrPar, LocalVar)
+		USE DRC_Types, ONLY : ControlParameters, LocalVariables
 	
 		INTEGER(4), PARAMETER		:: UnControllerParameters = 89
 		TYPE(ControlParameters), INTENT(INOUT)	:: CntrPar
+		TYPE(LocalVariables), INTENT(IN)		:: LocalVar
 		
 		OPEN(unit=UnControllerParameters, file='ControllerParameters.in', status='old', action='read')
 		
@@ -66,6 +67,7 @@ CONTAINS
 		!------------------- TORQUE CONSTANTS -----------------------
 		READ(UnControllerParameters, *) CntrPar%VS_ControlMode
 		READ(UnControllerParameters, *) CntrPar%VS_CtInSp
+		READ(UnControllerParameters, *) CntrPar%VS_GenEff
 		READ(UnControllerParameters, *) CntrPar%VS_GenTrqArSatMax
 		READ(UnControllerParameters, *) CntrPar%VS_MaxOM
 		READ(UnControllerParameters, *) CntrPar%VS_MaxRat
@@ -121,6 +123,7 @@ CONTAINS
 		LocalVar%Time				= avrSWAP(2)
 		LocalVar%DT				= avrSWAP(3)
 		LocalVar%BlPitch(1)		= avrSWAP(4)
+		LocalVar%VS_MechGenPwr  = avrSWAP(14)
 		LocalVar%VS_GenPwr		= avrSWAP(15)
 		LocalVar%GenSpeed			= avrSWAP(20)
 		LocalVar%Y_M				= avrSWAP(24)
@@ -327,7 +330,7 @@ CONTAINS
 					 'Visit our GitHub-page to contribute to this project:      '//NEW_LINE('A')// &
 					 'https://github.com/TUDelft-DataDrivenControl              '
 			
-			CALL ReadControlParameterFileSub(CntrPar)
+			CALL ReadControlParameterFileSub(CntrPar, LocalVar)
 			
 			! Initialize testValue (debugging variable)
 			LocalVar%TestType = 0

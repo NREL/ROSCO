@@ -94,30 +94,29 @@ CONTAINS
 		
 		! Filter the HSS (generator) speed measurement:
 		! Apply Low-Pass Filter
-		LocalVar%GenSpeedF = SecLPFilter(LocalVar%GenSpeed, LocalVar%DT, CntrPar%CornerFreq, 0.7, LocalVar%iStatus, .FALSE., objInst%instSecLPF)     ! This is the first instance of a second order LPFilter
+		LocalVar%GenSpeedF = SecLPFilter(LocalVar%GenSpeed, LocalVar%DT, CntrPar%CornerFreq, 0.7, LocalVar%iStatus, .FALSE., objInst%instSecLPF)     ! Second order LPFilter on generator speed
 		
 		! Compute the generator torque, which depends on which region we are in:
-			
 		LocalVar%VS_SpdErrAr = CntrPar%VS_RtSpd - LocalVar%GenSpeedF		! Current speed error - Above-rated PI-control
 		LocalVar%VS_SpdErrBr = CntrPar%VS_MinOM - LocalVar%GenSpeedF		! Current speed error - Below-rated PI-control
 		IF (LocalVar%VS_State >= 4) THEN
 			LocalVar%GenTrqAr = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_Rgn2MaxTq, CntrPar%VS_GenTrqArSatMax, LocalVar%DT, CntrPar%VS_GenTrqArSatMax, .TRUE., objInst%instPI)
 			LocalVar%GenTrqBr = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_Rgn2MinTq, LocalVar%DT, CntrPar%VS_Rgn2MinTq, .TRUE., objInst%instPI)
-			IF (LocalVar%VS_State == 4) THEN					! Constant torque tracking
+			IF (LocalVar%VS_State == 4) THEN
 				LocalVar%GenTrq = CntrPar%VS_RtTq
-			ELSEIF (LocalVar%VS_State == 5) THEN				! Constant power tracking
-				LocalVar%GenTrq = CntrPar%VS_RtPwr/LocalVar%GenSpeedF
+			ELSEIF (LocalVar%VS_State == 5) THEN
+				LocalVar%GenTrq = (CntrPar%VS_RtPwr/CntrPar%VS_GenEff)/LocalVar%GenSpeedF
 			END IF
 		ELSE
 			LocalVar%GenTrqAr = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_Rgn2MaxTq, CntrPar%VS_GenTrqArSatMax, LocalVar%DT, CntrPar%VS_Rgn2MaxTq, .FALSE., objInst%instPI)
 			LocalVar%GenTrqBr = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_Rgn2MinTq, LocalVar%DT, CntrPar%VS_Rgn2MinTq, .FALSE., objInst%instPI)
 			IF (LocalVar%VS_State == 3) THEN
 				LocalVar%GenTrq = LocalVar%GenTrqAr
-			ELSEIF (LocalVar%VS_State == 1) THEN	! We are in region 1 1/2
+			ELSEIF (LocalVar%VS_State == 1) THEN
 				LocalVar%GenTrq = LocalVar%GenTrqBr
-			ELSEIF (LocalVar%VS_State == 2) THEN										! We are in region 2 - optimal torque is proportional to the square of the generator speed
+			ELSEIF (LocalVar%VS_State == 2) THEN
 				LocalVar%GenTrq = CntrPar%VS_Rgn2K*LocalVar%GenSpeedF*LocalVar%GenSpeedF
-			ELSE																		! We are in region 2 1/2 - simple induction generator transition region
+			ELSE
 				LocalVar%GenTrq = CntrPar%VS_Rgn2MaxTq
 			END IF
 		END IF

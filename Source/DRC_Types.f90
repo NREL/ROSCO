@@ -33,6 +33,7 @@ TYPE, PUBLIC :: ControlParameters
 	REAL(4)								:: PC_Switch					! Angle above lowest minimum pitch angle for switch [rad]
 	INTEGER(4)							:: VS_ControlMode				! Generator torque control mode in above rated conditions, 0 = constant torque / 1 = constant power
 	REAL(4)								:: VS_CtInSp					! Transitional generator speed (HSS side) between regions 1 and 1 1/2, [rad/s].
+	REAL(4)								:: VS_GenEff					! Generator efficiency mechanical power -> electrical power [-]
 	REAL(4)								:: VS_GenTrqArSatMax			! Above rated generator torque PI control saturation, [Nm] -- 212900
 	REAL(4)								:: VS_MaxOM						! Optimal mode maximum speed, [rad/s].
 	REAL(4)								:: VS_MaxRat					! Maximum torque rate (in absolute value) in torque controller, [Nm/s].
@@ -97,6 +98,7 @@ TYPE, PUBLIC :: LocalVariables
 	REAL(4)								:: PitCom(3)					! Commanded pitch of each blade the last time the controller was called, [rad].
 	INTEGER(4)							:: TestType						! Test variable, no use
 	REAL(4)								:: VS_LastGenTrq				! Commanded electrical generator torque the last time the controller was called, [Nm].
+	REAL(4)								:: VS_MechGenPwr				! Mechanical power on the generator axis [W]
 	REAL(4)								:: VS_SpdErrAr					! Current speed error (generator torque control) [rad/s].
 	REAL(4)								:: VS_SpdErrBr					! Current speed error (generator torque control) [rad/s].
 	INTEGER(4)							:: VS_State						! State of the torque control system

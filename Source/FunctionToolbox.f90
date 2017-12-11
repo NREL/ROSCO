@@ -267,7 +267,7 @@ CONTAINS
 			IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
 				WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0 ! LocalVar%Time !/1000.0
 				100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW')
-				PRINT *, LocalVar%PC_State, LocalVar%VS_State, LocalVar%PC_MaxPitVar, LocalVar%PC_PitComT, LocalVar%GenTrq
+				PRINT *, LocalVar%PC_State, LocalVar%VS_State, LocalVar%PC_PitComT, LocalVar%GenTrq
 			END IF
 			
 			! Output debugging information if requested:
