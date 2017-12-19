@@ -28,7 +28,7 @@
 0.034906			! PC_Switch			- Angle above lowest minimum pitch angle for switch [rad]
 1					! VS_ControlMode	- Generator torque control mode in above rated conditions, 0 = constant torque / 1 = constant power
 70.1622				! VS_CtInSp			- Transitional generator speed (HSS side) between regions 1 and 1 1/2, [rad/s].
-0.944				! VS_GenEff			- Generator efficiency mechanical power -> electrical power [-]
+0.944				! VS_GenEff			- Generator efficiency mechanical power -> electrical power, this should match the efficiency defined in the generator properties! [-]
 43093.55			! VS_GenTrqArSatMax	- Above rated generator torque PI control saturation, [Nm]
 121.680				! VS_MaxOM			- Optimal mode maximum speed, [rad/s].
 150000.0			! VS_MaxRat			- Maximum torque rate (in absolute value) in torque controller, [Nm/s].
