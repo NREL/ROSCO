@@ -6,19 +6,19 @@
 0.3141592			! IPC_omegaHP		- High-pass filter cut-in frequency used to separate yaw-by-IPC contribution from blade load reduction contribution, [rad/s]. 
 0.6283185			! IPC_omegaLP		- Low-pass filter corner frequency for the individual pitch controller, [rad/s].	
 1.269330365			! IPC_omegaNotch	- Notch filter corner frequency for the individual pitch controller, [rad/s].
-0.436332313			! IPC_phi			- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. 
+0.436332313			! IPC_aziOffset		- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. 
 0.70				! IPC_zetaHP		- High-pass filter damping value, [-]. 
 1.0					! IPC_zetaLP		- Low-pass filter damping factor for the individual pitch controller, [-].	
 0.5					! IPC_zetaNotch		- Notch filter damping factor for the individual pitch controller, [-].
 13					! PC_GS_n			- Amount of gain-scheduling table entries
-0 0.0349 0.0698 0.1047 0.1396 0.1745 0.2094 0.2443 0.2793 0.3142 0.3491 0.384 0.4189							! PC_GS_angles		- Gain-schedule table: pitch angles
--0.0105 -0.0104 -0.0102 -0.0099 -0.0095 -0.0091 -0.0086 -0.0081 -0.0076 -0.0071 -0.0066 -0.0061 -0.0056			! PC_GS_kp			- Gain-schedule table: pitch controller kp gains
--0.0028 -0.0028 -0.0027 -0.0027 -0.0026 -0.0024 -0.0023 -0.0022 -0.002 -0.0019 -0.0018 -0.0016 -0.0015			! PC_GS_ki			- Gain-schedule table: pitch controller ki gains
-0 0 0 0 0 0 0 0 0 0 0 0 0						! PC_GS_kd			- Gain-schedule table: pitch controller kd gains
-0 0 0 0 0 0 0 0 0 0 0 0 0						! PC_GS_tf			- Gain-schedule table: pitch controller tf gains (derivative filter)
+0 0.0349 0.0698 0.1047 0.1396 0.1745 0.2094 0.2443 0.2793 0.3142 0.3491 0.384 0.4189 ! PC_GS_angles		- Gain-schedule table: pitch angles
+-0.0105 -0.0104 -0.0102 -0.0099 -0.0095 -0.0091 -0.0086 -0.0081 -0.0076 -0.0071 -0.0066 -0.0061 -0.0056 ! PC_GS_KP			- Gain-schedule table: pitch controller kp gains
+-0.0028 -0.0028 -0.0027 -0.0027 -0.0026 -0.0024 -0.0023 -0.0022 -0.002 -0.0019 -0.0018 -0.0016 -0.0015 ! PC_GS_KI			- Gain-schedule table: pitch controller ki gains
+0 0 0 0 0 0 0 0 0 0 0 0 0 ! PC_GS_KD			- Gain-schedule table: pitch controller kd gains
+0 0 0 0 0 0 0 0 0 0 0 0 0 ! PC_GS_TF			- Gain-schedule table: pitch controller tf gains (derivative filter)
 1					! PC_ConstP_n - Amount of controller gains for the constant power contribution to collective pitch control
--4.0E-09			! PC_ConstP_KP - Proportional gain(s), constant power contribution to collective pitch control
--4.0E-09			! PC_ConstP_KI - Integral gain(s), constant power contribution to collective pitch control
+0					! PC_ConstP_KP - Proportional gain(s), constant power contribution to collective pitch control, -4.0E-09
+0					! PC_ConstP_KI - Integral gain(s), constant power contribution to collective pitch control, -4.0E-09
 1.5707				! PC_MaxPit			- Maximum physical pitch limit, [rad].
 -0.087266			! PC_MinPit			- Minimum physical pitch limit, [rad].
 0.17453				! PC_MaxRat			- Maximum pitch rate (in absolute value) in pitch controller, [rad/s].
@@ -26,23 +26,21 @@
 50.26548			! PC_RefSpd			- Desired (reference) HSS speed for pitch controller, [rad/s].
 0.0					! PC_SetPnt			- Record 5: Below-rated pitch angle set-point, [rad]
 0.034906			! PC_Switch			- Angle above lowest minimum pitch angle for switch [rad]
-0					! VS_ControlMode	- Generator torque control mode in above rated conditions, 0 = constant torque / 1 = constant power
-26.179938			! VS_CtInSp			- Transitional generator speed (HSS side) between regions 1 and 1 1/2, [rad/s].
+1					! VS_ControlMode	- Generator torque control mode in above rated conditions, 0 = constant torque / 1 = constant power
 0.944				! VS_GenEff			- Generator efficiency mechanical power -> electrical power, this should match the efficiency defined in the generator properties! [-]
 212900				! VS_GenTrqArSatMax	- Above rated generator torque PI control saturation, [Nm]
-42.411				! VS_MaxOM			- Optimal mode maximum speed, [rad/s].
 150000.0			! VS_MaxRat			- Maximum torque rate (in absolute value) in torque controller, [Nm/s].
 250000.0			! VS_MaxTq			- Maximum generator torque in Region 3 (HSS side), [Nm].
 0.0					! VS_MinTq			- Minimum generator (HSS side), [Nm].
-31.415				! VS_MinOM			- Optimal mode minimum speed, [rad/s]
+31.415				! VS_MinOM			- Optimal mode minimum speed, cut-in speed towards optimal mode gain path [rad/s]
 104.1				! VS_Rgn2K			- Generator torque constant in Region 2 (HSS side), N-m/(rad/s)^2
 1.0E+07				! VS_RtPwr			- Wind turbine rated power [W]
 198943.6			! VS_RtTq			- Rated torque, [Nm].
-42.411				! VS_RtSpd			- Rated generator speed [rad/s]
+42.411				! VS_RefSpd			- Rated generator speed [rad/s]
 1					! VS_n				- Number of controller gains
 -27338.24			! VS_KP				- Proportional gain for generator PI torque controller, used in the transitional 2.5 region, [1/(rad/s) Nm]
 -6134.68 			! VS_KI				- Integral gain for generator PI torque controller, used in the transitional 2.5 region, [1/rad Nm]
-2					! Y_ControlMode		- Yaw control mode: (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC)
+0					! Y_ControlMode		- Yaw control mode: (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC)
 1.745329252			! Y_ErrThresh		- Yaw error threshold. Turbine begins to yaw when it passes this. [rad^2 s]
 0.17453				! Y_IPC_IntSat		- Integrator saturation (maximum signal amplitude contrbution to pitch from yaw-by-IPC), [rad]
 1					! Y_IPC_n			- Number of controller gains (yaw-by-IPC)

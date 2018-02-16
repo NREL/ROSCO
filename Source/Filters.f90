@@ -185,7 +185,7 @@ CONTAINS
 
 	END FUNCTION NotchFilterSlopes
 	!-------------------------------------------------------------------------------------------------------------------------------
-	! Discrete time inverted Notch Filter with descending slopes, G = (s^2 + 2*omega*betaNum*s + omega^2)/(s^2 + 2*omega*betaDen*s + omega^2)
+	! Discrete time Notch Filter, G = (s^2 + 2*omega*betaNum*s + omega^2)/(s^2 + 2*omega*betaDen*s + omega^2)
 	REAL FUNCTION NotchFilter(InputSignal, DT, omega, betaNum, betaDen, iStatus, reset, inst)
 	!...............................................................................................................................
 

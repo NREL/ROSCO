@@ -27,7 +27,7 @@ CONTAINS
 		READ(UnControllerParameters, *) CntrPar%IPC_omegaHP
 		READ(UnControllerParameters, *) CntrPar%IPC_omegaLP
 		READ(UnControllerParameters, *) CntrPar%IPC_omegaNotch
-		READ(UnControllerParameters, *) CntrPar%IPC_phi
+		READ(UnControllerParameters, *) CntrPar%IPC_aziOffset
 		READ(UnControllerParameters, *) CntrPar%IPC_zetaHP
 		READ(UnControllerParameters, *) CntrPar%IPC_zetaLP
 		READ(UnControllerParameters, *) CntrPar%IPC_zetaNotch
@@ -37,17 +37,17 @@ CONTAINS
 		ALLOCATE(CntrPar%PC_GS_angles(CntrPar%PC_GS_n))
 		READ(UnControllerParameters,*) CntrPar%PC_GS_angles
 		
-		ALLOCATE(CntrPar%PC_GS_kp(CntrPar%PC_GS_n))
-		READ(UnControllerParameters,*) CntrPar%PC_GS_kp
+		ALLOCATE(CntrPar%PC_GS_KP(CntrPar%PC_GS_n))
+		READ(UnControllerParameters,*) CntrPar%PC_GS_KP
 		
-		ALLOCATE(CntrPar%PC_GS_ki(CntrPar%PC_GS_n))
-		READ(UnControllerParameters,*) CntrPar%PC_GS_ki
+		ALLOCATE(CntrPar%PC_GS_KI(CntrPar%PC_GS_n))
+		READ(UnControllerParameters,*) CntrPar%PC_GS_KI
 		
-		ALLOCATE(CntrPar%PC_GS_kd(CntrPar%PC_GS_n))
-		READ(UnControllerParameters,*) CntrPar%PC_GS_kd
+		ALLOCATE(CntrPar%PC_GS_KD(CntrPar%PC_GS_n))
+		READ(UnControllerParameters,*) CntrPar%PC_GS_KD
 		
-		ALLOCATE(CntrPar%PC_GS_tf(CntrPar%PC_GS_n))
-		READ(UnControllerParameters,*) CntrPar%PC_GS_tf
+		ALLOCATE(CntrPar%PC_GS_TF(CntrPar%PC_GS_n))
+		READ(UnControllerParameters,*) CntrPar%PC_GS_TF
 		
 		READ(UnControllerParameters, *) CntrPar%PC_ConstP_n
 		ALLOCATE(CntrPar%PC_ConstP_KP(CntrPar%PC_ConstP_n))
@@ -66,10 +66,8 @@ CONTAINS
 		
 		!------------------- TORQUE CONSTANTS -----------------------
 		READ(UnControllerParameters, *) CntrPar%VS_ControlMode
-		READ(UnControllerParameters, *) CntrPar%VS_CtInSp
 		READ(UnControllerParameters, *) CntrPar%VS_GenEff
 		READ(UnControllerParameters, *) CntrPar%VS_GenTrqArSatMax
-		READ(UnControllerParameters, *) CntrPar%VS_MaxOM
 		READ(UnControllerParameters, *) CntrPar%VS_MaxRat
 		READ(UnControllerParameters, *) CntrPar%VS_MaxTq
 		READ(UnControllerParameters, *) CntrPar%VS_MinTq
@@ -77,7 +75,7 @@ CONTAINS
 		READ(UnControllerParameters, *) CntrPar%VS_Rgn2K
 		READ(UnControllerParameters, *) CntrPar%VS_RtPwr
 		READ(UnControllerParameters, *) CntrPar%VS_RtTq
-		READ(UnControllerParameters, *) CntrPar%VS_RtSpd
+		READ(UnControllerParameters, *) CntrPar%VS_RefSpd
 		READ(UnControllerParameters, *) CntrPar%VS_n
 		
 		ALLOCATE(CntrPar%VS_KP(CntrPar%VS_n))
@@ -106,7 +104,7 @@ CONTAINS
 		!------------------- CALCULATED CONSTANTS -----------------------
 		CntrPar%PC_RtTq99		= CntrPar%VS_RtTq*0.99
 		CntrPar%VS_Rgn2MinTq	= CntrPar%VS_Rgn2K*CntrPar%VS_MinOM**2
-		CntrPar%VS_Rgn2MaxTq	= CntrPar%VS_Rgn2K*CntrPar%VS_MaxOM**2
+		CntrPar%VS_Rgn2MaxTq	= CntrPar%VS_Rgn2K*CntrPar%VS_RefSpd**2
 		CntrPar%VS_Rgn3MP		= CntrPar%PC_SetPnt + CntrPar%PC_Switch
 		
 		CLOSE(UnControllerParameters)
@@ -164,19 +162,14 @@ CONTAINS
 			ErrMsg  = 'CornerFreq must be greater than zero.'
 		ENDIF
 		
+		IF ((CntrPar%IPC_ControlMode > 0) .AND. (CntrPar%Y_ControlMode > 1)) THEN
+			aviFAIL = -1
+			ErrMsg  = 'IPC control for load reductions and yaw-by-IPC cannot be activated simultaneously'
+		ENDIF
+		
 		IF (LocalVar%DT <= 0.0) THEN
 			aviFAIL = -1
 			ErrMsg  = 'DT must be greater than zero.'
-		ENDIF
-		
-		IF (CntrPar%VS_CtInSp < 0.0) THEN
-			aviFAIL = -1
-			ErrMsg  = 'VS_CtInSp must not be negative.'
-		ENDIF
-		
-		IF (CntrPar%VS_MinOM <= CntrPar%VS_CtInSp) THEN
-			aviFAIL = -1
-			ErrMsg  = 'VS_MinOM must be greater than VS_CtInSp.'
 		ENDIF
 		
 		IF (CntrPar%VS_MaxRat <= 0.0) THEN
@@ -239,9 +232,9 @@ CONTAINS
 			ErrMsg  = 'IPC_omegaNotch must be greater than zero.'
 		ENDIF
 		
-		IF (CntrPar%IPC_phi <= 0.0)  THEN
+		IF (CntrPar%IPC_aziOffset <= 0.0)  THEN
 			aviFAIL = -1
-			ErrMsg  = 'IPC_phi must be greater than zero.'
+			ErrMsg  = 'IPC_aziOffset must be greater than zero.'
 		ENDIF
 		
 		IF (CntrPar%IPC_zetaLP <= 0.0)  THEN

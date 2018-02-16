@@ -21,12 +21,12 @@ CONTAINS
 	END FUNCTION saturate
 	!-------------------------------------------------------------------------------------------------------------------------------
 	! Saturates inputValue. Makes sure it is not smaller than minValue and not larger than maxValue
-	REAL FUNCTION ratelimit(refSignal, measSignal, minRate, maxRate, DT)
+	REAL FUNCTION ratelimit(inputSignal, inputSignalPrev, minRate, maxRate, DT)
 	!
 		IMPLICIT NONE
 
-		REAL(4), INTENT(IN)		:: refSignal
-		REAL(4), INTENT(IN)		:: measSignal
+		REAL(4), INTENT(IN)		:: inputSignal
+		REAL(4), INTENT(IN)		:: inputSignalPrev
 		REAL(4), INTENT(IN)		:: minRate
 		REAL(4), INTENT(IN)		:: maxRate
 		REAL(4), INTENT(IN)		:: DT
@@ -34,9 +34,9 @@ CONTAINS
 		! Local variables
 		REAL(4)					:: rate
 
-		rate = (refSignal - measSignal)/DT						! Signal rate (unsaturated)
+		rate = (inputSignal - inputSignalPrev)/DT						! Signal rate (unsaturated)
 		rate = saturate(rate, minRate, maxRate)					! Saturate the signal rate
-		ratelimit = measSignal + rate*DT						! Saturate the overall command using the rate limit
+		ratelimit = inputSignalPrev + rate*DT						! Saturate the overall command using the rate limit
 
 	END FUNCTION ratelimit
 	!-------------------------------------------------------------------------------------------------------------------------------
@@ -183,7 +183,7 @@ CONTAINS
 	!-------------------------------------------------------------------------------------------------------------------------------
 	! Stata machines, determines the state of the wind turbine to determine the corresponding control actions
 	! States:
-	! - VS/PC_State = 0, Error state, unknown state (for debugging purposes)
+	! - VS/PC_State = 0, Error state, for debugging purposes (VS) / No pitch control active, pitch constant at fine-pitch (PC)
 	! - VS_State = 1, Region 1(.5) operation, torque control to keep the rotor at cut-in speed towards the Cp-max operational curve
 	! - VS_State = 2, Region 2, operation, maximum rotor power efficiency (Cp-max) tracking, keep TSR constant at a fixed fine-pitch angle
 	! - VS_State = 3, Region 2.5, transition between below and above-rated operating conditions (near-rated region) using PI torque control
@@ -207,21 +207,21 @@ CONTAINS
 			LocalVar%PC_State = 0
 		END IF
 		
-			! Torque control state machine		
-		IF (LocalVar%PC_PitComT >= CntrPar%VS_Rgn3MP) THEN            ! We are in region 3
-			IF (CntrPar%VS_ControlMode == 1) THEN          ! Constant power tracking
+			! Torque control state machine
+		IF (LocalVar%PC_PitComT >= CntrPar%VS_Rgn3MP) THEN ! We are in region 3
+			IF (CntrPar%VS_ControlMode == 1) THEN ! Constant power tracking
 				LocalVar%VS_State = 5
-			ELSE                      ! Constant torque tracking
+			ELSE ! Constant torque tracking
 				LocalVar%VS_State = 4
 			END IF
 		ELSE
-			IF (LocalVar%GenTrqAr >= CntrPar%VS_Rgn2MaxTq*1.01) THEN
+			IF (LocalVar%GenTrqAr >= CntrPar%VS_Rgn2MaxTq*1.01) THEN ! We are in region 2 1/2 - active PI torque control
 				LocalVar%VS_State = 3
-			ELSEIF (LocalVar%GenTrqBr <= CntrPar%VS_Rgn2MinTq*0.99) THEN                ! We are in region 1 1/2
+			ELSEIF (LocalVar%GenTrqBr <= CntrPar%VS_Rgn2MinTq*0.99) THEN ! We are in region 1 1/2
 				LocalVar%VS_State = 1
-			ELSEIF (LocalVar%GenSpeedF < CntrPar%VS_MaxOM)  THEN                    ! We are in region 2 - optimal torque is proportional to the square of the generator speed
+			ELSEIF (LocalVar%GenSpeedF < CntrPar%VS_RefSpd)  THEN ! We are in region 2 - optimal torque is proportional to the square of the generator speed
 				LocalVar%VS_State = 2
-			ELSE                                    ! We are in region 2 1/2 - simple induction generator transition region
+			ELSE ! Error state, for debugging purposes
 				LocalVar%VS_State = 0
 			END IF
 		END IF
@@ -267,7 +267,7 @@ CONTAINS
 			IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
 				WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0 ! LocalVar%Time !/1000.0
 				100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW')
-				PRINT *, LocalVar%PC_State, LocalVar%VS_State, LocalVar%PC_PitComT, LocalVar%GenTrq
+				! PRINT *, CntrPar%PC_RefSpd, LocalVar%PC_SpdErr, LocalVar%PC_PwrErr
 			END IF
 			
 			! Output debugging information if requested:
@@ -316,7 +316,7 @@ CONTAINS
 	!-------------------------------------------------------------------------------------------------------------------------------
 	!The inverse Coleman or d-q axis transformation transforms the direct axis and quadrature axis
 	!back to root out of plane bending moments of each turbine blade
-	SUBROUTINE ColemanTransformInverse(axisTilt, axisYaw, aziAngle, phi, PitComIPC)
+	SUBROUTINE ColemanTransformInverse(axisTilt, axisYaw, aziAngle, aziOffset, PitComIPC)
 	!...............................................................................................................................
 
 		IMPLICIT NONE
@@ -324,8 +324,8 @@ CONTAINS
 			! Inputs
 
 		REAL(4), INTENT(IN)		:: axisTilt, axisYaw			! Direct axis and quadrature axis
-		REAL(4), INTENT(IN)		:: aziAngle 						! Rotor azimuth angle
-		REAL(4), INTENT(IN)		:: phi								! Phase shift added to the azimuth angle
+		REAL(4), INTENT(IN)		:: aziAngle						! Rotor azimuth angle
+		REAL(4), INTENT(IN)		:: aziOffset					! Phase shift added to the azimuth angle
 
 			! Outputs
 
@@ -338,9 +338,9 @@ CONTAINS
 
 			! Body
 
-		PitComIPC(1) = cos(aziAngle+phi)*axisTilt + sin(aziAngle+phi)*axisYaw
-		PitComIPC(2) = cos(aziAngle+phi+phi2)*axisTilt + sin(aziAngle+phi+phi2)*axisYaw
-		PitComIPC(3) = cos(aziAngle+phi+phi3)*axisTilt + sin(aziAngle+phi+phi3)*axisYaw
+		PitComIPC(1) = cos(aziAngle+aziOffset)*axisTilt + sin(aziAngle+aziOffset)*axisYaw
+		PitComIPC(2) = cos(aziAngle+aziOffset+phi2)*axisTilt + sin(aziAngle+aziOffset+phi2)*axisYaw
+		PitComIPC(3) = cos(aziAngle+aziOffset+phi3)*axisTilt + sin(aziAngle+aziOffset+phi3)*axisYaw
 
 	END SUBROUTINE ColemanTransformInverse
 	!-------------------------------------------------------------------------------------------------------------------------------

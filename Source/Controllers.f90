@@ -12,8 +12,8 @@ CONTAINS
 		USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
 	   
 	   ! Local Variables:	
-		REAL(C_FLOAT), INTENT(INOUT)	:: avrSWAP(*)	! The swap array, used to pass data to, and receive data from, the DLL controller.
-		INTEGER(4)						:: K			! Loops through blades.
+		REAL(C_FLOAT), INTENT(INOUT)	:: avrSWAP(*)	! The swap array, used to pass data to, and receive data from the DLL controller.
+		INTEGER(4)						:: K			! Index used for looping through blades.
 		
 		TYPE(ControlParameters), INTENT(INOUT)	:: CntrPar
 		TYPE(LocalVariables), INTENT(INOUT)		:: LocalVar
@@ -33,17 +33,17 @@ CONTAINS
 		
 		! Compute the gain scheduling correction factor based on the previously
 		! commanded pitch angle for blade 1:
-		LocalVar%PC_KP = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_kp, LocalVar%PC_PitComT)
-		LocalVar%PC_KI = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_ki, LocalVar%PC_PitComT)
-		LocalVar%PC_KD = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_kd, LocalVar%PC_PitComT)
-		LocalVar%PC_TF = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_tf, LocalVar%PC_PitComT)
+		LocalVar%PC_KP = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KP, LocalVar%PC_PitComT)
+		LocalVar%PC_KI = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KI, LocalVar%PC_PitComT)
+		LocalVar%PC_KD = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KD, LocalVar%PC_PitComT)
+		LocalVar%PC_TF = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_TF, LocalVar%PC_PitComT)
 	
 		! Compute the current speed error and its integral w.r.t. time; saturate the
 		! integral term using the pitch angle limits:
 		LocalVar%PC_SpdErr = CntrPar%PC_RefSpd - LocalVar%GenSpeedF					! Speed error
 		LocalVar%PC_PwrErr = CntrPar%VS_RtPwr - LocalVar%VS_GenPwr					! Power error
 		LocalVar%Y_MErr = LocalVar%Y_M + CntrPar%Y_MErrSet							! Yaw-alignment error
-			
+		
 		! Compute the pitch commands associated with the proportional and integral
 		!   gains:
 		LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, CntrPar%PC_SetPnt, LocalVar%PC_MaxPitVar, LocalVar%DT, CntrPar%PC_SetPnt, .FALSE., objInst%instPI)
@@ -94,10 +94,10 @@ CONTAINS
 		
 		! Filter the HSS (generator) speed measurement:
 		! Apply Low-Pass Filter
-		LocalVar%GenSpeedF = SecLPFilter(LocalVar%GenSpeed, LocalVar%DT, CntrPar%CornerFreq, 0.7, LocalVar%iStatus, .FALSE., objInst%instSecLPF)     ! Second order LPFilter on generator speed
+		LocalVar%GenSpeedF = SecLPFilter(LocalVar%GenSpeed, LocalVar%DT, CntrPar%CornerFreq, 0.7, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Second-order low-pass filter on generator speed
 		
 		! Compute the generator torque, which depends on which region we are in:
-		LocalVar%VS_SpdErrAr = CntrPar%VS_RtSpd - LocalVar%GenSpeedF		! Current speed error - Above-rated PI-control
+		LocalVar%VS_SpdErrAr = CntrPar%VS_RefSpd - LocalVar%GenSpeedF		! Current speed error - Above-rated PI-control
 		LocalVar%VS_SpdErrBr = CntrPar%VS_MinOM - LocalVar%GenSpeedF		! Current speed error - Below-rated PI-control
 		IF (LocalVar%VS_State >= 4) THEN
 			LocalVar%GenTrqAr = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_Rgn2MaxTq, CntrPar%VS_GenTrqArSatMax, LocalVar%DT, CntrPar%VS_GenTrqArSatMax, .TRUE., objInst%instPI)
@@ -150,6 +150,7 @@ CONTAINS
 		!..............................................................................................................................
 		! Yaw control
 		!..............................................................................................................................
+		LocalVar%Y_MErr = LocalVar%Y_M + CntrPar%Y_MErrSet							! Yaw-alignment error
 		
 		IF (CntrPar%Y_ControlMode == 1) THEN
 			avrSWAP(29) = 0									! Yaw control parameter: 0 = yaw rate control
@@ -244,7 +245,7 @@ CONTAINS
 		IntAxisYawIPC = IntAxisYaw + Y_MErrF_IPC
 	
 		! Pass direct and quadrature axis through the inverse Coleman transform to get the commanded pitch angles
-		CALL ColemanTransformInverse(IntAxisTilt, IntAxisYawIPC, LocalVar%Azimuth, CntrPar%IPC_phi, PitComIPC)
+		CALL ColemanTransformInverse(IntAxisTilt, IntAxisYawIPC, LocalVar%Azimuth, CntrPar%IPC_aziOffset, PitComIPC)
 	
 		! Filter PitComIPC with second order low pass filter
 		DO K = 1,LocalVar%NumBl

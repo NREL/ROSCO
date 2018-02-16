@@ -11,16 +11,16 @@ TYPE, PUBLIC :: ControlParameters
 	REAL(4)								:: IPC_omegaHP					! High-pass filter cut-in frequency used to separate yaw-by-IPC contribution from blade load reduction contribution, [rad/s].
 	REAL(4)								:: IPC_omegaLP					! Low-pass filter corner frequency for the individual pitch controller, [rad/s].	
 	REAL(4)								:: IPC_omegaNotch				! Notch filter corner frequency for the individual pitch controller, [rad/s].
-	REAL(4)								:: IPC_phi						! Phase offset added to the azimuth angle for the individual pitch controller, [rad].
+	REAL(4)								:: IPC_aziOffset				! Phase offset added to the azimuth angle for the individual pitch controller, [rad].
 	REAL(4)								:: IPC_zetaHP					! High-pass filter damping value, [-].
 	REAL(4)								:: IPC_zetaLP					! Low-pass filter damping factor for the individual pitch controller, [-].	
 	REAL(4)								:: IPC_zetaNotch				! Notch filter damping factor for the individual pitch controller, [-].
 	INTEGER(4)							:: PC_GS_n						! Amount of gain-scheduling table entries
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_angles					! Gain-schedule table: pitch angles
-	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_kp						! Gain-schedule table: pitch controller kp gains
-	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_ki						! Gain-schedule table: pitch controller ki gains
-	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_kd						! Gain-schedule table: pitch controller kd gains
-	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_tf						! Gain-schedule table: pitch controller tf gains (derivative filter)
+	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_KP						! Gain-schedule table: pitch controller kp gains
+	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_KI						! Gain-schedule table: pitch controller ki gains
+	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_KD						! Gain-schedule table: pitch controller kd gains
+	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_TF						! Gain-schedule table: pitch controller tf gains (derivative filter)
 	INTEGER(4)							:: PC_ConstP_n					! Amount of controller gains for the constant power contribution to collective pitch control
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_ConstP_KP					! Proportional gain(s), constant power contribution to collective pitch control
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_ConstP_KI					! Integral gain(s), constant power contribution to collective pitch control
@@ -32,10 +32,8 @@ TYPE, PUBLIC :: ControlParameters
 	REAL(4)								:: PC_SetPnt					! Record 5: Below-rated pitch angle set-point (deg) [used only with Bladed Interface]
 	REAL(4)								:: PC_Switch					! Angle above lowest minimum pitch angle for switch [rad]
 	INTEGER(4)							:: VS_ControlMode				! Generator torque control mode in above rated conditions, 0 = constant torque / 1 = constant power
-	REAL(4)								:: VS_CtInSp					! Transitional generator speed (HSS side) between regions 1 and 1 1/2, [rad/s].
 	REAL(4)								:: VS_GenEff					! Generator efficiency mechanical power -> electrical power [-]
 	REAL(4)								:: VS_GenTrqArSatMax			! Above rated generator torque PI control saturation, [Nm] -- 212900
-	REAL(4)								:: VS_MaxOM						! Optimal mode maximum speed, [rad/s].
 	REAL(4)								:: VS_MaxRat					! Maximum torque rate (in absolute value) in torque controller, [Nm/s].
 	REAL(4)								:: VS_MaxTq						! Maximum generator torque in Region 3 (HSS side), [Nm]. -- chosen to be 10% above VS_RtTq
 	REAL(4)								:: VS_MinTq						! Minimum generator (HSS side), [Nm].
@@ -43,7 +41,7 @@ TYPE, PUBLIC :: ControlParameters
 	REAL(4)								:: VS_Rgn2K						! Generator torque constant in Region 2 (HSS side), N-m/(rad/s)^2
 	REAL(4)								:: VS_RtPwr						! Wind turbine rated power [W]
 	REAL(4)								:: VS_RtTq						! Rated torque, [Nm].
-	REAL(4)								:: VS_RtSpd						! Rated generator speed [rad/s]
+	REAL(4)								:: VS_RefSpd					! Rated generator speed [rad/s]
 	INTEGER(4)							:: VS_n							! Number of controller gains
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: VS_KP						! Proportional gain for generator PI torque controller, used in the transitional 2.5 region
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: VS_KI						! Integral gain for generator PI torque controller, used in the transitional 2.5 region
