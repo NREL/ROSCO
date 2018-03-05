@@ -1,7 +1,7 @@
 MODULE Controllers
 
 	USE, INTRINSIC	:: ISO_C_Binding
-	USE FunctionToolbox
+	USE Functions
 	USE Filters
 	
 	IMPLICIT NONE
@@ -28,7 +28,7 @@ CONTAINS
 		IF (LocalVar%PC_State >= 1) THEN
 			LocalVar%PC_MaxPitVar = CntrPar%PC_MaxPit
 		ELSE
-			LocalVar%PC_MaxPitVar = CntrPar%PC_SetPnt
+			LocalVar%PC_MaxPitVar = CntrPar%PC_FinePit
 		END IF
 		
 		! Compute the gain scheduling correction factor based on the previously
@@ -46,10 +46,7 @@ CONTAINS
 		
 		! Compute the pitch commands associated with the proportional and integral
 		!   gains:
-		LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, CntrPar%PC_SetPnt, LocalVar%PC_MaxPitVar, LocalVar%DT, CntrPar%PC_SetPnt, .FALSE., objInst%instPI)
-		IF (CntrPar%VS_ControlMode == 1) THEN
-			LocalVar%PC_PitComT = LocalVar%PC_PitComT + PIController(LocalVar%PC_PwrErr, CntrPar%PC_ConstP_KP(1), CntrPar%PC_ConstP_KI(1), CntrPar%PC_SetPnt, LocalVar%PC_MaxPitVar, LocalVar%DT, CntrPar%PC_SetPnt, .FALSE., objInst%instPI)
-		END IF
+		LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, CntrPar%PC_FinePit, LocalVar%PC_MaxPitVar, LocalVar%DT, CntrPar%PC_FinePit, .FALSE., objInst%instPI)
 		
 		! Individual pitch control
 		IF ((CntrPar%IPC_ControlMode == 1) .OR. (CntrPar%Y_ControlMode == 2)) THEN
@@ -98,18 +95,18 @@ CONTAINS
 		
 		! Compute the generator torque, which depends on which region we are in:
 		LocalVar%VS_SpdErrAr = CntrPar%VS_RefSpd - LocalVar%GenSpeedF		! Current speed error - Above-rated PI-control
-		LocalVar%VS_SpdErrBr = CntrPar%VS_MinOM - LocalVar%GenSpeedF		! Current speed error - Below-rated PI-control
+		LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd - LocalVar%GenSpeedF		! Current speed error - Below-rated PI-control
 		IF (LocalVar%VS_State >= 4) THEN
-			LocalVar%GenTrqAr = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_Rgn2MaxTq, CntrPar%VS_GenTrqArSatMax, LocalVar%DT, CntrPar%VS_GenTrqArSatMax, .TRUE., objInst%instPI)
-			LocalVar%GenTrqBr = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_Rgn2MinTq, LocalVar%DT, CntrPar%VS_Rgn2MinTq, .TRUE., objInst%instPI)
+			LocalVar%GenTrqAr = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_ArSatTq, .TRUE., objInst%instPI)
+			LocalVar%GenTrqBr = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, .TRUE., objInst%instPI)
 			IF (LocalVar%VS_State == 4) THEN
 				LocalVar%GenTrq = CntrPar%VS_RtTq
 			ELSEIF (LocalVar%VS_State == 5) THEN
 				LocalVar%GenTrq = (CntrPar%VS_RtPwr/CntrPar%VS_GenEff)/LocalVar%GenSpeedF
 			END IF
 		ELSE
-			LocalVar%GenTrqAr = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_Rgn2MaxTq, CntrPar%VS_GenTrqArSatMax, LocalVar%DT, CntrPar%VS_Rgn2MaxTq, .FALSE., objInst%instPI)
-			LocalVar%GenTrqBr = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_Rgn2MinTq, LocalVar%DT, CntrPar%VS_Rgn2MinTq, .FALSE., objInst%instPI)
+			LocalVar%GenTrqAr = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_MaxOMTq, .FALSE., objInst%instPI)
+			LocalVar%GenTrqBr = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, .FALSE., objInst%instPI)
 			IF (LocalVar%VS_State == 3) THEN
 				LocalVar%GenTrq = LocalVar%GenTrqAr
 			ELSEIF (LocalVar%VS_State == 1) THEN
@@ -117,7 +114,7 @@ CONTAINS
 			ELSEIF (LocalVar%VS_State == 2) THEN
 				LocalVar%GenTrq = CntrPar%VS_Rgn2K*LocalVar%GenSpeedF*LocalVar%GenSpeedF
 			ELSE
-				LocalVar%GenTrq = CntrPar%VS_Rgn2MaxTq
+				LocalVar%GenTrq = CntrPar%VS_MaxOMTq
 			END IF
 		END IF
 	
@@ -150,7 +147,6 @@ CONTAINS
 		!..............................................................................................................................
 		! Yaw control
 		!..............................................................................................................................
-		LocalVar%Y_MErr = LocalVar%Y_M + CntrPar%Y_MErrSet							! Yaw-alignment error
 		
 		IF (CntrPar%Y_ControlMode == 1) THEN
 			avrSWAP(29) = 0									! Yaw control parameter: 0 = yaw rate control
@@ -202,16 +198,8 @@ CONTAINS
 		! NOTE: if it is required for this subroutine to be used multiple times (for 1p and 2p IPC for example), the saved variables
 		! IntAxisTilt and IntAxisYaw need to be modified so that they support multiple instances (see LPFilter in the Filters module).
 		!------------------------------------------------------------------------------------------------------------------------------
-			! Filter rootMOOPs with notch filter
-	
-		!DO K = 1,LocalVar%NumBl
-			! Instances 1-3 of the Notch Filter are reserved for this routine.
-		!	rootMOOPF(K) = LocalVar%rootMOOP(K)	! Notch filter currently not in use
-		!END DO
-	
-			! Initialization
-				! Set integrals to be 0 in the first time step
-	
+		! Initialization
+			! Set integrals to be 0 in the first time step
 		IF(LocalVar%iStatus==0)  THEN
 			IntAxisTilt = 0.0
 			IntAxisYaw = 0.0
@@ -222,7 +210,6 @@ CONTAINS
 	
 		! High-pass filter the MBC yaw component and filter yaw alignment error, and compute the yaw-by-IPC contribution
 		IF (CntrPar%Y_ControlMode == 2) THEN
-			axisYawF = HPFilter(axisYaw, LocalVar%DT, CntrPar%IPC_omegaHP, LocalVar%iStatus, .FALSE., objInst%instHPF)
 			Y_MErrF = SecLPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%IPC_omegaLP, CntrPar%IPC_zetaLP, LocalVar%iStatus, .FALSE., objInst%instSecLPF)
 			Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP(1), CntrPar%Y_IPC_KI(1), -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, 0.0, .FALSE., objInst%instPI)
 		ELSE
@@ -231,7 +218,7 @@ CONTAINS
 		END IF
 		
 		! Integrate the signal and multiply with the IPC gain
-		IF (CntrPar%IPC_ControlMode == 1) THEN
+		IF ((CntrPar%IPC_ControlMode == 1) .AND. (CntrPar%Y_ControlMode /= 2)) THEN
 			IntAxisTilt	= IntAxisTilt + LocalVar%DT * CntrPar%IPC_KI * axisTilt
 			IntAxisYaw = IntAxisYaw + LocalVar%DT * CntrPar%IPC_KI * axisYawF
 			IntAxisTilt = saturate(IntAxisTilt, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
@@ -249,8 +236,6 @@ CONTAINS
 	
 		! Filter PitComIPC with second order low pass filter
 		DO K = 1,LocalVar%NumBl
-			! Instances 1-3 of the Second order Low-Pass Filter are reserved for this routine.
-			! LocalVar%IPC_PitComF(K) = SecLPFilter(PitComIPC(K), LocalVar%DT, CntrPar%IPC_omegaLP, CntrPar%IPC_zetaLP, LocalVar%iStatus, K)
 			LocalVar%IPC_PitComF(K) = PitComIPC(K)
 		END DO
 	END SUBROUTINE IPC

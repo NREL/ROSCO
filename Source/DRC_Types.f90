@@ -8,36 +8,29 @@ TYPE, PUBLIC :: ControlParameters
 	REAL(4)								:: IPC_IntSat					! Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
 	REAL(4)								:: IPC_KI						! Integral gain for the individual pitch controller, [-]. 8E-10
 	INTEGER(4)							:: IPC_ControlMode				! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) on = 1/off = 0
-	REAL(4)								:: IPC_omegaHP					! High-pass filter cut-in frequency used to separate yaw-by-IPC contribution from blade load reduction contribution, [rad/s].
 	REAL(4)								:: IPC_omegaLP					! Low-pass filter corner frequency for the individual pitch controller, [rad/s].	
-	REAL(4)								:: IPC_omegaNotch				! Notch filter corner frequency for the individual pitch controller, [rad/s].
 	REAL(4)								:: IPC_aziOffset				! Phase offset added to the azimuth angle for the individual pitch controller, [rad].
-	REAL(4)								:: IPC_zetaHP					! High-pass filter damping value, [-].
-	REAL(4)								:: IPC_zetaLP					! Low-pass filter damping factor for the individual pitch controller, [-].	
-	REAL(4)								:: IPC_zetaNotch				! Notch filter damping factor for the individual pitch controller, [-].
+	REAL(4)								:: IPC_zetaLP					! Low-pass filter damping factor for the individual pitch controller, [-].
 	INTEGER(4)							:: PC_GS_n						! Amount of gain-scheduling table entries
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_angles					! Gain-schedule table: pitch angles
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_KP						! Gain-schedule table: pitch controller kp gains
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_KI						! Gain-schedule table: pitch controller ki gains
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_KD						! Gain-schedule table: pitch controller kd gains
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_TF						! Gain-schedule table: pitch controller tf gains (derivative filter)
-	INTEGER(4)							:: PC_ConstP_n					! Amount of controller gains for the constant power contribution to collective pitch control
-	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_ConstP_KP					! Proportional gain(s), constant power contribution to collective pitch control
-	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_ConstP_KI					! Integral gain(s), constant power contribution to collective pitch control
 	REAL(4)								:: PC_MaxPit					! Maximum physical pitch limit, [rad].
 	REAL(4)								:: PC_MinPit					! Minimum physical pitch limit, [rad].
 	REAL(4)								:: PC_MaxRat					! Maximum pitch rate (in absolute value) in pitch controller, [rad/s].
 	REAL(4)								:: PC_MinRat					! Minimum pitch rate (in absolute value) in pitch controller, [rad/s].
 	REAL(4)								:: PC_RefSpd					! Desired (reference) HSS speed for pitch controller, [rad/s].
-	REAL(4)								:: PC_SetPnt					! Record 5: Below-rated pitch angle set-point (deg) [used only with Bladed Interface]
+	REAL(4)								:: PC_FinePit					! Record 5: Below-rated pitch angle set-point (deg) [used only with Bladed Interface]
 	REAL(4)								:: PC_Switch					! Angle above lowest minimum pitch angle for switch [rad]
 	INTEGER(4)							:: VS_ControlMode				! Generator torque control mode in above rated conditions, 0 = constant torque / 1 = constant power
 	REAL(4)								:: VS_GenEff					! Generator efficiency mechanical power -> electrical power [-]
-	REAL(4)								:: VS_GenTrqArSatMax			! Above rated generator torque PI control saturation, [Nm] -- 212900
+	REAL(4)								:: VS_ArSatTq					! Above rated generator torque PI control saturation, [Nm] -- 212900
 	REAL(4)								:: VS_MaxRat					! Maximum torque rate (in absolute value) in torque controller, [Nm/s].
 	REAL(4)								:: VS_MaxTq						! Maximum generator torque in Region 3 (HSS side), [Nm]. -- chosen to be 10% above VS_RtTq
 	REAL(4)								:: VS_MinTq						! Minimum generator (HSS side), [Nm].
-	REAL(4)								:: VS_MinOM						! Optimal mode minimum speed, [rad/s]
+	REAL(4)								:: VS_MinOMSpd					! Optimal mode minimum speed, [rad/s]
 	REAL(4)								:: VS_Rgn2K						! Generator torque constant in Region 2 (HSS side), N-m/(rad/s)^2
 	REAL(4)								:: VS_RtPwr						! Wind turbine rated power [W]
 	REAL(4)								:: VS_RtTq						! Rated torque, [Nm].
@@ -57,9 +50,9 @@ TYPE, PUBLIC :: ControlParameters
 	REAL(4)								:: Y_Rate						! Yaw rate [rad/s]
 	
 	REAL(4)								:: PC_RtTq99					! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
-	REAL(4)								:: VS_Rgn2MaxTq					! Maximum torque at the end of the below-rated region 2, [Nm]
-	REAL(4)								:: VS_Rgn2MinTq					! Minimum torque at the beginning of the below-rated region 2, [Nm]
-	REAL(4)								:: VS_Rgn3MP					! Minimum pitch angle at which the torque is computed as if we are in region 3 regardless of the generator speed, [rad].
+	REAL(4)								:: VS_MaxOMTq					! Maximum torque at the end of the below-rated region 2, [Nm]
+	REAL(4)								:: VS_MinOMTq					! Minimum torque at the beginning of the below-rated region 2, [Nm]
+	REAL(4)								:: VS_Rgn3Pitch					! Pitch angle at which the state machine switches to region 3, [rad].
 END TYPE ControlParameters
 
 TYPE, PUBLIC :: LocalVariables

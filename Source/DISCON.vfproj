@@ -33,7 +33,7 @@
 		<File RelativePath=".\DISCON.f90"/>
 		<File RelativePath=".\DRC_Types.f90"/>
 		<File RelativePath=".\Filters.f90"/>
-		<File RelativePath=".\FunctionToolbox.f90"/>
+		<File RelativePath=".\Functions.f90"/>
 		<File RelativePath=".\ReadSetParameters.f90"/></Filter>
 		<File RelativePath=".\ReadMe.txt"/></Files>
 	<Globals/></VisualStudioProject>

@@ -1,38 +1,31 @@
-2.5132741			! CornerFreq		- Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
+2.5132741			! CornerFreq		- Corner frequency (-3dB point) in the low-pass filters, filtering generator speed and pitch control signals, [rad/s]
 0					! LoggingLevel		- 0 = write no debug files, 1 = write standard output .dbg-file, 2 = write standard output .dbg-file and complete avrSWAP-array .dbg2-file
 0.087266			! IPC_IntSat		- Integrator saturation (maximum signal amplitude contrbution to pitch from IPC), [rad]
 8E-10				! IPC_KI			- Integral gain for the individual pitch controller, [-]. 
 0					! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) on = 1/off = 0
-0.3141592			! IPC_omegaHP		- High-pass filter cut-in frequency used to separate yaw-by-IPC contribution from blade load reduction contribution, [rad/s]. 
 0.6283185			! IPC_omegaLP		- Low-pass filter corner frequency for the individual pitch controller, [rad/s].	
-1.269330365			! IPC_omegaNotch	- Notch filter corner frequency for the individual pitch controller, [rad/s].
 0.436332313			! IPC_aziOffset		- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. 
-0.70				! IPC_zetaHP		- High-pass filter damping value, [-]. 
 1.0					! IPC_zetaLP		- Low-pass filter damping factor for the individual pitch controller, [-].	
-0.5					! IPC_zetaNotch		- Notch filter damping factor for the individual pitch controller, [-].
 14					! PC_GS_n			- Amount of gain-scheduling table entries
 0.0706	0.1168	0.1524	0.183	0.2116	0.2385	0.263	0.286	0.308	0.3284	0.3488	0.3691	0.3895	0.4083 ! PC_GS_angles	- Gain-schedule table: pitch angles
 -0.0164	-0.0107	-0.0083	-0.0068	-0.0057	-0.0049	-0.0043	-0.0037	-0.0033	-0.0028	-0.0026	-0.0023	-0.002	-0.0017 ! PC_GS_KP		- Gain-schedule table: pitch controller kp gains
 -0.0027	-0.0027	-0.0026	-0.0025	-0.0024	-0.0024	-0.0024	-0.0023	-0.0023	-0.0023	-0.0023	-0.0023	-0.0023	-0.0023 ! PC_GS_KI		- Gain-schedule table: pitch controller ki gains
 0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0 ! PC_GS_KD			- Gain-schedule table: pitch controller kd gains
 0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0 ! PC_GS_TF			- Gain-schedule table: pitch controller tf gains (derivative filter)
-1					! PC_ConstP_n - Amount of controller gains for the constant power contribution to collective pitch control
-0					! PC_ConstP_KP - Proportional gain(s), constant power contribution to collective pitch control, -4.0E-09
-0					! PC_ConstP_KI - Integral gain(s), constant power contribution to collective pitch control, -4.0E-09
 1.5707				! PC_MaxPit			- Maximum physical pitch limit, [rad].
 -0.087266			! PC_MinPit			- Minimum physical pitch limit, [rad].
 0.13962				! PC_MaxRat			- Maximum pitch rate (in absolute value) in pitch controller, [rad/s].
 -0.13962			! PC_MinRat			- Minimum pitch rate (in absolute value) in pitch controller, [rad/s].
 122.90957			! PC_RefSpd			- Desired (reference) HSS speed for pitch controller, [rad/s].
-0.0					! PC_SetPnt			- Record 5: Below-rated pitch angle set-point, [rad]
+0.0					! PC_FinePit		- Record 5: Below-rated pitch angle set-point, [rad]
 0.034906			! PC_Switch			- Angle above lowest minimum pitch angle for switch [rad]
 1					! VS_ControlMode	- Generator torque control mode in above rated conditions, 0 = constant torque / 1 = constant power
 0.944				! VS_GenEff			- Generator efficiency mechanical power -> electrical power, this should match the efficiency defined in the generator properties! [-]
-43093.55			! VS_GenTrqArSatMax	- Above rated generator torque PI control saturation, [Nm]
+43093.55			! VS_ArSatTq		- Above rated generator torque PI control saturation, [Nm]
 150000.0			! VS_MaxRat			- Maximum torque rate (in absolute value) in torque controller, [Nm/s].
 48000.00			! VS_MaxTq			- Maximum generator torque in Region 3 (HSS side), [Nm].
 0.0					! VS_MinTq			- Minimum generator (HSS side), [Nm].
-91.2109				! VS_MinOM			- Optimal mode minimum speed, cut-in speed towards optimal mode gain path [rad/s]
+91.2109				! VS_MinOMSpd		- Optimal mode minimum speed, cut-in speed towards optimal mode gain path [rad/s]
 2.33228				! VS_Rgn2K			- Generator torque constant in Region 2 (HSS side), N-m/(rad/s)^2
 5.0E+06				! VS_RtPwr			- Wind turbine rated power [W]
 43093.55			! VS_RtTq			- Rated torque, [Nm].

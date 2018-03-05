@@ -24,13 +24,9 @@ CONTAINS
 		READ(UnControllerParameters, *) CntrPar%IPC_IntSat
 		READ(UnControllerParameters, *) CntrPar%IPC_KI
 		READ(UnControllerParameters, *) CntrPar%IPC_ControlMode
-		READ(UnControllerParameters, *) CntrPar%IPC_omegaHP
 		READ(UnControllerParameters, *) CntrPar%IPC_omegaLP
-		READ(UnControllerParameters, *) CntrPar%IPC_omegaNotch
 		READ(UnControllerParameters, *) CntrPar%IPC_aziOffset
-		READ(UnControllerParameters, *) CntrPar%IPC_zetaHP
 		READ(UnControllerParameters, *) CntrPar%IPC_zetaLP
-		READ(UnControllerParameters, *) CntrPar%IPC_zetaNotch
 		
 		!------------------- PITCH CONSTANTS -----------------------
 		READ(UnControllerParameters, *) CntrPar%PC_GS_n
@@ -49,29 +45,22 @@ CONTAINS
 		ALLOCATE(CntrPar%PC_GS_TF(CntrPar%PC_GS_n))
 		READ(UnControllerParameters,*) CntrPar%PC_GS_TF
 		
-		READ(UnControllerParameters, *) CntrPar%PC_ConstP_n
-		ALLOCATE(CntrPar%PC_ConstP_KP(CntrPar%PC_ConstP_n))
-		READ(UnControllerParameters,*) CntrPar%PC_ConstP_KP
-		
-		ALLOCATE(CntrPar%PC_ConstP_KI(CntrPar%PC_ConstP_n))
-		READ(UnControllerParameters,*) CntrPar%PC_ConstP_KI
-		
 		READ(UnControllerParameters, *) CntrPar%PC_MaxPit
 		READ(UnControllerParameters, *) CntrPar%PC_MinPit
 		READ(UnControllerParameters, *) CntrPar%PC_MaxRat
 		READ(UnControllerParameters, *) CntrPar%PC_MinRat
 		READ(UnControllerParameters, *) CntrPar%PC_RefSpd
-		READ(UnControllerParameters, *) CntrPar%PC_SetPnt
+		READ(UnControllerParameters, *) CntrPar%PC_FinePit
 		READ(UnControllerParameters, *) CntrPar%PC_Switch
 		
 		!------------------- TORQUE CONSTANTS -----------------------
 		READ(UnControllerParameters, *) CntrPar%VS_ControlMode
 		READ(UnControllerParameters, *) CntrPar%VS_GenEff
-		READ(UnControllerParameters, *) CntrPar%VS_GenTrqArSatMax
+		READ(UnControllerParameters, *) CntrPar%VS_ArSatTq
 		READ(UnControllerParameters, *) CntrPar%VS_MaxRat
 		READ(UnControllerParameters, *) CntrPar%VS_MaxTq
 		READ(UnControllerParameters, *) CntrPar%VS_MinTq
-		READ(UnControllerParameters, *) CntrPar%VS_MinOM
+		READ(UnControllerParameters, *) CntrPar%VS_MinOMSpd
 		READ(UnControllerParameters, *) CntrPar%VS_Rgn2K
 		READ(UnControllerParameters, *) CntrPar%VS_RtPwr
 		READ(UnControllerParameters, *) CntrPar%VS_RtTq
@@ -103,9 +92,9 @@ CONTAINS
 		
 		!------------------- CALCULATED CONSTANTS -----------------------
 		CntrPar%PC_RtTq99		= CntrPar%VS_RtTq*0.99
-		CntrPar%VS_Rgn2MinTq	= CntrPar%VS_Rgn2K*CntrPar%VS_MinOM**2
-		CntrPar%VS_Rgn2MaxTq	= CntrPar%VS_Rgn2K*CntrPar%VS_RefSpd**2
-		CntrPar%VS_Rgn3MP		= CntrPar%PC_SetPnt + CntrPar%PC_Switch
+		CntrPar%VS_MinOMTq	= CntrPar%VS_Rgn2K*CntrPar%VS_MinOMSpd**2
+		CntrPar%VS_MaxOMTq	= CntrPar%VS_Rgn2K*CntrPar%VS_RefSpd**2
+		CntrPar%VS_Rgn3Pitch		= CntrPar%PC_FinePit + CntrPar%PC_Switch
 		
 		CLOSE(UnControllerParameters)
 	END SUBROUTINE ReadControlParameterFileSub
@@ -117,8 +106,8 @@ CONTAINS
 		TYPE(LocalVariables), INTENT(INOUT)	:: LocalVar
 		
 		! Load variables from calling program (See Appendix A of Bladed User's Guide):
-		LocalVar%iStatus			= NINT(avrSWAP(1))
-		LocalVar%Time				= avrSWAP(2)
+		LocalVar%iStatus = NINT(avrSWAP(1))
+		LocalVar%Time = avrSWAP(2)
 		LocalVar%DT				= avrSWAP(3)
 		LocalVar%BlPitch(1)		= avrSWAP(4)
 		LocalVar%VS_MechGenPwr  = avrSWAP(14)
@@ -227,11 +216,6 @@ CONTAINS
 			ErrMsg  = 'IPC_omegaLP must be greater than zero.'
 		ENDIF
 		
-		IF (CntrPar%IPC_omegaNotch <= 0.0)  THEN
-			aviFAIL = -1
-			ErrMsg  = 'IPC_omegaNotch must be greater than zero.'
-		ENDIF
-		
 		IF (CntrPar%IPC_aziOffset <= 0.0)  THEN
 			aviFAIL = -1
 			ErrMsg  = 'IPC_aziOffset must be greater than zero.'
@@ -240,11 +224,6 @@ CONTAINS
 		IF (CntrPar%IPC_zetaLP <= 0.0)  THEN
 			aviFAIL = -1
 			ErrMsg  = 'IPC_zetaLP must be greater than zero.'
-		ENDIF
-		
-		IF (CntrPar%IPC_zetaNotch <= 0.0)  THEN
-			aviFAIL = -1
-			ErrMsg  = 'IPC_zetaNotch must be greater than zero.'
 		ENDIF
 		
 		IF (CntrPar%Y_ErrThresh <= 0.0)  THEN
@@ -331,9 +310,9 @@ CONTAINS
 			! Initialize the SAVEd variables:
 			! NOTE: LocalVar%VS_LastGenTrq, though SAVEd, is initialized in the torque controller
 			! below for simplicity, not here.
-			LocalVar%PitCom	= LocalVar%BlPitch							! This will ensure that the variable speed controller picks the correct control region and the pitch controller picks the correct gain on the first call
-			LocalVar%Y_AccErr = 0.0								! This will ensure that the accumulated yaw error starts at zero
-			LocalVar%Y_YawEndT = -1.0								! This will ensure that the initial yaw end time is lower than the actual time to prevent initial yawing
+			LocalVar%PitCom	= LocalVar%BlPitch ! This will ensure that the variable speed controller picks the correct control region and the pitch controller picks the correct gain on the first call
+			LocalVar%Y_AccErr = 0.0	 ! This will ensure that the accumulated yaw error starts at zero
+			LocalVar%Y_YawEndT = -1.0 ! This will ensure that the initial yaw end time is lower than the actual time to prevent initial yawing
 
 			! Check validity of input parameters:
 			CALL Assert(LocalVar, CntrPar, avrSWAP, aviFAIL, ErrMsg, size_avcMSG)
