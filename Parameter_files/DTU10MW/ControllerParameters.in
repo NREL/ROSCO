@@ -1,5 +1,7 @@
-2.5132741			! CornerFreq		- Corner frequency (-3dB point) in the low-pass filters, filtering generator speed and pitch control signals, [rad/s]
 0					! LoggingLevel		- 0 = write no debug files, 1 = write standard output .dbg-file, 2 = write standard output .dbg-file and complete avrSWAP-array .dbg2-file
+2					! F_FilterType		- 1 = first-order low-pass filter, 2 = second-order low-pass filter
+2.5132741			! F_CornerFreq		- Corner frequency (-3dB point) in the low-pass filters, filtering generator speed and pitch control signals, [rad/s]
+0.7					! F_Damping			- Damping coefficient if F_FilterType = 2, unused otherwise
 0.087266			! IPC_IntSat		- Integrator saturation (maximum signal amplitude contrbution to pitch from IPC), [rad]
 8E-10				! IPC_KI			- Integral gain for the individual pitch controller, [-]. 
 0					! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) on = 1/off = 0

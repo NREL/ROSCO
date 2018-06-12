@@ -17,8 +17,10 @@ CONTAINS
 		OPEN(unit=UnControllerParameters, file='ControllerParameters.in', status='old', action='read')
 		
 		!------------------- GENERAL CONSTANTS -------------------
-		READ(UnControllerParameters, *) CntrPar%CornerFreq
 		READ(UnControllerParameters, *) CntrPar%LoggingLevel
+        READ(UnControllerParameters, *) CntrPar%F_FilterType
+        READ(UnControllerParameters, *) CntrPar%F_CornerFreq
+        READ(UnControllerParameters, *) CntrPar%F_Damping
 		
 		!------------------- IPC CONSTANTS -----------------------
 		READ(UnControllerParameters, *) CntrPar%IPC_IntSat
@@ -146,7 +148,17 @@ CONTAINS
 		! Check validity of input parameters:
 		!..............................................................................................................................
 		
-		IF (CntrPar%CornerFreq <= 0.0) THEN
+        IF ((CntrPar%F_FilterType > 2.0) .OR. (CntrPar%F_FilterType < 1.0)) THEN
+			aviFAIL = -1
+			ErrMsg  = 'FilterType must be 1 or 2.'
+		ENDIF
+        
+        IF (ABS(CntrPar%F_Damping) > 1.0) THEN
+			aviFAIL = -1
+			ErrMsg  = 'Filter damping coefficient must be between [0, 1]'
+		ENDIF
+        
+		IF (CntrPar%F_CornerFreq <= 0.0) THEN
 			aviFAIL = -1
 			ErrMsg  = 'CornerFreq must be greater than zero.'
 		ENDIF
@@ -206,7 +218,7 @@ CONTAINS
 				ErrMsg  = 'PC_MinPit must be less than PC_MaxPit.'
 		ENDIF
 		
-		IF (CntrPar%IPC_KI <= 0.0)  THEN
+		IF (CntrPar%IPC_KI < 0.0)  THEN
 			aviFAIL = -1
 			ErrMsg  = 'IPC_KI must be greater than zero.'
 		ENDIF
@@ -214,11 +226,6 @@ CONTAINS
 		IF (CntrPar%IPC_omegaLP <= 0.0)  THEN
 			aviFAIL = -1
 			ErrMsg  = 'IPC_omegaLP must be greater than zero.'
-		ENDIF
-		
-		IF (CntrPar%IPC_aziOffset <= 0.0)  THEN
-			aviFAIL = -1
-			ErrMsg  = 'IPC_aziOffset must be greater than zero.'
 		ENDIF
 		
 		IF (CntrPar%IPC_zetaLP <= 0.0)  THEN
@@ -253,6 +260,10 @@ CONTAINS
 			ErrMsg  = 'Pitch angle actuator not requested.'
 		ENDIF
 		
+		IF (NINT(avrSWAP(28)) == 0 .AND. ((CntrPar%IPC_ControlMode > 0) .OR. (CntrPar%Y_ControlMode > 1))) THEN
+			aviFAIL = -1
+			ErrMsg  = 'IPC enabled, but Ptch_Cntrl in ServoDyn has a value of 0. Set to 1.'
+		ENDIF
 	END SUBROUTINE Assert
 	
 	SUBROUTINE SetParameters(avrSWAP, aviFAIL, ErrMsg, size_avcMSG, CntrPar, LocalVar, objInst)
@@ -266,7 +277,8 @@ CONTAINS
 		REAL(C_FLOAT), INTENT(INOUT)				:: avrSWAP(*)	! The swap array, used to pass data to, and receive data from, the DLL controller.
 		INTEGER(C_INT), INTENT(OUT)					:: aviFAIL		! A flag used to indicate the success of this DLL call set as follows: 0 if the DLL call was successful, >0 if the DLL call was successful but cMessage should be issued as a warning messsage, <0 if the DLL call was unsuccessful or for any other reason the simulation is to be stopped at this point with cMessage as the error message.
 		CHARACTER(size_avcMSG-1), INTENT(OUT)		:: ErrMsg		! a Fortran version of the C string argument (not considered an array here) [subtract 1 for the C null-character]
-
+		INTEGER(4)						:: K			! Index used for looping through blades.
+		
 		! Set aviFAIL to 0 in each iteration:
 		aviFAIL = 0
 
@@ -310,7 +322,9 @@ CONTAINS
 			! Initialize the SAVEd variables:
 			! NOTE: LocalVar%VS_LastGenTrq, though SAVEd, is initialized in the torque controller
 			! below for simplicity, not here.
+			! DO K = 1,LocalVar%NumBl
 			LocalVar%PitCom	= LocalVar%BlPitch ! This will ensure that the variable speed controller picks the correct control region and the pitch controller picks the correct gain on the first call
+			! END DO
 			LocalVar%Y_AccErr = 0.0	 ! This will ensure that the accumulated yaw error starts at zero
 			LocalVar%Y_YawEndT = -1.0 ! This will ensure that the initial yaw end time is lower than the actual time to prevent initial yawing
 

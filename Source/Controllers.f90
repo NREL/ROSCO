@@ -46,7 +46,11 @@ CONTAINS
 		
 		! Compute the pitch commands associated with the proportional and integral
 		!   gains:
-		LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, CntrPar%PC_FinePit, LocalVar%PC_MaxPitVar, LocalVar%DT, CntrPar%PC_FinePit, .FALSE., objInst%instPI)
+		IF (LocalVar%iStatus == 0) THEN
+			LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, CntrPar%PC_FinePit, LocalVar%PC_MaxPitVar, LocalVar%DT, LocalVar%PitCom(1), .TRUE., objInst%instPI)
+		ELSE
+			LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, CntrPar%PC_FinePit, LocalVar%PC_MaxPitVar, LocalVar%DT, CntrPar%PC_FinePit, .FALSE., objInst%instPI)
+		END IF
 		
 		! Individual pitch control
 		IF ((CntrPar%IPC_ControlMode == 1) .OR. (CntrPar%Y_ControlMode == 2)) THEN
@@ -58,11 +62,11 @@ CONTAINS
 		! Combine and saturate all pitch commands:
 		DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
 			LocalVar%PC_PitComT_IPC(K) = LocalVar%PC_PitComT + LocalVar%IPC_PitComF(K)									! Add the individual pitch command
-			LocalVar%PC_PitComT_IPC(K) = saturate(LocalVar%PC_PitComT_IPC(K), CntrPar%PC_MinPit, CntrPar%PC_MaxPit)				! Saturate the overall command using the pitch angle limits
+			LocalVar%PC_PitComT_IPC(K) = saturate(LocalVar%PC_PitComT_IPC(K), CntrPar%PC_MinPit, CntrPar%PC_MaxPit)     ! Saturate the overall command using the pitch angle limits
 			
 			! PitCom(K) = ratelimit(LocalVar%PC_PitComT_IPC(K), LocalVar%BlPitch(K), PC_MinRat, PC_MaxRat, LocalVar%DT)	! Saturate the overall command of blade K using the pitch rate limit
-			LocalVar%PitCom(K) = saturate(LocalVar%PC_PitComT_IPC(K), CntrPar%PC_MinPit, CntrPar%PC_MaxPit)					! Saturate the overall command using the pitch angle limits
-			LocalVar%PitCom(K) = LPFilter(LocalVar%PitCom(K), LocalVar%DT, CntrPar%CornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
+			LocalVar%PitCom(K) = saturate(LocalVar%PC_PitComT, CntrPar%PC_MinPit, CntrPar%PC_MaxPit)					! Saturate the overall command using the pitch angle limits
+			LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%IPC_PitComF(K)
 		END DO
 		
 		! Command the pitch demanded from the last
@@ -90,43 +94,47 @@ CONTAINS
 		avrSWAP(56) = 0.0          ! Torque override: 0=yes
 		
 		! Filter the HSS (generator) speed measurement:
-		! Apply Low-Pass Filter
-		LocalVar%GenSpeedF = SecLPFilter(LocalVar%GenSpeed, LocalVar%DT, CntrPar%CornerFreq, 0.7, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Second-order low-pass filter on generator speed
-		
+		! Apply Low-Pass Filter (choice between first- and second-order low-pass filter)
+		IF (CntrPar%F_FilterType == 1) THEN
+            LocalVar%GenSpeedF = LPFilter(LocalVar%GenSpeed, LocalVar%DT, CntrPar%F_CornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
+		ELSEIF (CntrPar%F_FilterType == 2) THEN   
+            LocalVar%GenSpeedF = SecLPFilter(LocalVar%GenSpeed, LocalVar%DT, CntrPar%F_CornerFreq, CntrPar%F_Damping, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Second-order low-pass filter on generator speed
+        END IF
+        
 		! Compute the generator torque, which depends on which region we are in:
 		LocalVar%VS_SpdErrAr = CntrPar%VS_RefSpd - LocalVar%GenSpeedF		! Current speed error - Above-rated PI-control
 		LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd - LocalVar%GenSpeedF		! Current speed error - Below-rated PI-control
 		IF (LocalVar%VS_State >= 4) THEN
-			LocalVar%GenTrqAr = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_ArSatTq, .TRUE., objInst%instPI)
-			LocalVar%GenTrqBr = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, .TRUE., objInst%instPI)
+			LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_ArSatTq, .TRUE., objInst%instPI)
+			LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, .TRUE., objInst%instPI)
 			IF (LocalVar%VS_State == 4) THEN
-				LocalVar%GenTrq = CntrPar%VS_RtTq
+				LocalVar%GenTq = CntrPar%VS_RtTq
 			ELSEIF (LocalVar%VS_State == 5) THEN
-				LocalVar%GenTrq = (CntrPar%VS_RtPwr/CntrPar%VS_GenEff)/LocalVar%GenSpeedF
+				LocalVar%GenTq = (CntrPar%VS_RtPwr/CntrPar%VS_GenEff)/LocalVar%GenSpeedF
 			END IF
 		ELSE
-			LocalVar%GenTrqAr = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_MaxOMTq, .FALSE., objInst%instPI)
-			LocalVar%GenTrqBr = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, .FALSE., objInst%instPI)
+			LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_MaxOMTq, .FALSE., objInst%instPI)
+			LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, .FALSE., objInst%instPI)
 			IF (LocalVar%VS_State == 3) THEN
-				LocalVar%GenTrq = LocalVar%GenTrqAr
+				LocalVar%GenTq = LocalVar%GenArTq
 			ELSEIF (LocalVar%VS_State == 1) THEN
-				LocalVar%GenTrq = LocalVar%GenTrqBr
+				LocalVar%GenTq = LocalVar%GenBrTq
 			ELSEIF (LocalVar%VS_State == 2) THEN
-				LocalVar%GenTrq = CntrPar%VS_Rgn2K*LocalVar%GenSpeedF*LocalVar%GenSpeedF
+				LocalVar%GenTq = CntrPar%VS_Rgn2K*LocalVar%GenSpeedF*LocalVar%GenSpeedF
 			ELSE
-				LocalVar%GenTrq = CntrPar%VS_MaxOMTq
+				LocalVar%GenTq = CntrPar%VS_MaxOMTq
 			END IF
 		END IF
 	
 		! Saturate the commanded torque using the maximum torque limit:
-		LocalVar%GenTrq = MIN(LocalVar%GenTrq, CntrPar%VS_MaxTq)						! Saturate the command using the maximum torque limit
+		LocalVar%GenTq = MIN(LocalVar%GenTq, CntrPar%VS_MaxTq)						! Saturate the command using the maximum torque limit
 	
 		! Saturate the commanded torque using the torque rate limit:
-		IF (LocalVar%iStatus == 0)  LocalVar%VS_LastGenTrq = LocalVar%GenTrq				! Initialize the value of LocalVar%VS_LastGenTrq on the first pass only
-		LocalVar%GenTrq = ratelimit(LocalVar%GenTrq, LocalVar%VS_LastGenTrq, -CntrPar%VS_MaxRat, CntrPar%VS_MaxRat, LocalVar%DT)	! Saturate the command using the torque rate limit
+		IF (LocalVar%iStatus == 0)  LocalVar%VS_LastGenTrq = LocalVar%GenTq				! Initialize the value of LocalVar%VS_LastGenTrq on the first pass only
+		LocalVar%GenTq = ratelimit(LocalVar%GenTq, LocalVar%VS_LastGenTrq, -CntrPar%VS_MaxRat, CntrPar%VS_MaxRat, LocalVar%DT)	! Saturate the command using the torque rate limit
 	
 		! Reset the value of LocalVar%VS_LastGenTrq to the current values:
-		LocalVar%VS_LastGenTrq = LocalVar%GenTrq
+		LocalVar%VS_LastGenTrq = LocalVar%GenTq
 	
 		! Set the generator contactor status, avrSWAP(35), to main (high speed)
 		! variable-speed generator, the torque override to yes, and command the
@@ -185,7 +193,6 @@ CONTAINS
 		REAL(4), SAVE			:: IntAxisTilt, IntAxisYaw			! Integral of the direct axis and quadrature axis
 		REAL(4)					:: IntAxisYawIPC					! IPC contribution with yaw-by-IPC component
 		REAL(4)					:: Y_MErrF, Y_MErrF_IPC				! Unfiltered and filtered yaw alignment error [rad]
-		REAL(4)					:: PitComIPC_woYaw(3)
 	
 		TYPE(ControlParameters), INTENT(INOUT)	:: CntrPar
 		TYPE(LocalVariables), INTENT(INOUT)		:: LocalVar
@@ -200,12 +207,12 @@ CONTAINS
 		!------------------------------------------------------------------------------------------------------------------------------
 		! Initialization
 			! Set integrals to be 0 in the first time step
-		IF(LocalVar%iStatus==0)  THEN
+		IF (LocalVar%iStatus==0) THEN
 			IntAxisTilt = 0.0
 			IntAxisYaw = 0.0
 		END IF
 	
-		! Pass rootMOOPs through the Coleman transform to get the direct and quadrature axis
+		! Pass rootMOOPs through the Coleman transform to get the tilt and yaw moment axis
 		CALL ColemanTransform(LocalVar%rootMOOP, LocalVar%Azimuth, axisTilt, axisYaw)
 	
 		! High-pass filter the MBC yaw component and filter yaw alignment error, and compute the yaw-by-IPC contribution
@@ -215,6 +222,7 @@ CONTAINS
 		ELSE
 			axisYawF = axisYaw
 			Y_MErrF = 0.0
+			Y_MErrF_IPC = 0.0
 		END IF
 		
 		! Integrate the signal and multiply with the IPC gain

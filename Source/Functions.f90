@@ -199,30 +199,45 @@ CONTAINS
 		
 			! Local
 			! Pitch control state machine
-		IF (CntrPar%VS_ControlMode == 0 .AND. LocalVar%GenTrq >= CntrPar%PC_RtTq99) THEN
-			LocalVar%PC_State = 1
-		ELSEIF (CntrPar%VS_ControlMode == 1 .AND. LocalVar%GenTrqAr >= CntrPar%VS_ArSatTq*0.99) THEN
-			LocalVar%PC_State = 2
-		ELSE
-			LocalVar%PC_State = 0
-		END IF
-		
-			! Torque control state machine
-		IF (LocalVar%PC_PitComT >= CntrPar%VS_Rgn3Pitch) THEN ! We are in region 3
-			IF (CntrPar%VS_ControlMode == 1) THEN ! Constant power tracking
-				LocalVar%VS_State = 5
-			ELSE ! Constant torque tracking
-				LocalVar%VS_State = 4
+		IF (LocalVar%iStatus == 0) THEN
+			IF (LocalVar%PitCom(1) >= CntrPar%VS_Rgn3Pitch) THEN ! We are in region 3
+				IF (CntrPar%VS_ControlMode == 1) THEN ! Constant power tracking
+					LocalVar%VS_State = 5
+					LocalVar%PC_State = 2
+				ELSE ! Constant torque tracking
+					LocalVar%VS_State = 4
+					LocalVar%PC_State = 1
+				END IF
+			ELSE
+				LocalVar%VS_State = 2
+				LocalVar%PC_State = 0
 			END IF
 		ELSE
-			IF (LocalVar%GenTrqAr >= CntrPar%VS_MaxOMTq*1.01) THEN ! We are in region 2 1/2 - active PI torque control
-				LocalVar%VS_State = 3
-			ELSEIF (LocalVar%GenTrqBr <= CntrPar%VS_MinOMTq*0.99) THEN ! We are in region 1 1/2
-				LocalVar%VS_State = 1
-			ELSEIF (LocalVar%GenSpeedF < CntrPar%VS_RefSpd)  THEN ! We are in region 2 - optimal torque is proportional to the square of the generator speed
-				LocalVar%VS_State = 2
-			ELSE ! Error state, for debugging purposes
-				LocalVar%VS_State = 0
+			IF ((CntrPar%VS_ControlMode == 0) .AND. (LocalVar%GenTq >= CntrPar%PC_RtTq99)) THEN
+				LocalVar%PC_State = 1
+			ELSEIF ((CntrPar%VS_ControlMode == 1) .AND. (LocalVar%GenArTq >= CntrPar%VS_ArSatTq*0.99)) THEN
+				LocalVar%PC_State = 2
+			ELSE
+				LocalVar%PC_State = 0
+			END IF
+			
+				! Torque control state machine
+			IF (LocalVar%PC_PitComT >= CntrPar%VS_Rgn3Pitch) THEN ! We are in region 3 ! 
+				IF (CntrPar%VS_ControlMode == 1) THEN ! Constant power tracking
+					LocalVar%VS_State = 5
+				ELSE ! Constant torque tracking
+					LocalVar%VS_State = 4
+				END IF
+			ELSE
+				IF (LocalVar%GenArTq >= CntrPar%VS_MaxOMTq*1.01) THEN ! We are in region 2 1/2 - active PI torque control
+					LocalVar%VS_State = 3
+				ELSEIF (LocalVar%GenBrTq <= CntrPar%VS_MinOMTq*0.99) THEN ! We are in region 1 1/2
+					LocalVar%VS_State = 1
+				ELSEIF (LocalVar%GenSpeedF < CntrPar%VS_RefSpd)  THEN ! We are in region 2 - optimal torque is proportional to the square of the generator speed
+					LocalVar%VS_State = 2
+				ELSE ! Error state, for debugging purposes
+					LocalVar%VS_State = 0
+				END IF
 			END IF
 		END IF
 	END SUBROUTINE StateMachine
@@ -251,8 +266,8 @@ CONTAINS
 		IF (LocalVar%iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 		! If we're debugging, open the debug file and write the header:
 			IF (CntrPar%LoggingLevel > 0) THEN
-				OPEN (UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='REPLACE')
-				WRITE (UnDb,'(A)')	'   LocalVar%Time '  //Tab//'LocalVar%PC_PitComT  ' //Tab//'LocalVar%PC_SpdErr  ' //Tab//'LocalVar%PC_KP ' //Tab//'LocalVar%PC_KI  ' //Tab//'LocalVar%Y_M  ' //Tab//'LocalVar%rootMOOP(1)  '//Tab//'VS_RtPwr  '//Tab//'LocalVar%GenTrq'
+				OPEN(UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='REPLACE')
+				WRITE (UnDb,'(A)')	'   LocalVar%Time '  //Tab//'LocalVar%PC_PitComT  ' //Tab//'LocalVar%PC_SpdErr  ' //Tab//'LocalVar%PC_KP ' //Tab//'LocalVar%PC_KI  ' //Tab//'LocalVar%Y_M  ' //Tab//'LocalVar%rootMOOP(1)  '//Tab//'VS_RtPwr  '//Tab//'LocalVar%GenTq'
 				WRITE (UnDb,'(A)')	'   (sec) ' //Tab//'(rad)    '  //Tab//'(rad/s) '//Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   ' //Tab//'(?)   ' //Tab//'(W)   '//Tab//'(Nm)  '
 			END IF
 			
@@ -267,12 +282,12 @@ CONTAINS
 			IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
 				WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0 ! LocalVar%Time !/1000.0
 				100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW')
-				! PRINT *, CntrPar%PC_RefSpd, LocalVar%PC_SpdErr, LocalVar%PC_PwrErr
+				! PRINT *, LocalVar%PC_State, LocalVar%VS_State, CntrPar%VS_Rgn3Pitch, CntrPar%PC_FinePit, CntrPar%PC_Switch, LocalVar%BlPitch(1) ! Additional debug info
 			END IF
 			
 			! Output debugging information if requested:
 			IF (CntrPar%LoggingLevel > 0) THEN
-				WRITE (UnDb,FmtDat)		LocalVar%Time,	LocalVar%PC_PitComT,	LocalVar%PC_SpdErr,	LocalVar%PC_KP,	LocalVar%PC_KI,	LocalVar%Y_MErr,	LocalVar%rootMOOP(1), CntrPar%VS_RtPwr, LocalVar%GenTrq
+				WRITE (UnDb,FmtDat)		LocalVar%Time, LocalVar%Y_MErr, LocalVar%Y_AccErr, CntrPar%Y_ErrThresh, LocalVar%Y_ErrLPFFast, LocalVar%Y_ErrLPFSlow, avrSWAP(48)
 			END IF
 			
 			IF (CntrPar%LoggingLevel > 1) THEN
@@ -329,7 +344,7 @@ CONTAINS
 
 			! Outputs
 
-		REAL(4), INTENT(OUT)	:: PitComIPC (3)					! Root out of plane bending moments of each blade
+		REAL(4), INTENT(OUT)	:: PitComIPC(3)					! Root out of plane bending moments of each blade
 
 			! Local
 

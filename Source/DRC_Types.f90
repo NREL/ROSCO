@@ -3,8 +3,10 @@ MODULE DRC_Types
 IMPLICIT NONE
 
 TYPE, PUBLIC :: ControlParameters
-	REAL(4)								:: CornerFreq					! Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
 	INTEGER(4)							:: LoggingLevel					! 0 = write no debug files, 1 = write standard output .dbg-file, 2 = write standard output .dbg-file and complete avrSWAP-array .dbg2-file
+    INTEGER(4)                          :: F_FilterType                 ! 1 = first-order low-pass filter, 2 = second-order low-pass filter
+    REAL(4)                             :: F_CornerFreq                 ! Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
+    REAL(4)								:: F_Damping					! Damping coefficient if F_FilterType = 2, unused otherwise
 	REAL(4)								:: IPC_IntSat					! Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
 	REAL(4)								:: IPC_KI						! Integral gain for the individual pitch controller, [-]. 8E-10
 	INTEGER(4)							:: IPC_ControlMode				! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) on = 1/off = 0
@@ -71,9 +73,9 @@ TYPE, PUBLIC :: LocalVariables
 	
 	! Internal controller variables
 	REAL(4)								:: GenSpeedF					! Filtered HSS (generator) speed [rad/s].
-	REAL(4)								:: GenTrq						! Electrical generator torque, [Nm].
-	REAL(4)								:: GenTrqAr						! Electrical generator torque, for above-rated PI-control [Nm].
-	REAL(4)								:: GenTrqBr						! Electrical generator torque, for below-rated PI-control [Nm].
+	REAL(4)								:: GenTq						! Electrical generator torque, [Nm].
+	REAL(4)								:: GenArTq						! Electrical generator torque, for above-rated PI-control [Nm].
+	REAL(4)								:: GenBrTq						! Electrical generator torque, for below-rated PI-control [Nm].
 	INTEGER(4)							:: GlobalState					! Current global state to determine the behavior of the different controllers [-].
 	REAL(4)								:: IPC_PitComF(3)				! Commanded pitch of each blade as calculated by the individual pitch controller, F stands for low pass filtered, [rad].
 	REAL(4)								:: PC_KP						! Proportional gain for pitch controller at rated pitch (zero), [s].
