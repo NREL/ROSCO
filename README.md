@@ -1,0 +1,4 @@
+# DRC_Fortran
+Delft Research Controller (DRC), Bladed-style DISCON baseline wind turbine controller
+
+The Delft Research Controller (DRC) provides an open, modular and fully adaptable baseline wind turbine controller to the scientiﬁc community. New control implementations can be added to the existing baseline controller, and in this way, convenient assessments of the proposed algorithms is possible. Because of the open character and modular set-up, scientists are able to collaborate and contribute in making continuous improvements to the code. The DRC is being developed in Fortran and uses the Bladed-style DISCON controller interface. The compiled controller is conﬁgured by a single control settings parameter ﬁle, and can work with any wind turbine model and simulation software using the DISCON interface. Baseline parameter ﬁles are supplied for the NREL 5-MW and DTU 10-MW reference wind turbines.
