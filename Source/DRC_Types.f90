@@ -7,12 +7,10 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(4)                          :: F_FilterType                 ! 1 = first-order low-pass filter, 2 = second-order low-pass filter
     REAL(4)                             :: F_CornerFreq                 ! Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
     REAL(4)								:: F_Damping					! Damping coefficient if F_FilterType = 2, unused otherwise
-	REAL(4)								:: IPC_IntSat					! Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
-	REAL(4)								:: IPC_KI						! Integral gain for the individual pitch controller, [-]. 8E-10
-	INTEGER(4)							:: IPC_ControlMode				! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) on = 1/off = 0
-	REAL(4)								:: IPC_omegaLP					! Low-pass filter corner frequency for the individual pitch controller, [rad/s].	
-	REAL(4)								:: IPC_aziOffset				! Phase offset added to the azimuth angle for the individual pitch controller, [rad].
-	REAL(4)								:: IPC_zetaLP					! Low-pass filter damping factor for the individual pitch controller, [-].
+	INTEGER(4)							:: IPC_ControlMode				! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) 0 = off / 1 = (1P reductions) / 2 = (1P+2P reductions)
+    REAL(4)								:: IPC_IntSat					! Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
+	REAL(4), DIMENSION(:), ALLOCATABLE	:: IPC_KI						! Integral gain for the individual pitch controller, [-]. 8E-10
+	REAL(4), DIMENSION(:), ALLOCATABLE	:: IPC_aziOffset				! Phase offset added to the azimuth angle for the individual pitch controller, [rad].
 	INTEGER(4)							:: PC_GS_n						! Amount of gain-scheduling table entries
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_angles					! Gain-schedule table: pitch angles
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_KP						! Gain-schedule table: pitch controller kp gains
@@ -46,6 +44,8 @@ TYPE, PUBLIC :: ControlParameters
 	INTEGER(4)							:: Y_IPC_n						! Number of controller gains (yaw-by-IPC)
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: Y_IPC_KP						! Yaw-by-IPC proportional controller gain Kp
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: Y_IPC_KI						! Yaw-by-IPC integral controller gain Ki
+    REAL(4)								:: Y_IPC_omegaLP                ! Low-pass filter corner frequency for the Yaw-by-IPC controller to filtering the yaw alignment error, [rad/s].
+    REAL(4)								:: Y_IPC_zetaLP					! Low-pass filter damping factor for the Yaw-by-IPC controller to filtering the yaw alignment error, [-].
 	REAL(4)								:: Y_MErrSet					! Yaw alignment error, setpoint [rad]
 	REAL(4)								:: Y_omegaLPFast				! Corner frequency fast low pass filter, 1.0 [Hz]
 	REAL(4)								:: Y_omegaLPSlow				! Corner frequency slow low pass filter, 1/60 [Hz]

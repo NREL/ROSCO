@@ -303,7 +303,7 @@ CONTAINS
 	!-------------------------------------------------------------------------------------------------------------------------------
 	!The Coleman or d-q axis transformation transforms the root out of plane bending moments of each turbine blade
 	!to a direct axis and a quadrature axis
-	SUBROUTINE ColemanTransform(rootMOOP, aziAngle, axTOut, axYOut)
+	SUBROUTINE ColemanTransform(rootMOOP, aziAngle, nHarmonic, axTOut, axYOut)
 	!...............................................................................................................................
 
 		IMPLICIT NONE
@@ -312,6 +312,7 @@ CONTAINS
 
 		REAL(4), INTENT(IN)		:: rootMOOP(3)						! Root out of plane bending moments of each blade
 		REAL(4), INTENT(IN)		:: aziAngle							! Rotor azimuth angle
+        INTEGER(4), INTENT(IN)  :: nHarmonic                        ! The harmonic number, nP
 
 			! Outputs
 
@@ -324,14 +325,14 @@ CONTAINS
 
 			! Body
 
-		axTOut	= 2.0/3.0 * (cos(aziAngle)*rootMOOP(1) + cos(aziAngle+phi2)*rootMOOP(2) + cos(aziAngle+phi3)*rootMOOP(3))
-		axYOut		= 2.0/3.0 * (sin(aziAngle)*rootMOOP(1) + sin(aziAngle+phi2)*rootMOOP(2) + sin(aziAngle+phi3)*rootMOOP(3))
+		axTOut	= 2.0/3.0 * (cos(nHarmonic*(aziAngle)*rootMOOP(1)) + cos(nHarmonic*(aziAngle+phi2)*rootMOOP(2)) + cos(nHarmonic*(aziAngle+phi3))*rootMOOP(3))
+		axYOut  = 2.0/3.0 * (sin(nHarmonic*(aziAngle)*rootMOOP(1)) + sin(nHarmonic*(aziAngle+phi2)*rootMOOP(2)) + sin(nHarmonic*(aziAngle+phi3))*rootMOOP(3))
 
 	END SUBROUTINE ColemanTransform
 	!-------------------------------------------------------------------------------------------------------------------------------
 	!The inverse Coleman or d-q axis transformation transforms the direct axis and quadrature axis
 	!back to root out of plane bending moments of each turbine blade
-	SUBROUTINE ColemanTransformInverse(axTIn, axYIn, aziAngle, aziOffset, PitComIPC)
+	SUBROUTINE ColemanTransformInverse(axTIn, axYIn, aziAngle, nHarmonic, aziOffset, PitComIPC)
 	!...............................................................................................................................
 
 		IMPLICIT NONE
@@ -341,6 +342,7 @@ CONTAINS
 		REAL(4), INTENT(IN)		:: axTIn, axYIn			! Direct axis and quadrature axis
 		REAL(4), INTENT(IN)		:: aziAngle						! Rotor azimuth angle
 		REAL(4), INTENT(IN)		:: aziOffset					! Phase shift added to the azimuth angle
+        INTEGER(4), INTENT(IN)  :: nHarmonic                        ! The harmonic number, nP
 
 			! Outputs
 
@@ -353,9 +355,9 @@ CONTAINS
 
 			! Body
 
-		PitComIPC(1) = cos(aziAngle+aziOffset)*axTIn + sin(aziAngle+aziOffset)*axYIn
-		PitComIPC(2) = cos(aziAngle+aziOffset+phi2)*axTIn + sin(aziAngle+aziOffset+phi2)*axYIn
-		PitComIPC(3) = cos(aziAngle+aziOffset+phi3)*axTIn + sin(aziAngle+aziOffset+phi3)*axYIn
+		PitComIPC(1) = cos(nHarmonic*(aziAngle+aziOffset))*axTIn + sin(nHarmonic*(aziAngle+aziOffset))*axYIn
+		PitComIPC(2) = cos(nHarmonic*(aziAngle+aziOffset+phi2))*axTIn + sin(nHarmonic*(aziAngle+aziOffset+phi2))*axYIn
+		PitComIPC(3) = cos(nHarmonic*(aziAngle+aziOffset+phi3))*axTIn + sin(nHarmonic*(aziAngle+aziOffset+phi3))*axYIn
 
 	END SUBROUTINE ColemanTransformInverse
 	!-------------------------------------------------------------------------------------------------------------------------------

@@ -9,6 +9,7 @@ USE, INTRINSIC	:: ISO_C_Binding
 USE				:: DRC_Types
 USE				:: ReadSetParameters
 USE				:: Controllers
+USE             :: Constants
 
 IMPLICIT NONE
 #ifndef IMPLICIT_DLLEXPORT

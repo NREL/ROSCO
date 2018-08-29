@@ -2,12 +2,10 @@
 1					! F_FilterType		- 1 = first-order low-pass filter, 2 = second-order low-pass filter
 1.570796326			! F_CornerFreq		- Corner frequency (-3dB point) in the low-pass filters, filtering generator speed and pitch control signals, [rad/s]
 0					! F_Damping			- Damping coefficient if F_FilterType = 2, unused otherwise
+0					! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) 0 = off / 1 = (1P reductions) / 2 = (1P+2P reductions)
 0.087266			! IPC_IntSat		- Integrator saturation (maximum signal amplitude contrbution to pitch from IPC), [rad]
-1E-8				! IPC_KI			- Integral gain for the individual pitch controller, [-]. 
-0					! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) on = 1/off = 0
-0.6283185			! IPC_omegaLP		- Low-pass filter corner frequency for the individual pitch controller, [rad/s].	
-0.436332313			! IPC_aziOffset		- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. 
-1.0					! IPC_zetaLP		- Low-pass filter damping factor for the individual pitch controller, [-].	
+1E-8 0				! IPC_KI			- Integral gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions [-]
+0.436332313	0		! IPC_aziOffset		- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. 
 14					! PC_GS_n			- Amount of gain-scheduling table entries
 0.00000	0.03491	0.06981	0.10472	0.13963	0.17453	0.20944	0.24435	0.27925	0.31416	0.34907	0.38397	0.41888	0.45379 ! PC_GS_angles	- Gain-schedule table: pitch angles
 -0.018827	-0.014292	-0.011517	-0.009645	-0.008296	-0.007278	-0.006483	-0.005844	-0.005320	-0.004882	-0.004511	-0.004192	-0.003916	-0.003673 ! PC_GS_KP		- Gain-schedule table: pitch controller kp gains
@@ -41,6 +39,8 @@
 1					! Y_IPC_n			- Number of controller gains (yaw-by-IPC)
 -0.064				! Y_IPC_KP			- Yaw-by-IPC proportional controller gain Kp
 -0.0008				! Y_IPC_KI			- Yaw-by-IPC integral controller gain Ki
+0.6283185			! Y_IPC_omegaLP		- Low-pass filter corner frequency for the Yaw-by-IPC controller to filtering the yaw alignment error, [rad/s].
+1.0					! Y_IPC_zetaLP		- Low-pass filter damping factor for the Yaw-by-IPC controller to filtering the yaw alignment error, [-].
 0.00000				! Y_MErrSet			- Yaw alignment error, setpoint [rad]
 1.0					! Y_omegaLPFast		- Corner frequency fast low pass filter, 1.0 [Hz]
 0.016667			! Y_omegaLPSlow		- Corner frequency slow low pass filter, 1/60 [Hz]

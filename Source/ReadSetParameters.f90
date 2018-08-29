@@ -23,12 +23,14 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%F_Damping
 		
 		!------------------- IPC CONSTANTS -----------------------
-		READ(UnControllerParameters, *) CntrPar%IPC_IntSat
-		READ(UnControllerParameters, *) CntrPar%IPC_KI
 		READ(UnControllerParameters, *) CntrPar%IPC_ControlMode
-		READ(UnControllerParameters, *) CntrPar%IPC_omegaLP
-		READ(UnControllerParameters, *) CntrPar%IPC_aziOffset
-		READ(UnControllerParameters, *) CntrPar%IPC_zetaLP
+        READ(UnControllerParameters, *) CntrPar%IPC_IntSat
+        
+        ALLOCATE(CntrPar%IPC_KI(2))
+		READ(UnControllerParameters,*) CntrPar%IPC_KI
+        
+        ALLOCATE(CntrPar%IPC_aziOffset(2))
+		READ(UnControllerParameters,*) CntrPar%IPC_aziOffset
 		
 		!------------------- PITCH CONSTANTS -----------------------
 		READ(UnControllerParameters, *) CntrPar%PC_GS_n
@@ -86,6 +88,9 @@ CONTAINS
 		
 		ALLOCATE(CntrPar%Y_IPC_KI(CntrPar%Y_IPC_n))
 		READ(UnControllerParameters,*) CntrPar%Y_IPC_KI
+        
+        READ(UnControllerParameters, *) CntrPar%Y_IPC_omegaLP
+        READ(UnControllerParameters, *) CntrPar%Y_IPC_zetaLP
 		
 		READ(UnControllerParameters, *) CntrPar%Y_MErrSet
 		READ(UnControllerParameters, *) CntrPar%Y_omegaLPFast
@@ -180,7 +185,7 @@ CONTAINS
 		
 		IF (CntrPar%VS_RtTq < 0.0) THEN
 			aviFAIL = -1
-			ErrMsg  = 'VS_RtTw must not be negative.'
+			ErrMsg  = 'VS_RtTq must not be negative.'
 		ENDIF
 		
 		IF (CntrPar%VS_Rgn2K < 0.0) THEN
@@ -215,22 +220,27 @@ CONTAINS
 		
 		IF (CntrPar%PC_MinPit >= CntrPar%PC_MaxPit)  THEN
 			aviFAIL = -1
-				ErrMsg  = 'PC_MinPit must be less than PC_MaxPit.'
+            ErrMsg  = 'PC_MinPit must be less than PC_MaxPit.'
 		ENDIF
 		
-		IF (CntrPar%IPC_KI < 0.0)  THEN
+		IF (CntrPar%IPC_KI(1) < 0.0)  THEN
 			aviFAIL = -1
-			ErrMsg  = 'IPC_KI must be greater than zero.'
+			ErrMsg  = 'IPC_KI(1) must be zero or greater than zero.'
+		ENDIF
+        
+        IF (CntrPar%IPC_KI(2) < 0.0)  THEN
+			aviFAIL = -1
+			ErrMsg  = 'IPC_KI(2) must be zero or greater than zero.'
 		ENDIF
 		
-		IF (CntrPar%IPC_omegaLP <= 0.0)  THEN
+		IF (CntrPar%Y_IPC_omegaLP <= 0.0)  THEN
 			aviFAIL = -1
-			ErrMsg  = 'IPC_omegaLP must be greater than zero.'
+			ErrMsg  = 'Y_IPC_omegaLP must be greater than zero.'
 		ENDIF
 		
-		IF (CntrPar%IPC_zetaLP <= 0.0)  THEN
+		IF (CntrPar%Y_IPC_zetaLP <= 0.0)  THEN
 			aviFAIL = -1
-			ErrMsg  = 'IPC_zetaLP must be greater than zero.'
+			ErrMsg  = 'Y_IPC_zetaLP must be greater than zero.'
 		ENDIF
 		
 		IF (CntrPar%Y_ErrThresh <= 0.0)  THEN
@@ -262,7 +272,7 @@ CONTAINS
 		
 		IF (NINT(avrSWAP(28)) == 0 .AND. ((CntrPar%IPC_ControlMode > 0) .OR. (CntrPar%Y_ControlMode > 1))) THEN
 			aviFAIL = -1
-			ErrMsg  = 'IPC enabled, but Ptch_Cntrl in ServoDyn has a value of 0. Set to 1.'
+			ErrMsg  = 'IPC enabled, but Ptch_Cntrl in ServoDyn has a value of 0. Set it to 1.'
 		ENDIF
 	END SUBROUTINE Assert
 	

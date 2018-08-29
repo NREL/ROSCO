@@ -2,12 +2,10 @@
 2					! F_FilterType		- 1 = first-order low-pass filter, 2 = second-order low-pass filter
 2.5132741			! F_CornerFreq		- Corner frequency (-3dB point) in the low-pass filters, filtering generator speed and pitch control signals, [rad/s]
 0.7					! F_Damping			- Damping coefficient if F_FilterType = 2, unused otherwise
+0					! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) 0 = off / 1 = (1P reductions) / 2 = (1P+2P reductions)
 0.087266			! IPC_IntSat		- Integrator saturation (maximum signal amplitude contrbution to pitch from IPC), [rad]
-8E-10				! IPC_KI			- Integral gain for the individual pitch controller, [-]. 
-0					! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) on = 1/off = 0
-0.6283185			! IPC_omegaLP		- Low-pass filter corner frequency for the individual pitch controller, [rad/s].	
-0.436332313			! IPC_aziOffset		- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. 
-1.0					! IPC_zetaLP		- Low-pass filter damping factor for the individual pitch controller, [-].	
+8E-10 0				! IPC_KI			- Integral gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions [-]
+0.436332313	0		! IPC_aziOffset		- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. 
 13					! PC_GS_n			- Amount of gain-scheduling table entries
 0 0.0349 0.0698 0.1047 0.1396 0.1745 0.2094 0.2443 0.2793 0.3142 0.3491 0.384 0.4189 ! PC_GS_angles		- Gain-schedule table: pitch angles
 -0.0105 -0.0104 -0.0102 -0.0099 -0.0095 -0.0091 -0.0086 -0.0081 -0.0076 -0.0071 -0.0066 -0.0061 -0.0056 ! PC_GS_KP			- Gain-schedule table: pitch controller kp gains
@@ -19,7 +17,7 @@
 0.17453				! PC_MaxRat			- Maximum pitch rate (in absolute value) in pitch controller, [rad/s].
 -0.17453			! PC_MinRat			- Minimum pitch rate (in absolute value) in pitch controller, [rad/s].
 50.26548			! PC_RefSpd			- Desired (reference) HSS speed for pitch controller, [rad/s].
-0.0					! PC_FinePit			- Record 5: Below-rated pitch angle set-point, [rad]
+0.0					! PC_FinePit		- Record 5: Below-rated pitch angle set-point, [rad]
 0.034906			! PC_Switch			- Angle above lowest minimum pitch angle for switch [rad]
 1					! VS_ControlMode	- Generator torque control mode in above rated conditions, 0 = constant torque / 1 = constant power
 0.944				! VS_GenEff			- Generator efficiency mechanical power -> electrical power, this should match the efficiency defined in the generator properties! [-]
@@ -41,6 +39,8 @@
 1					! Y_IPC_n			- Number of controller gains (yaw-by-IPC)
 -0.064				! Y_IPC_KP			- Yaw-by-IPC proportional controller gain Kp
 -0.0008				! Y_IPC_KI			- Yaw-by-IPC integral controller gain Ki
+0.6283185			! Y_IPC_omegaLP		- Low-pass filter corner frequency for the Yaw-by-IPC controller to filtering the yaw alignment error, [rad/s].
+1.0					! Y_IPC_zetaLP		- Low-pass filter damping factor for the Yaw-by-IPC controller to filtering the yaw alignment error, [-].
 0.00000				! Y_MErrSet			- Yaw alignment error, setpoint [rad]
 1.0					! Y_omegaLPFast		- Corner frequency fast low pass filter, 1.0 [Hz]
 0.016667			! Y_omegaLPSlow		- Corner frequency slow low pass filter, 1/60 [Hz]
