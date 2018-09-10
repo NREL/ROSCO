@@ -1,4 +1,5 @@
-# Cd to correct directory
+# Make a DISCON folder in root, cd to correct directory
+mkdir ../DISCON
 cd ../Source 
 
 # Set options to 64 bits
