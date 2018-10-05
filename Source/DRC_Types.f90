@@ -38,6 +38,13 @@ TYPE, PUBLIC :: ControlParameters
 	INTEGER(4)							:: VS_n							! Number of controller gains
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: VS_KP						! Proportional gain for generator PI torque controller, used in the transitional 2.5 region
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: VS_KI						! Integral gain for generator PI torque controller, used in the transitional 2.5 region
+	REAL(4)								:: WE_BladeRadius				! Blade length [m]
+	REAL(4)								:: WE_CP_n						! Amount of parameters in the Cp array
+	REAL(4), DIMENSION(:), ALLOCATABLE	:: WE_CP						! Paremeters that define the parameterized CP(\lambda) function
+	REAL(4)								:: WE_Gamma						! Adaption gain of the wind speed estimator algorithm [m/rad]
+	REAL(4)								:: WE_GearboxRatio				! Gearbox ratio, >=1  [-]
+	REAL(4)								:: WE_Jtot						! Total drivetrain inertia, including blades, hub and casted generator intertia to LSS [kg m^2]
+	REAL(4)								:: WE_RhoAir					! Air density [kg m^-3]
 	INTEGER(4)							:: Y_ControlMode				! Yaw control mode: (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC)
 	REAL(4)								:: Y_ErrThresh					! Error threshold [rad]. Turbine begins to yaw when it passes this. (104.71975512) -- 1.745329252
 	REAL(4)								:: Y_IPC_IntSat					! Integrator saturation (maximum signal amplitude contrbution to pitch from yaw-by-IPC)
@@ -64,6 +71,7 @@ TYPE, PUBLIC :: LocalVariables
 	REAL(4)								:: DT
 	REAL(4)								:: VS_GenPwr
 	REAL(4)								:: GenSpeed
+	REAL(4)								:: RotSpeed
 	REAL(4)								:: Y_M
 	REAL(4)								:: HorWindV
 	REAL(4)								:: rootMOOP(3)
@@ -74,6 +82,7 @@ TYPE, PUBLIC :: LocalVariables
 	! Internal controller variables
 	REAL(4)								:: GenSpeedF					! Filtered HSS (generator) speed [rad/s].
 	REAL(4)								:: GenTq						! Electrical generator torque, [Nm].
+	REAL(4)								:: GenTqMeas					! Measured generator torque [Nm]
 	REAL(4)								:: GenArTq						! Electrical generator torque, for above-rated PI-control [Nm].
 	REAL(4)								:: GenBrTq						! Electrical generator torque, for below-rated PI-control [Nm].
 	INTEGER(4)							:: GlobalState					! Current global state to determine the behavior of the different controllers [-].
@@ -95,6 +104,9 @@ TYPE, PUBLIC :: LocalVariables
 	REAL(4)								:: VS_SpdErrAr					! Current speed error (generator torque control) [rad/s].
 	REAL(4)								:: VS_SpdErrBr					! Current speed error (generator torque control) [rad/s].
 	INTEGER(4)							:: VS_State						! State of the torque control system
+	REAL(4)								:: WS_Vw						! Estimated wind speed [m/s]
+	REAL(4)								:: WS_VwI						! Integrated wind speed quantity for estimation [m/s]
+	REAL(4)								:: WS_VwIdot					! Differentated integrated wind speed quantity for estimation [m/s]
 	REAL(4)								:: Y_AccErr						! Accumulated yaw error [rad].
 	REAL(4)								:: Y_ErrLPFFast					! Filtered yaw error by fast low pass filter [rad].
 	REAL(4)								:: Y_ErrLPFSlow					! Filtered yaw error by slow low pass filter [rad].

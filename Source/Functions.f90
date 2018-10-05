@@ -141,47 +141,7 @@ CONTAINS
 		DFControllerLast(inst) = DFController
 	END FUNCTION DFController
 	!-------------------------------------------------------------------------------------------------------------------------------
-	! PRBS identification signal generator function
-	!REAL FUNCTION PRBSgen(mean, amplitude, cycleTime, seed, initValue, reset, inst)
-	!!
-	!	IMPLICIT NONE
-    !
-	!		! Inputs
-	!	REAL(4), INTENT(IN)		:: mean
-	!	REAL(4), INTENT(IN)		:: amplitude
-	!	INTEGER(4), INTENT(IN)	:: cycleTime
-	!	INTEGER(4), INTENT(IN)	:: seed
-	!	LOGICAL, INTENT(IN)		:: reset
-	!	REAL(4), INTENT(IN)		:: initValue
-	!	
-	!		! Local
-	!	INTEGER(4)				:: i											! Counter for making arrays
-	!	REAL(4)					:: randomNumber
-	!	INTEGER(4), DIMENSION(99), SAVE	:: FirstCall = (/ (1, i=1,99) /)
-	!	
-	!	IF ((FirstCall(inst) == 1) .OR. reset) THEN
-	!		RANDOM_NUMBER(1)
-	!		RAND(seed)
-	!		
-	!		FirstCall(inst) = 0
-	!		PRBSgen = initValue
-	!	ELSE
-	!		randomNumber = RAND()
-	!		
-	!		IF randomNumber > 0.5 THEN
-	!			randomNumber = 1
-	!		ELSE
-	!			randomNumber = 0
-	!		END IF
-	!		
-	!		randomNumber = randomNumber - 0.5
-	!		randomNumber = randomNumber*amplitude*2 + mean
-	!		PRBSgen = randomNumber
-	!	END IF
-	!	
-	!END FUNCTION PRBSgen
-	!-------------------------------------------------------------------------------------------------------------------------------
-	! Stata machines, determines the state of the wind turbine to determine the corresponding control actions
+	! State machines, determines the state of the wind turbine to determine the corresponding control actions
 	! States:
 	! - VS/PC_State = 0, Error state, for debugging purposes (VS) / No pitch control active, pitch constant at fine-pitch (PC)
 	! - VS_State = 1, Region 1(.5) operation, torque control to keep the rotor at cut-in speed towards the Cp-max operational curve
@@ -342,7 +302,7 @@ CONTAINS
 		REAL(4), INTENT(IN)		:: axTIn, axYIn			! Direct axis and quadrature axis
 		REAL(4), INTENT(IN)		:: aziAngle						! Rotor azimuth angle
 		REAL(4), INTENT(IN)		:: aziOffset					! Phase shift added to the azimuth angle
-        INTEGER(4), INTENT(IN)  :: nHarmonic                        ! The harmonic number, nP
+        INTEGER(4), INTENT(IN)  :: nHarmonic					! The harmonic number, nP
 
 			! Outputs
 
@@ -360,5 +320,54 @@ CONTAINS
 		PitComIPC(3) = cos(nHarmonic*(aziAngle+aziOffset+phi3))*axTIn + sin(nHarmonic*(aziAngle+aziOffset+phi3))*axYIn
 
 	END SUBROUTINE ColemanTransformInverse
+	!-------------------------------------------------------------------------------------------------------------------------------
+	!Paremeterized Cp(lambda) function for a fixed pitch angle. Circumvents the need of importing a look-up table
+	REAL FUNCTION CPfunction(rho, lambda)
+		IMPLICIT NONE
+		
+		! Inputs
+		REAL(4), INTENT(IN) :: rho(4)   ! Parameters defining the parameterizable Cp(lambda) function
+		REAL(4), INTENT(IN) :: lambda    ! Estimated or measured tip-speed ratio input
+		
+		CPfunction = exp(-rho(1)/lambda)*(rho(2)/lambda-rho(3))+rho(4)*lambda
+		CPfunction = saturate(CPfunction, 0.01, 1.0)
+		
+	END FUNCTION CPfunction
+	!-------------------------------------------------------------------------------------------------------------------------------
+	!Function for computing the aerodynamic torque, divided by the effective rotor torque of the turbine, for use in wind speed estimation
+	REAL FUNCTION IntertiaSpecAeroDynTorque(LocalVar, CntrPar)
+		USE DRC_Types, ONLY : LocalVariables, ControlParameters
+		IMPLICIT NONE
+    
+			! Inputs
+		TYPE(ControlParameters), INTENT(IN) :: CntrPar
+		TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
+			
+			! Local
+		REAL(4) :: RotorArea
+		REAL(4) :: Cp
+		
+		RotorArea = PI*CntrPar%WE_BladeRadius**2
+		Lambda = LocalVar%RotSpeed*CntrPar%WE_BladeRadius/LocalVar%WE_Vw
+		Cp = CPfunction(LocalVar%RhoAir, Lambda)
+		
+		IntertiaSpecAeroDynTorque = (CntrPar%WE_RhoAir*RotorArea)/(2*CntrPar%WE_Jtot)*(LocalVar%WE_Vw**3/LocalVar%RotSpeed)*Cp*Lambda
+		IntertiaSpecAeroDynTorque = MAX(IntertiaSpecAeroDynTorque, 0)
+		
+	END FUNCTION IntertiaSpecAeroDynTorque
+	!-------------------------------------------------------------------------------------------------------------------------------
+	REAL SUBROUTINE WindSpeedEstimator(LocalVar, CntrPar)
+		USE DRC_Types, ONLY : LocalVariables, ControlParameters
+		IMPLICIT NONE
+    
+			! Inputs
+		TYPE(ControlParameters), INTENT(IN)		:: CntrPar
+		TYPE(LocalVariables), INTENT(INOUT)		:: LocalVar	
+		
+		LocalVar%WE_VwIdot = CntrPar%WE_Gamma*(LocalVar%GenTqMeas*CntrPar%WE_GearboxRatio/CntrPar%WE_Jtot - IntertiaSpecAeroDynTorque(LocalVar, CntrPar))
+        LocalVar%WE_VwI = LocalVar%WE_VwI + LocalVar%WE_VwIdot*LocalVar%DT
+        LocalVar%WE_Vw = LocalVar%WE_VwI + LocalVar%WE_Gamma*LocalVar%RotSpeed
+		
+	END SUBROUTINE WindSpeedEstimator
 	!-------------------------------------------------------------------------------------------------------------------------------
 END MODULE Functions

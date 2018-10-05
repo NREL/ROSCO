@@ -97,6 +97,18 @@ CONTAINS
 		READ(UnControllerParameters, *) CntrPar%Y_omegaLPSlow
 		READ(UnControllerParameters, *) CntrPar%Y_Rate
 		
+		!-------------- WIND SPEED ESTIMATOR CONTANTS ------------------
+		READ(UnControllerParameters, *) CntrPar%WE_BladeRadius
+		READ(UnControllerParameters, *) CntrPar%WE_Gamma
+		READ(UnControllerParameters, *) CntrPar%WE_GearboxRatio
+		READ(UnControllerParameters, *) CntrPar%WE_Jtot
+		READ(UnControllerParameters, *) CntrPar%WE_CP_n
+		
+		ALLOCATE(CntrPar%WE_CP(CntrPar%WE_CP_n))
+		READ(UnControllerParameters, *) CntrPar%WE_CP
+		
+		READ(UnControllerParameters, *) CntrPar%WE_RhoAir
+		
 		!------------------- CALCULATED CONSTANTS -----------------------
 		CntrPar%PC_RtTq99		= CntrPar%VS_RtTq*0.99
 		CntrPar%VS_MinOMTq	= CntrPar%VS_Rgn2K*CntrPar%VS_MinOMSpd**2
@@ -109,26 +121,28 @@ CONTAINS
 	SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar)
 		USE DRC_Types, ONLY : LocalVariables
 	
-		REAL(C_FLOAT), INTENT(INOUT)	:: avrSWAP(*)	! The swap array, used to pass data to, and receive data from, the DLL controller.
+		REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*)	! The swap array, used to pass data to, and receive data from, the DLL controller.
 		TYPE(LocalVariables), INTENT(INOUT)	:: LocalVar
 		
 		! Load variables from calling program (See Appendix A of Bladed User's Guide):
 		LocalVar%iStatus = NINT(avrSWAP(1))
 		LocalVar%Time = avrSWAP(2)
-		LocalVar%DT				= avrSWAP(3)
-		LocalVar%BlPitch(1)		= avrSWAP(4)
-		LocalVar%VS_MechGenPwr  = avrSWAP(14)
-		LocalVar%VS_GenPwr		= avrSWAP(15)
-		LocalVar%GenSpeed			= avrSWAP(20)
-		LocalVar%Y_M				= avrSWAP(24)
-		LocalVar%HorWindV			= avrSWAP(27)
-		LocalVar%rootMOOP(1)		= avrSWAP(30)
-		LocalVar%rootMOOP(2)		= avrSWAP(31)
-		LocalVar%rootMOOP(3)		= avrSWAP(32)
-		LocalVar%BlPitch(2)		= avrSWAP(33)
-		LocalVar%BlPitch(3)		= avrSWAP(34)
-		LocalVar%Azimuth			= avrSWAP(60)
-		LocalVar%NumBl			= NINT(avrSWAP(61))
+		LocalVar%DT = avrSWAP(3)
+		LocalVar%BlPitch(1)	= avrSWAP(4)
+		LocalVar%VS_MechGenPwr = avrSWAP(14)
+		LocalVar%VS_GenPwr = avrSWAP(15)
+		LocalVar%GenSpeed = avrSWAP(20)
+		LocalVar%RotSpeed = avrSWAP(21)
+		LocalVar%GenTqMeas = avrSWAP(24)
+		LocalVar%Y_M = avrSWAP(24)
+		LocalVar%HorWindV = avrSWAP(27)
+		LocalVar%rootMOOP(1) = avrSWAP(30)
+		LocalVar%rootMOOP(2) = avrSWAP(31)
+		LocalVar%rootMOOP(3) = avrSWAP(32)
+		LocalVar%BlPitch(2)	= avrSWAP(33)
+		LocalVar%BlPitch(3)	= avrSWAP(34)
+		LocalVar%Azimuth = avrSWAP(60)
+		LocalVar%NumBl = NINT(avrSWAP(61))
 	END SUBROUTINE ReadAvrSWAP
 	
 	SUBROUTINE Assert(LocalVar, CntrPar, avrSWAP, aviFAIL, ErrMsg, size_avcMSG)
@@ -337,6 +351,10 @@ CONTAINS
 			! END DO
 			LocalVar%Y_AccErr = 0.0	 ! This will ensure that the accumulated yaw error starts at zero
 			LocalVar%Y_YawEndT = -1.0 ! This will ensure that the initial yaw end time is lower than the actual time to prevent initial yawing
+			
+			! Wind speed estimator initialization, we always assume an initial wind speed of 10 m/s
+			LocalVar%WE_Vw = 10
+			LocalVar%WE_VwI = LocalVar%WE_Vw - CntrPar%WE_Gamma*LocalVar%RotSpeed
 
 			! Check validity of input parameters:
 			CALL Assert(LocalVar, CntrPar, avrSWAP, aviFAIL, ErrMsg, size_avcMSG)
