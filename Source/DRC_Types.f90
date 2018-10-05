@@ -4,14 +4,17 @@ IMPLICIT NONE
 
 TYPE, PUBLIC :: ControlParameters
 	INTEGER(4)							:: LoggingLevel					! 0 = write no debug files, 1 = write standard output .dbg-file, 2 = write standard output .dbg-file and complete avrSWAP-array .dbg2-file
+    
     INTEGER(4)                          :: F_FilterType                 ! 1 = first-order low-pass filter, 2 = second-order low-pass filter
     REAL(4)                             :: F_CornerFreq                 ! Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
     REAL(4)								:: F_Damping					! Damping coefficient if F_FilterType = 2, unused otherwise
-	INTEGER(4)							:: IPC_ControlMode				! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) 0 = off / 1 = (1P reductions) / 2 = (1P+2P reductions)
+	
+    INTEGER(4)							:: IPC_ControlMode				! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) 0 = off / 1 = (1P reductions) / 2 = (1P+2P reductions)
     REAL(4)								:: IPC_IntSat					! Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: IPC_KI						! Integral gain for the individual pitch controller, [-]. 8E-10
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: IPC_aziOffset				! Phase offset added to the azimuth angle for the individual pitch controller, [rad].
-	INTEGER(4)							:: PC_GS_n						! Amount of gain-scheduling table entries
+	
+    INTEGER(4)							:: PC_GS_n						! Amount of gain-scheduling table entries
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_angles					! Gain-schedule table: pitch angles
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_KP						! Gain-schedule table: pitch controller kp gains
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_KI						! Gain-schedule table: pitch controller ki gains
@@ -24,7 +27,8 @@ TYPE, PUBLIC :: ControlParameters
 	REAL(4)								:: PC_RefSpd					! Desired (reference) HSS speed for pitch controller, [rad/s].
 	REAL(4)								:: PC_FinePit					! Record 5: Below-rated pitch angle set-point (deg) [used only with Bladed Interface]
 	REAL(4)								:: PC_Switch					! Angle above lowest minimum pitch angle for switch [rad]
-	INTEGER(4)							:: VS_ControlMode				! Generator torque control mode in above rated conditions, 0 = constant torque / 1 = constant power
+	
+    INTEGER(4)							:: VS_ControlMode				! Generator torque control mode in above rated conditions, 0 = constant torque / 1 = constant power
 	REAL(4)								:: VS_GenEff					! Generator efficiency mechanical power -> electrical power [-]
 	REAL(4)								:: VS_ArSatTq					! Above rated generator torque PI control saturation, [Nm] -- 212900
 	REAL(4)								:: VS_MaxRat					! Maximum torque rate (in absolute value) in torque controller, [Nm/s].
@@ -38,14 +42,16 @@ TYPE, PUBLIC :: ControlParameters
 	INTEGER(4)							:: VS_n							! Number of controller gains
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: VS_KP						! Proportional gain for generator PI torque controller, used in the transitional 2.5 region
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: VS_KI						! Integral gain for generator PI torque controller, used in the transitional 2.5 region
-	REAL(4)								:: WE_BladeRadius				! Blade length [m]
-	REAL(4)								:: WE_CP_n						! Amount of parameters in the Cp array
-	REAL(4), DIMENSION(:), ALLOCATABLE	:: WE_CP						! Paremeters that define the parameterized CP(\lambda) function
+	
+    REAL(4)								:: WE_BladeRadius				! Blade length [m]
+	INTEGER(4)							:: WE_CP_n						! Amount of parameters in the Cp array
+	REAL(4), DIMENSION(:), ALLOCATABLE	:: WE_CP						! Parameters that define the parameterized CP(\lambda) function
 	REAL(4)								:: WE_Gamma						! Adaption gain of the wind speed estimator algorithm [m/rad]
 	REAL(4)								:: WE_GearboxRatio				! Gearbox ratio, >=1  [-]
-	REAL(4)								:: WE_Jtot						! Total drivetrain inertia, including blades, hub and casted generator intertia to LSS [kg m^2]
+	REAL(4)								:: WE_Jtot						! Total drivetrain inertia, including blades, hub and casted generator inertia to LSS [kg m^2]
 	REAL(4)								:: WE_RhoAir					! Air density [kg m^-3]
-	INTEGER(4)							:: Y_ControlMode				! Yaw control mode: (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC)
+	
+    INTEGER(4)							:: Y_ControlMode				! Yaw control mode: (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC)
 	REAL(4)								:: Y_ErrThresh					! Error threshold [rad]. Turbine begins to yaw when it passes this. (104.71975512) -- 1.745329252
 	REAL(4)								:: Y_IPC_IntSat					! Integrator saturation (maximum signal amplitude contrbution to pitch from yaw-by-IPC)
 	INTEGER(4)							:: Y_IPC_n						! Number of controller gains (yaw-by-IPC)
@@ -104,9 +110,9 @@ TYPE, PUBLIC :: LocalVariables
 	REAL(4)								:: VS_SpdErrAr					! Current speed error (generator torque control) [rad/s].
 	REAL(4)								:: VS_SpdErrBr					! Current speed error (generator torque control) [rad/s].
 	INTEGER(4)							:: VS_State						! State of the torque control system
-	REAL(4)								:: WS_Vw						! Estimated wind speed [m/s]
-	REAL(4)								:: WS_VwI						! Integrated wind speed quantity for estimation [m/s]
-	REAL(4)								:: WS_VwIdot					! Differentated integrated wind speed quantity for estimation [m/s]
+	REAL(4)								:: WE_Vw						! Estimated wind speed [m/s]
+	REAL(4)								:: WE_VwI						! Integrated wind speed quantity for estimation [m/s]
+	REAL(4)								:: WE_VwIdot					! Differentated integrated wind speed quantity for estimation [m/s]
 	REAL(4)								:: Y_AccErr						! Accumulated yaw error [rad].
 	REAL(4)								:: Y_ErrLPFFast					! Filtered yaw error by fast low pass filter [rad].
 	REAL(4)								:: Y_ErrLPFSlow					! Filtered yaw error by slow low pass filter [rad].

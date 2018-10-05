@@ -240,8 +240,8 @@ CONTAINS
 		ELSE
 			! Print simulation status, every 10 seconds
 			IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
-				WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0 ! LocalVar%Time !/1000.0
-				100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW')
+				WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0, LocalVar%WE_Vw ! LocalVar%Time !/1000.0
+				100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Wind Speed: ', f5.1, ' m/s')
 				! PRINT *, LocalVar%PC_State, LocalVar%VS_State, CntrPar%VS_Rgn3Pitch, CntrPar%PC_FinePit, CntrPar%PC_Switch, LocalVar%BlPitch(1) ! Additional debug info
 			END IF
 			
@@ -322,15 +322,15 @@ CONTAINS
 	END SUBROUTINE ColemanTransformInverse
 	!-------------------------------------------------------------------------------------------------------------------------------
 	!Paremeterized Cp(lambda) function for a fixed pitch angle. Circumvents the need of importing a look-up table
-	REAL FUNCTION CPfunction(rho, lambda)
+	REAL FUNCTION CPfunction(CP, lambda)
 		IMPLICIT NONE
 		
 		! Inputs
-		REAL(4), INTENT(IN) :: rho(4)   ! Parameters defining the parameterizable Cp(lambda) function
+		REAL(4), INTENT(IN) :: CP(4)    ! Parameters defining the parameterizable Cp(lambda) function
 		REAL(4), INTENT(IN) :: lambda    ! Estimated or measured tip-speed ratio input
-		
-		CPfunction = exp(-rho(1)/lambda)*(rho(2)/lambda-rho(3))+rho(4)*lambda
-		CPfunction = saturate(CPfunction, 0.01, 1.0)
+        
+		CPfunction = exp(-CP(1)/lambda)*(CP(2)/lambda-CP(3))+CP(4)*lambda
+		CPfunction = saturate(CPfunction, 0.001, 1.0)
 		
 	END FUNCTION CPfunction
 	!-------------------------------------------------------------------------------------------------------------------------------
@@ -341,33 +341,40 @@ CONTAINS
     
 			! Inputs
 		TYPE(ControlParameters), INTENT(IN) :: CntrPar
-		TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
+		TYPE(LocalVariables), INTENT(IN) :: LocalVar
 			
 			! Local
 		REAL(4) :: RotorArea
 		REAL(4) :: Cp
+        REAL(4) :: Lambda
 		
 		RotorArea = PI*CntrPar%WE_BladeRadius**2
 		Lambda = LocalVar%RotSpeed*CntrPar%WE_BladeRadius/LocalVar%WE_Vw
-		Cp = CPfunction(LocalVar%RhoAir, Lambda)
+		Cp = CPfunction(CntrPar%WE_CP, Lambda)
 		
 		IntertiaSpecAeroDynTorque = (CntrPar%WE_RhoAir*RotorArea)/(2*CntrPar%WE_Jtot)*(LocalVar%WE_Vw**3/LocalVar%RotSpeed)*Cp*Lambda
-		IntertiaSpecAeroDynTorque = MAX(IntertiaSpecAeroDynTorque, 0)
+		IntertiaSpecAeroDynTorque = MAX(IntertiaSpecAeroDynTorque, 0.0)
 		
 	END FUNCTION IntertiaSpecAeroDynTorque
 	!-------------------------------------------------------------------------------------------------------------------------------
-	REAL SUBROUTINE WindSpeedEstimator(LocalVar, CntrPar)
+	SUBROUTINE WindSpeedEstimator(LocalVar, CntrPar)
 		USE DRC_Types, ONLY : LocalVariables, ControlParameters
 		IMPLICIT NONE
     
 			! Inputs
-		TYPE(ControlParameters), INTENT(IN)		:: CntrPar
-		TYPE(LocalVariables), INTENT(INOUT)		:: LocalVar	
+		TYPE(ControlParameters), INTENT(IN) :: CntrPar
+		TYPE(LocalVariables), INTENT(INOUT) :: LocalVar	
 		
 		LocalVar%WE_VwIdot = CntrPar%WE_Gamma*(LocalVar%GenTqMeas*CntrPar%WE_GearboxRatio/CntrPar%WE_Jtot - IntertiaSpecAeroDynTorque(LocalVar, CntrPar))
+        
+        IF (MODULO(LocalVar%Time, 5.0) == 0.0) THEN
+			PRINT *, LocalVar%GenTqMeas*CntrPar%WE_GearboxRatio/CntrPar%WE_Jtot
+            PRINT *, IntertiaSpecAeroDynTorque(LocalVar, CntrPar)
+		END IF
+        
         LocalVar%WE_VwI = LocalVar%WE_VwI + LocalVar%WE_VwIdot*LocalVar%DT
-        LocalVar%WE_Vw = LocalVar%WE_VwI + LocalVar%WE_Gamma*LocalVar%RotSpeed
-		
+        LocalVar%WE_Vw = LocalVar%WE_VwI + CntrPar%WE_Gamma*LocalVar%RotSpeed
+        
 	END SUBROUTINE WindSpeedEstimator
 	!-------------------------------------------------------------------------------------------------------------------------------
 END MODULE Functions

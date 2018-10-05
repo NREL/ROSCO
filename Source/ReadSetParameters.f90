@@ -10,9 +10,9 @@ CONTAINS
 	SUBROUTINE ReadControlParameterFileSub(CntrPar, LocalVar)
 		USE DRC_Types, ONLY : ControlParameters, LocalVariables
 	
-		INTEGER(4), PARAMETER		:: UnControllerParameters = 89
-		TYPE(ControlParameters), INTENT(INOUT)	:: CntrPar
-		TYPE(LocalVariables), INTENT(IN)		:: LocalVar
+		INTEGER(4), PARAMETER :: UnControllerParameters = 89
+		TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
+		TYPE(LocalVariables), INTENT(IN) :: LocalVar
 		
 		OPEN(unit=UnControllerParameters, file='ControllerParameters.in', status='old', action='read')
 		
@@ -76,6 +76,18 @@ CONTAINS
 		
 		ALLOCATE(CntrPar%VS_KI(CntrPar%VS_n))
 		READ(UnControllerParameters,*) CntrPar%VS_KI
+        
+        !-------------- WIND SPEED ESTIMATOR CONTANTS ------------------
+		READ(UnControllerParameters, *) CntrPar%WE_BladeRadius
+        READ(UnControllerParameters, *) CntrPar%WE_CP_n
+		
+        ALLOCATE(CntrPar%WE_CP(CntrPar%WE_CP_n))
+		READ(UnControllerParameters, *) CntrPar%WE_CP
+        
+		READ(UnControllerParameters, *) CntrPar%WE_Gamma
+		READ(UnControllerParameters, *) CntrPar%WE_GearboxRatio
+		READ(UnControllerParameters, *) CntrPar%WE_Jtot
+		READ(UnControllerParameters, *) CntrPar%WE_RhoAir
 		
 		!------------------- YAW CONSTANTS -----------------------
 		READ(UnControllerParameters, *) CntrPar%Y_ControlMode
@@ -97,23 +109,11 @@ CONTAINS
 		READ(UnControllerParameters, *) CntrPar%Y_omegaLPSlow
 		READ(UnControllerParameters, *) CntrPar%Y_Rate
 		
-		!-------------- WIND SPEED ESTIMATOR CONTANTS ------------------
-		READ(UnControllerParameters, *) CntrPar%WE_BladeRadius
-		READ(UnControllerParameters, *) CntrPar%WE_Gamma
-		READ(UnControllerParameters, *) CntrPar%WE_GearboxRatio
-		READ(UnControllerParameters, *) CntrPar%WE_Jtot
-		READ(UnControllerParameters, *) CntrPar%WE_CP_n
-		
-		ALLOCATE(CntrPar%WE_CP(CntrPar%WE_CP_n))
-		READ(UnControllerParameters, *) CntrPar%WE_CP
-		
-		READ(UnControllerParameters, *) CntrPar%WE_RhoAir
-		
 		!------------------- CALCULATED CONSTANTS -----------------------
-		CntrPar%PC_RtTq99		= CntrPar%VS_RtTq*0.99
-		CntrPar%VS_MinOMTq	= CntrPar%VS_Rgn2K*CntrPar%VS_MinOMSpd**2
-		CntrPar%VS_MaxOMTq	= CntrPar%VS_Rgn2K*CntrPar%VS_RefSpd**2
-		CntrPar%VS_Rgn3Pitch		= CntrPar%PC_FinePit + CntrPar%PC_Switch
+		CntrPar%PC_RtTq99 = CntrPar%VS_RtTq*0.99
+		CntrPar%VS_MinOMTq = CntrPar%VS_Rgn2K*CntrPar%VS_MinOMSpd**2
+		CntrPar%VS_MaxOMTq = CntrPar%VS_Rgn2K*CntrPar%VS_RefSpd**2
+		CntrPar%VS_Rgn3Pitch = CntrPar%PC_FinePit + CntrPar%PC_Switch
 		
 		CLOSE(UnControllerParameters)
 	END SUBROUTINE ReadControlParameterFileSub
@@ -133,7 +133,7 @@ CONTAINS
 		LocalVar%VS_GenPwr = avrSWAP(15)
 		LocalVar%GenSpeed = avrSWAP(20)
 		LocalVar%RotSpeed = avrSWAP(21)
-		LocalVar%GenTqMeas = avrSWAP(24)
+		LocalVar%GenTqMeas = avrSWAP(23)
 		LocalVar%Y_M = avrSWAP(24)
 		LocalVar%HorWindV = avrSWAP(27)
 		LocalVar%rootMOOP(1) = avrSWAP(30)
