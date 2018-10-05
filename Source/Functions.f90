@@ -226,13 +226,17 @@ CONTAINS
 		IF (LocalVar%iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 		! If we're debugging, open the debug file and write the header:
 			IF (CntrPar%LoggingLevel > 0) THEN
-				OPEN(UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='REPLACE')
-				WRITE (UnDb,'(A)')	'   LocalVar%Time '  //Tab//'LocalVar%PC_PitComT  ' //Tab//'LocalVar%PC_SpdErr  ' //Tab//'LocalVar%PC_KP ' //Tab//'LocalVar%PC_KI  ' //Tab//'LocalVar%Y_M  ' //Tab//'LocalVar%rootMOOP(1)  '//Tab//'VS_RtPwr  '//Tab//'LocalVar%GenTq'
-				WRITE (UnDb,'(A)')	'   (sec) ' //Tab//'(rad)    '  //Tab//'(rad/s) '//Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   ' //Tab//'(?)   ' //Tab//'(W)   '//Tab//'(Nm)  '
+				!OPEN(unit=UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='NEW')
+				OPEN(unit=UnDb, FILE='DEBUG.dbg')
+				WRITE (UnDb,'(A)')	'   LocalVar%Time '  //Tab//'LocalVar%WE_Vw  '
+				WRITE (UnDb,'(A)')	'   (sec) ' //Tab//'(m/s)    '
+                !WRITE (UnDb,'(A)')	'   LocalVar%Time '  //Tab//'LocalVar%PC_PitComT  ' //Tab//'LocalVar%PC_SpdErr  ' //Tab//'LocalVar%PC_KP ' //Tab//'LocalVar%PC_KI  ' //Tab//'LocalVar%Y_M  ' //Tab//'LocalVar%rootMOOP(1)  '//Tab//'VS_RtPwr  '//Tab//'LocalVar%GenTq'
+				!WRITE (UnDb,'(A)')	'   (sec) ' //Tab//'(rad)    '  //Tab//'(rad/s) '//Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   ' //Tab//'(?)   ' //Tab//'(W)   '//Tab//'(Nm)  '
 			END IF
 			
 			IF (CntrPar%LoggingLevel > 1) THEN
-				OPEN(UnDb2, FILE=TRIM(RootName)//'.dbg2', STATUS='REPLACE')
+				!OPEN(UnDb2, FILE=TRIM(RootName)//'.dbg2', STATUS='REPLACE')
+                OPEN(unit=UnDb, FILE='DEBUG2.dbg')
 				WRITE(UnDb2,'(/////)')
 				WRITE(UnDb2,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1,85)
 				WRITE(UnDb2,'(A,85("'//Tab//'(-)"))')  '(s)'
@@ -243,11 +247,12 @@ CONTAINS
 				WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0, LocalVar%WE_Vw ! LocalVar%Time !/1000.0
 				100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Wind Speed: ', f5.1, ' m/s')
 				! PRINT *, LocalVar%PC_State, LocalVar%VS_State, CntrPar%VS_Rgn3Pitch, CntrPar%PC_FinePit, CntrPar%PC_Switch, LocalVar%BlPitch(1) ! Additional debug info
+                PRINT *, LocalVar%RotSpeed
 			END IF
 			
 			! Output debugging information if requested:
 			IF (CntrPar%LoggingLevel > 0) THEN
-				WRITE (UnDb,FmtDat)		LocalVar%Time, LocalVar%Y_MErr, LocalVar%Y_AccErr, CntrPar%Y_ErrThresh, LocalVar%Y_ErrLPFFast, LocalVar%Y_ErrLPFSlow, avrSWAP(48)
+				WRITE (UnDb,FmtDat)		LocalVar%Time, LocalVar%WE_Vw
 			END IF
 			
 			IF (CntrPar%LoggingLevel > 1) THEN
@@ -335,7 +340,7 @@ CONTAINS
 	END FUNCTION CPfunction
 	!-------------------------------------------------------------------------------------------------------------------------------
 	!Function for computing the aerodynamic torque, divided by the effective rotor torque of the turbine, for use in wind speed estimation
-	REAL FUNCTION IntertiaSpecAeroDynTorque(LocalVar, CntrPar)
+	REAL FUNCTION AeroDynTorque(LocalVar, CntrPar)
 		USE DRC_Types, ONLY : LocalVariables, ControlParameters
 		IMPLICIT NONE
     
@@ -352,10 +357,10 @@ CONTAINS
 		Lambda = LocalVar%RotSpeed*CntrPar%WE_BladeRadius/LocalVar%WE_Vw
 		Cp = CPfunction(CntrPar%WE_CP, Lambda)
 		
-		IntertiaSpecAeroDynTorque = (CntrPar%WE_RhoAir*RotorArea)/(2*CntrPar%WE_Jtot)*(LocalVar%WE_Vw**3/LocalVar%RotSpeed)*Cp*Lambda
-		IntertiaSpecAeroDynTorque = MAX(IntertiaSpecAeroDynTorque, 0.0)
+		AeroDynTorque = 0.5*(CntrPar%WE_RhoAir*RotorArea)*(LocalVar%WE_Vw**3/LocalVar%RotSpeed)*Cp
+		AeroDynTorque = MAX(AeroDynTorque, 0.0)
 		
-	END FUNCTION IntertiaSpecAeroDynTorque
+	END FUNCTION AeroDynTorque
 	!-------------------------------------------------------------------------------------------------------------------------------
 	SUBROUTINE WindSpeedEstimator(LocalVar, CntrPar)
 		USE DRC_Types, ONLY : LocalVariables, ControlParameters
@@ -365,12 +370,13 @@ CONTAINS
 		TYPE(ControlParameters), INTENT(IN) :: CntrPar
 		TYPE(LocalVariables), INTENT(INOUT) :: LocalVar	
 		
-		LocalVar%WE_VwIdot = CntrPar%WE_Gamma*(LocalVar%GenTqMeas*CntrPar%WE_GearboxRatio/CntrPar%WE_Jtot - IntertiaSpecAeroDynTorque(LocalVar, CntrPar))
+		!LocalVar%WE_VwIdot = CntrPar%WE_Gamma/CntrPar%WE_Jtot*(LocalVar%GenTqMeas*CntrPar%WE_GearboxRatio - AeroDynTorque(LocalVar, CntrPar))
+        LocalVar%WE_VwIdot = CntrPar%WE_Gamma/CntrPar%WE_Jtot*(LocalVar%VS_LastGenTrq*CntrPar%WE_GearboxRatio - AeroDynTorque(LocalVar, CntrPar))
         
-        IF (MODULO(LocalVar%Time, 5.0) == 0.0) THEN
-			PRINT *, LocalVar%GenTqMeas*CntrPar%WE_GearboxRatio/CntrPar%WE_Jtot
-            PRINT *, IntertiaSpecAeroDynTorque(LocalVar, CntrPar)
-		END IF
+        !IF (MODULO(LocalVar%Time, 5.0) == 0.0) THEN
+		!	PRINT *, LocalVar%GenTqMeas*CntrPar%WE_GearboxRatio/CntrPar%WE_Jtot
+        !    PRINT *, IntertiaSpecAeroDynTorque(LocalVar, CntrPar)
+		!END IF
         
         LocalVar%WE_VwI = LocalVar%WE_VwI + LocalVar%WE_VwIdot*LocalVar%DT
         LocalVar%WE_Vw = LocalVar%WE_VwI + CntrPar%WE_Gamma*LocalVar%RotSpeed
