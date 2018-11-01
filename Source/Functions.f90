@@ -325,9 +325,9 @@ CONTAINS
 
 			! Body
 
-		axTOut	= 2.0/3.0 * (cos(nHarmonic*(aziAngle)*rootMOOP(1)) + cos(nHarmonic*(aziAngle+phi2)*rootMOOP(2)) + cos(nHarmonic*(aziAngle+phi3))*rootMOOP(3))
-		axYOut  = 2.0/3.0 * (sin(nHarmonic*(aziAngle)*rootMOOP(1)) + sin(nHarmonic*(aziAngle+phi2)*rootMOOP(2)) + sin(nHarmonic*(aziAngle+phi3))*rootMOOP(3))
-
+		axTOut	= 2.0/3.0 * (cos(nHarmonic*(aziAngle))*rootMOOP(1) + cos(nHarmonic*(aziAngle+phi2))*rootMOOP(2) + cos(nHarmonic*(aziAngle+phi3))*rootMOOP(3))
+		axYOut  = 2.0/3.0 * (sin(nHarmonic*(aziAngle))*rootMOOP(1) + sin(nHarmonic*(aziAngle+phi2))*rootMOOP(2) + sin(nHarmonic*(aziAngle+phi3))*rootMOOP(3))
+		
 	END SUBROUTINE ColemanTransform
 	!-------------------------------------------------------------------------------------------------------------------------------
 	!The inverse Coleman or d-q axis transformation transforms the direct axis and quadrature axis
