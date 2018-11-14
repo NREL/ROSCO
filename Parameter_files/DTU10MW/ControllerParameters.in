@@ -25,17 +25,17 @@
 150000.0			! VS_MaxRat			- Maximum torque rate (in absolute value) in torque controller, [Nm/s].
 250000.0			! VS_MaxTq			- Maximum generator torque in Region 3 (HSS side), [Nm].
 0.0					! VS_MinTq			- Minimum generator (HSS side), [Nm].
-31.415				! VS_MinOMSpd		- Optimal mode minimum speed, cut-in speed towards optimal mode gain path [rad/s]
+20.94395			! VS_MinOMSpd		- Optimal mode minimum speed, cut-in speed towards optimal mode gain path [rad/s]
 104.1				! VS_Rgn2K			- Generator torque constant in Region 2 (HSS side), N-m/(rad/s)^2
 1.0E+07				! VS_RtPwr			- Wind turbine rated power [W]
-198943.6			! VS_RtTq			- Rated torque, [Nm].
+211642				! VS_RtTq			- Rated torque, [Nm]. XXX 198943.6 XXX
 42.411				! VS_RefSpd			- Rated generator speed [rad/s]
 1					! VS_n				- Number of controller gains
 -27338.24			! VS_KP				- Proportional gain for generator PI torque controller, used in the transitional 2.5 region, [1/(rad/s) Nm]
 -6134.68 			! VS_KI				- Integral gain for generator PI torque controller, used in the transitional 2.5 region, [1/rad Nm]
 89.166				! WE_BladeRadius	- Blade length [m]
 4					! WE_CP_n			- Amount of parameters in the Cp array
-XXX	XXX	XXX	XXX		! WE_CP - Parameters that define the parameterized CP(\lambda) function
+14.571319658214513	42.809556250371465	2.456512501523107	0.003127994078720		! WE_CP - Parameters that define the parameterized CP(\lambda) function XXX Needs to be updated, these are values of the NREL5MW XXX
 20					! WE_Gamma			- Adaption gain of the wind speed estimator algorithm [m/rad]
 50					! WE_GearboxRatio	- Gearbox ratio, >=1  [-]
 2.0E+08				! WE_Jtot			- Total drivetrain inertia, including blades, hub and casted generator inertia to LSS [kg m^2]
