@@ -5,7 +5,5 @@ Source/Obj_win32
 Source/x64/
 Source/Release/
 #Archive
-
 Scripts/CompileDISCONHereCopyRun\.cmd
-
 \.vs/

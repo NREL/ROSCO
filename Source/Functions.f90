@@ -141,47 +141,7 @@ CONTAINS
 		DFControllerLast(inst) = DFController
 	END FUNCTION DFController
 	!-------------------------------------------------------------------------------------------------------------------------------
-	! PRBS identification signal generator function
-	!REAL FUNCTION PRBSgen(mean, amplitude, cycleTime, seed, initValue, reset, inst)
-	!!
-	!	IMPLICIT NONE
-    !
-	!		! Inputs
-	!	REAL(4), INTENT(IN)		:: mean
-	!	REAL(4), INTENT(IN)		:: amplitude
-	!	INTEGER(4), INTENT(IN)	:: cycleTime
-	!	INTEGER(4), INTENT(IN)	:: seed
-	!	LOGICAL, INTENT(IN)		:: reset
-	!	REAL(4), INTENT(IN)		:: initValue
-	!	
-	!		! Local
-	!	INTEGER(4)				:: i											! Counter for making arrays
-	!	REAL(4)					:: randomNumber
-	!	INTEGER(4), DIMENSION(99), SAVE	:: FirstCall = (/ (1, i=1,99) /)
-	!	
-	!	IF ((FirstCall(inst) == 1) .OR. reset) THEN
-	!		RANDOM_NUMBER(1)
-	!		RAND(seed)
-	!		
-	!		FirstCall(inst) = 0
-	!		PRBSgen = initValue
-	!	ELSE
-	!		randomNumber = RAND()
-	!		
-	!		IF randomNumber > 0.5 THEN
-	!			randomNumber = 1
-	!		ELSE
-	!			randomNumber = 0
-	!		END IF
-	!		
-	!		randomNumber = randomNumber - 0.5
-	!		randomNumber = randomNumber*amplitude*2 + mean
-	!		PRBSgen = randomNumber
-	!	END IF
-	!	
-	!END FUNCTION PRBSgen
-	!-------------------------------------------------------------------------------------------------------------------------------
-	! Stata machines, determines the state of the wind turbine to determine the corresponding control actions
+	! State machines, determines the state of the wind turbine to determine the corresponding control actions
 	! States:
 	! - VS/PC_State = 0, Error state, for debugging purposes (VS) / No pitch control active, pitch constant at fine-pitch (PC)
 	! - VS_State = 1, Region 1(.5) operation, torque control to keep the rotor at cut-in speed towards the Cp-max operational curve
@@ -266,13 +226,17 @@ CONTAINS
 		IF (LocalVar%iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
 		! If we're debugging, open the debug file and write the header:
 			IF (CntrPar%LoggingLevel > 0) THEN
-				OPEN(UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='REPLACE')
-				WRITE (UnDb,'(A)')	'   LocalVar%Time '  //Tab//'LocalVar%PC_PitComT  ' //Tab//'LocalVar%PC_SpdErr  ' //Tab//'LocalVar%PC_KP ' //Tab//'LocalVar%PC_KI  ' //Tab//'LocalVar%Y_M  ' //Tab//'LocalVar%rootMOOP(1)  '//Tab//'VS_RtPwr  '//Tab//'LocalVar%GenTq'
-				WRITE (UnDb,'(A)')	'   (sec) ' //Tab//'(rad)    '  //Tab//'(rad/s) '//Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   ' //Tab//'(?)   ' //Tab//'(W)   '//Tab//'(Nm)  '
+				!OPEN(unit=UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='NEW')
+				OPEN(unit=UnDb, FILE='DEBUG.dbg')
+				WRITE (UnDb,'(A)')	'   LocalVar%Time '  //Tab//'LocalVar%WE_Vw  '
+				WRITE (UnDb,'(A)')	'   (sec) ' //Tab//'(m/s)    '
+                !WRITE (UnDb,'(A)')	'   LocalVar%Time '  //Tab//'LocalVar%PC_PitComT  ' //Tab//'LocalVar%PC_SpdErr  ' //Tab//'LocalVar%PC_KP ' //Tab//'LocalVar%PC_KI  ' //Tab//'LocalVar%Y_M  ' //Tab//'LocalVar%rootMOOP(1)  '//Tab//'VS_RtPwr  '//Tab//'LocalVar%GenTq'
+				!WRITE (UnDb,'(A)')	'   (sec) ' //Tab//'(rad)    '  //Tab//'(rad/s) '//Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   ' //Tab//'(?)   ' //Tab//'(W)   '//Tab//'(Nm)  '
 			END IF
 			
 			IF (CntrPar%LoggingLevel > 1) THEN
-				OPEN(UnDb2, FILE=TRIM(RootName)//'.dbg2', STATUS='REPLACE')
+				!OPEN(UnDb2, FILE=TRIM(RootName)//'.dbg2', STATUS='REPLACE')
+                OPEN(unit=UnDb, FILE='DEBUG2.dbg')
 				WRITE(UnDb2,'(/////)')
 				WRITE(UnDb2,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1,85)
 				WRITE(UnDb2,'(A,85("'//Tab//'(-)"))')  '(s)'
@@ -280,14 +244,15 @@ CONTAINS
 		ELSE
 			! Print simulation status, every 10 seconds
 			IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
-				WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0 ! LocalVar%Time !/1000.0
-				100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW')
+				WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0, LocalVar%WE_Vw ! LocalVar%Time !/1000.0
+				100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')
 				! PRINT *, LocalVar%PC_State, LocalVar%VS_State, CntrPar%VS_Rgn3Pitch, CntrPar%PC_FinePit, CntrPar%PC_Switch, LocalVar%BlPitch(1) ! Additional debug info
+                ! PRINT *, LocalVar%RotSpeed
 			END IF
 			
 			! Output debugging information if requested:
 			IF (CntrPar%LoggingLevel > 0) THEN
-				WRITE (UnDb,FmtDat)		LocalVar%Time, LocalVar%Y_MErr, LocalVar%Y_AccErr, CntrPar%Y_ErrThresh, LocalVar%Y_ErrLPFFast, LocalVar%Y_ErrLPFSlow, avrSWAP(48)
+				WRITE (UnDb,FmtDat)		LocalVar%Time, LocalVar%WE_Vw
 			END IF
 			
 			IF (CntrPar%LoggingLevel > 1) THEN
@@ -342,7 +307,7 @@ CONTAINS
 		REAL(4), INTENT(IN)		:: axTIn, axYIn			! Direct axis and quadrature axis
 		REAL(4), INTENT(IN)		:: aziAngle						! Rotor azimuth angle
 		REAL(4), INTENT(IN)		:: aziOffset					! Phase shift added to the azimuth angle
-        INTEGER(4), INTENT(IN)  :: nHarmonic                        ! The harmonic number, nP
+        INTEGER(4), INTENT(IN)  :: nHarmonic					! The harmonic number, nP
 
 			! Outputs
 
@@ -360,5 +325,62 @@ CONTAINS
 		PitComIPC(3) = cos(nHarmonic*(aziAngle+aziOffset+phi3))*axTIn + sin(nHarmonic*(aziAngle+aziOffset+phi3))*axYIn
 
 	END SUBROUTINE ColemanTransformInverse
+	!-------------------------------------------------------------------------------------------------------------------------------
+	!Paremeterized Cp(lambda) function for a fixed pitch angle. Circumvents the need of importing a look-up table
+	REAL FUNCTION CPfunction(CP, lambda)
+		IMPLICIT NONE
+		
+		! Inputs
+		REAL(4), INTENT(IN) :: CP(4)    ! Parameters defining the parameterizable Cp(lambda) function
+		REAL(4), INTENT(IN) :: lambda    ! Estimated or measured tip-speed ratio input
+        
+		CPfunction = exp(-CP(1)/lambda)*(CP(2)/lambda-CP(3))+CP(4)*lambda
+		CPfunction = saturate(CPfunction, 0.001, 1.0)
+		
+	END FUNCTION CPfunction
+	!-------------------------------------------------------------------------------------------------------------------------------
+	!Function for computing the aerodynamic torque, divided by the effective rotor torque of the turbine, for use in wind speed estimation
+	REAL FUNCTION AeroDynTorque(LocalVar, CntrPar)
+		USE DRC_Types, ONLY : LocalVariables, ControlParameters
+		IMPLICIT NONE
+    
+			! Inputs
+		TYPE(ControlParameters), INTENT(IN) :: CntrPar
+		TYPE(LocalVariables), INTENT(IN) :: LocalVar
+			
+			! Local
+		REAL(4) :: RotorArea
+		REAL(4) :: Cp
+        REAL(4) :: Lambda
+		
+		RotorArea = PI*CntrPar%WE_BladeRadius**2
+		Lambda = LocalVar%RotSpeed*CntrPar%WE_BladeRadius/LocalVar%WE_Vw
+		Cp = CPfunction(CntrPar%WE_CP, Lambda)
+		
+		AeroDynTorque = 0.5*(CntrPar%WE_RhoAir*RotorArea)*(LocalVar%WE_Vw**3/LocalVar%RotSpeed)*Cp
+		AeroDynTorque = MAX(AeroDynTorque, 0.0)
+		
+	END FUNCTION AeroDynTorque
+	!-------------------------------------------------------------------------------------------------------------------------------
+	SUBROUTINE WindSpeedEstimator(LocalVar, CntrPar)
+		USE DRC_Types, ONLY : LocalVariables, ControlParameters
+		IMPLICIT NONE
+    
+			! Inputs
+		TYPE(ControlParameters), INTENT(IN) :: CntrPar
+		TYPE(LocalVariables), INTENT(INOUT) :: LocalVar	
+		
+		!LocalVar%WE_VwIdot = CntrPar%WE_Gamma/CntrPar%WE_Jtot*(LocalVar%GenTqMeas*CntrPar%WE_GearboxRatio - AeroDynTorque(LocalVar, CntrPar))
+        LocalVar%WE_VwIdot = CntrPar%WE_Gamma/CntrPar%WE_Jtot*(LocalVar%VS_LastGenTrq*CntrPar%WE_GearboxRatio - AeroDynTorque(LocalVar, CntrPar))
+        
+        !IF (MODULO(LocalVar%Time, 5.0) == 0.0) THEN
+		!	PRINT *, LocalVar%GenTqMeas*CntrPar%WE_GearboxRatio/CntrPar%WE_Jtot
+        !    PRINT *, IntertiaSpecAeroDynTorque(LocalVar, CntrPar)
+		!END IF
+        
+        LocalVar%WE_VwI = LocalVar%WE_VwI + LocalVar%WE_VwIdot*LocalVar%DT
+        LocalVar%WE_Vw = LocalVar%WE_VwI + CntrPar%WE_Gamma*LocalVar%RotSpeed
+        
+	END SUBROUTINE WindSpeedEstimator
 	!-------------------------------------------------------------------------------------------------------------------------------
 END MODULE Functions
