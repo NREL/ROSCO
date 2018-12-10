@@ -5,7 +5,7 @@ MODULE ReadSetParameters
 		
 CONTAINS
 	!..............................................................................................................................
-	! Read all constant control parameters from ControllerParameters.in parameter file
+	! Read all constant control parameters from DISCON.IN parameter file
 	!..............................................................................................................................
 	SUBROUTINE ReadControlParameterFileSub(CntrPar, LocalVar)
 		USE DRC_Types, ONLY : ControlParameters, LocalVariables
@@ -14,7 +14,7 @@ CONTAINS
 		TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
 		TYPE(LocalVariables), INTENT(IN) :: LocalVar
 		
-		OPEN(unit=UnControllerParameters, file='ControllerParameters.in', status='old', action='read')
+		OPEN(unit=UnControllerParameters, file='DISCON.IN', status='old', action='read')
 		
 		!------------------- GENERAL CONSTANTS -------------------
 		READ(UnControllerParameters, *) CntrPar%LoggingLevel

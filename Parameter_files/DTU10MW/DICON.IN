@@ -1,0 +1,54 @@
+0					! LoggingLevel		- 0 = write no debug files, 1 = write standard output .dbg-file, 2 = write standard output .dbg-file and complete avrSWAP-array .dbg2-file
+2					! F_FilterType		- 1 = first-order low-pass filter, 2 = second-order low-pass filter
+2.5132741			! F_CornerFreq		- Corner frequency (-3dB point) in the low-pass filters, filtering generator speed and pitch control signals, [rad/s]
+0.7					! F_Damping			- Damping coefficient if F_FilterType = 2, unused otherwise
+0					! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) 0 = off / 1 = (1P reductions) / 2 = (1P+2P reductions)
+0.087266			! IPC_IntSat		- Integrator saturation (maximum signal amplitude contrbution to pitch from IPC), [rad]
+8E-10 0				! IPC_KI			- Integral gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions [-]
+0.436332313	0		! IPC_aziOffset		- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. 
+13					! PC_GS_n			- Amount of gain-scheduling table entries
+0 0.0349 0.0698 0.1047 0.1396 0.1745 0.2094 0.2443 0.2793 0.3142 0.3491 0.384 0.4189 ! PC_GS_angles		- Gain-schedule table: pitch angles
+-0.0105 -0.0104 -0.0102 -0.0099 -0.0095 -0.0091 -0.0086 -0.0081 -0.0076 -0.0071 -0.0066 -0.0061 -0.0056 ! PC_GS_KP			- Gain-schedule table: pitch controller kp gains
+-0.0028 -0.0028 -0.0027 -0.0027 -0.0026 -0.0024 -0.0023 -0.0022 -0.002 -0.0019 -0.0018 -0.0016 -0.0015 ! PC_GS_KI			- Gain-schedule table: pitch controller ki gains
+0 0 0 0 0 0 0 0 0 0 0 0 0 ! PC_GS_KD			- Gain-schedule table: pitch controller kd gains
+0 0 0 0 0 0 0 0 0 0 0 0 0 ! PC_GS_TF			- Gain-schedule table: pitch controller tf gains (derivative filter)
+1.5707				! PC_MaxPit			- Maximum physical pitch limit, [rad].
+-0.087266			! PC_MinPit			- Minimum physical pitch limit, [rad].
+0.17453				! PC_MaxRat			- Maximum pitch rate (in absolute value) in pitch controller, [rad/s].
+-0.17453			! PC_MinRat			- Minimum pitch rate (in absolute value) in pitch controller, [rad/s].
+50.26548			! PC_RefSpd			- Desired (reference) HSS speed for pitch controller, [rad/s].
+0.0					! PC_FinePit		- Record 5: Below-rated pitch angle set-point, [rad]
+0.034906			! PC_Switch			- Angle above lowest minimum pitch angle for switch [rad]
+1					! VS_ControlMode	- Generator torque control mode in above rated conditions, 0 = constant torque / 1 = constant power
+0.944				! VS_GenEff			- Generator efficiency mechanical power -> electrical power, this should match the efficiency defined in the generator properties! [-]
+212900				! VS_ArSatTq		- Above rated generator torque PI control saturation, [Nm]
+150000.0			! VS_MaxRat			- Maximum torque rate (in absolute value) in torque controller, [Nm/s].
+250000.0			! VS_MaxTq			- Maximum generator torque in Region 3 (HSS side), [Nm].
+0.0					! VS_MinTq			- Minimum generator (HSS side), [Nm].
+20.94395			! VS_MinOMSpd		- Optimal mode minimum speed, cut-in speed towards optimal mode gain path [rad/s]
+104.1				! VS_Rgn2K			- Generator torque constant in Region 2 (HSS side), N-m/(rad/s)^2
+1.0E+07				! VS_RtPwr			- Wind turbine rated power [W]
+211642				! VS_RtTq			- Rated torque, [Nm]. XXX 198943.6 XXX
+42.411				! VS_RefSpd			- Rated generator speed [rad/s]
+1					! VS_n				- Number of controller gains
+-27338.24			! VS_KP				- Proportional gain for generator PI torque controller, used in the transitional 2.5 region, [1/(rad/s) Nm]
+-6134.68 			! VS_KI				- Integral gain for generator PI torque controller, used in the transitional 2.5 region, [1/rad Nm]
+89.166				! WE_BladeRadius	- Blade length [m]
+4					! WE_CP_n			- Amount of parameters in the Cp array
+14.571319658214513	42.809556250371465	2.456512501523107	0.003127994078720		! WE_CP - Parameters that define the parameterized CP(\lambda) function XXX Needs to be updated, these are values of the NREL5MW XXX
+20					! WE_Gamma			- Adaption gain of the wind speed estimator algorithm [m/rad]
+50					! WE_GearboxRatio	- Gearbox ratio, >=1  [-]
+2.0E+08				! WE_Jtot			- Total drivetrain inertia, including blades, hub and casted generator inertia to LSS [kg m^2]
+1.225				! WE_RhoAir			- Air density [kg m^-3]
+0					! Y_ControlMode		- Yaw control mode: (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC)
+1.745329252			! Y_ErrThresh		- Yaw error threshold. Turbine begins to yaw when it passes this. [rad^2 s]
+0.17453				! Y_IPC_IntSat		- Integrator saturation (maximum signal amplitude contrbution to pitch from yaw-by-IPC), [rad]
+1					! Y_IPC_n			- Number of controller gains (yaw-by-IPC)
+-0.064				! Y_IPC_KP			- Yaw-by-IPC proportional controller gain Kp
+-0.0008				! Y_IPC_KI			- Yaw-by-IPC integral controller gain Ki
+0.6283185			! Y_IPC_omegaLP		- Low-pass filter corner frequency for the Yaw-by-IPC controller to filtering the yaw alignment error, [rad/s].
+1.0					! Y_IPC_zetaLP		- Low-pass filter damping factor for the Yaw-by-IPC controller to filtering the yaw alignment error, [-].
+0.00000				! Y_MErrSet			- Yaw alignment error, setpoint [rad]
+1.0					! Y_omegaLPFast		- Corner frequency fast low pass filter, 1.0 [Hz]
+0.016667			! Y_omegaLPSlow		- Corner frequency slow low pass filter, 1/60 [Hz]
+0.0034906			! Y_Rate			- Yaw rate [rad/s]
