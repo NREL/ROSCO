@@ -7,12 +7,11 @@ CONTAINS
 	!..............................................................................................................................
 	! Read all constant control parameters from DISCON.IN parameter file
 	!..............................................................................................................................
-	SUBROUTINE ReadControlParameterFileSub(CntrPar, LocalVar)
-		USE DRC_Types, ONLY : ControlParameters, LocalVariables
+	SUBROUTINE ReadControlParameterFileSub(CntrPar)
+		USE DRC_Types, ONLY : ControlParameters
 	
 		INTEGER(4), PARAMETER :: UnControllerParameters = 89
 		TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
-		TYPE(LocalVariables), INTENT(IN) :: LocalVar
 		
 		OPEN(unit=UnControllerParameters, file='DISCON.IN', status='old', action='read')
 		
@@ -21,6 +20,11 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%F_FilterType
         READ(UnControllerParameters, *) CntrPar%F_CornerFreq
         READ(UnControllerParameters, *) CntrPar%F_Damping
+        
+        !------------ FORE-AFT TOWER DAMPER CONSTANTS ------------
+        READ(UnControllerParameters, *) CntrPar%FA_HPF_CornerFreq
+        READ(UnControllerParameters, *) CntrPar%FA_IntSat
+        READ(UnControllerParameters, *) CntrPar%FA_KI
 		
 		!------------------- IPC CONSTANTS -----------------------
 		READ(UnControllerParameters, *) CntrPar%IPC_ControlMode
@@ -141,6 +145,7 @@ CONTAINS
 		LocalVar%rootMOOP(3) = avrSWAP(32)
 		LocalVar%BlPitch(2)	= avrSWAP(33)
 		LocalVar%BlPitch(3)	= avrSWAP(34)
+        LocalVar%FA_Acc = avrSWAP(53)
 		LocalVar%Azimuth = avrSWAP(60)
 		LocalVar%NumBl = NINT(avrSWAP(61))
 	END SUBROUTINE ReadAvrSWAP
@@ -338,7 +343,7 @@ CONTAINS
 					 'Visit our GitHub-page to contribute to this project:      '//NEW_LINE('A')// &
 					 'https://github.com/TUDelft-DataDrivenControl              '
 			
-			CALL ReadControlParameterFileSub(CntrPar, LocalVar)
+			CALL ReadControlParameterFileSub(CntrPar)
 			
 			! Initialize testValue (debugging variable)
 			LocalVar%TestType = 0

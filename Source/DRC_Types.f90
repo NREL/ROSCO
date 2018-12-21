@@ -8,6 +8,10 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(4)                          :: F_FilterType                 ! 1 = first-order low-pass filter, 2 = second-order low-pass filter
     REAL(4)                             :: F_CornerFreq                 ! Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
     REAL(4)								:: F_Damping					! Damping coefficient if F_FilterType = 2, unused otherwise
+    
+    REAL(4)                             :: FA_HPF_CornerFreq            ! Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]
+    REAL(4)                             :: FA_IntSat                    ! Integrator saturation (maximum signal amplitude contrbution to pitch from FA damper), [rad]
+    REAL(4)                             :: FA_KI                        ! Integral gain for the fore-aft tower damper controller, -1 = off / >0 = on [rad s/m]
 	
     INTEGER(4)							:: IPC_ControlMode				! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) 0 = off / 1 = (1P reductions) / 2 = (1P+2P reductions)
     REAL(4)								:: IPC_IntSat					! Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
@@ -86,13 +90,17 @@ TYPE, PUBLIC :: LocalVariables
 	INTEGER(4)							:: NumBl
 	
 	! Internal controller variables
+    REAL(4)                             :: FA_Acc                       ! Tower fore-aft acceleration [m/s^2]
+    REAL(4)                             :: FA_AccHPF                    ! High-pass filtered fore-aft acceleration [m/s^2]
+    REAL(4)                             :: FA_AccHPFI                   ! Tower velocity, high-pass filtered and integrated fore-aft acceleration [m/s]
+    REAL(4)                             :: FA_PitCom(3)                 ! Tower fore-aft vibration damping pitch contribution [rad]
 	REAL(4)								:: GenSpeedF					! Filtered HSS (generator) speed [rad/s].
 	REAL(4)								:: GenTq						! Electrical generator torque, [Nm].
 	REAL(4)								:: GenTqMeas					! Measured generator torque [Nm]
 	REAL(4)								:: GenArTq						! Electrical generator torque, for above-rated PI-control [Nm].
 	REAL(4)								:: GenBrTq						! Electrical generator torque, for below-rated PI-control [Nm].
 	INTEGER(4)							:: GlobalState					! Current global state to determine the behavior of the different controllers [-].
-	REAL(4)								:: IPC_PitComF(3)				! Commanded pitch of each blade as calculated by the individual pitch controller, F stands for low pass filtered, [rad].
+	REAL(4)								:: IPC_PitComF(3)				! Commanded pitch of each blade as calculated by the individual pitch controller, F stands for low-pass filtered, [rad].
 	REAL(4)								:: PC_KP						! Proportional gain for pitch controller at rated pitch (zero), [s].
 	REAL(4)								:: PC_KI						! Integral gain for pitch controller at rated pitch (zero), [-].
 	REAL(4)								:: PC_KD						! Differential gain for pitch controller at rated pitch (zero), [-].

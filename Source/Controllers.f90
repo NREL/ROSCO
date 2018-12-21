@@ -45,7 +45,7 @@ CONTAINS
 		LocalVar%Y_MErr = LocalVar%Y_M + CntrPar%Y_MErrSet							! Yaw-alignment error
 		
 		! Compute the pitch commands associated with the proportional and integral
-		!   gains:
+		! gains:
 		IF (LocalVar%iStatus == 0) THEN
 			LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, CntrPar%PC_FinePit, LocalVar%PC_MaxPitVar, LocalVar%DT, LocalVar%PitCom(1), .TRUE., objInst%instPI)
 		ELSE
@@ -58,15 +58,19 @@ CONTAINS
 		ELSE
 			LocalVar%IPC_PitComF = 0.0 ! THIS IS AN ARRAY!!
 		END IF
+        
+        ! Fore-aft tower vibration damping control
+        IF ((CntrPar%FA_KI > 0.0) .OR. (CntrPar%Y_ControlMode == 2)) THEN
+            CALL ForeAftDamping(CntrPar, LocalVar, objInst)
+        ELSE
+            LocalVar%FA_PitCom = 0.0 ! THIS IS AN ARRAY!!
+        END IF
 	
 		! Combine and saturate all pitch commands:
 		DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
-			LocalVar%PC_PitComT_IPC(K) = LocalVar%PC_PitComT + LocalVar%IPC_PitComF(K)									! Add the individual pitch command
-			LocalVar%PC_PitComT_IPC(K) = saturate(LocalVar%PC_PitComT_IPC(K), CntrPar%PC_MinPit, CntrPar%PC_MaxPit)     ! Saturate the overall command using the pitch angle limits
-			
 			! PitCom(K) = ratelimit(LocalVar%PC_PitComT_IPC(K), LocalVar%BlPitch(K), PC_MinRat, PC_MaxRat, LocalVar%DT)	! Saturate the overall command of blade K using the pitch rate limit
 			LocalVar%PitCom(K) = saturate(LocalVar%PC_PitComT, CntrPar%PC_MinPit, CntrPar%PC_MaxPit)					! Saturate the overall command using the pitch angle limits
-			LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%IPC_PitComF(K)
+			LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%IPC_PitComF(K) + LocalVar%FA_PitCom(K)
 		END DO
 		
 		! Command the pitch demanded from the last
@@ -181,7 +185,8 @@ CONTAINS
 	SUBROUTINE IPC(CntrPar, LocalVar, objInst)
 		!-------------------------------------------------------------------------------------------------------------------------------
 		! Individual pitch control subroutine
-		!
+		! Calculates the commanded pitch angles for IPC employed for blade fatigue load reductions at 1P and 2P
+        !
 		! Variable declaration and initialization
 		!------------------------------------------------------------------------------------------------------------------------------
 		USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
@@ -200,11 +205,7 @@ CONTAINS
 		TYPE(LocalVariables), INTENT(INOUT)		:: LocalVar
 		TYPE(ObjectInstances), INTENT(INOUT)	:: objInst
 		
-		!------------------------------------------------------------------------------------------------------------------------------
 		! Body
-		!------------------------------------------------------------------------------------------------------------------------------
-		! Calculates the commanded pitch angles for IPC employed for blade fatigue load reductions at 1P and 2P
-		!------------------------------------------------------------------------------------------------------------------------------
 		! Initialization
 			! Set integrals to be 0 in the first time step
 		IF (LocalVar%iStatus==0) THEN
@@ -261,4 +262,30 @@ CONTAINS
 			LocalVar%IPC_PitComF(K) = PitComIPC(K)
 		END DO
 	END SUBROUTINE IPC
+    
+    SUBROUTINE ForeAftDamping(CntrPar, LocalVar, objInst)
+		!-------------------------------------------------------------------------------------------------------------------------------
+		! Fore-aft damping controller, reducing the tower fore-aft vibrations using pitch
+		!
+		! Variable declaration and initialization
+		!------------------------------------------------------------------------------------------------------------------------------
+		USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+		
+		! Local variables
+		INTEGER(4)				:: K								    ! Integer used to loop through turbine blades
+	
+		TYPE(ControlParameters), INTENT(INOUT)	:: CntrPar
+		TYPE(LocalVariables), INTENT(INOUT)		:: LocalVar
+		TYPE(ObjectInstances), INTENT(INOUT)	:: objInst
+        
+		! Body
+		LocalVar%FA_AccHPF = HPFilter( LocalVar%FA_Acc, LocalVar%DT, CntrPar%FA_HPF_CornerFreq, LocalVar%iStatus, .FALSE., objInst%instHPF )
+        LocalVar%FA_AccHPFI = PIController(LocalVar%FA_AccHPF, 0.0, CntrPar%FA_KI, -CntrPar%FA_IntSat, CntrPar%FA_IntSat, LocalVar%DT, 0.0, .FALSE., objInst%instPI)
+        
+        ! Store the fore-aft pitch contribution to LocalVar data type
+		DO K = 1,LocalVar%NumBl
+			LocalVar%FA_PitCom(K) = LocalVar%FA_AccHPFI
+		END DO
+        
+    END SUBROUTINE ForeAftDamping
 END MODULE Controllers

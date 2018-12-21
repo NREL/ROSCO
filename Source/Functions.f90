@@ -228,8 +228,8 @@ CONTAINS
 			IF (CntrPar%LoggingLevel > 0) THEN
 				!OPEN(unit=UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='NEW')
 				OPEN(unit=UnDb, FILE='DEBUG.dbg')
-				WRITE (UnDb,'(A)')	'   LocalVar%Time '  //Tab//'LocalVar%WE_Vw  '
-				WRITE (UnDb,'(A)')	'   (sec) ' //Tab//'(m/s)    '
+				WRITE (UnDb,'(A)')	'   LocalVar%Time '  //Tab//'LocalVar%FA_Acc  '//Tab//'LocalVar%FA_AccHPF  '//Tab//'LocalVar%FA_AccHPFI  '//Tab//'LocalVar%PitCom  '
+				WRITE (UnDb,'(A)')	'   (sec) ' //Tab//'(m/s^2)    ' //Tab//'(m/s^2)    ' //Tab//'(m/s)    ' //Tab//'(rad)    '
                 !WRITE (UnDb,'(A)')	'   LocalVar%Time '  //Tab//'LocalVar%PC_PitComT  ' //Tab//'LocalVar%PC_SpdErr  ' //Tab//'LocalVar%PC_KP ' //Tab//'LocalVar%PC_KI  ' //Tab//'LocalVar%Y_M  ' //Tab//'LocalVar%rootMOOP(1)  '//Tab//'VS_RtPwr  '//Tab//'LocalVar%GenTq'
 				!WRITE (UnDb,'(A)')	'   (sec) ' //Tab//'(rad)    '  //Tab//'(rad/s) '//Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   ' //Tab//'(?)   ' //Tab//'(W)   '//Tab//'(Nm)  '
 			END IF
@@ -252,7 +252,7 @@ CONTAINS
 			
 			! Output debugging information if requested:
 			IF (CntrPar%LoggingLevel > 0) THEN
-				WRITE (UnDb,FmtDat)		LocalVar%Time, LocalVar%WE_Vw
+				WRITE (UnDb,FmtDat)		LocalVar%Time, LocalVar%FA_Acc, LocalVar%FA_AccHPF, LocalVar%FA_AccHPFI, LocalVar%PitCom
 			END IF
 			
 			IF (CntrPar%LoggingLevel > 1) THEN
@@ -366,17 +366,12 @@ CONTAINS
 		USE DRC_Types, ONLY : LocalVariables, ControlParameters
 		IMPLICIT NONE
     
-			! Inputs
+        ! Inputs
 		TYPE(ControlParameters), INTENT(IN) :: CntrPar
 		TYPE(LocalVariables), INTENT(INOUT) :: LocalVar	
 		
-		!LocalVar%WE_VwIdot = CntrPar%WE_Gamma/CntrPar%WE_Jtot*(LocalVar%GenTqMeas*CntrPar%WE_GearboxRatio - AeroDynTorque(LocalVar, CntrPar))
+        ! Body
         LocalVar%WE_VwIdot = CntrPar%WE_Gamma/CntrPar%WE_Jtot*(LocalVar%VS_LastGenTrq*CntrPar%WE_GearboxRatio - AeroDynTorque(LocalVar, CntrPar))
-        
-        !IF (MODULO(LocalVar%Time, 5.0) == 0.0) THEN
-		!	PRINT *, LocalVar%GenTqMeas*CntrPar%WE_GearboxRatio/CntrPar%WE_Jtot
-        !    PRINT *, IntertiaSpecAeroDynTorque(LocalVar, CntrPar)
-		!END IF
         
         LocalVar%WE_VwI = LocalVar%WE_VwI + LocalVar%WE_VwIdot*LocalVar%DT
         LocalVar%WE_Vw = LocalVar%WE_VwI + CntrPar%WE_Gamma*LocalVar%RotSpeed

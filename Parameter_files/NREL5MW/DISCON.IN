@@ -2,6 +2,9 @@
 1					! F_FilterType		- 1 = first-order low-pass filter, 2 = second-order low-pass filter
 1.570796326			! F_CornerFreq		- Corner frequency (-3dB point) in the low-pass filters, filtering generator speed and pitch control signals, [rad/s]
 0					! F_Damping			- Damping coefficient if F_FilterType = 2, unused otherwise
+0.1					! FA_HPF_CornerFreq	- Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]
+0.087266			! FA_IntSat			- Integrator saturation (maximum signal amplitude contrbution to pitch from FA damper), [rad]
+-1					! FA_KI				- Integral gain for the fore-aft tower damper controller, -1 = off / >0 = on [rad s/m]
 0					! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) 0 = off / 1 = (1P reductions) / 2 = (1P+2P reductions)
 0.087266			! IPC_IntSat		- Integrator saturation (maximum signal amplitude contrbution to pitch from IPC), [rad]
 1E-8 0				! IPC_KI			- Integral gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions [-]
