@@ -236,7 +236,7 @@ CONTAINS
 			
 			IF (CntrPar%LoggingLevel > 1) THEN
 				!OPEN(UnDb2, FILE=TRIM(RootName)//'.dbg2', STATUS='REPLACE')
-                OPEN(unit=UnDb, FILE='DEBUG2.dbg')
+                OPEN(unit=UnDb2, FILE='DEBUG2.dbg')
 				WRITE(UnDb2,'(/////)')
 				WRITE(UnDb2,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1,85)
 				WRITE(UnDb2,'(A,85("'//Tab//'(-)"))')  '(s)'
