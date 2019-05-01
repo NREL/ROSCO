@@ -55,5 +55,6 @@
 1.0					! Y_omegaLPFast		- Corner frequency fast low pass filter, 1.0 [Hz]
 0.016667			! Y_omegaLPSlow		- Corner frequency slow low pass filter, 1/60 [Hz]
 0.0034906			! Y_Rate			- Yaw rate [rad/s]
-0.0349066			! Z_PitchAmplitude	- Amplitude of sine pitch excitation
-0					! Z_PitchFrequency	- Frequency of sine pitch excitation
+0					! Z_EnableSine		- Enable/disable sine pitch excitation [-]
+0.0349066			! Z_PitchAmplitude	- Amplitude of sine pitch excitation [rad]
+0					! Z_PitchFrequency	- Frequency of sine pitch excitation [rad/s]

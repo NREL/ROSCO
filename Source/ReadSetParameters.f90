@@ -113,6 +113,11 @@ CONTAINS
 		READ(UnControllerParameters, *) CntrPar%Y_omegaLPSlow
 		READ(UnControllerParameters, *) CntrPar%Y_Rate
 		
+		!------------------- SINE PITCH EXCITATION -----------------------
+		READ(UnControllerParameters, *) CntrPar%Z_EnableSine
+		READ(UnControllerParameters, *) CntrPar%Z_PitchAmplitude
+		READ(UnControllerParameters, *) CntrPar%Z_PitchFrequency
+		
 		!------------------- CALCULATED CONSTANTS -----------------------
 		CntrPar%PC_RtTq99 = CntrPar%VS_RtTq*0.99
 		CntrPar%VS_MinOMTq = CntrPar%VS_Rgn2K*CntrPar%VS_MinOMSpd**2
