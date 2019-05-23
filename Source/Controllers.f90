@@ -269,9 +269,9 @@ CONTAINS
 			
 			! Optionally filter the resulting signal to induce a phase delay
 			IF (CntrPar%IPC_CornerFreqAct > 0.0) THEN
-				LocalVar%PitComIPCF(K) = LPFilter(LocalVar%PitComIPC(K), LocalVar%DT, CntrPar%IPC_CornerFreqAct, LocalVar%iStatus, .FALSE., objInst%instLPF)
+				PitComIPCF(K) = LPFilter(LocalVar%PitComIPC(K), LocalVar%DT, CntrPar%IPC_CornerFreqAct, LocalVar%iStatus, .FALSE., objInst%instLPF)
 			ELSE
-				LocalVar%PitComIPCF(K) = LocalVar%PitComIPC(K)
+				PitComIPCF(K) = LocalVar%PitComIPC(K)
 			END IF
 			
 			LocalVar%IPC_PitComF(K) = PitComIPCF(K)
