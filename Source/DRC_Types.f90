@@ -17,6 +17,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)								:: IPC_IntSat					! Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: IPC_KI						! Integral gain for the individual pitch controller, [-]. 8E-10
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: IPC_aziOffset				! Phase offset added to the azimuth angle for the individual pitch controller, [rad].
+	REAL(4)								:: IPC_CornerFreqAct			! Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal. Set 0 to disable. [rad/s]
 	
     INTEGER(4)							:: PC_GS_n						! Amount of gain-scheduling table entries
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_angles					! Gain-schedule table: pitch angles

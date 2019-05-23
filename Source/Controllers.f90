@@ -199,7 +199,7 @@ CONTAINS
 		USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
 		
 		! Local variables
-		REAL(4)					:: PitComIPC(3), PitComIPC_1P(3), PitComIPC_2P(3)
+		REAL(4)					:: PitComIPC(3), PitComIPCF(3), PitComIPC_1P(3), PitComIPC_2P(3)
 		INTEGER(4)				:: K								    ! Integer used to loop through turbine blades
 		REAL(4)					:: axisTilt_1P, axisYaw_1P, axisYawF_1P ! Direct axis and quadrature axis outputted by Coleman transform, 1P
 		REAL(4), SAVE			:: IntAxisTilt_1P, IntAxisYaw_1P		! Integral of the direct axis and quadrature axis, 1P
@@ -266,7 +266,15 @@ CONTAINS
 		! Sum nP IPC contrubutions and store to LocalVar data type
 		DO K = 1,LocalVar%NumBl
             PitComIPC(K) = PitComIPC_1P(K) + PitComIPC_2P(K)
-			LocalVar%IPC_PitComF(K) = PitComIPC(K)
+			
+			! Optionally filter the resulting signal to induce a phase delay
+			IF (CntrPar%IPC_CornerFreqAct > 0.0) THEN
+				LocalVar%PitComIPCF(K) = LPFilter(LocalVar%PitComIPC(K), LocalVar%DT, CntrPar%IPC_CornerFreqAct, LocalVar%iStatus, .FALSE., objInst%instLPF)
+			ELSE
+				LocalVar%PitComIPCF(K) = LocalVar%PitComIPC(K)
+			END IF
+			
+			LocalVar%IPC_PitComF(K) = PitComIPCF(K)
 		END DO
 	END SUBROUTINE IPC
     
