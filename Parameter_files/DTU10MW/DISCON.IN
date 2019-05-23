@@ -9,6 +9,7 @@
 0.087266			! IPC_IntSat		- Integrator saturation (maximum signal amplitude contrbution to pitch from IPC), [rad]
 8E-10 0				! IPC_KI			- Integral gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions [-]
 0.436332313	0		! IPC_aziOffset		- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. 
+2.5					! IPC_CornerFreqAct - Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal. Set 0 to disable. [rad/s]
 13					! PC_GS_n			- Amount of gain-scheduling table entries
 0 0.0349 0.0698 0.1047 0.1396 0.1745 0.2094 0.2443 0.2793 0.3142 0.3491 0.384 0.4189 ! PC_GS_angles		- Gain-schedule table: pitch angles
 -0.0105 -0.0104 -0.0102 -0.0099 -0.0095 -0.0091 -0.0086 -0.0081 -0.0076 -0.0071 -0.0066 -0.0061 -0.0056 ! PC_GS_KP			- Gain-schedule table: pitch controller kp gains
@@ -38,7 +39,7 @@
 -6134.68 			! VS_KI				- Integral gain for generator PI torque controller, used in the transitional 2.5 region, [1/rad Nm]
 89.166				! WE_BladeRadius	- Blade length [m]
 4					! WE_CP_n			- Amount of parameters in the Cp array
-14.571319658214513	42.809556250371465	2.456512501523107	0.003127994078720		! WE_CP - Parameters that define the parameterized CP(\lambda) function XXX Needs to be updated, these are values of the NREL5MW XXX
+14.571319658214513	42.809556250371465	2.456512501523107	0.003127994078720		! WE_CP - Parameters that define the parameterized CP(lambda) function XXX Needs to be updated, these are values of the NREL5MW XXX
 20					! WE_Gamma			- Adaption gain of the wind speed estimator algorithm [m/rad]
 50					! WE_GearboxRatio	- Gearbox ratio, >=1  [-]
 2.0E+08				! WE_Jtot			- Total drivetrain inertia, including blades, hub and casted generator inertia to LSS [kg m^2]
@@ -55,3 +56,6 @@
 1.0					! Y_omegaLPFast		- Corner frequency fast low pass filter, 1.0 [Hz]
 0.016667			! Y_omegaLPSlow		- Corner frequency slow low pass filter, 1/60 [Hz]
 0.0034906			! Y_Rate			- Yaw rate [rad/s]
+0					! Z_EnableSine		- Enable/disable sine pitch excitation [-]
+0.0349066			! Z_PitchAmplitude	- Amplitude of sine pitch excitation [rad]
+0					! Z_PitchFrequency	- Frequency of sine pitch excitation [rad/s]

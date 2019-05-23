@@ -65,12 +65,19 @@ CONTAINS
         ELSE
             LocalVar%FA_PitCom = 0.0 ! THIS IS AN ARRAY!!
         END IF
+		
+		! Sine excitation on pitch
+		IF (CntrPar%Z_EnableSine == 1) THEN
+			LocalVar%PC_SineExcitation = CntrPar%Z_PitchAmplitude*sin(CntrPar%Z_PitchFrequency*LocalVar%Time)
+		ELSE
+			LocalVar%PC_SineExcitation = 0
+		END IF
 	
 		! Combine and saturate all pitch commands:
 		DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
 			! PitCom(K) = ratelimit(LocalVar%PC_PitComT_IPC(K), LocalVar%BlPitch(K), PC_MinRat, PC_MaxRat, LocalVar%DT)	! Saturate the overall command of blade K using the pitch rate limit
 			LocalVar%PitCom(K) = saturate(LocalVar%PC_PitComT, CntrPar%PC_MinPit, CntrPar%PC_MaxPit)					! Saturate the overall command using the pitch angle limits
-			LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%IPC_PitComF(K) + LocalVar%FA_PitCom(K)
+			LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%IPC_PitComF(K) + LocalVar%FA_PitCom(K) + LocalVar%PC_SineExcitation
 		END DO
 		
 		! Command the pitch demanded from the last
@@ -192,7 +199,7 @@ CONTAINS
 		USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
 		
 		! Local variables
-		REAL(4)					:: PitComIPC(3), PitComIPC_1P(3), PitComIPC_2P(3)
+		REAL(4)					:: PitComIPC(3), PitComIPCF(3), PitComIPC_1P(3), PitComIPC_2P(3)
 		INTEGER(4)				:: K								    ! Integer used to loop through turbine blades
 		REAL(4)					:: axisTilt_1P, axisYaw_1P, axisYawF_1P ! Direct axis and quadrature axis outputted by Coleman transform, 1P
 		REAL(4), SAVE			:: IntAxisTilt_1P, IntAxisYaw_1P		! Integral of the direct axis and quadrature axis, 1P
@@ -259,7 +266,15 @@ CONTAINS
 		! Sum nP IPC contrubutions and store to LocalVar data type
 		DO K = 1,LocalVar%NumBl
             PitComIPC(K) = PitComIPC_1P(K) + PitComIPC_2P(K)
-			LocalVar%IPC_PitComF(K) = PitComIPC(K)
+			
+			! Optionally filter the resulting signal to induce a phase delay
+			IF (CntrPar%IPC_CornerFreqAct > 0.0) THEN
+				LocalVar%PitComIPCF(K) = LPFilter(LocalVar%PitComIPC(K), LocalVar%DT, CntrPar%IPC_CornerFreqAct, LocalVar%iStatus, .FALSE., objInst%instLPF)
+			ELSE
+				LocalVar%PitComIPCF(K) = LocalVar%PitComIPC(K)
+			END IF
+			
+			LocalVar%IPC_PitComF(K) = PitComIPCF(K)
 		END DO
 	END SUBROUTINE IPC
     

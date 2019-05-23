@@ -36,6 +36,8 @@ CONTAINS
         ALLOCATE(CntrPar%IPC_aziOffset(2))
 		READ(UnControllerParameters,*) CntrPar%IPC_aziOffset
 		
+		READ(UnControllerParameters, *) CntrPar%IPC_CornerFreqAct
+		
 		!------------------- PITCH CONSTANTS -----------------------
 		READ(UnControllerParameters, *) CntrPar%PC_GS_n
 		ALLOCATE(CntrPar%PC_GS_angles(CntrPar%PC_GS_n))
@@ -113,6 +115,11 @@ CONTAINS
 		READ(UnControllerParameters, *) CntrPar%Y_omegaLPSlow
 		READ(UnControllerParameters, *) CntrPar%Y_Rate
 		
+		!------------------- SINE PITCH EXCITATION -----------------------
+		READ(UnControllerParameters, *) CntrPar%Z_EnableSine
+		READ(UnControllerParameters, *) CntrPar%Z_PitchAmplitude
+		READ(UnControllerParameters, *) CntrPar%Z_PitchFrequency
+		
 		!------------------- CALCULATED CONSTANTS -----------------------
 		CntrPar%PC_RtTq99 = CntrPar%VS_RtTq*0.99
 		CntrPar%VS_MinOMTq = CntrPar%VS_Rgn2K*CntrPar%VS_MinOMSpd**2
@@ -177,9 +184,14 @@ CONTAINS
 			ErrMsg  = 'FilterType must be 1 or 2.'
 		ENDIF
         
-        IF (ABS(CntrPar%F_Damping) > 1.0) THEN
+        IF ((CntrPar%F_Damping > 1.0) .OR. (CntrPar%F_Damping < 0.0)) THEN
 			aviFAIL = -1
 			ErrMsg  = 'Filter damping coefficient must be between [0, 1]'
+		ENDIF
+		
+		IF (CntrPar%IPC_CornerFreqAct < 0.0) THEN
+			aviFAIL = -1
+			ErrMsg  = 'Corner frequency of IPC actuator model must be positive, or set to 0 to disable.'
 		ENDIF
         
 		IF (CntrPar%F_CornerFreq <= 0.0) THEN

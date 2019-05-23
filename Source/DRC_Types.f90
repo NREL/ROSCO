@@ -17,6 +17,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)								:: IPC_IntSat					! Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: IPC_KI						! Integral gain for the individual pitch controller, [-]. 8E-10
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: IPC_aziOffset				! Phase offset added to the azimuth angle for the individual pitch controller, [rad].
+	REAL(4)								:: IPC_CornerFreqAct			! Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal. Set 0 to disable. [rad/s]
 	
     INTEGER(4)							:: PC_GS_n						! Amount of gain-scheduling table entries
 	REAL(4), DIMENSION(:), ALLOCATABLE	:: PC_GS_angles					! Gain-schedule table: pitch angles
@@ -68,6 +69,10 @@ TYPE, PUBLIC :: ControlParameters
 	REAL(4)								:: Y_omegaLPSlow				! Corner frequency slow low pass filter, 1/60 [Hz]
 	REAL(4)								:: Y_Rate						! Yaw rate [rad/s]
 	
+	INTEGER(4)							:: Z_EnableSine					! Enable/disable sine pitch excitation
+	REAL(4)								:: Z_PitchAmplitude				! Amplitude of sine pitch excitation
+	REAL(4)								:: Z_PitchFrequency				! Frequency of sine pitch excitation
+	
 	REAL(4)								:: PC_RtTq99					! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
 	REAL(4)								:: VS_MaxOMTq					! Maximum torque at the end of the below-rated region 2, [Nm]
 	REAL(4)								:: VS_MinOMTq					! Minimum torque at the beginning of the below-rated region 2, [Nm]
@@ -109,6 +114,7 @@ TYPE, PUBLIC :: LocalVariables
 	REAL(4)								:: PC_PitComT					! Total command pitch based on the sum of the proportional and integral terms, [rad].
 	REAL(4)								:: PC_PitComT_IPC(3)			! Total command pitch based on the sum of the proportional and integral terms, including IPC term [rad].
 	REAL(4)								:: PC_PwrErr					! Power error with respect to rated power [W]
+	REAL(4)								:: PC_SineExcitation			! Sine contribution to pitch signal
 	REAL(4)								:: PC_SpdErr					! Current speed error (pitch control) [rad/s].
 	INTEGER(4)							:: PC_State						! State of the pitch control system
 	REAL(4)								:: PitCom(3)					! Commanded pitch of each blade the last time the controller was called, [rad].
