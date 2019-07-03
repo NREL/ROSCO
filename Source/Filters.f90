@@ -12,8 +12,6 @@ CONTAINS
     REAL FUNCTION LPFilter(InputSignal, DT, CornerFreq, iStatus, reset, inst)
     !...............................................................................................................................
 
-		IMPLICIT NONE
-
 			! Inputs
 
 		REAL(4), INTENT(IN)			:: InputSignal
@@ -99,8 +97,6 @@ CONTAINS
     REAL FUNCTION HPFilter( InputSignal, DT, CornerFreq, iStatus, reset, inst)
     !...............................................................................................................................
 
-        IMPLICIT NONE
-
 			! Inputs
 
         REAL(4), INTENT(IN)		:: InputSignal
@@ -140,8 +136,6 @@ CONTAINS
     ! Discrete time inverted Notch Filter with descending slopes, G = CornerFreq*s/(Damp*s^2+CornerFreq*s+Damp*CornerFreq^2)
     REAL FUNCTION NotchFilterSlopes(InputSignal, DT, CornerFreq, Damp, iStatus, reset, inst)
     !...............................................................................................................................
-
-        IMPLICIT NONE
 
 			! Inputs
 
@@ -188,8 +182,6 @@ CONTAINS
 	! Discrete time Notch Filter, G = (s^2 + 2*omega*betaNum*s + omega^2)/(s^2 + 2*omega*betaDen*s + omega^2)
 	REAL FUNCTION NotchFilter(InputSignal, DT, omega, betaNum, betaDen, iStatus, reset, inst)
 	!...............................................................................................................................
-
-		IMPLICIT NONE
 
 			! Inputs
 
@@ -240,4 +232,30 @@ CONTAINS
 
 	END FUNCTION NotchFilter
 	!-------------------------------------------------------------------------------------------------------------------------------
+	! Prefilter measured wind turbine signals to separate the filtering from the actual control actions
+	SUBROUTINE PreFilterMeasuredSignals(CntrPar, LocalVar, objInst)
+	!...............................................................................................................................
+
+		USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+		
+		TYPE(ControlParameters), INTENT(INOUT)	:: CntrPar
+		TYPE(LocalVariables), INTENT(INOUT)		:: LocalVar
+		TYPE(ObjectInstances), INTENT(INOUT)	:: objInst
+
+		! Filter the HSS (generator) speed measurement:
+		! Apply Low-Pass Filter (choice between first- and second-order low-pass filter)
+		IF (CntrPar%F_LPFType == 1) THEN
+            LocalVar%GenSpeedF = LPFilter(LocalVar%GenSpeed, LocalVar%DT, CntrPar%F_LPFCornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
+		ELSEIF (CntrPar%F_LPFType == 2) THEN   
+            LocalVar%GenSpeedF = SecLPFilter(LocalVar%GenSpeed, LocalVar%DT, CntrPar%F_LPFCornerFreq, CntrPar%F_LPFDamping, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Second-order low-pass filter on generator speed
+        END IF
+		
+		IF (CntrPar%F_NotchType == 1) THEN
+			LocalVar%GenSpeedF = NotchFilter(LocalVar%GenSpeedF, LocalVar%DT, CntrPar%F_NotchCornerFreq, CntrPar%F_NotchBetaNumDen(1), CntrPar%F_NotchBetaNumDen(2), LocalVar%iStatus, .FALSE., objInst%instNotch)
+		END IF
+		
+        ! Filtering the tower fore-aft acceleration signal 
+        LocalVar%FA_AccHPF = HPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%FA_HPFCornerFreq, LocalVar%iStatus, .FALSE., objInst%instHPF)
+        
+		END SUBROUTINE PreFilterMeasuredSignals
 	END MODULE Filters

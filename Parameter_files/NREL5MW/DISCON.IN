@@ -1,12 +1,15 @@
 0					! LoggingLevel		- 0 = write no debug files, 1 = write standard output .dbg-file, 2 = write standard output .dbg-file and complete avrSWAP-array .dbg2-file
-1					! F_FilterType		- 1 = first-order low-pass filter, 2 = second-order low-pass filter
-1.570796326			! F_CornerFreq		- Corner frequency (-3dB point) in the low-pass filters, filtering generator speed and pitch control signals, [rad/s]
-0					! F_Damping			- Damping coefficient if F_FilterType = 2, unused otherwise
-0.1					! FA_HPF_CornerFreq	- Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]
-0.087266			! FA_IntSat			- Integrator saturation (maximum signal amplitude contrbution to pitch from FA damper), [rad]
+1					! F_LPFType			- 1 = first-order low-pass filter, 2 = second-order low-pass filter
+0					! F_NotchType		- 0 = disable, 1 = enable: notch on the measured generator speed, 
+1.570796326			! F_LPFCornerFreq		- Corner frequency (-3dB point) in the low-pass filters, filtering generator speed and pitch control signals, [rad/s]
+0					! F_LPFDamping			- Damping coefficient if F_FilterType = 2, unused otherwise
+0					! F_NotchCornerFreq	- Natural frequency of the notch filter, [rad/s]
+0	0				! F_NotchBetaNumDen	- These two notch damping values (numerator and denominator) determines the width and depth of the notch
+0.1                 ! FA_HPF_LPFCornerFreq	- Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]                                                                                                              
+0.087266			! FA_IntSat			- Integrator saturation (maximum signal amplitude contribution to pitch from FA damper), [rad]
 -1					! FA_KI				- Integral gain for the fore-aft tower damper controller, -1 = off / >0 = on [rad s/m]
 0					! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) 0 = off / 1 = (1P reductions) / 2 = (1P+2P reductions)
-0.087266			! IPC_IntSat		- Integrator saturation (maximum signal amplitude contrbution to pitch from IPC), [rad]
+0.087266			! IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from IPC), [rad]
 1E-8 0				! IPC_KI			- Integral gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions [-]
 0.436332313	0		! IPC_aziOffset		- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. 
 2.5					! IPC_CornerFreqAct - Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal. Set 0 to disable. [rad/s]
@@ -46,13 +49,13 @@
 1.225				! WE_RhoAir			- Air density [kg m^-3]
 0					! Y_ControlMode		- Yaw control mode: (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC)
 1.745329252			! Y_ErrThresh		- Yaw error threshold. Turbine begins to yaw when it passes this. [rad^2 s]
-0.17453				! Y_IPC_IntSat		- Integrator saturation (maximum signal amplitude contrbution to pitch from yaw-by-IPC), [rad]
+0.17453				! Y_IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from yaw-by-IPC), [rad]
 1					! Y_IPC_n			- Number of controller gains (yaw-by-IPC)
 -0.064				! Y_IPC_KP			- Yaw-by-IPC proportional controller gain Kp
 -0.0008				! Y_IPC_KI			- Yaw-by-IPC integral controller gain Ki
 0.6283185			! Y_IPC_omegaLP		- Low-pass filter corner frequency for the Yaw-by-IPC controller to filtering the yaw alignment error, [rad/s].
 1.0					! Y_IPC_zetaLP		- Low-pass filter damping factor for the Yaw-by-IPC controller to filtering the yaw alignment error, [-].
-0.00000				! Y_MErrSet			- Yaw alignment error, setpoint [rad]
+0.00000				! Y_MErrSet			- Yaw alignment error, set point [rad]
 1.0					! Y_omegaLPFast		- Corner frequency fast low pass filter, 1.0 [Hz]
 0.016667			! Y_omegaLPSlow		- Corner frequency slow low pass filter, 1/60 [Hz]
 0.0034906			! Y_Rate			- Yaw rate [rad/s]
