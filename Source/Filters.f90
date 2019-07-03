@@ -217,13 +217,10 @@ CONTAINS
 		P4 = (2*omega**2 - 2*K**2)  / (K**2 + 2*omega*BetaDen*K + omega**2)
 		P5 = (K**2 - 2*omega*BetaDen*K + omega**2)/ (K**2 + 2*omega*BetaDen*K + omega**2)
 		
-			! Body
-
-			
+        ! Body
 		NotchFilter = P1*InputSignal + P2*InputSignalLast1(inst) + P3*InputSignalLast2(inst) - P4*OutputSignalLast1(inst) - P5*OutputSignalLast2(inst)
 
-			! Save signals for next time step
-
+		! Save signals for next time step
 		InputSignalLast2(inst)   = InputSignalLast1(inst)
 		InputSignalLast1(inst)   = InputSignal			!Save input signal for next time step
 		OutputSignalLast2(inst)  = OutputSignalLast1(inst)		!Save input signal for next time step

@@ -141,22 +141,6 @@ CONTAINS
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
         
-        ! Initialize testValue (debugging variable)
-        LocalVar%TestType = 0
-        
-        ! Initialize the SAVEd variables:
-        ! NOTE: LocalVar%VS_LastGenTrq, though SAVEd, is initialized in the torque controller
-        ! below for simplicity, not here.
-        ! DO K = 1,LocalVar%NumBl
-        LocalVar%PitCom = LocalVar%BlPitch ! This will ensure that the variable speed controller picks the correct control region and the pitch controller picks the correct gain on the first call
-        ! END DO
-        LocalVar%Y_AccErr = 0.0  ! This will ensure that the accumulated yaw error starts at zero
-        LocalVar%Y_YawEndT = -1.0 ! This will ensure that the initial yaw end time is lower than the actual time to prevent initial yawing
-        
-        ! Wind speed estimator initialization, we always assume an initial wind speed of 10 m/s
-        LocalVar%WE_Vw = 10
-        LocalVar%WE_VwI = LocalVar%WE_Vw - CntrPar%WE_Gamma*LocalVar%RotSpeed
-        
         ! Calculate yaw misalignment error
         LocalVar%Y_MErr = LocalVar%Y_M + CntrPar%Y_MErrSet ! Yaw-alignment error
         
@@ -399,6 +383,22 @@ CONTAINS
                      'https://github.com/TUDelft-DataDrivenControl              '
             
             CALL ReadControlParameterFileSub(CntrPar)
+            
+            ! Initialize testValue (debugging variable)
+            LocalVar%TestType = 0
+        
+            ! Initialize the SAVED variables:
+
+            ! DO K = 1,LocalVar%NumBl
+            LocalVar%PitCom = LocalVar%BlPitch ! This will ensure that the variable speed controller picks the correct control region and the pitch controller picks the correct gain on the first call
+            ! END DO
+            
+            LocalVar%Y_AccErr = 0.0  ! This will ensure that the accumulated yaw error starts at zero
+            LocalVar%Y_YawEndT = -1.0 ! This will ensure that the initial yaw end time is lower than the actual time to prevent initial yawing
+            
+            ! Wind speed estimator initialization, we always assume an initial wind speed of 10 m/s
+            LocalVar%WE_Vw = 10
+            LocalVar%WE_VwI = LocalVar%WE_Vw - CntrPar%WE_Gamma*LocalVar%RotSpeed
             
             ! Check validity of input parameters:
             CALL Assert(LocalVar, CntrPar, avrSWAP, aviFAIL, ErrMsg, size_avcMSG)
