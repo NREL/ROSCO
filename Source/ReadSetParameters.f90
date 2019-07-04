@@ -149,8 +149,8 @@ CONTAINS
         LocalVar%PC_PwrErr = CntrPar%VS_RtPwr - LocalVar%VS_GenPwr             ! Power error
         
         ! XXX
-		LocalVar%VS_SpdErrAr = CntrPar%VS_RefSpd - LocalVar%GenSpeedF		! Current speed error - Above-rated PI-control
-		LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd - LocalVar%GenSpeedF		! Current speed error - Below-rated PI-control
+        LocalVar%VS_SpdErrAr = CntrPar%VS_RefSpd - LocalVar%GenSpeedF       ! Current speed error - Above-rated PI-control
+        LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd - LocalVar%GenSpeedF     ! Current speed error - Below-rated PI-control
     END SUBROUTINE ComputeVariablesSetpoints
     
     SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar)
