@@ -15,51 +15,47 @@ CONTAINS
         
         OPEN(unit=UnControllerParameters, file='DISCON.IN', status='old', action='read')
         
-        !------------------- GENERAL CONSTANTS -------------------
+        !----------------------- HEADER ------------------------
+        READ(UnControllerParameters, *)
+        READ(UnControllerParameters, *)
+        READ(UnControllerParameters, *)
+
+        !----------------------- DEBUG --------------------------
+        READ(UnControllerParameters, *) 
         READ(UnControllerParameters, *) CntrPar%LoggingLevel
+        READ(UnControllerParameters, *) 
+
+        !----------------- CONTROLLER FLAGS ---------------------
+        READ(UnControllerParameters, *)
         READ(UnControllerParameters, *) CntrPar%F_LPFType
         READ(UnControllerParameters, *) CntrPar%F_NotchType
+        READ(UnControllerParameters, *) CntrPar%IPC_ControlMode
+        READ(UnControllerParameters, *) CntrPar%VS_ControlMode
+        READ(UnControllerParameters, *) CntrPar%Y_ControlMode        
+        READ(UnControllerParameters, *)
+
+        !----------------- FILTER CONSTANTS ---------------------
+        READ(UnControllerParameters, *)        
         READ(UnControllerParameters, *) CntrPar%F_LPFCornerFreq
         READ(UnControllerParameters, *) CntrPar%F_LPFDamping
         READ(UnControllerParameters, *) CntrPar%F_NotchCornerFreq
-        
         ALLOCATE(CntrPar%F_NotchBetaNumDen(2))
         READ(UnControllerParameters,*) CntrPar%F_NotchBetaNumDen
-        
-        !------------ FORE-AFT TOWER DAMPER CONSTANTS ------------
-        READ(UnControllerParameters, *) CntrPar%FA_HPFCornerFreq
-        READ(UnControllerParameters, *) CntrPar%FA_IntSat
-        READ(UnControllerParameters, *) CntrPar%FA_KI
-        
-        !------------------- IPC CONSTANTS -----------------------
-        READ(UnControllerParameters, *) CntrPar%IPC_ControlMode
-        READ(UnControllerParameters, *) CntrPar%IPC_IntSat
-        
-        ALLOCATE(CntrPar%IPC_KI(2))
-        READ(UnControllerParameters,*) CntrPar%IPC_KI
-        
-        ALLOCATE(CntrPar%IPC_aziOffset(2))
-        READ(UnControllerParameters,*) CntrPar%IPC_aziOffset
-        
-        READ(UnControllerParameters, *) CntrPar%IPC_CornerFreqAct
-        
-        !------------------- PITCH CONSTANTS -----------------------
+        READ(UnControllerParameters, *)
+
+        !----------- BLADE PITCH CONTROLLER CONSTANTS -----------
+        READ(UnControllerParameters, *)
         READ(UnControllerParameters, *) CntrPar%PC_GS_n
         ALLOCATE(CntrPar%PC_GS_angles(CntrPar%PC_GS_n))
         READ(UnControllerParameters,*) CntrPar%PC_GS_angles
-        
         ALLOCATE(CntrPar%PC_GS_KP(CntrPar%PC_GS_n))
         READ(UnControllerParameters,*) CntrPar%PC_GS_KP
-        
         ALLOCATE(CntrPar%PC_GS_KI(CntrPar%PC_GS_n))
         READ(UnControllerParameters,*) CntrPar%PC_GS_KI
-        
         ALLOCATE(CntrPar%PC_GS_KD(CntrPar%PC_GS_n))
         READ(UnControllerParameters,*) CntrPar%PC_GS_KD
-        
         ALLOCATE(CntrPar%PC_GS_TF(CntrPar%PC_GS_n))
         READ(UnControllerParameters,*) CntrPar%PC_GS_TF
-        
         READ(UnControllerParameters, *) CntrPar%PC_MaxPit
         READ(UnControllerParameters, *) CntrPar%PC_MinPit
         READ(UnControllerParameters, *) CntrPar%PC_MaxRat
@@ -67,9 +63,24 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%PC_RefSpd
         READ(UnControllerParameters, *) CntrPar%PC_FinePit
         READ(UnControllerParameters, *) CntrPar%PC_Switch
-        
-        !------------------- TORQUE CONSTANTS -----------------------
-        READ(UnControllerParameters, *) CntrPar%VS_ControlMode
+        !-- sine pitch excitiation --
+        READ(UnControllerParameters, *) CntrPar%Z_EnableSine
+        READ(UnControllerParameters, *) CntrPar%Z_PitchAmplitude
+        READ(UnControllerParameters, *) CntrPar%Z_PitchFrequency
+        READ(UnControllerParameters, *)
+
+        !------------------- IPC CONSTANTS -----------------------
+        READ(UnControllerParameters, *) 
+        READ(UnControllerParameters, *) CntrPar%IPC_IntSat
+        ALLOCATE(CntrPar%IPC_KI(2))
+        READ(UnControllerParameters,*) CntrPar%IPC_KI
+        ALLOCATE(CntrPar%IPC_aziOffset(2))
+        READ(UnControllerParameters,*) CntrPar%IPC_aziOffset
+        READ(UnControllerParameters, *) CntrPar%IPC_CornerFreqAct
+        READ(UnControllerParameters, *)
+
+        !------------ VS TORQUE CONTROL CONSTANTS ----------------
+        READ(UnControllerParameters, *)
         READ(UnControllerParameters, *) CntrPar%VS_GenEff
         READ(UnControllerParameters, *) CntrPar%VS_ArSatTq
         READ(UnControllerParameters, *) CntrPar%VS_MaxRat
@@ -81,49 +92,48 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%VS_RtTq
         READ(UnControllerParameters, *) CntrPar%VS_RefSpd
         READ(UnControllerParameters, *) CntrPar%VS_n
-        
         ALLOCATE(CntrPar%VS_KP(CntrPar%VS_n))
         READ(UnControllerParameters,*) CntrPar%VS_KP
-        
         ALLOCATE(CntrPar%VS_KI(CntrPar%VS_n))
         READ(UnControllerParameters,*) CntrPar%VS_KI
-        
-        !-------------- WIND SPEED ESTIMATOR CONTANTS ------------------
+        READ(UnControllerParameters, *)
+
+        !------------ WIND SPEED ESTIMATOR CONTANTS --------------
+        READ(UnControllerParameters, *)
         READ(UnControllerParameters, *) CntrPar%WE_BladeRadius
         READ(UnControllerParameters, *) CntrPar%WE_CP_n
-        
         ALLOCATE(CntrPar%WE_CP(CntrPar%WE_CP_n))
         READ(UnControllerParameters, *) CntrPar%WE_CP
-        
         READ(UnControllerParameters, *) CntrPar%WE_Gamma
         READ(UnControllerParameters, *) CntrPar%WE_GearboxRatio
         READ(UnControllerParameters, *) CntrPar%WE_Jtot
         READ(UnControllerParameters, *) CntrPar%WE_RhoAir
-        
-        !------------------- YAW CONSTANTS -----------------------
-        READ(UnControllerParameters, *) CntrPar%Y_ControlMode
+        READ(UnControllerParameters, *)
+
+        !-------------- YAW CONTROLLER CONSTANTS -----------------
+        READ(UnControllerParameters, *)
         READ(UnControllerParameters, *) CntrPar%Y_ErrThresh
         READ(UnControllerParameters, *) CntrPar%Y_IPC_IntSat
         READ(UnControllerParameters, *) CntrPar%Y_IPC_n
-        
         ALLOCATE(CntrPar%Y_IPC_KP(CntrPar%Y_IPC_n))
         READ(UnControllerParameters,*) CntrPar%Y_IPC_KP
-        
         ALLOCATE(CntrPar%Y_IPC_KI(CntrPar%Y_IPC_n))
         READ(UnControllerParameters,*) CntrPar%Y_IPC_KI
-        
         READ(UnControllerParameters, *) CntrPar%Y_IPC_omegaLP
         READ(UnControllerParameters, *) CntrPar%Y_IPC_zetaLP
-        
         READ(UnControllerParameters, *) CntrPar%Y_MErrSet
         READ(UnControllerParameters, *) CntrPar%Y_omegaLPFast
         READ(UnControllerParameters, *) CntrPar%Y_omegaLPSlow
         READ(UnControllerParameters, *) CntrPar%Y_Rate
+        READ(UnControllerParameters, *)
+
+        !------------ FORE-AFT TOWER DAMPER CONSTANTS ------------
+        READ(UnControllerParameters, *)      
+        READ(UnControllerParameters, *) CntrPar%FA_KI  
+        READ(UnControllerParameters, *) CntrPar%FA_HPFCornerFreq
+        READ(UnControllerParameters, *) CntrPar%FA_IntSat
         
-        !------------------- SINE PITCH EXCITATION -----------------------
-        READ(UnControllerParameters, *) CntrPar%Z_EnableSine
-        READ(UnControllerParameters, *) CntrPar%Z_PitchAmplitude
-        READ(UnControllerParameters, *) CntrPar%Z_PitchFrequency
+        ! END OF INPUT FILE    
         
         !------------------- CALCULATED CONSTANTS -----------------------
         CntrPar%PC_RtTq99 = CntrPar%VS_RtTq*0.99
