@@ -3,7 +3,7 @@ mkdir ../DISCON
 cd ../Source 
 
 # Set options to 64 bits
-# sed -i '' 13s/.*/#BITS = 32/' makefile
+sed -i '' '13s/.*/#BITS = 32/' makefile
 sed -i '' '14s/.*/BITS = 64/' makefile
 
 # Build code
