@@ -15,7 +15,7 @@
 1.570796326			! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters
 0					! F_LPFDamping		- Damping coefficient if F_FilterType = 2, unused otherwise
 0					! F_NotchCornerFreq	- Natural frequency of the notch filter, [rad/s]
-0	0				! F_NotchBetaNumDen	- These two notch damping values (numerator and denominator) determines the width and depth of the notch
+0	0				! F_NotchBetaNumDen	- These two notch damping values (numerator and denominator, resp) determines the width and depth of the notch [-]
 
 !------- BLADE PITCH CONTROL ----------------------------------------------
 14					! PC_GS_n			- Amount of gain-scheduling table entries
