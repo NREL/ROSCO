@@ -1,0 +1,21 @@
+
+# python compiled files
+__pycache__/
+.cache
+*.ipynb
+*.pyc
+*.egg-info
+dist
+build
+_build
+
+# macOS files
+.DS_Store
+
+# ide settings and files
+.idea
+.vscode
+
+# Other
+.pytest_cache
+examples/cp_ct_cq_lut.p
