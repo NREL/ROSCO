@@ -9,9 +9,12 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
+import os
 import numpy as np
 from ccblade import CCAirfoil, CCBlade
 from AeroelasticSE.FAST_reader import InputReader_OpenFAST
+from scipy import interpolate
+import pickle
 
 # Some useful constants
 degRad = np.pi/180.
@@ -23,13 +26,57 @@ class Turbine():
     and to run the 'tiny' simulation
     """
 
-    def __init__(self):
+    def __init__(self, drivetrain_inertia):
         """
         Maybe just initialize the internal variables
         This also lists what will need to be defined
         """
-        # Should names match fast or can be more simple
-        self.gb_ratio = None # Initialize all to none?
+
+        # Need unfortunately to hack this for now, hope to fix later
+        self.J = drivetrain_inertia # Total rotor inertial (kg-m^2) 
+
+        # Turbine Parameters
+        self.rho = None                      # Air density (kg/m^3)
+        self.RotorRad = None                    # Rotor radius (m)
+        self.Ng = None # Gearbox ratio (-)
+        self.RRspeed = None               # Rated rotor speed (rad/s)
+        self.Vmin = 4.                  # Cut-in wind speed (m/s) (JUST ASSUME FOR NOW)
+        self.Vrat = None                # Rated wind speed (m/s)
+        self.Vmax = 25.                  # Cut-out wind speed (m/s), -- Does not need to be exact (JUST ASSUME FOR NOW)
+
+        # Init the cc-blade rotor
+        self.cc_rotor = None
+
+        # Cp Surface
+        # self.CpSurf = None                 # Matrix of Cp surface values
+        # self.CpBeta = None                 # Vector of blade pitch angles corresponding to Cp surface (rad)
+        # self.CpTSR = None                   # Vector of tip-speed-ratio values corresponding to Cp surface (rad)
+        
+        # Interp function versions
+        self.cp_interp = None
+        self.ct_interp = None
+        self.cq_interp = None
+
+    # Allow print out of class
+    def __str__(self): 
+
+        print('---------------------')
+        print('Turbine Info')
+        print('J: %.1f' % self.J)
+        print('rho: %.1f' % self.rho)
+        print('RotorRad: %.1f' % self.RotorRad)
+        print('---------------------')
+        return ' '
+
+    # Save function
+    def save(self,filename):
+        tuple_to_save = (self.J,self.rho,self.RotorRad, self.Ng,self.RRspeed,self.Vmin,self.Vrat,self.Vmax,self.cc_rotor,self.cp_interp,self.ct_interp,self.cq_interp   )
+        pickle.dump( tuple_to_save, open( filename, "wb" ) )
+
+    # Load function
+    def load(self, filename):
+        self.J,self.rho,self.RotorRad, self.Ng,self.RRspeed,self.Vmin,self.Vrat,self.Vmax,self.cc_rotor,self.cp_interp,self.ct_interp,self.cq_interp = pickle.load(filename,'rb')
+
 
     def load_from_fast(self, FAST_InputFile,FAST_directory, FAST_ver='OpenFAST',dev_branch=True):
         """
@@ -41,87 +88,86 @@ class Turbine():
         fast.FAST_directory = FAST_directory
         fast.execute()
 
-        # Now grab any values the controller might need
-        self.gb_ratio = fast.fst_vt['ElastoDyn']['GBRatio']
 
-
-        # Define the CCBLADE rotor
-        TipRad = fast.fst_vt['Fst7']['TipRad']
-        Rhub =  fast.fst_vt['Fst7']['HubRad']
+        # Grab general turbine parameters
+        TipRad = fast.fst_vt['ElastoDyn']['TipRad']
+        Rhub =  fast.fst_vt['ElastoDyn']['HubRad']
         hubHt = 90. #HARD CODED UNTIL FIND A SOLUTION TO READ OUTPUT
         shearExp = 0.2  #HARD CODED UNTIL FIND A SOLUTION TO READ OUTPUT
         rho = fast.fst_vt['AeroDyn15']['AirDens']
         mu = fast.fst_vt['AeroDyn15']['KinVisc']
 
+        # Store values needed by controller
+        self.Ng = fast.fst_vt['ElastoDyn']['GBRatio']
+        self.rho = rho
+        self.RotorRad = TipRad
 
-        NumBlNds = fast.fst_vt['AeroDynBlade']['NumBlNds']
+        # Calculate rated rotor speed for now by scaling from NREL 5MW
+        self.RRspeed = (63. / TipRad) * 12.1 * rpmRadSec
 
-        # print(fast.fst_vt['AeroDynBlade']['BlSpn'])
-        # print(fast.fst_vt['AeroDynBlade']['BlTwist'])
-        # print(fast.fst_vt['AeroDynBlade']['BlChord'])
-        # print(fast.fst_vt['AeroDynBlade']['BlAFID'])
-
+        # Create CC-Blade Rotor
         r = np.array(fast.fst_vt['AeroDynBlade']['BlSpn'])
         theta = np.array(fast.fst_vt['AeroDynBlade']['BlTwist'])
         chord = np.array(fast.fst_vt['AeroDynBlade']['BlChord'])
-        af_idx = np.array(fast.fst_vt['AeroDynBlade']['BlAFID']) - 1 #Reset to 0 index
+        af_idx = np.array(fast.fst_vt['AeroDynBlade']['BlAFID']).astype(int) - 1 #Reset to 0 index
+        AFNames = fast.fst_vt['AeroDyn15']['AFNames']
+
+        # NEED A PRETTY SERIOUS HACK TO POINT AT OLD AIRFOIL TABLES
+        ad14path = '/Users/pfleming/Desktop/git_tools/FLORIS/examples/5MW_AFFiles'
+        AFNames_14 = []
+        for airfoil in AFNames:
+            a_name = os.path.basename(airfoil)
+            AFNames_14.append(os.path.join(ad14path,a_name))
+
+        # Load in the airfoils
+        afinit = CCAirfoil.initFromAerodynFile  # just for shorthand
+        airfoil_types = []
+        for airfoil in AFNames_14:
+            airfoil_types.append(afinit(airfoil))
+
+        af = [0]*len(r)
+        for i in range(len(r)):
+            af[i] = airfoil_types[af_idx[i]]
+
+        tilt = fast.fst_vt['ElastoDyn']['ShftTilt'] 
+        precone = fast.fst_vt['ElastoDyn']['PreCone1']
+        yaw = 0.0
+
+        nSector = 8  # azimuthal discretization
+
+        B = 3 #fixed at 3-bladed for now
+
+        # Now save the CC-Blade rotor
+        self.cc_rotor = CCBlade(r, chord, theta, af, Rhub, TipRad, B, rho, mu,
+                        precone, tilt, yaw, shearExp, hubHt, nSector)
 
 
-        # Try to pull in the airfoil data
-        print(fast.fst_vt['AeroDyn15']['NumAFfiles'])
+        # Generate the look-up tables
+        # Mesh the grid and flatten the arrays
+        fixed_rpm = 10 # RPM
 
+        TSR_initial = np.arange(0.5,15,0.5)
+        pitch_initial = np.arange(0,25,0.5)
+        ws_array = (fixed_rpm * (np.pi / 30.) * TipRad)  / TSR_initial
+        ws_mesh, pitch_mesh = np.meshgrid(ws_array, pitch_initial)
+        ws_flat = ws_mesh.flatten()
+        pitch_flat = pitch_mesh.flatten()
+        omega_flat = np.ones_like(pitch_flat) * fixed_rpm
+        tsr_flat = (fixed_rpm * (np.pi / 30.) * TipRad)  / ws_flat
 
-        # # Get the along the blade arrays and check them
-        # r = fast.fst_vt['AeroDynBlade']['RNodes']
-        # print(r)
-        # print(np.array([2.8667, 5.6000, 8.3333, 11.7500, 15.8500, 19.9500, 24.0500,
-        #             28.1500, 32.2500, 36.3500, 40.4500, 44.5500, 48.6500, 52.7500,
-        #             56.1667, 58.9000, 61.6333]))
-        # print(fast.fst_vt['AeroDyn15']['NumAFfiles'])
+        # Get values from cc-blade
+        P, T, Q, M, CP, CT, CQ, CM = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
 
+        # Reshape Cp, Ct and Cq
+        CP = np.reshape(CP, (len(pitch_initial), len(TSR_initial)))
+        CT = np.reshape(CT, (len(pitch_initial), len(TSR_initial)))
+        CQ = np.reshape(CQ, (len(pitch_initial), len(TSR_initial)))
 
-# Function returns a scaled NREL 5MW rotor object from CC-Blade
-# path_to_af='5MW_AFFiles'):
+        # # Form the interpolant functions which can look up any arbitrary location
+        self.cp_interp = interpolate.interp2d(TSR_initial, pitch_initial, CP, kind='cubic')
+        self.ct_interp = interpolate.interp2d(TSR_initial, pitch_initial, CT, kind='cubic')
+        self.cq_interp = interpolate.interp2d(TSR_initial, pitch_initial, CQ, kind='cubic')
 
-    # chord = (Rtip/base_R)*np.array([3.542, 3.854, 4.167, 4.557, 4.652, 4.458, 4.249, 4.007, 3.748,
-    #                     3.502, 3.256, 3.010, 2.764, 2.518, 2.313, 2.086, 1.419])
-    # theta = np.array([13.308, 13.308, 13.308, 13.308, 11.480, 10.162, 9.011, 7.795,
-    #                     6.544, 5.361, 4.188, 3.125, 2.319, 1.526, 0.863, 0.370, 0.106])
-    # B = 3  # number of blades
-
-    # # In this initial version, hard-code to be NREL 5MW
-    # afinit = CCAirfoil.initFromAerodynFile  # just for shorthand
-    # basepath = path_to_af
-
-    # # load all airfoils
-    # airfoil_types = [0]*8
-    # airfoil_types[0] = afinit(path.join(basepath, 'Cylinder1.dat'))
-    # airfoil_types[1] = afinit(path.join(basepath, 'Cylinder2.dat'))
-    # airfoil_types[2] = afinit(path.join(basepath, 'DU40_A17.dat'))
-    # airfoil_types[3] = afinit(path.join(basepath, 'DU35_A17.dat'))
-    # airfoil_types[4] = afinit(path.join(basepath, 'DU30_A17.dat'))
-    # airfoil_types[5] = afinit(path.join(basepath, 'DU25_A17.dat'))
-    # airfoil_types[6] = afinit(path.join(basepath, 'DU21_A17.dat'))
-    # airfoil_types[7] = afinit(path.join(basepath, 'NACA64_A17.dat'))
-
-    # # place at appropriate radial stations
-    # af_idx = [0, 0, 1, 2, 3, 3, 4, 5, 5, 6, 6, 7, 7, 7, 7, 7, 7]
-
-    # af = [0]*len(r)
-    # for i in range(len(r)):
-    #     af[i] = airfoil_types[af_idx[i]]
-
-
-    # tilt = -5.0
-    # precone = 2.5
-    # yaw = 0.0
-
-    # nSector = 8  # azimuthal discretization
-
-    # rotor = CCBlade(r, chord, theta, af, Rhub, Rtip, B, rho, mu,
-    #                 precone, tilt, yaw, shearExp, hubHt, nSector)
-
-    # return rotor
 
 
     # # NOT CERTAIN OF THESE ALTERNATIVES YET
