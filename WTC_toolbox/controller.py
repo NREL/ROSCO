@@ -29,6 +29,21 @@ class Controller():
         """
         Load the parameter files directly from a FAST input deck
         """
+        # Pitch Controller Parameters
+        self.PC_zeta = param_file.PC_zeta            # Pitch controller damping ratio (-)
+        self.PC_om = param_file.PC_om                # Pitch controller natural frequency (rad/s)
+        
+        # Torque Controller Parameters
+        self.VS_zeta = param_file.VS_zeta            # Torque controller damping ratio (-)
+        self.VS_om = param_file.VS_om                # Torque controller natural frequency (rad/s)
+        
+        # Setpoint Smoother Parameters
+        self.Kss_PC = param_file.Kss_PC              # Pitch controller reference gain bias 
+        self.Kss_VS = param_file.Kss_VS              # Torque controller reference gain bias
+        self.Vmin = turbine.VS_Vmin                  # Cut-in wind speed (m/s)
+        self.Vrat = turbine.PC_Vrated                # Rated wind speed (m/s)
+        self.Vmax = turbine.PC_Vmax                  # Cut-out wind speed (m/s), -- Does not need to be exact
+
 
     def write_param_file(self, param_file):
         """
@@ -47,10 +62,7 @@ class Controller():
         Ar = pi*R^2                             # Rotor area (m^2)
         Ng = turbine.GBRatio                    # Gearbox ratio (-)
         RRspeed = turbine.RRSpeed               # Rated rotor speed (rad/s)
-        Vmin = turbine.VS_Vmin                  # Cut-in wind speed (m/s)
-        Vrat = turbine.PC_Vrated                # Rated wind speed (m/s)
-        Vmax = turbine.PC_Vmax                  # Cut-out wind speed (m/s), -- Does not need to be exact
-
+        
         # Cp Surface
         CpSurf = turbine.CpSurf                 # Matrix of Cp surface values
         CpBeta = turbine.CpBeta                 # Vector of blade pitch angles corresponding to Cp surface (rad)
