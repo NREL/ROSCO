@@ -50,3 +50,8 @@ class Controller():
         Vmin = turbine.VS_Vmin                  # Cut-in wind speed (m/s)
         Vrat = turbine.PC_Vrated                # Rated wind speed (m/s)
         Vmax = turbine.PC_Vmax                  # Cut-out wind speed (m/s), -- Does not need to be exact
+
+        # Cp Surface
+        CpSurf = turbine.CpSurf                 # Matrix of Cp surface values
+        CpBeta = turbine.CpBeta                 # Vector of blade pitch angles corresponding to Cp surface (rad)
+        CpTSR = turbine.CpTSR                   # Vector of tip-speed-ratio values corresponding to Cp surface (rad)
