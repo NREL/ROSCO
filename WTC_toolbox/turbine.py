@@ -43,23 +43,41 @@ class Turbine():
 
         # Now grab any values the controller might need
         self.gb_ratio = fast.fst_vt['ElastoDyn']['GBRatio']
-        print(self.gb_ratio)
+
 
         # Define the CCBLADE rotor
         TipRad = fast.fst_vt['Fst7']['TipRad']
         Rhub =  fast.fst_vt['Fst7']['HubRad']
         hubHt = 90. #HARD CODED UNTIL FIND A SOLUTION TO READ OUTPUT
         shearExp = 0.2  #HARD CODED UNTIL FIND A SOLUTION TO READ OUTPUT
-        rho = 1.225 
-        mu = 1.81206e-5
+        rho = fast.fst_vt['AeroDyn15']['AirDens']
+        mu = fast.fst_vt['AeroDyn15']['KinVisc']
 
-        # Get the along the blade arrays and check them
-        r = fast.fst_vt['AeroDynBlade']['RNodes']
-        print(r)
-        print(np.array([2.8667, 5.6000, 8.3333, 11.7500, 15.8500, 19.9500, 24.0500,
-                    28.1500, 32.2500, 36.3500, 40.4500, 44.5500, 48.6500, 52.7500,
-                    56.1667, 58.9000, 61.6333]))
+
+        NumBlNds = fast.fst_vt['AeroDynBlade']['NumBlNds']
+
+        # print(fast.fst_vt['AeroDynBlade']['BlSpn'])
+        # print(fast.fst_vt['AeroDynBlade']['BlTwist'])
+        # print(fast.fst_vt['AeroDynBlade']['BlChord'])
+        # print(fast.fst_vt['AeroDynBlade']['BlAFID'])
+
+        r = np.array(fast.fst_vt['AeroDynBlade']['BlSpn'])
+        theta = np.array(fast.fst_vt['AeroDynBlade']['BlTwist'])
+        chord = np.array(fast.fst_vt['AeroDynBlade']['BlChord'])
+        af_idx = np.array(fast.fst_vt['AeroDynBlade']['BlAFID']) - 1 #Reset to 0 index
+
+
+        # Try to pull in the airfoil data
         print(fast.fst_vt['AeroDyn15']['NumAFfiles'])
+
+
+        # # Get the along the blade arrays and check them
+        # r = fast.fst_vt['AeroDynBlade']['RNodes']
+        # print(r)
+        # print(np.array([2.8667, 5.6000, 8.3333, 11.7500, 15.8500, 19.9500, 24.0500,
+        #             28.1500, 32.2500, 36.3500, 40.4500, 44.5500, 48.6500, 52.7500,
+        #             56.1667, 58.9000, 61.6333]))
+        # print(fast.fst_vt['AeroDyn15']['NumAFfiles'])
 
 
 # Function returns a scaled NREL 5MW rotor object from CC-Blade
