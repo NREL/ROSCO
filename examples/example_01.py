@@ -21,14 +21,12 @@ FAST_directory = '/Users/pfleming/Desktop/git_tools/floating/OpenFAST/reg_tests/
 # FAST_InputFile = '5MW_ITIBarge_DLL_WTurb_WavesIrr.fst'
 # FAST_directory = 'example_fast_input/5MW_ITIBarge_DLL_WTurb_WavesIrr'
 
-
-
 # Initialiize a turbine class
-drivetrain_inertia = 40469564.444
-turbine = wtc_turbine.Turbine(drivetrain_inertia=drivetrain_inertia)
+turbine = wtc_turbine.Turbine()
 
 # Load the turbine model from a FAST input folder
-turbine.load_from_fast(FAST_InputFile,FAST_directory,dev_branch=True)
+drivetrain_inertia = 40469564.444
+turbine.load_from_fast(FAST_InputFile,FAST_directory,drivetrain_inertia=drivetrain_inertia,dev_branch=True)
 
 # Display a little about the turbine
 print(turbine)
