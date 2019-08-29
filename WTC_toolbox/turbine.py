@@ -26,16 +26,15 @@ class Turbine():
     and to run the 'tiny' simulation
     """
 
-    def __init__(self, drivetrain_inertia):
+    def __init__(self):
         """
         Maybe just initialize the internal variables
         This also lists what will need to be defined
         """
 
-        # Need unfortunately to hack this for now, hope to fix later
-        self.J = drivetrain_inertia # Total rotor inertial (kg-m^2) 
 
         # Turbine Parameters
+        self.J = None                   # Total rotor inertial (kg-m^2) 
         self.rho = None                      # Air density (kg/m^3)
         self.RotorRad = None                    # Rotor radius (m)
         self.Ng = None # Gearbox ratio (-)
@@ -75,13 +74,17 @@ class Turbine():
 
     # Load function
     def load(self, filename):
-        self.J,self.rho,self.RotorRad, self.Ng,self.RRspeed,self.Vmin,self.Vrat,self.Vmax,self.cc_rotor,self.cp_interp,self.ct_interp,self.cq_interp = pickle.load(filename,'rb')
+        self.J,self.rho,self.RotorRad, self.Ng,self.RRspeed,self.Vmin,self.Vrat,self.Vmax,self.cc_rotor,self.cp_interp,self.ct_interp,self.cq_interp = pickle.load(open(filename,'rb'))
 
 
-    def load_from_fast(self, FAST_InputFile,FAST_directory, FAST_ver='OpenFAST',dev_branch=True):
+    def load_from_fast(self, FAST_InputFile,FAST_directory,drivetrain_inertia, FAST_ver='OpenFAST',dev_branch=True):
         """
         Load the parameter files directly from a FAST input deck
         """
+
+        # Need unfortunately to hack this for now, hope to fix later
+        self.J = drivetrain_inertia 
+
         print('Loading FAST model: %s ' % FAST_InputFile)
         fast = InputReader_OpenFAST(FAST_ver=FAST_ver,dev_branch=dev_branch)
         fast.FAST_InputFile = FAST_InputFile
