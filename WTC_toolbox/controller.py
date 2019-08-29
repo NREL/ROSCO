@@ -39,3 +39,14 @@ class Controller():
         """
         Given a turbine model, tune the controller parameters
         """
+
+        # Turbine Parameters
+        J = turbine.J                           # Total rotor inertial (kg-m^2) 
+        rho = turbine.rho                       # Air density (kg/m^3)
+        R = turbine.RotorRad                    # Rotor radius (m)
+        Ar = pi*R^2                             # Rotor area (m^2)
+        Ng = turbine.GBRatio                    # Gearbox ratio (-)
+        RRspeed = turbine.RRSpeed               # Rated rotor speed (rad/s)
+        Vmin = turbine.VS_Vmin                  # Cut-in wind speed (m/s)
+        Vrat = turbine.PC_Vrated                # Rated wind speed (m/s)
+        Vmax = turbine.PC_Vmax                  # Cut-out wind speed (m/s), -- Does not need to be exact
