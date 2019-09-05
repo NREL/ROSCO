@@ -100,7 +100,7 @@ class Turbine():
         rho = fast.fst_vt['AeroDyn15']['AirDens']
         mu = fast.fst_vt['AeroDyn15']['KinVisc']
 
-        # Store values needed by controller
+        # Store values needed by controller 
         self.Ng = fast.fst_vt['ElastoDyn']['GBRatio']
         self.rho = rho
         self.RotorRad = TipRad
@@ -108,6 +108,9 @@ class Turbine():
         # Calculate rated rotor speed for now by scaling from NREL 5MW
         self.RRspeed = (63. / TipRad) * 12.1 * rpmRadSec
 
+        self.load_from_ccblade(self,fast)
+
+    def load_from_ccblade(self,fast):
         # Create CC-Blade Rotor
         r = np.array(fast.fst_vt['AeroDynBlade']['BlSpn'])
         theta = np.array(fast.fst_vt['AeroDynBlade']['BlTwist'])
