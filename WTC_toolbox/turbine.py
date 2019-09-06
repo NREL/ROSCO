@@ -186,10 +186,11 @@ class Turbine():
         CT = np.reshape(CT, (len(pitch_initial), len(TSR_initial)))
         CQ = np.reshape(CQ, (len(pitch_initial), len(TSR_initial)))
 
+        pitch_initial_rad = pitch_initial * pi/180
         # # Form the interpolant functions which can look up any arbitrary location
-        self.cp_interp = interpolate.interp2d(pitch_initial, TSR_initial, np.transpose(CP), kind='cubic')
-        self.ct_interp = interpolate.interp2d(pitch_initial, TSR_initial, np.transpose(CT), kind='cubic')
-        self.cq_interp = interpolate.interp2d(pitch_initial, TSR_initial, np.transpose(CQ), kind='cubic')
+        self.cp_interp = interpolate.interp2d(pitch_initial_rad, TSR_initial, np.transpose(CP), kind='cubic')
+        self.ct_interp = interpolate.interp2d(pitch_initial_rad, TSR_initial, np.transpose(CT), kind='cubic')
+        self.cq_interp = interpolate.interp2d(pitch_initial_rad, TSR_initial, np.transpose(CQ), kind='cubic')
 
     def load_from_txt(self,fast,txt_filename):
         print('Loading rotor performace data from text file:', txt_filename)
