@@ -205,7 +205,7 @@ class Turbine():
                 if line.__contains__('Pitch angle'):
                     # Beta.append(pfile.readline())
                     pitch_initial = np.array([float(x) for x in pfile.__next__().strip().split()])
-                
+                    pitch_initial = pitch_initial * (np.pi/180) # degrees to rad
                 # Read Tip Speed Ratios (rad)
                 if line.__contains__('TSR'):
                     TSR_initial = np.array([float(x) for x in pfile.__next__().strip().split()])
@@ -233,8 +233,8 @@ class Turbine():
         
         # # Form the interpolant functions which can look up any arbitrary location
         self.cp_interp = interpolate.interp2d(pitch_initial, TSR_initial, CP, kind='cubic',bounds_error=False)
-        self.ct_interp = interpolate.interp2d(pitch_initial, TSR_initial, CT, kind='cubic')
-        self.cq_interp = interpolate.interp2d(pitch_initial, TSR_initial, CQ, kind='cubic')
+        self.ct_interp = interpolate.interp2d(pitch_initial, TSR_initial, CT, kind='cubic',bounds_error=False))
+        self.cq_interp = interpolate.interp2d(pitch_initial, TSR_initial, CQ, kind='cubic',bounds_error=False))
 
 
     # # NOT CERTAIN OF THESE ALTERNATIVES YET
