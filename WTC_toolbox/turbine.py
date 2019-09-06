@@ -187,9 +187,10 @@ class Turbine():
         CQ = np.reshape(CQ, (len(pitch_initial), len(TSR_initial)))
 
         # # Form the interpolant functions which can look up any arbitrary location
-        self.cp_interp = interpolate.interp2d(TSR_initial, pitch_initial, CP, kind='cubic')
-        self.ct_interp = interpolate.interp2d(TSR_initial, pitch_initial, CT, kind='cubic')
-        self.cq_interp = interpolate.interp2d(TSR_initial, pitch_initial, CQ, kind='cubic')
+        self.cp_interp = interpolate.interp2d(pitch_initial, TSR_initial, np.transpose(CP), kind='cubic')
+        self.ct_interp = interpolate.interp2d(pitch_initial, TSR_initial, np.transpose(CT), kind='cubic')
+        self.cq_interp = interpolate.interp2d(pitch_initial, TSR_initial, np.transpose(CQ), kind='cubic')
+
 
 
 
