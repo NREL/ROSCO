@@ -77,9 +77,18 @@ class Turbine():
         self.J,self.rho,self.RotorRad, self.Ng,self.RRspeed,self.Vmin,self.Vrat,self.Vmax,self.cc_rotor,self.cp_interp,self.ct_interp,self.cq_interp = pickle.load(open(filename,'rb'))
 
 
-    def load_from_fast(self, FAST_InputFile,FAST_directory,drivetrain_inertia, FAST_ver='OpenFAST',dev_branch=True):
+    def load_from_fast(self, FAST_InputFile,FAST_directory,drivetrain_inertia, FAST_ver='OpenFAST',dev_branch=True,rot_source=None, txt_filename=None):
         """
         Load the parameter files directly from a FAST input deck
+        Inputs:
+            Fast_InputFile - Primary fast model input file (*.fst)
+            FAST_directory - Directory for primary fast model input file
+            drivetrain_intertia - drivetrain intertia (kg-m^2)                      # nja - this might be able to be automated 
+            dev_branch - dev_branch input to InputReader_OpenFAST, probably True
+            rot_source - desired source for rotor to get Cp, Ct, Cq tables. Default is to run cc-blade. 
+                            options: cc-blade - run cc-blade
+                                     txt - from *.txt file
+            txt_filename - filename for *.txt, only used if rot_source='txt'
         """
 
         # Need unfortunately to hack this for now, hope to fix later
