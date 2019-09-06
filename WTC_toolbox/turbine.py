@@ -77,9 +77,18 @@ class Turbine():
         self.J,self.rho,self.RotorRad, self.Ng,self.RRspeed,self.Vmin,self.Vrat,self.Vmax,self.cc_rotor,self.cp_interp,self.ct_interp,self.cq_interp = pickle.load(open(filename,'rb'))
 
 
-    def load_from_fast(self, FAST_InputFile,FAST_directory,drivetrain_inertia, FAST_ver='OpenFAST',dev_branch=True):
+    def load_from_fast(self, FAST_InputFile,FAST_directory,drivetrain_inertia, FAST_ver='OpenFAST',dev_branch=True,rot_source=None, txt_filename=None):
         """
         Load the parameter files directly from a FAST input deck
+        Inputs:
+            Fast_InputFile - Primary fast model input file (*.fst)
+            FAST_directory - Directory for primary fast model input file
+            drivetrain_intertia - drivetrain intertia (kg-m^2)                      # nja - this might be able to be automated 
+            dev_branch - dev_branch input to InputReader_OpenFAST, probably True
+            rot_source - desired source for rotor to get Cp, Ct, Cq tables. Default is to run cc-blade. 
+                            options: cc-blade - run cc-blade
+                                     txt - from *.txt file
+            txt_filename - filename for *.txt, only used if rot_source='txt'
         """
 
         # Need unfortunately to hack this for now, hope to fix later
@@ -100,7 +109,7 @@ class Turbine():
         rho = fast.fst_vt['AeroDyn15']['AirDens']
         mu = fast.fst_vt['AeroDyn15']['KinVisc']
 
-        # Store values needed by controller
+        # Store values needed by controller 
         self.Ng = fast.fst_vt['ElastoDyn']['GBRatio']
         self.rho = rho
         self.RotorRad = TipRad
@@ -108,6 +117,17 @@ class Turbine():
         # Calculate rated rotor speed for now by scaling from NREL 5MW
         self.RRspeed = (63. / TipRad) * 12.1 * rpmRadSec
 
+        # Load Cp, Ct, Cq,  surfaces
+        if rot_source == 'txt':
+            self.load_from_txt(fast,txt_filename)
+        elif rot_source == 'cc-blade':
+            self.load_from_ccblade(fast)
+        else:   # default load from cc-blade
+            print('No desired rotor performance data source specified, running cc-blade by default.')
+            self.load_from_ccblade(fast)
+
+    def load_from_ccblade(self,fast):
+        print('Loading rotor performace data from cc-blade:')
         # Create CC-Blade Rotor
         r = np.array(fast.fst_vt['AeroDynBlade']['BlSpn'])
         theta = np.array(fast.fst_vt['AeroDynBlade']['BlTwist'])
@@ -166,11 +186,56 @@ class Turbine():
         CT = np.reshape(CT, (len(pitch_initial), len(TSR_initial)))
         CQ = np.reshape(CQ, (len(pitch_initial), len(TSR_initial)))
 
+        pitch_initial_rad = pitch_initial * pi/180
         # # Form the interpolant functions which can look up any arbitrary location
-        self.cp_interp = interpolate.interp2d(TSR_initial, pitch_initial, CP, kind='cubic')
-        self.ct_interp = interpolate.interp2d(TSR_initial, pitch_initial, CT, kind='cubic')
-        self.cq_interp = interpolate.interp2d(TSR_initial, pitch_initial, CQ, kind='cubic')
+        self.cp_interp = interpolate.interp2d(pitch_initial_rad, TSR_initial, np.transpose(CP), kind='cubic')
+        self.ct_interp = interpolate.interp2d(pitch_initial_rad, TSR_initial, np.transpose(CT), kind='cubic')
+        self.cq_interp = interpolate.interp2d(pitch_initial_rad, TSR_initial, np.transpose(CQ), kind='cubic')
 
+    def load_from_txt(self,fast,txt_filename):
+        print('Loading rotor performace data from text file:', txt_filename)
+        
+        # Assign variables
+        CP = []
+        CT = []
+        CQ = []
+
+        with open(txt_filename) as pfile:
+            for line in pfile:
+                # Read Blade Pitch Angles (degrees)
+                if line.__contains__('Pitch angle'):
+                    # Beta.append(pfile.readline())
+                    pitch_initial = np.array([float(x) for x in pfile.__next__().strip().split()])
+                    pitch_initial = pitch_initial * (np.pi/180) # degrees to rad
+                # Read Tip Speed Ratios (rad)
+                if line.__contains__('TSR'):
+                    TSR_initial = np.array([float(x) for x in pfile.__next__().strip().split()])
+                
+                # Read Power Coefficients
+                if line.__contains__('Power'):
+                    pfile.__next__()
+                    for tsr_i in range(len(TSR_initial)):
+                        CP = np.append(CP,np.array([float(x) for x in pfile.__next__().strip().split()]))
+                    CP = np.reshape(CP, (len(TSR_initial),len(pitch_initial)))
+                
+                # Read Thrust Coefficients
+                if line.__contains__('Thrust'):
+                    pfile.__next__()
+                    for tsr_i in range(len(TSR_initial)):
+                        CT = np.append(CT,np.array([float(x) for x in pfile.__next__().strip().split()]))
+                    CT = np.reshape(CT, (len(TSR_initial),len(pitch_initial)))
+
+                # Read Troque Coefficients
+                if line.__contains__('Torque'):
+                    pfile.__next__()
+                    for tsr_i in range(len(TSR_initial)):
+                        CQ = np.append(CQ,np.array([float(x) for x in pfile.__next__().strip().split()]))
+                    CQ = np.reshape(CQ, (len(TSR_initial),len(pitch_initial)))
+        
+        # # Form the interpolant functions which can look up any arbitrary location
+        self.cp_interp = interpolate.interp2d(pitch_initial, TSR_initial, CP, kind='cubic',bounds_error=False)
+        self.ct_interp = interpolate.interp2d(pitch_initial, TSR_initial, CT, kind='cubic',bounds_error=False))
+        self.cq_interp = interpolate.interp2d(pitch_initial, TSR_initial, CQ, kind='cubic',bounds_error=False))
 
 
     # # NOT CERTAIN OF THESE ALTERNATIVES YET
