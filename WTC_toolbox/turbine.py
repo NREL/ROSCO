@@ -117,9 +117,17 @@ class Turbine():
         # Calculate rated rotor speed for now by scaling from NREL 5MW
         self.RRspeed = (63. / TipRad) * 12.1 * rpmRadSec
 
-        self.load_from_ccblade(self,fast)
+        # Load Cp, Ct, Cq,  surfaces
+        if rot_source == 'txt':
+            self.load_from_txt(fast,txt_filename)
+        elif rot_source == 'cc-blade':
+            self.load_from_ccblade(fast)
+        else:   # default load from cc-blade
+            print('No desired rotor performance data source specified, running cc-blade by default.')
+            self.load_from_ccblade(fast)
 
     def load_from_ccblade(self,fast):
+        print('Loading rotor performace data from cc-blade:')
         # Create CC-Blade Rotor
         r = np.array(fast.fst_vt['AeroDynBlade']['BlSpn'])
         theta = np.array(fast.fst_vt['AeroDynBlade']['BlTwist'])
