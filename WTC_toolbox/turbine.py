@@ -40,9 +40,9 @@ class Turbine():
         self.RotorRad = None                    # Rotor radius (m)
         self.Ng = None # Gearbox ratio (-)
         self.RRspeed = None               # Rated rotor speed (rad/s)
-        self.Vmin = 4.                  # Cut-in wind speed (m/s) (JUST ASSUME FOR NOW)
-        self.Vrat = None                # Rated wind speed (m/s)
-        self.Vmax = 25.                  # Cut-out wind speed (m/s), -- Does not need to be exact (JUST ASSUME FOR NOW)
+        self.v_min = 4.                  # Cut-in wind speed (m/s) (JUST ASSUME FOR NOW)
+        self.v_rated = None                # Rated wind speed (m/s)
+        self.v_max = 25.                  # Cut-out wind speed (m/s), -- Does not need to be exact (JUST ASSUME FOR NOW)
 
         # Init the cc-blade rotor
         self.cc_rotor = None
@@ -70,26 +70,36 @@ class Turbine():
 
     # Save function
     def save(self,filename):
-        tuple_to_save = (self.J,self.rho,self.RotorRad, self.Ng,self.RRspeed,self.Vmin,self.Vrat,self.Vmax,self.cc_rotor,self.cp_interp,self.ct_interp,self.cq_interp   )
+        tuple_to_save = (self.J,self.rho,self.RotorRad, self.Ng,self.RRspeed,self.v_min,self.v_rated,self.v_max,self.cc_rotor,self.cp_interp,self.ct_interp,self.cq_interp   )
         pickle.dump( tuple_to_save, open( filename, "wb" ) )
 
     # Load function
     def load(self, filename):
-        self.J,self.rho,self.RotorRad, self.Ng,self.RRspeed,self.Vmin,self.Vrat,self.Vmax,self.cc_rotor,self.cp_interp,self.ct_interp,self.cq_interp = pickle.load(open(filename,'rb'))
+        self.J,self.rho,self.RotorRad, self.Ng,self.RRspeed,self.v_min,self.v_rated,self.v_max,self.cc_rotor,self.cp_interp,self.ct_interp,self.cq_interp = pickle.load(open(filename,'rb'))
 
 
     def load_from_fast(self, FAST_InputFile,FAST_directory,drivetrain_inertia, FAST_ver='OpenFAST',dev_branch=True,rot_source=None, txt_filename=None):
         """
         Load the parameter files directly from a FAST input deck
-        Inputs:
-            Fast_InputFile - Primary fast model input file (*.fst)
-            FAST_directory - Directory for primary fast model input file
-            drivetrain_intertia - drivetrain intertia (kg-m^2)                      # nja - this might be able to be automated 
-            dev_branch - dev_branch input to InputReader_OpenFAST, probably True
-            rot_source - desired source for rotor to get Cp, Ct, Cq tables. Default is to run cc-blade. 
+
+        Parameters:
+        -----------
+            Fast_InputFile: str
+                            Primary fast model input file (*.fst)
+            FAST_directory: str
+                            Directory for primary fast model input file
+            drivetrain_intertia: int
+                                drivetrain intertia (kg-m^2)                # nja - this might be able to be automated 
+            FAST_ver: string, optional
+
+            dev_branch: bool
+                        dev_branch input to InputReader_OpenFAST, probably True
+            rot_source: str
+                        desired source for rotor to get Cp, Ct, Cq tables. Default is to run cc-blade. 
                             options: cc-blade - run cc-blade
                                      txt - from *.txt file
-            txt_filename - filename for *.txt, only used if rot_source='txt'
+            txt_filename: str
+                          filename for *.txt, only used if rot_source='txt'
         """
 
         # Need unfortunately to hack this for now, hope to fix later
