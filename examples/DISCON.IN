@@ -1,0 +1,86 @@
+! Turbine: NREL 5MW fixed bottom wind turbine
+! NJA - Might want to make a more formal header for this
+
+!------- DEBUG ------------------------------------------------------------
+0					! LoggingLevel		- 0 = write no debug files, 1 = write standard output .dbg-file, 2 = write standard output .dbg-file and complete avrSWAP-array .dbg2-file
+
+!------- CONTROLLER FLAGS -------------------------------------------------
+1					! F_LPFType			- 1 = first-order low-pass filter, 2 = second-order low-pass filter, filtering generator speed and pitch control signals, [rad/s]
+0					! F_NotchType		- 0 = disable, 1 = enable: notch on the measured generator speed 
+0					! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) 0 = off / 1 = (1P reductions) / 2 = (1P+2P reductions)
+1					! VS_ControlMode	- Generator torque control mode in above rated conditions, 0 = constant torque / 1 = constant power
+0					! Y_ControlMode		- Yaw control mode: (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC)
+
+!------- FILTERS ----------------------------------------------------------
+1.570796326			! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters
+0					! F_LPFDamping		- Damping coefficient if F_FilterType = 2, unused otherwise
+0					! F_NotchCornerFreq	- Natural frequency of the notch filter, [rad/s]
+0	0				! F_NotchBetaNumDen	- These two notch damping values (numerator and denominator, resp) determines the width and depth of the notch [-]
+
+!------- BLADE PITCH CONTROL ----------------------------------------------
+14					! PC_GS_n			- Amount of gain-scheduling table entries
+0.00000	0.03491	0.06981	0.10472	0.13963	0.17453	0.20944	0.24435	0.27925	0.31416	0.34907	0.38397	0.41888	0.45379 ! PC_GS_angles	- Gain-schedule table: pitch angles
+-0.018827	-0.014292	-0.011517	-0.009645	-0.008296	-0.007278	-0.006483	-0.005844	-0.005320	-0.004882	-0.004511	-0.004192	-0.003916	-0.003673 ! PC_GS_KP		- Gain-schedule table: pitch controller kp gains
+-0.008069	-0.006125	-0.004936	-0.004133	-0.003555	-0.003119	-0.002778	-0.002505	-0.002280	-0.002092	-0.001933	-0.001797	-0.001678	-0.001574 ! PC_GS_KI		- Gain-schedule table: pitch controller ki gains
+0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0 ! PC_GS_KD			- Gain-schedule table: pitch controller kd gains
+0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0 ! PC_GS_TF			- Gain-schedule table: pitch controller tf gains (derivative filter)
+1.5707				! PC_MaxPit			- Maximum physical pitch limit, [rad].
+-0.087266			! PC_MinPit			- Minimum physical pitch limit, [rad].
+0.13962				! PC_MaxRat			- Maximum pitch rate (in absolute value) in pitch controller, [rad/s].
+-0.13962			! PC_MinRat			- Minimum pitch rate (in absolute value) in pitch controller, [rad/s].
+122.90957			! PC_RefSpd			- Desired (reference) HSS speed for pitch controller, [rad/s].
+0.0					! PC_FinePit		- Record 5: Below-rated pitch angle set-point, [rad]
+0.003490658			! PC_Switch			- Angle above lowest minimum pitch angle for switch [rad]
+0					! Z_EnableSine		- Enable/disable sine pitch excitation, used to validate for dynamic induction control, will be removed later [-]
+0.0349066			! Z_PitchAmplitude	- Amplitude of sine pitch excitation [rad]
+0					! Z_PitchFrequency	- Frequency of sine pitch excitation [rad/s]		
+
+!------- INDIVIDUAL PITCH CONTROL -----------------------------------------
+0.087266			! IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from IPC), [rad]
+1E-8 0				! IPC_KI			- Integral gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions [-]
+0.436332313	0		! IPC_aziOffset		- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. 
+2.5					! IPC_CornerFreqAct - Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal. Set 0 to disable. [rad/s]
+
+!------- VS TORQUE CONTROL ------------------------------------------------
+0.944				! VS_GenEff			- Generator efficiency mechanical power -> electrical power, this should match the efficiency defined in the generator properties! [-]
+43093.55			! VS_ArSatTq		- Above rated generator torque PI control saturation, [Nm]
+150000.0			! VS_MaxRat			- Maximum torque rate (in absolute value) in torque controller, [Nm/s].
+48000.00			! VS_MaxTq			- Maximum generator torque in Region 3 (HSS side), [Nm].
+0.0					! VS_MinTq			- Minimum generator (HSS side), [Nm].
+91.2109				! VS_MinOMSpd		- Optimal mode minimum speed, cut-in speed towards optimal mode gain path [rad/s]
+2.33228				! VS_Rgn2K			- Generator torque constant in Region 2 (HSS side), [N-m/(rad/s)^2]
+5.0E+06				! VS_RtPwr			- Wind turbine rated power [W]
+43093.55			! VS_RtTq			- Rated torque, [Nm].
+120.113				! VS_RefSpd			- Rated generator speed [rad/s]
+1					! VS_n				- Number of generator PI torque controller gains
+-4200				! VS_KP				- Proportional gain for generator PI torque controller, used in the transitional 2.5 region, [1/(rad/s) Nm]
+-2100	 			! VS_KI				- Integral gain for generator PI torque controller, used in the transitional 2.5 region, [1/rad Nm]
+
+!------- WIND SPEED ESTIMATOR ---------------------------------------------
+63.0				! WE_BladeRadius	- Blade length [m]
+4					! WE_CP_n			- Amount of parameters in the Cp array
+14.571319658214513	42.809556250371465	2.456512501523107	0.003127994078720	! WE_CP - Parameters that define the parameterized CP(lambda) function
+20					! WE_Gamma			- Adaption gain of the wind speed estimator algorithm [m/rad]
+97					! WE_GearboxRatio	- Gearbox ratio, >=1  [-]
+4.0469564E+07		! WE_Jtot			- Total drivetrain inertia, including blades, hub and casted generator inertia to LSS [kg m^2]
+1.225				! WE_RhoAir			- Air density [kg m^-3]
+
+!------- YAW CONTROL ------------------------------------------------------
+1.745329252			! Y_ErrThresh		- Yaw error threshold. Turbine begins to yaw when it passes this. [rad^2 s]
+0.17453				! Y_IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from yaw-by-IPC), [rad]
+1					! Y_IPC_n			- Number of controller gains (yaw-by-IPC)
+-0.064				! Y_IPC_KP			- Yaw-by-IPC proportional controller gain Kp
+-0.0008				! Y_IPC_KI			- Yaw-by-IPC integral controller gain Ki
+0.6283185			! Y_IPC_omegaLP		- Low-pass filter corner frequency for the Yaw-by-IPC controller to filtering the yaw alignment error, [rad/s].
+1.0					! Y_IPC_zetaLP		- Low-pass filter damping factor for the Yaw-by-IPC controller to filtering the yaw alignment error, [-].
+0.00000				! Y_MErrSet			- Yaw alignment error, set point [rad]
+1.0					! Y_omegaLPFast		- Corner frequency fast low pass filter, 1.0 [Hz]
+0.016667			! Y_omegaLPSlow		- Corner frequency slow low pass filter, 1/60 [Hz]
+0.0034906			! Y_Rate			- Yaw rate [rad/s]
+
+!------- TOWER FORE-AFT DAMPING -------------------------------------------
+-1					! FA_KI				- Integral gain for the fore-aft tower damper controller, -1 = off / >0 = on [rad s/m] - !NJA - Make this a flag
+0.1                 ! FA_HPF_CornerFreq	- Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]                                                                                                              
+0.087266			! FA_IntSat			- Integrator saturation (maximum signal amplitude contribution to pitch from FA damper), [rad]
+
+																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																												  
