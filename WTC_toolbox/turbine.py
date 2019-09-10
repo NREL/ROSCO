@@ -13,12 +13,12 @@ import os
 import numpy as np
 from ccblade import CCAirfoil, CCBlade
 from AeroelasticSE.FAST_reader import InputReader_OpenFAST
-from scipy import interpolate
+from scipy import interpolate, gradient
 import pickle
 
 # Some useful constants
-degRad = np.pi/180.
-rpmRadSec = 2.0*(np.pi)/60.0
+deg2rad = np.deg2rad(1)
+rpm2RadSec = 2.0*(np.pi)/60.0
 
 class Turbine():
     """
@@ -115,9 +115,9 @@ class Turbine():
         self.RotorRad = TipRad
 
         # Calculate rated rotor speed for now by scaling from NREL 5MW
-        self.RRspeed = (63. / TipRad) * 12.1 * rpmRadSec
+        self.RRspeed = (63. / TipRad) * 12.1 * rpm2RadSec
 
-        # Load Cp, Ct, Cq,  surfaces
+        # Load Cp, Ct, Cq tables
         if rot_source == 'txt':
             self.load_from_txt(fast,txt_filename)
         elif rot_source == 'cc-blade':
@@ -125,6 +125,11 @@ class Turbine():
         else:   # default load from cc-blade
             print('No desired rotor performance data source specified, running cc-blade by default.')
             self.load_from_ccblade(fast)
+
+        # Parse rotor performance data
+        self.Cp = RotorPerformance(self.Cp_table,self.pitch_initial_rad,self.TSR_initial)
+        self.Ct = RotorPerformance(self.Ct_table,self.pitch_initial_rad,self.TSR_initial)
+        self.Cq = RotorPerformance(self.Cq_table,self.pitch_initial_rad,self.TSR_initial)
 
     def load_from_ccblade(self,fast):
         print('Loading rotor performace data from cc-blade:')
@@ -171,6 +176,7 @@ class Turbine():
 
         TSR_initial = np.arange(0.5,15,0.5)
         pitch_initial = np.arange(0,25,0.5)
+        pitch_initial_rad = pitch_initial * deg2rad
         ws_array = (fixed_rpm * (np.pi / 30.) * TipRad)  / TSR_initial
         ws_mesh, pitch_mesh = np.meshgrid(ws_array, pitch_initial)
         ws_flat = ws_mesh.flatten()
@@ -182,60 +188,99 @@ class Turbine():
         P, T, Q, M, CP, CT, CQ, CM = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
 
         # Reshape Cp, Ct and Cq
-        CP = np.reshape(CP, (len(pitch_initial), len(TSR_initial)))
-        CT = np.reshape(CT, (len(pitch_initial), len(TSR_initial)))
-        CQ = np.reshape(CQ, (len(pitch_initial), len(TSR_initial)))
+        CP = np.transpose(np.reshape(CP, (len(pitch_initial), len(TSR_initial))))
+        CT = np.transpose(np.reshape(CT, (len(pitch_initial), len(TSR_initial))))
+        CQ = np.transpose(np.reshape(CQ, (len(pitch_initial), len(TSR_initial))))
 
-        pitch_initial_rad = pitch_initial * pi/180
-        # # Form the interpolant functions which can look up any arbitrary location
-        self.cp_interp = interpolate.interp2d(pitch_initial_rad, TSR_initial, np.transpose(CP), kind='cubic')
-        self.ct_interp = interpolate.interp2d(pitch_initial_rad, TSR_initial, np.transpose(CT), kind='cubic')
-        self.cq_interp = interpolate.interp2d(pitch_initial_rad, TSR_initial, np.transpose(CQ), kind='cubic')
+        # Store necessary metrics for analysis
+        self.pitch_initial_rad = pitch_initial_rad
+        self.TSR_initial = TSR_initial
+        self.CP_table = CP
+        self.CT_table = CT 
+        self.CQ_table = CQ
 
     def load_from_txt(self,fast,txt_filename):
+        '''
+        Load rotor performance data from a *.txt file. 
+
+        Need to include notes on necessary file format:
+        '''
         print('Loading rotor performace data from text file:', txt_filename)
-        
-        # Assign variables
-        CP = []
-        CT = []
-        CQ = []
 
         with open(txt_filename) as pfile:
             for line in pfile:
                 # Read Blade Pitch Angles (degrees)
-                if line.__contains__('Pitch angle'):
-                    # Beta.append(pfile.readline())
-                    pitch_initial = np.array([float(x) for x in pfile.__next__().strip().split()])
-                    pitch_initial_rad = pitch_initial * (np.pi/180) # degrees to rad
+                if 'Pitch angle' in line:
+                    pitch_initial = np.array([float(x) for x in pfile.readline().strip().split()])
+                    pitch_initial_rad = pitch_initial * deg2rad             # degrees to rad            ! should this be conditional?
+
                 # Read Tip Speed Ratios (rad)
-                if line.__contains__('TSR'):
-                    TSR_initial = np.array([float(x) for x in pfile.__next__().strip().split()])
+                if 'TSR' in line:
+                    TSR_initial = np.array([float(x) for x in pfile.readline().strip().split()])
                 
                 # Read Power Coefficients
-                if line.__contains__('Power'):
-                    pfile.__next__()
+                if 'Power' in line:
+                    pfile.readline()
+                    Cp = np.empty((len(TSR_initial),len(pitch_initial)))
                     for tsr_i in range(len(TSR_initial)):
-                        CP = np.append(CP,np.array([float(x) for x in pfile.__next__().strip().split()]))
-                    CP = np.reshape(CP, (len(TSR_initial),len(pitch_initial)))
+                        Cp[tsr_i] = np.array([float(x) for x in pfile.readline().strip().split()])
                 
                 # Read Thrust Coefficients
-                if line.__contains__('Thrust'):
-                    pfile.__next__()
+                if 'Thrust' in line:
+                    pfile.readline()
+                    Ct = np.empty((len(TSR_initial),len(pitch_initial)))
                     for tsr_i in range(len(TSR_initial)):
-                        CT = np.append(CT,np.array([float(x) for x in pfile.__next__().strip().split()]))
-                    CT = np.reshape(CT, (len(TSR_initial),len(pitch_initial)))
+                        Ct[tsr_i] = np.array([float(x) for x in pfile.readline().strip().split()])
 
                 # Read Troque Coefficients
-                if line.__contains__('Torque'):
-                    pfile.__next__()
+                if 'Torque' in line:
+                    pfile.readline()
+                    Cq = np.empty((len(TSR_initial),len(pitch_initial)))
                     for tsr_i in range(len(TSR_initial)):
-                        CQ = np.append(CQ,np.array([float(x) for x in pfile.__next__().strip().split()]))
-                    CQ = np.reshape(CQ, (len(TSR_initial),len(pitch_initial)))
-        
-        # # Form the interpolant functions which can look up any arbitrary location
-        self.cp_interp = interpolate.interp2d(pitch_initial_rad, TSR_initial, CP, kind='cubic')
-        self.ct_interp = interpolate.interp2d(pitch_initial_rad, TSR_initial, CT, kind='cubic')
-        self.cq_interp = interpolate.interp2d(pitch_initial_rad, TSR_initial, CQ, kind='cubic')
+                        Cq[tsr_i] = np.array([float(x) for x in pfile.readline().strip().split()])
+
+            # Store necessary metrics for analysis
+            self.pitch_initial_rad = pitch_initial_rad
+            self.TSR_initial = TSR_initial
+            self.Cp_table = Cp
+            self.Ct_table = Ct 
+            self.Cq_table = Cq
+
+
+class RotorPerformance():
+    def __init__(self,performance_table, pitch_initial_rad, TSR_initial):
+        '''
+        Used to find details from rotor performance tables generated by CC-blade or similer BEM-solvers. 
+        '''
+
+        # Store performance data tables
+        self.performance_table = performance_table          # Table containing rotor performance data, i.e. Cp, Ct, Cq
+        self.pitch_initial_rad = pitch_initial_rad          # Pitch angles corresponding to x-axis of performance_table (rad)
+        self.TSR_initial = TSR_initial                      # Tip-Speed-Ratios corresponding to y-axis of performance_table (rad)
+
+        # Calculate Gradients
+        self.gradient_TSR, self.gradient_pitch = gradient(performance_table)             # gradient_TSR along y-axis, gradient_pitch along x-axis (rows, columns)
+
+        # Optimal below rated TSR and blade pitch
+        self.max = np.amax(performance_table)
+        self.max_ind = np.where(performance_table == np.amax(performance_table))
+        self.TSR_opt = TSR_initial[self.max_ind[0]]
+        self.pitch_opt = pitch_initial_rad[self.max_ind[1]]
+
+    def interp_surface(self,pitch,TSR):
+        # Form the interpolant functions which can look up any arbitrary location on rotor performance surface
+        interp_fun = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.performance_table, kind='cubic')
+        return interp_fun(pitch,TSR)
+
+    def interp_gradient(self,pitch,TSR):
+        # Form the interpolant functions to find gradient at any arbitrary location on rotor performance surface
+        dCPdBeta_interp = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.gradient_pitch, kind='cubic')
+        dCPdTSR_interp = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.gradient_TSR, kind='cubic')
+
+        # grad.shape output as (2,) numpy array, equivalent to (pitch-direction,TSR-direction)
+        grad = np.array([dCPdBeta_interp(pitch,TSR), dCPdTSR_interp(pitch,TSR)])
+        return np.ndarray.flatten(grad)
+    
 
 
     # # NOT CERTAIN OF THESE ALTERNATIVES YET
