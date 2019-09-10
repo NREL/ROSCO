@@ -24,41 +24,11 @@ deg2rad = np.deg2rad(1)
 
 class Controller():
     """
-    Class controller can be used to read in / write out controller param files
-    And update tunings
+    Class controller used to calculate controller tunings parameters
     """
 
     def __init__(self):
-        """
-        Maybe just initialize the internal variables
-        This also lists what will need to be defined
-        """
         pass
-
-    def read_param_file(self, param_file):
-        """
-        Load the parameter files directly from a FAST input deck
-        """
-        # Pitch Controller Parameters
-        self.zeta_pc = param_file.PC_zeta            # Pitch controller damping ratio (-)
-        self.omega_pc = param_file.PC_omega                # Pitch controller natural frequency (rad/s)
-        
-        # Torque Controller Parameters
-        self.zeta_vs = param_file.VS_zeta            # Torque controller damping ratio (-)
-        self.omega_vs = param_file.VS_omega                # Torque controller natural frequency (rad/s)
-        
-        # Setpoint Smoother Parameters
-        self.Kss_PC = param_file.Kss_PC              # Pitch controller reference gain bias 
-        self.Kss_VS = param_file.Kss_VS              # Torque controller reference gain bias
-        self.v_min = turbine.VS_Vmin                  # Cut-in wind speed (m/s)
-        self.v_rated = turbine.PC_Vrated                # Rated wind speed (m/s)
-        self.v_max = turbine.PC_Vmax                  # Cut-out wind speed (m/s), -- Does not need to be exact
-
-
-    def write_param_file(self, param_file):
-        """
-        Load the parameter files directly from a FAST input deck
-        """
     
     def controller_params(self):
     # Hard coded controller parameters for turbine. Using this until read_param_file is good to go
@@ -200,5 +170,39 @@ class GainSchedule():
         self.Kp = 1/B * (2*zeta*om_n + A)
         self.Ki = om_n**2/B           
 
+class FileProcessing():
+    """
+    Class ProcessFile can be used to read in / write out controller param files to update
+    """
 
+    def __init__(self, controller):
+        """
+        Process 
+        """
+        
+    def read_param_file(self, param_file):
+        """
+        Load the parameter files directly from a FAST input deck
+        """
+        # Pitch Controller Parameters
+        self.zeta_pc = param_file.PC_zeta            # Pitch controller damping ratio (-)
+        self.omega_pc = param_file.PC_omega                # Pitch controller natural frequency (rad/s)
+        
+        # Torque Controller Parameters
+        self.zeta_vs = param_file.VS_zeta            # Torque controller damping ratio (-)
+        self.omega_vs = param_file.VS_omega                # Torque controller natural frequency (rad/s)
+        
+        # Setpoint Smoother Parameters
+        self.Kss_PC = param_file.Kss_PC              # Pitch controller reference gain bias 
+        self.Kss_VS = param_file.Kss_VS              # Torque controller reference gain bias
+        self.v_min = turbine.VS_Vmin                  # Cut-in wind speed (m/s)
+        self.v_rated = turbine.PC_Vrated                # Rated wind speed (m/s)
+        self.v_max = turbine.PC_Vmax                  # Cut-out wind speed (m/s), -- Does not need to be exact
+
+
+    def write_param_file(self, param_file):
+        """
+        Load the parameter files directly from a FAST input deck
+        """
+    
     
