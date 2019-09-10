@@ -139,7 +139,11 @@ class Controller():
         B_tau = -Ng**2/J              # Torque input gain 
         B_beta = dtau_dbeta/J         # Blade pitch input gain
 
-        
+        # Wind Disturbance Input
+        dlambda_dv = -TSR_op/v
+        dtau_dv = dtau_dlambda*dlambda_dv
+        B_v = dtau_dv/J
+
         # Store some variables
         self.v = v          # Wind speed (m/s)
         self.Cp_op = Cp_op
@@ -147,29 +151,6 @@ class Controller():
         self.TSR_op = TSR_op
         self.A = A 
         self.B_beta = B_beta
-# % Linearized operation points
-# [CpGrad_Beta,CpGrad_TSR] = gradient(Cpmat,1);
-
-# Cp(toi) = interp2(Betavec,TSRvec,Cpmat,Beta_op(toi),tsr);
-# dCpdB(toi) = interp2(Betavec,TSRvec,CpGrad_Beta,Beta_op(toi),tsr)./Beta_del;
-# dCpdTSR(toi) = interp2(Betavec,TSRvec,CpGrad_TSR,Beta_op(toi),tsr)./TSR_del;
-
-# %% Final derivatives and system "matrices"
-# dtdb(toi) = Ng/2*rho*Ar*R*(1/tsr_sat(toi))*dCpdB(toi)*vv(toi)^2;
-# dtdl = Ng/(2)*rho*Ar*R*vv(toi)^2*(1/tsr_sat(toi)^2)* (dCpdTSR(toi)*tsr_sat(toi) - Cp(toi)); % assume operating at optimal
-# dldo = R/vv(toi)/Ng;
-# dtdo = dtdl*dldo;
-
-# A(toi) = dtdo/J;            % Plant pole
-# B_t = -Ng^2/J;              % Torque input gain 
-# Bb(toi) = dtdb(toi)/J;     % BldPitch input gain
-
-# %% Wind Disturbance Input gain
-# % dldv = -tsr/vv(toi); 
-# % dtdv = dtdl*dldv;
-# % B_v = dtdv/J;
-
-# end
 
 # Beta_del = Betavec(2) - Betavec(1);
 # TSR_del = TSRvec(2) - TSRvec(1);
