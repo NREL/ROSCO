@@ -176,6 +176,7 @@ class Controller():
         self.v = v          # Wind speed (m/s)
         self.Cp_op = Cp_op
         self.pitch_op = pitch_op
+        self.pitc_op_pc = pitch_op[len(v_below_rated):len(v)]
         self.TSR_op = TSR_op
         self.A = A 
         self.B_beta = B_beta
