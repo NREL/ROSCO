@@ -19,9 +19,8 @@ turbine = wtc_turbine.Turbine()
 
 # Some useful constants
 pi = np.pi
-r2d = 180/pi         # radians to degrees
-d2r = pi/180         # degrees to radians
-
+rad2deg = np.rad2deg(1)
+deg2rad = np.deg2rad(1)
 
 class Controller():
     """
@@ -73,13 +72,6 @@ class Controller():
         Ar = np.pi*R**2                         # Rotor area (m^2)
         Ng = turbine.Ng                         # Gearbox ratio (-)
         RRspeed = turbine.RRspeed               # Rated rotor speed (rad/s)
-        
-        # Cp Surface and related
-        CP = turbine.CP                         # Turbine CP surface
-        cp_interp = turbine.cp_interp           # Interpolation function for Cp surface values
-        ct_interp = turbine.ct_interp           # Interpolation function for Ct surface values
-        cq_interp = turbine.cq_interp           # Interpolation function for Cq surface values
-
 
         # Load controller parameters 
         #   - should be self.read_param_file() eventually, hard coded for now
@@ -103,47 +95,58 @@ class Controller():
         v = np.concatenate((v_br, v_ar))
 
         # separate TSRs by operations regions
-        TSR_br = np.ones(len(v_br))*turbine.TSR_opt # below rated     
+        TSR_br = np.ones(len(v_br))*turbine.Cp.TSR_opt # below rated     
         TSR_ar = RRspeed*R/v_ar                     # above rated
         TSR_op = np.concatenate((TSR_br, TSR_ar))   # operational TSRs
 
-        # Find Operational CP values
-        CP_above_rated = turbine.cp_interp(0,TSR_ar[0])            # Cp during rated operation (not optimal). Assumes cut-in bld pitch to be 0
-        CP_op_br = np.ones(len(v_br)) * turbine.CP_max  # below rated
-        CP_op_ar = CP_above_rated * (TSR_ar/TSR_rated)**3          # above rated
-        CP_lin = np.concatenate((CP_op_br, CP_op_ar))   # operational CPs to linearize around
+        # Find expected operational Cp values
+        Cp_above_rated = turbine.Cp.interp_surface(0,TSR_ar[0])             # Cp during rated operation (not optimal). Assumes cut-in bld pitch to be 0
+        Cp_op_br = np.ones(len(v_br)) * turbine.Cp.max              # below rated
+        Cp_op_ar = Cp_above_rated * (TSR_ar/TSR_rated)**3           # above rated
+        Cp_op = np.concatenate((Cp_op_br, Cp_op_ar))                # operational CPs to linearize around
         pitch_initial_rad = turbine.pitch_initial_rad
         TSR_initial = turbine.TSR_initial
 
-        pitch_op = np.zeros(len(TSR_op))
-        CP_op = np.zeros(len(TSR_op))
+        # initialize variables
+        pitch_op = np.empty(len(TSR_op))
+        A = np.empty(len(TSR_op))
+        B_beta = np.empty(len(TSR_op))
+        dCp_dbeta = np.empty(len(TSR_op))
+        dCp_dTSR = np.empty(len(TSR_op))
         # ------------- Find Linearized State Matrices ------------- #
 
-        # Find gradients
-        CP_grad_TSR, CP_grad_pitch = gradient(turbine.CP)
-        dCPdBeta_interp = interpolate.interp2d(pitch_initial_rad, TSR_initial, CP_grad_pitch, kind='cubic')
-        dCPdTSR_interp = interpolate.interp2d(pitch_initial_rad, TSR_initial, CP_grad_TSR, kind='cubic')
-
         for i in range(len(TSR_op)):
-            tsr = TSR_op[i]
 
-            # Find pitch angle as a function of linearized operating CP for each TSR
-            self.CP_TSR = np.ndarray.flatten(turbine.cp_interp(turbine.pitch_initial_rad, tsr))
-            CP_lin[i] = np.maximum( np.minimum(CP_lin[i], np.max(self.CP_TSR)), np.min(self.CP_TSR))
-            f_cp_pitch = interpolate.interp1d(self.CP_TSR,pitch_initial_rad) 
-            pitch_op[i] = f_cp_pitch(CP_lin[i])
+            # Find pitch angle as a function of expected operating CP for each TSR
+            self.Cp_TSR = np.ndarray.flatten(turbine.Cp.interp_surface(turbine.pitch_initial_rad, TSR_op[i]))     # all Cp values for a given tsr
+            Cp_op[i] = np.clip(Cp_op[i], np.min(self.Cp_TSR), np.max(self.Cp_TSR))                                      # saturate Cp values to be on Cp surface
+            f_cp_pitch = interpolate.interp1d(self.Cp_TSR,pitch_initial_rad)                                # interpolate function for Cp(tsr) values
+            pitch_op[i] = f_cp_pitch(Cp_op[i])                                                              # expected operation blade pitch values
             
+            dCp_dbeta[i], dCp_dTSR[i] = turbine.Cp.interp_gradient(pitch_op[i],TSR_op[i])
         
-            # Find "operational" CP and derivatives 
-            CP_op = turbine.cp_interp(pitch_op[i],tsr) 
-                        
+        dCp_dbeta = dCp_dbeta/np.diff(pitch_initial_rad)[0]
+        dCp_dTSR = dCp_dTSR/np.diff(TSR_initial)[0]
+        
+        # Linearized system derivative
+        dtau_dbeta = Ng/2*rho*Ar*R*(1/TSR_op)*dCp_dbeta*v**2
+        dtau_dlambda = Ng/2*rho*Ar*R*v**2*(1/(TSR_op**2))*(dCp_dTSR*TSR_op - Cp_op)
+        dlambda_domega = R/v/Ng
+        dtau_domega = dtau_dlambda*dlambda_domega
 
+        # System state "matrices"
+        A = dtau_domega/J             # Plant pole
+        B_tau = -Ng**2/J              # Torque input gain 
+        B_beta = dtau_dbeta/J         # Blade pitch input gain
+
+        
         # Store some variables
         self.v = v          # Wind speed (m/s)
-        self.CP_lin = CP_lin     # Operational power coefficients
-        self.CP_op = CP_op
+        self.Cp_op = Cp_op
         self.pitch_op = pitch_op
         self.TSR_op = TSR_op
+        self.A = A 
+        self.B_beta = B_beta
 # % Linearized operation points
 # [CpGrad_Beta,CpGrad_TSR] = gradient(Cpmat,1);
 
