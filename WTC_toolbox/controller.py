@@ -124,26 +124,24 @@ class Controller():
 
         # initialize variables
         pitch_op = np.empty(len(TSR_op))
-        A = np.empty(len(TSR_op))
-        B_beta = np.empty(len(TSR_op))
-        dCp_dbeta = np.empty(len(TSR_op))
-        dCp_dTSR = np.empty(len(TSR_op))
+        dCp_beta = np.empty(len(TSR_op))
+        dCp_TSR = np.empty(len(TSR_op))
         # ------------- Find Linearized State Matrices ------------- #
 
         for i in range(len(TSR_op)):
 
             # Find pitch angle as a function of expected operating CP for each TSR
             self.Cp_TSR = np.ndarray.flatten(turbine.Cp.interp_surface(turbine.pitch_initial_rad, TSR_op[i]))     # all Cp values for a given tsr
-            Cp_op[i] = np.clip(Cp_op[i], np.min(self.Cp_TSR), np.max(self.Cp_TSR))                                      # saturate Cp values to be on Cp surface
-            f_cp_pitch = interpolate.interp1d(self.Cp_TSR,pitch_initial_rad)                                # interpolate function for Cp(tsr) values
-            pitch_op[i] = f_cp_pitch(Cp_op[i])                                                              # expected operation blade pitch values
-            
-            dCp_dbeta[i], dCp_dTSR[i] = turbine.Cp.interp_gradient(pitch_op[i],TSR_op[i])
+            Cp_op[i] = np.clip(Cp_op[i], np.min(self.Cp_TSR), np.max(self.Cp_TSR))      # saturate Cp values to be on Cp surface
+            f_cp_pitch = interpolate.interp1d(self.Cp_TSR,pitch_initial_rad)        # interpolate function for Cp(tsr) values
+            pitch_op[i] = f_cp_pitch(Cp_op[i])      # expected operation blade pitch values
+            dCp_beta[i], dCp_TSR[i] = turbine.Cp.interp_gradient(pitch_op[i],TSR_op[i])       # gradients of Cp surface in Beta and TSR directions
         
-        dCp_dbeta = dCp_dbeta/np.diff(pitch_initial_rad)[0]
-        dCp_dTSR = dCp_dTSR/np.diff(TSR_initial)[0]
+        # Full Cp surface gradients
+        dCp_dbeta = dCp_beta/np.diff(pitch_initial_rad)[0]
+        dCp_dTSR = dCp_TSR/np.diff(TSR_initial)[0]
         
-        # Linearized system derivative
+        # Linearized system derivatives
         dtau_dbeta = Ng/2*rho*Ar*R*(1/TSR_op)*dCp_dbeta*v**2
         dtau_dlambda = Ng/2*rho*Ar*R*v**2*(1/(TSR_op**2))*(dCp_dTSR*TSR_op - Cp_op)
         dlambda_domega = R/v/Ng
@@ -151,13 +149,13 @@ class Controller():
 
         # Second order system coefficiencts
         A = dtau_domega/J             # Plant pole
-        B_tau = -Ng**2/J              # Torque input gain 
-        B_beta = dtau_dbeta/J         # Blade pitch input gain
+        B_tau = -Ng**2/J              # Torque input  
+        B_beta = dtau_dbeta/J         # Blade pitch input 
 
         # Wind Disturbance Input
         dlambda_dv = -(TSR_op/v)
         dtau_dv = dtau_dlambda*dlambda_dv
-        B_v = dtau_dv/J
+        B_v = dtau_dv/J # wind speed input - currently unused 
 
 
         # separate and define below and above rated parameters
