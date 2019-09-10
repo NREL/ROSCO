@@ -18,6 +18,7 @@ import pickle
 
 # Some useful constants
 deg2rad = np.deg2rad(1)
+rad2deg = np.rad2deg(1)
 rpm2RadSec = 2.0*(np.pi)/60.0
 
 class Turbine():
@@ -274,11 +275,11 @@ class RotorPerformance():
 
     def interp_gradient(self,pitch,TSR):
         # Form the interpolant functions to find gradient at any arbitrary location on rotor performance surface
-        dCPdBeta_interp = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.gradient_pitch, kind='cubic')
-        dCPdTSR_interp = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.gradient_TSR, kind='cubic')
+        dCP_beta_interp = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.gradient_pitch, kind='cubic')
+        dCP_TSR_interp = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.gradient_TSR, kind='cubic')
 
         # grad.shape output as (2,) numpy array, equivalent to (pitch-direction,TSR-direction)
-        grad = np.array([dCPdBeta_interp(pitch,TSR), dCPdTSR_interp(pitch,TSR)])
+        grad = np.array([dCP_beta_interp(pitch,TSR), dCP_TSR_interp(pitch,TSR)])
         return np.ndarray.flatten(grad)
     
 
