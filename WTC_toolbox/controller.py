@@ -40,25 +40,40 @@ class Controller():
         Load the parameter files directly from a FAST input deck
         """
         # Pitch Controller Parameters
-        self.PC_zeta = param_file.PC_zeta            # Pitch controller damping ratio (-)
-        self.PC_omega = param_file.PC_omega                # Pitch controller natural frequency (rad/s)
+        self.zeta_pc = param_file.PC_zeta            # Pitch controller damping ratio (-)
+        self.omega_pc = param_file.PC_omega                # Pitch controller natural frequency (rad/s)
         
         # Torque Controller Parameters
-        self.VS_zeta = param_file.VS_zeta            # Torque controller damping ratio (-)
-        self.VS_omega = param_file.VS_omega                # Torque controller natural frequency (rad/s)
+        self.zeta_vs = param_file.VS_zeta            # Torque controller damping ratio (-)
+        self.omega_vs = param_file.VS_omega                # Torque controller natural frequency (rad/s)
         
         # Setpoint Smoother Parameters
         self.Kss_PC = param_file.Kss_PC              # Pitch controller reference gain bias 
         self.Kss_VS = param_file.Kss_VS              # Torque controller reference gain bias
-        self.Vmin = turbine.VS_Vmin                  # Cut-in wind speed (m/s)
-        self.Vrat = turbine.PC_Vrated                # Rated wind speed (m/s)
-        self.Vmax = turbine.PC_Vmax                  # Cut-out wind speed (m/s), -- Does not need to be exact
+        self.v_min = turbine.VS_Vmin                  # Cut-in wind speed (m/s)
+        self.v_rated = turbine.PC_Vrated                # Rated wind speed (m/s)
+        self.v_max = turbine.PC_Vmax                  # Cut-out wind speed (m/s), -- Does not need to be exact
 
 
     def write_param_file(self, param_file):
         """
         Load the parameter files directly from a FAST input deck
         """
+    
+    def controller_params(self):
+    # Hard coded controller parameters for turbine. Using this until read_param_file is good to go
+    #           - Coded for NREL 5MW 
+
+        # Pitch Controller Parameters
+        self.zeta_pc = 0.7                      # Pitch controller damping ratio (-)
+        self.omega_pc = 0.6                     # Pitch controller natural frequency (rad/s)
+        
+        # Torque Controller Parameters
+        self.zeta_vs = 0.7                      # Torque controller damping ratio (-)
+        self.omega_vs = 0.3                     # Torque controller natural frequency (rad/s)
+        
+        # Other basic parameters
+        self.v_rated = 11.4                        # Rated wind speed (m/s)
 
     def tune_controller(self, turbine):
         """
@@ -78,31 +93,31 @@ class Controller():
         self.controller_params()
 
         # Re-define controller tuning parameters for shorthand
-        PC_zeta = self.PC_zeta                  # Pitch controller damping ratio
-        PC_omega = self.PC_omega                # Pitch controller natural frequency (rad/s)
-        VS_zeta = self.VS_zeta                  # Torque controller damping ratio (-)
-        VS_omega = self.VS_omega                # Torque controller natural frequency (rad/s)
-        Vrat = self.Vrat                        # Rated wind speed (m/s)
-        Vmin = turbine.Vmin                     # Cut in wind speed (m/s)
-        Vmax = turbine.Vmax                     # Cut out wind speed (m/s)
+        zeta_pc = self.zeta_pc                  # Pitch controller damping ratio
+        omega_pc = self.omega_pc                # Pitch controller natural frequency (rad/s)
+        zeta_vs = self.zeta_vs                  # Torque controller damping ratio (-)
+        omega_vs = self.omega_vs                # Torque controller natural frequency (rad/s)
+        v_rated = self.v_rated                        # Rated wind speed (m/s)
+        v_min = turbine.v_min                     # Cut in wind speed (m/s)
+        v_max = turbine.v_max                     # Cut out wind speed (m/s)
  
         # -------------Define Operation Points ------------- #
-        TSR_rated = RRspeed*R/Vrat  # TSR at rated
+        TSR_rated = RRspeed*R/v_rated  # TSR at rated
 
         # separate wind speeds by operation regions
-        v_br = np.arange(Vmin,Vrat,0.1)             # below rated
-        v_ar = np.arange(Vrat,Vmax,0.1)             # above rated
-        v = np.concatenate((v_br, v_ar))
+        v_below_rated = np.arange(v_min,v_rated,0.1)             # below rated
+        v_above_rated = np.arange(v_rated,v_max,0.1)             # above rated
+        v = np.concatenate((v_below_rated, v_above_rated))
 
         # separate TSRs by operations regions
-        TSR_br = np.ones(len(v_br))*turbine.Cp.TSR_opt # below rated     
-        TSR_ar = RRspeed*R/v_ar                     # above rated
-        TSR_op = np.concatenate((TSR_br, TSR_ar))   # operational TSRs
+        TSR_below_rated = np.ones(len(v_below_rated))*turbine.Cp.TSR_opt # below rated     
+        TSR_above_rated = RRspeed*R/v_above_rated                     # above rated
+        TSR_op = np.concatenate((TSR_below_rated, TSR_above_rated))   # operational TSRs
 
         # Find expected operational Cp values
-        Cp_above_rated = turbine.Cp.interp_surface(0,TSR_ar[0])             # Cp during rated operation (not optimal). Assumes cut-in bld pitch to be 0
-        Cp_op_br = np.ones(len(v_br)) * turbine.Cp.max              # below rated
-        Cp_op_ar = Cp_above_rated * (TSR_ar/TSR_rated)**3           # above rated
+        Cp_above_rated = turbine.Cp.interp_surface(0,TSR_above_rated[0])             # Cp during rated operation (not optimal). Assumes cut-in bld pitch to be 0
+        Cp_op_br = np.ones(len(v_below_rated)) * turbine.Cp.max              # below rated
+        Cp_op_ar = Cp_above_rated * (TSR_above_rated/TSR_rated)**3           # above rated
         Cp_op = np.concatenate((Cp_op_br, Cp_op_ar))                # operational CPs to linearize around
         pitch_initial_rad = turbine.pitch_initial_rad
         TSR_initial = turbine.TSR_initial
@@ -134,15 +149,28 @@ class Controller():
         dlambda_domega = R/v/Ng
         dtau_domega = dtau_dlambda*dlambda_domega
 
-        # System state "matrices"
+        # Second order system coefficiencts
         A = dtau_domega/J             # Plant pole
         B_tau = -Ng**2/J              # Torque input gain 
         B_beta = dtau_dbeta/J         # Blade pitch input gain
 
         # Wind Disturbance Input
-        dlambda_dv = -TSR_op/v
+        dlambda_dv = -(TSR_op/v)
         dtau_dv = dtau_dlambda*dlambda_dv
         B_v = dtau_dv/J
+
+
+        # separate and define below and above rated parameters
+        A_vs = A[0:len(v_below_rated)]          # below rated
+        A_pc = A[len(v_below_rated):len(v)]     # above rated
+        B_tau = B_tau * np.ones(len(v_below_rated))
+        B_beta = B_beta[len(v_below_rated):len(v)]
+
+        # Find gain schedule
+        self.pc_gain_schedule = GainSchedule()
+        self.pc_gain_schedule.second_order_PI(zeta_pc, omega_pc,A_pc,B_beta,linearize=True,v=v_above_rated)
+        self.vs_gain_schedule = GainSchedule()
+        self.vs_gain_schedule.second_order_PI(zeta_vs, omega_vs,A_vs,B_tau,linearize=False,v=v_below_rated)
 
         # Store some variables
         self.v = v          # Wind speed (m/s)
@@ -152,20 +180,26 @@ class Controller():
         self.A = A 
         self.B_beta = B_beta
 
-# Beta_del = Betavec(2) - Betavec(1);
-# TSR_del = TSRvec(2) - TSRvec(1);
-            
-    def controller_params(self):
-    # Hard coded controller parameters for turbine. Using this until read_param_file is good to go
-    #           - Coded for NREL 5MW 
+class GainSchedule():
+    def __init__(self):
+        '''
+        Gain Schedule class used to define gain schedules for desired closed loop dynamics
+        '''
+        pass
 
-        # Pitch Controller Parameters
-        self.PC_zeta = 0.7                      # Pitch controller damping ratio (-)
-        self.PC_omega = 0.6                     # Pitch controller natural frequency (rad/s)
-        
-        # Torque Controller Parameters
-        self.VS_zeta = 0.7                      # Torque controller damping ratio (-)
-        self.VS_omega = 0.3                     # Torque controller natural frequency (rad/s)
-        
-        # Other basic parameters
-        self.Vrat = 11.4                        # Rated wind speed (m/s)
+    def second_order_PI(self,zeta,om_n,A,B,linearize=False,v=None):
+
+        # Linearize system coefficients w.r.t. wind speed if desired
+        if linearize:
+            print('Calculating second order PI gain schedule for linearized system pole location.')
+            pA = np.polyfit(v,A,1)
+            pB = np.polyfit(v,B,1)
+            A = pA[0]*v + pA[1]
+            B = pB[0]*v + pB[1]
+
+        # Calculate gain schedule
+        self.Kp = 1/B * (2*zeta*om_n + A)
+        self.Ki = om_n**2/B           
+
+
+    
