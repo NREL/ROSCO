@@ -81,8 +81,8 @@ class ConInt():
         self.discon.DISCON(data_p, byref(self.aviFAIL), self.accINFILE, self.avcOUTNAME, self.avcMSG)
 
         # Push back to avr swap
-        print(data_p[47])
-        print(self.avrSWAP[47])
+        # print(data_p[47])
+        # print(self.avrSWAP[47])
         #for i in range(len(self.avrSWAP)):
         #    self.avrSWAP
         #print('len',len(data_p),len(self.avrSWAP))
@@ -107,6 +107,8 @@ class ConInt():
 
         self.pitch = self.avrSWAP[41]
         self.torque = self.avrSWAP[47]
+
+        return(self.torque,self.pitch)
 
     def show_control_values(self):
         print('Pitch',self.pitch)
