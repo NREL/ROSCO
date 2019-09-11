@@ -124,7 +124,7 @@ class Turbine():
         self.Ng = fast.fst_vt['ElastoDyn']['GBRatio']
         self.rho = rho
         self.RotorRad = TipRad
-
+        
         # Calculate rated rotor speed for now by scaling from NREL 5MW
         self.RRspeed = (63. / TipRad) * 12.1 * rpm2RadSec
 
