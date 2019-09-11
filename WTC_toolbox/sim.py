@@ -9,41 +9,125 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
-# Try to call the DLL
-from ctypes import byref, cdll, c_int, POINTER, c_float, c_char_p, c_double, create_string_buffer, c_int32
 import numpy as np
-from numpy.ctypeslib import ndpointer
+from WTC_toolbox import turbine as wtc_turbine
+from WTC_toolbox import control_interface as ci
+import matplotlib.pyplot as plt
+import sys
 
-# PARAMETERS
-DT = 0.1
-num_blade = 3
+# Some useful constants
+deg2rad = np.deg2rad(1)
+rad2deg = np.rad2deg(1)
+rpm2RadSec = 2.0*(np.pi)/60.0
 
-# discon = cdll.LoadLibrary('./DISCON_glin64.so')
+class Sim():
+    """
+    Define interface to a given controller
+    """
 
-discon = cdll.LoadLibrary('/Users/pfleming/Desktop/git_tools/floating/DRC_Fortran/DISCON//DISCON_glin64.so')
-num_item = 500
-# avrSWAP = (c_float * num_item)()
+    def __init__(self, turbine, controller_int):
+        """
+        Setup the simulator
+        """
+        self.turbine = turbine
+        self.controller_int = controller_int
 
-# AVR SWAP FILLING
-avrSWAP = np.zeros(200)
-avrSWAP[2] = DT
-avrSWAP[60] = num_blade
-
-
-# Put some values in
-avrSWAP[48] = 9
-avrSWAP[49] = 1000
-avrSWAP[50] = 1000
-
-aviFAIL = c_int32() # 1
-accINFILE ='DISCON.In'.encode('utf-8')
-avcOUTNAME = create_string_buffer(1000) # 'DEMO'.encode('utf-8')
-avcMSG = create_string_buffer(1000)
-print(avrSWAP)
-
-discon.DISCON.argtypes = [ndpointer(c_double, flags="C_CONTIGUOUS"), POINTER(c_int32), c_char_p, c_char_p, c_char_p] # (all defined by ctypes)
-discon.DISCON(avrSWAP, byref(aviFAIL), accINFILE, avcOUTNAME, avcMSG)
+        # TOTAL TEMPORARY HACK
+        self.gb_eff = 0.95
+        self.gen_eff = 0.95
 
 
-#discon.DISCON.argtypes = [POINTER(c_float), c_int, c_char_p, c_char_p, c_char_p] # (all defined by ctypes)
-# discon.DISCON(byref(avrSWAP), aviFAIL, accINFILE, avcOUTNAME, avcMSG)
+    def sim_ws_series(self,t_array,ws_array,rotor_rpm_init=10,init_pitch=0.0):
+        
+        # Store some for conveniente
+        dt = t_array[1] - t_array[0]
+        R = self.turbine.RotorRad
+        GBRatio = self.turbine.Ng
+
+
+        # Declare output arrays
+        pitch = np.ones_like(t_array) * init_pitch 
+        rot_speed = np.ones_like(t_array) * rotor_rpm_init * rpm2RadSec # represent rot speed in rad / s
+        gen_speed = np.ones_like(t_array) * rotor_rpm_init * GBRatio # represent gen speed in rad/s
+        aero_torque = np.ones_like(t_array) * 1000.0
+        gen_torque = np.ones_like(t_array) # * trq_cont(turbine_dict, gen_speed[0])
+        gen_power = np.ones_like(t_array) * 0.0
+
+        # Loop through time
+        for i, t in enumerate(t_array):
+            if i == 0:
+                continue # Skip the first run
+
+            ws = ws_array[i]
+            P, T, Q, M, Cp, Ct, cq, CM = self.turbine.cc_rotor.evaluate([ws], 
+                                                        [rot_speed[i-1]/rpm2RadSec], 
+                                                        [pitch[i-1]], 
+                                                        coefficients=True)
+            # try:
+            #     P, T, Q, M, Cp, Ct, cq, CM = self.turbine.rotor.evaluate([ws], 
+            #                                             [rot_speed[i-1]/rpm2RadSec], 
+            #                                             [pitch[i-1]], 
+            #                                             coefficients=True)
+            # except:
+            #     print('CC BLADE PROBLEM')
+            #     e = sys.exc_info()[0]
+            #     print(e)
+            #     # carry through the past values and continue
+            #     pitch[i] = pitch[i-1]
+            #     rot_speed[i] = rot_speed[i-1]
+            #     gen_speed[i] = gen_speed[i-1]
+            #     aero_torque[i] = aero_torque[i-1]
+            #     gen_torque[i] = gen_torque[i-1]
+            #     gen_power[i] = gen_power[i-1]
+            #     continue
+
+            aero_torque[i] = 0.5 * self.turbine.rho * (np.pi * R**2) * cq * R * ws**2
+
+            # # Save these values for plotting
+            # cq_array[i] = cq
+            # cp_array[i] = Cp[0]
+            # ct_array[i] = Ct[0]
+            # tsr_array[i] = tsr
+
+            # Update the rotor speed and generator speed
+            rot_speed[i] = rot_speed[i-1] + (dt/self.turbine.J)*(aero_torque[i] * self.gb_eff - self.turbine.Ng * gen_torque[i-1])
+            gen_speed[i] = rot_speed[i] * self.turbine.Ng 
+
+            # Call the controller
+            gen_torque[i], pitch[i] = self.controller_int.call_controller(t,dt,pitch[i-1],gen_speed[i],rot_speed[i],ws)
+
+            # Calculate the power
+            gen_power[i] = gen_speed[i] * np.pi/30.0 * gen_torque[i] * self.gen_eff
+
+        # Save these values
+        self.pitch = pitch
+        self.rot_speed = rot_speed
+        self.gen_speed = gen_speed
+        self.aero_torque = aero_torque
+        self.gen_torque = gen_torque
+        self.gen_power = gen_power
+        self.t_array = t_array
+        self.ws_array = ws_array
+
+    def plot_ws_series(self):
+
+        fig, axarr = plt.subplots(6,1,sharex=True,figsize=(6,10))
+
+
+
+        ax = axarr[0]
+        ax.plot(self.t_array,self.ws_array,label='Wind Speed')
+        ax.grid()
+        ax.legend()
+
+        ax = axarr[1]
+        ax.plot(self.t_array,self.rot_speed,label='Rot Speed')
+        ax.grid()
+        ax.legend()
+
+        ax = axarr[2]
+        ax.plot(self.t_array,self.gen_torque,label='Gen Torque')
+        ax.grid()
+        ax.legend()
+
+        
