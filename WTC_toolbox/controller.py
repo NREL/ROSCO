@@ -172,14 +172,11 @@ class GainSchedule():
 
 class FileProcessing():
     """
-    Class ProcessFile can be used to read in / write out controller param files to update
+    Class ProcessFile can be used to read in / write out controller parameter files to update
     """
 
     def __init__(self, controller):
-        """
-        Process 
-        """
-        
+        pass
     def read_param_file(self, param_file):
         """
         Load the parameter files directly from a FAST input deck
