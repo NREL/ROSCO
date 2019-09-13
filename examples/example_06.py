@@ -46,5 +46,3 @@ ws[t>100.] = 10.
 # plt.show()
 
 sim.sim_ws_series(t,ws)
-
-sim.plot_ws_series()
