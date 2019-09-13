@@ -10,11 +10,12 @@
 # specific language governing permissions and limitations under the License.
 
 import numpy as np
+import datetime
 from ccblade import CCAirfoil, CCBlade
 from scipy import interpolate, gradient
-
 from WTC_toolbox import turbine as wtc_turbine
 
+now = datetime.datetime.now()
 turbine = wtc_turbine.Turbine()
 
 # Some useful constants
@@ -176,7 +177,7 @@ class FileProcessing():
     Class ProcessFile can be used to read in / write out controller parameter files to update
     """
 
-    def __init__(self, controller):
+    def __init__(self):
         pass
     def read_param_file(self, param_file):
         """
@@ -198,9 +199,104 @@ class FileProcessing():
         self.v_max = turbine.PC_Vmax                  # Cut-out wind speed (m/s), -- Does not need to be exact
 
 
-    def write_param_file(self, param_file):
+    def write_param_file(self, param_file, turbine, controller, new_file=True):
         """
-        Load the parameter files directly from a FAST input deck
+        Print the controller parameters to the DISCON.IN input file for the generic controller
+
+        Parameters:
+        -----------
+            param_file: str
+                        filename to for parameter input file
+            turbine: class
+                     class containing 
+            new_file: bool
+                      True = create new file, False = modify existing file.  (False functionality not included yet)
         """
-    
-    
+        if new_file:
+            print('Writing new controller parameter file parameter file %s.' % param_file)
+            file = open(param_file,'w')
+            file.write('! Controller parameter input file for the %s wind turbine\n' % turbine.TurbineName)
+            file.write('!    - File written using NREL Baseline Controller tuning logic on %s\n' % now.strftime('%m/%d/%y'))
+            file.write('\n')
+            file.write('!------- DEBUG ------------------------------------------------------------\n')
+            file.write('0					! LoggingLevel		- 0 = write no debug files, 1 = write standard output .dbg-file, 2 = write standard output .dbg-file and complete avrSWAP-array .dbg2-file\n')
+            file.write('\n')
+            file.write('!------- CONTROLLER FLAGS -------------------------------------------------\n')
+            file.write('1					! F_LPFType			- 1 = first-order low-pass filter, 2 = second-order low-pass filter, filtering generator speed and pitch control signals, [rad/s]\n')
+            file.write('0					! F_NotchType		- 0 = disable, 1 = enable: notch on the measured generator speed \n')
+            file.write('0					! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) 0 = off / 1 = (1P reductions) / 2 = (1P+2P reductions)\n')
+            file.write('1					! VS_ControlMode	- Generator torque control mode in above rated conditions, 0 = constant torque / 1 = constant power\n')
+            file.write('0					! Y_ControlMode		- Yaw control mode: (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC)\n')
+            file.write('\n')
+            file.write('!------- FILTERS ----------------------------------------------------------\n')
+            file.write('1.570796326			! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters\n') # this needs to be included as an input file
+            file.write('0					! F_LPFDamping		- Damping coefficient if F_FilterType = 2, unused otherwise\n')
+            file.write('0					! F_NotchCornerFreq	- Natural frequency of the notch filter, [rad/s]\n')
+            file.write('0	0				! F_NotchBetaNumDen	- These two notch damping values (numerator and denominator) determines the width and depth of the notch\n')
+            file.write('\n')
+            file.write('!------- BLADE PITCH CONTROL ----------------------------------------------\n')
+            file.write('{}                  ! PC_GS_n			- Amount of gain-scheduling table entries\n'.format(len(controller.pitch_op_pc)))
+            file.write('{}                  ! PC_GS_angles	    - Gain-schedule table: pitch angles\n'.format(str(controller.pitch_op_pc).strip('[]').replace('\n',''))) 
+            file.write('{}                  ! PC_GS_KP		- Gain-schedule table: pitch controller kp gains\n'.format(str(controller.pc_gain_schedule.Kp).strip('[]').replace('\n','')))
+            file.write('{}                  ! PC_GS_KI		- Gain-schedule table: pitch controller ki gains\n'.format(str(controller.pc_gain_schedule.Ki).strip('[]').replace('\n','')))
+            file.write('0                   ! PC_GS_KD			- Gain-schedule table: pitch controller kd gains\n')
+            file.write('0                   ! PC_GS_TF			- Gain-schedule table: pitch controller tf gains (derivative filter)\n')
+            file.write('1.5707				! PC_MaxPit			- Maximum physical pitch limit, [rad].\n')
+            file.write('-0.087266			! PC_MinPit			- Minimum physical pitch limit, [rad].\n')
+            file.write('0.13962				! PC_MaxRat			- Maximum pitch rate (in absolute value) in pitch controller, [rad/s].\n')
+            file.write('-0.13962			! PC_MinRat			- Minimum pitch rate (in absolute value) in pitch controller, [rad/s].\n')
+            file.write('122.90957			! PC_RefSpd			- Desired (reference) HSS speed for pitch controller, [rad/s].\n')
+            file.write('0.0					! PC_FinePit		- Record 5: Below-rated pitch angle set-point, [rad]\n')
+            file.write('0.003490658			! PC_Switch			- Angle above lowest minimum pitch angle for switch [rad]\n')
+            file.write('0					! Z_EnableSine		- Enable/disable sine pitch excitation, used to validate for dynamic induction control, will be removed later [-]\n')
+            file.write('0.0349066			! Z_PitchAmplitude	- Amplitude of sine pitch excitation [rad]\n')
+            file.write('0					! Z_PitchFrequency	- Frequency of sine pitch excitation [rad/s]		\n')
+            file.write('\n')
+            file.write('!------- INDIVIDUAL PITCH CONTROL -----------------------------------------\n')
+            file.write('0.087266			! IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from IPC), [rad]\n')
+            file.write('1E-8 0				! IPC_KI			- Integral gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions [-]\n')
+            file.write('0.436332313	0		! IPC_aziOffset		- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. \n')
+            file.write('2.5					! IPC_CornerFreqAct - Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal. Set 0 to disable. [rad/s]\n')
+            file.write('\n')
+            file.write('!------- VS TORQUE CONTROL ------------------------------------------------\n')
+            file.write('0.944				! VS_GenEff			- Generator efficiency mechanical power -> electrical power, this should match the efficiency defined in the generator properties! [-]\n')
+            file.write('43093.55			! VS_ArSatTq		- Above rated generator torque PI control saturation, [Nm]\n')
+            file.write('150000.0			! VS_MaxRat			- Maximum torque rate (in absolute value) in torque controller, [Nm/s].\n')
+            file.write('48000.00			! VS_MaxTq			- Maximum generator torque in Region 3 (HSS side), [Nm].\n')
+            file.write('0.0					! VS_MinTq			- Minimum generator (HSS side), [Nm].\n')
+            file.write('91.2109				! VS_MinOMSpd		- Optimal mode minimum speed, cut-in speed towards optimal mode gain path [rad/s]\n')
+            file.write('2.33228				! VS_Rgn2K			- Generator torque constant in Region 2 (HSS side), [N-m/(rad/s)^2]\n')
+            file.write('5.0E+06				! VS_RtPwr			- Wind turbine rated power [W]\n')
+            file.write('43093.55			! VS_RtTq			- Rated torque, [Nm].\n')
+            file.write('120.113				! VS_RefSpd			- Rated generator speed [rad/s]\n')
+            file.write('1					! VS_n				- Number of generator PI torque controller gains\n')
+            file.write('-4200				! VS_KP				- Proportional gain for generator PI torque controller, used in the transitional 2.5 region, [1/(rad/s) Nm]\n')
+            file.write('-2100	 			! VS_KI				- Integral gain for generator PI torque controller, used in the transitional 2.5 region, [1/rad Nm]\n')
+            file.write('\n')
+            file.write('!------- WIND SPEED ESTIMATOR ---------------------------------------------\n')
+            file.write('63.0				! WE_BladeRadius	- Blade length [m]\n')
+            file.write('4					! WE_CP_n			- Amount of parameters in the Cp array\n')
+            file.write('14.571319658214513	42.809556250371465	2.456512501523107	0.003127994078720	! WE_CP - Parameters that define the parameterized CP(lambda) function\n')
+            file.write('20					! WE_Gamma			- Adaption gain of the wind speed estimator algorithm [m/rad]\n')
+            file.write('97					! WE_GearboxRatio	- Gearbox ratio, >=1  [-]\n')
+            file.write('4.0469564E+07		! WE_Jtot			- Total drivetrain inertia, including blades, hub and casted generator inertia to LSS [kg m^2]\n')
+            file.write('1.225				! WE_RhoAir			- Air density [kg m^-3]\n')
+            file.write('\n')
+            file.write('!------- YAW CONTROL ------------------------------------------------------\n')
+            file.write('1.745329252			! Y_ErrThresh		- Yaw error threshold. Turbine begins to yaw when it passes this. [rad^2 s]\n')
+            file.write('0.17453				! Y_IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from yaw-by-IPC), [rad]\n')
+            file.write('1					! Y_IPC_n			- Number of controller gains (yaw-by-IPC)\n')
+            file.write('-0.064				! Y_IPC_KP			- Yaw-by-IPC proportional controller gain Kp\n')
+            file.write('-0.0008				! Y_IPC_KI			- Yaw-by-IPC integral controller gain Ki\n')
+            file.write('0.6283185			! Y_IPC_omegaLP		- Low-pass filter corner frequency for the Yaw-by-IPC controller to filtering the yaw alignment error, [rad/s].\n')
+            file.write('1.0					! Y_IPC_zetaLP		- Low-pass filter damping factor for the Yaw-by-IPC controller to filtering the yaw alignment error, [-].\n')
+            file.write('0.00000				! Y_MErrSet			- Yaw alignment error, set point [rad]\n')
+            file.write('1.0					! Y_omegaLPFast		- Corner frequency fast low pass filter, 1.0 [Hz]\n')
+            file.write('0.016667			! Y_omegaLPSlow		- Corner frequency slow low pass filter, 1/60 [Hz]\n')
+            file.write('0.0034906			! Y_Rate			- Yaw rate [rad/s]\n')
+            file.write('\n')
+            file.write('!------- TOWER FORE-AFT DAMPING -------------------------------------------\n')
+            file.write('-1					! FA_KI				- Integral gain for the fore-aft tower damper controller, -1 = off / >0 = on [rad s/m] - !NJA - Make this a flag\n')
+            file.write('0.1                 ! FA_HPF_CornerFreq	- Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]                                                                                                              \n')
+            file.write('0.087266			! FA_IntSat			- Integrator saturation (maximum signal amplitude contribution to pitch from FA damper), [rad]\n')
+            file.close()
