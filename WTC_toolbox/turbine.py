@@ -89,9 +89,9 @@ class Turbine():
             FAST_directory: str
                             Directory for primary fast model input file
             drivetrain_intertia: int
-                                drivetrain intertia (kg-m^2)                # nja - this might be able to be automated 
+                                 drivetrain intertia (kg-m^2)                # nja - this might be able to be automated, see aerodyn.out
             FAST_ver: string, optional
-
+                      fast version, usually OpenFAST
             dev_branch: bool
                         dev_branch input to InputReader_OpenFAST, probably True
             rot_source: str
@@ -106,6 +106,7 @@ class Turbine():
         self.J = drivetrain_inertia 
 
         print('Loading FAST model: %s ' % FAST_InputFile)
+        self.TurbineName = FAST_InputFile.strip('.fst')
         fast = InputReader_OpenFAST(FAST_ver=FAST_ver,dev_branch=dev_branch)
         fast.FAST_InputFile = FAST_InputFile
         fast.FAST_directory = FAST_directory
@@ -243,14 +244,14 @@ class Turbine():
                     for tsr_i in range(len(TSR_initial)):
                         Ct[tsr_i] = np.array([float(x) for x in pfile.readline().strip().split()])
 
-                # Read Troque Coefficients
+                # Read Torque Coefficients
                 if 'Torque' in line:
                     pfile.readline()
                     Cq = np.empty((len(TSR_initial),len(pitch_initial)))
                     for tsr_i in range(len(TSR_initial)):
                         Cq[tsr_i] = np.array([float(x) for x in pfile.readline().strip().split()])
 
-            # Store necessary metrics for analysis
+            # Store necessary metrics for analysis and tuning
             self.pitch_initial_rad = pitch_initial_rad
             self.TSR_initial = TSR_initial
             self.Cp_table = Cp
