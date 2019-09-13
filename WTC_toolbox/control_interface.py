@@ -93,6 +93,7 @@ class ConInt():
         #print('len',len(data_p),len(self.avrSWAP))
 
 
+        self.avrSWAP = data
 
 
     def call_controller(self,t,dt,pitch,genspeed,rotspeed,ws):
