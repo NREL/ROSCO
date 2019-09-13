@@ -123,9 +123,8 @@ class Sim():
         self.t_array = t_array
         self.ws_array = ws_array
 
-    def plot_ws_series(self):
 
-        fig, axarr = plt.subplots(6,1,sharex=True,figsize=(6,10))
+        fig, axarr = plt.subplots(4,1,sharex=True,figsize=(6,10))
 
 
 
@@ -144,4 +143,8 @@ class Sim():
         ax.grid()
         ax.legend()
 
+        ax = axarr[3]
+        ax.plot(self.t_array,self.pitch,label='Bld Pitch')
+        ax.grid()
+        ax.legend()
         
