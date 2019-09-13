@@ -135,24 +135,25 @@ class Controller():
         B_beta = B_beta[len(v_below_rated):len(v)]
 
         # Find gain schedule
-        self.pc_gain_schedule = GainSchedule()
+        self.pc_gain_schedule = ControllerTypes()
         self.pc_gain_schedule.second_order_PI(zeta_pc, omega_pc,A_pc,B_beta,linearize=True,v=v_above_rated)
-        self.vs_gain_schedule = GainSchedule()
+        self.vs_gain_schedule = ControllerTypes()
         self.vs_gain_schedule.second_order_PI(zeta_vs, omega_vs,A_vs,B_tau,linearize=False,v=v_below_rated)
 
         # Store some variables
-        self.v = v          # Wind speed (m/s)
+        self.v = v                                  # Wind speed (m/s)
+        self.v_below_rated = v_below_rated
         self.Cp_op = Cp_op
         self.pitch_op = pitch_op
-        self.pitc_op_pc = pitch_op[len(v_below_rated):len(v)]
+        self.pitch_op_pc = pitch_op[len(v_below_rated):len(v)]
         self.TSR_op = TSR_op
         self.A = A 
         self.B_beta = B_beta
 
-class GainSchedule():
+class ControllerTypes():
     def __init__(self):
         '''
-        Gain Schedule class used to define gain schedules for desired closed loop dynamics
+        Controller Types class used to define gains for desired closed loop dynamics
         '''
         pass
 
