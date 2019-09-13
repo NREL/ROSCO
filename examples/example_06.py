@@ -12,6 +12,8 @@ import os
 # ensure proper directory location --- this is annoying and should be fixed
 path = os.getcwd()
 os.chdir('%s/examples'%path)
+# ensure proper directory location 
+os.chdir('/Users/nabbas/Documents/WindEnergyToolbox/WTC_toolbox/examples')
 
 # Load turbine model
 # Initialiize a turbine class
