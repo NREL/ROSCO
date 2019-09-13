@@ -1,7 +1,6 @@
 # Example_06
 # Step wind simulation
 
-
 from WTC_toolbox import turbine as wtc_turbine
 from WTC_toolbox import sim as wtc_sim
 from WTC_toolbox import control_interface as ci
@@ -9,9 +8,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-# ensure proper directory location --- this is annoying and should be fixed
-path = os.getcwd()
-os.chdir('%s/examples'%path)
 # ensure proper directory location 
 os.chdir('/Users/nabbas/Documents/WindEnergyToolbox/WTC_toolbox/examples')
 
@@ -39,12 +35,14 @@ sim = wtc_sim.Sim(turbine,controller_int)
 
 # Define a wind speed history
 dt = 0.1
-t= np.arange(0,200,dt)
-ws = np.ones_like(t) * 9.
-ws[t>100.] = 10.
+tlen = 400      # length of time to simulate (s)
+ws0 = 9         # initial wind speed (m/s)
+t= np.arange(0,tlen,dt) 
+ws = np.ones_like(t) * ws0
+# add steps at every 100s
+for i in range(len(t)):
+    ws[i] = ws[i] + t[i]//100
 
-# fig, ax = plt.subplots()
-# ax.plot(t,ws)
-# plt.show()
 
+# Run simulator
 sim.sim_ws_series(t,ws)
