@@ -53,13 +53,27 @@ class Sim():
         gen_torque = np.ones_like(t_array) # * trq_cont(turbine_dict, gen_speed[0])
         gen_power = np.ones_like(t_array) * 0.0
 
+
+        try: 
+            self.turbine.cc_rotor.evaluate(ws_array[1], [rot_speed[0]/rpm2RadSec], 
+                                                        [pitch[0]], 
+                                                        coefficients=True)
+            use_interpolated = False
+        except: 
+            use_interpolated = True
+            print('CCBLADE Error -- attempting to use interpolated Cp, Ct, Cq, tables')
+
         # Loop through time
         for i, t in enumerate(t_array):
             if i == 0:
                 continue # Skip the first run
 
             ws = ws_array[i]
-            P, T, Q, M, Cp, Ct, cq, CM = self.turbine.cc_rotor.evaluate([ws], 
+            if use_interpolated:
+                tsr = rot_speed[i-1] * self.turbine.RotorRad / ws
+                cq = self.turbine.Cq.interp_surface([pitch[i-1]],tsr)
+            if not use_interpolated:
+                P, T, Q, M, Cp, Ct, cq, CM = self.turbine.cc_rotor.evaluate([ws], 
                                                         [rot_speed[i-1]/rpm2RadSec], 
                                                         [pitch[i-1]], 
                                                         coefficients=True)
