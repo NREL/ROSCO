@@ -13,6 +13,11 @@ from ctypes import byref, cdll, c_int, POINTER, c_float, c_char_p, c_double, cre
 import numpy as np
 from numpy.ctypeslib import ndpointer
 
+# Some useful constants
+deg2rad = np.deg2rad(1)
+rad2deg = np.rad2deg(1)
+rpm2RadSec = 2.0*(np.pi)/60.0
+
 class ConInt():
     """
     Define interface to a given controller
