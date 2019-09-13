@@ -82,8 +82,10 @@ class ConInt():
         c_float_p = POINTER(c_float)
         data = self.avrSWAP.astype(np.float32)
         data_p = data.ctypes.data_as(c_float_p)
+        p_data = data.ctypes.data_as(c_float_p)
 
-        self.discon.DISCON(data_p, byref(self.aviFAIL), self.accINFILE, self.avcOUTNAME, self.avcMSG)
+        # Run DISCON
+        self.discon.DISCON(p_data, byref(self.aviFAIL), self.accINFILE, self.avcOUTNAME, self.avcMSG)
 
         # Push back to avr swap
         # print(data_p[47])
