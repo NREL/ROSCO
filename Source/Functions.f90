@@ -202,70 +202,6 @@ CONTAINS
         END IF
     END SUBROUTINE StateMachine
     !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE Debug(LocalVar, CntrPar, avrSWAP, RootName, size_avcOUTNAME)
-        USE, INTRINSIC  :: ISO_C_Binding
-        USE DRC_Types, ONLY : LocalVariables, ControlParameters
-        
-        IMPLICIT NONE
-    
-        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
-        TYPE(LocalVariables), INTENT(IN)        :: LocalVar
-    
-        INTEGER(4), INTENT(IN)                      :: size_avcOUTNAME
-        INTEGER(4)                                  :: I                ! Generic index.
-        CHARACTER(1), PARAMETER                     :: Tab = CHAR(9)                        ! The tab character.
-        CHARACTER(25), PARAMETER                    :: FmtDat = "(F8.3,99('"//Tab//"',ES10.3E2,:))  "   ! The format of the debugging data
-        INTEGER(4), PARAMETER                       :: UnDb = 85        ! I/O unit for the debugging information
-        INTEGER(4), PARAMETER                       :: UnDb2 = 86       ! I/O unit for the debugging information, avrSWAP
-        REAL(C_FLOAT), INTENT(INOUT)                :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
-        CHARACTER(size_avcOUTNAME-1), INTENT(IN)    :: RootName     ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
-        
-        !..............................................................................................................................
-        ! Initializing debug file
-        !..............................................................................................................................
-        IF (LocalVar%iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
-        ! If we're debugging, open the debug file and write the header:
-            IF (CntrPar%LoggingLevel > 0) THEN
-                !OPEN(unit=UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='NEW')
-                OPEN(unit=UnDb, FILE='DEBUG.dbg')
-                WRITE (UnDb,'(A)')  '   LocalVar%Time '  //Tab//'LocalVar%FA_Acc  '//Tab//'LocalVar%FA_AccHPF  '//Tab//'LocalVar%FA_AccHPFI  '//Tab//'LocalVar%PitCom  '
-                WRITE (UnDb,'(A)')  '   (sec) ' //Tab//'(m/s^2)    ' //Tab//'(m/s^2)    ' //Tab//'(m/s)    ' //Tab//'(rad)    '
-                !WRITE (UnDb,'(A)') '   LocalVar%Time '  //Tab//'LocalVar%PC_PitComT  ' //Tab//'LocalVar%PC_SpdErr  ' //Tab//'LocalVar%PC_KP ' //Tab//'LocalVar%PC_KI  ' //Tab//'LocalVar%Y_M  ' //Tab//'LocalVar%rootMOOP(1)  '//Tab//'VS_RtPwr  '//Tab//'LocalVar%GenTq'
-                !WRITE (UnDb,'(A)') '   (sec) ' //Tab//'(rad)    '  //Tab//'(rad/s) '//Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   ' //Tab//'(?)   ' //Tab//'(W)   '//Tab//'(Nm)  '
-            END IF
-            
-            IF (CntrPar%LoggingLevel > 1) THEN
-                !OPEN(UnDb2, FILE=TRIM(RootName)//'.dbg2', STATUS='REPLACE')
-                OPEN(unit=UnDb2, FILE='DEBUG2.dbg')
-                WRITE(UnDb2,'(/////)')
-                WRITE(UnDb2,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1,85)
-                WRITE(UnDb2,'(A,85("'//Tab//'(-)"))')  '(s)'
-            END IF
-        ELSE
-            ! Print simulation status, every 10 seconds
-            IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
-                WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0, LocalVar%WE_Vw ! LocalVar%Time !/1000.0
-                100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')
-                ! PRINT *, LocalVar%PC_State, LocalVar%VS_State, CntrPar%VS_Rgn3Pitch, CntrPar%PC_FinePit, CntrPar%PC_Switch, LocalVar%BlPitch(1) ! Additional debug info
-                ! PRINT *, LocalVar%RotSpeed
-            END IF
-            
-            ! Output debugging information if requested:
-            IF (CntrPar%LoggingLevel > 0) THEN
-                WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%FA_Acc, LocalVar%FA_AccHPF, LocalVar%FA_AccHPFI, LocalVar%PitCom
-            END IF
-            
-            IF (CntrPar%LoggingLevel > 1) THEN
-                WRITE (UnDb2,FmtDat)    LocalVar%Time, avrSWAP(1:85)
-            END IF
-        END IF
-        
-        IF (MODULO(LocalVar%Time, 10.0) == 0.0) THEN
-            !LocalVar%TestType = LocalVar%TestType + 10
-            !PRINT *, LocalVar%TestType
-        END IF
-    END SUBROUTINE Debug
-    !-------------------------------------------------------------------------------------------------------------------------------
     !The Coleman or d-q axis transformation transforms the root out of plane bending moments of each turbine blade
     !to a direct axis and a quadrature axis
     SUBROUTINE ColemanTransform(rootMOOP, aziAngle, nHarmonic, axTOut, axYOut)
@@ -377,5 +313,69 @@ CONTAINS
         LocalVar%WE_Vw = LocalVar%WE_VwI + CntrPar%WE_Gamma*LocalVar%RotSpeed
         
     END SUBROUTINE WindSpeedEstimator
+    !-------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE Debug(LocalVar, CntrPar, avrSWAP, RootName, size_avcOUTNAME)
+        USE, INTRINSIC  :: ISO_C_Binding
+        USE DRC_Types, ONLY : LocalVariables, ControlParameters
+        
+        IMPLICIT NONE
+    
+        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
+        TYPE(LocalVariables), INTENT(IN)        :: LocalVar
+    
+        INTEGER(4), INTENT(IN)                      :: size_avcOUTNAME
+        INTEGER(4)                                  :: I                ! Generic index.
+        CHARACTER(1), PARAMETER                     :: Tab = CHAR(9)                        ! The tab character.
+        CHARACTER(25), PARAMETER                    :: FmtDat = "(F8.3,99('"//Tab//"',ES10.3E2,:))  "   ! The format of the debugging data
+        INTEGER(4), PARAMETER                       :: UnDb = 85        ! I/O unit for the debugging information
+        INTEGER(4), PARAMETER                       :: UnDb2 = 86       ! I/O unit for the debugging information, avrSWAP
+        REAL(C_FLOAT), INTENT(INOUT)                :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
+        CHARACTER(size_avcOUTNAME-1), INTENT(IN)    :: RootName     ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
+        
+        !..............................................................................................................................
+        ! Initializing debug file
+        !..............................................................................................................................
+        IF (LocalVar%iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
+        ! If we're debugging, open the debug file and write the header:
+            IF (CntrPar%LoggingLevel > 0) THEN
+                !OPEN(unit=UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='NEW')
+                OPEN(unit=UnDb, FILE='DEBUG.dbg')
+                WRITE (UnDb,'(A)')  '   LocalVar%Time '  //Tab//'LocalVar%FA_Acc  '//Tab//'LocalVar%FA_AccHPF  '//Tab//'LocalVar%FA_AccHPFI  '//Tab//'LocalVar%PitCom  '
+                WRITE (UnDb,'(A)')  '   (sec) ' //Tab//'(m/s^2)    ' //Tab//'(m/s^2)    ' //Tab//'(m/s)    ' //Tab//'(rad)    '
+                !WRITE (UnDb,'(A)') '   LocalVar%Time '  //Tab//'LocalVar%PC_PitComT  ' //Tab//'LocalVar%PC_SpdErr  ' //Tab//'LocalVar%PC_KP ' //Tab//'LocalVar%PC_KI  ' //Tab//'LocalVar%Y_M  ' //Tab//'LocalVar%rootMOOP(1)  '//Tab//'VS_RtPwr  '//Tab//'LocalVar%GenTq'
+                !WRITE (UnDb,'(A)') '   (sec) ' //Tab//'(rad)    '  //Tab//'(rad/s) '//Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   ' //Tab//'(?)   ' //Tab//'(W)   '//Tab//'(Nm)  '
+            END IF
+            
+            IF (CntrPar%LoggingLevel > 1) THEN
+                !OPEN(UnDb2, FILE=TRIM(RootName)//'.dbg2', STATUS='REPLACE')
+                OPEN(unit=UnDb2, FILE='DEBUG2.dbg')
+                WRITE(UnDb2,'(/////)')
+                WRITE(UnDb2,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1,85)
+                WRITE(UnDb2,'(A,85("'//Tab//'(-)"))')  '(s)'
+            END IF
+        ELSE
+            ! Print simulation status, every 10 seconds
+            IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
+                WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0, LocalVar%WE_Vw ! LocalVar%Time !/1000.0
+                100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')
+                ! PRINT *, LocalVar%PC_State, LocalVar%VS_State, CntrPar%VS_Rgn3Pitch, CntrPar%PC_FinePit, CntrPar%PC_Switch, LocalVar%BlPitch(1) ! Additional debug info
+                ! PRINT *, LocalVar%RotSpeed
+            END IF
+            
+            ! Output debugging information if requested:
+            IF (CntrPar%LoggingLevel > 0) THEN
+                WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%FA_Acc, LocalVar%FA_AccHPF, LocalVar%FA_AccHPFI, LocalVar%PitCom
+            END IF
+            
+            IF (CntrPar%LoggingLevel > 1) THEN
+                WRITE (UnDb2,FmtDat)    LocalVar%Time, avrSWAP(1:85)
+            END IF
+        END IF
+        
+        IF (MODULO(LocalVar%Time, 10.0) == 0.0) THEN
+            !LocalVar%TestType = LocalVar%TestType + 10
+            !PRINT *, LocalVar%TestType
+        END IF
+    END SUBROUTINE Debug
     !-------------------------------------------------------------------------------------------------------------------------------
 END MODULE Functions
