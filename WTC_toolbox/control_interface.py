@@ -13,6 +13,11 @@ from ctypes import byref, cdll, c_int, POINTER, c_float, c_char_p, c_double, cre
 import numpy as np
 from numpy.ctypeslib import ndpointer
 
+# Some useful constants
+deg2rad = np.deg2rad(1)
+rad2deg = np.rad2deg(1)
+rpm2RadSec = 2.0*(np.pi)/60.0
+
 class ConInt():
     """
     Define interface to a given controller
@@ -21,6 +26,11 @@ class ConInt():
     def __init__(self, lib_name):
         """
         Setup the interface
+
+        Parameters:
+        -----------
+            lib_name = str
+                        name of dynamic library containing controller, (.dll,.so,.dylib)
         """
         self.lib_name = lib_name
         self.param_name = 'DISCON.IN' # this appears to be hard-coded so match here for now
@@ -35,12 +45,11 @@ class ConInt():
         # Initialize
         self.pitch = 0
         self.torque = 0
-
+        # -- discon
         self.discon = cdll.LoadLibrary(self.lib_name)
-
         self.avrSWAP = np.zeros(self.avr_size)
 
-        # Define avrSWAP some
+        # Define some avrSWAP parameters
         self.avrSWAP[2] = self.DT
         self.avrSWAP[60] = self.num_blade
 
@@ -52,48 +61,56 @@ class ConInt():
         self.avrSWAP[49] = self.char_buffer
         self.avrSWAP[50] = self.char_buffer
 
+        # Initialize DISCON and related
         self.aviFAIL = c_int32() # 1
         self.accINFILE = self.param_name.encode('utf-8')
         self.avcOUTNAME = create_string_buffer(1000) # 'DEMO'.encode('utf-8')
         self.avcMSG = create_string_buffer(1000)
-
-        # self.discon.DISCON.argtypes = [ndpointer(c_double, flags="C_CONTIGUOUS"), POINTER(c_int32), c_char_p, c_char_p, c_char_p] # (all defined by ctypes)
         self.discon.DISCON.argtypes = [POINTER(c_float), POINTER(c_int32), c_char_p, c_char_p, c_char_p] # (all defined by ctypes)
 
+        # Run DISCON
         self.call_discon()
-
-
-        # First call
-        # self.discon.DISCON(self.avrSWAP, byref(self.aviFAIL), self.accINFILE, self.avcOUTNAME, self.avcMSG)
-        
 
         # Code as not first run
         self.avrSWAP[0] = 1
 
 
     def call_discon(self):
-        
-        # Convert AVR swap to the right thing
+        '''
+        Call DISCON.dll (or .so,.dylib)
+        '''
+        # Convert AVR swap to the c pointer
         c_float_p = POINTER(c_float)
         data = self.avrSWAP.astype(np.float32)
-        data_p = data.ctypes.data_as(c_float_p)
+        p_data = data.ctypes.data_as(c_float_p)
 
-        self.discon.DISCON(data_p, byref(self.aviFAIL), self.accINFILE, self.avcOUTNAME, self.avcMSG)
+        # Run DISCON
+        self.discon.DISCON(p_data, byref(self.aviFAIL), self.accINFILE, self.avcOUTNAME, self.avcMSG)
 
         # Push back to avr swap
-        print(data_p[47])
-        print(self.avrSWAP[47])
-        #for i in range(len(self.avrSWAP)):
-        #    self.avrSWAP
-        #print('len',len(data_p),len(self.avrSWAP))
-
-
+        self.avrSWAP = data
 
 
     def call_controller(self,t,dt,pitch,genspeed,rotspeed,ws):
+        '''
+        Runs the controller. Passes current turbine state to the controller, and returns control inputs back
         
-        
-        
+        Parameters:
+        -----------
+            t: float
+                time, (s)
+            dt: float
+                timestep, (s)
+            pitch: float
+                blade pitch, (rad)
+            genspeed: float
+                generator speed, (rad/s)
+            rotspeed: float
+                rotor speed, (rad/s)
+            ws: float
+                wind speed, (m/s)
+        '''
+
         # Add states to avr
         self.avrSWAP[1] = t
         self.avrSWAP[2] = dt
@@ -103,15 +120,12 @@ class ConInt():
         self.avrSWAP[26] = ws
 
         self.call_discon()
-        # self.discon.DISCON(self.avrSWAP, byref(self.aviFAIL), self.accINFILE, self.avcOUTNAME, self.avcMSG)
 
         self.pitch = self.avrSWAP[41]
-        self.torque = self.avrSWAP[47]
+        self.torque = self.avrSWAP[46]
+
+        return(self.torque,self.pitch)
 
     def show_control_values(self):
         print('Pitch',self.pitch)
         print('Torque',self.torque)
-
-
-#discon.DISCON.argtypes = [POINTER(c_float), c_int, c_char_p, c_char_p, c_char_p] # (all defined by ctypes)
-# discon.DISCON(byref(avrSWAP), aviFAIL, accINFILE, avcOUTNAME, avcMSG)

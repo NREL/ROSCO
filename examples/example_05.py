@@ -1,5 +1,6 @@
 # Example_05
 # make some test controller calls
+# This example is not so useful and can perhaps be deleted when simulator example is working
 
 
 from WTC_toolbox import turbine as wtc_turbine
