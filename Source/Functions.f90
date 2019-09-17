@@ -2,6 +2,8 @@
 MODULE Functions
 
 USE Constants
+USE Filters
+
 IMPLICIT NONE
 
 CONTAINS
@@ -313,6 +315,38 @@ CONTAINS
         LocalVar%WE_Vw = LocalVar%WE_VwI + CntrPar%WE_Gamma*LocalVar%RotSpeed
         
     END SUBROUTINE WindSpeedEstimator
+    !-------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE SetpointSmoother(LocalVar, CntrPar, objInst)
+        USE DRC_Types!, ONLY : LocalVariables, ControlParameters, ObjectInstances
+        IMPLICIT NONE
+    
+        ! Inputs
+        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
+        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+
+        Real(4), PARAMETER           :: SetpointSmoother_Mode = 1                               ! Gain Bias Mode, 0 = no gain bais, 1 = gain bias-.
+        Real(4), PARAMETER           :: VS_GainBias   = 30                              ! Variable speed torque controller gain bias, (rad/s)/(rad).
+        Real(4), PARAMETER           :: PC_GainBias   = 0.0001                          ! Collective pitch controller gain bias, (rad/s)/(Nm).
+        Real(4), PARAMETER           :: CornerFreq_GB = 0.1                             ! Cornering frequency of first order low pass filter for the gain bias signal, Hz.
+        Real(4)                      :: DelOmega                                        ! Reference generator speed shift, rad/s.
+        Real(4), SAVE                :: DelOmegaF                                       ! Filtered reference generator speed shift, rad/s.
+        Real(4)                      :: Alpha_GB                                        ! Current coefficient in the recursive, single-pole, low-pass filter for DelOmega, (-).
+        Real(4)                      :: GainBias_Mode = 1
+        ! Setpoint Smoothing. 
+        ! Note: This method is adapted from methods developed by David Schlipf 
+        !       with Sowento energy. Any publications about this controller 
+        !       should give him credit, where credit is due. 
+        print *, 'GenTq = ', LocalVar%VS_LastGenTrq
+        IF ( GainBias_Mode == 1) THEN
+            DelOmega = (LocalVar%BlPitch(1) - CntrPar%PC_MinPit)*VS_GainBias - (CntrPar%VS_RtTq - LocalVar%VS_LastGenTrq)*PC_GainBias
+            !Filter
+            DelOmegaF = LPFilter(DelOmega, LocalVar%DT, CornerFreq_GB, LocalVar%iStatus, .FALSE., objInst%instLPF) 
+        ELSE
+            DelOmegaF = 0
+        ENDIF
+        
+    END SUBROUTINE SetpointSmoother
     !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE Debug(LocalVar, CntrPar, avrSWAP, RootName, size_avcOUTNAME)
         USE, INTRINSIC  :: ISO_C_Binding
