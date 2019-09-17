@@ -11,6 +11,7 @@ USE             :: ReadSetParameters
 USE             :: Controllers
 USE             :: Constants
 USE             :: Filters
+USE             :: Functions
 
 IMPLICIT NONE
 #ifndef IMPLICIT_DLLEXPORT
@@ -51,6 +52,8 @@ IF ((LocalVar%iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control 
     CALL StateMachine(CntrPar, LocalVar)
     CALL WindSpeedEstimator(LocalVar, CntrPar)
     
+    CALL SetpointSmoother(LocalVar, CntrPar, objInst)
+
     CALL VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst)
     CALL PitchControl(avrSWAP, CntrPar, LocalVar, objInst)
     CALL YawRateControl(avrSWAP, CntrPar, LocalVar, objInst)
