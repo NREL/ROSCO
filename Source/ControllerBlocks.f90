@@ -33,9 +33,9 @@ CONTAINS
         TYPE(ControlParameters), INTENT(IN)     :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
         
-            ! Local
-            ! Pitch control state machine
-        IF (LocalVar%iStatus == 0) THEN
+        ! Initialize State machine if first call
+        IF (LocalVar%iStatus == 0) THEN ! .TRUE. if we're on the first call to the DLL
+
             IF (LocalVar%PitCom(1) >= CntrPar%VS_Rgn3Pitch) THEN ! We are in region 3
                 IF (CntrPar%VS_ControlMode == 1) THEN ! Constant power tracking
                     LocalVar%VS_State = 5
@@ -44,10 +44,12 @@ CONTAINS
                     LocalVar%VS_State = 4
                     LocalVar%PC_State = 1
                 END IF
-            ELSE
+            ELSE ! We are in Region 2
                 LocalVar%VS_State = 2
                 LocalVar%PC_State = 0
             END IF
+
+        ! Operational States
         ELSE
             IF ((CntrPar%VS_ControlMode == 0) .AND. (LocalVar%GenTq >= CntrPar%PC_RtTq99)) THEN
                 LocalVar%PC_State = 1
@@ -57,21 +59,26 @@ CONTAINS
                 LocalVar%PC_State = 0
             END IF
             
-                ! Torque control state machine
-            IF (LocalVar%PC_PitComT >= CntrPar%VS_Rgn3Pitch) THEN ! We are in region 3 ! 
+            ! Torque control state machine
+            IF (LocalVar%PC_PitComT >= CntrPar%VS_Rgn3Pitch) THEN 
+                ! Region 3
                 IF (CntrPar%VS_ControlMode == 1) THEN ! Constant power tracking
                     LocalVar%VS_State = 5
                 ELSE ! Constant torque tracking
                     LocalVar%VS_State = 4
                 END IF
             ELSE
-                IF (LocalVar%GenArTq >= CntrPar%VS_MaxOMTq*1.01) THEN ! We are in region 2 1/2 - active PI torque control
+                ! Region 2 1/2 - active PI torque control
+                IF (LocalVar%GenArTq >= CntrPar%VS_MaxOMTq*1.01) THEN 
                     LocalVar%VS_State = 3
-                ELSEIF (LocalVar%GenBrTq <= CntrPar%VS_MinOMTq*0.99) THEN ! We are in region 1 1/2
+                ! Region 1 1/2
+                ELSEIF (LocalVar%GenBrTq <= CntrPar%VS_MinOMTq*0.99) THEN 
                     LocalVar%VS_State = 1
-                ELSEIF (LocalVar%GenSpeedF < CntrPar%VS_RefSpd)  THEN ! We are in region 2 - optimal torque is proportional to the square of the generator speed
+                ! Region 2 - optimal torque is proportional to the square of the generator speed
+                ELSEIF (LocalVar%GenSpeedF < CntrPar%VS_RefSpd)  THEN 
                     LocalVar%VS_State = 2
-                ELSE ! Error state, for debugging purposes
+                ! Error state, Debug
+                ELSE 
                     LocalVar%VS_State = 0
                 END IF
             END IF
