@@ -17,7 +17,7 @@ BITS = 64
 
 DLL_DIR     = .
 
-SOURCE_FILE = Constants.f90 DRC_Types.f90 Filters.f90 Functions.f90 ReadSetParameters.f90 Controllers.f90 DISCON.f90
+SOURCE_FILE = Constants.f90 DRC_Types.f90 Filters.f90 Functions.f90 ReadSetParameters.f90 ControllerBlocks.f90 Controllers.f90 DISCON.f90
 
 
    # Name of compiler to use and flags to use.

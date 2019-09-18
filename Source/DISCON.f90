@@ -8,6 +8,7 @@ SUBROUTINE DISCON(avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG) BIND (C, NAME
 USE, INTRINSIC  :: ISO_C_Binding
 USE             :: DRC_Types
 USE             :: ReadSetParameters
+USE             :: ControllerBlocks
 USE             :: Controllers
 USE             :: Constants
 USE             :: Filters
