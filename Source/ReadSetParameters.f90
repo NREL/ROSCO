@@ -31,6 +31,7 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%F_NotchType
         READ(UnControllerParameters, *) CntrPar%IPC_ControlMode
         READ(UnControllerParameters, *) CntrPar%VS_ControlMode
+        READ(UnControllerParameters, *) CntrPar%PC_ControlMode
         READ(UnControllerParameters, *) CntrPar%Y_ControlMode        
         READ(UnControllerParameters, *)
 

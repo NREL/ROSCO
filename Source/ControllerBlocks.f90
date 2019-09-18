@@ -51,11 +51,10 @@ CONTAINS
 
         ! Operational States
         ELSE
-            IF ((CntrPar%VS_ControlMode == 0) .AND. (LocalVar%GenTq >= CntrPar%PC_RtTq99)) THEN
+            ! Pitch controller state machine
+            IF (CntrPar%PC_ControlMode == 1) THEN
                 LocalVar%PC_State = 1
-            ELSEIF ((CntrPar%VS_ControlMode == 1) .AND. (LocalVar%GenArTq >= CntrPar%VS_ArSatTq*0.99)) THEN
-                LocalVar%PC_State = 2
-            ELSE
+            ELSE 
                 LocalVar%PC_State = 0
             END IF
             
