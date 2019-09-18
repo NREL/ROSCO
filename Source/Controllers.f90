@@ -24,7 +24,7 @@ CONTAINS
         !..............................................................................................................................
         IF (LocalVar%PC_State >= 1) THEN
             LocalVar%PC_MaxPitVar = CntrPar%PC_MaxPit
-        ELSE
+        ELSE ! debug mode, fix at fine pitch
             LocalVar%PC_MaxPitVar = CntrPar%PC_FinePit
         END IF
         
