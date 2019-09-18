@@ -79,7 +79,7 @@ CONTAINS
         avrSWAP(44) = LocalVar%PitCom(3)    ! "
         avrSWAP(45) = LocalVar%PitCom(1)    ! Use the command angle of blade 1 if using collective pitch
     END SUBROUTINE PitchControl
-    
+!-------------------------------------------------------------------------------------------------------------------------------  
     SUBROUTINE VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst)
     
         USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
@@ -129,7 +129,7 @@ CONTAINS
         ! Set the command generator torque (See Appendix A of Bladed User's Guide):
         avrSWAP(47) = LocalVar%VS_LastGenTrq   ! Demanded generator torque
     END SUBROUTINE VariableSpeedControl
-    
+!-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE YawRateControl(avrSWAP, CntrPar, LocalVar, objInst)
     
         USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
@@ -165,7 +165,7 @@ CONTAINS
             END IF
         END IF
     END SUBROUTINE YawRateControl
-    
+!-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE IPC(CntrPar, LocalVar, objInst)
         !-------------------------------------------------------------------------------------------------------------------------------
         ! Individual pitch control subroutine
