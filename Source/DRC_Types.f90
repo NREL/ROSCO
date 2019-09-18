@@ -83,7 +83,7 @@ TYPE, PUBLIC :: ControlParameters
 END TYPE ControlParameters
 
 TYPE, PUBLIC :: LocalVariables
-    ! From avrSWAP
+    ! ---------- From avrSWAP ----------
     INTEGER(4)                      :: iStatus
     REAL(4)                      :: Time
     REAL(4)                      :: DT
@@ -97,7 +97,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                      :: Azimuth
     INTEGER(4)                      :: NumBl
     
-    ! Internal controller variables
+    ! ---------- -Internal controller variables ----------
     REAL(4)                             :: FA_Acc                       ! Tower fore-aft acceleration [m/s^2]
     REAL(4)                             :: FA_AccHPF                    ! High-pass filtered fore-aft acceleration [m/s^2]
     REAL(4)                             :: FA_AccHPFI                   ! Tower velocity, high-pass filtered and integrated fore-aft acceleration [m/s]
@@ -108,21 +108,22 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                             :: GenArTq                      ! Electrical generator torque, for above-rated PI-control [Nm].
     REAL(4)                             :: GenBrTq                      ! Electrical generator torque, for below-rated PI-control [Nm].
     INTEGER(4)                          :: GlobalState                  ! Current global state to determine the behavior of the different controllers [-].
-    REAL(4)                             :: IPC_PitComF(3)               ! Commanded pitch of each blade as calculated by the individual pitch controller, F stands for low-pass filtered, [rad].
-    REAL(4)                             :: PC_KP                        ! Proportional gain for pitch controller at rated pitch (zero), [s].
-    REAL(4)                             :: PC_KI                        ! Integral gain for pitch controller at rated pitch (zero), [-].
-    REAL(4)                             :: PC_KD                        ! Differential gain for pitch controller at rated pitch (zero), [-].
+    REAL(4)                             :: IPC_PitComF(3)               ! Commanded pitch of each blade as calculated by the individual pitch controller, F stands for low-pass filtered [rad].
+    REAL(4)                             :: PC_KP                        ! Proportional gain for pitch controller at rated pitch (zero) [s].
+    REAL(4)                             :: PC_KI                        ! Integral gain for pitch controller at rated pitch (zero) [-].
+    REAL(4)                             :: PC_KD                        ! Differential gain for pitch controller at rated pitch (zero) [-].
     REAL(4)                             :: PC_TF                        ! First-order filter parameter for derivative action
     REAL(4)                             :: PC_MaxPitVar                 ! Maximum pitch setting in pitch controller (variable) [rad].
-    REAL(4)                             :: PC_PitComT                   ! Total command pitch based on the sum of the proportional and integral terms, [rad].
+    REAL(4)                             :: PC_PitComT                   ! Total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(4)                             :: PC_PitComT_IPC(3)            ! Total command pitch based on the sum of the proportional and integral terms, including IPC term [rad].
     REAL(4)                             :: PC_PwrErr                    ! Power error with respect to rated power [W]
     REAL(4)                             :: PC_SineExcitation            ! Sine contribution to pitch signal
     REAL(4)                             :: PC_SpdErr                    ! Current speed error (pitch control) [rad/s].
     INTEGER(4)                          :: PC_State                     ! State of the pitch control system
-    REAL(4)                             :: PitCom(3)                    ! Commanded pitch of each blade the last time the controller was called, [rad].
+    REAL(4)                             :: PitCom(3)                    ! Commanded pitch of each blade the last time the controller was called [rad].
+    REAL(4)                             :: SS_DelOmegaF                 ! Filtered setpoint shifting term defined in setpoint smoother [rad/s].
     INTEGER(4)                          :: TestType                     ! Test variable, no use
-    REAL(4)                             :: VS_LastGenTrq                ! Commanded electrical generator torque the last time the controller was called, [Nm].
+    REAL(4)                             :: VS_LastGenTrq                ! Commanded electrical generator torque the last time the controller was called [Nm].
     REAL(4)                             :: VS_MechGenPwr                ! Mechanical power on the generator axis [W]
     REAL(4)                             :: VS_SpdErrAr                  ! Current speed error (generator torque control) [rad/s].
     REAL(4)                             :: VS_SpdErrBr                  ! Current speed error (generator torque control) [rad/s].
@@ -134,7 +135,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                             :: Y_ErrLPFFast                 ! Filtered yaw error by fast low pass filter [rad].
     REAL(4)                             :: Y_ErrLPFSlow                 ! Filtered yaw error by slow low pass filter [rad].
     REAL(4)                             :: Y_MErr                       ! Measured yaw error, measured + setpoint [rad].
-    REAL(4)                             :: Y_YawEndT                    ! Yaw end time, [s]. Indicates the time up until which yaw is active with a fixed rate
+    REAL(4)                             :: Y_YawEndT                    ! Yaw end time [s]. Indicates the time up until which yaw is active with a fixed rate
 END TYPE LocalVariables
 
 TYPE, PUBLIC :: ObjectInstances

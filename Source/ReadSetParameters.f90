@@ -410,6 +410,9 @@ CONTAINS
             LocalVar%WE_Vw = 10
             LocalVar%WE_VwI = LocalVar%WE_Vw - CntrPar%WE_Gamma*LocalVar%RotSpeed
             
+            ! Setpoint Smoother initialization to zero
+            LocalVar%SS_DelOmegaF = 0
+
             ! Check validity of input parameters:
             CALL Assert(LocalVar, CntrPar, avrSWAP, aviFAIL, ErrMsg, size_avcMSG)
             
