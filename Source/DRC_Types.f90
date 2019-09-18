@@ -5,10 +5,10 @@ IMPLICIT NONE
 TYPE, PUBLIC :: ControlParameters
     INTEGER(4)                          :: LoggingLevel                 ! 0 = write no debug files, 1 = write standard output .dbg-file, 2 = write standard output .dbg-file and complete avrSWAP-array .dbg2-file
     
-    INTEGER(4)                          :: F_LPFType                    ! 1 = first-order low-pass filter, 2 = second-order low-pass filter
-    INTEGER(4)                          :: F_NotchType                  ! 0 = disable, 1 = enable: notch on the measured generator speed, 
+    INTEGER(4)                          :: F_LPFType                    ! {1: first-order low-pass filter, 2: second-order low-pass filter}, [rad/s] 
+    INTEGER(4)                          :: F_NotchType                  ! Notch on the measured generator speed {0: disable, 1: enable} 
     REAL(4)                             :: F_LPFCornerFreq              ! Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
-    REAL(4)                             :: F_LPFDamping                 ! Damping coefficient if F_LPFType = 2, unused otherwise
+    REAL(4)                             :: F_LPFDamping                 ! Damping coefficient [used only when F_FilterType = 2]
     REAL(4)                             :: F_NotchCornerFreq            ! Natural frequency of the notch filter, [rad/s]
     REAL(4), DIMENSION(:), ALLOCATABLE  :: F_NotchBetaNumDen            ! These two notch damping values (numerator and denominator) determines the width and depth of the notch
     
@@ -16,11 +16,11 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)                             :: FA_IntSat                    ! Integrator saturation (maximum signal amplitude contrbution to pitch from FA damper), [rad]
     REAL(4)                             :: FA_KI                        ! Integral gain for the fore-aft tower damper controller, -1 = off / >0 = on [rad s/m]
     
-    INTEGER(4)                          :: IPC_ControlMode              ! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) 0 = off / 1 = (1P reductions) / 2 = (1P+2P reductions)
+    INTEGER(4)                          :: IPC_ControlMode              ! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {0: off, 1: 1P reductions, 2: 1P+2P reductions}
     REAL(4)                             :: IPC_IntSat                   ! Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
     REAL(4), DIMENSION(:), ALLOCATABLE  :: IPC_KI                       ! Integral gain for the individual pitch controller, [-]. 8E-10
     REAL(4), DIMENSION(:), ALLOCATABLE  :: IPC_aziOffset                ! Phase offset added to the azimuth angle for the individual pitch controller, [rad].
-    REAL(4)                             :: IPC_CornerFreqAct            ! Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal. Set 0 to disable. [rad/s]
+    REAL(4)                             :: IPC_CornerFreqAct            ! Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal {0: Disable}, [rad/s]
     
     INTEGER(4)                          :: PC_GS_n                      ! Amount of gain-scheduling table entries
     REAL(4), DIMENSION(:), ALLOCATABLE  :: PC_GS_angles                 ! Gain-schedule table: pitch angles
@@ -36,7 +36,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)                             :: PC_FinePit                   ! Record 5: Below-rated pitch angle set-point (deg) [used only with Bladed Interface]
     REAL(4)                             :: PC_Switch                    ! Angle above lowest minimum pitch angle for switch [rad]
     
-    INTEGER(4)                          :: VS_ControlMode               ! Generator torque control mode in above rated conditions, 0 = constant torque / 1 = constant power
+    INTEGER(4)                          :: VS_ControlMode               ! Generator torque control mode in above rated conditions {0: constant torque, 1: constant power}
     REAL(4)                             :: VS_GenEff                    ! Generator efficiency mechanical power -> electrical power [-]
     REAL(4)                             :: VS_ArSatTq                   ! Above rated generator torque PI control saturation, [Nm] -- 212900
     REAL(4)                             :: VS_MaxRat                    ! Maximum torque rate (in absolute value) in torque controller, [Nm/s].
@@ -59,7 +59,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)                             :: WE_Jtot                      ! Total drivetrain inertia, including blades, hub and casted generator inertia to LSS [kg m^2]
     REAL(4)                             :: WE_RhoAir                    ! Air density [kg m^-3]
     
-    INTEGER(4)                          :: Y_ControlMode                ! Yaw control mode: (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC)
+    INTEGER(4)                          :: Y_ControlMode                ! Yaw control mode {0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}
     REAL(4)                             :: Y_ErrThresh                  ! Error threshold [rad]. Turbine begins to yaw when it passes this. (104.71975512) -- 1.745329252
     REAL(4)                             :: Y_IPC_IntSat                 ! Integrator saturation (maximum signal amplitude contrbution to pitch from yaw-by-IPC)
     INTEGER(4)                          :: Y_IPC_n                      ! Number of controller gains (yaw-by-IPC)
