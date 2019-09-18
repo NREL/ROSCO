@@ -148,20 +148,35 @@ CONTAINS
     SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar)
         USE DRC_Types, ONLY : ControlParameters, LocalVariables
         
-        ! Local variables
+        ! Allocate variables
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
+        REAL(4)                                 :: VS_RefSpd        ! Referece speed for variable speed torque controller. 
+        REAL(4)                                 :: PC_RefSpd        ! Referece speed for pitch controller. 
         
-        ! Calculate yaw misalignment error
+        ! ----- Calculate yaw misalignment error -----
         LocalVar%Y_MErr = LocalVar%Y_M + CntrPar%Y_MErrSet ! Yaw-alignment error
         
-        ! Compute the current speed AND power error
-        LocalVar%PC_SpdErr = CntrPar%PC_RefSpd - LocalVar%GenSpeedF            ! Speed error
+        ! ----- Pitch controller speed and power error -----
+        ! Implement setpoint smoothing
+        IF (LocalVar%SS_DelOmegaF <= 0) THEN
+            PC_RefSpd = CntrPar%PC_RefSpd - LocalVar%SS_DelOmegaF
+        ELSE
+            PC_RefSpd = CntrPar%PC_RefSpd
+        ENDIF
+        LocalVar%PC_SpdErr = PC_RefSpd - LocalVar%GenSpeedF            ! Speed error
         LocalVar%PC_PwrErr = CntrPar%VS_RtPwr - LocalVar%VS_GenPwr             ! Power error
         
-        ! XXX
-        LocalVar%VS_SpdErrAr = CntrPar%VS_RefSpd - LocalVar%GenSpeedF       ! Current speed error - Above-rated PI-control
-        LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd - LocalVar%GenSpeedF     ! Current speed error - Below-rated PI-control
+        ! ----- Torque controller region 2.5 reference error -----
+        ! Implement setpoint smoothing
+        IF (LocalVar%SS_DelOmegaF > 0) THEN
+            VS_RefSpd = CntrPar%VS_RefSpd - LocalVar%SS_DelOmegaF
+        ELSE
+            VS_RefSpd = CntrPar%VS_RefSpd
+        ENDIF
+        ! Define transition region setpoint errors
+        LocalVar%VS_SpdErrAr = VS_RefSpd - LocalVar%GenSpeedF               ! Current speed error - Region 2.5 PI-control (Above Rated)
+        LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd - LocalVar%GenSpeedF     ! Current speed error - Region 1.5 PI-control (Below Rated)
     END SUBROUTINE ComputeVariablesSetpoints
     
     SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar)
