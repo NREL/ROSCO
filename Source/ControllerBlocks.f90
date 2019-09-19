@@ -17,7 +17,8 @@ IMPLICIT NONE
 
 CONTAINS
 !-------------------------------------------------------------------------------------------------------------------------------
-    ! State machines, determines the state of the wind turbine to specify the corresponding control actions
+    SUBROUTINE StateMachine(CntrPar, LocalVar)
+    ! State machine, determines the state of the wind turbine to specify the corresponding control actions
     ! PC States:
     !       PC_State = 0, No pitch control active, BldPitch = PC_MinPit
     !       PC_State = 1, Active PI blade pitch control enabled
@@ -104,6 +105,9 @@ CONTAINS
     END SUBROUTINE WindSpeedEstimator
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE SetpointSmoother(LocalVar, CntrPar, objInst)
+    ! Setpoint smoother modifies controller reference in order to separate generator torque and blade pitch control actions
+    !       SS_Mode = 0, No setpoint smoothing
+    !       SS_Mode = 1, Implement setpoint smoothing
         USE DRC_Types!, ONLY : LocalVariables, ControlParameters, ObjectInstances
         IMPLICIT NONE
     
@@ -121,7 +125,7 @@ CONTAINS
             ! Filter
             LocalVar%SS_DelOmegaF = LPFilter(DelOmega, LocalVar%DT, CntrPar%F_SSCornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF) 
         ELSE
-            LocalVar%SS_DelOmegaF = 0
+            LocalVar%SS_DelOmegaF = 0 ! No setpoint smoothing
         ENDIF
 
     END SUBROUTINE SetpointSmoother
