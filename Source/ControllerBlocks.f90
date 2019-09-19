@@ -18,13 +18,16 @@ IMPLICIT NONE
 CONTAINS
 !-------------------------------------------------------------------------------------------------------------------------------
     ! State machines, determines the state of the wind turbine to specify the corresponding control actions
-    ! States:
-    ! - VS/PC_State = 0, Error state, for debugging purposes (VS) / No pitch control active, pitch constant at fine-pitch (PC)
-    ! - VS_State = 1, Region 1(.5) operation, torque control to keep the rotor at cut-in speed towards the Cp-max operational curve
-    ! - VS_State = 2, Region 2, operation, maximum rotor power efficiency (Cp-max) tracking, keep TSR constant at a fixed fine-pitch angle
-    ! - VS_State = 3, Region 2.5, transition between below and above-rated operating conditions (near-rated region) using PI torque control
-    ! - VS_State = 4 + PC_State = 1, above-rated operation using pitch control (constant torque mode)
-    ! - VS_State = 5 + PC_State = 2, above-rated operation using pitch and torque control (constant power mode)
+    ! PC States:
+    !       PC_State = 0, No pitch control active, BldPitch = PC_MinPit
+    !       PC_State = 1, Active PI blade pitch control enabled
+    ! VS States
+    !       VS_State = 0, Error state, for debugging purposes, GenTq = VS_RtTq
+    !       VS_State = 1, Region 1(.5) operation, torque control to keep the rotor at cut-in speed towards the Cp-max operational curve
+    !       VS_State = 2, Region 2 operation, maximum rotor power efficiency (Cp-max) tracking using K*omega^2 law, fixed fine-pitch angle in BldPitch controller
+    !       VS_State = 3, Region 2.5, transition between below and above-rated operating conditions (near-rated region) using PI torque control
+    !       VS_State = 4, above-rated operation using pitch control (constant torque mode)
+    !       VS_State = 5, above-rated operation using pitch and torque control (constant power mode)
     SUBROUTINE StateMachine(CntrPar, LocalVar)
         USE DRC_Types, ONLY : LocalVariables, ControlParameters
         IMPLICIT NONE
