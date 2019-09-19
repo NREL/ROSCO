@@ -33,6 +33,7 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%VS_ControlMode
         READ(UnControllerParameters, *) CntrPar%PC_ControlMode
         READ(UnControllerParameters, *) CntrPar%Y_ControlMode        
+        READ(UnControllerParameters, *) CntrPar%SS_Mode        
         READ(UnControllerParameters, *)
 
         !----------------- FILTER CONSTANTS ---------------------
@@ -42,6 +43,7 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%F_NotchCornerFreq
         ALLOCATE(CntrPar%F_NotchBetaNumDen(2))
         READ(UnControllerParameters,*) CntrPar%F_NotchBetaNumDen
+        READ(UnControllerParameters,*) CntrPar%F_SSCornerFreq
         READ(UnControllerParameters, *)
 
         !----------- BLADE PITCH CONTROLLER CONSTANTS -----------
@@ -98,6 +100,12 @@ CONTAINS
         ALLOCATE(CntrPar%VS_KI(CntrPar%VS_n))
         READ(UnControllerParameters,*) CntrPar%VS_KI
         READ(UnControllerParameters, *)
+
+        !------- Setpoint Smoother --------------------------------
+        READ(UnControllerParameters, *)
+        READ(UnControllerParameters, *) CntrPar%SS_VSGainBias
+        READ(UnControllerParameters, *) CntrPar%SS_PCGainBias
+        READ(UnControllerParameters, *) 
 
         !------------ WIND SPEED ESTIMATOR CONTANTS --------------
         READ(UnControllerParameters, *)
@@ -159,7 +167,7 @@ CONTAINS
         
         ! ----- Pitch controller speed and power error -----
         ! Implement setpoint smoothing
-        IF (LocalVar%SS_DelOmegaF <= 0) THEN
+        IF (LocalVar%SS_DelOmegaF < 0) THEN
             PC_RefSpd = CntrPar%PC_RefSpd - LocalVar%SS_DelOmegaF
         ELSE
             PC_RefSpd = CntrPar%PC_RefSpd
@@ -174,6 +182,7 @@ CONTAINS
         ELSE
             VS_RefSpd = CntrPar%VS_RefSpd
         ENDIF
+
         ! Define transition region setpoint errors
         LocalVar%VS_SpdErrAr = VS_RefSpd - LocalVar%GenSpeedF               ! Current speed error - Region 2.5 PI-control (Above Rated)
         LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd - LocalVar%GenSpeedF     ! Current speed error - Region 1.5 PI-control (Below Rated)

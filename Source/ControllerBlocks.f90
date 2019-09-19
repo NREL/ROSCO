@@ -29,7 +29,7 @@ CONTAINS
         USE DRC_Types, ONLY : LocalVariables, ControlParameters
         IMPLICIT NONE
     
-            ! Inputs
+        ! Inputs
         TYPE(ControlParameters), INTENT(IN)     :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
         
@@ -108,19 +108,15 @@ CONTAINS
         TYPE(ControlParameters), INTENT(IN)     :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
-
-        Real(4), PARAMETER           :: SS_Mode = 1                         ! Gain Bias Mode, 0 = no gain bais, 1 = gain bias-.
-        Real(4), PARAMETER           :: SS_VSGainBias   = 30                ! Variable speed torque controller gain bias, (rad/s)/(rad).
-        Real(4), PARAMETER           :: SS_PCGainBias   = 0.0001            ! Collective pitch controller gain bias, (rad/s)/(Nm).
-        Real(4), PARAMETER           :: F_SSCornerFreq = 0.1                ! Cornering frequency of first order low pass filter for the gain bias signal, Hz.
+        ! Allocate Variables
         Real(4)                      :: DelOmega                            ! Reference generator speed shift, rad/s.
         
         ! Setpoint Smoothing
-        IF ( SS_Mode == 1) THEN
+        IF ( CntrPar%SS_Mode == 1) THEN
             ! Find setpoint shift amount
-            DelOmega = (LocalVar%BlPitch(1) - CntrPar%PC_MinPit)*SS_VSGainBias - (CntrPar%VS_RtTq - LocalVar%VS_LastGenTrq)*SS_PCGainBias
+            DelOmega = (LocalVar%BlPitch(1) - CntrPar%PC_MinPit)*CntrPar%SS_VSGainBias - (CntrPar%VS_RtTq - LocalVar%VS_LastGenTrq)*CntrPar%SS_PCGainBias
             ! Filter
-            LocalVar%SS_DelOmegaF = LPFilter(DelOmega, LocalVar%DT, F_SSCornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF) 
+            LocalVar%SS_DelOmegaF = LPFilter(DelOmega, LocalVar%DT, CntrPar%F_SSCornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF) 
         ELSE
             LocalVar%SS_DelOmegaF = 0
         ENDIF

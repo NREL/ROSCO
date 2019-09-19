@@ -11,7 +11,8 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)                             :: F_LPFDamping                 ! Damping coefficient [used only when F_FilterType = 2]
     REAL(4)                             :: F_NotchCornerFreq            ! Natural frequency of the notch filter, [rad/s]
     REAL(4), DIMENSION(:), ALLOCATABLE  :: F_NotchBetaNumDen            ! These two notch damping values (numerator and denominator) determines the width and depth of the notch
-    
+    Real(4)                             :: F_SSCornerFreq               ! Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
+
     REAL(4)                             :: FA_HPFCornerFreq             ! Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]
     REAL(4)                             :: FA_IntSat                    ! Integrator saturation (maximum signal amplitude contrbution to pitch from FA damper), [rad]
     REAL(4)                             :: FA_KI                        ! Integral gain for the fore-aft tower damper controller, -1 = off / >0 = on [rad s/m]
@@ -52,6 +53,10 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4), DIMENSION(:), ALLOCATABLE  :: VS_KP                        ! Proportional gain for generator PI torque controller, used in the transitional 2.5 region
     REAL(4), DIMENSION(:), ALLOCATABLE  :: VS_KI                        ! Integral gain for generator PI torque controller, used in the transitional 2.5 region
     
+    INTEGER(4)                          :: SS_Mode                      ! Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
+    REAL(4)                             :: SS_VSGainBias                !  Variable speed torque controller gain bias, [(rad/s)/rad].
+    REAL(4)                             :: SS_PCGainBias                !  Collective pitch controller gain bias, [(rad/s)/Nm].
+
     REAL(4)                             :: WE_BladeRadius               ! Blade length [m]
     INTEGER(4)                          :: WE_CP_n                      ! Amount of parameters in the Cp array
     REAL(4), DIMENSION(:), ALLOCATABLE  :: WE_CP                        ! Parameters that define the parameterized CP(\lambda) function
