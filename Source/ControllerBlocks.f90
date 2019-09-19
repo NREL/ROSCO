@@ -29,7 +29,6 @@ CONTAINS
     !       VS_State = 3, Region 2.5, transition between below and above-rated operating conditions (near-rated region) using PI torque control
     !       VS_State = 4, above-rated operation using pitch control (constant torque mode)
     !       VS_State = 5, above-rated operation using pitch and torque control (constant power mode)
-    SUBROUTINE StateMachine(CntrPar, LocalVar)
         USE DRC_Types, ONLY : LocalVariables, ControlParameters
         IMPLICIT NONE
     
@@ -88,20 +87,33 @@ CONTAINS
         END IF
     END SUBROUTINE StateMachine
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE WindSpeedEstimator(LocalVar, CntrPar)
-        USE DRC_Types, ONLY : LocalVariables, ControlParameters
+    SUBROUTINE WindSpeedEstimator(LocalVar, CntrPar, objInst)
+    ! Wind Speed Estimator estimates wind speed at hub height. Currently implements two types of estimators
+    !       WE_Mode = 0, Filter hub height wind speed as passed from servodyn using first order low pass filter with 1Hz cornering frequency
+    !       WE_Mode = 1, Use Inversion and Inveriance filter as defined by Ortege et. al. 
+        USE DRC_Types!, ONLY : LocalVariables, ControlParameters, Obj
         IMPLICIT NONE
     
         ! Inputs
-        TYPE(ControlParameters), INTENT(IN) :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT) :: LocalVar 
-        
-        ! Body
-        LocalVar%WE_VwIdot = CntrPar%WE_Gamma/CntrPar%WE_Jtot*(LocalVar%VS_LastGenTrq*CntrPar%WE_GearboxRatio - AeroDynTorque(LocalVar, CntrPar))
-        
-        LocalVar%WE_VwI = LocalVar%WE_VwI + LocalVar%WE_VwIdot*LocalVar%DT
-        LocalVar%WE_Vw = LocalVar%WE_VwI + CntrPar%WE_Gamma*LocalVar%RotSpeed
-        
+        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
+        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+        ! Allocate Variables
+        REAL(4)             :: F_WECornerFreq ! Corner frequency (-3dB point) for first order low pass filter for measured hub height wind speed [Hz]
+        ! Define Variables
+        F_WECornerFreq = 1  ! Fix to 1Hz for now
+
+        ! Define wind speed estimate
+        IF (CntrPar%WE_Mode == 1) THEN      
+            ! Inversion and Invariance Filter implementation
+            LocalVar%WE_VwIdot = CntrPar%WE_Gamma/CntrPar%WE_Jtot*(LocalVar%VS_LastGenTrq*CntrPar%WE_GearboxRatio - AeroDynTorque(LocalVar, CntrPar))
+            LocalVar%WE_VwI = LocalVar%WE_VwI + LocalVar%WE_VwIdot*LocalVar%DT
+            LocalVar%WE_Vw = LocalVar%WE_VwI + CntrPar%WE_Gamma*LocalVar%RotSpeed
+        ELSE                                
+            ! Filter wind speed at hub height as directly passed from OpenFAST
+            LocalVar%WE_Vw = LPFilter(LocalVar%HorWindV, LocalVar%DT, F_WECornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
+        END IF 
+
     END SUBROUTINE WindSpeedEstimator
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE SetpointSmoother(LocalVar, CntrPar, objInst)

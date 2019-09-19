@@ -34,6 +34,7 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%PC_ControlMode
         READ(UnControllerParameters, *) CntrPar%Y_ControlMode        
         READ(UnControllerParameters, *) CntrPar%SS_Mode        
+        READ(UnControllerParameters, *) CntrPar%WE_Mode        
         READ(UnControllerParameters, *)
 
         !----------------- FILTER CONSTANTS ---------------------

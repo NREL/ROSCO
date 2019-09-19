@@ -54,9 +54,10 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4), DIMENSION(:), ALLOCATABLE  :: VS_KI                        ! Integral gain for generator PI torque controller, used in the transitional 2.5 region
     
     INTEGER(4)                          :: SS_Mode                      ! Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
-    REAL(4)                             :: SS_VSGainBias                !  Variable speed torque controller gain bias, [(rad/s)/rad].
-    REAL(4)                             :: SS_PCGainBias                !  Collective pitch controller gain bias, [(rad/s)/Nm].
+    REAL(4)                             :: SS_VSGainBias                ! Variable speed torque controller gain bias, [(rad/s)/rad].
+    REAL(4)                             :: SS_PCGainBias                ! Collective pitch controller gain bias, [(rad/s)/Nm].
 
+    INTEGER(4)                          :: WE_Mode                      ! Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Imersion and Invariance Estimator (Ortega et al.)
     REAL(4)                             :: WE_BladeRadius               ! Blade length [m]
     INTEGER(4)                          :: WE_CP_n                      ! Amount of parameters in the Cp array
     REAL(4), DIMENSION(:), ALLOCATABLE  :: WE_CP                        ! Parameters that define the parameterized CP(\lambda) function
