@@ -265,8 +265,8 @@ CONTAINS
             IF (CntrPar%LoggingLevel > 0) THEN
                 !OPEN(unit=UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='NEW')
                 OPEN(unit=UnDb, FILE='DEBUG.dbg')
-                WRITE (UnDb,'(A)')  '   LocalVar%Time '  //Tab//'LocalVar%FA_Acc  '//Tab//'LocalVar%FA_AccHPF  '//Tab//'LocalVar%FA_AccHPFI  '//Tab//'LocalVar%PitCom  '
-                WRITE (UnDb,'(A)')  '   (sec) ' //Tab//'(m/s^2)    ' //Tab//'(m/s^2)    ' //Tab//'(m/s)    ' //Tab//'(rad)    '
+                WRITE (UnDb,'(A)')  '   Time '  //Tab//'HorWindV '//Tab//' WE_Vw    '  
+                WRITE (UnDb,'(A)')  '   (sec) '  //Tab//'(m/s) '//Tab//' (m/s)    ' 
                 !WRITE (UnDb,'(A)') '   LocalVar%Time '  //Tab//'LocalVar%PC_PitComT  ' //Tab//'LocalVar%PC_SpdErr  ' //Tab//'LocalVar%PC_KP ' //Tab//'LocalVar%PC_KI  ' //Tab//'LocalVar%Y_M  ' //Tab//'LocalVar%rootMOOP(1)  '//Tab//'VS_RtPwr  '//Tab//'LocalVar%GenTq'
                 !WRITE (UnDb,'(A)') '   (sec) ' //Tab//'(rad)    '  //Tab//'(rad/s) '//Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   ' //Tab//'(?)   ' //Tab//'(W)   '//Tab//'(Nm)  '
             END IF
@@ -289,7 +289,7 @@ CONTAINS
             
             ! Output debugging information if requested:
             IF (CntrPar%LoggingLevel > 0) THEN
-                WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%FA_Acc, LocalVar%FA_AccHPF, LocalVar%FA_AccHPFI, LocalVar%PitCom
+                WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%HorWindV, LocalVar%WE_Vw
             END IF
             
             IF (CntrPar%LoggingLevel > 1) THEN

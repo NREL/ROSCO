@@ -51,7 +51,7 @@ IF ((LocalVar%iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control 
     CALL ComputeVariablesSetpoints(CntrPar, LocalVar)
     
     CALL StateMachine(CntrPar, LocalVar)
-    CALL WindSpeedEstimator(LocalVar, CntrPar)
+    CALL WindSpeedEstimator(LocalVar, CntrPar, objInst)
     
     CALL SetpointSmoother(LocalVar, CntrPar, objInst)
 
