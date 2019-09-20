@@ -109,7 +109,8 @@ CONTAINS
             IF (LocalVar%VS_State >= 4) THEN
                 VS_MaxTq = CntrPar%VS_RtTq
             ELSE
-                VS_MaxTq = CntrPar%VS_MaxTq
+                ! VS_MaxTq = CntrPar%VS_MaxTq
+                VS_MaxTq = CntrPar%VS_RtTq
             ENDIF
             LocalVar%GenTq = PIController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, VS_MaxTq, LocalVar%DT, CntrPar%VS_MaxOMTq, .FALSE., objInst%instPI)
         
