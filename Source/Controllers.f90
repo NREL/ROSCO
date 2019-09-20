@@ -7,14 +7,22 @@ MODULE Controllers
     IMPLICIT NONE
 
 CONTAINS
+!-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE PitchControl(avrSWAP, CntrPar, LocalVar, objInst)
-    
+    ! Blade pitch controller, generally maximizes rotor speed below rated (region 2) and regulates rotor speed above rated (region 3)
+    !       PC_State = 0, fix blade pitch to fine pitch angle (PC_FinePit)
+    !       PC_State = 1, is gain scheduled PI controller 
+    ! Additional loops/methods (enabled via switches in DISCON.IN):
+    !       Individual pitch control
+    !       Tower fore-aft damping 
+    !       Sine excitation on pitch    
         USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
 
         ! Local Variables:
         REAL(C_FLOAT), INTENT(INOUT)    :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from the DLL controller.
         INTEGER(4)                      :: K            ! Index used for looping through blades.
         
+        ! Inputs
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
@@ -79,7 +87,14 @@ CONTAINS
     END SUBROUTINE PitchControl
 !-------------------------------------------------------------------------------------------------------------------------------  
     SUBROUTINE VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst)
-    
+    ! Generator torque controller
+    !       VS_State = 0, Error state, for debugging purposes, GenTq = VS_RtTq
+    !       VS_State = 1, Region 1(.5) operation, torque control to keep the rotor at cut-in speed towards the Cp-max operational curve
+    !       VS_State = 2, Region 2 operation, maximum rotor power efficiency (Cp-max) tracking using K*omega^2 law, fixed fine-pitch angle in BldPitch controller
+    !       VS_State = 3, Region 2.5, transition between below and above-rated operating conditions (near-rated region) using PI torque control
+    !       VS_State = 4, above-rated operation using pitch control (constant torque mode)
+    !       VS_State = 5, above-rated operation using pitch and torque control (constant power mode)
+    !       VS_State = 6, Tip-Speed-Ratio tracking PI controller
         USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
         
         REAL(C_FLOAT), INTENT(INOUT)            :: avrSWAP(*)    ! The swap array, used to pass data to, and receive data from, the DLL controller.

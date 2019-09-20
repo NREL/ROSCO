@@ -132,8 +132,8 @@ TYPE, PUBLIC :: LocalVariables
     INTEGER(4)                          :: TestType                     ! Test variable, no use
     REAL(4)                             :: VS_LastGenTrq                ! Commanded electrical generator torque the last time the controller was called [Nm].
     REAL(4)                             :: VS_MechGenPwr                ! Mechanical power on the generator axis [W]
-    REAL(4)                             :: VS_SpdErrAr                  ! Current speed error (generator torque control) [rad/s].
-    REAL(4)                             :: VS_SpdErrBr                  ! Current speed error (generator torque control) [rad/s].
+    REAL(4)                             :: VS_SpdErrAr                  ! Current speed error for region 2.5 PI controller (generator torque control) [rad/s].
+    REAL(4)                             :: VS_SpdErrBr                  ! Current speed error for region 1.5 PI controller (generator torque control) [rad/s].
     INTEGER(4)                          :: VS_State                     ! State of the torque control system
     REAL(4)                             :: WE_Vw                        ! Estimated wind speed [m/s]
     REAL(4)                             :: WE_VwI                       ! Integrated wind speed quantity for estimation [m/s]

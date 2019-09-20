@@ -163,6 +163,8 @@ CONTAINS
         REAL(4)                                 :: VS_RefSpd        ! Referece speed for variable speed torque controller. 
         REAL(4)                                 :: PC_RefSpd        ! Referece speed for pitch controller. 
         
+        REAL(4)                                 :: VS_RefSpd        ! Referece speed for variable speed torque controller, [rad/s] 
+        REAL(4)                                 :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
         ! ----- Calculate yaw misalignment error -----
         LocalVar%Y_MErr = LocalVar%Y_M + CntrPar%Y_MErrSet ! Yaw-alignment error
         
