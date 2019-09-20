@@ -99,7 +99,7 @@ CONTAINS
         ! Allocate Variables
         REAL(4)             :: F_WECornerFreq ! Corner frequency (-3dB point) for first order low pass filter for measured hub height wind speed [Hz]
         ! Define Variables
-        F_WECornerFreq = 0.04  ! Fix to 20 second time constant for now
+        F_WECornerFreq = 0.0333  ! Fix to 30 second time constant for now
         
         ! Define wind speed estimate
         IF (CntrPar%WE_Mode == 1) THEN      
