@@ -42,7 +42,7 @@ CONTAINS
             IF (LocalVar%PitCom(1) >= CntrPar%VS_Rgn3Pitch) THEN ! We are in region 3
                 IF (CntrPar%VS_ControlMode == 1) THEN ! Constant power tracking
                     LocalVar%VS_State = 5
-                    LocalVar%PC_State = 2
+                    LocalVar%PC_State = 1
                 ELSE ! Constant torque tracking
                     LocalVar%VS_State = 4
                     LocalVar%PC_State = 1
@@ -88,7 +88,7 @@ CONTAINS
     ! Wind Speed Estimator estimates wind speed at hub height. Currently implements two types of estimators
     !       WE_Mode = 0, Filter hub height wind speed as passed from servodyn using first order low pass filter with 1Hz cornering frequency
     !       WE_Mode = 1, Use Inversion and Inveriance filter as defined by Ortege et. al. 
-        USE DRC_Types!, ONLY : LocalVariables, ControlParameters, Obj
+        USE DRC_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
         IMPLICIT NONE
     
         ! Inputs
@@ -117,7 +117,7 @@ CONTAINS
     ! Setpoint smoother modifies controller reference in order to separate generator torque and blade pitch control actions
     !       SS_Mode = 0, No setpoint smoothing
     !       SS_Mode = 1, Implement setpoint smoothing
-        USE DRC_Types!, ONLY : LocalVariables, ControlParameters, ObjectInstances
+        USE DRC_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
         IMPLICIT NONE
     
         ! Inputs
@@ -127,7 +127,7 @@ CONTAINS
         ! Allocate Variables
         Real(4)                      :: DelOmega                            ! Reference generator speed shift, rad/s.
         
-        ! Setpoint Smoothing
+        ! ------ Setpoint Smoothing ------
         IF ( CntrPar%SS_Mode == 1) THEN
             ! Find setpoint shift amount
             DelOmega = (LocalVar%BlPitch(1) - CntrPar%PC_MinPit)*CntrPar%SS_VSGainBias - (CntrPar%VS_RtTq - LocalVar%VS_LastGenTrq)*CntrPar%SS_PCGainBias
