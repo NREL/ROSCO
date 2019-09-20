@@ -120,7 +120,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                             :: PC_KI                        ! Integral gain for pitch controller at rated pitch (zero) [-].
     REAL(4)                             :: PC_KD                        ! Differential gain for pitch controller at rated pitch (zero) [-].
     REAL(4)                             :: PC_TF                        ! First-order filter parameter for derivative action
-    REAL(4)                             :: PC_MaxPitVar                 ! Maximum pitch setting in pitch controller (variable) [rad].
+    REAL(4)                             :: PC_MaxPit                 ! Maximum pitch setting in pitch controller (variable) [rad].
     REAL(4)                             :: PC_PitComT                   ! Total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(4)                             :: PC_PitComT_IPC(3)            ! Total command pitch based on the sum of the proportional and integral terms, including IPC term [rad].
     REAL(4)                             :: PC_PwrErr                    ! Power error with respect to rated power [W]
@@ -134,6 +134,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                             :: VS_MechGenPwr                ! Mechanical power on the generator axis [W]
     REAL(4)                             :: VS_SpdErrAr                  ! Current speed error for region 2.5 PI controller (generator torque control) [rad/s].
     REAL(4)                             :: VS_SpdErrBr                  ! Current speed error for region 1.5 PI controller (generator torque control) [rad/s].
+    REAL(4)                             :: VS_SpdErr                    ! Current speed error for tip-speed-ratio tracking controller (generator torque control) [rad/s].
     INTEGER(4)                          :: VS_State                     ! State of the torque control system
     REAL(4)                             :: WE_Vw                        ! Estimated wind speed [m/s]
     REAL(4)                             :: WE_VwI                       ! Integrated wind speed quantity for estimation [m/s]

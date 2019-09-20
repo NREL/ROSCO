@@ -29,6 +29,7 @@ CONTAINS
     !       VS_State = 3, Region 2.5, transition between below and above-rated operating conditions (near-rated region) using PI torque control
     !       VS_State = 4, above-rated operation using pitch control (constant torque mode)
     !       VS_State = 5, above-rated operation using pitch and torque control (constant power mode)
+    !       VS_State = 6, Tip-Speed-Ratio tracking PI controller
         USE DRC_Types, ONLY : LocalVariables, ControlParameters
         IMPLICIT NONE
     
