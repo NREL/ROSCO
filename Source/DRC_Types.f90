@@ -129,7 +129,7 @@ TYPE, PUBLIC :: LocalVariables
     INTEGER(4)                          :: PC_State                     ! State of the pitch control system
     REAL(4)                             :: PitCom(3)                    ! Commanded pitch of each blade the last time the controller was called [rad].
     REAL(4)                             :: SS_DelOmegaF                 ! Filtered setpoint shifting term defined in setpoint smoother [rad/s].
-    INTEGER(4)                          :: TestType                     ! Test variable, no use
+    REAL(4)                             :: TestType                     ! Test variable, no use
     REAL(4)                             :: VS_LastGenTrq                ! Commanded electrical generator torque the last time the controller was called [Nm].
     REAL(4)                             :: VS_MechGenPwr                ! Mechanical power on the generator axis [W]
     REAL(4)                             :: VS_SpdErrAr                  ! Current speed error for region 2.5 PI controller (generator torque control) [rad/s].
