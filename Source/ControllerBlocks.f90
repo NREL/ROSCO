@@ -54,33 +54,30 @@ CONTAINS
 
         ! Operational States
         ELSE
-            ! Pitch controller state machine
+            ! --- Pitch controller state machine ---
             IF (CntrPar%PC_ControlMode == 1) THEN
                 LocalVar%PC_State = 1
             ELSE 
                 LocalVar%PC_State = 0
             END IF
             
-            ! Torque control state machine
-            IF (LocalVar%PC_PitComT >= CntrPar%VS_Rgn3Pitch) THEN 
-                ! Region 3
-                IF (CntrPar%VS_ControlMode == 1) THEN ! Constant power tracking
-                    LocalVar%VS_State = 5
-                ELSE ! Constant torque tracking
-                    LocalVar%VS_State = 4
+            ! --- Torque control state machine ---
+            IF (LocalVar%PC_PitComT >= CntrPar%VS_Rgn3Pitch) THEN           ! Region 3
+                IF (CntrPar%VS_ControlMode == 1) THEN 
+                    LocalVar%VS_State = 5 ! Constant power tracking
+                ELSE 
+                    LocalVar%VS_State = 4 ! Constant torque tracking
                 END IF
             ELSE
-                ! Region 2 1/2 - active PI torque control
-                IF (LocalVar%GenArTq >= CntrPar%VS_MaxOMTq*1.01) THEN 
-                    LocalVar%VS_State = 3
-                ! Region 1 1/2
-                ELSEIF (LocalVar%GenBrTq <= CntrPar%VS_MinOMTq*0.99) THEN 
-                    LocalVar%VS_State = 1
-                ! Region 2 - optimal torque is proportional to the square of the generator speed
-                ELSEIF (LocalVar%GenSpeedF < CntrPar%VS_RefSpd)  THEN 
+                IF (LocalVar%GenArTq >= CntrPar%VS_MaxOMTq*1.01) THEN       ! Region 2 1/2 - active PI torque control
+                    LocalVar%VS_State = 3                 
+                ELSEIF (LocalVar%GenSpeedF < CntrPar%VS_RefSpd)  THEN       ! Region 2 - optimal torque is proportional to the square of the generator speed
+                
                     LocalVar%VS_State = 2
-                ! Error state, Debug
-                ELSE 
+                ELSEIF (LocalVar%GenBrTq <= CntrPar%VS_MinOMTq*0.99) THEN   ! Region 1 1/2
+                
+                    LocalVar%VS_State = 1
+                ELSE                                                        ! Error state, Debug
                     LocalVar%VS_State = 0
                 END IF
             END IF
