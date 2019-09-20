@@ -96,36 +96,27 @@ CONTAINS
     !       VS_State = 5, above-rated operation using pitch and torque control (constant power mode)
     !       VS_State = 6, Tip-Speed-Ratio tracking PI controller
         USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
-        
-        REAL(C_FLOAT), INTENT(INOUT)            :: avrSWAP(*)    ! The swap array, used to pass data to, and receive data from, the DLL controller.
-        
+        ! Inputs
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         
-        !..............................................................................................................................
-        ! VARIABLE-SPEED TORQUE CONTROL:
-        ! Compute the generator torque, which depends on which region we are in:
-        !..............................................................................................................................
-        IF (LocalVar%VS_State >= 4) THEN
-            LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_ArSatTq, .TRUE., objInst%instPI)
-            LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, .TRUE., objInst%instPI)
-            IF (LocalVar%VS_State == 4) THEN
-                LocalVar%GenTq = CntrPar%VS_RtTq
-            ELSEIF (LocalVar%VS_State == 5) THEN
-                LocalVar%GenTq = (CntrPar%VS_RtPwr/CntrPar%VS_GenEff)/LocalVar%GenSpeedF
-            END IF
         ELSE
+            ! Update PI loops for region 1.5 and 2.5 PI control
+            ! LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_RtTq, .TRUE., objInst%instPI)
             LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_MaxOMTq, .FALSE., objInst%instPI)
-            LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, .FALSE., objInst%instPI)
-            IF (LocalVar%VS_State == 3) THEN
-                LocalVar%GenTq = LocalVar%GenArTq
-            ELSEIF (LocalVar%VS_State == 1) THEN
+            LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, .TRUE., objInst%instPI)
+            
+            IF (LocalVar%VS_State == 1) THEN ! Region 1.5
                 LocalVar%GenTq = LocalVar%GenBrTq
-            ELSEIF (LocalVar%VS_State == 2) THEN
+            ELSEIF (LocalVar%VS_State == 2) THEN ! Region 2
                 LocalVar%GenTq = CntrPar%VS_Rgn2K*LocalVar%GenSpeedF*LocalVar%GenSpeedF
-            ELSE
-                LocalVar%GenTq = CntrPar%VS_MaxOMTq
+            ELSEIF (LocalVar%VS_State == 3) THEN ! Region 2.5
+                LocalVar%GenTq = LocalVar%GenArTq
+            ELSEIF (LocalVar%VS_State == 4) THEN ! Region 3, constant torque
+                LocalVar%GenTq = CntrPar%VS_RtTq
+            ELSEIF (LocalVar%VS_State == 5) THEN ! Region 3, constant power
+                LocalVar%GenTq = (CntrPar%VS_RtPwr/CntrPar%VS_GenEff)/LocalVar%GenSpeedF
             END IF
         END IF
         
