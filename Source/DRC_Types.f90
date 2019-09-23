@@ -54,9 +54,10 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4), DIMENSION(:), ALLOCATABLE  :: VS_KI                        ! Integral gain for generator PI torque controller, used in the transitional 2.5 region
     
     INTEGER(4)                          :: SS_Mode                      ! Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
-    REAL(4)                             :: SS_VSGainBias                !  Variable speed torque controller gain bias, [(rad/s)/rad].
-    REAL(4)                             :: SS_PCGainBias                !  Collective pitch controller gain bias, [(rad/s)/Nm].
+    REAL(4)                             :: SS_VSGainBias                ! Variable speed torque controller gain bias, [(rad/s)/rad].
+    REAL(4)                             :: SS_PCGainBias                ! Collective pitch controller gain bias, [(rad/s)/Nm].
 
+    INTEGER(4)                          :: WE_Mode                      ! Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Imersion and Invariance Estimator (Ortega et al.)
     REAL(4)                             :: WE_BladeRadius               ! Blade length [m]
     INTEGER(4)                          :: WE_CP_n                      ! Amount of parameters in the Cp array
     REAL(4), DIMENSION(:), ALLOCATABLE  :: WE_CP                        ! Parameters that define the parameterized CP(\lambda) function
@@ -119,7 +120,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                             :: PC_KI                        ! Integral gain for pitch controller at rated pitch (zero) [-].
     REAL(4)                             :: PC_KD                        ! Differential gain for pitch controller at rated pitch (zero) [-].
     REAL(4)                             :: PC_TF                        ! First-order filter parameter for derivative action
-    REAL(4)                             :: PC_MaxPitVar                 ! Maximum pitch setting in pitch controller (variable) [rad].
+    REAL(4)                             :: PC_MaxPit                 ! Maximum pitch setting in pitch controller (variable) [rad].
     REAL(4)                             :: PC_PitComT                   ! Total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(4)                             :: PC_PitComT_IPC(3)            ! Total command pitch based on the sum of the proportional and integral terms, including IPC term [rad].
     REAL(4)                             :: PC_PwrErr                    ! Power error with respect to rated power [W]
@@ -128,11 +129,12 @@ TYPE, PUBLIC :: LocalVariables
     INTEGER(4)                          :: PC_State                     ! State of the pitch control system
     REAL(4)                             :: PitCom(3)                    ! Commanded pitch of each blade the last time the controller was called [rad].
     REAL(4)                             :: SS_DelOmegaF                 ! Filtered setpoint shifting term defined in setpoint smoother [rad/s].
-    INTEGER(4)                          :: TestType                     ! Test variable, no use
+    REAL(4)                             :: TestType                     ! Test variable, no use
     REAL(4)                             :: VS_LastGenTrq                ! Commanded electrical generator torque the last time the controller was called [Nm].
     REAL(4)                             :: VS_MechGenPwr                ! Mechanical power on the generator axis [W]
-    REAL(4)                             :: VS_SpdErrAr                  ! Current speed error (generator torque control) [rad/s].
-    REAL(4)                             :: VS_SpdErrBr                  ! Current speed error (generator torque control) [rad/s].
+    REAL(4)                             :: VS_SpdErrAr                  ! Current speed error for region 2.5 PI controller (generator torque control) [rad/s].
+    REAL(4)                             :: VS_SpdErrBr                  ! Current speed error for region 1.5 PI controller (generator torque control) [rad/s].
+    REAL(4)                             :: VS_SpdErr                    ! Current speed error for tip-speed-ratio tracking controller (generator torque control) [rad/s].
     INTEGER(4)                          :: VS_State                     ! State of the torque control system
     REAL(4)                             :: WE_Vw                        ! Estimated wind speed [m/s]
     REAL(4)                             :: WE_VwI                       ! Integrated wind speed quantity for estimation [m/s]

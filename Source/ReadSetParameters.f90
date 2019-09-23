@@ -1,6 +1,10 @@
 MODULE ReadSetParameters
 
     USE, INTRINSIC :: ISO_C_Binding
+
+USE Constants
+USE Functions
+
     IMPLICIT NONE
 
 CONTAINS
@@ -34,6 +38,7 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%PC_ControlMode
         READ(UnControllerParameters, *) CntrPar%Y_ControlMode        
         READ(UnControllerParameters, *) CntrPar%SS_Mode        
+        READ(UnControllerParameters, *) CntrPar%WE_Mode        
         READ(UnControllerParameters, *)
 
         !----------------- FILTER CONSTANTS ---------------------
@@ -159,9 +164,12 @@ CONTAINS
         ! Allocate variables
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
-        REAL(4)                                 :: VS_RefSpd        ! Referece speed for variable speed torque controller. 
-        REAL(4)                                 :: PC_RefSpd        ! Referece speed for pitch controller. 
-        
+        REAL(4)                                 :: VS_RefSpd        ! Referece speed for variable speed torque controller, [rad/s] 
+        REAL(4)                                 :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
+        REAL(4)                                 :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
+        ! temp
+        REAL(4)                                 :: VS_TSRop = 7.5
+
         ! ----- Calculate yaw misalignment error -----
         LocalVar%Y_MErr = LocalVar%Y_M + CntrPar%Y_MErrSet ! Yaw-alignment error
         
@@ -175,12 +183,24 @@ CONTAINS
         LocalVar%PC_SpdErr = PC_RefSpd - LocalVar%GenSpeedF            ! Speed error
         LocalVar%PC_PwrErr = CntrPar%VS_RtPwr - LocalVar%VS_GenPwr             ! Power error
         
-        ! ----- Torque controller region 2.5 reference error -----
-        ! Implement setpoint smoothing
-        IF (LocalVar%SS_DelOmegaF > 0) THEN
-            VS_RefSpd = CntrPar%VS_RefSpd - LocalVar%SS_DelOmegaF
+        ! ----- Torque controller reference errors -----
+        ! Define VS reference generator speed [rad/s]
+        IF (CntrPar%VS_ControlMode == 2) THEN
+            VS_RefSpd = (VS_TSRop * LocalVar%WE_Vw / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
+            VS_RefSpd = saturate(VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%PC_RefSpd)
         ELSE
             VS_RefSpd = CntrPar%VS_RefSpd
+        ENDIF 
+        
+        ! Implement setpoint smoothing
+        IF (LocalVar%SS_DelOmegaF > 0) THEN
+            VS_RefSpd = VS_RefSpd - LocalVar%SS_DelOmegaF
+        ENDIF
+
+        ! TSR-tracking reference error
+        IF (CntrPar%VS_ControlMode == 2) THEN
+            LocalVar%VS_SpdErr = VS_RefSpd - LocalVar%GenSpeedF
+            LocalVar%TestType = VS_RefSpd
         ENDIF
 
         ! Define transition region setpoint errors

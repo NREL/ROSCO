@@ -7,51 +7,55 @@ MODULE Controllers
     IMPLICIT NONE
 
 CONTAINS
+!-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE PitchControl(avrSWAP, CntrPar, LocalVar, objInst)
-    
+    ! Blade pitch controller, generally maximizes rotor speed below rated (region 2) and regulates rotor speed above rated (region 3)
+    !       PC_State = 0, fix blade pitch to fine pitch angle (PC_FinePit)
+    !       PC_State = 1, is gain scheduled PI controller 
+    ! Additional loops/methods (enabled via switches in DISCON.IN):
+    !       Individual pitch control
+    !       Tower fore-aft damping 
+    !       Sine excitation on pitch    
         USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
-
-        ! Local Variables:
-        REAL(C_FLOAT), INTENT(INOUT)    :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from the DLL controller.
-        INTEGER(4)                      :: K            ! Index used for looping through blades.
         
+        ! Inputs
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
-    
-        !..............................................................................................................................
-        ! Pitch control
-        !..............................................................................................................................
-        IF (LocalVar%PC_State >= 1) THEN
-            LocalVar%PC_MaxPitVar = CntrPar%PC_MaxPit
+        ! Allocate Variables:
+        REAL(C_FLOAT), INTENT(INOUT)    :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from the DLL controller.
+        INTEGER(4)                      :: K            ! Index used for looping through blades.
+
+
+        ! ------- Blade Pitch Controller --------
+        ! Load PC State
+        IF (LocalVar%PC_State == 1) THEN ! PI BldPitch control
+            LocalVar%PC_MaxPit = CntrPar%PC_MaxPit
         ELSE ! debug mode, fix at fine pitch
-            LocalVar%PC_MaxPitVar = CntrPar%PC_FinePit
+            LocalVar%PC_MaxPit = CntrPar%PC_FinePit
         END IF
         
-        ! Compute the gain scheduling correction factor based on the previously
-        ! commanded pitch angle for blade 1:
-        LocalVar%PC_KP = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KP, LocalVar%PC_PitComT)
-        LocalVar%PC_KI = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KI, LocalVar%PC_PitComT)
-        LocalVar%PC_KD = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KD, LocalVar%PC_PitComT)
-        LocalVar%PC_TF = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_TF, LocalVar%PC_PitComT)
+        ! Compute (interpolate) the gains based on previously commanded blade pitch angles and lookup table:
+        LocalVar%PC_KP = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KP, LocalVar%PC_PitComT) ! Proportional gain
+        LocalVar%PC_KI = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KI, LocalVar%PC_PitComT) ! Integral gain
+        LocalVar%PC_KD = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KD, LocalVar%PC_PitComT) ! Derivative gain
+        LocalVar%PC_TF = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_TF, LocalVar%PC_PitComT) ! TF gains (derivative filter) !NJA - need to clarify
         
-        ! Integrate the error signal w.r.t. time; saturate the integral term using the pitch angle limits:
-        ! Compute the pitch commands associated with the proportional and integral
-        ! gains:
+        ! Compute the collective pitch command associated with the proportional and integral gains:
         IF (LocalVar%iStatus == 0) THEN
-            LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, CntrPar%PC_FinePit, LocalVar%PC_MaxPitVar, LocalVar%DT, LocalVar%PitCom(1), .TRUE., objInst%instPI)
+            LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, CntrPar%PC_FinePit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%PitCom(1), .TRUE., objInst%instPI)
         ELSE
-            LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, CntrPar%PC_FinePit, LocalVar%PC_MaxPitVar, LocalVar%DT, CntrPar%PC_FinePit, .FALSE., objInst%instPI)
+            LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, CntrPar%PC_FinePit, LocalVar%PC_MaxPit, LocalVar%DT, CntrPar%PC_FinePit, .FALSE., objInst%instPI)
         END IF
         
-        ! Individual pitch control
+        ! Find individual pitch control contribution
         IF ((CntrPar%IPC_ControlMode >= 1) .OR. (CntrPar%Y_ControlMode == 2)) THEN
             CALL IPC(CntrPar, LocalVar, objInst)
         ELSE
             LocalVar%IPC_PitComF = 0.0 ! THIS IS AN ARRAY!!
         END IF
         
-        ! Fore-aft tower vibration damping control
+        ! Include tower fore-aft tower vibration damping control
         IF ((CntrPar%FA_KI > 0.0) .OR. (CntrPar%Y_ControlMode == 2)) THEN
             CALL ForeAftDamping(CntrPar, LocalVar, objInst)
         ELSE
@@ -81,42 +85,58 @@ CONTAINS
     END SUBROUTINE PitchControl
 !-------------------------------------------------------------------------------------------------------------------------------  
     SUBROUTINE VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst)
-    
+    ! Generator torque controller
+    !       VS_State = 0, Error state, for debugging purposes, GenTq = VS_RtTq
+    !       VS_State = 1, Region 1(.5) operation, torque control to keep the rotor at cut-in speed towards the Cp-max operational curve
+    !       VS_State = 2, Region 2 operation, maximum rotor power efficiency (Cp-max) tracking using K*omega^2 law, fixed fine-pitch angle in BldPitch controller
+    !       VS_State = 3, Region 2.5, transition between below and above-rated operating conditions (near-rated region) using PI torque control
+    !       VS_State = 4, above-rated operation using pitch control (constant torque mode)
+    !       VS_State = 5, above-rated operation using pitch and torque control (constant power mode)
+    !       VS_State = 6, Tip-Speed-Ratio tracking PI controller
         USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
-        
-        REAL(C_FLOAT), INTENT(INOUT)            :: avrSWAP(*)    ! The swap array, used to pass data to, and receive data from, the DLL controller.
-        
+        ! Inputs
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+        ! Allocate Variables
+        REAL(C_FLOAT), INTENT(INOUT)            :: avrSWAP(*)    ! The swap array, used to pass data to, and receive data from, the DLL controller.
+        REAL(4)                                 :: VS_MaxTq      ! Locally allocated maximum torque saturation limits
         
-        !..............................................................................................................................
-        ! VARIABLE-SPEED TORQUE CONTROL:
-        ! Compute the generator torque, which depends on which region we are in:
-        !..............................................................................................................................
-        IF (LocalVar%VS_State >= 4) THEN
-            LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_ArSatTq, .TRUE., objInst%instPI)
+        ! -------- Variable-Speed Torque Controller --------
+        ! Optimal Tip-Speed-Ratio tracking controller
+        IF (CntrPar%VS_ControlMode == 2) THEN
+            ! Define max torque
+            IF (LocalVar%VS_State >= 4) THEN
+                VS_MaxTq = CntrPar%VS_RtTq
+            ELSE
+                ! VS_MaxTq = CntrPar%VS_MaxTq
+                VS_MaxTq = CntrPar%VS_RtTq
+            ENDIF
+            LocalVar%GenTq = PIController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, VS_MaxTq, LocalVar%DT, CntrPar%VS_MaxOMTq, .FALSE., objInst%instPI)
+        
+            ! K*Omega^2 control law with PI torque control in transition regions
+        ELSE
+            ! Update PI loops for region 1.5 and 2.5 PI control
+            ! LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_RtTq, .TRUE., objInst%instPI)
+            LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_MaxOMTq, .FALSE., objInst%instPI)
             LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, .TRUE., objInst%instPI)
-            IF (LocalVar%VS_State == 4) THEN
+            
+            IF (LocalVar%VS_State == 1) THEN ! Region 1.5
+                LocalVar%GenTq = LocalVar%GenBrTq
+            ELSEIF (LocalVar%VS_State == 2) THEN ! Region 2
+                LocalVar%GenTq = CntrPar%VS_Rgn2K*LocalVar%GenSpeedF*LocalVar%GenSpeedF
+            ELSEIF (LocalVar%VS_State == 3) THEN ! Region 2.5
+                LocalVar%GenTq = LocalVar%GenArTq
+            ELSEIF (LocalVar%VS_State == 4) THEN ! Region 3, constant torque
                 LocalVar%GenTq = CntrPar%VS_RtTq
-            ELSEIF (LocalVar%VS_State == 5) THEN
+            ELSEIF (LocalVar%VS_State == 5) THEN ! Region 3, constant power
                 LocalVar%GenTq = (CntrPar%VS_RtPwr/CntrPar%VS_GenEff)/LocalVar%GenSpeedF
             END IF
-        ELSE
-            LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_MaxOMTq, .FALSE., objInst%instPI)
-            LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, .FALSE., objInst%instPI)
-            IF (LocalVar%VS_State == 3) THEN
-                LocalVar%GenTq = LocalVar%GenArTq
-            ELSEIF (LocalVar%VS_State == 1) THEN
-                LocalVar%GenTq = LocalVar%GenBrTq
-            ELSEIF (LocalVar%VS_State == 2) THEN
-                LocalVar%GenTq = CntrPar%VS_Rgn2K*LocalVar%GenSpeedF*LocalVar%GenSpeedF
-            ELSE
-                LocalVar%GenTq = CntrPar%VS_MaxOMTq
-            END IF
-        END IF
-        
-        ! Saturate the commanded torque using the maximum torque limit:
+       
+        ENDIF
+
+
+            ! Saturate the commanded torque using the maximum torque limit:
         LocalVar%GenTq = MIN(LocalVar%GenTq, CntrPar%VS_MaxTq)                    ! Saturate the command using the maximum torque limit
         
         ! Saturate the commanded torque using the torque rate limit:
