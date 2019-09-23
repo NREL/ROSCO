@@ -100,7 +100,7 @@ CONTAINS
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables
         REAL(C_FLOAT), INTENT(INOUT)            :: avrSWAP(*)    ! The swap array, used to pass data to, and receive data from, the DLL controller.
-        REAL(4)                                 :: VS_MaxTq      ! Maximum torque saturation limits
+        REAL(4)                                 :: VS_MaxTq      ! Locally allocated maximum torque saturation limits
         
         ! -------- Variable-Speed Torque Controller --------
         ! Optimal Tip-Speed-Ratio tracking controller
