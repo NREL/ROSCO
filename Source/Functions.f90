@@ -112,6 +112,43 @@ CONTAINS
         
     END FUNCTION interp1d
     !-------------------------------------------------------------------------------------------------------------------------------
+    ! Performs a direct calculation of the inverse of a 3×3 matrix.
+    FUNCTION matinv3(A) RESULT(B)
+    REAL(4), INTENT(IN) :: A(3,3)   !! Matrix
+    REAL(4)             :: B(3,3)   !! Inverse matrix
+    REAL(4)             :: detinv
+
+    ! Calculate the inverse determinant of the matrix
+    detinv = 1/(A(1,1)*A(2,2)*A(3,3) - A(1,1)*A(2,3)*A(3,2)&
+              - A(1,2)*A(2,1)*A(3,3) + A(1,2)*A(2,3)*A(3,1)&
+              + A(1,3)*A(2,1)*A(3,2) - A(1,3)*A(2,2)*A(3,1))
+
+    ! Calculate the inverse of the matrix
+    B(1,1) = +detinv * (A(2,2)*A(3,3) - A(2,3)*A(3,2))
+    B(2,1) = -detinv * (A(2,1)*A(3,3) - A(2,3)*A(3,1))
+    B(3,1) = +detinv * (A(2,1)*A(3,2) - A(2,2)*A(3,1))
+    B(1,2) = -detinv * (A(1,2)*A(3,3) - A(1,3)*A(3,2))
+    B(2,2) = +detinv * (A(1,1)*A(3,3) - A(1,3)*A(3,1))
+    B(3,2) = -detinv * (A(1,1)*A(3,2) - A(1,2)*A(3,1))
+    B(1,3) = +detinv * (A(1,2)*A(2,3) - A(1,3)*A(2,2))
+    B(2,3) = -detinv * (A(1,1)*A(2,3) - A(1,3)*A(2,1))
+    B(3,3) = +detinv * (A(1,1)*A(2,2) - A(1,2)*A(2,1))
+    END FUNCTION matinv3
+    !-------------------------------------------------------------------------------------------------------------------------------
+    ! Produces an identity matrix of size n x n
+    FUNCTION identity(n) RESULT(A)
+    ! Allocate variables
+    INTEGER, INTENT(IN)         :: n
+    REAL(4), DIMENSION(n, n)    :: A
+    INTEGER                     :: i
+
+    ! Build identity matrix 
+    FORALL (i=1:n)  
+        A(i, i) = 1.0
+    END FORALL
+    
+    END FUNCTION identity
+    !-------------------------------------------------------------------------------------------------------------------------------  
     ! DF controller, with output saturation
     REAL FUNCTION DFController(error, Kd, Tf, DT, inst)
     !
@@ -289,7 +326,7 @@ CONTAINS
             
             ! Output debugging information if requested:
             IF (CntrPar%LoggingLevel > 0) THEN
-                WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%VS_SpdErr, LocalVar%VS_LastGenTrq, LocalVar%TestType, LocalVar%HorWindV, LocalVar%WE_Vw
+                WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%VS_SpdErr, LocalVar%VS_LastGenTrq, LocalVar%TestType, LocalVar%HorWindV, LocalVar%TestType
             END IF
             
             IF (CntrPar%LoggingLevel > 1) THEN
