@@ -97,20 +97,136 @@ CONTAINS
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables
-        REAL(4)             :: F_WECornerFreq ! Corner frequency (-3dB point) for first order low pass filter for measured hub height wind speed [Hz]
-        ! Define Variables
-        F_WECornerFreq = 0.0333  ! Fix to 30 second time constant for now
+        REAL(4)             :: F_WECornerFreq   ! Corner frequency (-3dB point) for first order low pass filter for measured hub height wind speed [Hz]
+
+        !       Only used in EKF, if WE_Mode = 2
+        REAL(4), SAVE       :: om_r             ! Estimated rotor speed [rad/s]
+        REAL(4), SAVE       :: v_t              ! Estimated wind speed, turbulent component [m/s]
+        REAL(4), SAVE       :: v_m              ! Estimated wind speed, 10-minute averaged [m/s]
+        REAL(4), SAVE       :: v_h              ! Combined estimated wind speed [m/s]
+        REAL(4)             :: L                ! Turbulent length scale parameter [m]
+        REAL(4)             :: Ti               ! Turbulent intensity, [-]
+        REAL(4), DIMENSION(3,3) :: I
+        !           - operating conditions
+        REAL(4)             :: A_op             ! Estimated operational system pole [UNITS!]
+        REAL(4)             :: Cp_op            ! Estimated operational Cp [-]
+        REAL(4)             :: Tau_r            ! Estimated rotor torque [Nm]
+        REAL(4)             :: a                ! wind variance
+
+        ! REAL(4), DIMENSION(1,23)    :: WE_EKF_Vref
+        REAL(4)             :: WE_EKF_Vref(23)
+        REAL(4)             :: WE_EKF_Aref(23)
+        REAL(4)             :: WE_EKF_Cpref(23)
+        !           - Covariance matrices
+        REAL(4), DIMENSION(3,3)         :: F        ! First order system jacobian 
+        REAL(4), DIMENSION(3,3), SAVE   :: P        ! Covariance estiamte 
+        REAL(4), DIMENSION(1,3)         :: H        ! Output equation jacobian 
+        REAL(4), DIMENSION(3,1), SAVE   :: xh       ! Estimated state matrix
+        REAL(4), DIMENSION(3,1)         :: dxh      ! Estimated state matrix deviation from previous timestep
+        REAL(4), DIMENSION(3,3)         :: Q        ! Process noise covariance matrix
+        REAL(4), DIMENSION(1,1)         :: S        ! Innovation covariance 
+        REAL(4), DIMENSION(3,1), SAVE   :: K        ! Kalman gain matrix
+        REAL(4)                         :: R_m      ! Measurement noise covariance [(rad/s)^2]
+
+        WE_EKF_Vref = (/ 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 /)
+        WE_EKF_Aref = (/ -0.0203, -0.0270, -0.0338, -0.0405, -0.0473, -0.0540, -0.0608, -0.0675, -0.0743, -0.0671, -0.0939, -0.1257, -0.1601, -0.1973, -0.2364, -0.2783, -0.3223, -0.3678, -0.4153, -0.4632, -0.5122, -0.5629, -0.6194 /)
+        WE_EKF_Cpref = (/ 0.4957, 0.4957, 0.4957, 0.4957, 0.4957, 0.4957, 0.4957, 0.4957, 0.4957, 0.4193, 0.3298, 0.2641, 0.2147, 0.1769, 0.1475, 0.1242, 0.1056, 0.0906, 0.0782, 0.0680, 0.0596, 0.0524, 0.0464 /)
+
         
-        ! Define wind speed estimate
+        ! ---- Define wind speed estimate ---- 
+        
+        ! Inversion and Invariance Filter implementation
         IF (CntrPar%WE_Mode == 1) THEN      
-            ! Inversion and Invariance Filter implementation
             LocalVar%WE_VwIdot = CntrPar%WE_Gamma/CntrPar%WE_Jtot*(LocalVar%VS_LastGenTrq*CntrPar%WE_GearboxRatio - AeroDynTorque(LocalVar, CntrPar))
             LocalVar%WE_VwI = LocalVar%WE_VwI + LocalVar%WE_VwIdot*LocalVar%DT
             LocalVar%WE_Vw = LocalVar%WE_VwI + CntrPar%WE_Gamma*LocalVar%RotSpeed
-        ELSE                                
+        
+        ! Extended Kalman Filter (EKF) implementation
+        ELSEIF (CntrPar%WE_Mode == 2) THEN
+            ! Define contant values
+            L = 2 * CntrPar%WE_BladeRadius
+            Ti = 0.1
+            R_m=0.02
+            H = RESHAPE((/1,0,0/),(/1,3/))
+            ! Define matrices to be filled
+            F = RESHAPE((/0, 0, 0, 0, 0, 0, 0, 0, 0/),(/3,3/))
+            IF (LocalVar%iStatus == 0) THEN
+                ! Initialize recurring values
+                om_r = LocalVar%RotSpeed
+                v_t = 0.0
+                v_m = LocalVar%HorWindV
+                om_r = LocalVar%RotSpeed
+                xh = RESHAPE((/om_r, v_t, v_m/),(/3,1/))
+                ! Q = RESHAPE((/0, 0, 0, 0, 0, 0, 0, 0, 0/),(/3,3/))
+                P = RESHAPE((/0, 0, 0, 0, 0, 0, 0, 0, 0/),(/3,3/))
+                K = RESHAPE((/0,0,0/),(/3,1/))
+                ! H = RESHAPE((/1,0,0/),(/1,3/))
+            ELSE
+                ! Update estimated values
+                ! v_h = LocalVar%WE_Vw
+                v_h = v_m + v_t
+                a = PI * v_m/(2*L)
+
+
+                ! Find estimated operating Cp and system pole
+                v_h = saturate(v_h,MINVAL(WE_EKF_Vref), MAXVAL(WE_EKF_Vref))
+                A_op = interp1d(WE_EKF_Vref,WE_EKF_Aref,v_h)
+                Cp_op = interp1d(WE_EKF_Vref,WE_EKF_Cpref,v_h)
+
+                ! Update Jacobian
+                F(1,1) = A_op
+                F(1,2) = 1/(2*CntrPar%WE_Jtot) * CntrPar%WE_RhoAir * PI *CntrPar%WE_BladeRadius**2 * Cp_op * 3 * v_h**2 * 1/om_r
+                F(1,3) = 1/(2*CntrPar%WE_Jtot) * CntrPar%WE_RhoAir * PI *CntrPar%WE_BladeRadius**2 * Cp_op * 3 * v_h**2 * 1/om_r
+                F(2,2) = PI * v_m/(2*L)
+                F(2,3) = PI * v_t/(2*L)
+
+                ! Update process noise covariance
+                Q(1,1) = 0.0001
+                Q(2,2) = PI * v_m**3 * Ti**2 / L
+                Q(3,3) = 2**2/600
+                
+                ! Prediction update
+                ! Tau_r = 1/(2) * CntrPar%WE_RhoAir * PI *CntrPar%WE_BladeRadius**2 * Cp_op * v_h**3 * 1/(om_r**2 * CntrPar%WE_BladeRadius)
+                Tau_r = AeroDynTorque(LocalVar,CntrPar)
+                dxh(1,1) = 1/CntrPar%WE_Jtot * (Tau_r - CntrPar%WE_GearboxRatio * LocalVar%VS_LastGenTrq)
+                dxh(2,1) = -a*v_t
+                dxh(3,1) = 0
+                print *, xh
+                xh = xh + LocalVar%DT*dxh ! state update
+                P = P + LocalVar%DT*(MATMUL(F,P) + MATMUL(P,TRANSPOSE(F)) + Q - MATMUL(K * R_m, TRANSPOSE(K))) 
+                ! print *, MATMUL(H,xh)
+
+                ! Measurement update
+                S = MATMUL(H,MATMUL(P,TRANSPOSE(H))) + R_m        ! NJA: (H*T*H') \approx 0
+                K = MATMUL(MATMUL(P,TRANSPOSE(H)),1/S)
+                ! K = MATMUL(P,TRANSPOSE(H))/R_m
+                xh = xh + K*(LocalVar%RotSpeed - xh(1,1))
+                I = identity(3)
+                P = MATMUL(I - MATMUL(K,H),P)
+
+                print *, 'err = ', (LocalVar%RotSpeed - xh(1,1))
+                ! P = P - MATMUL(MATMUL(K,S),TRANSPOSE(K))
+                ! print *, xh
+
+                ! Wind Speed Estimate
+                ! xh(1,1) = saturate(xh(1,1),0.0, CntrPar%PC_RefSpd * 1.5)
+                ! xh(2,1) = saturate(xh(2,1),-5.0, 5.0)
+                xh(3,1) = saturate(xh(3,1),0.0, MAXVAL(WE_EKF_Vref))
+                om_r = xh(1,1)
+                v_t = xh(2,1)
+                v_m = xh(3,1)
+                v_h = v_t + v_m
+                LocalVar%TestType = v_m + v_t
+                LocalVar%WE_Vw = v_m + v_t
+            ENDIF
+            
+        ELSE        
+            ! Define Variables
+            F_WECornerFreq = 0.0333  ! Fix to 30 second time constant for now    
+
             ! Filter wind speed at hub height as directly passed from OpenFAST
             LocalVar%WE_Vw = LPFilter(LocalVar%HorWindV, LocalVar%DT, F_WECornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
-        END IF 
+        ENDIF 
 
     END SUBROUTINE WindSpeedEstimator
 !-------------------------------------------------------------------------------------------------------------------------------
