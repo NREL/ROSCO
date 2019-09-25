@@ -9,6 +9,7 @@
 
 MODULE ControllerBlocks
 
+USE, INTRINSIC :: ISO_C_Binding
 USE Constants
 USE Filters
 USE Functions
@@ -34,8 +35,8 @@ CONTAINS
         IMPLICIT NONE
     
         ! Inputs
-        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
+        TYPE(ControlParameters),    INTENT(IN)          :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
         
         ! Initialize State machine if first call
         IF (LocalVar%iStatus == 0) THEN ! .TRUE. if we're on the first call to the DLL

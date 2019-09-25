@@ -254,13 +254,14 @@ CONTAINS
     END FUNCTION CPfunction
     !-------------------------------------------------------------------------------------------------------------------------------
     !Function for computing the aerodynamic torque, divided by the effective rotor torque of the turbine, for use in wind speed estimation
-    REAL FUNCTION AeroDynTorque(LocalVar, CntrPar)
-        USE DRC_Types, ONLY : LocalVariables, ControlParameters
+    REAL FUNCTION AeroDynTorque(LocalVar, CntrPar, PerfData)
+        USE DRC_Types, ONLY : LocalVariables, ControlParameters, PerformanceData
         IMPLICIT NONE
     
             ! Inputs
         TYPE(ControlParameters), INTENT(IN) :: CntrPar
         TYPE(LocalVariables), INTENT(IN) :: LocalVar
+        TYPE(PerformanceData), INTENT(IN) :: PerfData
             
             ! Local
         REAL(4) :: RotorArea
@@ -269,11 +270,13 @@ CONTAINS
         
         RotorArea = PI*CntrPar%WE_BladeRadius**2
         Lambda = LocalVar%RotSpeed*CntrPar%WE_BladeRadius/LocalVar%WE_Vw
-        Cp = CPfunction(CntrPar%WE_CP, Lambda)
-        
+        ! Cp = CPfunction(CntrPar%WE_CP, Lambda)
+        Cp = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%BlPitch(1)*R2D, Lambda)
+
         AeroDynTorque = 0.5*(CntrPar%WE_RhoAir*RotorArea)*(LocalVar%WE_Vw**3/LocalVar%RotSpeed)*Cp
         AeroDynTorque = MAX(AeroDynTorque, 0.0)
         
+
     END FUNCTION AeroDynTorque
     !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE Debug(LocalVar, CntrPar, avrSWAP, RootName, size_avcOUTNAME)

@@ -38,20 +38,20 @@ CHARACTER(SIZE(avcMSG)-1)               :: ErrMsg                           ! a 
 TYPE(ControlParameters), SAVE         :: CntrPar
 TYPE(LocalVariables), SAVE            :: LocalVar
 TYPE(ObjectInstances), SAVE           :: objInst
-
+TYPE(PerformanceData), SAVE           :: PerfData
 !------------------------------------------------------------------------------------------------------------------------------
 ! Main control calculations
 !------------------------------------------------------------------------------------------------------------------------------
 ! Read avrSWAP array into derived types/variables
 CALL ReadAvrSWAP(avrSWAP, LocalVar)
-CALL SetParameters(avrSWAP, aviFAIL, ErrMsg, SIZE(avcMSG), CntrPar, LocalVar, objInst)
+CALL SetParameters(avrSWAP, aviFAIL, ErrMsg, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData)
 CALL PreFilterMeasuredSignals(CntrPar, LocalVar, objInst)
 
 IF ((LocalVar%iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculations if no error has occurred and we are not on the last time step
     CALL ComputeVariablesSetpoints(CntrPar, LocalVar)
     
     CALL StateMachine(CntrPar, LocalVar)
-    CALL WindSpeedEstimator(LocalVar, CntrPar, objInst)
+    CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData)
     
     CALL SetpointSmoother(LocalVar, CntrPar, objInst)
 
