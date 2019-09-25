@@ -142,11 +142,18 @@ CONTAINS
     INTEGER, INTENT(IN)         :: n
     REAL(4), DIMENSION(n, n)    :: A
     INTEGER                     :: i
+    INTEGER                     :: j
 
     ! Build identity matrix 
-    FORALL (i=1:n)  
-        A(i, i) = 1.0
-    END FORALL
+    DO i=1,n  
+        DO j = 1,n
+            IF (i == j) THEN 
+                A(i,j) = 1.0
+            ELSE
+                A(i,j) = 0.0
+            ENDIF
+        ENDDO
+    ENDDO
     
     END FUNCTION identity
     !-------------------------------------------------------------------------------------------------------------------------------  
