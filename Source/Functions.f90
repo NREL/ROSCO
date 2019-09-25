@@ -113,6 +113,7 @@ CONTAINS
     END FUNCTION interp1d
     !-------------------------------------------------------------------------------------------------------------------------------
     ! Performs a direct calculation of the inverse of a 3×3 matrix.
+    ! Source: http://fortranwiki.org/fortran/show/Matrix+inversion
     FUNCTION matinv3(A) RESULT(B)
     REAL(4), INTENT(IN) :: A(3,3)   !! Matrix
     REAL(4)             :: B(3,3)   !! Inverse matrix
