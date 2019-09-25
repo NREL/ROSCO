@@ -65,7 +65,12 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)                             :: WE_GearboxRatio              ! Gearbox ratio, >=1  [-]
     REAL(4)                             :: WE_Jtot                      ! Total drivetrain inertia, including blades, hub and casted generator inertia to LSS [kg m^2]
     REAL(4)                             :: WE_RhoAir                    ! Air density [kg m^-3]
-    
+    CHARACTER(1024)                     :: PerfFileName                 ! File containing rotor performance tables (Cp,Ct,Cq)
+    INTEGER(4), DIMENSION(:), ALLOCATABLE  :: PerfTableSize             ! Size of rotor performance tables, first number refers to number of blade pitch angles, second number referse to number of tip-speed ratios
+    INTEGER(4)                          :: WE_FOPoles_N                 ! Number of first-order system poles used in EKF
+    REAL(4), DIMENSION(:), ALLOCATABLE  :: WE_FOPoles_v                 ! Wind speeds corresponding to first-order system poles [m/s]
+    REAL(4), DIMENSION(:), ALLOCATABLE  :: WE_FOPoles                   ! First order system poles
+
     INTEGER(4)                          :: Y_ControlMode                ! Yaw control mode {0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}
     REAL(4)                             :: Y_ErrThresh                  ! Error threshold [rad]. Turbine begins to yaw when it passes this. (104.71975512) -- 1.745329252
     REAL(4)                             :: Y_IPC_IntSat                 ! Integrator saturation (maximum signal amplitude contrbution to pitch from yaw-by-IPC)
@@ -154,4 +159,13 @@ TYPE, PUBLIC :: ObjectInstances
     INTEGER(4)                          :: instNotch
     INTEGER(4)                          :: instPI
 END TYPE ObjectInstances
+
+TYPE, PUBLIC :: PerformanceData
+    REAL(4), DIMENSION(:), ALLOCATABLE      :: TSR_vec
+    REAL(4), DIMENSION(:), ALLOCATABLE      :: Beta_vec
+    REAL(4), DIMENSION(:,:), ALLOCATABLE    :: Cp_mat
+    REAL(4), DIMENSION(:,:), ALLOCATABLE    :: Ct_mat
+    REAL(4), DIMENSION(:,:), ALLOCATABLE    :: Cq_mat
+END TYPE PerformanceData
+
 END MODULE DRC_Types

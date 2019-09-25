@@ -8,13 +8,12 @@ USE Functions
     IMPLICIT NONE
 
 CONTAINS
-    !..............................................................................................................................
+    ! -----------------------------------------------------------------------------------
     ! Read all constant control parameters from DISCON.IN parameter file
-    !..............................................................................................................................
     SUBROUTINE ReadControlParameterFileSub(CntrPar)
         USE DRC_Types, ONLY : ControlParameters
 
-        INTEGER(4), PARAMETER :: UnControllerParameters = 89
+        INTEGER(4), PARAMETER :: UnControllerParameters = 99
         TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
         
         OPEN(unit=UnControllerParameters, file='DISCON.IN', status='old', action='read')
@@ -122,6 +121,15 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%WE_GearboxRatio
         READ(UnControllerParameters, *) CntrPar%WE_Jtot
         READ(UnControllerParameters, *) CntrPar%WE_RhoAir
+        READ(UnControllerParameters, *) CntrPar%PerfFileName
+        ALLOCATE(CntrPar%PerfTableSize(2))
+        READ(UnControllerParameters, *) CntrPar%PerfTableSize
+        READ(UnControllerParameters, *) CntrPar%WE_FOPoles_N
+        ALLOCATE(CntrPar%WE_FOPoles_v(CntrPar%WE_FOPoles_n))
+        READ(UnControllerParameters, *) CntrPar%WE_FOPoles_v
+        ALLOCATE(CntrPar%WE_FOPoles(CntrPar%WE_FOPoles_n))
+        READ(UnControllerParameters, *) CntrPar%WE_FOPoles
+
         READ(UnControllerParameters, *)
 
         !-------------- YAW CONTROLLER CONSTANTS -----------------
@@ -156,8 +164,12 @@ CONTAINS
         CntrPar%VS_Rgn3Pitch = CntrPar%PC_FinePit + CntrPar%PC_Switch
         
         CLOSE(UnControllerParameters)
+        
+        !------------------- HOUSEKEEPING -----------------------
+        CntrPar%PerfFileName = TRIM(CntrPar%PerfFileName)
     END SUBROUTINE ReadControlParameterFileSub
-    
+    ! -----------------------------------------------------------------------------------
+    ! Calculate setpoints for primary control actions    
     SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar)
         USE DRC_Types, ONLY : ControlParameters, LocalVariables
         
@@ -207,7 +219,8 @@ CONTAINS
         LocalVar%VS_SpdErrAr = VS_RefSpd - LocalVar%GenSpeedF               ! Current speed error - Region 2.5 PI-control (Above Rated)
         LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd - LocalVar%GenSpeedF     ! Current speed error - Region 1.5 PI-control (Below Rated)
     END SUBROUTINE ComputeVariablesSetpoints
-    
+    ! -----------------------------------------------------------------------------------
+    ! Read avrSWAP array passed from ServoDyn    
     SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar)
         USE DRC_Types, ONLY : LocalVariables
     
@@ -235,7 +248,8 @@ CONTAINS
         LocalVar%Azimuth = avrSWAP(60)
         LocalVar%NumBl = NINT(avrSWAP(61))
     END SUBROUTINE ReadAvrSWAP
-    
+    ! -----------------------------------------------------------------------------------
+    ! Check for errors before any execution
     SUBROUTINE Assert(LocalVar, CntrPar, avrSWAP, aviFAIL, ErrMsg, size_avcMSG)
         USE, INTRINSIC :: ISO_C_Binding
         USE DRC_Types, ONLY : LocalVariables, ControlParameters
@@ -385,14 +399,16 @@ CONTAINS
             ErrMsg  = 'IPC enabled, but Ptch_Cntrl in ServoDyn has a value of 0. Set it to 1.'
         ENDIF
     END SUBROUTINE Assert
-    
-    SUBROUTINE SetParameters(avrSWAP, aviFAIL, ErrMsg, size_avcMSG, CntrPar, LocalVar, objInst)
-        USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+    ! -----------------------------------------------------------------------------------
+    ! Define parameters for control actions
+    SUBROUTINE SetParameters(avrSWAP, aviFAIL, ErrMsg, size_avcMSG, CntrPar, LocalVar, objInst, PerfData)
+        USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData
         
         INTEGER(4), INTENT(IN) :: size_avcMSG
         TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT) :: objInst
+        TYPE(PerformanceData), INTENT(INOUT) :: PerfData
         
         REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
         INTEGER(C_INT), INTENT(OUT) :: aviFAIL              ! A flag used to indicate the success of this DLL call set as follows: 0 if the DLL call was successful, >0 if the DLL call was successful but cMessage should be issued as a warning messsage, <0 if the DLL call was unsuccessful or for any other reason the simulation is to be stopped at this point with cMessage as the error message.
@@ -439,6 +455,9 @@ CONTAINS
             
             CALL ReadControlParameterFileSub(CntrPar)
             
+            IF (CntrPar%WE_Mode > 0) THEN
+                CALL READCpFile(CntrPar,PerfData)
+            ENDIF
             ! Initialize testValue (debugging variable)
             LocalVar%TestType = 0
         
@@ -463,4 +482,52 @@ CONTAINS
             
         ENDIF
     END SUBROUTINE SetParameters
+    ! -----------------------------------------------------------------------------------
+    ! Read all constant control parameters from DISCON.IN parameter file
+    SUBROUTINE ReadCpFile(CntrPar,PerfData)
+        USE DRC_Types, ONLY : PerformanceData, ControlParameters
+
+        INTEGER(4), PARAMETER :: UnPerfParameters = 89
+        TYPE(PerformanceData), INTENT(INOUT) :: PerfData
+        TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
+        ! Local variables
+        INTEGER(4)                  :: i ! iteration index
+        OPEN(unit=UnPerfParameters, file=TRIM(CntrPar%PerfFileName), status='old', action='read') ! Should put input file into DISCON.IN
+        
+        ! ----------------------- Axis Definitions ------------------------
+        READ(UnPerfParameters, *)
+        ALLOCATE(PerfData%Beta_vec(CntrPar%PerfTableSize(1)))
+        READ(UnPerfParameters, *) PerfData%Beta_vec
+        READ(UnPerfParameters, *) 
+        ALLOCATE(PerfData%TSR_vec(CntrPar%PerfTableSize(2)))
+        READ(UnPerfParameters, *) PerfData%TSR_vec
+
+        ! ----------------------- Read Cp, Ct, Cq, Tables ------------------------
+        READ(UnPerfParameters, *) 
+        READ(UnPerfParameters, *) ! Input file should contains wind speed information here - unneeded for now
+        READ(UnPerfParameters, *) 
+        READ(UnPerfParameters, *) 
+        READ(UnPerfParameters, *) 
+        ALLOCATE(PerfData%Cp_mat(CntrPar%PerfTableSize(2),CntrPar%PerfTableSize(1)))
+        DO i = 1,CntrPar%PerfTableSize(2)
+            READ(UnPerfParameters, *) PerfData%Cp_mat(i,:) ! Read Cp table
+        END DO
+        READ(UnPerfParameters, *) 
+        READ(UnPerfParameters, *) 
+        READ(UnPerfParameters, *) 
+        READ(UnPerfParameters, *) 
+        ALLOCATE(PerfData%Ct_mat(CntrPar%PerfTableSize(1),CntrPar%PerfTableSize(2)))
+        DO i = 1,CntrPar%PerfTableSize(2)
+            READ(UnPerfParameters, *) PerfData%Ct_mat(i,:) ! Read Ct table
+        END DO
+        READ(UnPerfParameters, *) 
+        READ(UnPerfParameters, *) 
+        READ(UnPerfParameters, *) 
+        READ(UnPerfParameters, *) 
+        ALLOCATE(PerfData%Cq_mat(CntrPar%PerfTableSize(1),CntrPar%PerfTableSize(2)))
+        DO i = 1,CntrPar%PerfTableSize(2)
+            READ(UnPerfParameters, *) PerfData%Ct_mat(i,:) ! Read Cq table
+        END DO
+    
+    END SUBROUTINE ReadCpFile
 END MODULE ReadSetParameters
