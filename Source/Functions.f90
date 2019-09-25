@@ -85,7 +85,7 @@ CONTAINS
         
     END FUNCTION PIController
     !-------------------------------------------------------------------------------------------------------------------------------
-    ! interp1 1-D interpolation (table lookup), xData and yData should be monotonically increasing
+    ! interp1d 1-D interpolation (table lookup), xData should be monotonically increasing
     REAL FUNCTION interp1d(xData, yData, xq)
     !
         IMPLICIT NONE
@@ -111,6 +111,116 @@ CONTAINS
         END IF
         
     END FUNCTION interp1d
+    !-------------------------------------------------------------------------------------------------------------------------------
+    ! interp2d 2-D interpolation (table lookup). Query done using bilinear interpolation. 
+    REAL FUNCTION interp2d(xData, yData, zData, xq, yq)
+    ! Note that the interpolated matrix with associated query vectors may be different than "standard", - zData should be formatted accordingly
+    ! - xData follows the matrix from left to right
+    ! - yData follows the matrix from top to bottom
+    ! A simple case: xData = [1 2 3], yData = [4 5 6]
+    !        | 1    2   3
+    !       -------------
+    !       4| a    b   c
+    !       5| d    e   f
+    !       6| g    H   i
+
+        IMPLICIT NONE
+            ! Inputs
+        REAL(4), DIMENSION(:),   INTENT(IN)     :: xData        ! Provided x data (vector), to find query point (should be monotonically increasing)
+        REAL(4), DIMENSION(:),   INTENT(IN)     :: yData        ! Provided y data (vector), to find query point (should be monotonically increasing)
+        REAL(4), DIMENSION(:,:), INTENT(IN)     :: zData        ! Provided z data (vector), to be interpolated
+        REAL(4),                 INTENT(IN)     :: xq           ! x-value for which the z value has to be interpolated
+        REAL(4),                 INTENT(IN)     :: yq           ! y-value for which the z value has to be interpolated
+            ! Allocate variables
+        INTEGER(4)                              :: i            ! Iteration index & query index, x-direction
+        INTEGER(4)                              :: ii           ! Iteration index & second que .  ry index, x-direction
+        INTEGER(4)                              :: j            ! Iteration index & query index, y-direction
+        INTEGER(4)                              :: jj           ! Iteration index & second query index, y-direction
+        REAL(4), DIMENSION(2,2)                 :: fQ           ! zData value at query points for bilinear interpolation            
+        REAL(4), DIMENSION(1)                   :: fxy           ! Interpolated z-data point to be returned
+        REAL(4)                                 :: fxy1          ! zData value at query point for bilinear interpolation            
+        REAL(4)                                 :: fxy2          ! zData value at query point for bilinear interpolation            
+        
+        ! ---- Find corner indices surrounding desired interpolation point -----
+            ! x-direction
+        IF (xq <= MINVAL(xData)) THEN       ! On lower x-bound, just need to find zData(yq)
+            j = 1
+            jj = 1
+            interp2d = interp1d(yData,zData(:,j),yq)
+            RETURN
+        ELSEIF (xq >= MAXVAL(xData)) THEN   ! On upper x-bound, just need to find zData(yq)
+            j = size(xData)
+            jj = size(xData)
+            interp2d = interp1d(yData,zData(:,j),yq)
+            RETURN
+        ELSE
+            DO j = 1,size(xData)            ! On axis, just need 1d interpolation
+                IF (xq == xData(j)) THEN
+                    jj = j
+                    interp2d = interp1d(yData,zData(:,j),yq)
+                    RETURN
+                ELSEIF (xq <= xData(j)) THEN
+                    jj = j
+                    EXIT
+                ELSE
+                    CONTINUE
+                END IF
+            END DO
+        ENDIF
+        j = j-1 ! Move j back one
+            ! y-direction
+        IF (yq <= MINVAL(yData)) THEN       ! On lower y-bound, just need to find zData(xq)
+            i = 1
+            ii = 1
+            interp2d = interp1d(xData,zData(i,:),xq)
+            RETURN
+        ELSEIF (yq >= MAXVAL(yData)) THEN   ! On upper y-bound, just need to find zData(xq)
+            i = size(yData)
+            ii = size(yData)
+            interp2d = interp1d(xData,zData(i,:),xq)
+            RETURN
+        ELSE
+            DO i = 1,size(yData)
+                IF (yq == yData(i)) THEN    ! On axis, just need 1d interpolation
+                    ii = i
+                    interp2d = interp1d(yData,zData(i,:),xq)
+                    RETURN
+                ELSEIF (yq <= yData(i)) THEN
+                    ii = i
+                    EXIT
+                ELSE
+                    CONTINUE
+                END IF
+            END DO
+        ENDIF
+        i = i-1 ! move i back one
+        
+        ! ---- Do bilinear interpolation ----
+
+        !   Find values at corners 
+        fQ(1,1) = zData(i,j)
+        fQ(2,1) = zData(ii,j)
+        fQ(1,2) = zData(i,jj)
+        fQ(2,2) = zData(ii,jj)
+
+        ! fQ(1,1) = zData(size(yData) - i,j)
+        ! fQ(2,1) = zData(size(yData) - ii,j)
+        ! fQ(1,2) = zData(size(yData) - i,jj)
+        ! fQ(2,2) = zData(size(yData) - ii,jj)
+
+        ! !   Interpolate
+        fxy1 = (xData(jj) - xq)/(xData(jj) - xData(j))*fQ(1,1) + (xq - xData(j))/(xData(jj) - xData(j))*fQ(2,1)
+        fxy2 = (xData(jj) - xq)/(xData(jj) - xData(j))*fQ(1,2) + (xq - xData(j))/(xData(jj) - xData(j))*fQ(2,1)
+        fxy = (yData(ii) - yq)/(yData(ii) - yData(i))*fxy1 + (yq - yData(i))/(yData(ii) - yData(i))*fxy2
+
+        interp2d = fxy(1)
+
+
+        ! z = 1/(xData(ii) - xData(i)*(yData(jj) - yData(j))) * MATMUL( (/(xData(ii) - xq),(xq - xData(i))/), MATMUL( fQ , RESHAPE( (/ (yData(jj) - yq) , (yq - yData(j)) /),(/2,1/)) ) )
+        ! interp2d = z(1)
+
+
+    END FUNCTION interp2d
     !-------------------------------------------------------------------------------------------------------------------------------
     ! Performs a direct calculation of the inverse of a 3×3 matrix.
     ! Source: http://fortranwiki.org/fortran/show/Matrix+inversion
@@ -313,8 +423,8 @@ CONTAINS
             IF (CntrPar%LoggingLevel > 0) THEN
                 !OPEN(unit=UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='NEW')
                 OPEN(unit=UnDb, FILE='DEBUG.dbg')
-                WRITE (UnDb,'(A)')  '   Time '  //Tab//'VS_SpdErr '//Tab//' VS_LastGenTq    '//Tab//' Omega_op    '//Tab//' HorWindV    '  //Tab//' WE_Vw    ' 
-                WRITE (UnDb,'(A)')  '   (sec) '  //Tab//'(m/s) '//Tab//' (Nm)    '//Tab//' (Nm)'  //Tab//' (m/s)    '//Tab//' (m/s)    '
+                WRITE (UnDb,'(A)')  '   Time '  //Tab//'VS_SpdErr '//Tab//' VS_LastGenTq    '//Tab//' HorWindV    '  //Tab//' WE_Vw    ' 
+                WRITE (UnDb,'(A)')  '   (sec) '  //Tab//'(m/s) '//Tab//' (Nm)    '//Tab//' (m/s)    '//Tab//' (m/s)    '
                 !WRITE (UnDb,'(A)') '   LocalVar%Time '  //Tab//'LocalVar%PC_PitComT  ' //Tab//'LocalVar%PC_SpdErr  ' //Tab//'LocalVar%PC_KP ' //Tab//'LocalVar%PC_KI  ' //Tab//'LocalVar%Y_M  ' //Tab//'LocalVar%rootMOOP(1)  '//Tab//'VS_RtPwr  '//Tab//'LocalVar%GenTq'
                 !WRITE (UnDb,'(A)') '   (sec) ' //Tab//'(rad)    '  //Tab//'(rad/s) '//Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   ' //Tab//'(?)   ' //Tab//'(W)   '//Tab//'(Nm)  '
             END IF
@@ -337,7 +447,7 @@ CONTAINS
             
             ! Output debugging information if requested:
             IF (CntrPar%LoggingLevel > 0) THEN
-                WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%VS_SpdErr, LocalVar%VS_LastGenTrq, LocalVar%TestType, LocalVar%HorWindV, LocalVar%TestType
+                WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%VS_SpdErr, LocalVar%VS_LastGenTrq, LocalVar%HorWindV, LocalVar%WE_Vw
             END IF
             
             IF (CntrPar%LoggingLevel > 1) THEN
