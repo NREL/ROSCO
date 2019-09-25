@@ -13,7 +13,7 @@ CONTAINS
     SUBROUTINE ReadControlParameterFileSub(CntrPar)
         USE DRC_Types, ONLY : ControlParameters
 
-        INTEGER(4), PARAMETER :: UnControllerParameters = 99
+        INTEGER(4), PARAMETER :: UnControllerParameters = 89
         TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
         
         OPEN(unit=UnControllerParameters, file='DISCON.IN', status='old', action='read')
@@ -38,6 +38,7 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%Y_ControlMode        
         READ(UnControllerParameters, *) CntrPar%SS_Mode        
         READ(UnControllerParameters, *) CntrPar%WE_Mode        
+        READ(UnControllerParameters, *) CntrPar%PS_Mode        
         READ(UnControllerParameters, *)
 
         !----------------- FILTER CONSTANTS ---------------------
@@ -154,7 +155,15 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%FA_KI  
         READ(UnControllerParameters, *) CntrPar%FA_HPFCornerFreq
         READ(UnControllerParameters, *) CntrPar%FA_IntSat
-        
+        READ(UnControllerParameters, *)      
+
+        !------------ PEAK SHAVING ------------
+        READ(UnControllerParameters, *)      
+        READ(UnControllerParameters, *) CntrPar%PS_BldPitchMin_N  
+        ALLOCATE(CntrPar%PS_WindSpeeds(CntrPar%PS_BldPitchMin_N))
+        READ(UnControllerParameters, *) CntrPar%PS_WindSpeeds
+        ALLOCATE(CntrPar%PS_BldPitchMin(CntrPar%PS_BldPitchMin_N))
+        READ(UnControllerParameters, *) CntrPar%PS_BldPitchMin
         ! END OF INPUT FILE    
         
         !------------------- CALCULATED CONSTANTS -----------------------

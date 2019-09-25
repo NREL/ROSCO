@@ -69,10 +69,18 @@ CONTAINS
             LocalVar%PC_SineExcitation = 0
         END IF
         
+        ! Peak Shaving
+        IF (CntrPar%PS_Mode == 1) THEN
+            LocalVar%PC_MinPit = PeakShaving(LocalVar,CntrPar)
+        ELSE
+            LocalVar%PC_MinPit = CntrPar%PC_MinPit
+        ENDIF
+
+
         ! Combine and saturate all pitch commands:
         DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
             ! PitCom(K) = ratelimit(LocalVar%PC_PitComT_IPC(K), LocalVar%BlPitch(K), PC_MinRat, PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
-            LocalVar%PitCom(K) = saturate(LocalVar%PC_PitComT, CntrPar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
+            LocalVar%PitCom(K) = saturate(LocalVar%PC_PitComT, LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
             LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%IPC_PitComF(K) + LocalVar%FA_PitCom(K) + LocalVar%PC_SineExcitation
         END DO
         

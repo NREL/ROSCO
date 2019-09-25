@@ -13,6 +13,7 @@
 0					! Y_ControlMode		- Yaw control mode {0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}
 1                   ! SS_Mode           - Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
 0                   ! WE_Mode           - Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Imersion and Invariance Estimator (Ortega et al.)}
+1                   ! PS_Mode           - Peak shaving mode {0: no peak shaving, 1: implement peak shaving}
 
 !------- FILTERS ----------------------------------------------------------
 1.570796326			! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [Hz]
@@ -95,3 +96,8 @@
 -1					! FA_KI				- Integral gain for the fore-aft tower damper controller, -1 = off / >0 = on [rad s/m] - !NJA - Make this a switch
 0.1                 ! FA_HPF_CornerFreq	- Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal, [rad/s]                                                                                                              
 0.087266			! FA_IntSat			- Integrator saturation (maximum signal amplitude contribution to pitch from FA damper), [rad]
+
+!------- PEAK SHAVING -------------------------------------------
+23                  ! PS_BldPitchMin_N  - Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)
+3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 ! PS_WindSpeeds       - Wind speeds corresponding to minimum blade pitch angles [m/s]
+ -0.0349 -0.0349 -0.0349 -0.0349 -0.0349 -0.0349 -0.0349 -0.0114 0.0356 0.0577 0.0825 0.1058 0.1282 0.1499 0.1708 0.1913 0.2114 0.2310 0.2502 0.2690 0.2874 0.3056 0.3239 ! PS_BldPitchMin          - Minimum blade pitch angles [rad]

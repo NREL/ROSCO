@@ -88,6 +88,11 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)                             :: Z_PitchAmplitude             ! Amplitude of sine pitch excitation
     REAL(4)                             :: Z_PitchFrequency             ! Frequency of sine pitch excitation
     
+    INTEGER(4)                          :: PS_Mode                      ! Peak shaving mode {0: no peak shaving, 1: implement peak shaving}
+    INTEGER(4)                          :: PS_BldPitchMin_N             ! Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)
+    REAL(4), DIMENSION(:), ALLOCATABLE  :: PS_WindSpeeds                ! Wind speeds corresponding to minimum blade pitch angles [m/s]
+    REAL(4), DIMENSION(:), ALLOCATABLE  :: PS_BldPitchMin               ! Minimum blade pitch angles [rad]
+
     REAL(4)                             :: PC_RtTq99                    ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(4)                             :: VS_MaxOMTq                   ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(4)                             :: VS_MinOMTq                   ! Minimum torque at the beginning of the below-rated region 2, [Nm]
@@ -125,7 +130,8 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                             :: PC_KI                        ! Integral gain for pitch controller at rated pitch (zero) [-].
     REAL(4)                             :: PC_KD                        ! Differential gain for pitch controller at rated pitch (zero) [-].
     REAL(4)                             :: PC_TF                        ! First-order filter parameter for derivative action
-    REAL(4)                             :: PC_MaxPit                 ! Maximum pitch setting in pitch controller (variable) [rad].
+    REAL(4)                             :: PC_MaxPit                    ! Maximum pitch setting in pitch controller (variable) [rad].
+    REAL(4)                             :: PC_MinPit                    ! Minimum pitch setting in pitch controller (variable) [rad].
     REAL(4)                             :: PC_PitComT                   ! Total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(4)                             :: PC_PitComT_IPC(3)            ! Total command pitch based on the sum of the proportional and integral terms, including IPC term [rad].
     REAL(4)                             :: PC_PwrErr                    ! Power error with respect to rated power [W]
@@ -149,7 +155,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                             :: Y_ErrLPFSlow                 ! Filtered yaw error by slow low pass filter [rad].
     REAL(4)                             :: Y_MErr                       ! Measured yaw error, measured + setpoint [rad].
     REAL(4)                             :: Y_YawEndT                    ! Yaw end time [s]. Indicates the time up until which yaw is active with a fixed rate
-END TYPE LocalVariables
+    END TYPE LocalVariables
 
 TYPE, PUBLIC :: ObjectInstances
     INTEGER(4)                          :: instLPF
