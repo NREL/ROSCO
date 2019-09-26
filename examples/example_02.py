@@ -12,7 +12,14 @@ import matplotlib.pyplot as plt
 turbine = wtc_turbine.Turbine()
 
 # Load quick from python
-turbine.load('saved_turbine.p')
+# turbine.load('saved_turbine.p')
+
+# ## Or Load the turbine model from a FAST input folder
+FAST_InputFile = '5MW_Land.fst'
+FAST_directory = '/Users/nabbas/Documents/TurbineModels/NREL_5MW/5MW_Land'
+txt_filename = 'Cp_Ct_Cq.txt'
+drivetrain_inertia = 40469564.444
+turbine.load_from_fast(FAST_InputFile,FAST_directory,drivetrain_inertia=drivetrain_inertia,dev_branch=True,rot_source=None,txt_filename='Cp_Ct_Cq.txt')
 
 # Sweep TSR and fix pitch in two positions
 fixed_rpm = 10. # RPM
