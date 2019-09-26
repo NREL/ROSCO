@@ -148,8 +148,8 @@ CONTAINS
         ! Extended Kalman Filter (EKF) implementation
         ELSEIF (CntrPar%WE_Mode == 2) THEN
             ! Define contant values
-            L = 4.0 * CntrPar%WE_BladeRadius
-            Ti = 0.1
+            L = 2.0 * CntrPar%WE_BladeRadius
+            Ti = 0.2
             R_m = 0.02
             H = RESHAPE((/1.0 , 0.0 , 0.0/),(/1,3/))
             ! Define matrices to be filled
@@ -185,7 +185,7 @@ CONTAINS
                 F(2,3) = PI * v_t/(2.0*L)
 
                 ! Update process noise covariance
-                Q(1,1) = 0.000001
+                Q(1,1) = 0.0001
                 Q(2,2) =(PI * (v_m**3.0) * (Ti**2.0)) / L
                 Q(3,3) = (2.0**2.0)/600.0
 \
