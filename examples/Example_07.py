@@ -1,7 +1,7 @@
 # Example_07
 # Load gain schedules, write_paramter input file, plot gains
 
-#%%
+
 import numpy as np
 from scipy import interpolate 
 
