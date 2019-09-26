@@ -1,5 +1,5 @@
 # Example_06
-# Step wind simulation
+# Step wind simulation, and plot
 
 from WTC_toolbox import turbine as wtc_turbine
 from WTC_toolbox import sim as wtc_sim
@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import os
 
 # ensure proper directory location 
-os.chdir('/Users/nabbas/Documents/WindEnergyToolbox/WTC_toolbox/examples')
+# os.chdir('/Users/nabbas/Documents/WindEnergyToolbox/WTC_toolbox/examples')
 
 # Load turbine model
 # Initialiize a turbine class
@@ -46,3 +46,5 @@ for i in range(len(t)):
 
 # Run simulator
 sim.sim_ws_series(t,ws)
+plt.show()
+
