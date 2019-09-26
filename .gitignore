@@ -16,6 +16,11 @@ _build
 .idea
 .vscode
 
+# OpenFAST generated files
+*.sum
+*.ech
+
 # Other
 .pytest_cache
 examples/cp_ct_cq_lut.p
+
