@@ -27,10 +27,12 @@ fixed_pitch = 0.
 
 tsr = np.arange(1,15,0.1)
 
+# cp_0 = np.array([turbine.cp_interp(t,0) for t in tsr])
+# cp_3 = np.array([turbine.cp_interp(t,3) for t in tsr])
+cp_0 = np.array([turbine.Cp.interp_surface(0,t) for t in tsr])
+cp_3 = np.array([turbine.Cp.interp_surface(np.deg2rad(3),t) for t in tsr])
 
-cp_0 = np.array([turbine.cp_interp(t,0) for t in tsr])
-cp_3 = np.array([turbine.cp_interp(t,3) for t in tsr])
-
+print('Plotting Cp data')
 fig, ax = plt.subplots()
 ax.plot(tsr,cp_0,label='Pitch=0')
 ax.plot(tsr,cp_3,label='Pitch=3')
