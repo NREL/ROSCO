@@ -55,13 +55,16 @@ class Sim():
             make_plots: bool, optional
                         True: generate plots, False: don't. 
         '''
+
+        print('Running simulation for %s wind turbine.' % self.turbine.TurbineName)
+
         # Store turbine data for conveniente
         dt = t_array[1] - t_array[0]
         R = self.turbine.RotorRad
         GBRatio = self.turbine.Ng
 
         # Declare output arrays
-        pitch = np.ones_like(t_array) * init_pitch 
+        bld_pitch = np.ones_like(t_array) * init_pitch 
         rot_speed = np.ones_like(t_array) * rotor_rpm_init * rpm2RadSec # represent rot speed in rad / s
         gen_speed = np.ones_like(t_array) * rotor_rpm_init * GBRatio # represent gen speed in rad/s
         aero_torque = np.ones_like(t_array) * 1000.0
@@ -72,12 +75,12 @@ class Sim():
         #       - If not, assume available matrices loaded from text file, and interpolate those
         try: 
             self.turbine.cc_rotor.evaluate(ws_array[1], [rot_speed[0]/rpm2RadSec], 
-                                                        [pitch[0]], 
+                                                        [bld_pitch[0]], 
                                                         coefficients=True)
             use_interpolated = False
         except: 
             use_interpolated = True
-            print('CCBLADE Error -- attempting to use interpolated Cp, Ct, Cq, tables')
+            print('Could not load turbine data from ccblade, using interpolated Cp, Ct, Cq, tables')
 
         # Loop through time
         for i, t in enumerate(t_array):
@@ -88,11 +91,11 @@ class Sim():
             # Load current Cq data
             if use_interpolated:
                 tsr = rot_speed[i-1] * self.turbine.RotorRad / ws
-                cq = self.turbine.Cq.interp_surface([pitch[i-1]],tsr)
+                cq = self.turbine.Cq.interp_surface([bld_pitch[i-1]],tsr)
             if not use_interpolated:
                 P, T, Q, M, Cp, Ct, cq, CM = self.turbine.cc_rotor.evaluate([ws], 
                                                         [rot_speed[i-1]/rpm2RadSec], 
-                                                        [pitch[i-1]], 
+                                                        [bld_pitch[i-1]], 
                                                         coefficients=True)
 
             # Update the turbine state
@@ -102,13 +105,13 @@ class Sim():
             gen_speed[i] = rot_speed[i] * self.turbine.Ng 
 
             # Call the controller
-            gen_torque[i], pitch[i] = self.controller_int.call_controller(t,dt,pitch[i-1],gen_speed[i],rot_speed[i],ws)
+            gen_torque[i], bld_pitch[i] = self.controller_int.call_controller(t,dt,bld_pitch[i-1],gen_speed[i],rot_speed[i],ws)
 
             # Calculate the power
             gen_power[i] = gen_speed[i] * np.pi/30.0 * gen_torque[i] * self.gen_eff
 
         # Save these values
-        self.pitch = pitch
+        self.bld_pitch = bld_pitch
         self.rot_speed = rot_speed
         self.gen_speed = gen_speed
         self.aero_torque = aero_torque
@@ -133,7 +136,7 @@ class Sim():
             ax.grid()
             ax.legend()
             ax = axarr[3]
-            ax.plot(self.t_array,self.pitch,label='Bld Pitch')
+            ax.plot(self.t_array,self.bld_pitch,label='Bld Pitch')
             ax.grid()
             ax.legend()
         
