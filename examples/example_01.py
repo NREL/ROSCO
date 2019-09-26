@@ -7,7 +7,7 @@
 # https://github.com/WISDEM/AeroelasticSE
 #  https://github.com/OpenFAST/openfast
 # Be sure to clone the repo with the --recursive flag or execute git submodule update --init --recursive after cloning.
-#%%
+
 from WTC_toolbox import turbine as wtc_turbine
 from WTC_toolbox import controller as wtc_controller
 from WTC_toolbox import sim as wtc_sim
@@ -26,7 +26,7 @@ turbine = wtc_turbine.Turbine()
 
 # Load the turbine model from a FAST input folder
 drivetrain_inertia = 40469564.444
-turbine.load_from_fast(FAST_InputFile,FAST_directory,drivetrain_inertia=drivetrain_inertia,dev_branch=True)
+turbine.load_from_fast(FAST_InputFile,FAST_directory,drivetrain_inertia=drivetrain_inertia,dev_branch=True,rot_source='txt',txt_filename='Cp_Ct_Cq.txt')
 
 # Display a little about the turbine
 print(turbine)
