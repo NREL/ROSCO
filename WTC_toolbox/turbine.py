@@ -200,17 +200,16 @@ class Turbine():
         P, T, Q, M, CP, CT, CQ, CM = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
 
         # Reshape Cp, Ct and Cq
-        CP = np.transpose(np.reshape(CP, (len(pitch_initial), len(TSR_initial))))
-        CT = np.transpose(np.reshape(CT, (len(pitch_initial), len(TSR_initial))))
-        CQ = np.transpose(np.reshape(CQ, (len(pitch_initial), len(TSR_initial))))
+        Cp = np.transpose(np.reshape(CP, (len(pitch_initial), len(TSR_initial))))
+        Ct = np.transpose(np.reshape(CT, (len(pitch_initial), len(TSR_initial))))
+        Cq = np.transpose(np.reshape(CQ, (len(pitch_initial), len(TSR_initial))))
 
         # Store necessary metrics for analysis
         self.pitch_initial_rad = pitch_initial_rad
         self.TSR_initial = TSR_initial
-        self.CP_table = CP
-        self.CT_table = CT 
-        self.CQ_table = CQ
-
+        self.Cp_table = Cp
+        self.Ct_table = Ct 
+        self.Cq_table = Cq
     def load_from_txt(self,fast,txt_filename):
         '''
         Load rotor performance data from a *.txt file. 
