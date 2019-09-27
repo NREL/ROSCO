@@ -253,5 +253,21 @@ CONTAINS
 
     END SUBROUTINE SetpointSmoother
 !-------------------------------------------------------------------------------------------------------------------------------
+    REAL FUNCTION PeakShaving(LocalVar, CntrPar) 
+    ! PeakShaving defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
+    !       SS_Mode = 0, No setpoint smoothing
+    !       SS_Mode = 1, Implement setpoint smoothing
+        USE DRC_Types, ONLY : LocalVariables, ControlParameters
+        IMPLICIT NONE
+        ! Inputs
+        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
+        ! Allocate Variables 
+
+        ! Define minimum blade pitch angle as a function of estimated wind speed
+        PeakShaving = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin,LocalVar%WE_Vw)
+
+    END FUNCTION PEAKSHAVING
+!-------------------------------------------------------------------------------------------------------------------------------
 
 END MODULE ControllerBlocks
