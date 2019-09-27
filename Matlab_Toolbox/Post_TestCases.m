@@ -37,20 +37,23 @@ end
  %% Plot Data
  % Will want to (un)comment desired cases to plot
 
-% Below Rated
-% Pl_FastPlots(fo.Step_Legacy, fo.Step_Baseline)
- 
-% Below Rated
-% Pl_FastPlots(fo.BR_Legacy, fo.BR_Baseline)
+ % Usable Plot types: 
+ %  - Step, Blow Rated, Near Rated, Above Rated, Floating
+plottype = 'Floating';
 
-% Near Rated
-% Pl_FastPlots(fo.NR_Legacy, fo.NR_Baseline)
-
-% % Above Rated
-% Pl_FastPlots(fo.AR_Legacy, fo.AR_Baseline)
- 
-% % Floating, Above Rated steady
-Pl_FastPlots(fo.OC4_ARsteady_Legacy, fo.OC4_ARsteady_Baseline)
+% Below Rated
+switch plottype
+    case 'Step'
+        Pl_FastPlots(fo.Step_Legacy, fo.Step_Baseline)
+    case 'Below Rated'
+        Pl_FastPlots(fo.BR_Legacy, fo.BR_Baseline)
+    case 'Near Rated'
+        Pl_FastPlots(fo.NR_Legacy, fo.NR_Baseline)
+    case 'Above Rated'
+        Pl_FastPlots(fo.AR_Legacy, fo.AR_Baseline)
+    case 'Floating'
+        Pl_FastPlots(fo.OC4_ARsteady_Legacy, fo.OC4_ARsteady_Baseline)
+end
  
  
  
