@@ -18,7 +18,6 @@ controller = wtc_controller.Controller()
 file_processing = wtc_controller.FileProcessing()
 
 # Initialize Filenames and Directories
-os.chdir('/Users/nabbas/Documents/WindEnergyToolbox/WTC_toolbox/examples')
 FAST_InputFile = '5MW_Land.fst'
 FAST_directory = os.path.join(os.getcwd(),'../Test_Cases/5MW_Land')
 txt_filename = 'Cp_Ct_Cq.txt'
