@@ -263,9 +263,13 @@ CONTAINS
         TYPE(ControlParameters), INTENT(IN)     :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
         ! Allocate Variables 
+        REAL(4)                     :: Vhat     ! Estimated wind speed without towertop motion [m/s]
+
+        ! Account for towertop motions in wind speed estimate
+        Vhat = LocalVar%WE_Vw - LocalVar%FA_AccHPFI
 
         ! Define minimum blade pitch angle as a function of estimated wind speed
-        PeakShaving = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin,LocalVar%WE_Vw)
+        PeakShaving = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, Vhat)
 
     END FUNCTION PEAKSHAVING
 !-------------------------------------------------------------------------------------------------------------------------------
