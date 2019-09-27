@@ -12,6 +12,9 @@ _build
 # macOS files
 .DS_Store
 
+# MATLAB files
+*.m~
+
 # ide settings and files
 .idea
 .vscode
