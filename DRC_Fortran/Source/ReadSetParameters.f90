@@ -1,14 +1,6 @@
 MODULE ReadSetParameters
 
     USE, INTRINSIC :: ISO_C_Binding
-<<<<<<< HEAD
-    IMPLICIT NONE
-
-CONTAINS
-    !..............................................................................................................................
-    ! Read all constant control parameters from DISCON.IN parameter file
-    !..............................................................................................................................
-=======
 
 USE Constants
 USE Functions
@@ -18,7 +10,6 @@ USE Functions
 CONTAINS
     ! -----------------------------------------------------------------------------------
     ! Read all constant control parameters from DISCON.IN parameter file
->>>>>>> tuning_dev
     SUBROUTINE ReadControlParameterFileSub(CntrPar)
         USE DRC_Types, ONLY : ControlParameters
 
@@ -46,11 +37,8 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%PC_ControlMode
         READ(UnControllerParameters, *) CntrPar%Y_ControlMode        
         READ(UnControllerParameters, *) CntrPar%SS_Mode        
-<<<<<<< HEAD
-=======
         READ(UnControllerParameters, *) CntrPar%WE_Mode        
         READ(UnControllerParameters, *) CntrPar%PS_Mode        
->>>>>>> tuning_dev
         READ(UnControllerParameters, *)
 
         !----------------- FILTER CONSTANTS ---------------------
@@ -134,8 +122,6 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%WE_GearboxRatio
         READ(UnControllerParameters, *) CntrPar%WE_Jtot
         READ(UnControllerParameters, *) CntrPar%WE_RhoAir
-<<<<<<< HEAD
-=======
         READ(UnControllerParameters, *) CntrPar%PerfFileName
         ALLOCATE(CntrPar%PerfTableSize(2))
         READ(UnControllerParameters, *) CntrPar%PerfTableSize
@@ -145,7 +131,6 @@ CONTAINS
         ALLOCATE(CntrPar%WE_FOPoles(CntrPar%WE_FOPoles_n))
         READ(UnControllerParameters, *) CntrPar%WE_FOPoles
 
->>>>>>> tuning_dev
         READ(UnControllerParameters, *)
 
         !-------------- YAW CONTROLLER CONSTANTS -----------------
@@ -170,9 +155,6 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%FA_KI  
         READ(UnControllerParameters, *) CntrPar%FA_HPFCornerFreq
         READ(UnControllerParameters, *) CntrPar%FA_IntSat
-<<<<<<< HEAD
-        
-=======
         READ(UnControllerParameters, *)      
 
         !------------ PEAK SHAVING ------------
@@ -182,7 +164,6 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%PS_WindSpeeds
         ALLOCATE(CntrPar%PS_BldPitchMin(CntrPar%PS_BldPitchMin_N))
         READ(UnControllerParameters, *) CntrPar%PS_BldPitchMin
->>>>>>> tuning_dev
         ! END OF INPUT FILE    
         
         !------------------- CALCULATED CONSTANTS -----------------------
@@ -192,35 +173,24 @@ CONTAINS
         CntrPar%VS_Rgn3Pitch = CntrPar%PC_FinePit + CntrPar%PC_Switch
         
         CLOSE(UnControllerParameters)
-<<<<<<< HEAD
-    END SUBROUTINE ReadControlParameterFileSub
-    
-=======
         
         !------------------- HOUSEKEEPING -----------------------
         CntrPar%PerfFileName = TRIM(CntrPar%PerfFileName)
     END SUBROUTINE ReadControlParameterFileSub
     ! -----------------------------------------------------------------------------------
     ! Calculate setpoints for primary control actions    
->>>>>>> tuning_dev
     SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar)
         USE DRC_Types, ONLY : ControlParameters, LocalVariables
         
         ! Allocate variables
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
-<<<<<<< HEAD
-        REAL(4)                                 :: VS_RefSpd        ! Referece speed for variable speed torque controller. 
-        REAL(4)                                 :: PC_RefSpd        ! Referece speed for pitch controller. 
-        
-=======
         REAL(4)                                 :: VS_RefSpd        ! Referece speed for variable speed torque controller, [rad/s] 
         REAL(4)                                 :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
         REAL(4)                                 :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
         ! temp
         REAL(4)                                 :: VS_TSRop = 7.5
 
->>>>>>> tuning_dev
         ! ----- Calculate yaw misalignment error -----
         LocalVar%Y_MErr = LocalVar%Y_M + CntrPar%Y_MErrSet ! Yaw-alignment error
         
@@ -234,14 +204,6 @@ CONTAINS
         LocalVar%PC_SpdErr = PC_RefSpd - LocalVar%GenSpeedF            ! Speed error
         LocalVar%PC_PwrErr = CntrPar%VS_RtPwr - LocalVar%VS_GenPwr             ! Power error
         
-<<<<<<< HEAD
-        ! ----- Torque controller region 2.5 reference error -----
-        ! Implement setpoint smoothing
-        IF (LocalVar%SS_DelOmegaF > 0) THEN
-            VS_RefSpd = CntrPar%VS_RefSpd - LocalVar%SS_DelOmegaF
-        ELSE
-            VS_RefSpd = CntrPar%VS_RefSpd
-=======
         ! ----- Torque controller reference errors -----
         ! Define VS reference generator speed [rad/s]
         IF (CntrPar%VS_ControlMode == 2) THEN
@@ -260,19 +222,14 @@ CONTAINS
         IF (CntrPar%VS_ControlMode == 2) THEN
             LocalVar%VS_SpdErr = VS_RefSpd - LocalVar%GenSpeedF
             LocalVar%TestType = VS_RefSpd
->>>>>>> tuning_dev
         ENDIF
 
         ! Define transition region setpoint errors
         LocalVar%VS_SpdErrAr = VS_RefSpd - LocalVar%GenSpeedF               ! Current speed error - Region 2.5 PI-control (Above Rated)
         LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd - LocalVar%GenSpeedF     ! Current speed error - Region 1.5 PI-control (Below Rated)
     END SUBROUTINE ComputeVariablesSetpoints
-<<<<<<< HEAD
-    
-=======
     ! -----------------------------------------------------------------------------------
     ! Read avrSWAP array passed from ServoDyn    
->>>>>>> tuning_dev
     SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar)
         USE DRC_Types, ONLY : LocalVariables
     
@@ -300,12 +257,8 @@ CONTAINS
         LocalVar%Azimuth = avrSWAP(60)
         LocalVar%NumBl = NINT(avrSWAP(61))
     END SUBROUTINE ReadAvrSWAP
-<<<<<<< HEAD
-    
-=======
     ! -----------------------------------------------------------------------------------
     ! Check for errors before any execution
->>>>>>> tuning_dev
     SUBROUTINE Assert(LocalVar, CntrPar, avrSWAP, aviFAIL, ErrMsg, size_avcMSG)
         USE, INTRINSIC :: ISO_C_Binding
         USE DRC_Types, ONLY : LocalVariables, ControlParameters
@@ -455,25 +408,16 @@ CONTAINS
             ErrMsg  = 'IPC enabled, but Ptch_Cntrl in ServoDyn has a value of 0. Set it to 1.'
         ENDIF
     END SUBROUTINE Assert
-<<<<<<< HEAD
-    
-    SUBROUTINE SetParameters(avrSWAP, aviFAIL, ErrMsg, size_avcMSG, CntrPar, LocalVar, objInst)
-        USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
-=======
     ! -----------------------------------------------------------------------------------
     ! Define parameters for control actions
     SUBROUTINE SetParameters(avrSWAP, aviFAIL, ErrMsg, size_avcMSG, CntrPar, LocalVar, objInst, PerfData)
         USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData
->>>>>>> tuning_dev
         
         INTEGER(4), INTENT(IN) :: size_avcMSG
         TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT) :: objInst
-<<<<<<< HEAD
-=======
         TYPE(PerformanceData), INTENT(INOUT) :: PerfData
->>>>>>> tuning_dev
         
         REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
         INTEGER(C_INT), INTENT(OUT) :: aviFAIL              ! A flag used to indicate the success of this DLL call set as follows: 0 if the DLL call was successful, >0 if the DLL call was successful but cMessage should be issued as a warning messsage, <0 if the DLL call was unsuccessful or for any other reason the simulation is to be stopped at this point with cMessage as the error message.
@@ -520,12 +464,9 @@ CONTAINS
             
             CALL ReadControlParameterFileSub(CntrPar)
             
-<<<<<<< HEAD
-=======
             IF (CntrPar%WE_Mode > 0) THEN
                 CALL READCpFile(CntrPar,PerfData)
             ENDIF
->>>>>>> tuning_dev
             ! Initialize testValue (debugging variable)
             LocalVar%TestType = 0
         
@@ -550,8 +491,6 @@ CONTAINS
             
         ENDIF
     END SUBROUTINE SetParameters
-<<<<<<< HEAD
-=======
     ! -----------------------------------------------------------------------------------
     ! Read all constant control parameters from DISCON.IN parameter file
     SUBROUTINE ReadCpFile(CntrPar,PerfData)
@@ -600,5 +539,4 @@ CONTAINS
         END DO
     
     END SUBROUTINE ReadCpFile
->>>>>>> tuning_dev
 END MODULE ReadSetParameters

@@ -54,16 +54,10 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4), DIMENSION(:), ALLOCATABLE  :: VS_KI                        ! Integral gain for generator PI torque controller, used in the transitional 2.5 region
     
     INTEGER(4)                          :: SS_Mode                      ! Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
-<<<<<<< HEAD
-    REAL(4)                             :: SS_VSGainBias                !  Variable speed torque controller gain bias, [(rad/s)/rad].
-    REAL(4)                             :: SS_PCGainBias                !  Collective pitch controller gain bias, [(rad/s)/Nm].
-
-=======
     REAL(4)                             :: SS_VSGainBias                ! Variable speed torque controller gain bias, [(rad/s)/rad].
     REAL(4)                             :: SS_PCGainBias                ! Collective pitch controller gain bias, [(rad/s)/Nm].
 
     INTEGER(4)                          :: WE_Mode                      ! Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Imersion and Invariance Estimator (Ortega et al.)
->>>>>>> tuning_dev
     REAL(4)                             :: WE_BladeRadius               ! Blade length [m]
     INTEGER(4)                          :: WE_CP_n                      ! Amount of parameters in the Cp array
     REAL(4), DIMENSION(:), ALLOCATABLE  :: WE_CP                        ! Parameters that define the parameterized CP(\lambda) function
@@ -71,16 +65,12 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)                             :: WE_GearboxRatio              ! Gearbox ratio, >=1  [-]
     REAL(4)                             :: WE_Jtot                      ! Total drivetrain inertia, including blades, hub and casted generator inertia to LSS [kg m^2]
     REAL(4)                             :: WE_RhoAir                    ! Air density [kg m^-3]
-<<<<<<< HEAD
-    
-=======
     CHARACTER(1024)                     :: PerfFileName                 ! File containing rotor performance tables (Cp,Ct,Cq)
     INTEGER(4), DIMENSION(:), ALLOCATABLE  :: PerfTableSize             ! Size of rotor performance tables, first number refers to number of blade pitch angles, second number referse to number of tip-speed ratios
     INTEGER(4)                          :: WE_FOPoles_N                 ! Number of first-order system poles used in EKF
     REAL(4), DIMENSION(:), ALLOCATABLE  :: WE_FOPoles_v                 ! Wind speeds corresponding to first-order system poles [m/s]
     REAL(4), DIMENSION(:), ALLOCATABLE  :: WE_FOPoles                   ! First order system poles
 
->>>>>>> tuning_dev
     INTEGER(4)                          :: Y_ControlMode                ! Yaw control mode {0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}
     REAL(4)                             :: Y_ErrThresh                  ! Error threshold [rad]. Turbine begins to yaw when it passes this. (104.71975512) -- 1.745329252
     REAL(4)                             :: Y_IPC_IntSat                 ! Integrator saturation (maximum signal amplitude contrbution to pitch from yaw-by-IPC)
@@ -98,14 +88,11 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)                             :: Z_PitchAmplitude             ! Amplitude of sine pitch excitation
     REAL(4)                             :: Z_PitchFrequency             ! Frequency of sine pitch excitation
     
-<<<<<<< HEAD
-=======
     INTEGER(4)                          :: PS_Mode                      ! Peak shaving mode {0: no peak shaving, 1: implement peak shaving}
     INTEGER(4)                          :: PS_BldPitchMin_N             ! Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)
     REAL(4), DIMENSION(:), ALLOCATABLE  :: PS_WindSpeeds                ! Wind speeds corresponding to minimum blade pitch angles [m/s]
     REAL(4), DIMENSION(:), ALLOCATABLE  :: PS_BldPitchMin               ! Minimum blade pitch angles [rad]
 
->>>>>>> tuning_dev
     REAL(4)                             :: PC_RtTq99                    ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(4)                             :: VS_MaxOMTq                   ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(4)                             :: VS_MinOMTq                   ! Minimum torque at the beginning of the below-rated region 2, [Nm]
@@ -143,12 +130,8 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                             :: PC_KI                        ! Integral gain for pitch controller at rated pitch (zero) [-].
     REAL(4)                             :: PC_KD                        ! Differential gain for pitch controller at rated pitch (zero) [-].
     REAL(4)                             :: PC_TF                        ! First-order filter parameter for derivative action
-<<<<<<< HEAD
-    REAL(4)                             :: PC_MaxPitVar                 ! Maximum pitch setting in pitch controller (variable) [rad].
-=======
     REAL(4)                             :: PC_MaxPit                    ! Maximum pitch setting in pitch controller (variable) [rad].
     REAL(4)                             :: PC_MinPit                    ! Minimum pitch setting in pitch controller (variable) [rad].
->>>>>>> tuning_dev
     REAL(4)                             :: PC_PitComT                   ! Total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(4)                             :: PC_PitComT_IPC(3)            ! Total command pitch based on the sum of the proportional and integral terms, including IPC term [rad].
     REAL(4)                             :: PC_PwrErr                    ! Power error with respect to rated power [W]
@@ -157,20 +140,12 @@ TYPE, PUBLIC :: LocalVariables
     INTEGER(4)                          :: PC_State                     ! State of the pitch control system
     REAL(4)                             :: PitCom(3)                    ! Commanded pitch of each blade the last time the controller was called [rad].
     REAL(4)                             :: SS_DelOmegaF                 ! Filtered setpoint shifting term defined in setpoint smoother [rad/s].
-<<<<<<< HEAD
-    INTEGER(4)                          :: TestType                     ! Test variable, no use
-    REAL(4)                             :: VS_LastGenTrq                ! Commanded electrical generator torque the last time the controller was called [Nm].
-    REAL(4)                             :: VS_MechGenPwr                ! Mechanical power on the generator axis [W]
-    REAL(4)                             :: VS_SpdErrAr                  ! Current speed error (generator torque control) [rad/s].
-    REAL(4)                             :: VS_SpdErrBr                  ! Current speed error (generator torque control) [rad/s].
-=======
     REAL(4)                             :: TestType                     ! Test variable, no use
     REAL(4)                             :: VS_LastGenTrq                ! Commanded electrical generator torque the last time the controller was called [Nm].
     REAL(4)                             :: VS_MechGenPwr                ! Mechanical power on the generator axis [W]
     REAL(4)                             :: VS_SpdErrAr                  ! Current speed error for region 2.5 PI controller (generator torque control) [rad/s].
     REAL(4)                             :: VS_SpdErrBr                  ! Current speed error for region 1.5 PI controller (generator torque control) [rad/s].
     REAL(4)                             :: VS_SpdErr                    ! Current speed error for tip-speed-ratio tracking controller (generator torque control) [rad/s].
->>>>>>> tuning_dev
     INTEGER(4)                          :: VS_State                     ! State of the torque control system
     REAL(4)                             :: WE_Vw                        ! Estimated wind speed [m/s]
     REAL(4)                             :: WE_VwI                       ! Integrated wind speed quantity for estimation [m/s]
@@ -180,11 +155,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                             :: Y_ErrLPFSlow                 ! Filtered yaw error by slow low pass filter [rad].
     REAL(4)                             :: Y_MErr                       ! Measured yaw error, measured + setpoint [rad].
     REAL(4)                             :: Y_YawEndT                    ! Yaw end time [s]. Indicates the time up until which yaw is active with a fixed rate
-<<<<<<< HEAD
-END TYPE LocalVariables
-=======
     END TYPE LocalVariables
->>>>>>> tuning_dev
 
 TYPE, PUBLIC :: ObjectInstances
     INTEGER(4)                          :: instLPF
@@ -194,8 +165,6 @@ TYPE, PUBLIC :: ObjectInstances
     INTEGER(4)                          :: instNotch
     INTEGER(4)                          :: instPI
 END TYPE ObjectInstances
-<<<<<<< HEAD
-=======
 
 TYPE, PUBLIC :: PerformanceData
     REAL(4), DIMENSION(:), ALLOCATABLE      :: TSR_vec
@@ -205,5 +174,4 @@ TYPE, PUBLIC :: PerformanceData
     REAL(4), DIMENSION(:,:), ALLOCATABLE    :: Cq_mat
 END TYPE PerformanceData
 
->>>>>>> tuning_dev
 END MODULE DRC_Types
