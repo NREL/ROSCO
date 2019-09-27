@@ -61,7 +61,7 @@
 -4200				! VS_KP				- Proportional gain for generator PI torque controller [1/(rad/s) Nm]. (Only used in the transitional 2.5 region if VS_ControlMode =/ 2)
 -2100	 			! VS_KI				- Integral gain for generator PI torque controller [1/rad Nm]. (Only used in the transitional 2.5 region if VS_ControlMode =/ 2)
 
-!------- Setpoint Smoother ------------------------------------------------
+!------- SETPOINT SMOOTHER ------------------------------------------------
 30                  ! SS_VSGainBias     - Variable speed torque controller gain bias, [(rad/s)/rad].
 0.0001              ! SS_PCGainBias     - Collective pitch controller gain bias, [(rad/s)/Nm].
 

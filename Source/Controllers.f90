@@ -3,6 +3,7 @@ MODULE Controllers
     USE, INTRINSIC :: ISO_C_Binding
     USE Functions
     USE Filters
+    USE ControllerBlocks
 
     IMPLICIT NONE
 
