@@ -47,11 +47,7 @@ CONTAINS
     !
         IMPLICIT NONE
 
-<<<<<<< HEAD
-        ! Inputs
-=======
         ! Allocate Inputs
->>>>>>> tuning_dev
         REAL(4), INTENT(IN)         :: error
         REAL(4), INTENT(IN)         :: kp
         REAL(4), INTENT(IN)         :: ki
@@ -62,11 +58,7 @@ CONTAINS
         REAL(4), INTENT(IN)         :: I0
         LOGICAL, INTENT(IN)         :: reset
         
-<<<<<<< HEAD
-        ! Local
-=======
         ! Allocate local variables
->>>>>>> tuning_dev
         INTEGER(4)                      :: i                                            ! Counter for making arrays
         REAL(4)                         :: PTerm                                        ! Proportional term
         REAL(4), DIMENSION(99), SAVE    :: ITerm = (/ (real(9999.9), i = 1,99) /)       ! Integral term, current.
@@ -93,11 +85,7 @@ CONTAINS
         
     END FUNCTION PIController
     !-------------------------------------------------------------------------------------------------------------------------------
-<<<<<<< HEAD
-    ! interp1 1-D interpolation (table lookup), xData and yData should be monotonically increasing
-=======
     ! interp1d 1-D interpolation (table lookup), xData should be monotonically increasing
->>>>>>> tuning_dev
     REAL FUNCTION interp1d(xData, yData, xq)
     !
         IMPLICIT NONE
@@ -124,8 +112,6 @@ CONTAINS
         
     END FUNCTION interp1d
     !-------------------------------------------------------------------------------------------------------------------------------
-<<<<<<< HEAD
-=======
     ! interp2d 2-D interpolation (table lookup). Query done using bilinear interpolation. 
     REAL FUNCTION interp2d(xData, yData, zData, xq, yq)
     ! Note that the interpolated matrix with associated query vectors may be different than "standard", - zData should be formatted accordingly
@@ -281,7 +267,6 @@ CONTAINS
     
     END FUNCTION identity
     !-------------------------------------------------------------------------------------------------------------------------------  
->>>>>>> tuning_dev
     ! DF controller, with output saturation
     REAL FUNCTION DFController(error, Kd, Tf, DT, inst)
     !
@@ -387,22 +372,14 @@ CONTAINS
     END FUNCTION CPfunction
     !-------------------------------------------------------------------------------------------------------------------------------
     !Function for computing the aerodynamic torque, divided by the effective rotor torque of the turbine, for use in wind speed estimation
-<<<<<<< HEAD
-    REAL FUNCTION AeroDynTorque(LocalVar, CntrPar)
-        USE DRC_Types, ONLY : LocalVariables, ControlParameters
-=======
     REAL FUNCTION AeroDynTorque(LocalVar, CntrPar, PerfData)
         USE DRC_Types, ONLY : LocalVariables, ControlParameters, PerformanceData
->>>>>>> tuning_dev
         IMPLICIT NONE
     
             ! Inputs
         TYPE(ControlParameters), INTENT(IN) :: CntrPar
         TYPE(LocalVariables), INTENT(IN) :: LocalVar
-<<<<<<< HEAD
-=======
         TYPE(PerformanceData), INTENT(IN) :: PerfData
->>>>>>> tuning_dev
             
             ! Local
         REAL(4) :: RotorArea
@@ -411,15 +388,6 @@ CONTAINS
         
         RotorArea = PI*CntrPar%WE_BladeRadius**2
         Lambda = LocalVar%RotSpeed*CntrPar%WE_BladeRadius/LocalVar%WE_Vw
-<<<<<<< HEAD
-        Cp = CPfunction(CntrPar%WE_CP, Lambda)
-        
-        AeroDynTorque = 0.5*(CntrPar%WE_RhoAir*RotorArea)*(LocalVar%WE_Vw**3/LocalVar%RotSpeed)*Cp
-        AeroDynTorque = MAX(AeroDynTorque, 0.0)
-        
-    END FUNCTION AeroDynTorque
-    !-------------------------------------------------------------------------------------------------------------------------------
-=======
         ! Cp = CPfunction(CntrPar%WE_CP, Lambda)
         Cp = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%BlPitch(1)*R2D, Lambda)
 
@@ -445,7 +413,6 @@ CONTAINS
 
     END FUNCTION PeakShaving
     !-------------------------------------------------------------------------------------------------------------------------------
->>>>>>> tuning_dev
     SUBROUTINE Debug(LocalVar, CntrPar, avrSWAP, RootName, size_avcOUTNAME)
         USE, INTRINSIC  :: ISO_C_Binding
         USE DRC_Types, ONLY : LocalVariables, ControlParameters
@@ -472,13 +439,8 @@ CONTAINS
             IF (CntrPar%LoggingLevel > 0) THEN
                 !OPEN(unit=UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='NEW')
                 OPEN(unit=UnDb, FILE='DEBUG.dbg')
-<<<<<<< HEAD
-                WRITE (UnDb,'(A)')  '   LocalVar%Time '  //Tab//'LocalVar%FA_Acc  '//Tab//'LocalVar%FA_AccHPF  '//Tab//'LocalVar%FA_AccHPFI  '//Tab//'LocalVar%PitCom  '
-                WRITE (UnDb,'(A)')  '   (sec) ' //Tab//'(m/s^2)    ' //Tab//'(m/s^2)    ' //Tab//'(m/s)    ' //Tab//'(rad)    '
-=======
                 WRITE (UnDb,'(A)')  '   Time '  //Tab//'VS_SpdErr '//Tab//' VS_LastGenTq    '//Tab//' HorWindV    '  //Tab//' WE_Vw    ' 
                 WRITE (UnDb,'(A)')  '   (sec) '  //Tab//'(m/s) '//Tab//' (Nm)    '//Tab//' (m/s)    '//Tab//' (m/s)    '
->>>>>>> tuning_dev
                 !WRITE (UnDb,'(A)') '   LocalVar%Time '  //Tab//'LocalVar%PC_PitComT  ' //Tab//'LocalVar%PC_SpdErr  ' //Tab//'LocalVar%PC_KP ' //Tab//'LocalVar%PC_KI  ' //Tab//'LocalVar%Y_M  ' //Tab//'LocalVar%rootMOOP(1)  '//Tab//'VS_RtPwr  '//Tab//'LocalVar%GenTq'
                 !WRITE (UnDb,'(A)') '   (sec) ' //Tab//'(rad)    '  //Tab//'(rad/s) '//Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   ' //Tab//'(?)   ' //Tab//'(W)   '//Tab//'(Nm)  '
             END IF
@@ -501,11 +463,7 @@ CONTAINS
             
             ! Output debugging information if requested:
             IF (CntrPar%LoggingLevel > 0) THEN
-<<<<<<< HEAD
-                WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%FA_Acc, LocalVar%FA_AccHPF, LocalVar%FA_AccHPFI, LocalVar%PitCom
-=======
                 WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%VS_SpdErr, LocalVar%VS_LastGenTrq, LocalVar%HorWindV, LocalVar%WE_Vw
->>>>>>> tuning_dev
             END IF
             
             IF (CntrPar%LoggingLevel > 1) THEN
