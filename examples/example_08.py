@@ -39,4 +39,9 @@ file_processing.write_param_file(param_file_source,turbine,controller,new_file=T
 
 # Run OpenFAST
 # --- May need to be changed for specific user's call for OpenFAST
-os.system('openfast_dev %s' % os.path.join(FAST_directory,FAST_InputFile))
+os.chdir(FAST_directory)
+os.system('openfast_dev %s' % FAST_InputFile)
+
+
+
+
