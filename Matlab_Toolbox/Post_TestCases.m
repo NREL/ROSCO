@@ -14,6 +14,10 @@ testcases = {   '5MW_Step_Legacy';...
                 '5MW_AR_Baseline';...
                 '5MW_OC4_ARsteady_Legacy';...
                 '5MW_OC4_ARsteady_Baseline';...
+                '5MW_OC4_NR_Legacy';...
+                '5MW_OC4_NR_Baseline';...
+                '5MW_OC4_MH_Legacy';...
+                '5MW_OC4_MH_Baseline';...
                 };
         
    
@@ -38,9 +42,10 @@ end
  % Will want to (un)comment desired cases to plot
 
  % Usable Plot types: 
- %  - Step, Blow Rated, Near Rated, Above Rated, Floating
-plottype = 'Floating';
+ %  - Step, Below Rated, Near Rated, Above Rated, Floating Near Rated, Floating Mexican Hat
+plottype = 'Above Rated';
 
+close all
 % Below Rated
 switch plottype
     case 'Step'
@@ -51,8 +56,12 @@ switch plottype
         Pl_FastPlots(fo.NR_Legacy, fo.NR_Baseline)
     case 'Above Rated'
         Pl_FastPlots(fo.AR_Legacy, fo.AR_Baseline)
-    case 'Floating'
+    case 'Floating Steady'
         Pl_FastPlots(fo.OC4_ARsteady_Legacy, fo.OC4_ARsteady_Baseline)
+    case 'Floating Near Rated'
+        Pl_FastPlots(fo.OC4_NR_Legacy, fo.OC4_NR_Baseline)
+    case 'Floating Mexican Hat'
+        Pl_FastPlots(fo.OC4_MH_Legacy, fo.OC4_MH_Baseline)
 end
  
  
