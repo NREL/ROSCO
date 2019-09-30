@@ -23,7 +23,7 @@ plsw.PD = 1;                    % PD, Primary Dynamics
 plsw.RO = 1;                    % RO, Rotor Performance Outputs
 plsw.Fl1 = 0;                   % Fl1, Basic Floating Parameters
 plsw.AF = 0;                    % All Floating Parameters
-plsw.Twr = 0;                   % Twr, Turbine params with Twr Motions
+plsw.Twr = 1;                   % Twr, Turbine params with Twr Motions
 plsw.Rand = 0;                  % Some random metrics I care about now
 cases = fieldnames(plsw);
 
