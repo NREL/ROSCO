@@ -20,6 +20,10 @@ testcases = [
                 '5MW_AR_Baseline',
                 '5MW_OC4_ARsteady_Legacy', # OC4 Hywind
                 '5MW_OC4_ARsteady_Baseline', # OC4 Hywind
+                '5MW_OC4_NR_Legacy', # OC4 Hywind
+                '5MW_OC4_NR_Baseline', # OC4 Hywind
+                '5MW_OC4_MH_Legacy', # OC4 Hywind
+                '5MW_OC4_MH_Baseline', # OC4 Hywind
             ]
 
 # Run test cases
