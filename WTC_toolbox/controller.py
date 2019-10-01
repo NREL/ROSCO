@@ -295,7 +295,7 @@ class FileProcessing():
             file.write('0					! Y_ControlMode		- Yaw control mode {0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}\n')
             file.write('1                   ! SS_Mode           - Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}\n')
             file.write('2                   ! WE_Mode           - Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Imersion and Invariance Estimator (Ortega et al.)}\n')
-            file.write('0                   ! PS_Mode           - Peak shaving mode {0: no peak shaving, 1: implement peak shaving}\n')
+            file.write('1                   ! PS_Mode           - Peak shaving mode {0: no peak shaving, 1: implement peak shaving}\n')
             file.write('\n')
             file.write('!------- FILTERS ----------------------------------------------------------\n') 
             file.write('1.570796326			! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [Hz]\n') # this needs to be included as an input file
