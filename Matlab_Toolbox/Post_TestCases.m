@@ -43,7 +43,7 @@ end
 
  % Usable Plot types: 
  %  - Step, Below Rated, Near Rated, Above Rated, Floating Steady, Floating Near Rated, Floating Mexican Hat
-plottype = 'Floating Steady';
+plottype = 'Floating Near Rated';
 
 close all
 % Below Rated
