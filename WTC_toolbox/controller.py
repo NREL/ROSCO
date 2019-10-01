@@ -210,6 +210,7 @@ class ControllerBlocks():
         # save some outputs for analysis or future work
         self.Tshaved = 0.5 * rho * A * controller.v**2 * Ct_op
         self.pitch_min = pitch_min
+        self.v = controller.v
         self.Ct_max = Ct_max
         self.Ct_op = Ct_op
         self.T = T
@@ -379,7 +380,7 @@ class FileProcessing():
             file.write('0.087266			! FA_IntSat			- Integrator saturation (maximum signal amplitude contribution to pitch from FA damper), [rad]\n')
             file.write('\n')
             file.write('!------- PEAK SHAVING -------------------------------------------\n')
-            file.write('23                  ! PS_BldPitchMin_N  - Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)\n')
-            file.write('3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 ! PS_WindSpeeds       - Wind speeds corresponding to minimum blade pitch angles [m/s]\n')
-            file.write(' -0.0349 -0.0349 -0.0349 -0.0349 -0.0349 -0.0349 -0.0349 -0.0114 0.0356 0.0577 0.0825 0.1058 0.1282 0.1499 0.1708 0.1913 0.2114 0.2310 0.2502 0.2690 0.2874 0.3056 0.3239 ! PS_BldPitchMin          - Minimum blade pitch angles [rad]\n')
+            file.write('{}                  ! PS_BldPitchMin_N  - Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)\n'.format(len(controller.ps.pitch_min)))
+            file.write('{}                  ! PS_WindSpeeds       - Wind speeds corresponding to minimum blade pitch angles [m/s]\n'.format(str(controller.ps.v).strip('[]').replace('\n','')))
+            file.write('{}                  ! PS_BldPitchMin          - Minimum blade pitch angles [rad]\n'.format(str(controller.ps.pitch_min).strip('[]').replace('\n','')))
             file.close()
