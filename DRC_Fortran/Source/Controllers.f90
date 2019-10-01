@@ -72,7 +72,7 @@ CONTAINS
         
         ! Peak Shaving
         IF (CntrPar%PS_Mode == 1) THEN
-            LocalVar%PC_MinPit = PeakShaving(LocalVar,CntrPar)
+            LocalVar%PC_MinPit = PeakShaving(LocalVar,CntrPar,objInst)
         ELSE
             LocalVar%PC_MinPit = CntrPar%PC_MinPit
         ENDIF
