@@ -46,4 +46,5 @@ pl.plot(controller.v[len(controller.vs_gain_schedule.Ki):], controller.pc_gain_s
 pl.xlabel('Wind Speed')
 pl.ylabel('Integral Gain')
 
+pl.show()
 #%%
