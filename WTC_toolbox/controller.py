@@ -141,6 +141,7 @@ class Controller():
         self.vs_gain_schedule = ControllerTypes()
         self.vs_gain_schedule.second_order_PI(zeta_vs, omega_vs,A_vs,B_tau,linearize=False,v=v_below_rated)
 
+
         # Store some variables
         self.v = v                                  # Wind speed (m/s)
         self.v_below_rated = v_below_rated
@@ -151,10 +152,73 @@ class Controller():
         self.A = A 
         self.B_beta = B_beta
 
+        # Peak Shaving
+        self.ps = ControllerBlocks()
+        self.ps.peak_shaving(self, turbine)
+
+class ControllerBlocks():
+    def __init__(self):
+        '''
+        Controller blocks that need some tuning
+        Includes: Peak shaving
+        '''
+        pass
+    
+    def peak_shaving(self,controller, turbine):
+        ''' 
+        Define minimum blade pitch angle for peak shaving routine
+        '''
+
+        # Re-define Turbine Parameters for shorthand
+        J = turbine.J                           # Total rotor inertial (kg-m^2) 
+        rho = turbine.rho                       # Air density (kg/m^3)
+        R = turbine.RotorRad                    # Rotor radius (m)
+        A = np.pi*R**2                         # Rotor area (m^2)
+        Ng = turbine.Ng                         # Gearbox ratio (-)
+        RRspeed = turbine.RRspeed               # Rated rotor speed (rad/s)
+
+        # Initialize some arrays
+        Ct_op = np.empty(len(controller.TSR_op),dtype='float64')
+        Ct_max = np.empty(len(controller.TSR_op),dtype='float64')
+        beta_min = np.empty(len(controller.TSR_op),dtype='float64')
+        # Find unshaved rotor thurst coefficients and associated rotor thrusts
+        # for i in len(controller.TSR_op):
+        for i in range(len(controller.TSR_op)):
+            Ct_op[i] = turbine.Ct.interp_surface(controller.pitch_op[i],controller.TSR_op[i])
+            T = 0.5 * rho * A * controller.v**2 * Ct_op
+
+        # Define minimum max thrust and initialize pitch_min
+        ps_percent = 0.8
+        Tmax = ps_percent * np.max(T)
+        pitch_min = np.ones(len(controller.pitch_op)) * turbine.PC_MinPit
+
+        # Modify pitch_min if max thrust exceeds limits
+        for i in range(len(controller.TSR_op)):
+            # Find Ct values for operational TSR
+            # Ct_tsr = turbine.Ct.interp_surface(turbine.pitch_initial_rad, controller.TSR_op[i])
+            Ct_tsr = turbine.Ct.interp_surface(turbine.pitch_initial_rad,controller.TSR_op[i])
+            # Define max Ct values
+            Ct_max[i] = Tmax/(0.5 * rho * A * controller.v[i]**2)
+            if T[i] > Tmax:
+                Ct_op[i] = Ct_max[i]
+            else:
+                Ct_max[i] = np.minimum( np.max(Ct_tsr), Ct_max[i])
+            # Define minimum pitch angle
+            f_pitch_min = interpolate.interp1d(Ct_tsr, turbine.pitch_initial_rad)
+            pitch_min[i] = f_pitch_min(Ct_max[i])
+
+        # save some outputs for analysis or future work
+        self.Tshaved = 0.5 * rho * A * controller.v**2 * Ct_op
+        self.pitch_min = pitch_min
+        self.Ct_max = Ct_max
+        self.Ct_op = Ct_op
+        self.T = T
+
 class ControllerTypes():
     def __init__(self):
         '''
-        Controller Types class used to define gains for desired closed loop dynamics
+        Controller Types class used to define any controllers and their associated
+        gains for desired closed loop dynamics
         '''
         pass
 
