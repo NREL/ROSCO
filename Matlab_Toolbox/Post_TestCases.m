@@ -42,8 +42,8 @@ end
  % Will want to (un)comment desired cases to plot
 
  % Usable Plot types: 
- %  - Step, Below Rated, Near Rated, Above Rated, Floating Near Rated, Floating Mexican Hat
-plottype = 'Above Rated';
+ %  - Step, Below Rated, Near Rated, Above Rated, Floating Steady, Floating Near Rated, Floating Mexican Hat
+plottype = 'Floating Steady';
 
 close all
 % Below Rated
