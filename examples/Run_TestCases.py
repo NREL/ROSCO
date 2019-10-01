@@ -22,6 +22,8 @@ testcases = [
                 '5MW_OC4_ARsteady_Baseline', # OC4 Hywind
                 '5MW_OC4_NR_Legacy', # OC4 Hywind
                 '5MW_OC4_NR_Baseline', # OC4 Hywind
+                '5MW_OC4_AR_Legacy', # OC4 Hywind
+                '5MW_OC4_AR_Baseline', # OC4 Hywind
                 '5MW_OC4_MH_Legacy', # OC4 Hywind
                 '5MW_OC4_MH_Baseline', # OC4 Hywind
             ]
