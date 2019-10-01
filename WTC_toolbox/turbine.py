@@ -47,11 +47,9 @@ class Turbine():
         # Init the cc-blade rotor
         self.cc_rotor = None
 
-        # Cp Surface
-        # self.CpSurf = None                 # Matrix of Cp surface values
-        # self.CpBeta = None                 # Vector of blade pitch angles corresponding to Cp surface (rad)
-        # self.CpTSR = None                   # Vector of tip-speed-ratio values corresponding to Cp surface (rad)
-        
+        # Pitch controller
+        self.PC_MinPit = -0.087266      # Minimum pitch angle (rad)
+
         # Interp function versions
         self.cp_interp = None
         self.ct_interp = None
