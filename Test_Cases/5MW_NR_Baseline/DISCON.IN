@@ -63,7 +63,7 @@
 
 !------- SETPOINT SMOOTHER ---------------------------------------------
 30                  ! SS_VSGainBias     - Variable speed torque controller gain bias, [(rad/s)/rad].
-0.001               ! SS_PCGainBias     - Collective pitch controller gain bias, [(rad/s)/Nm].
+0.0001               ! SS_PCGainBias     - Collective pitch controller gain bias, [(rad/s)/Nm].
 
 !------- WIND SPEED ESTIMATOR ---------------------------------------------
 63.0				! WE_BladeRadius	- Blade length [m]
