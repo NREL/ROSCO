@@ -31,7 +31,7 @@ class Controller():
     def __init__(self):
         pass
     
-    def controller_params(self):
+    def controller_params(self,turbine):
     # Hard coded controller parameters for turbine. Using this until read_param_file is good to go
     #           - Coded for NREL 5MW 
 
@@ -44,8 +44,9 @@ class Controller():
         self.omega_vs = 0.3                     # Torque controller natural frequency (rad/s)
         
         # Other basic parameters
-        self.v_rated = 11.4                        # Rated wind speed (m/s)
-
+        # self.v_rated = turbine.RRspeed * turbine.RotorRad / turbine.TSR_initial[turbine.Cp.max_ind[0]]    # Rated wind speed (m/s)
+        self.v_rated = 11.4
+        
     def tune_controller(self, turbine):
         """
         Given a turbine model, tune the controller parameters
@@ -61,7 +62,7 @@ class Controller():
 
         # Load controller parameters 
         #   - should be self.read_param_file() eventually, hard coded for now
-        self.controller_params()
+        self.controller_params(turbine)
 
         # Re-define controller tuning parameters for shorthand
         zeta_pc = self.zeta_pc                  # Pitch controller damping ratio
@@ -126,7 +127,7 @@ class Controller():
         # Wind Disturbance Input
         dlambda_dv = -(TSR_op/v)
         dtau_dv = dtau_dlambda*dlambda_dv
-        B_v = dtau_dv/J # wind speed input - currently unused 
+        # B_v = dtau_dv/J # wind speed input - currently unused 
 
 
         # separate and define below and above rated parameters
@@ -259,9 +260,9 @@ class FileProcessing():
         # Setpoint Smoother Parameters
         self.Kss_PC = param_file.Kss_PC              # Pitch controller reference gain bias 
         self.Kss_VS = param_file.Kss_VS              # Torque controller reference gain bias
-        self.v_min = turbine.VS_Vmin                  # Cut-in wind speed (m/s)
-        self.v_rated = turbine.PC_Vrated                # Rated wind speed (m/s)
-        self.v_max = turbine.PC_Vmax                  # Cut-out wind speed (m/s), -- Does not need to be exact
+        self.v_min = turbine.v_min                  # Cut-in wind speed (m/s)
+        self.v_rated = turbine.v_rated                # Rated wind speed (m/s)
+        self.v_max = turbine.v_max                  # Cut-out wind speed (m/s), -- Does not need to be exact
 
 
     def write_param_file(self, param_file, turbine, controller, new_file=True):
