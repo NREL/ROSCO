@@ -24,7 +24,7 @@ plsw.RO = 1;                    % RO, Rotor Performance Outputs
 plsw.Fl1 = 1;                   % Fl1, Basic Floating Parameters
 plsw.AF = 0;                    % All Floating Parameters
 plsw.Twr = 1;                   % Twr, Turbine params with Twr Motions
-plsw.Rand = 0;                  % Some random metrics I care about now
+plsw.Rand = 1;                  % Some random metrics I care about now
 cases = fieldnames(plsw);
 
 %% Plot Cases
@@ -37,7 +37,7 @@ pc.RO = {'RtTSR','RtAeroCp'};
 pc.Fl1 = {'PtfmPitch', 'BldPitch1'};
 pc.AF = {'PtfmPitch', 'PtfmRoll', 'PtfmSurge', 'PtfmYaw', 'PtfmHeave', 'PtfmSway'};
 pc.Twr = {'GenTq','BldPitch1','RotSpeed', 'TwrBsFxt'};
-pc.Rand = {'RtAeroCt', 'TwrBsFxt', 'GenPwr'};
+pc.Rand = {'RtAeroCt', 'TwrBsFxt', 'LSShftFxs','GenPwr'};
 
 %% load outdata to be plotted
 for args = 1:length(varargin)
