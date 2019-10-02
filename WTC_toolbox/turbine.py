@@ -33,22 +33,29 @@ class Turbine():
         This also lists what will need to be defined
         """
 
+        # ------ Turbine Parameters------
+        # Some of this should be loaded from a dictionary and cleaned up...
+        # self.J = None                   # Total rotor inertial (kg-m^2) 
+        # self.rho = None                      # Air density (kg/m^3)
+        # self.RotorRad = None                    # Rotor radius (m)
+        # self.Ng = None # Gearbox ratio (-)
+        # self.RRspeed = 7.49*rpm2RadSec               # Rated rotor speed (rad/s)
+        self.RRspeed = 12.1*rpm2RadSec               # Rated rotor speed (rad/s)
 
-        # Turbine Parameters
-        self.J = None                   # Total rotor inertial (kg-m^2) 
-        self.rho = None                      # Air density (kg/m^3)
-        self.RotorRad = None                    # Rotor radius (m)
-        self.Ng = None # Gearbox ratio (-)
-        self.RRspeed = None               # Rated rotor speed (rad/s)
         self.v_min = 4.                  # Cut-in wind speed (m/s) (JUST ASSUME FOR NOW)
         self.v_rated = None                # Rated wind speed (m/s)
         self.v_max = 25.                  # Cut-out wind speed (m/s), -- Does not need to be exact (JUST ASSUME FOR NOW)
+        # self.GenEff = None
+        # self.RatedPower = 15000000
+        self.RatedPower = 5000000
 
+        # Pitch controller
+        self.PC_MaxPit = 1.5707         # Maximum pitch angle (rad)
+        self.PC_MinPit = -0.087266      # Minimum pitch angle (rad)
         # Init the cc-blade rotor
         self.cc_rotor = None
 
-        # Pitch controller
-        self.PC_MinPit = -0.087266      # Minimum pitch angle (rad)
+        
 
         # Interp function versions
         self.cp_interp = None
@@ -68,7 +75,7 @@ class Turbine():
 
     # Save function
     def save(self,filename):
-        tuple_to_save = (self.J,self.rho,self.RotorRad, self.Ng,self.RRspeed,self.v_min,self.v_rated,self.v_max,self.cc_rotor,self.Cp,self.Ct,self.Cq   )
+        tuple_to_save = (self.J,self.rho,self.RotorRad, self.Ng,self.RRspeed,self.v_min,self.v_rated,self.v_max,self.cc_rotor,self.Cp_table,self.Ct_table,self.Cq_table,self.Cp,self.Ct,self.Cq   )
         pickle.dump( tuple_to_save, open( filename, "wb" ) )
 
     # Load function
@@ -115,16 +122,24 @@ class Turbine():
         self.TipRad = fast.fst_vt['ElastoDyn']['TipRad']
         self.Rhub =  fast.fst_vt['ElastoDyn']['HubRad']
         self.hubHt = fast.fst_vt['ElastoDyn']['TowerHt'] 
-        self.shearExp = 0.2  #HARD CODED UNTIL FIND A SOLUTION TO READ OUTPUT
+        self.shearExp = 0.2  #HARD CODED FOR NOW
         self.rho = fast.fst_vt['AeroDyn15']['AirDens']
         self.mu = fast.fst_vt['AeroDyn15']['KinVisc']
         self.Ng = fast.fst_vt['ElastoDyn']['GBRatio']
-        
+        self.GenEff = fast.fst_vt['ElastoDyn']['GBoxEff']
+        self.DTTorSpr = fast.fst_vt['ElastoDyn']['DTTorSpr']
+        self.RatedTorque = self.RatedPower/(self.RRspeed*self.Ng)
+
+
         # Some additional parameters to save
         self.RotorRad = self.TipRad
+        self.omega_dt = np.sqrt(self.DTTorSpr/self.J)
+        if self.RRspeed:
+            pass
+        else:
+            # Calculate rated rotor speed by scaling from NREL 5MW
+            self.RRspeed = (63. / self.TipRad) * 12.1 * rpm2RadSec
 
-        # Calculate rated rotor speed for now by scaling from NREL 5MW
-        self.RRspeed = (63. / self.TipRad) * 12.1 * rpm2RadSec
 
         # Load Cp, Ct, Cq tables
         if rot_source == 'txt':
@@ -149,19 +164,6 @@ class Turbine():
         af_idx = np.array(fast.fst_vt['AeroDynBlade']['BlAFID']).astype(int) - 1 #Reset to 0 index
         AFNames = fast.fst_vt['AeroDyn15']['AFNames']
 
-        # # NEED A PRETTY SERIOUS HACK TO POINT AT OLD AIRFOIL TABLES
-        # ad14path = '/Users/pfleming/Desktop/git_tools/FLORIS/examples/5MW_AFFiles'
-        # AFNames_14 = []
-        # for airfoil in AFNames:
-        #     a_name = os.path.basename(airfoil)
-        #     AFNames_14.append(os.path.join(ad14path,a_name))
-        # print(fast.FAST_directory)
-        
-        # # Load in the airfoils
-        # afinit = CCAirfoil.initFromAerodynFile  # just for shorthand
-        # airfoil_types = []
-        # for airfoil in AFNames:
-        #     airfoil_types.append(afinit(airfoil))
         
         # Used airfoil data from FAST file read, assumes AeroDyn 15, assumes 1 Re num per airfoil
         af_dict = {}
@@ -197,7 +199,7 @@ class Turbine():
         fixed_rpm = 10 # RPM
 
         TSR_initial = np.arange(0.5,15,0.5)
-        pitch_initial = np.arange(0,25,0.5)
+        pitch_initial = np.arange(-1,25,0.5)
         pitch_initial_rad = pitch_initial * deg2rad
         ws_array = (fixed_rpm * (np.pi / 30.) * self.TipRad)  / TSR_initial
         ws_mesh, pitch_mesh = np.meshgrid(ws_array, pitch_initial)
@@ -207,7 +209,7 @@ class Turbine():
         tsr_flat = (fixed_rpm * (np.pi / 30.) * self.TipRad)  / ws_flat
 
         # Get values from cc-blade
-        print('Running cc_rotor aerodynamic analysis...')
+        print('Running cc_rotor aerodynamic analysis, this may take a second...')
         P, T, Q, M, CP, CT, CQ, CM = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
 
         # Reshape Cp, Ct and Cq
@@ -267,7 +269,52 @@ class Turbine():
             self.Cp_table = Cp
             self.Ct_table = Ct 
             self.Cq_table = Cq
+    
+    
+    def write_rotorperformance(self,txt_filename='Cp_Ct_Cq.txt'):
+        '''
+        Write text file containing rotor performance data
 
+        Parameters:
+        ------------
+        Fill this out...
+        '''
+        
+        file = open(txt_filename,'w')
+        file.write('# Pitch angle vector - x axis (matrix columns) (deg)\n')
+        for i in range(len(self.Cp.pitch_initial_rad)):
+            file.write('%.2f   ' % (self.Cp.pitch_initial_rad[i] * rad2deg))
+        file.write('\n# TSR vector - y axis (matrix rows) (-)\n')
+        for i in range(len(self.TSR_initial)):
+            file.write('%.2f   ' % self.Cp.TSR_initial[i])
+        file.write('\n# Wind speed vector - z axis (m/s)\n')
+        # for i in range(n_U):
+        # --- write arbitrary wind speed for now...
+        file.write('%.2f   ' % 3.0)
+        file.write('\n')
+        
+        file.write('\n# Power coefficient\n\n')
+        for i in range(len(self.Cp.TSR_initial)):
+            for j in range(len(self.Cp.pitch_initial_rad)):
+                file.write('%.5f   ' % self.Cp_table[i,j])
+            file.write('\n')
+        file.write('\n')
+        
+        file.write('\n#  Thrust coefficient\n\n')
+        for i in range(len(self.Ct.TSR_initial)):
+            for j in range(len(self.Ct.pitch_initial_rad)):
+                file.write('%.5f   ' % self.Ct_table[i,j])
+            file.write('\n')
+        file.write('\n')
+        
+        file.write('\n# Torque coefficient\n\n')
+        for i in range(len(self.Cq.TSR_initial)):
+            for j in range(len(self.Cq.pitch_initial_rad)):
+                file.write('%.5f   ' % self.Cq_table[i,j])
+            file.write('\n')
+        file.write('\n')
+            
+        file.close()
 
 class RotorPerformance():
     def __init__(self,performance_table, pitch_initial_rad, TSR_initial):
@@ -304,14 +351,13 @@ class RotorPerformance():
         return np.ndarray.flatten(grad)
     
 
+# # NOT CERTAIN OF THESE ALTERNATIVES YET
+# def load_from_sowfa(self, fast_folder):
+#     """
+#     Load the parameter files directly from a SOWFA directory
+#     """
 
-    # # NOT CERTAIN OF THESE ALTERNATIVES YET
-    # def load_from_sowfa(self, fast_folder):
-    #     """
-    #     Load the parameter files directly from a SOWFA directory
-    #     """
-
-    # def load_from_csv(self, fast_folder):
-    #     """
-    #     Load from a simple CSV file containing the parameters
-    #     """
+# def load_from_csv(self, fast_folder):
+#     """
+#     Load from a simple CSV file containing the parameters
+#     """
