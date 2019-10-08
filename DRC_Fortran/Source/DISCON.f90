@@ -39,6 +39,7 @@ TYPE(ControlParameters), SAVE         :: CntrPar
 TYPE(LocalVariables), SAVE            :: LocalVar
 TYPE(ObjectInstances), SAVE           :: objInst
 TYPE(PerformanceData), SAVE           :: PerfData
+
 !------------------------------------------------------------------------------------------------------------------------------
 ! Main control calculations
 !------------------------------------------------------------------------------------------------------------------------------
@@ -48,7 +49,7 @@ CALL SetParameters(avrSWAP, aviFAIL, ErrMsg, SIZE(avcMSG), CntrPar, LocalVar, ob
 CALL PreFilterMeasuredSignals(CntrPar, LocalVar, objInst)
 
 IF ((LocalVar%iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculations if no error has occurred and we are not on the last time step
-    CALL ComputeVariablesSetpoints(CntrPar, LocalVar)
+    CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
     
     CALL StateMachine(CntrPar, LocalVar)
     CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData)
