@@ -20,6 +20,7 @@ import pickle
 deg2rad = np.deg2rad(1)
 rad2deg = np.rad2deg(1)
 rpm2RadSec = 2.0*(np.pi)/60.0
+RadSec2rpm = 60/(2.0 * np.pi)
 
 class Turbine():
     """
@@ -34,20 +35,14 @@ class Turbine():
         """
 
         # ------ Turbine Parameters------
-        # Some of this should be loaded from a dictionary and cleaned up...
-        # self.J = None                   # Total rotor inertial (kg-m^2) 
-        # self.rho = None                      # Air density (kg/m^3)
-        # self.RotorRad = None                    # Rotor radius (m)
-        # self.Ng = None # Gearbox ratio (-)
-        # self.RRspeed = 7.49*rpm2RadSec               # Rated rotor speed (rad/s)
         self.RRspeed = 12.1*rpm2RadSec               # Rated rotor speed (rad/s)
+        # self.RRspeed = 7.5*rpm2RadSec               # Rated rotor speed (rad/s)
 
         self.v_min = 4.                  # Cut-in wind speed (m/s) (JUST ASSUME FOR NOW)
         self.v_rated = None                # Rated wind speed (m/s)
         self.v_max = 25.                  # Cut-out wind speed (m/s), -- Does not need to be exact (JUST ASSUME FOR NOW)
-        # self.GenEff = None
-        # self.RatedPower = 15000000
         self.RatedPower = 5000000
+        # self.RatedPower = 15000000
 
         # Pitch controller
         self.PC_MaxPit = 1.5707         # Maximum pitch angle (rad)
@@ -126,9 +121,9 @@ class Turbine():
         self.rho = fast.fst_vt['AeroDyn15']['AirDens']
         self.mu = fast.fst_vt['AeroDyn15']['KinVisc']
         self.Ng = fast.fst_vt['ElastoDyn']['GBRatio']
-        self.GenEff = fast.fst_vt['ElastoDyn']['GBoxEff']
+        self.GenEff = fast.fst_vt['ServoDyn']['GenEff']
         self.DTTorSpr = fast.fst_vt['ElastoDyn']['DTTorSpr']
-        self.RatedTorque = self.RatedPower/(self.RRspeed*self.Ng)
+        self.RatedTorque = self.RatedPower/(self.GenEff/100*self.RRspeed*self.Ng)
 
 
         # Some additional parameters to save
@@ -196,17 +191,17 @@ class Turbine():
         print('CCBlade run succesfully')
         # Generate the look-up tables
         # Mesh the grid and flatten the arrays
-        fixed_rpm = 10 # RPM
+        fixed_rpm = self.RRspeed*RadSec2rpm # RPM
 
         TSR_initial = np.arange(0.5,15,0.5)
         pitch_initial = np.arange(-1,25,0.5)
         pitch_initial_rad = pitch_initial * deg2rad
-        ws_array = (fixed_rpm * (np.pi / 30.) * self.TipRad)  / TSR_initial
+        ws_array = (fixed_rpm * rpm2RadSec * self.TipRad)  / TSR_initial
         ws_mesh, pitch_mesh = np.meshgrid(ws_array, pitch_initial)
         ws_flat = ws_mesh.flatten()
         pitch_flat = pitch_mesh.flatten()
         omega_flat = np.ones_like(pitch_flat) * fixed_rpm
-        tsr_flat = (fixed_rpm * (np.pi / 30.) * self.TipRad)  / ws_flat
+        tsr_flat = (fixed_rpm * rpm2RadSec * self.TipRad)  / ws_flat
 
         # Get values from cc-blade
         print('Running cc_rotor aerodynamic analysis, this may take a second...')
