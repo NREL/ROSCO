@@ -397,22 +397,6 @@ CONTAINS
 
     END FUNCTION AeroDynTorque
     !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION PeakShaving(LocalVar, CntrPar) 
-    ! PeakShaving defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
-    !       SS_Mode = 0, No setpoint smoothing
-    !       SS_Mode = 1, Implement setpoint smoothing
-        USE DRC_Types, ONLY : LocalVariables, ControlParameters
-        IMPLICIT NONE
-        ! Inputs
-        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
-        ! Allocate Variables 
-
-        ! Define minimum blade pitch angle as a function of estimated wind speed
-        PeakShaving = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin,LocalVar%WE_Vw)
-
-    END FUNCTION PeakShaving
-    !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE Debug(LocalVar, CntrPar, avrSWAP, RootName, size_avcOUTNAME)
         USE, INTRINSIC  :: ISO_C_Binding
         USE DRC_Types, ONLY : LocalVariables, ControlParameters
@@ -439,8 +423,8 @@ CONTAINS
             IF (CntrPar%LoggingLevel > 0) THEN
                 !OPEN(unit=UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='NEW')
                 OPEN(unit=UnDb, FILE='DEBUG.dbg')
-                WRITE (UnDb,'(A)')  '   Time '  //Tab//'VS_SpdErr '//Tab//' VS_LastGenTq    '//Tab//' HorWindV    '  //Tab//' WE_Vw    ' 
-                WRITE (UnDb,'(A)')  '   (sec) '  //Tab//'(m/s) '//Tab//' (Nm)    '//Tab//' (m/s)    '//Tab//' (m/s)    '
+                WRITE (UnDb,'(A)')  '   Time '  //Tab//' WE_TowerTop    ' //Tab//' WE_Vw    ' 
+                WRITE (UnDb,'(A)')  '   (sec) '  //Tab//'(m/s) '
                 !WRITE (UnDb,'(A)') '   LocalVar%Time '  //Tab//'LocalVar%PC_PitComT  ' //Tab//'LocalVar%PC_SpdErr  ' //Tab//'LocalVar%PC_KP ' //Tab//'LocalVar%PC_KI  ' //Tab//'LocalVar%Y_M  ' //Tab//'LocalVar%rootMOOP(1)  '//Tab//'VS_RtPwr  '//Tab//'LocalVar%GenTq'
                 !WRITE (UnDb,'(A)') '   (sec) ' //Tab//'(rad)    '  //Tab//'(rad/s) '//Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   ' //Tab//'(?)   ' //Tab//'(W)   '//Tab//'(Nm)  '
             END IF
@@ -463,7 +447,7 @@ CONTAINS
             
             ! Output debugging information if requested:
             IF (CntrPar%LoggingLevel > 0) THEN
-                WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%VS_SpdErr, LocalVar%VS_LastGenTrq, LocalVar%HorWindV, LocalVar%WE_Vw
+                WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%TestType, LocalVar%WE_Vw
             END IF
             
             IF (CntrPar%LoggingLevel > 1) THEN
