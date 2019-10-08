@@ -118,12 +118,12 @@ CONTAINS
             IF (LocalVar%VS_State >= 4) THEN
                 VS_MaxTq = CntrPar%VS_RtTq
             ELSE
-                ! VS_MaxTq = CntrPar%VS_MaxTq
+                ! VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
                 VS_MaxTq = CntrPar%VS_RtTq
             ENDIF
             LocalVar%GenTq = PIController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, VS_MaxTq, LocalVar%DT, CntrPar%VS_MaxOMTq, .FALSE., objInst%instPI)
         
-            ! K*Omega^2 control law with PI torque control in transition regions
+        ! K*Omega^2 control law with PI torque control in transition regions
         ELSE
             ! Update PI loops for region 1.5 and 2.5 PI control
             ! LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_RtTq, .TRUE., objInst%instPI)

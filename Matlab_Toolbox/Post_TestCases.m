@@ -44,8 +44,13 @@ end
  % Will want to (un)comment desired cases to plot
 
  % Usable Plot types: 
+<<<<<<< HEAD
  %  - Step, Below Rated, Near Rated, Above Rated, Floating Steady, Floating Near Rated, Floating Mexican Hat
 plottype = 'Floating Above Rated';
+=======
+ %  - Step, Below Rated, Near Rated, Above Rated, Floating Steady, Floating Near Rated, Floating Above Rated, Floating Mexican Hat
+plottype = 'Near Rated';
+>>>>>>> dev_NewTurbines
 
 close all
 % Below Rated
@@ -62,7 +67,11 @@ switch plottype
         Pl_FastPlots(fo.OC4_ARsteady_Legacy, fo.OC4_ARsteady_Baseline)
     case 'Floating Near Rated'
         Pl_FastPlots(fo.OC4_NR_Legacy, fo.OC4_NR_Baseline)
+<<<<<<< HEAD
    case 'Floating Above Rated'
+=======
+    case 'Floating Above Rated'
+>>>>>>> dev_NewTurbines
         Pl_FastPlots(fo.OC4_AR_Legacy, fo.OC4_AR_Baseline)
     case 'Floating Mexican Hat'
         Pl_FastPlots(fo.OC4_MH_Legacy, fo.OC4_MH_Baseline)
