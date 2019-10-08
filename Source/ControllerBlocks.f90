@@ -148,7 +148,7 @@ CONTAINS
         ! Extended Kalman Filter (EKF) implementation
         ELSEIF (CntrPar%WE_Mode == 2) THEN
             ! Define contant values
-            L = 2.0 * CntrPar%WE_BladeRadius
+            L = 4.0 * CntrPar%WE_BladeRadius
             Ti = 0.2
             R_m = 0.02
             H = RESHAPE((/1.0 , 0.0 , 0.0/),(/1,3/))
@@ -185,10 +185,10 @@ CONTAINS
                 F(2,3) = PI * v_t/(2.0*L)
 
                 ! Update process noise covariance
-                Q(1,1) = 0.0001
+                Q(1,1) = 0.00001
                 Q(2,2) =(PI * (v_m**3.0) * (Ti**2.0)) / L
                 Q(3,3) = (2.0**2.0)/600.0
-\
+
                 ! Prediction update
                 ! Tau_r = 0.5 * CntrPar%WE_RhoAir * PI *CntrPar%WE_BladeRadius**3 * Cp_op * v_h**2 * 1.0/(lambda)
                 Tau_r = AeroDynTorque(LocalVar,CntrPar,PerfData)
@@ -215,6 +215,7 @@ CONTAINS
                 v_h = v_t + v_m
                 LocalVar%TestType = v_m + v_t
                 LocalVar%WE_Vw = v_m + v_t
+                ! LocalVar%WE_Vw = LPFilter(v_m + v_t,LocalVar%DT,0.5,LocalVar%iStatus,.FALSE.,objInst%instLPF)
             ENDIF
 
         ELSE        
@@ -253,23 +254,31 @@ CONTAINS
 
     END SUBROUTINE SetpointSmoother
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION PeakShaving(LocalVar, CntrPar) 
+    REAL FUNCTION PeakShaving(LocalVar, CntrPar, objInst) 
     ! PeakShaving defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
     !       SS_Mode = 0, No setpoint smoothing
     !       SS_Mode = 1, Implement setpoint smoothing
-        USE DRC_Types, ONLY : LocalVariables, ControlParameters
+        USE DRC_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
         IMPLICIT NONE
         ! Inputs
         TYPE(ControlParameters), INTENT(IN)     :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
+        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables 
+        REAL(4)                     :: V_towertop ! Estimated velocity of tower top (m/s)
         REAL(4)                     :: Vhat     ! Estimated wind speed without towertop motion [m/s]
+        REAL(4)                     :: Vhatf     ! 30 second low pass filtered Estimated wind speed without towertop motion [m/s]
 
         ! Account for towertop motions in wind speed estimate
-        Vhat = LocalVar%WE_Vw - LocalVar%FA_AccHPFI
+        !       Integrate Towertop Acceleration  
+        ! dV_towertop = 
+        ! V_towertop = PIController(LocalVar%FA_Acc, 0.0, 1.0, -100.00, 100.00, LocalVar%DT, 0.0, .FALSE., objInst%instPI)
 
+        Vhat = LocalVar%WE_Vw
+        Vhatf = LPFilter(Vhat,LocalVar%DT,0.2,LocalVar%iStatus,.FALSE.,objInst%instLPF)
+        LocalVar%TestType = Vhatf
         ! Define minimum blade pitch angle as a function of estimated wind speed
-        PeakShaving = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, Vhat)
+        PeakShaving = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, Vhatf)
 
     END FUNCTION PEAKSHAVING
 !-------------------------------------------------------------------------------------------------------------------------------
