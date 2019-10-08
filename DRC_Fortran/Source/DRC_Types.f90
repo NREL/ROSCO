@@ -52,6 +52,7 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(4)                          :: VS_n                         ! Number of controller gains
     REAL(4), DIMENSION(:), ALLOCATABLE  :: VS_KP                        ! Proportional gain for generator PI torque controller, used in the transitional 2.5 region
     REAL(4), DIMENSION(:), ALLOCATABLE  :: VS_KI                        ! Integral gain for generator PI torque controller, used in the transitional 2.5 region
+    REAL(4)                             :: VS_TSRopt                    ! Power-maximizing region 2 tip-speed ratio [rad]
     
     INTEGER(4)                          :: SS_Mode                      ! Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
     REAL(4)                             :: SS_VSGainBias                ! Variable speed torque controller gain bias, [(rad/s)/rad].

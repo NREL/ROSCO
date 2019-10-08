@@ -104,6 +104,7 @@ CONTAINS
         READ(UnControllerParameters,*) CntrPar%VS_KP
         ALLOCATE(CntrPar%VS_KI(CntrPar%VS_n))
         READ(UnControllerParameters,*) CntrPar%VS_KI
+        READ(UnControllerParameters,*) CntrPar%VS_TSRopt
         READ(UnControllerParameters, *)
 
         !------- Setpoint Smoother --------------------------------
@@ -179,17 +180,20 @@ CONTAINS
     END SUBROUTINE ReadControlParameterFileSub
     ! -----------------------------------------------------------------------------------
     ! Calculate setpoints for primary control actions    
-    SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar)
-        USE DRC_Types, ONLY : ControlParameters, LocalVariables
+    SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
+        USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
         
         ! Allocate variables
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
+        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+
         REAL(4)                                 :: VS_RefSpd        ! Referece speed for variable speed torque controller, [rad/s] 
         REAL(4)                                 :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
         REAL(4)                                 :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
+        REAL(4)                                 :: WE_Vw_f          ! Filtered Wind Speed Estimate
         ! temp
-        REAL(4)                                 :: VS_TSRop = 7.5
+        ! REAL(4)                                 :: VS_TSRop = 7.5
 
         ! ----- Calculate yaw misalignment error -----
         LocalVar%Y_MErr = LocalVar%Y_M + CntrPar%Y_MErrSet ! Yaw-alignment error
@@ -207,7 +211,8 @@ CONTAINS
         ! ----- Torque controller reference errors -----
         ! Define VS reference generator speed [rad/s]
         IF (CntrPar%VS_ControlMode == 2) THEN
-            VS_RefSpd = (VS_TSRop * LocalVar%WE_Vw / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
+            WE_Vw_f = LPFilter(LocalVar%We_Vw, LocalVar%DT, 0.1, LocalVar%iStatus, .FALSE., objInst%instLPF)
+            VS_RefSpd = (CntrPar%VS_TSRopt * WE_Vw_f / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
             VS_RefSpd = saturate(VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%PC_RefSpd)
         ELSE
             VS_RefSpd = CntrPar%VS_RefSpd
@@ -366,36 +371,38 @@ CONTAINS
             ErrMsg  = 'IPC_KI(2) must be zero or greater than zero.'
         ENDIF
         
-        IF (CntrPar%Y_IPC_omegaLP <= 0.0)  THEN
-            aviFAIL = -1
-            ErrMsg  = 'Y_IPC_omegaLP must be greater than zero.'
+        ! ---- Yaw Control ----
+        IF (CntrPar%Y_ControlMode > 0) THEN
+            IF (CntrPar%Y_IPC_omegaLP <= 0.0)  THEN
+                aviFAIL = -1
+                ErrMsg  = 'Y_IPC_omegaLP must be greater than zero.'
+            ENDIF
+            
+            IF (CntrPar%Y_IPC_zetaLP <= 0.0)  THEN
+                aviFAIL = -1
+                ErrMsg  = 'Y_IPC_zetaLP must be greater than zero.'
+            ENDIF
+            
+            IF (CntrPar%Y_ErrThresh <= 0.0)  THEN
+                aviFAIL = -1
+                ErrMsg  = 'Y_ErrThresh must be greater than zero.'
+            ENDIF
+            
+            IF (CntrPar%Y_Rate <= 0.0)  THEN
+                aviFAIL = -1
+                ErrMsg  = 'CntrPar%Y_Rate must be greater than zero.'
+            ENDIF
+            
+            IF (CntrPar%Y_omegaLPFast <= 0.0)  THEN
+                aviFAIL = -1
+                ErrMsg  = 'Y_omegaLPFast must be greater than zero.'
+            ENDIF
+            
+            IF (CntrPar%Y_omegaLPSlow <= 0.0)  THEN
+                aviFAIL = -1
+                ErrMsg  = 'Y_omegaLPSlow must be greater than zero.'
+            ENDIF
         ENDIF
-        
-        IF (CntrPar%Y_IPC_zetaLP <= 0.0)  THEN
-            aviFAIL = -1
-            ErrMsg  = 'Y_IPC_zetaLP must be greater than zero.'
-        ENDIF
-        
-        IF (CntrPar%Y_ErrThresh <= 0.0)  THEN
-            aviFAIL = -1
-            ErrMsg  = 'Y_ErrThresh must be greater than zero.'
-        ENDIF
-        
-        IF (CntrPar%Y_Rate <= 0.0)  THEN
-            aviFAIL = -1
-            ErrMsg  = 'CntrPar%Y_Rate must be greater than zero.'
-        ENDIF
-        
-        IF (CntrPar%Y_omegaLPFast <= 0.0)  THEN
-            aviFAIL = -1
-            ErrMsg  = 'Y_omegaLPFast must be greater than zero.'
-        ENDIF
-        
-        IF (CntrPar%Y_omegaLPSlow <= 0.0)  THEN
-            aviFAIL = -1
-            ErrMsg  = 'Y_omegaLPSlow must be greater than zero.'
-        ENDIF
-        
         ! Abort if the user has not requested a pitch angle actuator (See Appendix A
         ! of Bladed User's Guide):
         IF (NINT(avrSWAP(10)) /= 0)  THEN ! .TRUE. if a pitch angle actuator hasn't been requested
