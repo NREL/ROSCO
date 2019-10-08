@@ -41,10 +41,11 @@ class Controller():
         
         # Torque Controller Parameters
         self.zeta_vs = 0.7                      # Torque controller damping ratio (-)
-        self.omega_vs = 0.3                     # Torque controller natural frequency (rad/s)
+        self.omega_vs = 0.2                     # Torque controller natural frequency (rad/s)
         
         # Other basic parameters
         # self.v_rated = turbine.RRspeed * turbine.RotorRad / turbine.TSR_initial[turbine.Cp.max_ind[0]]    # Rated wind speed (m/s)
+        # self.v_rated = 10.75
         self.v_rated = 11.4
         
     def tune_controller(self, turbine):
@@ -77,8 +78,8 @@ class Controller():
         TSR_rated = RRspeed*R/v_rated  # TSR at rated
 
         # separate wind speeds by operation regions
-        v_below_rated = np.arange(v_min,v_rated,0.1)             # below rated
-        v_above_rated = np.arange(v_rated,v_max,0.1)             # above rated
+        v_below_rated = np.arange(v_min,v_rated,0.5)             # below rated
+        v_above_rated = np.arange(v_rated+0.5,v_max,0.5)             # above rated
         v = np.concatenate((v_below_rated, v_above_rated))
 
         # separate TSRs by operations regions
@@ -152,6 +153,7 @@ class Controller():
         self.TSR_op = TSR_op
         self.A = A 
         self.B_beta = B_beta
+        self.B_tau = B_tau
 
         # Peak Shaving
         self.ps = ControllerBlocks()
@@ -295,11 +297,11 @@ class FileProcessing():
             file.write('1                   ! PC_ControlMode    - Blade pitch control mode {0: No pitch, fix to fine pitch, 1: active PI blade pitch control}\n')
             file.write('0					! Y_ControlMode		- Yaw control mode {0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}\n')
             file.write('1                   ! SS_Mode           - Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}\n')
-            file.write('2                   ! WE_Mode           - Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Imersion and Invariance Estimator (Ortega et al.)}\n')
+            file.write('0                   ! WE_Mode           - Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Imersion and Invariance Estimator (Ortega et al.)}\n')
             file.write('1                   ! PS_Mode           - Peak shaving mode {0: no peak shaving, 1: implement peak shaving}\n')
             file.write('\n')
             file.write('!------- FILTERS ----------------------------------------------------------\n') 
-            file.write('{}			        ! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [Hz]\n'.format(str(turbine.omega_dt))) # this needs to be included as an input file
+            file.write('{}			        ! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [Hz]\n'.format(str(turbine.omega_dt * 1/3))) # this needs to be included as an input file
             file.write('0					! F_LPFDamping		- Damping coefficient [used only when F_FilterType = 2]\n')
             file.write('0					! F_NotchCornerFreq	- Natural frequency of the notch filter, [rad/s]\n')
             file.write('0	0				! F_NotchBetaNumDen	- Two notch damping values (numerator and denominator, resp) - determines the width and depth of the notch, [-]\n')
@@ -330,9 +332,9 @@ class FileProcessing():
             file.write('0.0					! IPC_CornerFreqAct - Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal {0: Disable}, [rad/s]\n')
             file.write('\n')
             file.write('!------- VS TORQUE CONTROL ------------------------------------------------\n')
-            file.write('{}				    ! VS_GenEff			- Generator efficiency mechanical power -> electrical power, [should match the efficiency defined in the generator properties!], [-]\n'.format(str(turbine.GenEff)))
-            file.write('{}			        ! VS_ArSatTq		- Above rated generator torque PI control saturation, [Nm]\n'.format(str(turbine.RatedTorque)))
-            file.write('150000.0			! VS_MaxRat			- Maximum torque rate (in absolute value) in torque controller, [Nm/s].\n')
+            file.write('{}                  ! VS_GenEff			- Generator efficiency mechanical power -> electrical power, [should match the efficiency defined in the generator properties!], [-]\n'.format(turbine.GenEff))
+            file.write('{}                  ! VS_ArSatTq		- Above rated generator torque PI control saturation, [Nm]\n'.format(turbine.RatedTorque))
+            file.write('1500000.0			! VS_MaxRat			- Maximum torque rate (in absolute value) in torque controller, [Nm/s].\n')
             file.write('{}			        ! VS_MaxTq			- Maximum generator torque in Region 3 (HSS side), [Nm].\n'.format(str(turbine.RatedTorque*1.1)))
             file.write('0.0					! VS_MinTq			- Minimum generator (HSS side), [Nm].\n')
             file.write('0.0				    ! VS_MinOMSpd		- Optimal mode minimum speed, cut-in speed towards optimal mode gain path, [rad/s]\n')
@@ -343,6 +345,7 @@ class FileProcessing():
             file.write('1					! VS_n				- Number of generator PI torque controller gains\n')
             file.write('{}				    ! VS_KP				- Proportional gain for generator PI torque controller [1/(rad/s) Nm]. (Only used in the transitional 2.5 region if VS_ControlMode =/ 2)\n'.format(str(controller.vs_gain_schedule.Kp[-1])))
             file.write('{}	 			    ! VS_KI				- Integral gain for generator PI torque controller [1/rad Nm]. (Only used in the transitional 2.5 region if VS_ControlMode =/ 2)\n'.format(str(controller.vs_gain_schedule.Ki[-1])))
+            file.write('{}	 			    ! VS_TSRopt			- Power-maximizing region 2 tip-speed-ratio [rad].\n'.format(str(turbine.Cp.TSR_opt).strip('[]')))
             file.write('\n')
             file.write('!------- SETPOINT SMOOTHER ---------------------------------------------\n')
             file.write('30                  ! SS_VSGainBias     - Variable speed torque controller gain bias, [(rad/s)/rad].\n')

@@ -105,7 +105,7 @@ class Sim():
             gen_speed[i] = rot_speed[i] * self.turbine.Ng 
 
             # Call the controller
-            gen_torque[i], bld_pitch[i] = self.controller_int.call_controller(t,dt,bld_pitch[i-1],gen_speed[i],rot_speed[i],ws)
+            gen_torque[i], bld_pitch[i] = self.controller_int.call_controller(t,dt,bld_pitch[i-1],gen_torque[i-1],gen_speed[i],rot_speed[i],ws)
 
             # Calculate the power
             gen_power[i] = gen_speed[i] * np.pi/30.0 * gen_torque[i] * self.gen_eff
