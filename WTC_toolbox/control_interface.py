@@ -91,7 +91,7 @@ class ConInt():
         self.avrSWAP = data
 
 
-    def call_controller(self,t,dt,pitch,genspeed,rotspeed,ws):
+    def call_controller(self,t,dt,pitch,torque,genspeed,rotspeed,ws):
         '''
         Runs the controller. Passes current turbine state to the controller, and returns control inputs back
         
@@ -115,6 +115,7 @@ class ConInt():
         self.avrSWAP[1] = t
         self.avrSWAP[2] = dt
         self.avrSWAP[3] = self.pitch
+        self.avrSWAP[22] = torque
         self.avrSWAP[19] = genspeed
         self.avrSWAP[20] = rotspeed
         self.avrSWAP[26] = ws
