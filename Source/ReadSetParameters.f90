@@ -211,9 +211,10 @@ CONTAINS
         ! ----- Torque controller reference errors -----
         ! Define VS reference generator speed [rad/s]
         IF (CntrPar%VS_ControlMode == 2) THEN
-            WE_Vw_f = LPFilter(LocalVar%We_Vw, LocalVar%DT, 0.1, LocalVar%iStatus, .FALSE., objInst%instLPF)
+            WE_Vw_f = LPFilter(LocalVar%We_Vw, LocalVar%DT, 0.625, LocalVar%iStatus, .FALSE., objInst%instLPF)
+            ! WE_Vw_f = LocalVar%We_Vw
             VS_RefSpd = (CntrPar%VS_TSRopt * WE_Vw_f / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
-            VS_RefSpd = saturate(VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%PC_RefSpd)
+            VS_RefSpd = saturate(VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
         ELSE
             VS_RefSpd = CntrPar%VS_RefSpd
         ENDIF 
@@ -232,6 +233,8 @@ CONTAINS
         ! Define transition region setpoint errors
         LocalVar%VS_SpdErrAr = VS_RefSpd - LocalVar%GenSpeedF               ! Current speed error - Region 2.5 PI-control (Above Rated)
         LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd - LocalVar%GenSpeedF     ! Current speed error - Region 1.5 PI-control (Below Rated)
+    
+    
     END SUBROUTINE ComputeVariablesSetpoints
     ! -----------------------------------------------------------------------------------
     ! Read avrSWAP array passed from ServoDyn    
@@ -495,6 +498,11 @@ CONTAINS
             
             ! Setpoint Smoother initialization to zero
             LocalVar%SS_DelOmegaF = 0
+
+            ! Generator Torque at K omega^2
+            LocalVar%GenTq = min(CntrPar%VS_RtTq, CntrPar%VS_Rgn2K*LocalVar%GenSpeed*LocalVar%GenSpeed)
+            LocalVar%VS_LastGenTrq = LocalVar%GenTq       
+            print *,'Initial GenTq = ', LocalVar%GenTq 
 
             ! Check validity of input parameters:
             CALL Assert(LocalVar, CntrPar, avrSWAP, aviFAIL, ErrMsg, size_avcMSG)

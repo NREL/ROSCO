@@ -121,7 +121,7 @@ CONTAINS
                 ! VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
                 VS_MaxTq = CntrPar%VS_RtTq
             ENDIF
-            LocalVar%GenTq = PIController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, VS_MaxTq, LocalVar%DT, CntrPar%VS_MaxOMTq, .FALSE., objInst%instPI)
+            LocalVar%GenTq = PIController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, VS_MaxTq, LocalVar%DT, LocalVar%VS_LastGenTrq, .FALSE., objInst%instPI)
         
         ! K*Omega^2 control law with PI torque control in transition regions
         ELSE
@@ -149,7 +149,6 @@ CONTAINS
         LocalVar%GenTq = MIN(LocalVar%GenTq, CntrPar%VS_MaxTq)                    ! Saturate the command using the maximum torque limit
         
         ! Saturate the commanded torque using the torque rate limit:
-        IF (LocalVar%iStatus == 0)  LocalVar%VS_LastGenTrq = LocalVar%GenTq       ! Initialize the value of LocalVar%VS_LastGenTrq on the first pass only
         LocalVar%GenTq = ratelimit(LocalVar%GenTq, LocalVar%VS_LastGenTrq, -CntrPar%VS_MaxRat, CntrPar%VS_MaxRat, LocalVar%DT)    ! Saturate the command using the torque rate limit
         
         ! Reset the value of LocalVar%VS_LastGenTrq to the current values:
