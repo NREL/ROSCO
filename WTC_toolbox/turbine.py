@@ -323,7 +323,7 @@ class RotorPerformance():
         # Optimal below rated TSR and blade pitch
         self.max = np.amax(performance_table)
         self.max_ind = np.where(performance_table == np.amax(performance_table))
-        self.TSR_opt = TSR_initial[self.max_ind[0]]
+        self.TSR_opt = np.float64(TSR_initial[self.max_ind[0]])
         self.pitch_opt = pitch_initial_rad[self.max_ind[1]]
 
     def interp_surface(self,pitch,TSR):
