@@ -186,8 +186,8 @@ class Turbine():
         # Mesh the grid and flatten the arrays
         fixed_rpm = self.RRspeed*RadSec2rpm # RPM
 
-        TSR_initial = np.arange(0.5,15,0.5)
-        pitch_initial = np.arange(-1,25,0.5)
+        TSR_initial = np.arange(0.5,15,0.2)
+        pitch_initial = np.arange(-1,25,0.2)
         pitch_initial_rad = pitch_initial * deg2rad
         ws_array = (fixed_rpm * rpm2RadSec * self.TipRad)  / TSR_initial
         ws_mesh, pitch_mesh = np.meshgrid(ws_array, pitch_initial)
