@@ -66,11 +66,11 @@ for dind = 1:length(outdata)
                     pl = plot(time,pdata);
                     ylabel(pcats{plind})
                     
-                    if strcmp(pcats{plind},'BldPitch1')
-                        ylim([-5, 45]);         
-                    elseif strcmp(pcats{plind},'RtAeroCp')
-                        ylim([0 0.6]);
-                    end
+%                     if strcmp(pcats{plind},'BldPitch1')
+%                         ylim([-5, 45]);         
+%                     elseif strcmp(pcats{plind},'RtAeroCp')
+%                         ylim([0 0.6]);
+%                     end
                     
                     grid on
                     pl.LineWidth = 1.5;
