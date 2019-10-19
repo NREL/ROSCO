@@ -80,11 +80,11 @@ CONTAINS
 
         ! Combine and saturate all pitch commands:
         DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
-            ! PitCom(K) = ratelimit(LocalVar%PC_PitComT_IPC(K), LocalVar%BlPitch(K), PC_MinRat, PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
             LocalVar%PitCom(K) = saturate(LocalVar%PC_PitComT, LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
             LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%IPC_PitComF(K) + LocalVar%FA_PitCom(K) + LocalVar%PC_SineExcitation
+            LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), LocalVar%BlPitch(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
         END DO
-        
+
         ! Command the pitch demanded from the last
         ! call to the controller (See Appendix A of Bladed User's Guide):
         avrSWAP(42) = LocalVar%PitCom(1)    ! Use the command angles of all blades if using individual pitch
@@ -121,7 +121,7 @@ CONTAINS
                 ! VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
                 VS_MaxTq = CntrPar%VS_RtTq
             ENDIF
-            LocalVar%GenTq = PIController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, VS_MaxTq, LocalVar%DT, CntrPar%VS_MaxOMTq, .FALSE., objInst%instPI)
+            LocalVar%GenTq = PIController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, VS_MaxTq, LocalVar%DT, LocalVar%VS_LastGenTrq, .FALSE., objInst%instPI)
         
         ! K*Omega^2 control law with PI torque control in transition regions
         ELSE
@@ -149,12 +149,14 @@ CONTAINS
         LocalVar%GenTq = MIN(LocalVar%GenTq, CntrPar%VS_MaxTq)                    ! Saturate the command using the maximum torque limit
         
         ! Saturate the commanded torque using the torque rate limit:
-        IF (LocalVar%iStatus == 0)  LocalVar%VS_LastGenTrq = LocalVar%GenTq       ! Initialize the value of LocalVar%VS_LastGenTrq on the first pass only
         LocalVar%GenTq = ratelimit(LocalVar%GenTq, LocalVar%VS_LastGenTrq, -CntrPar%VS_MaxRat, CntrPar%VS_MaxRat, LocalVar%DT)    ! Saturate the command using the torque rate limit
         
         ! Reset the value of LocalVar%VS_LastGenTrq to the current values:
         LocalVar%VS_LastGenTrq = LocalVar%GenTq
         
+        ! Account for first run
+        
+
         ! Set the command generator torque (See Appendix A of Bladed User's Guide):
         avrSWAP(47) = LocalVar%VS_LastGenTrq   ! Demanded generator torque
     END SUBROUTINE VariableSpeedControl

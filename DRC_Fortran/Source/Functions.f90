@@ -423,8 +423,8 @@ CONTAINS
             IF (CntrPar%LoggingLevel > 0) THEN
                 !OPEN(unit=UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='NEW')
                 OPEN(unit=UnDb, FILE='DEBUG.dbg')
-                WRITE (UnDb,'(A)')  '   Time '  //Tab//' WE_TowerTop    ' //Tab//' WE_Vw    ' 
-                WRITE (UnDb,'(A)')  '   (sec) '  //Tab//'(m/s) '
+                WRITE (UnDb,'(A)')  '   Time '  //Tab//' WE_TowerTop    ' //Tab//' WE_Vw    '  //Tab//' SS_DelOmega    ' 
+                WRITE (UnDb,'(A)')  '   (sec) '  //Tab//'(m/s) ' //Tab//'(rad) '
                 !WRITE (UnDb,'(A)') '   LocalVar%Time '  //Tab//'LocalVar%PC_PitComT  ' //Tab//'LocalVar%PC_SpdErr  ' //Tab//'LocalVar%PC_KP ' //Tab//'LocalVar%PC_KI  ' //Tab//'LocalVar%Y_M  ' //Tab//'LocalVar%rootMOOP(1)  '//Tab//'VS_RtPwr  '//Tab//'LocalVar%GenTq'
                 !WRITE (UnDb,'(A)') '   (sec) ' //Tab//'(rad)    '  //Tab//'(rad/s) '//Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   ' //Tab//'(?)   ' //Tab//'(W)   '//Tab//'(Nm)  '
             END IF
@@ -447,7 +447,7 @@ CONTAINS
             
             ! Output debugging information if requested:
             IF (CntrPar%LoggingLevel > 0) THEN
-                WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%TestType, LocalVar%WE_Vw
+                WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%TestType, LocalVar%WE_Vw, LocalVar%SS_DelOmegaF
             END IF
             
             IF (CntrPar%LoggingLevel > 1) THEN
