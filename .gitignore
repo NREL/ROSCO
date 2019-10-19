@@ -23,6 +23,10 @@ _build
 # OpenFAST generated files
 *.sum
 *.ech
+*.dbg
+
+# Fortran files
+*.85
 
 # Other
 .pytest_cache
