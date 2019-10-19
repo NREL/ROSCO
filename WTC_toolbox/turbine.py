@@ -50,13 +50,6 @@ class Turbine():
         # Init the cc-blade rotor
         self.cc_rotor = None
 
-        
-
-        # Interp function versions
-        self.cp_interp = None
-        self.ct_interp = None
-        self.cq_interp = None
-
     # Allow print out of class
     def __str__(self): 
 
@@ -78,7 +71,7 @@ class Turbine():
         self.J,self.rho,self.RotorRad, self.Ng,self.RRspeed,self.v_min,self.v_rated,self.v_max,self.cc_rotor,self.cp_interp,self.ct_interp,self.cq_interp = pickle.load(open(filename,'rb'))
 
 
-    def load_from_fast(self, FAST_InputFile,FAST_directory,drivetrain_inertia, FAST_ver='OpenFAST',dev_branch=True,rot_source=None, txt_filename=None):
+    def load_from_fast(self, FAST_InputFile,FAST_directory,rotor_inertia, FAST_ver='OpenFAST',dev_branch=True,rot_source=None, txt_filename=None):
         """
         Load the parameter files directly from a FAST input deck
 
@@ -218,6 +211,8 @@ class Turbine():
         self.Cp_table = Cp
         self.Ct_table = Ct 
         self.Cq_table = Cq
+    
+    
     def load_from_txt(self,fast,txt_filename):
         '''
         Load rotor performance data from a *.txt file. 
