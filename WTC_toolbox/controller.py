@@ -143,6 +143,9 @@ class Controller():
         self.vs_gain_schedule = ControllerTypes()
         self.vs_gain_schedule.second_order_PI(zeta_vs, omega_vs,A_vs,B_tau,linearize=False,v=v_below_rated)
 
+        # Find K for Komega_g^2
+        self.vs_rgn2K = 0.5*rho*Ar*R**5 * turbine.Cp.max / (turbine.Cp.TSR_opt**3 * Ng)
+        self.vs_refspd = min(turbine.Cp.TSR_opt * v_rated/R, turbine.RRspeed)
 
         # Store some variables
         self.v = v                                  # Wind speed (m/s)
@@ -338,7 +341,7 @@ class FileProcessing():
             file.write('{}			        ! VS_MaxTq			- Maximum generator torque in Region 3 (HSS side), [Nm].\n'.format(str(turbine.RatedTorque*1.1)))
             file.write('0.0					! VS_MinTq			- Minimum generator (HSS side), [Nm].\n')
             file.write('0.0				    ! VS_MinOMSpd		- Optimal mode minimum speed, cut-in speed towards optimal mode gain path, [rad/s]\n')
-            file.write('0.0 			    ! VS_Rgn2K			- Generator torque constant in Region 2 (HSS side), [N-m/(rad/s)^2]\n')
+            file.write('{} 			        ! VS_Rgn2K			- Generator torque constant in Region 2 (HSS side), [N-m/(rad/s)^2]\n'.format(str(controller.vs_rgn2K)))
             file.write('{}			        ! VS_RtPwr			- Wind turbine rated power [W]\n'.format(str(turbine.RatedPower)))
             file.write('{}			        ! VS_RtTq			- Rated torque, [Nm].\n'.format(str(turbine.RatedTorque)))
             file.write('{}				    ! VS_RefSpd			- Rated generator speed [rad/s]\n'.format(str(turbine.RRspeed*turbine.Ng)))
