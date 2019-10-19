@@ -45,7 +45,7 @@ end
 
  % Usable Plot types: 
  %  - Step, Below Rated, Near Rated, Above Rated, Floating Steady, Floating Near Rated, Floating Mexican Hat, 'Floating Above Rated
-plottype = 'Near Rated';
+plottype = 'Floating Steady';
 
 
 close all
@@ -62,9 +62,9 @@ switch plottype
     case 'Floating Steady'
         Pl_FastPlots(fo.OC4_ARsteady_Legacy, fo.OC4_ARsteady_Baseline)
     case 'Floating Near Rated'
-        Pl_FastPlots(fo.OC4_NR_Legacy, fo.OC4_NR_Baseline)
+        Pl_FastPlots_present(fo.OC4_NR_Legacy, fo.OC4_NR_Baseline)
     case 'Floating Above Rated'
-        Pl_FastPlots(fo.OC4_AR_Legacy, fo.OC4_AR_Baseline)
+        Pl_FastPlots_present(fo.OC4_AR_Legacy, fo.OC4_AR_Baseline)
     case 'Floating Mexican Hat'
         Pl_FastPlots(fo.OC4_MH_Legacy, fo.OC4_MH_Baseline)
 end
