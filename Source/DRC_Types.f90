@@ -55,8 +55,8 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)                             :: VS_TSRopt                    ! Power-maximizing region 2 tip-speed ratio [rad]
     
     INTEGER(4)                          :: SS_Mode                      ! Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
-    REAL(4)                             :: SS_VSGainBias                ! Variable speed torque controller gain bias, [(rad/s)/rad].
-    REAL(4)                             :: SS_PCGainBias                ! Collective pitch controller gain bias, [(rad/s)/Nm].
+    REAL(4)                             :: SS_VSGain                    ! Variable speed torque controller setpoint smoother gain, [-].
+    REAL(4)                             :: SS_PCGain                    ! Collective pitch controller setpoint smoother gain, [-].
 
     INTEGER(4)                          :: WE_Mode                      ! Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Imersion and Invariance Estimator (Ortega et al.)
     REAL(4)                             :: WE_BladeRadius               ! Blade length [m]

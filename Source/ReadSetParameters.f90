@@ -109,8 +109,8 @@ CONTAINS
 
         !------- Setpoint Smoother --------------------------------
         READ(UnControllerParameters, *)
-        READ(UnControllerParameters, *) CntrPar%SS_VSGainBias
-        READ(UnControllerParameters, *) CntrPar%SS_PCGainBias
+        READ(UnControllerParameters, *) CntrPar%SS_VSGain
+        READ(UnControllerParameters, *) CntrPar%SS_PCGain
         READ(UnControllerParameters, *) 
 
         !------------ WIND SPEED ESTIMATOR CONTANTS --------------
