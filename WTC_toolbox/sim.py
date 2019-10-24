@@ -60,7 +60,7 @@ class Sim():
 
         # Store turbine data for conveniente
         dt = t_array[1] - t_array[0]
-        R = self.turbine.RotorRad
+        R = self.turbine.rotor_radius
         GBRatio = self.turbine.Ng
 
         # Declare output arrays
@@ -90,7 +90,7 @@ class Sim():
 
             # Load current Cq data
             if use_interpolated:
-                tsr = rot_speed[i-1] * self.turbine.RotorRad / ws
+                tsr = rot_speed[i-1] * self.turbine.rotor_radius / ws
                 cq = self.turbine.Cq.interp_surface([bld_pitch[i-1]],tsr)
             if not use_interpolated:
                 P, T, Q, M, Cp, Ct, cq, CM = self.turbine.cc_rotor.evaluate([ws], 
