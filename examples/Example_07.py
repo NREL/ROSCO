@@ -4,6 +4,7 @@
 #%%
 import numpy as np
 from scipy import interpolate 
+import yaml
 
 from WTC_toolbox import controller as wtc_controller
 from WTC_toolbox import turbine as wtc_turbine
@@ -13,9 +14,18 @@ import os
 # Ensure propper working directory
 os.chdir('/Users/nabbas/Documents/WindEnergyToolbox/WTC_toolbox/examples')
 
-# Initialiize turbine and controller classes
-turbine = wtc_turbine.Turbine()
-controller = wtc_controller.Controller()
+# parameter filename
+parameter_filename = 'NREL5MW.yaml'         # Name of .yaml input file for the specific turbine
+
+# Load input file contents, put them in some dictionaries to keep things cleaner
+inps = yaml.safe_load(open(parameter_filename))
+path_params = inps['path_params']
+turbine_params = inps['turbine_params']
+controller_params = inps['controller_params']
+
+# Initialiize turbine, controller, and file processing classes
+turbine         = wtc_turbine.Turbine(turbine_params)
+controller      = wtc_controller.Controller(controller_params)
 file_processing = wtc_controller.FileProcessing()
 
 # Fast input file and Cp surface text file
@@ -23,8 +33,7 @@ FAST_InputFile = '5MW_Land.fst'
 FAST_directory = '/Users/nabbas/Documents/TurbineModels/NREL_5MW/5MW_Land'
 txt_filename = 'Cp_Ct_Cq.txt'
 
-drivetrain_inertia = 40469564.444
-turbine.load_from_fast(FAST_InputFile,FAST_directory,drivetrain_inertia,dev_branch=True,rot_source='txt', txt_filename=txt_filename)
+turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source='txt',txt_filename=path_params['rotor_performance_filename'])
 
 # Load controller
 controller.tune_controller(turbine)
