@@ -1,91 +1,49 @@
-# NREL 15MW Baseline
-# Example_07
-# Load gain schedules, write_paramter input file, plot gains
+# Controller Tuning Script for NREL-5MW Wind Turbine
+#  -- Made to run the tools distributed as a part of the WTC_Toolbox
 
-#%%
+#------------------------------------- INITIALIZATION ----------------------------------#
+# Import python modules
 import numpy as np
 from scipy import interpolate 
 import matplotlib.pyplot as plt 
-
+import yaml 
+import os
+# Import WTC_Toolbox modules 
 from WTC_toolbox import controller as wtc_controller
 from WTC_toolbox import turbine as wtc_turbine
 from WTC_toolbox import sim as wtc_sim
+# Initialize parameter dictionaries
+turbine_params = {}
+control_params = {}
 
-import os
+#-------------------------------- LOAD INPUT PARAMETERS ---------------------------------#
+parameter_filename = 'NREL5MW.yaml'         # Name of .yaml input file for the specific turbine
 
-os.chdir('/Users/nabbas/Documents/WindEnergyToolbox/WTC_toolbox/Tune_Cases')
+# Load input file contents, put them in some dictionaries to keep things cleaner
+inps = yaml.safe_load(open(parameter_filename))
+path_params = inps['path_params']
+turbine_params = inps['turbine_params']
+controller_params = inps['controller_params']
 
-# Initialiize turbine and controller classes
-turbine = wtc_turbine.Turbine()
-controller = wtc_controller.Controller()
+#---------------------------------- DO THE FUN STUFF ------------------------------------#
+# Initialiize turbine, controller, and file processing classes
+turbine         = wtc_turbine.Turbine(turbine_params)
+controller      = wtc_controller.Controller(controller_params)
 file_processing = wtc_controller.FileProcessing()
 
-# Fast input file and Cp surface text file
-FAST_InputFile = 'IEA-15-240-RWT.fst'
-FAST_directory = '/Users/nabbas/Documents/TurbineModels/IEA-15-240-RWT/OpenFAST'
-txt_filename = 'Cp_Ct_Cq.txt'
-
-# FAST_InputFile = '5MW_Land.fst'
-# FAST_directory = '/Users/nabbas/Documents/TurbineModels/NREL_5MW/5MW_Land'
-# txt_filename = 'Cp_Ct_Cq.txt'
-
-rotor_inertia = 354810226.448   # Available from Elastodyn I/O
-generator_inertia = 17159301.77
-gb_ratio = 1
-drivetrain_inertia = rotor_inertia + generator_inertia* gb_ratio**2
-
-# drivetrain_inertia = 40469564.444
-
-# turbine.load('NREL15MW_turbine.p')
-
 # Load Turbine
-# turbine.load_from_fast(FAST_InputFile,FAST_directory,drivetrain_inertia,dev_branch=True,rot_source='txt',txt_filename=txt_filename)
-turbine.load_from_fast(FAST_InputFile,FAST_directory,drivetrain_inertia,dev_branch=True,rot_source=None)
+if inps['path_params']['rotor_performance_filename']:
+    turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source='txt',txt_filename=path_params['rotor_performance_filename'])
+else:
+    turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source=None)
+    # Write rotor performance file
+    turbine.write_rotorperformance(txt_filename='Cp_Ct_Cq.txt')
+
 # Tune controller
 controller.tune_controller(turbine)
-# Save turbine
-# turbine.save('NREL15MW_turbine.p')
 
 
-#%%
-turbine.write_rotorperformance(txt_filename='Cp_Ct_Cq.txt')
 
 # Write parameter input file
-param_file = 'DISCON.IN'
+param_file = 'DISCON.IN'   # This must be named DISCON.IN to be seen by the compiled controller binary. 
 file_processing.write_param_file(param_file,turbine,controller,new_file=True)
-
-#%% Load Saved Turbine
-# turbine.load('NREL15MW_turbine.p')
-
-#%% Tiny sim
-from WTC_toolbox import control_interface as ci
-
-# Load controller 
-lib_name = '../DRC_Fortran/DISCON/DISCON_glin64.so'
-# lib_name = '/Users/pfleming/Desktop/git_tools/floating/DRC_Fortran/DISCON//DISCON_glin64.so'
-controller_int = ci.ConInt(lib_name)
-
-# Load the simulator
-sim = wtc_sim.Sim(turbine,controller_int)
-
-# Define a wind speed history
-dt = 0.1
-tlen = 1000      # length of time to simulate (s)
-ws0 = 5      # initial wind speed (m/s)
-t= np.arange(0,tlen,dt) 
-ws = np.ones_like(t) * ws0
-# add steps at every 100s
-for i in range(len(t)):
-    ws[i] = ws[i] + t[i]//100
-
-
-# Run simulator
-sim.sim_ws_series(t,ws,rotor_rpm_init=turbine.RRspeed)
-plt.show()
-
-#%%
-plt.figure(2)
-plt.plot(controller.pitch_op_pc, controller.pc_gain_schedule.Kp)
-plt.show()
-print(controller.v_rated)
-print(controller.pc_gain_schedule)
