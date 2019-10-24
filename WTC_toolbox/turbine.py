@@ -11,12 +11,15 @@
 
 import os
 import numpy as np
+import datetime
 from ccblade import CCAirfoil, CCBlade
 from AeroelasticSE.FAST_reader import InputReader_OpenFAST
 from scipy import interpolate, gradient
 import pickle
 
 # Some useful constants
+now = datetime.datetime.now()
+pi = np.pi
 deg2rad = np.deg2rad(1)
 rad2deg = np.rad2deg(1)
 rpm2RadSec = 2.0*(np.pi)/60.0
@@ -28,25 +31,36 @@ class Turbine():
     and to run the 'tiny' simulation
     """
 
-    def __init__(self):
+    def __init__(self, turbine_params):
         """
         Maybe just initialize the internal variables
         This also lists what will need to be defined
         """
 
         # ------ Turbine Parameters------
-        self.RRspeed = 12.1*rpm2RadSec               # Rated rotor speed (rad/s)
-        # self.RRspeed = 7.5*rpm2RadSec               # Rated rotor speed (rad/s)
+        self.rotor_inertia = turbine_params['rotor_inertia']         
+        self.rated_rotor_speed = turbine_params['rated_rotor_speed']     
+        self.v_min = turbine_params['v_min']                 
+        self.v_rated = turbine_params['v_rated']               
+        self.v_max = turbine_params['v_max']
+        self.max_pitch_rate = turbine_params['max_pitch_rate'] * deg2rad
+        self.max_torque_rate = turbine_params['max_torque_rate']             
+        self.rated_power = turbine_params['rated_power']           
+        self.bld_edgewise_freq = turbine_params['bld_edgewise_freq']     
 
-        self.v_min = 4.                  # Cut-in wind speed (m/s) (JUST ASSUME FOR NOW)
-        self.v_rated = None                # Rated wind speed (m/s)
-        self.v_max = 25.                  # Cut-out wind speed (m/s), -- Does not need to be exact (JUST ASSUME FOR NOW)
-        self.RatedPower = 5000000
-        # self.RatedPower = 15000000
 
-        # Pitch controller
-        self.PC_MaxPit = 1.5707         # Maximum pitch angle (rad)
-        self.PC_MinPit = -0.087266      # Minimum pitch angle (rad)
+
+        # self.rated_rotor_speed = 12.1*rpm2RadSec               # Rated rotor speed (rad/s)
+        # # self.rated_rotor_speed = 8.68*rpm2RadSec               # Rated rotor speed (rad/s)
+        # # self.rated_rotor_speed = 7.497382*rpm2RadSec               # Rated rotor speed (rad/s)
+
+        # self.v_min = 4.                  # Cut-in wind speed (m/s) (JUST ASSUME FOR NOW)
+        # self.v_rated = 11.4                # Rated wind speed (m/s)
+        # self.v_max = 25.                  # Cut-out wind speed (m/s), -- Does not need to be exact (JUST ASSUME FOR NOW)
+        # self.rated_power = 5000000
+        # self.rated_power = 10000000
+        # self.rated_power = 15000000
+        
         # Init the cc-blade rotor
         self.cc_rotor = None
 
@@ -57,21 +71,21 @@ class Turbine():
         print('Turbine Info')
         print('J: %.1f' % self.J)
         print('rho: %.1f' % self.rho)
-        print('RotorRad: %.1f' % self.RotorRad)
+        print('rotor_radius: %.1f' % self.rotor_radius)
         print('---------------------')
         return ' '
 
     # Save function
     def save(self,filename):
-        tuple_to_save = (self.J,self.rho,self.RotorRad, self.Ng,self.RRspeed,self.v_min,self.v_rated,self.v_max,self.cc_rotor,self.Cp_table,self.Ct_table,self.Cq_table,self.Cp,self.Ct,self.Cq   )
+        tuple_to_save = (self.J,self.rho,self.rotor_radius, self.Ng,self.rated_rotor_speed,self.v_min,self.v_rated,self.v_max,self.cc_rotor,self.Cp_table,self.Ct_table,self.Cq_table,self.Cp,self.Ct,self.Cq   )
         pickle.dump( tuple_to_save, open( filename, "wb" ) )
 
     # Load function
     def load(self, filename):
-        self.J,self.rho,self.RotorRad, self.Ng,self.RRspeed,self.v_min,self.v_rated,self.v_max,self.cc_rotor,self.cp_interp,self.ct_interp,self.cq_interp = pickle.load(open(filename,'rb'))
+        self.J,self.rho,self.rotor_radius, self.Ng,self.rated_rotor_speed,self.v_min,self.v_rated,self.v_max,self.cc_rotor,self.cp_interp,self.ct_interp,self.cq_interp = pickle.load(open(filename,'rb'))
 
 
-    def load_from_fast(self, FAST_InputFile,FAST_directory,rotor_inertia, FAST_ver='OpenFAST',dev_branch=True,rot_source=None, txt_filename=None):
+    def load_from_fast(self, FAST_InputFile,FAST_directory, FAST_ver='OpenFAST',dev_branch=True,rot_source=None, txt_filename=None):
         """
         Load the parameter files directly from a FAST input deck
 
@@ -95,9 +109,6 @@ class Turbine():
                           filename for *.txt, only used if rot_source='txt'
         """
 
-        # Need unfortunately to hack this for now, hope to fix later
-        self.J = drivetrain_inertia 
-
         print('Loading FAST model: %s ' % FAST_InputFile)
         self.TurbineName = FAST_InputFile.strip('.fst')
         fast = InputReader_OpenFAST(FAST_ver=FAST_ver,dev_branch=dev_branch)
@@ -110,24 +121,29 @@ class Turbine():
         self.TipRad = fast.fst_vt['ElastoDyn']['TipRad']
         self.Rhub =  fast.fst_vt['ElastoDyn']['HubRad']
         self.hubHt = fast.fst_vt['ElastoDyn']['TowerHt'] 
+        self.NumBl = fast.fst_vt['ElastoDyn']['NumBl']
         self.shearExp = 0.2  #HARD CODED FOR NOW
         self.rho = fast.fst_vt['AeroDyn15']['AirDens']
         self.mu = fast.fst_vt['AeroDyn15']['KinVisc']
         self.Ng = fast.fst_vt['ElastoDyn']['GBRatio']
         self.GenEff = fast.fst_vt['ServoDyn']['GenEff']
         self.DTTorSpr = fast.fst_vt['ElastoDyn']['DTTorSpr']
-        self.RatedTorque = self.RatedPower/(self.GenEff/100*self.RRspeed*self.Ng)
-
+        self.generator_inertia = fast.fst_vt['ElastoDyn']['GenIner']
+        self.tilt = fast.fst_vt['ElastoDyn']['ShftTilt'] 
+        self.precone = fast.fst_vt['ElastoDyn']['PreCone1']
+        self.yaw = 0.0
+        self.J = self.rotor_inertia + self.generator_inertia * self.Ng**2
+        self.rated_torque = self.rated_power/(self.GenEff/100*self.rated_rotor_speed*self.Ng)
 
         # Some additional parameters to save
-        self.RotorRad = self.TipRad
+        self.rotor_radius = self.TipRad
         self.omega_dt = np.sqrt(self.DTTorSpr/self.J)
-        if self.RRspeed:
-            pass
-        else:
-            # Calculate rated rotor speed by scaling from NREL 5MW
-            self.RRspeed = (63. / self.TipRad) * 12.1 * rpm2RadSec
-
+        
+        # if self.rated_rotor_speed:
+        #     pass
+        # else:
+        #     # Calculate rated rotor speed by scaling from NREL 5MW
+        #     self.rated_rotor_speed = (63. / self.rotor_radius) * 12.1 * rpm2RadSec
 
         # Load Cp, Ct, Cq tables
         if rot_source == 'txt':
@@ -135,7 +151,7 @@ class Turbine():
         elif rot_source == 'cc-blade':
             self.load_from_ccblade(fast)
         else:   # default load from cc-blade
-            print('No desired rotor performance data source specified, running cc-blade by default.')
+            print('No desired rotor performance data source specified, running cc-blade.')
             self.load_from_ccblade(fast)
 
         # Parse rotor performance data
@@ -150,9 +166,8 @@ class Turbine():
         theta = np.array(fast.fst_vt['AeroDynBlade']['BlTwist'])
         chord = np.array(fast.fst_vt['AeroDynBlade']['BlChord'])
         af_idx = np.array(fast.fst_vt['AeroDynBlade']['BlAFID']).astype(int) - 1 #Reset to 0 index
-        AFNames = fast.fst_vt['AeroDyn15']['AFNames']
+        AFNames = fast.fst_vt['AeroDyn15']['AFNames']   
 
-        
         # Used airfoil data from FAST file read, assumes AeroDyn 15, assumes 1 Re num per airfoil
         af_dict = {}
         for i, af_fast in enumerate(fast.fst_vt['AeroDyn15']['af_data']):
@@ -165,39 +180,39 @@ class Turbine():
             af_dict[i] = CCAirfoil(Alpha, Re, Cl, Cd, Cm)
 
         af = [0]*len(r)
-        # af = [0]*len(r)
         for i in range(len(r)):
             af[i] = af_dict[af_idx[i]]
 
-        tilt = fast.fst_vt['ElastoDyn']['ShftTilt'] 
-        precone = fast.fst_vt['ElastoDyn']['PreCone1']
-        yaw = 0.0
-
-        nSector = 8  # azimuthal discretization
-
-        B = 3 #fixed at 3-bladed for now
-
         # Now save the CC-Blade rotor
-        self.cc_rotor = CCBlade(r, chord, theta, af, self.Rhub, self.TipRad, B, self.rho, self.mu,
-                        precone, tilt, yaw, self.shearExp, self.hubHt, nSector)
+        nSector = 8  # azimuthal discretizations
+        self.cc_rotor = CCBlade(r, chord, theta, af, self.Rhub, self.rotor_radius, self.NumBl, rho=self.rho, mu=self.mu,
+                        precone=self.precone, tilt=self.tilt, yaw=self.yaw, shearExp=self.shearExp, hubHt=self.hubHt, nSector=nSector)
 
-        print('CCBlade run succesfully')
+
+        print('CCBlade run successfully')
         # Generate the look-up tables
         # Mesh the grid and flatten the arrays
-        fixed_rpm = self.RRspeed*RadSec2rpm # RPM
 
-        TSR_initial = np.arange(0.5,15,0.2)
-        pitch_initial = np.arange(-1,25,0.2)
+        # fixed_rpm = self.rated_rotor_speed*RadSec2rpm # RPM
+
+        TSR_initial = np.arange(3, 15,0.25)
+        pitch_initial = np.arange(-1,25,0.25)
         pitch_initial_rad = pitch_initial * deg2rad
-        ws_array = (fixed_rpm * rpm2RadSec * self.TipRad)  / TSR_initial
+        # ws_array = (self.rated_rotor_speed * self.rotor_radius)  / TSR_initial
+        ws_array = np.ones_like(TSR_initial) * (self.v_rated - 1.) # 1 m/s below rated wind speed
+        omega_array = (TSR_initial * ws_array / self.rotor_radius) * RadSec2rpm
+        tsr_array = (omega_array * rpm2RadSec * self.rotor_radius)  / ws_array
         ws_mesh, pitch_mesh = np.meshgrid(ws_array, pitch_initial)
         ws_flat = ws_mesh.flatten()
         pitch_flat = pitch_mesh.flatten()
-        omega_flat = np.ones_like(pitch_flat) * fixed_rpm
-        tsr_flat = (fixed_rpm * rpm2RadSec * self.TipRad)  / ws_flat
+        omega_mesh, _ = np.meshgrid(omega_array, pitch_initial)
+        omega_flat = omega_mesh.flatten()
+        # omega_flat = np.ones_like(pitch_flat) * self.rated_rotor_speed * RadSec2rpm
+        tsr_flat = (omega_flat * rpm2RadSec * self.rotor_radius)  / ws_flat
+
 
         # Get values from cc-blade
-        print('Running cc_rotor aerodynamic analysis, this may take a second...')
+        print('Running cc_rotor aerodynamic analysis, this may take a minute...')
         P, T, Q, M, CP, CT, CQ, CM = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
 
         # Reshape Cp, Ct and Cq
@@ -271,6 +286,7 @@ class Turbine():
         '''
         
         file = open(txt_filename,'w')
+        file.write('# ----- Rotor performance tables for {}, written on {}'.format(self.TurbineName, now.strftime('%m/%d/%y')))
         file.write('# Pitch angle vector - x axis (matrix columns) (deg)\n')
         for i in range(len(self.Cp.pitch_initial_rad)):
             file.write('%.2f   ' % (self.Cp.pitch_initial_rad[i] * rad2deg))
@@ -323,6 +339,7 @@ class RotorPerformance():
         # Optimal below rated TSR and blade pitch
         self.max = np.amax(performance_table)
         self.max_ind = np.where(performance_table == np.amax(performance_table))
+        print('maxind = {}'.format(self.max_ind))
         self.TSR_opt = np.float64(TSR_initial[self.max_ind[0]])
         self.pitch_opt = pitch_initial_rad[self.max_ind[1]]
 
