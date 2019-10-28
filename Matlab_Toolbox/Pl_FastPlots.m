@@ -20,11 +20,11 @@ plsw.MI = 0;                    % MI, Main Inputs
 plsw.DTO = 0;                   % DTO, Drivetrain Outputs     
 plsw.B1 = 1;                    % B1, Baseline1
 plsw.PD = 1;                    % PD, Primary Dynamics
-plsw.RO = 1;                    % RO, Rotor Performance Outputs
-plsw.Fl1 = 1;                   % Fl1, Basic Floating Parameters
-plsw.AF = 0;                    % All Floating Parameters
-plsw.Twr = 1;                   % Twr, Turbine params with Twr Motions
-plsw.Rand = 1;                  % Some random metrics I care about now
+plsw.RO = 0;                    % RO, Rotor Performance Outputs
+plsw.Fl1 = 0;                   % Fl1, Basic Floating Parameters
+plsw.AF = 1;                    % All Floating Parameters
+plsw.Twr = 0;                   % Twr, Turbine params with Twr Motions
+plsw.Rand = 0;                  % Some random metrics I care about now
 cases = fieldnames(plsw);
 
 %% Plot Cases

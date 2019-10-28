@@ -109,15 +109,6 @@ class Controller():
         #   - should be self.read_param_file() eventually, hard coded for now
         # self.controller_params(turbine)
 
-        # Re-define controller tuning parameters for shorthand
-        zeta_pc = self.zeta_pc                  # Pitch controller damping ratio
-        omega_pc = self.omega_pc                # Pitch controller natural frequency (rad/s)
-        zeta_vs = self.zeta_vs                  # Torque controller damping ratio (-)
-        omega_vs = self.omega_vs                # Torque controller natural frequency (rad/s)
-        v_rated = turbine.v_rated                        # Rated wind speed (m/s)
-        v_min = turbine.v_min                     # Cut in wind speed (m/s)
-        v_max = turbine.v_max                     # Cut out wind speed (m/s)
- 
         # -------------Define Operation Points ------------- #
         TSR_rated = rated_rotor_speed*R/v_rated  # TSR at rated
 
@@ -146,11 +137,10 @@ class Controller():
         # ------------- Find Linearized State Matrices ------------- #
 
         for i in range(len(TSR_op)):
-
             # Find pitch angle as a function of expected operating CP for each TSR
-            self.Cp_TSR = np.ndarray.flatten(turbine.Cp.interp_surface(turbine.pitch_initial_rad, TSR_op[i]))     # all Cp values for a given tsr
-            Cp_op[i] = np.clip(Cp_op[i], np.min(self.Cp_TSR), np.max(self.Cp_TSR))      # saturate Cp values to be on Cp surface
-            f_cp_pitch = interpolate.interp1d(self.Cp_TSR,pitch_initial_rad)        # interpolate function for Cp(tsr) values
+            Cp_TSR = np.ndarray.flatten(turbine.Cp.interp_surface(turbine.pitch_initial_rad, TSR_op[i]))     # all Cp values for a given tsr
+            Cp_op[i] = np.clip(Cp_op[i], np.min(Cp_TSR), np.max(Cp_TSR))      # saturate Cp values to be on Cp surface
+            f_cp_pitch = interpolate.interp1d(Cp_TSR,pitch_initial_rad)        # interpolate function for Cp(tsr) values
             pitch_op[i] = f_cp_pitch(Cp_op[i])      # expected operation blade pitch values
             dCp_beta[i], dCp_TSR[i] = turbine.Cp.interp_gradient(pitch_op[i],TSR_op[i])       # gradients of Cp surface in Beta and TSR directions
         
@@ -183,13 +173,13 @@ class Controller():
 
         # Find gain schedule
         self.pc_gain_schedule = ControllerTypes()
-        self.pc_gain_schedule.second_order_PI(zeta_pc, omega_pc,A_pc,B_beta,linearize=True,v=v_above_rated)
+        self.pc_gain_schedule.second_order_PI(self.zeta_pc, self.omega_pc,A_pc,B_beta,linearize=True,v=v_above_rated)
         self.vs_gain_schedule = ControllerTypes()
-        self.vs_gain_schedule.second_order_PI(zeta_vs, omega_vs,A_vs,B_tau,linearize=False,v=v_below_rated)
+        self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A_vs,B_tau,linearize=False,v=v_below_rated)
 
         # Find K for Komega_g^2
         self.vs_rgn2K = 0.5*rho*Ar*R**5 * turbine.Cp.max / (turbine.Cp.TSR_opt**3 * Ng)
-        self.vs_refspd = min(turbine.Cp.TSR_opt * v_rated/R, turbine.rated_rotor_speed) * Ng
+        self.vs_refspd = min(turbine.Cp.TSR_opt * turbine.v_rated/R, turbine.rated_rotor_speed) * Ng
 
         # Define some setpoints
         self.vs_minspd = (turbine.Cp.TSR_opt * turbine.v_min / turbine.rotor_radius) * Ng
