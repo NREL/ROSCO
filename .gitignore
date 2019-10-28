@@ -8,6 +8,7 @@ Source/Obj_lin64
 *.mod
 Source/x64/
 Source/Release/
+Build/
 
 # Archive
 Scripts/CompileDISCONHereCopyRun\.cmd
