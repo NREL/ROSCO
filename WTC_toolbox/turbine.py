@@ -48,21 +48,8 @@ class Turbine():
         self.rated_power = turbine_params['rated_power']           
         self.bld_edgewise_freq = turbine_params['bld_edgewise_freq']     
 
-
-
-        # self.rated_rotor_speed = 12.1*rpm2RadSec               # Rated rotor speed (rad/s)
-        # # self.rated_rotor_speed = 8.68*rpm2RadSec               # Rated rotor speed (rad/s)
-        # # self.rated_rotor_speed = 7.497382*rpm2RadSec               # Rated rotor speed (rad/s)
-
-        # self.v_min = 4.                  # Cut-in wind speed (m/s) (JUST ASSUME FOR NOW)
-        # self.v_rated = 11.4                # Rated wind speed (m/s)
-        # self.v_max = 25.                  # Cut-out wind speed (m/s), -- Does not need to be exact (JUST ASSUME FOR NOW)
-        # self.rated_power = 5000000
-        # self.rated_power = 10000000
-        # self.rated_power = 15000000
-        
-        # Init the cc-blade rotor
-        self.cc_rotor = None
+        # # Init the cc-blade rotor
+        # self.cc_rotor = None
 
     # Allow print out of class
     def __str__(self): 
@@ -147,7 +134,7 @@ class Turbine():
 
         # Load Cp, Ct, Cq tables
         if rot_source == 'txt':
-            self.load_from_txt(fast,txt_filename)
+            self.load_from_txt(txt_filename)
         elif rot_source == 'cc-blade':
             self.load_from_ccblade(fast)
         else:   # default load from cc-blade
@@ -162,9 +149,16 @@ class Turbine():
     def load_from_ccblade(self,fast):
         print('Loading rotor performace data from cc-blade:')
         # Create CC-Blade Rotor
-        r = np.array(fast.fst_vt['AeroDynBlade']['BlSpn'])
-        theta = np.array(fast.fst_vt['AeroDynBlade']['BlTwist'])
-        chord = np.array(fast.fst_vt['AeroDynBlade']['BlChord'])
+        r0 = np.array(fast.fst_vt['AeroDynBlade']['BlSpn']) 
+        chord0 = np.array(fast.fst_vt['AeroDynBlade']['BlChord'])
+        theta0 = np.array(fast.fst_vt['AeroDynBlade']['BlTwist'])
+        r = r0 + self.Rhub
+        chord_intfun = interpolate.interp1d(r0,chord0, bounds_error=None, fill_value='extrapolate', kind='zero')
+        chord = chord_intfun(r)
+        # chord = np.append(chord[0],chord[0:-1])
+        theta_intfun = interpolate.interp1d(r0,theta0, bounds_error=None, fill_value='extrapolate', kind='zero')
+        theta = theta_intfun(r)
+
         af_idx = np.array(fast.fst_vt['AeroDynBlade']['BlAFID']).astype(int) - 1 #Reset to 0 index
         AFNames = fast.fst_vt['AeroDyn15']['AFNames']   
 
@@ -195,8 +189,10 @@ class Turbine():
 
         # fixed_rpm = self.rated_rotor_speed*RadSec2rpm # RPM
 
-        TSR_initial = np.arange(3, 15,0.25)
-        pitch_initial = np.arange(-1,25,0.25)
+        TSR_initial = np.arange(3, 15,0.5)
+        pitch_initial = np.arange(-1,25,0.5)
+        # TSR_initial = np.arange(6, 9,0.5)
+        # pitch_initial = np.arange(-5,5,.5)
         pitch_initial_rad = pitch_initial * deg2rad
         # ws_array = (self.rated_rotor_speed * self.rotor_radius)  / TSR_initial
         ws_array = np.ones_like(TSR_initial) * (self.v_rated - 1.) # 1 m/s below rated wind speed
@@ -241,7 +237,7 @@ class Turbine():
                 # Read Blade Pitch Angles (degrees)
                 if 'Pitch angle' in line:
                     pitch_initial = np.array([float(x) for x in pfile.readline().strip().split()])
-                    pitch_initial_rad = pitch_initial * deg2rad             # degrees to rad            ! should this be conditional?
+                    pitch_initial_rad = pitch_initial * deg2rad             # degrees to rad            -- should this be conditional?
 
                 # Read Tip Speed Ratios (rad)
                 if 'TSR' in line:
