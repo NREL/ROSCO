@@ -37,7 +37,7 @@ if inps['path_params']['rotor_performance_filename']:
 else:
     turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source=None)
     # Write rotor performance file
-    turbine.write_rotorperformance(txt_filename='Cp_Ct_Cq.txt')
+    turbine.write_rotor_performance(txt_filename='Cp_Ct_Cq.txt')
 
 # Tune controller
 controller.tune_controller(turbine)
