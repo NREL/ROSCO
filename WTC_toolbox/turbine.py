@@ -277,37 +277,38 @@ class Turbine():
         '''
         
         file = open(txt_filename,'w')
-        file.write('# ----- Rotor performance tables for {}, written on {}'.format(self.TurbineName, now.strftime('%m/%d/%y')))
+        file.write('# ----- Rotor performance tables for the {} wind turbine ----- \n'.format(self.TurbineName))
+        file.write('# ------------ Written on {} using the ROSCO toolbox ------------ \n\n'.format(now.strftime('%b-%d-%y')))
         file.write('# Pitch angle vector - x axis (matrix columns) (deg)\n')
         for i in range(len(self.Cp.pitch_initial_rad)):
-            file.write('%.2f   ' % (self.Cp.pitch_initial_rad[i] * rad2deg))
+            file.write('{:0.4}   '.format(self.Cp.pitch_initial_rad[i] * rad2deg))
         file.write('\n# TSR vector - y axis (matrix rows) (-)\n')
         for i in range(len(self.TSR_initial)):
-            file.write('%.2f   ' % self.Cp.TSR_initial[i])
+            file.write('{:0.4}    '.format(self.Cp.TSR_initial[i]))
         file.write('\n# Wind speed vector - z axis (m/s)\n')
         # for i in range(n_U):
         # --- write arbitrary wind speed for now...
-        file.write('%.2f   ' % 3.0)
+        file.write('{:0.4}    '.format(self.v_rated))
         file.write('\n')
         
         file.write('\n# Power coefficient\n\n')
         for i in range(len(self.Cp.TSR_initial)):
             for j in range(len(self.Cp.pitch_initial_rad)):
-                file.write('%.5f   ' % self.Cp_table[i,j])
+                file.write('{0:.6f}   '.format(self.Cp_table[i,j]))
             file.write('\n')
         file.write('\n')
         
         file.write('\n#  Thrust coefficient\n\n')
         for i in range(len(self.Ct.TSR_initial)):
             for j in range(len(self.Ct.pitch_initial_rad)):
-                file.write('%.5f   ' % self.Ct_table[i,j])
+                file.write('{0:.6f}   '.format(self.Ct_table[i,j]))
             file.write('\n')
         file.write('\n')
         
         file.write('\n# Torque coefficient\n\n')
         for i in range(len(self.Cq.TSR_initial)):
             for j in range(len(self.Cq.pitch_initial_rad)):
-                file.write('%.5f   ' % self.Cq_table[i,j])
+                file.write('{0:.6f}   '.format(self.Cq_table[i,j]))
             file.write('\n')
         file.write('\n')
             
