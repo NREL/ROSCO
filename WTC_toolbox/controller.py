@@ -25,12 +25,28 @@ RadSec2rpm = 60/(2.0 * np.pi)
 
 class Controller():
     """
-    Class controller used to calculate controller tunings parameters
+    Class Controller used to calculate controller tunings parameters
+
+
+    Methods:
+    -------
+    tune_controller
+
+    Parameters:
+    -----------
+    controller_params: dict
+                       Dictionary containing controller paramaters that need to be defined
     """
 
     def __init__(self, controller_params):
-        pass
-        # turbine = wtc_turbine.Turbine(turbine_params)
+        ''' 
+        Load controller tuning parameters from input dictionary
+        '''
+
+        print('---------------------------------------------------------------------------')
+        print('Tuning a reference wind turbine controller using the ROSCO toolbox')
+        print('Developed by Nikhar J. Abbas, 2019')
+        print('---------------------------------------------------------------------------')
 
         # Controller Flags
         self.LoggingLevel = controller_params['LoggingLevel']
@@ -81,11 +97,14 @@ class Controller():
         else:
             self.ps_percent = 0.75      # Default to 75% peak shaving
 
-
-
     def tune_controller(self, turbine):
         """
-        Given a turbine model, tune the controller parameters
+        Given a turbine model, tune a controller based on the NREL generic controller tuning process
+
+        Parameters:
+        -----------
+        turbine : class
+                  Turbine class containing necessary turbine information to accurately tune the controller. 
         """
         # -------------Load Parameters ------------- #
         # Re-define Turbine Parameters for shorthand
@@ -96,9 +115,6 @@ class Controller():
         Ng = turbine.Ng                         # Gearbox ratio (-)
         rated_rotor_speed = turbine.rated_rotor_speed               # Rated rotor speed (rad/s)
 
-        # Load controller parameters 
-        #   - should be self.read_param_file() eventually, hard coded for now
-        # self.controller_params(turbine)
 
         # -------------Define Operation Points ------------- #
         TSR_rated = rated_rotor_speed*R/turbine.v_rated  # TSR at rated
@@ -125,14 +141,14 @@ class Controller():
         pitch_op = np.empty(len(TSR_op))
         dCp_beta = np.empty(len(TSR_op))
         dCp_TSR = np.empty(len(TSR_op))
-        # ------------- Find Linearized State Matrices ------------- #
 
+        # ------------- Find Linearized State "Matrices" ------------- #
         for i in range(len(TSR_op)):
             # Find pitch angle as a function of expected operating CP for each TSR
             Cp_TSR = np.ndarray.flatten(turbine.Cp.interp_surface(turbine.pitch_initial_rad, TSR_op[i]))     # all Cp values for a given tsr
-            Cp_op[i] = np.clip(Cp_op[i], np.min(Cp_TSR), np.max(Cp_TSR))      # saturate Cp values to be on Cp surface
-            f_cp_pitch = interpolate.interp1d(Cp_TSR,pitch_initial_rad)        # interpolate function for Cp(tsr) values
-            pitch_op[i] = f_cp_pitch(Cp_op[i])      # expected operation blade pitch values
+            Cp_op[i] = np.clip(Cp_op[i], np.min(Cp_TSR), np.max(Cp_TSR))        # saturate Cp values to be on Cp surface
+            f_cp_pitch = interpolate.interp1d(Cp_TSR,pitch_initial_rad)         # interpolate function for Cp(tsr) values
+            pitch_op[i] = f_cp_pitch(Cp_op[i])                                  # expected operation blade pitch values
             dCp_beta[i], dCp_TSR[i] = turbine.Cp.interp_gradient(pitch_op[i],TSR_op[i])       # gradients of Cp surface in Beta and TSR directions
         
         # Full Cp surface gradients
@@ -152,7 +168,7 @@ class Controller():
 
         # Wind Disturbance Input
         dlambda_dv = -(TSR_op/v)
-        dtau_dv = dtau_dlambda*dlambda_dv
+        # dtau_dv = dtau_dlambda*dlambda_dv
         # B_v = dtau_dv/J # wind speed input - currently unused 
 
 
@@ -177,30 +193,42 @@ class Controller():
 
         # Store some variables
         self.v = v                                  # Wind speed (m/s)
-        self.v_below_rated = v_below_rated
-        self.Cp_op = Cp_op
         self.pitch_op = pitch_op
         self.pitch_op_pc = pitch_op[len(v_below_rated):len(v)]
         self.TSR_op = TSR_op
         self.A = A 
         self.B_beta = B_beta
         self.B_tau = B_tau
+        # --- Might want these to debug
+        # self.Cp_op = Cp_op
+        # self.v_below_rated = v_below_rated
 
         # Peak Shaving
         self.ps = ControllerBlocks()
         self.ps.peak_shaving(self, turbine)
 
 class ControllerBlocks():
+    '''
+    Class ControllerBlocks defines tuning parameters for additional controller features or "blocks"
+
+    Methods:
+    --------
+    peak_shaving
+
+    '''
     def __init__(self):
-        '''
-        Controller blocks that need some tuning
-        Includes: Peak shaving
-        '''
         pass
     
     def peak_shaving(self,controller, turbine):
         ''' 
-        Define minimum blade pitch angle for peak shaving routine
+        Define minimum blade pitch angle for peak shaving routine based on a maximum allowable thrust 
+
+        Parameters:
+        -----------
+        controller: class
+                    Controller class containing controller operational information
+        turbine: class
+                 Turbine class containing necessary wind turbine information for controller tuning
         '''
 
         # Re-define Turbine Parameters for shorthand
@@ -249,18 +277,39 @@ class ControllerBlocks():
         self.T = T
 
 class ControllerTypes():
+    '''
+    Class ControllerTypes used to define any types of controllers that can be tuned. 
+        Generally, calculates gains based on some pre-defined tuning parameters. 
+
+    Methods:
+    --------
+    second_order_PI
+    '''
     def __init__(self):
-        '''
-        Controller Types class used to define any controllers and their associated
-        gains for desired closed loop dynamics
-        '''
         pass
 
     def second_order_PI(self,zeta,om_n,A,B,linearize=False,v=None):
+        '''
+        Define proportional integral gain schedule for a closed
+            loop system with a standard second-order form.
 
+        Parameters:
+        -----------
+        zeta : int (-)
+               Desired damping ratio 
+        om_n : int (rad/s)
+               Desired natural frequency 
+        A : array_like (1/s)
+            Plant poles (state transition matrix)
+        B : array_like (varies)
+            Plant numerators (input matrix)
+        linearize : bool, optional
+                    If 'True', find a gain scheduled based on a linearized plant.
+        v : array_like (m/s)
+            Wind speeds for linearized plant model, if desired. 
+        '''
         # Linearize system coefficients w.r.t. wind speed if desired
         if linearize:
-            print('Calculating second order PI gain schedule for linearized system pole location.')
             pA = np.polyfit(v,A,1)
             pB = np.polyfit(v,B,1)
             A = pA[0]*v + pA[1]
