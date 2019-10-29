@@ -54,6 +54,7 @@ class Turbine():
         self.v_rated = turbine_params['v_rated']               
         self.v_max = turbine_params['v_max']
         self.max_pitch_rate = turbine_params['max_pitch_rate'] * deg2rad
+        self.min_pitch_rate = -1 * self.max_pitch_rate
         self.max_torque_rate = turbine_params['max_torque_rate']             
         self.rated_power = turbine_params['rated_power']           
         self.bld_edgewise_freq = turbine_params['bld_edgewise_freq']     
