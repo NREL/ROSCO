@@ -181,7 +181,7 @@ class Turbine():
         # Now save the CC-Blade rotor
         nSector = 8  # azimuthal discretizations
         self.cc_rotor = CCBlade(r, chord, theta, af, self.Rhub, self.rotor_radius, self.NumBl, rho=self.rho, mu=self.mu,
-                        precone=self.precone, tilt=self.tilt, yaw=self.yaw, shearExp=self.shearExp, hubHt=self.hubHt, nSector=nSector)
+                        precone=-self.precone, tilt=-self.tilt, yaw=self.yaw, shearExp=self.shearExp, hubHt=self.hubHt, nSector=nSector)
 
 
         print('CCBlade run successfully')
