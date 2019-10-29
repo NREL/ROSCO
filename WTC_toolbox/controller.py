@@ -70,27 +70,6 @@ class Controller():
             self.ps_percent = 0.75      # Default to 75% peak shaving
 
 
-    def controller_params(self,turbine):
-    # Hard coded controller parameters for turbine. Using this until read_param_file is good to go
-    #           - Coded for NREL 5MW 
-        pass
-        # # Pitch Controller Parameters
-        # self.zeta_pc = 1                     # Pitch controller damping ratio (-)
-        # self.omega_pc = 0.18                    # Pitch controller natural frequency (rad/s)
-        
-        # # Torque Controller Parameters
-        # self.zeta_vs = 1                      # Torque controller damping ratio (-)
-        # self.omega_vs = 0.1                     # Torque controller natural frequency (rad/s)
-        
-        # Other basic parameters
-        # self.v_rated = turbine.rated_rotor_speed * turbine.rotor_radius / turbine.TSR_initial[turbine.Cp.max_ind[0]]    # Rated wind speed (m/s)
-        # self.v_rated = 10.75
-        # self.v_rated = 10.77
-        # self.v_rated = 11.4
-        
-                # Pitch controller
-        # self.max_pitch = 1.5707         # Maximum pitch angle (rad)
-        # self.min_pitch = 0.0      # Minimum pitch angle (rad)
 
     def tune_controller(self, turbine):
         """
@@ -110,11 +89,11 @@ class Controller():
         # self.controller_params(turbine)
 
         # -------------Define Operation Points ------------- #
-        TSR_rated = rated_rotor_speed*R/v_rated  # TSR at rated
+        TSR_rated = rated_rotor_speed*R/turbine.v_rated  # TSR at rated
 
         # separate wind speeds by operation regions
-        v_below_rated = np.arange(v_min,v_rated,0.5)             # below rated
-        v_above_rated = np.arange(v_rated+0.5,v_max,0.5)             # above rated
+        v_below_rated = np.arange(turbine.v_min,turbine.v_rated,0.5)             # below rated
+        v_above_rated = np.arange(turbine.v_rated+0.5,turbine.v_max,0.5)             # above rated
         v = np.concatenate((v_below_rated, v_above_rated))
 
         # separate TSRs by operations regions
@@ -246,7 +225,7 @@ class ControllerBlocks():
             else:
                 Ct_max[i] = np.minimum( np.max(Ct_tsr), Ct_max[i])
             # Define minimum pitch angle
-            f_pitch_min = interpolate.interp1d(Ct_tsr, turbine.pitch_initial_rad)
+            f_pitch_min = interpolate.interp1d(Ct_tsr, turbine.pitch_initial_rad, bounds_error=False, fill_value=(turbine.pitch_initial_rad[0],turbine.pitch_initial_rad[-1]))
             pitch_min[i] = f_pitch_min(Ct_max[i])
 
         # save some outputs for analysis or future work
@@ -286,26 +265,6 @@ class FileProcessing():
 
     def __init__(self):
         pass
-    def read_param_file(self, param_file):
-        """
-        Load the parameter files directly from a FAST input deck
-        """
-        # Pitch Controller Parameters
-        self.zeta_pc = param_file.PC_zeta            # Pitch controller damping ratio (-)
-        self.omega_pc = param_file.PC_omega                # Pitch controller natural frequency (rad/s)
-        
-        # Torque Controller Parameters
-        self.zeta_vs = param_file.VS_zeta            # Torque controller damping ratio (-)
-        self.omega_vs = param_file.VS_omega                # Torque controller natural frequency (rad/s)
-        
-        # Setpoint Smoother Parameters
-        self.Kss_PC = param_file.Kss_PC              # Pitch controller reference gain bias 
-        self.Kss_VS = param_file.Kss_VS              # Torque controller reference gain bias
-        self.v_min = turbine.v_min                  # Cut-in wind speed (m/s)
-        self.v_rated = turbine.v_rated                # Rated wind speed (m/s)
-        self.v_max = turbine.v_max                  # Cut-out wind speed (m/s), -- Does not need to be exact
-
-
     def write_param_file(self, param_file, turbine, controller, new_file=True):
         """
         Print the controller parameters to the DISCON.IN input file for the generic controller
@@ -344,7 +303,7 @@ class FileProcessing():
             file.write('0                   ! F_LPFDamping		- Damping coefficient [used only when F_FilterType = 2]\n')
             file.write('0					! F_NotchCornerFreq	- Natural frequency of the notch filter, [rad/s]\n')
             file.write('0	0				! F_NotchBetaNumDen	- Two notch damping values (numerator and denominator, resp) - determines the width and depth of the notch, [-]\n')
-            file.write('{:<12.11}        ! F_SSCornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother, [rad/s].\n'.format(controller.ss_cornerfreq))
+            file.write('{:<12.10}        ! F_SSCornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother, [rad/s].\n'.format(controller.ss_cornerfreq))
             file.write('\n')
             file.write('!------- BLADE PITCH CONTROL ----------------------------------------------\n')
             file.write('{}              ! PC_GS_n			- Amount of gain-scheduling table entries\n'.format(format(len(controller.pitch_op_pc), '<6d')))
@@ -382,8 +341,8 @@ class FileProcessing():
             file.write('{:<12.11}        ! VS_RtTq			- Rated torque, [Nm].\n'.format(turbine.rated_torque))
             file.write('{:<12.11}        ! VS_RefSpd			- Rated generator speed [rad/s]\n'.format(controller.vs_refspd))
             file.write('1					! VS_n				- Number of generator PI torque controller gains\n')
-            file.write('{:<12.11}        ! VS_KP				- Proportional gain for generator PI torque controller [1/(rad/s) Nm]. (Only used in the transitional 2.5 region if VS_ControlMode =/ 2)\n'.format(controller.vs_gain_schedule.Kp[-1]))
-            file.write('{:<12.11}        ! VS_KI				- Integral gain for generator PI torque controller [1/rad Nm]. (Only used in the transitional 2.5 region if VS_ControlMode =/ 2)\n'.format(controller.vs_gain_schedule.Ki[-1]))
+            file.write('{:<12.11}       ! VS_KP				- Proportional gain for generator PI torque controller [1/(rad/s) Nm]. (Only used in the transitional 2.5 region if VS_ControlMode =/ 2)\n'.format(controller.vs_gain_schedule.Kp[-1]))
+            file.write('{:<12.11}       ! VS_KI				- Integral gain for generator PI torque controller [1/rad Nm]. (Only used in the transitional 2.5 region if VS_ControlMode =/ 2)\n'.format(controller.vs_gain_schedule.Ki[-1]))
             file.write('{:<12.11}        ! VS_TSRopt			- Power-maximizing region 2 tip-speed-ratio [rad].\n'.format(turbine.Cp.TSR_opt))
             file.write('\n')
             file.write('!------- SETPOINT SMOOTHER ---------------------------------------------\n')
