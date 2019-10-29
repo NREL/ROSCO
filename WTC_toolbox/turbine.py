@@ -29,13 +29,22 @@ RadSec2rpm = 60/(2.0 * np.pi)
 class Turbine():
     """
     Class turbine defines a turbine in terms of what is needed to design the controller
-    and to run the 'tiny' simulation
+    and to run the 'tiny' simulation.
+
+    Primary functions (at a high level):
+        - Reads an OpenFAST input deck 
+        - Runs cc-blade rotor performance analysis
+        - Writes a text file containing Cp, Ct, and Cq tables
     """
 
     def __init__(self, turbine_params):
         """
-        Maybe just initialize the internal variables
-        This also lists what will need to be defined
+        Initializes the turbine class
+
+        Parameters:
+        -----------
+            turbine_params: dict
+                            Dictionary containing known turbine paramaters that are not directly available from OpenFAST input files
         """
 
         # ------ Turbine Parameters------
@@ -148,6 +157,15 @@ class Turbine():
         self.Cq = RotorPerformance(self.Cq_table,self.pitch_initial_rad,self.TSR_initial)
 
     def load_from_ccblade(self,fast):
+        '''
+        Loads rotor performance information by running cc-blade aerodynamic analysis. Designed to work with Aerodyn15 blade input files. 
+
+        Parameters:
+        -----------
+            fast: dict
+                  Dictionary containing fast model details - defined using from InputReader_OpenFAST (distributed as a part of AeroelasticSE)
+
+        '''
         print('Loading rotor performace data from cc-blade:')
         # Create CC-Blade Rotor
         r0 = np.array(fast.fst_vt['AeroDynBlade']['BlSpn']) 
@@ -217,9 +235,8 @@ class Turbine():
         self.Cp_table = Cp
         self.Ct_table = Ct 
         self.Cq_table = Cq
-    
-    
-    def load_from_txt(self,fast,txt_filename):
+        
+    def load_from_txt(self,txt_filename):
         '''
         Load rotor performance data from a *.txt file. 
 
