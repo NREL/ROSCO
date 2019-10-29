@@ -32,8 +32,8 @@ controller_params:
   PC_ControlMode:     1                     # Blade pitch control mode {0: No pitch, fix to fine pitch, 1: active PI blade pitch control}
   Y_ControlMode:      0                     # Yaw control mode {0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}
   SS_Mode:            1                     # Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
-  WE_Mode:            0                     # Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator (Ortega et al.)}
-  PS_Mode:            0                     # Peak shaving mode {0: no peak shaving, 1: implement peak shaving}
+  WE_Mode:            2                     # Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator (Ortega et al.)}
+  PS_Mode:            1                     # Peak shaving mode {0: no peak shaving, 1: implement peak shaving}
   # Controller parameters 
   zeta_pc:            0.7                   # Pitch controller desired damping ratio [-]
   omega_pc:           0.6                   # Pitch controller desired natural frequency [rad/s]
