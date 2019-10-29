@@ -28,8 +28,8 @@ RadSec2rpm = 60/(2.0 * np.pi)
 
 class Turbine():
     """
-    Class turbine defines a turbine in terms of what is needed to design the controller
-    and to run the 'tiny' simulation.
+    Class Turbine defines a turbine in terms of what is needed to 
+        design the controller and to run the 'tiny' simulation.
 
     Primary functions (at a high level):
         - Reads an OpenFAST input deck 
@@ -54,8 +54,11 @@ class Turbine():
 
     def __init__(self, turbine_params):
         """
-        Initializes the turbine class
+        Load turbine parameters from input dictionary
         """
+        print('---------------------------------------------------------------------------')
+        print('Loading wind turbine data for ROSCO tuning processes')
+        print('---------------------------------------------------------------------------')
 
         # ------ Turbine Parameters------
         self.rotor_inertia = turbine_params['rotor_inertia']         
@@ -167,7 +170,7 @@ class Turbine():
         elif rot_source == 'cc-blade':
             self.load_from_ccblade(fast)
         else:   # default load from cc-blade
-            print('No desired rotor performance data source specified, running cc-blade.')
+            print('No desired rotor performance data source specified, running CC-Blade.')
             self.load_from_ccblade(fast)
 
         # Parse rotor performance data
@@ -186,7 +189,7 @@ class Turbine():
                   Dictionary containing fast model details - defined using from InputReader_OpenFAST (distributed as a part of AeroelasticSE)
 
         '''
-        print('Loading rotor performace data from cc-blade:')
+        print('Loading rotor performace data from CC-Blade.')
         
         # Create CC-Blade Rotor
         r0 = np.array(fast.fst_vt['AeroDynBlade']['BlSpn']) 
@@ -219,11 +222,11 @@ class Turbine():
         nSector = 8  # azimuthal discretizations
         self.cc_rotor = CCBlade(r, chord, theta, af, self.Rhub, self.rotor_radius, self.NumBl, rho=self.rho, mu=self.mu,
                         precone=-self.precone, tilt=-self.tilt, yaw=self.yaw, shearExp=self.shearExp, hubHt=self.hubHt, nSector=nSector)
-        print('CCBlade initiated successfully')
+        print('CCBlade initiated successfully.')
         
         # Generate the look-up tables, mesh the grid and flatten the arrays for cc_rotor aerodynamic analysis
-        TSR_initial = np.arange(3, 15,2.)#0.5)
-        pitch_initial = np.arange(-1,25,2.)#0.5)
+        TSR_initial = np.arange(3, 15,0.5)
+        pitch_initial = np.arange(-1,25,0.5)
         pitch_initial_rad = pitch_initial * deg2rad
         ws_array = np.ones_like(TSR_initial) * self.v_rated # evaluate at rated wind speed
         omega_array = (TSR_initial * ws_array / self.rotor_radius) * RadSec2rpm
@@ -238,8 +241,8 @@ class Turbine():
         # Get values from cc-blade
         print('Running CCBlade aerodynamic analysis, this may take a minute...')
         # P, T, Q, M, CP, CT, CQ, CM = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
-        CP, CT, CQ, _, _, _, _, _ = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
-        print('CCBlade aerodynamic analysis run succesfully.')
+        _, _, _, _, CP, CT, CQ, _ = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
+        print('CCBlade aerodynamic analysis run successfully.')
 
         # Reshape Cp, Ct and Cq
         Cp = np.transpose(np.reshape(CP, (len(pitch_initial), len(TSR_initial))))
@@ -303,61 +306,11 @@ class Turbine():
             self.Ct_table = Ct 
             self.Cq_table = Cq
     
-    
-    def write_rotor_performance(self,txt_filename='Cp_Ct_Cq.txt'):
-        '''
-        Write text file containing rotor performance data
-
-        Parameters:
-        ------------
-            txt_filename: str, optional
-                          Desired output filename to print rotor performance data. Default is Cp_Ct_Cq.txt
-        '''
-        
-        file = open(txt_filename,'w')
-        # Headerlines
-        file.write('# ----- Rotor performance tables for the {} wind turbine ----- \n'.format(self.TurbineName))
-        file.write('# ------------ Written on {} using the ROSCO toolbox ------------ \n\n'.format(now.strftime('%b-%d-%y')))
-
-        # Pitch angles, TSR, and wind speed
-        file.write('# Pitch angle vector - x axis (matrix columns) (deg)\n')
-        for i in range(len(self.Cp.pitch_initial_rad)):
-            file.write('{:0.4}   '.format(self.Cp.pitch_initial_rad[i] * rad2deg))
-        file.write('\n# TSR vector - y axis (matrix rows) (-)\n')
-        for i in range(len(self.TSR_initial)):
-            file.write('{:0.4}    '.format(self.Cp.TSR_initial[i]))
-        file.write('\n# Wind speed vector - z axis (m/s)\n')
-        file.write('{:0.4}    '.format(self.v_rated))
-        file.write('\n')
-        
-        # Cp
-        file.write('\n# Power coefficient\n\n')
-        for i in range(len(self.Cp.TSR_initial)):
-            for j in range(len(self.Cp.pitch_initial_rad)):
-                file.write('{0:.6f}   '.format(self.Cp_table[i,j]))
-            file.write('\n')
-        file.write('\n')
-        
-        # Ct
-        file.write('\n#  Thrust coefficient\n\n')
-        for i in range(len(self.Ct.TSR_initial)):
-            for j in range(len(self.Ct.pitch_initial_rad)):
-                file.write('{0:.6f}   '.format(self.Ct_table[i,j]))
-            file.write('\n')
-        file.write('\n')
-        
-        # Cq
-        file.write('\n# Torque coefficient\n\n')
-        for i in range(len(self.Cq.TSR_initial)):
-            for j in range(len(self.Cq.pitch_initial_rad)):
-                file.write('{0:.6f}   '.format(self.Cq_table[i,j]))
-            file.write('\n')
-        file.write('\n')
-        file.close()
 
 class RotorPerformance():
     '''
-    Used to find details from rotor performance tables generated by CC-blade or similer BEM-solvers. 
+    Class RotorPerformance used to find details from rotor performance 
+        tables generated by CC-blade or similer BEM-solvers. 
 
     Methods:
     --------
@@ -392,7 +345,6 @@ class RotorPerformance():
         # self.TSR_opt = np.float64(TSR_initial[self.max_ind[0]])
         f_TSR_opt = interpolate.interp1d(np.ndarray.flatten(performance_table[:,self.max_ind[1]]),TSR_initial,bounds_error='False',kind='cubic')    # interpolate function for Cp(tsr) values
         self.TSR_opt = f_TSR_opt(self.max)
-        print('TSR_opt = {}'.format(self.TSR_opt))
 
     def interp_surface(self,pitch,TSR):
         '''
