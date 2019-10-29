@@ -16,6 +16,7 @@ from ccblade import CCAirfoil, CCBlade
 from AeroelasticSE.FAST_reader import InputReader_OpenFAST
 from scipy import interpolate, gradient
 import pickle
+import matplotlib.pyplot as plt
 
 # Some useful constants
 now = datetime.datetime.now()
@@ -353,6 +354,20 @@ class RotorPerformance():
         grad = np.array([dCP_beta_interp(pitch,TSR), dCP_TSR_interp(pitch,TSR)])
         return np.ndarray.flatten(grad)
     
+    def plot_performance(self,performance_table, pitch_initial_rad, TSR_initial):
+        n_pitch = len(pitch_initial_rad) * rad2deg
+        n_tsr   = len(TSR_initial)
+        
+        P = plt.contour(pitch_initial_rad * rad2deg, TSR_initial, performance_table, levels=[0.0, 0.3, 0.40, 0.42, 0.44, 0.45, 0.46, 0.47, 0.48,0.481,0.482,0.483,0.484,0.485,0.486,0.487,0.488,0.489, 0.49, 0.491,0.492,0.493,0.494,0.495,0.496,0.497,0.498,0.499, 0.50 ])
+        plt.clabel(P, inline=1, fontsize=12)
+        plt.title('Power Coefficient', fontsize=14, fontweight='bold')
+        plt.xlabel('Pitch Angle [deg]', fontsize=14, fontweight='bold')
+        plt.ylabel('TSR [-]', fontsize=14, fontweight='bold')
+        plt.xticks(fontsize=12)
+        plt.yticks(fontsize=12)
+        plt.grid(color=[0.8,0.8,0.8], linestyle='--')
+        plt.subplots_adjust(bottom = 0.15, left = 0.15)
+
 
 # # NOT CERTAIN OF THESE ALTERNATIVES YET
 # def load_from_sowfa(self, fast_folder):

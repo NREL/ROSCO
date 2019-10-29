@@ -47,3 +47,9 @@ controller.tune_controller(turbine)
 # Write parameter input file
 param_file = 'DISCON.IN'   # This must be named DISCON.IN to be seen by the compiled controller binary. 
 file_processing.write_param_file(param_file,turbine,controller,new_file=True)
+
+# plot rotor performance 
+turbine.Cp.plot_performance(turbine.Cp_table, turbine.pitch_initial_rad, turbine.TSR_initial)
+plt.show()
+
+print(turbine.Cp.max)
