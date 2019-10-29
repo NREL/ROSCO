@@ -185,18 +185,13 @@ class Turbine():
 
 
         print('CCBlade run successfully')
+        
         # Generate the look-up tables
         # Mesh the grid and flatten the arrays
-
-        # fixed_rpm = self.rated_rotor_speed*RadSec2rpm # RPM
-
         TSR_initial = np.arange(3, 15,0.5)
         pitch_initial = np.arange(-1,25,0.5)
-        # TSR_initial = np.arange(6, 9,0.5)
-        # pitch_initial = np.arange(-5,5,.5)
         pitch_initial_rad = pitch_initial * deg2rad
-        # ws_array = (self.rated_rotor_speed * self.rotor_radius)  / TSR_initial
-        ws_array = np.ones_like(TSR_initial) * (self.v_rated - 1.) # 1 m/s below rated wind speed
+        ws_array = np.ones_like(TSR_initial) * self.v_rated # evaluate at rated wind speed
         omega_array = (TSR_initial * ws_array / self.rotor_radius) * RadSec2rpm
         tsr_array = (omega_array * rpm2RadSec * self.rotor_radius)  / ws_array
         ws_mesh, pitch_mesh = np.meshgrid(ws_array, pitch_initial)
@@ -204,7 +199,6 @@ class Turbine():
         pitch_flat = pitch_mesh.flatten()
         omega_mesh, _ = np.meshgrid(omega_array, pitch_initial)
         omega_flat = omega_mesh.flatten()
-        # omega_flat = np.ones_like(pitch_flat) * self.rated_rotor_speed * RadSec2rpm
         tsr_flat = (omega_flat * rpm2RadSec * self.rotor_radius)  / ws_flat
 
 
