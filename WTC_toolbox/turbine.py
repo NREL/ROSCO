@@ -328,12 +328,15 @@ class RotorPerformance():
         # Calculate Gradients
         self.gradient_TSR, self.gradient_pitch = gradient(performance_table)             # gradient_TSR along y-axis, gradient_pitch along x-axis (rows, columns)
 
-        # Optimal below rated TSR and blade pitch
+        # "Optimal" below rated TSR and blade pitch (for Cp) - note this may be limited by resolution of Cp-surface
         self.max = np.amax(performance_table)
         self.max_ind = np.where(performance_table == np.amax(performance_table))
-        print('maxind = {}'.format(self.max_ind))
-        self.TSR_opt = np.float64(TSR_initial[self.max_ind[0]])
         self.pitch_opt = pitch_initial_rad[self.max_ind[1]]
+        # -- Find TSR
+        # self.TSR_opt = np.float64(TSR_initial[self.max_ind[0]])
+        f_TSR_opt = interpolate.interp1d(np.ndarray.flatten(performance_table[:,self.max_ind[1]]),TSR_initial,bounds_error='False',kind='cubic')    # interpolate function for Cp(tsr) values
+        self.TSR_opt = f_TSR_opt(self.max)
+        print('TSR_opt = {}'.format(self.TSR_opt))
 
     def interp_surface(self,pitch,TSR):
         # Form the interpolant functions which can look up any arbitrary location on rotor performance surface
