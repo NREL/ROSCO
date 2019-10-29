@@ -35,16 +35,26 @@ class Turbine():
         - Reads an OpenFAST input deck 
         - Runs cc-blade rotor performance analysis
         - Writes a text file containing Cp, Ct, and Cq tables
+
+    Methods:
+    -------
+    __str__
+    load
+    save
+    load_from_fast
+    load_from_ccblade
+    load_from_txt
+    write_rotor_performance
+
+    Parameters:
+    -----------
+    turbine_params : dict
+                    Dictionary containing known turbine paramaters that are not directly available from OpenFAST input files
     """
 
     def __init__(self, turbine_params):
         """
         Initializes the turbine class
-
-        Parameters:
-        -----------
-            turbine_params: dict
-                            Dictionary containing known turbine paramaters that are not directly available from OpenFAST input files
         """
 
         # ------ Turbine Parameters------
@@ -64,25 +74,43 @@ class Turbine():
 
     # Allow print out of class
     def __str__(self): 
-
+        '''
+        Print some data about the turbine.
+        '''
         print('---------------------')
         print('Turbine Info')
-        print('J: %.1f' % self.J)
-        print('rho: %.1f' % self.rho)
-        print('rotor_radius: %.1f' % self.rotor_radius)
+        print('total_inertia: {:.1f}'.format(self.J))
+        print('rho: %{:.1f}'.format(self.rho))
+        print('rotor_radius: {:.1f}'.format(self.rotor_radius))
         print('---------------------')
         return ' '
 
     # Save function
     def save(self,filename):
+        '''
+        Save turbine to pickle - outdated, but might be okay!!
+
+        Parameters:
+        ----------
+        filename : str
+                   Name of file to save pickle 
+        '''
         tuple_to_save = (self.J,self.rho,self.rotor_radius, self.Ng,self.rated_rotor_speed,self.v_min,self.v_rated,self.v_max,self.cc_rotor,self.Cp_table,self.Ct_table,self.Cq_table,self.Cp,self.Ct,self.Cq   )
         pickle.dump( tuple_to_save, open( filename, "wb" ) )
 
     # Load function
     def load(self, filename):
+        '''
+        Load turbine from pickle - outdated, but might be okay!!
+
+        Parameters:
+        ----------
+        filename : str
+                   Name of pickle file
+        '''
         self.J,self.rho,self.rotor_radius, self.Ng,self.rated_rotor_speed,self.v_min,self.v_rated,self.v_max,self.cc_rotor,self.cp_interp,self.ct_interp,self.cq_interp = pickle.load(open(filename,'rb'))
 
-
+    # Load data from fast input deck
     def load_from_fast(self, FAST_InputFile,FAST_directory, FAST_ver='OpenFAST',dev_branch=True,rot_source=None, txt_filename=None):
         """
         Load the parameter files directly from a FAST input deck
@@ -93,17 +121,15 @@ class Turbine():
                             Primary fast model input file (*.fst)
             FAST_directory: str
                             Directory for primary fast model input file
-            drivetrain_intertia: int
-                                 drivetrain intertia (kg-m^2)                # nja - this might be able to be automated, see aerodyn.out
             FAST_ver: string, optional
                       fast version, usually OpenFAST
-            dev_branch: bool
+            dev_branch: bool, optional
                         dev_branch input to InputReader_OpenFAST, probably True
-            rot_source: str
+            rot_source: str, optional
                         desired source for rotor to get Cp, Ct, Cq tables. Default is to run cc-blade. 
                             options: cc-blade - run cc-blade
                                      txt - from *.txt file
-            txt_filename: str
+            txt_filename: str, optional
                           filename for *.txt, only used if rot_source='txt'
         """
 
@@ -132,16 +158,8 @@ class Turbine():
         self.yaw = 0.0
         self.J = self.rotor_inertia + self.generator_inertia * self.Ng**2
         self.rated_torque = self.rated_power/(self.GenEff/100*self.rated_rotor_speed*self.Ng)
-
-        # Some additional parameters to save
         self.rotor_radius = self.TipRad
-        self.omega_dt = np.sqrt(self.DTTorSpr/self.J)
-        
-        # if self.rated_rotor_speed:
-        #     pass
-        # else:
-        #     # Calculate rated rotor speed by scaling from NREL 5MW
-        #     self.rated_rotor_speed = (63. / self.rotor_radius) * 12.1 * rpm2RadSec
+        # self.omega_dt = np.sqrt(self.DTTorSpr/self.J)
 
         # Load Cp, Ct, Cq tables
         if rot_source == 'txt':
@@ -157,6 +175,7 @@ class Turbine():
         self.Ct = RotorPerformance(self.Ct_table,self.pitch_initial_rad,self.TSR_initial)
         self.Cq = RotorPerformance(self.Cq_table,self.pitch_initial_rad,self.TSR_initial)
 
+    # Load rotor performance data from CCBlade 
     def load_from_ccblade(self,fast):
         '''
         Loads rotor performance information by running cc-blade aerodynamic analysis. Designed to work with Aerodyn15 blade input files. 
@@ -168,31 +187,30 @@ class Turbine():
 
         '''
         print('Loading rotor performace data from cc-blade:')
+        
         # Create CC-Blade Rotor
         r0 = np.array(fast.fst_vt['AeroDynBlade']['BlSpn']) 
         chord0 = np.array(fast.fst_vt['AeroDynBlade']['BlChord'])
         theta0 = np.array(fast.fst_vt['AeroDynBlade']['BlTwist'])
+        # -- Adjust for Aerodyn15
         r = r0 + self.Rhub
         chord_intfun = interpolate.interp1d(r0,chord0, bounds_error=None, fill_value='extrapolate', kind='zero')
         chord = chord_intfun(r)
-        # chord = np.append(chord[0],chord[0:-1])
         theta_intfun = interpolate.interp1d(r0,theta0, bounds_error=None, fill_value='extrapolate', kind='zero')
         theta = theta_intfun(r)
-
         af_idx = np.array(fast.fst_vt['AeroDynBlade']['BlAFID']).astype(int) - 1 #Reset to 0 index
         AFNames = fast.fst_vt['AeroDyn15']['AFNames']   
 
-        # Used airfoil data from FAST file read, assumes AeroDyn 15, assumes 1 Re num per airfoil
+        # Use airfoil data from FAST file read, assumes AeroDyn 15, assumes 1 Re num per airfoil
         af_dict = {}
-        for i, af_fast in enumerate(fast.fst_vt['AeroDyn15']['af_data']):
-        # for i in enumerate(fast.fst_vt['AeroDyn15']['af_data']):
+        for i, _ in enumerate(fast.fst_vt['AeroDyn15']['af_data']):
             Re    = [fast.fst_vt['AeroDyn15']['af_data'][i]['Re']]
             Alpha = fast.fst_vt['AeroDyn15']['af_data'][i]['Alpha']
             Cl    = fast.fst_vt['AeroDyn15']['af_data'][i]['Cl']
             Cd    = fast.fst_vt['AeroDyn15']['af_data'][i]['Cd']
             Cm    = fast.fst_vt['AeroDyn15']['af_data'][i]['Cm']
             af_dict[i] = CCAirfoil(Alpha, Re, Cl, Cd, Cm)
-
+        # define airfoils for CCBlade
         af = [0]*len(r)
         for i in range(len(r)):
             af[i] = af_dict[af_idx[i]]
@@ -201,29 +219,27 @@ class Turbine():
         nSector = 8  # azimuthal discretizations
         self.cc_rotor = CCBlade(r, chord, theta, af, self.Rhub, self.rotor_radius, self.NumBl, rho=self.rho, mu=self.mu,
                         precone=-self.precone, tilt=-self.tilt, yaw=self.yaw, shearExp=self.shearExp, hubHt=self.hubHt, nSector=nSector)
-
-
-        print('CCBlade run successfully')
+        print('CCBlade initiated successfully')
         
-        # Generate the look-up tables
-        # Mesh the grid and flatten the arrays
-        TSR_initial = np.arange(3, 15,0.5)
-        pitch_initial = np.arange(-1,25,0.5)
+        # Generate the look-up tables, mesh the grid and flatten the arrays for cc_rotor aerodynamic analysis
+        TSR_initial = np.arange(3, 15,2.)#0.5)
+        pitch_initial = np.arange(-1,25,2.)#0.5)
         pitch_initial_rad = pitch_initial * deg2rad
         ws_array = np.ones_like(TSR_initial) * self.v_rated # evaluate at rated wind speed
         omega_array = (TSR_initial * ws_array / self.rotor_radius) * RadSec2rpm
-        tsr_array = (omega_array * rpm2RadSec * self.rotor_radius)  / ws_array
         ws_mesh, pitch_mesh = np.meshgrid(ws_array, pitch_initial)
         ws_flat = ws_mesh.flatten()
         pitch_flat = pitch_mesh.flatten()
         omega_mesh, _ = np.meshgrid(omega_array, pitch_initial)
         omega_flat = omega_mesh.flatten()
-        tsr_flat = (omega_flat * rpm2RadSec * self.rotor_radius)  / ws_flat
+        # tsr_flat = (omega_flat * rpm2RadSec * self.rotor_radius)  / ws_flat
 
 
         # Get values from cc-blade
-        print('Running cc_rotor aerodynamic analysis, this may take a minute...')
-        P, T, Q, M, CP, CT, CQ, CM = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
+        print('Running CCBlade aerodynamic analysis, this may take a minute...')
+        # P, T, Q, M, CP, CT, CQ, CM = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
+        CP, CT, CQ, _, _, _, _, _ = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
+        print('CCBlade aerodynamic analysis run succesfully.')
 
         # Reshape Cp, Ct and Cq
         Cp = np.transpose(np.reshape(CP, (len(pitch_initial), len(TSR_initial))))
@@ -241,7 +257,10 @@ class Turbine():
         '''
         Load rotor performance data from a *.txt file. 
 
-        Need to include notes on necessary file format:
+        Parameters:
+        -----------
+            txt_filename: str
+                          Filename of the text containing the Cp, Ct, and Cq data. This should be in the format printed by the write_rotorperformance function
         '''
         print('Loading rotor performace data from text file:', txt_filename)
 
@@ -285,18 +304,22 @@ class Turbine():
             self.Cq_table = Cq
     
     
-    def write_rotorperformance(self,txt_filename='Cp_Ct_Cq.txt'):
+    def write_rotor_performance(self,txt_filename='Cp_Ct_Cq.txt'):
         '''
         Write text file containing rotor performance data
 
         Parameters:
         ------------
-        Fill this out...
+            txt_filename: str, optional
+                          Desired output filename to print rotor performance data. Default is Cp_Ct_Cq.txt
         '''
         
         file = open(txt_filename,'w')
+        # Headerlines
         file.write('# ----- Rotor performance tables for the {} wind turbine ----- \n'.format(self.TurbineName))
         file.write('# ------------ Written on {} using the ROSCO toolbox ------------ \n\n'.format(now.strftime('%b-%d-%y')))
+
+        # Pitch angles, TSR, and wind speed
         file.write('# Pitch angle vector - x axis (matrix columns) (deg)\n')
         for i in range(len(self.Cp.pitch_initial_rad)):
             file.write('{:0.4}   '.format(self.Cp.pitch_initial_rad[i] * rad2deg))
@@ -304,11 +327,10 @@ class Turbine():
         for i in range(len(self.TSR_initial)):
             file.write('{:0.4}    '.format(self.Cp.TSR_initial[i]))
         file.write('\n# Wind speed vector - z axis (m/s)\n')
-        # for i in range(n_U):
-        # --- write arbitrary wind speed for now...
         file.write('{:0.4}    '.format(self.v_rated))
         file.write('\n')
         
+        # Cp
         file.write('\n# Power coefficient\n\n')
         for i in range(len(self.Cp.TSR_initial)):
             for j in range(len(self.Cp.pitch_initial_rad)):
@@ -316,6 +338,7 @@ class Turbine():
             file.write('\n')
         file.write('\n')
         
+        # Ct
         file.write('\n#  Thrust coefficient\n\n')
         for i in range(len(self.Ct.TSR_initial)):
             for j in range(len(self.Ct.pitch_initial_rad)):
@@ -323,20 +346,35 @@ class Turbine():
             file.write('\n')
         file.write('\n')
         
+        # Cq
         file.write('\n# Torque coefficient\n\n')
         for i in range(len(self.Cq.TSR_initial)):
             for j in range(len(self.Cq.pitch_initial_rad)):
                 file.write('{0:.6f}   '.format(self.Cq_table[i,j]))
             file.write('\n')
         file.write('\n')
-            
         file.close()
 
 class RotorPerformance():
+    '''
+    Used to find details from rotor performance tables generated by CC-blade or similer BEM-solvers. 
+
+    Methods:
+    --------
+    interp_surface
+    interp_gradient
+    plot_performance
+
+    Parameters:
+    -----------
+    performance_table : array_like (-)
+                        An [n x m] array containing a table of rotor performance data (Cp, Ct, Cq).
+    pitch_initial_rad : array_like (rad)
+                        An [m x 1] or [1 x m] array containing blade pitch angles corresponding to performance_table. 
+    TSR_initial : array_like (rad)
+                    An [n x 1] or [1 x n] array containing tip-speed ratios corresponding to  performance_table 
+    '''
     def __init__(self,performance_table, pitch_initial_rad, TSR_initial):
-        '''
-        Used to find details from rotor performance tables generated by CC-blade or similer BEM-solvers. 
-        '''
 
         # Store performance data tables
         self.performance_table = performance_table          # Table containing rotor performance data, i.e. Cp, Ct, Cq
@@ -357,11 +395,37 @@ class RotorPerformance():
         print('TSR_opt = {}'.format(self.TSR_opt))
 
     def interp_surface(self,pitch,TSR):
+        '''
+        2d interpolation to find point on rotor performance surface
+        
+        Parameters:
+        -----------
+        pitch : float (rad)
+                Pitch angle to look up
+        TSR : float (rad)
+              Tip-speed ratio to look up
+        '''
+        
         # Form the interpolant functions which can look up any arbitrary location on rotor performance surface
         interp_fun = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.performance_table, kind='linear')
         return interp_fun(pitch,TSR)
 
     def interp_gradient(self,pitch,TSR):
+        '''
+        2d interpolation to find gradient at a specified point on rotor performance surface
+        
+        Parameters:
+        -----------
+        pitch : float (rad)
+                Pitch angle to look up
+        TSR : float (rad)
+              Tip-speed ratio to look up
+
+        Returns:
+        --------
+        interp_gradient : array_like
+                          [1 x 2] array coresponding to gradient in pitch and TSR directions, respectively
+        '''
         # Form the interpolant functions to find gradient at any arbitrary location on rotor performance surface
         dCP_beta_interp = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.gradient_pitch, kind='linear')
         dCP_TSR_interp = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.gradient_TSR, kind='linear')
@@ -371,9 +435,19 @@ class RotorPerformance():
         return np.ndarray.flatten(grad)
     
     def plot_performance(self,performance_table, pitch_initial_rad, TSR_initial):
-        n_pitch = len(pitch_initial_rad) * rad2deg
-        n_tsr   = len(TSR_initial)
+        '''
+        Plot rotor performance data surface. 
         
+        Parameters:
+        -----------
+        performance_table : array_like (-)
+                            An [n x m] array containing a table of rotor performance data (Cp, Ct, Cq) to plot.
+        pitch_initial_rad : array_like (rad)
+                            An [m x 1] or [1 x m] array containing blade pitch angles corresponding to performance_table (x-axis). 
+        TSR_initial : array_like (rad)
+                      An [n x 1] or [1 x n] array containing tip-speed ratios corresponding to  performance_table (y-axis)
+        '''
+
         P = plt.contour(pitch_initial_rad * rad2deg, TSR_initial, performance_table, levels=[0.0, 0.3, 0.40, 0.42, 0.44, 0.45, 0.46, 0.47, 0.48,0.481,0.482,0.483,0.484,0.485,0.486,0.487,0.488,0.489, 0.49, 0.491,0.492,0.493,0.494,0.495,0.496,0.497,0.498,0.499, 0.50 ])
         plt.clabel(P, inline=1, fontsize=12)
         plt.title('Power Coefficient', fontsize=14, fontweight='bold')
@@ -383,15 +457,3 @@ class RotorPerformance():
         plt.yticks(fontsize=12)
         plt.grid(color=[0.8,0.8,0.8], linestyle='--')
         plt.subplots_adjust(bottom = 0.15, left = 0.15)
-
-
-# # NOT CERTAIN OF THESE ALTERNATIVES YET
-# def load_from_sowfa(self, fast_folder):
-#     """
-#     Load the parameter files directly from a SOWFA directory
-#     """
-
-# def load_from_csv(self, fast_folder):
-#     """
-#     Load from a simple CSV file containing the parameters
-#     """
