@@ -32,6 +32,18 @@ class Controller():
         pass
         # turbine = wtc_turbine.Turbine(turbine_params)
 
+        # Controller Flags
+        self.LoggingLevel = controller_params['LoggingLevel']
+        self.F_LPFType = controller_params['F_LPFType']
+        self.F_NotchType = controller_params['F_NotchType']
+        self.IPC_ControlMode = controller_params['IPC_ControlMode']
+        self.VS_ControlMode = controller_params['VS_ControlMode']
+        self.PC_ControlMode = controller_params['PC_ControlMode']
+        self.Y_ControlMode = controller_params['Y_ControlMode']
+        self.SS_Mode = controller_params['SS_Mode']
+        self.WE_Mode = controller_params['WE_Mode']
+        self.PS_Mode = controller_params['PS_Mode']
+
         # Necessary parameters
         self.zeta_pc = controller_params['zeta_pc']
         self.omega_pc = controller_params['omega_pc']
