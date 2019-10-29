@@ -340,13 +340,13 @@ class RotorPerformance():
 
     def interp_surface(self,pitch,TSR):
         # Form the interpolant functions which can look up any arbitrary location on rotor performance surface
-        interp_fun = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.performance_table, kind='cubic')
+        interp_fun = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.performance_table, kind='linear')
         return interp_fun(pitch,TSR)
 
     def interp_gradient(self,pitch,TSR):
         # Form the interpolant functions to find gradient at any arbitrary location on rotor performance surface
-        dCP_beta_interp = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.gradient_pitch, kind='cubic')
-        dCP_TSR_interp = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.gradient_TSR, kind='cubic')
+        dCP_beta_interp = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.gradient_pitch, kind='linear')
+        dCP_TSR_interp = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.gradient_TSR, kind='linear')
 
         # grad.shape output as (2,) numpy array, equivalent to (pitch-direction,TSR-direction)
         grad = np.array([dCP_beta_interp(pitch,TSR), dCP_TSR_interp(pitch,TSR)])
