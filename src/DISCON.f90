@@ -1,12 +1,11 @@
 !=======================================================================
-! SUBROUTINE DISCON(avrSWAP, from_SC, to_SC, aviFAIL, accINFILE, avcOUTNAME, avcMSG) BIND (C, NAME='DISCON')
 SUBROUTINE DISCON(avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG) BIND (C, NAME='DISCON')
 ! DO NOT REMOVE or MODIFY LINES starting with "!DEC$" or "!GCC$"
 ! !DEC$ specifies attributes for IVF and !GCC$ specifies attributes for gfortran
 !DEC$ ATTRIBUTES DLLEXPORT :: DISCON
 
 USE, INTRINSIC  :: ISO_C_Binding
-USE             :: DRC_Types
+USE             :: ROSCO_Types
 USE             :: ReadSetParameters
 USE             :: ControllerBlocks
 USE             :: Controllers

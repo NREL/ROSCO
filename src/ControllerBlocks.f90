@@ -31,7 +31,7 @@ CONTAINS
     !       VS_State = 4, above-rated operation using pitch control (constant torque mode)
     !       VS_State = 5, above-rated operation using pitch and torque control (constant power mode)
     !       VS_State = 6, Tip-Speed-Ratio tracking PI controller
-        USE DRC_Types, ONLY : LocalVariables, ControlParameters
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters
         IMPLICIT NONE
     
         ! Inputs
@@ -90,7 +90,7 @@ CONTAINS
     ! Wind Speed Estimator estimates wind speed at hub height. Currently implements two types of estimators
     !       WE_Mode = 0, Filter hub height wind speed as passed from servodyn using first order low pass filter with 1Hz cornering frequency
     !       WE_Mode = 1, Use Inversion and Inveriance filter as defined by Ortege et. al. 
-        USE DRC_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances, PerformanceData
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances, PerformanceData
         IMPLICIT NONE
     
         ! Inputs
@@ -232,7 +232,7 @@ CONTAINS
     ! Setpoint smoother modifies controller reference in order to separate generator torque and blade pitch control actions
     !       SS_Mode = 0, No setpoint smoothing
     !       SS_Mode = 1, Implement setpoint smoothing
-        USE DRC_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
         IMPLICIT NONE
     
         ! Inputs
@@ -259,7 +259,7 @@ CONTAINS
     ! PeakShaving defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
     !       SS_Mode = 0, No setpoint smoothing
     !       SS_Mode = 1, Implement setpoint smoothing
-        USE DRC_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
         IMPLICIT NONE
         ! Inputs
         TYPE(ControlParameters), INTENT(IN)     :: CntrPar
