@@ -16,7 +16,7 @@ The NREL Reference OpenSource Controller (ROSCO) provides an open, modular and f
 * [Test_Cases](Test_Cases) - numerous NREL 5MW bases cases to run for controller updates and comparisons. A "test-suite", if you will...
 * [Matlab_Toolbox](Matlab_Toolbox) - MATLAB scripts to parse and plot simulation output data (tools will eventually be available in python as well).
 
-## Installing the  ROSCO Toolbox
+## Installing the ROSCO Toolbox
 First, clone the git repository and initiate the submodule:
 ``` 
 git clone https://github.com/nikhar-abbas/ROSCO_tooblox.git
@@ -29,6 +29,12 @@ pip install -e .
 ```
 AeroelasticSE, a part of NREL's WISDEM software, is necessary to have installed as well. This is available at [https://github.com/WISDEM/AeroelasticSE](https://github.com/WISDEM/AeroelasticSE). This can be installed similarly.
 
+### Updating ROSCO Toolbox
+Simple git commands should update the toolbox and controller as development continues:
+```
+git pull
+git submodule update 
+```
 
 ## Referencing
 If the ROSCO Toolbox played a role in your research, please cite it. This software can be
@@ -50,3 +56,9 @@ For LaTeX users:
 ```
 
 ~~ NJA - add NAWEA/WindTech paper here once published ~~
+
+## Additional Contributors and Acknowledgments
+Primary contributions to this work have been provided by researchers the National Renewable Energy Laboratory and TU Delft. Much of the intellect behind these contributions has been inspired or derived from an extensive amount of work. The bulk of this has been cited through the primary publications about this work. 
+
+Specific acknowledgements are also in order:
+* The setpoint smoothing regime implemented through the ROSCO controller was contributed by sowento GmbH. 
