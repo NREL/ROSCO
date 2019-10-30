@@ -88,7 +88,7 @@ class FileProcessing():
 
     def __init__(self):
         pass
-    def write_param_file(self, turbine, controller, param_file='DISCON.IN'):
+    def write_param_file(self, turbine, controller, param_file='DISCON.IN', txt_filename='Cp_Ct_Cq.txt'):
         """
         Print the controller parameters to the DISCON.IN input file for the generic controller
 
@@ -99,7 +99,9 @@ class FileProcessing():
         controller: class
                     Controller class containing controller operation information (gains, etc...)
         param_file: str, optional
-            filename to for parameter input file, should be DISCON.IN
+            filename for parameter input file, should be DISCON.IN
+        txt_filename: str, optional
+                      filename of rotor performance file
         """
         print('Writing new controller parameter file parameter file: %s.' % param_file)
         # Should be obvious what's going on here...
@@ -219,7 +221,7 @@ class FileProcessing():
             txt_filename: str, optional
                           Desired output filename to print rotor performance data. Default is Cp_Ct_Cq.txt
         '''
-        
+        print('Writing rotor performance text file: {}'.format(txt_filename))
         file = open(txt_filename,'w')
         # Headerlines
         file.write('# ----- Rotor performance tables for the {} wind turbine ----- \n'.format(turbine.TurbineName))

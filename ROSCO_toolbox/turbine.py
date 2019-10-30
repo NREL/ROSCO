@@ -175,8 +175,11 @@ class Turbine():
         elif rot_source == 'cc-blade':
             self.load_from_ccblade(fast)
         else:   # default load from cc-blade
-            print('No desired rotor performance data source specified, running CC-Blade.')
-            self.load_from_ccblade(fast)
+            if os.path.exists(txt_filename):
+                self.load_from_txt(txt_filename)
+            else:
+                print('No rotor performance data source available, running CC-Blade.')
+                self.load_from_ccblade(fast)
 
         # Parse rotor performance data
         self.Cp = RotorPerformance(self.Cp_table,self.pitch_initial_rad,self.TSR_initial)
