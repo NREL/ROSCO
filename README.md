@@ -7,13 +7,13 @@ The NREL Reference OpenSource Controller (ROSCO) provides an open, modular and f
 ## Compiling ROSCO
 Compiling ROSCO to be used on your machine is made simple using [cmake](https://cmake.org/). 
 
-1. Required Software to build ROSCO
+### Required Software to build ROSCO
 * Fortran compiler (GNU compiler version above 4.6.0 or Intel compiler version above 11)
 * C/C++ compiler
 * GNU Make (version 3.81 or later)
 * CMake (version 2.8.12 or later)
 
-2.  Steps to compile
+### Steps to compile
 First, clone the git repository:
 ``` 
 git clone https://github.com/nikhar-abbas/DRC_Fortran.git
@@ -25,6 +25,7 @@ cd build
 cmake ..
 make install
 ```
+A dynamic link library will be compiled into the directory with the title `libdiscon.*`, where the file extension is `.so`, `.dll`, or `.dylib`, depending on the user's operating system.  
 
 ## Using ROSCO for Bladed
 If you want to use the controller with DNV GL Bladed v4.5 or earlier (which still has support for the DISCON external controller interface), do the following:
