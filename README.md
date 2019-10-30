@@ -28,7 +28,7 @@ make install
 A dynamic link library will be compiled into the directory with the title `libdiscon.*`, where the file extension is `.so`, `.dll`, or `.dylib`, depending on the user's operating system.  
 
 ## Running ROSCO
-A few files are needed to run ROSCO. Of course, the compiled binary, named `libdiscon.*` by default, is needed. In addition to the binary, a controller input file title DISCON.IN is necessary. Two example input files are provided for the NREL 5MW and DTU 10MW wind turbine controllers in the [Parameter_files](Parameter_Files) folder. For generic controller tuning methods, and an automated writing of this DISCON.IN file, we point you to the complete [ROSCO_toolbox](https://github.com/nrel/rosco_toolbox). 
+A few files are needed to run ROSCO. Of course, the compiled binary, named `libdiscon.*` by default, is needed. In addition to the binary, a controller input file title DISCON.IN is necessary. Two example input files are provided for the NREL 5MW and DTU 10MW wind turbine controllers in the [parameter_files](parameter_files) folder. For generic controller tuning methods, and an automated writing of this DISCON.IN file, we point you to the complete [ROSCO_toolbox](https://github.com/nrel/rosco_toolbox). 
 
 In addition to DISCON.IN, if you wish to use either of the wind speed estimators offered by ROSCO (`WE_mode > 0`), you will need a rotor performance input file. This is, again, provided for the NREL 5MW and DTU 10MW wind turbines, and can be easily made for other turbines using the [ROSCO_toolbox](https://github.com/nrel/rosco_toolbox). 
 
