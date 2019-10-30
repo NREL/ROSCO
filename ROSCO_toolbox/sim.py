@@ -10,8 +10,8 @@
 # specific language governing permissions and limitations under the License.
 
 import numpy as np
-from WTC_toolbox import turbine as wtc_turbine
-from WTC_toolbox import control_interface as ci
+from ROSCO_toolbox import turbine as wtc_turbine
+from ROSCO_toolbox import control_interface as ci
 import matplotlib.pyplot as plt
 import sys
 

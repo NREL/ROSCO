@@ -25,24 +25,24 @@ test_requirements = [
 ]
 
 setup(
-    name='WTC_toolbox',
+    name='ROSCO_toolbox',
     version='0.1.0',
     description="Tools for generic turbine control.",
     long_description=readme + '\n\n' + history,
-    author="Paul Fleming",
-    author_email='paul.fleming@nrel.gov',
-    url='https://github.com/NREL/WTC_toolbox',
-    packages=find_packages(include=['WTC_toolbox']),
+    author="Nikhar J. Abbas",
+    author_email='nikhar.abbas@nrel.gov',
+    url='https://github.com/NREL/ROSCO_toolbox',
+    packages=find_packages(include=['ROSCO_toolbox']),
     entry_points={
         'console_scripts': [
-            'WTC_toolbox=WTC_toolbox.cli:main'
+            'ROSCO_toolbox=ROSCO_toolbox.cli:main'
         ]
     },
     include_package_data=True,
     install_requires=requirements,
     license="Apache Software License 2.0",
     zip_safe=False,
-    keywords='WTC_toolbox',
+    keywords='ROSCO_toolbox',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',

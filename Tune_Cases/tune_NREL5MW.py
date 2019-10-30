@@ -8,11 +8,11 @@ from scipy import interpolate
 import matplotlib.pyplot as plt 
 import yaml 
 import os
-# Import WTC_Toolbox modules 
-from WTC_toolbox import controller as wtc_controller
-from WTC_toolbox import turbine as wtc_turbine
-from WTC_toolbox import sim as wtc_sim
-from WTC_toolbox import utilities as wtc_utilities
+# Import ROSCO_toolbox modules 
+from ROSCO_toolbox import controller as wtc_controller
+from ROSCO_toolbox import turbine as wtc_turbine
+from ROSCO_toolbox import sim as wtc_sim
+from ROSCO_toolbox import utilities as wtc_utilities
 # Initialize parameter dictionaries
 turbine_params = {}
 control_params = {}
