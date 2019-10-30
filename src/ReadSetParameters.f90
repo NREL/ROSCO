@@ -177,6 +177,7 @@ CONTAINS
         
         !------------------- HOUSEKEEPING -----------------------
         CntrPar%PerfFileName = TRIM(CntrPar%PerfFileName)
+
     END SUBROUTINE ReadControlParameterFileSub
     ! -----------------------------------------------------------------------------------
     ! Calculate setpoints for primary control actions    
@@ -420,6 +421,7 @@ CONTAINS
             aviFAIL = -1
             ErrMsg  = 'IPC enabled, but Ptch_Cntrl in ServoDyn has a value of 0. Set it to 1.'
         ENDIF
+
     END SUBROUTINE Assert
     ! -----------------------------------------------------------------------------------
     ! Define parameters for control actions
@@ -511,6 +513,7 @@ CONTAINS
             ! Check validity of input parameters:
             CALL Assert(LocalVar, CntrPar, avrSWAP, aviFAIL, ErrMsg, size_avcMSG)
             
+
         ENDIF
     END SUBROUTINE SetParameters
     ! -----------------------------------------------------------------------------------
