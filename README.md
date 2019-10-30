@@ -58,6 +58,7 @@ For LaTeX users:
     url = {https://github.com/NREL/rosco}
     }
 ```
+If you have been using the entirety of the [ROSCO toolbox](https://github.com/nrel/rosco_toolbox), please see the ROSCO toolbox README for information on how to cite it.
 
 Note that the initial release of this controller was the Delft Research Controller. This work should be cited as
 * Mulders, S.P. and van Wingerden, J.W. "Delft Research Controller: an open-source and community-driven wind turbine baseline controller." Journal of Physics: Conference Series. Vol. 1037. No. 3. IOP Publishing, 2018. [Link to the paper](https://iopscience.iop.org/article/10.1088/1742-6596/1037/3/032009/meta)
