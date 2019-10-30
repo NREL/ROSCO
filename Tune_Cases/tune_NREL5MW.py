@@ -50,5 +50,3 @@ file_processing.write_param_file(turbine,controller,param_file=param_file)
 # plot rotor performance 
 turbine.Cp.plot_performance(turbine.Cp_table, turbine.pitch_initial_rad, turbine.TSR_initial)
 plt.show()
-
-print(turbine.Cp.max)

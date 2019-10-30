@@ -13,7 +13,6 @@ import numpy as np
 import datetime
 from ccblade import CCAirfoil, CCBlade
 from scipy import interpolate, gradient
-from WTC_toolbox import turbine as wtc_turbine
 
 # Some useful constants
 now = datetime.datetime.now()
@@ -43,10 +42,10 @@ class Controller():
         Load controller tuning parameters from input dictionary
         '''
 
-        print('---------------------------------------------------------------------------')
-        print('Tuning a reference wind turbine controller using the ROSCO toolbox')
-        print('Developed by Nikhar J. Abbas, 2019')
-        print('---------------------------------------------------------------------------')
+        print('-----------------------------------------------------------------------------')
+        print('   Tuning a reference wind turbine controller using NREL\'s ROSCO toolbox    ')
+        print('      Developed by Nikhar J. Abbas for collaborotave research purposes.      ')
+        print('-----------------------------------------------------------------------------')
 
         # Controller Flags
         self.LoggingLevel = controller_params['LoggingLevel']
