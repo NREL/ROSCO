@@ -1,2 +1,0 @@
-In order to use the compiled version of the DRC, install the "Redistributable Libraries for 32- and 64-bit msi files for the Intel® Parallel Studio XE Composer Edition for Fortran" first:
-https://software.intel.com/sites/default/files/managed/01/70/ww_ifort_redist_msi_2017.1.143.zip
