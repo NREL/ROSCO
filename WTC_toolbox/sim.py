@@ -22,7 +22,19 @@ rpm2RadSec = 2.0*(np.pi)/60.0
 
 class Sim():
     """
-    Define interface to a given controller
+    Simple controller simulation interface for a wind turbine.
+     - Currently runs a 1DOF simple rotor model based on an OpenFAST model
+
+    Methods:
+    --------
+    sim_ws_series
+
+    Parameters:
+    -----------
+    turbine: class
+             Turbine class containing wind turbine information from OpenFAST model
+    controller_int: class
+                    Controller interface class to run compiled controller binary
     """
 
     def __init__(self, turbine, controller_int):
@@ -66,22 +78,12 @@ class Sim():
         # Declare output arrays
         bld_pitch = np.ones_like(t_array) * init_pitch 
         rot_speed = np.ones_like(t_array) * rotor_rpm_init * rpm2RadSec # represent rot speed in rad / s
-        gen_speed = np.ones_like(t_array) * rotor_rpm_init * GBRatio # represent gen speed in rad/s
+        gen_speed = np.ones_like(t_array) * rotor_rpm_init * GBRatio * rpm2RadSec # represent gen speed in rad/s
         aero_torque = np.ones_like(t_array) * 1000.0
         gen_torque = np.ones_like(t_array) # * trq_cont(turbine_dict, gen_speed[0])
         gen_power = np.ones_like(t_array) * 0.0
 
-        # Test for cc_blade Cq information. 
-        #       - If not, assume available matrices loaded from text file, and interpolate those
-        try: 
-            self.turbine.cc_rotor.evaluate(ws_array[1], [rot_speed[0]/rpm2RadSec], 
-                                                        [bld_pitch[0]], 
-                                                        coefficients=True)
-            use_interpolated = False
-        except: 
-            use_interpolated = True
-            print('Could not load turbine data from ccblade, using interpolated Cp, Ct, Cq, tables')
-
+        
         # Loop through time
         for i, t in enumerate(t_array):
             if i == 0:
@@ -89,15 +91,9 @@ class Sim():
             ws = ws_array[i]
 
             # Load current Cq data
-            if use_interpolated:
-                tsr = rot_speed[i-1] * self.turbine.rotor_radius / ws
-                cq = self.turbine.Cq.interp_surface([bld_pitch[i-1]],tsr)
-            if not use_interpolated:
-                P, T, Q, M, Cp, Ct, cq, CM = self.turbine.cc_rotor.evaluate([ws], 
-                                                        [rot_speed[i-1]/rpm2RadSec], 
-                                                        [bld_pitch[i-1]], 
-                                                        coefficients=True)
-
+            tsr = rot_speed[i-1] * self.turbine.rotor_radius / ws
+            cq = self.turbine.Cq.interp_surface([bld_pitch[i-1]],tsr)
+        
             # Update the turbine state
             #       -- 1DOF model: rotor speed and generator speed (scaled by Ng)
             aero_torque[i] = 0.5 * self.turbine.rho * (np.pi * R**2) * cq * R * ws**2

@@ -18,19 +18,26 @@ deg2rad = np.deg2rad(1)
 rad2deg = np.rad2deg(1)
 rpm2RadSec = 2.0*(np.pi)/60.0
 
-class ConInt():
+class ControllerInterface():
     """
-    Define interface to a given controller
+    Define interface to a given controller using the avrSWAP array
+
+    Methods:
+    --------
+    call_discon
+    call_controller
+    show_control_values
+
+    Parameters:
+    -----------
+    lib_name : str
+                name of compiled dynamic library containing controller, (.dll,.so,.dylib)
+
     """
 
     def __init__(self, lib_name):
         """
         Setup the interface
-
-        Parameters:
-        -----------
-            lib_name = str
-                        name of dynamic library containing controller, (.dll,.so,.dylib)
         """
         self.lib_name = lib_name
         self.param_name = 'DISCON.IN' # this appears to be hard-coded so match here for now
@@ -77,7 +84,7 @@ class ConInt():
 
     def call_discon(self):
         '''
-        Call DISCON.dll (or .so,.dylib)
+        Call libdiscon.dll (or .so,.dylib,...)
         '''
         # Convert AVR swap to the c pointer
         c_float_p = POINTER(c_float)
@@ -97,18 +104,18 @@ class ConInt():
         
         Parameters:
         -----------
-            t: float
-                time, (s)
-            dt: float
-                timestep, (s)
-            pitch: float
-                blade pitch, (rad)
-            genspeed: float
-                generator speed, (rad/s)
-            rotspeed: float
-                rotor speed, (rad/s)
-            ws: float
-                wind speed, (m/s)
+        t: float
+           time, (s)
+        dt: float
+            timestep, (s)
+        pitch: float
+               blade pitch, (rad)
+        genspeed: float
+                  generator speed, (rad/s)
+        rotspeed: float
+                  rotor speed, (rad/s)
+        ws: float
+            wind speed, (m/s)
         '''
 
         # Add states to avr
@@ -120,13 +127,18 @@ class ConInt():
         self.avrSWAP[20] = rotspeed
         self.avrSWAP[26] = ws
 
+        # call controller
         self.call_discon()
 
+        # return controller states
         self.pitch = self.avrSWAP[41]
         self.torque = self.avrSWAP[46]
 
         return(self.torque,self.pitch)
 
     def show_control_values(self):
+        '''
+        Show control values - should be obvious
+        '''
         print('Pitch',self.pitch)
         print('Torque',self.torque)
