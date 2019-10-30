@@ -26,9 +26,9 @@ turbine_params = inps['turbine_params']
 controller_params = inps['controller_params']
 
 #---------------------------------- DO THE FUN STUFF ------------------------------------#
-# Initialiize turbine
+# Initialiize turbine and controller
 turbine         = wtc_turbine.Turbine(turbine_params)
-file_processing = wtc_controller.FileProcessing()
+file_processing = wtc_utilities.FileProcessing()
 
 # Load Turbine
 if inps['path_params']['rotor_performance_filename']:
