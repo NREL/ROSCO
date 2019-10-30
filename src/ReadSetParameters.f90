@@ -467,14 +467,17 @@ CONTAINS
             
             ! Inform users that we are using this user-defined routine:
             aviFAIL = 1
-            ErrMsg = '                                                          '//NEW_LINE('A')// &
-                     'Running the Delft Research Controller (DRC)               '//NEW_LINE('A')// &
-                     'A wind turbine controller for use in the scientific field '//NEW_LINE('A')// &
-                     'Written by S.P. Mulders, Jan-Willem van Wingerden         '//NEW_LINE('A')// &
-                     'Delft University of Technology, The Netherlands           '//NEW_LINE('A')// &
-                     'Visit our GitHub-page to contribute to this project:      '//NEW_LINE('A')// &
-                     'https://github.com/TUDelft-DataDrivenControl              '
-            
+            ErrMsg = '                                                                              '//NEW_LINE('A')// &
+                     'Running a controller implemented through the ROSCO Toolbox                    '//NEW_LINE('A')// &
+                     'A wind turbine controller framework for public use in the scientific field    '//NEW_LINE('A')// &
+                     'Developed in collaboration: National Renewable Energy Lab,                    '//NEW_LINE('A')// &
+                     '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
+                     'Primary development by (listed alphabetically): N.J. Abbas,                   '//NEW_LINE('A')// &
+                     '                                               S.P. Mulders,                  '//NEW_LINE('A')// &
+                     '                                               Jan-Willem van Wingerden       '//NEW_LINE('A')// &
+                     'Visit our GitHub-page to contribute to this project:                          '//NEW_LINE('A')// &
+                     'https://github.com/NREL/ROSCO                                                 '
+ 
             CALL ReadControlParameterFileSub(CntrPar)
             
             IF (CntrPar%WE_Mode > 0) THEN
