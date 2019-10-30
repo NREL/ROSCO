@@ -1,6 +1,8 @@
 # Run_TestCases
 # Run the simulation cases in the Test_Cases folder
-
+##
+#################  OUTDATED #################
+##
 import os
 from WTC_toolbox import utilities as wtc_Utilities
 util = wtc_Utilities.Utilities()
