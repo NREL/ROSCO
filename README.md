@@ -36,5 +36,25 @@ If you want to use the controller with DNV GL Bladed v4.5 or earlier (which stil
 4. Run a "Power Production" simulation
 
 ## Referencing
-When you use ROSCO in any publication, please cite the following paper:
+If ROSCO played a role in your research, please cite it. This software can be
+cited as:
+
+   ROSCO. Version 0.1.0 (2019). Available at https://github.com/nrel/rosco.
+
+For LaTeX users:
+
+```
+    @misc{ROSCO_2019,
+    author = {NREL},
+    title = {{ROSCO. Version 0.1.0}},
+    year = {2019},
+    publisher = {GitHub},
+    journal = {GitHub repository},
+    url = {https://github.com/NREL/rosco}
+    }
+```
+
+Note that the initial release of this controller was the Delft Research Controller. This work should be cited as
 * Mulders, S.P. and van Wingerden, J.W. "Delft Research Controller: an open-source and community-driven wind turbine baseline controller." Journal of Physics: Conference Series. Vol. 1037. No. 3. IOP Publishing, 2018. [Link to the paper](https://iopscience.iop.org/article/10.1088/1742-6596/1037/3/032009/meta)
+
+The Delft Research Controller was the initial version of this work. It has sense been grown significantly and become NREL's ROSCO. 
