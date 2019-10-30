@@ -17,9 +17,11 @@ The NREL Reference OpenSource Controller (ROSCO) provides an open, modular and f
 * [Matlab_Toolbox](Matlab_Toolbox) - MATLAB scripts to parse and plot simulation output data (tools will eventually be available in python as well).
 
 ## Installing the  ROSCO Toolbox
-First, clone the git repository:
+First, clone the git repository and initiate the submodule:
 ``` 
 git clone https://github.com/nikhar-abbas/ROSCO_tooblox.git
+git submodule init
+git submodule update
 ```
 Second, install it from the cloned home directory
 ```
