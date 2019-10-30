@@ -56,9 +56,9 @@ class Turbine():
         """
         Load turbine parameters from input dictionary
         """
-        print('---------------------------------------------------------------------------')
-        print('Loading wind turbine data for ROSCO tuning processes')
-        print('---------------------------------------------------------------------------')
+        print('-----------------------------------------------------------------------------')
+        print('Loading wind turbine data for NREL\'s ROSCO tuning and simulation processeses')
+        print('-----------------------------------------------------------------------------')
 
         # ------ Turbine Parameters------
         self.rotor_inertia = turbine_params['rotor_inertia']         
