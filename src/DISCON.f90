@@ -14,7 +14,9 @@ USE             :: Filters
 USE             :: Functions
 
 IMPLICIT NONE
+! Enable .dll export
 #ifndef IMPLICIT_DLLEXPORT
+!DEC$ ATTRIBUTES DLLEXPORT :: DISCON
 !GCC$ ATTRIBUTES DLLEXPORT :: DISCON
 #endif
 
