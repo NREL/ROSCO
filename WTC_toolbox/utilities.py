@@ -22,17 +22,21 @@ rpm2RadSec = 2.0*(np.pi)/60.0
 RadSec2rpm = 60/(2.0 * np.pi)
 
 class UseOpenFAST():
-    
+    ''' 
+    A collection of utilities that may be useful for using the tools made accessbile in this toolbox with OpenFAST
+
+    Methods:
+    --------
+    run_openfast
+    plot_fast_out
+    read_fast_out
+    '''
     def __init__(self):
-        ''' 
-        A collection of utilities that may be useful for using the tools made accessbile in this toolbox
-        '''
+        pass
 
     def run_openfast(self,fast_dir,fastcall='OpenFAST',fastfile=None,):
         '''
         Runs a openfast openfast simulation 
-            ! NJA - should include a processing script to return output data to a variable 
-            !       Might only work on unix machines? Not sure how OpenFAST is generally run on Windows. 
         Parameters:
         ------------
             fast_dir: string
@@ -60,13 +64,13 @@ class UseOpenFAST():
         # return to original path
         os.chdir(original_path)
 
-    def plotFASTout(self):
+    def plot_fast_out(self):
         '''
         Plot OpenFAST outputs 
             - NJA: this is a good place to emulate Post_LoadFastOut.m
         '''
 
-    def readFASTout(self):
+    def read_fast_out(self):
         '''
         Read OpenFAST output files. Might want to leverage AeroelasticSE here.
         '''
