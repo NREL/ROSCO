@@ -107,7 +107,7 @@ class FileProcessing():
         # Should be obvious what's going on here...
         file = open(param_file,'w')
         file.write('! Controller parameter input file for the %s wind turbine\n' % turbine.TurbineName)
-        file.write('!    - File written using NREL Reference Controller tuning logic on %s\n' % now.strftime('%m/%d/%y'))
+        file.write('!    - File written using NREL Reference OpenSource Controller tuning logic on %s\n' % now.strftime('%m/%d/%y'))
         file.write('\n')
         file.write('!------- DEBUG ------------------------------------------------------------\n')
         file.write('{0:<12d}        ! LoggingLevel		- {{0: write no debug files, 1: write standard output .dbg-file, 2: write standard output .dbg-file and complete avrSWAP-array .dbg2-file}}\n'.format(controller.LoggingLevel))
