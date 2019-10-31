@@ -1,5 +1,14 @@
 # Controller Tuning Script for NREL-5MW Wind Turbine
-#  -- Made to run the tools distributed as a part of the WTC_Toolbox
+#  -- Made to run the tools distributed as a part of the ROSCO_Toolbox
+
+#-------------------------------- LOAD INPUT PARAMETERS ---------------------------------#
+parameter_filename = 'NREL5MW.yaml'         # Name of .yaml input file for the specific turbine
+
+
+#----------------------------------------------------------------------------------------#
+#--------------------- NOTHING SHOULD NEED TO CHANGE AFTER THIS -------------------------#
+#----------------------------------------------------------------------------------------#
+
 
 #------------------------------------- INITIALIZATION ----------------------------------#
 # Import python modules
@@ -17,9 +26,6 @@ from ROSCO_toolbox import utilities as wtc_utilities
 turbine_params = {}
 control_params = {}
 
-#-------------------------------- LOAD INPUT PARAMETERS ---------------------------------#
-parameter_filename = 'NREL5MW.yaml'         # Name of .yaml input file for the specific turbine
-
 # Load input file contents, put them in some dictionaries to keep things cleaner
 inps = yaml.safe_load(open(parameter_filename))
 path_params = inps['path_params']
@@ -31,13 +37,16 @@ controller_params = inps['controller_params']
 turbine         = wtc_turbine.Turbine(turbine_params)
 file_processing = wtc_utilities.FileProcessing()
 
-# Load Turbine
-if inps['path_params']['rotor_performance_filename']:
-    turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source='txt',txt_filename=path_params['rotor_performance_filename'])
+# Load Turbine, write rotor performance file if it doesn't exist
+if path_params['rotor_performance_filename']:
+    if os.path.exists(path_params['rotor_performance_filename']):
+        turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source='txt',txt_filename=path_params['rotor_performance_filename'])
+    else:
+        turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source=None, txt_filename=path_params['rotor_performance_filename'])
+        file_processing.write_rotor_performance(turbine,txt_filename=path_params['rotor_performance_filename'])
 else:
     turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source=None)
-    # Write rotor performance file
-    file_processing.write_rotor_performance(turbine,txt_filename='Cp_Ct_Cq.txt')
+    file_processing.write_rotor_performance(turbine,txt_filename=path_params['rotor_performance_filename'])
 
 # Initialize controller tuning and tune controller
 controller      = wtc_controller.Controller(controller_params)
@@ -46,7 +55,7 @@ controller.tune_controller(turbine)
 # Initialize 
 # Write parameter input file
 param_file = 'DISCON.IN'   # This must be named DISCON.IN to be seen by the compiled controller binary. 
-file_processing.write_param_file(turbine,controller,param_file=param_file)
+file_processing.write_param_file(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
 
 # plot rotor performance 
 turbine.Cp.plot_performance(turbine.Cp_table, turbine.pitch_initial_rad, turbine.TSR_initial)
