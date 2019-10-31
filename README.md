@@ -7,7 +7,7 @@ NREL's Reference OpenSource Controller (ROSCO) toolbox for wind turbine applicat
 Block diagrams of these capabilities can be seen in [architecture.png](architecture.png) (which is a bit outdated as of November 2019...).
 
 ## Introduction
-The NREL Reference OpenSource Controller (ROSCO) provides an open, modular and fully adaptable baseline wind turbine controller to the scientific community. The ROSCO_toolbox leverages this architecture and implementation to provide a generic tuning process for the controller. Because of the open character and modular set-up, scientists are able to collaborate and contribute in making continuous improvements to the code for the controller and the toolbox. The ROSCO toolbox is a mostly-python code base with a number of functionalities.
+The NREL Reference OpenSource Controller (ROSCO) provides an open, modular and fully adaptable baseline wind turbine controller to the scientific community. The ROSCO toolbox leverages this architecture and implementation to provide a generic tuning process for the controller. Because of the open character and modular set-up, scientists are able to collaborate and contribute in making continuous improvements to the code for the controller and the toolbox. The ROSCO toolbox is a mostly-python code base with a number of functionalities.
 
 ### ROSCO Toolbox Overview
 * [DRC_Fortran](DRC_Fortran) - the python source code for most of the toolbox capabilities.
@@ -37,7 +37,7 @@ AeroelasticSE, a part of NREL's WISDEM software, is necessary to have installed 
 The [Tune_Cases](Tune_Cases) folder hosts examples on what needs to happen to write the input file to the ROSCO controller. You will also need to have the ROSCO controller compiled. 
 
 #### Compiling ROSCO
-The controller itself is installed as a submodule in the ROSCO_toolbox. For further information on compiling and running ROSCO itself, especially if you are on a Windows machine, we point you to the [DRC_Fortran github page](https://github.com/nikhar-abbas/DRC_Fortran/tree/develop). For Unix systems, (or Unix shell's on Windows), cmake makes it easy to compile. In order to compile the controller, you should run the following commands from the [DRC_Fortran](DRC_Fortran) folder (note: this folder will be update with the move of DRC_Fortran to ROSCO).
+The controller itself is installed as a submodule in the ROSCO toolbox. For further information on compiling and running ROSCO itself, especially if you are on a Windows machine, we point you to the [DRC_Fortran github page](https://github.com/nikhar-abbas/DRC_Fortran/tree/develop). For Unix systems, (or Unix shell's on Windows), cmake makes it easy to compile. In order to compile the controller, you should run the following commands from the [DRC_Fortran](DRC_Fortran) folder (note: this folder will be updated with the move of DRC_Fortran to ROSCO).
 ```
 mkdir build
 cd build
@@ -47,7 +47,7 @@ make
 These commands will compile a binary titled `libdiscon.*` in the build folder, which is the binary necessary run the controller. This should only need to be compiled once. 
 
 #### ROSCO Toolbox Generic Tuning
-You will need to run the generic tuning process for ROSCO. Examples are shown in the [Tune_Cases](Tune_Cases) folder. When you run your own version of [tune_NREL5MW.py](Tune_Cases/tune_NREL5MW.py), you will have two scripts that are necessary to run the controller. 
+You will need to run the generic tuning process for ROSCO. Examples are shown in the [Tune_Cases](Tune_Cases) folder. When you run your own version of [tune_NREL5MW.py](Tune_Cases/tune_NREL5MW.py), you will have two files that are necessary to run the controller. 
 1. `DISCON.IN` - the input file to `libdiscon.*`. When running the controller, `DISCON.IN` must be in the directory that `libdiscon.*` is pointing to, and must be called `DISCON.IN`
 2. `Cp_Cq_Ct.txt` (or similar) - The contains rotor performance tables that are necessary to run the wind speed estimators in ROSCO. This can live wherever you desire, just be sure to point to it properly in `DISCON.IN`.
 
