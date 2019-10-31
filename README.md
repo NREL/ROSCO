@@ -37,7 +37,7 @@ AeroelasticSE, a part of NREL's WISDEM software, is necessary to have installed 
 The [Tune_Cases](Tune_Cases) folder hosts examples on what needs to happen to write the input file to the ROSCO controller. You will also need to have the ROSCO controller compiled. 
 
 #### Compiling ROSCO
-The controller itself is installed as a submodule in the ROSCO_toolbox. In order to compile the controller, you should run the following commands from the [DRC_Fortran](DRC_Fortran) folder (note: this folder will be update with the move of DRC_Fortran to ROSCO). For further information on compiling and running ROSCO itself, we point you to the [DRC_Fortran github page](https://github.com/nikhar-abbas/DRC_Fortran/tree/develop). 
+The controller itself is installed as a submodule in the ROSCO_toolbox. For further information on compiling and running ROSCO itself, especially if you are on a Windows machine, we point you to the [DRC_Fortran github page](https://github.com/nikhar-abbas/DRC_Fortran/tree/develop). For Unix systems, (or Unix shell's on Windows), cmake makes it easy to compile. In order to compile the controller, you should run the following commands from the [DRC_Fortran](DRC_Fortran) folder (note: this folder will be update with the move of DRC_Fortran to ROSCO).
 ```
 mkdir build
 cd build
