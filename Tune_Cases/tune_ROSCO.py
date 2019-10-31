@@ -2,12 +2,15 @@
 #  -- Made to run the tools distributed as a part of the ROSCO_Toolbox
 
 #-------------------------------- LOAD INPUT PARAMETERS ---------------------------------#
-parameter_filename = 'NREL5MW.yaml'         # Name of .yaml input file for the specific turbine
+# Change this for your turbine
+parameter_filename = 'NREL5MW.yaml'                         # Name of .yaml input file for the specific turbine
 
 
-#----------------------------------------------------------------------------------------#
-#--------------------- NOTHING SHOULD NEED TO CHANGE AFTER THIS -------------------------#
-#----------------------------------------------------------------------------------------#
+
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------#
+#--------------------- NOTHING SHOULD NEED TO CHANGE AFTER THIS -----------------------------------------------------------------------------------------------------------------#
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
 
 #------------------------------------- INITIALIZATION ----------------------------------#
@@ -26,6 +29,7 @@ from ROSCO_toolbox import utilities as wtc_utilities
 turbine_params = {}
 control_params = {}
 
+os.chdir('/Users/nabbas/Documents/WindEnergyToolbox/ROSCO_toolbox/Tune_Cases')
 # Load input file contents, put them in some dictionaries to keep things cleaner
 inps = yaml.safe_load(open(parameter_filename))
 path_params = inps['path_params']
