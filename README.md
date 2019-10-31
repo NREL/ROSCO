@@ -16,7 +16,11 @@ The NREL Reference OpenSource Controller (ROSCO) provides an open, modular and f
 * [Test_Cases](Test_Cases) - numerous NREL 5MW bases cases to run for controller updates and comparisons. A "test-suite", if you will...
 * [Matlab_Toolbox](Matlab_Toolbox) - MATLAB scripts to parse and plot simulation output data (tools will eventually be available in python as well).
 
-## Installing the ROSCO Toolbox
+## Using the ROSCO Toolbox
+There is a short (but _hopefully_ sweet) installation and run process for basic controller tuning...
+
+### Installing the ROSCO Toolbox
+No matter what you desire to do, you will need to install the ROSCO toolbox
 First, clone the git repository and initiate the submodule:
 ``` 
 git clone https://github.com/nikhar-abbas/ROSCO_tooblox.git
@@ -28,6 +32,24 @@ Second, install it from the cloned home directory
 pip install -e .
 ```
 AeroelasticSE, a part of NREL's WISDEM software, is necessary to have installed as well. This is available at [https://github.com/WISDEM/AeroelasticSE](https://github.com/WISDEM/AeroelasticSE). This can be installed similarly.
+
+### Running controller tuning
+The [Tune_Cases](Tune_Cases) folder hosts examples on what needs to happen to write the input file to the ROSCO controller. You will also need to have the ROSCO controller compiled. 
+
+#### Compiling ROSCO
+The controller itself is installed as a submodule in the ROSCO_toolbox. In order to compile the controller, you should run the following commands from the [DRC_Fortran](DRC_Fortran) folder (note: this folder will be update with the move of DRC_Fortran to ROSCO). For further information on compiling and running ROSCO itself, we point you to the [DRC_Fortran github page](https://github.com/nikhar-abbas/DRC_Fortran/tree/develop). 
+```
+mkdir build
+cd build
+cmake ..
+make
+```
+These commands will compile a binary titled `libdiscon.*` in the build folder, which is the binary necessary run the controller. This should only need to be compiled once. 
+
+#### ROSCO Toolbox Generic Tuning
+You will need to run the generic tuning process for ROSCO. Examples are shown in the [Tune_Cases](Tune_Cases) folder. When you run your own version of [tune_NREL5MW.py](Tune_Cases/tune_NREL5MW.py), you will have two scripts that are necessary to run the controller. 
+1. `DISCON.IN` - the input file to `libdiscon.*`. When running the controller, `DISCON.IN` must be in the directory that `libdiscon.*` is pointing to, and must be called `DISCON.IN`
+2. `Cp_Cq_Ct.txt` (or similar) - The contains rotor performance tables that are necessary to run the wind speed estimators in ROSCO. This can live wherever you desire, just be sure to point to it properly in `DISCON.IN`.
 
 ### Updating ROSCO Toolbox
 Simple git commands should update the toolbox and controller as development continues:
