@@ -33,7 +33,7 @@ pip install -e .
 ```
 AeroelasticSE, a part of NREL's WISDEM software, is necessary to have installed as well. This is available at [https://github.com/WISDEM/AeroelasticSE](https://github.com/WISDEM/AeroelasticSE). This can be installed similarly.
 
-### Running controller tuning
+### Running ROSCO with Generic Tuning
 The [Tune_Cases](Tune_Cases) folder hosts examples on what needs to happen to write the input file to the ROSCO controller. You will also need to have the ROSCO controller compiled. 
 
 #### Compiling ROSCO
