@@ -96,6 +96,15 @@ class Controller():
         else:
             self.ps_percent = 0.75      # Default to 75% peak shaving
 
+        # critical damping if LPFType = 2
+        if controller_params['F_LPFType']:
+            if controller_params['F_LPFType'] == 2:
+                self.F_LPFDamping = 0.7
+            else:
+                self.F_LPFDamping = 0.0
+        else:
+            self.F_LPFDamping = 0.0
+
     def tune_controller(self, turbine):
         """
         Given a turbine model, tune a controller based on the NREL generic controller tuning process

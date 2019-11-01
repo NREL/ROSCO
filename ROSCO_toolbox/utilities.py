@@ -125,7 +125,7 @@ class FileProcessing():
         file.write('\n')
         file.write('!------- FILTERS ----------------------------------------------------------\n') 
         file.write('{:<13.2f}       ! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [rad/s]\n'.format(turbine.bld_edgewise_freq * 1/4)) 
-        file.write('{:<13.2f}       ! F_LPFDamping		- Damping coefficient [used only when F_FilterType = 2]\n'.format(0.0))
+        file.write('{:<13.2f}       ! F_LPFDamping		- Damping coefficient [used only when F_FilterType = 2]\n'.format(controller.F_LPFDamping))
         file.write('{:<13.2f}       ! F_NotchCornerFreq	- Natural frequency of the notch filter, [rad/s]\n'.format(0.0))
         file.write('{:<6.1f}{:<13.1f} ! F_NotchBetaNumDen	- Two notch damping values (numerator and denominator, resp) - determines the width and depth of the notch, [-]\n'.format(0.0,0.0))
         file.write('{:<014.6f}      ! F_SSCornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother, [rad/s].\n'.format(controller.ss_cornerfreq))
