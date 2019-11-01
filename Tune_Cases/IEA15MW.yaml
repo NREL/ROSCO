@@ -13,7 +13,7 @@ turbine_params:
   rotor_inertia:      374349414.            # Rotor inertia [kg m^2], {Available in Elastodyn .sum file}
   rated_rotor_speed:  0.785                 # Rated rotor speed [rad/s]
   v_min:              3.0                   # Cut-in wind speed [m/s] 
-  v_rated:            11.4                  # Rated wind speed [m/s]
+  v_rated:            10.7                  # Rated wind speed [m/s]
   v_max:              25.0                  # Cut-out wind speed [m/s], -- Does not need to be exact (JUST ASSUME FOR NOW)
   max_pitch_rate:     5.                    # Maximum blade pitch rate [deg/s]
   max_torque_rate:    4500000.              # Maximum torque rate [Nm/s], {~1/4 VS_RtTq/s}
@@ -34,10 +34,10 @@ controller_params:
   WE_Mode:            2                     # Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator (Ortega et al.)}
   PS_Mode:            0                     # Peak shaving mode {0: no peak shaving, 1: implement peak shaving}
   # Controller parameters 
-  zeta_pc:            0.7                    # Pitch controller desired damping ratio [-]
-  omega_pc:           0.25                   # Pitch controller desired natural frequency [rad/s]
-  zeta_vs:            0.7                   # Torque controller desired damping ratio [-]
-  omega_vs:           0.2                   # Torque controller desired natural frequency [rad/s]
+  zeta_pc:            1.                    # Pitch controller desired damping ratio [-]
+  omega_pc:           0.1                   # Pitch controller desired natural frequency [rad/s]
+  zeta_vs:            1.                    # Torque controller desired damping ratio [-]
+  omega_vs:           0.1                   # Torque controller desired natural frequency [rad/s]
   # Optional - these can be defined, but do not need to be
   max_pitch:          # None                  # Maximum pitch angle [rad], {default = 90 degrees}
   min_pitch:          # None                  # Minimum pitch angle [rad], {default = 0 degrees}
