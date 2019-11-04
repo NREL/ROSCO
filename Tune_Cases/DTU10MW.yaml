@@ -15,7 +15,7 @@ turbine_params:
   v_min:              4.0                   # Cut-in wind speed [m/s] 
   v_rated:            11.4                  # Rated wind speed [m/s]
   v_max:              25.0                  # Cut-out wind speed [m/s], -- Does not need to be exact (JUST ASSUME FOR NOW)
-  max_pitch_rate:     10.                    # Maximum blade pitch rate [deg/s]
+  max_pitch_rate:     10.                   # Maximum blade pitch rate [deg/s]
   max_torque_rate:    5000000.              # Maximum torque rate [Nm/s], {~1/4 VS_RtTq/s}
   rated_power:        10000000.             # Rated Power [W]
   bld_edgewise_freq:  4.519                 # Blade edgewise first natural frequency [rad/s]
@@ -31,7 +31,7 @@ controller_params:
   PC_ControlMode:     1                     # Blade pitch control mode {0: No pitch, fix to fine pitch, 1: active PI blade pitch control}
   Y_ControlMode:      0                     # Yaw control mode {0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}
   SS_Mode:            1                     # Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
-  WE_Mode:            2                     # Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator (Ortega et al.)}
+  WE_Mode:            2                     # Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator 2: Extended Kalman Filter}
   PS_Mode:            1                     # Peak shaving mode {0: no peak shaving, 1: implement peak shaving}
 # Controller parameters
   zeta_pc:            0.8                   # Pitch controller desired damping ratio [-]
