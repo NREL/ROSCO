@@ -10,11 +10,11 @@ Block diagrams of these capabilities can be seen in [architecture.png](architect
 The NREL Reference OpenSource Controller (ROSCO) provides an open, modular and fully adaptable baseline wind turbine controller to the scientific community. The ROSCO toolbox leverages this architecture and implementation to provide a generic tuning process for the controller. Because of the open character and modular set-up, scientists are able to collaborate and contribute in making continuous improvements to the code for the controller and the toolbox. The ROSCO toolbox is a mostly-python code base with a number of functionalities.
 
 ### ROSCO Toolbox Overview
-* [DRC_Fortran](DRC_Fortran) - the python source code for most of the toolbox capabilities.
-* [Examples](Examples) - short working examples of the capabilities of the ROSCO toolbox. 
-* [Tune_Cases](Tune_Cases) - example generic tuning scripts for a number of open-source reference turbines.
-* [Test_Cases](Test_Cases) - numerous NREL 5MW bases cases to run for controller updates and comparisons. A "test-suite", if you will...
-* [Matlab_Toolbox](Matlab_Toolbox) - MATLAB scripts to parse and plot simulation output data (tools will eventually be available in python as well).
+* [DRC_Fortran](https://github.com/nikhar-abbas/DRC_Fortran/tree/master) - the python source code for most of the toolbox capabilities.
+* [Examples](https://github.com/NREL/ROSCO_toolbox/tree/master/examples) - short working examples of the capabilities of the ROSCO toolbox. 
+* [Tune_Cases](https://github.com/NREL/ROSCO_toolbox/tree/master/Tune_Cases) - example generic tuning scripts for a number of open-source reference turbines.
+* [Test_Cases](https://github.com/NREL/ROSCO_toolbox/tree/master/Test_Cases) - numerous NREL 5MW bases cases to run for controller updates and comparisons. A "test-suite", if you will...
+* [Matlab_Toolbox](https://github.com/NREL/ROSCO_toolbox/tree/master/Matlab_Toolbox) - MATLAB scripts to parse and plot simulation output data (tools will eventually be available in python as well).
 
 ## Using the ROSCO Toolbox
 There is a short (but _hopefully_ sweet) installation and run process for basic controller tuning...
@@ -47,7 +47,7 @@ make
 These commands will compile a binary titled `libdiscon.*` in the build folder, which is the binary necessary run the controller. This should only need to be compiled once. 
 
 #### ROSCO Toolbox Generic Tuning
-You will need to run the generic tuning process for ROSCO. Examples are shown in the [Tune_Cases](Tune_Cases) folder. When you run your own version of [tune_NREL5MW.py](Tune_Cases/tune_NREL5MW.py), you will have two files that are necessary to run the controller. 
+IF you would like to run the generic tuning process for ROSCO, examples are shown in the [Tune_Cases](Tune_Cases) folder. When you run your own version of [tune_NREL5MW.py](Tune_Cases/tune_NREL5MW.py), you will have two files that are necessary to run the controller. 
 1. `DISCON.IN` - the input file to `libdiscon.*`. When running the controller, `DISCON.IN` must be in the directory that `libdiscon.*` is pointing to, and must be called `DISCON.IN`
 2. `Cp_Cq_Ct.txt` (or similar) - The contains rotor performance tables that are necessary to run the wind speed estimators in ROSCO. This can live wherever you desire, just be sure to point to it properly in `DISCON.IN`.
 
@@ -82,5 +82,5 @@ For LaTeX users:
 ## Additional Contributors and Acknowledgments
 Primary contributions to this work have been provided by researchers the National Renewable Energy Laboratory and TU Delft. Much of the intellect behind these contributions has been inspired or derived from an extensive amount of work. The bulk of this has been cited through the primary publications about this work. 
 
-Specific acknowledgements are also in order:
+There are also some specific acknowledgements we would like to communicate:
 * The setpoint smoothing regime implemented through the ROSCO controller was contributed by sowento GmbH. 
