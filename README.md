@@ -5,6 +5,8 @@ NREL's Reference OpenSource Controller (ROSCO) for wind turbine applications use
 The NREL Reference OpenSource Controller (ROSCO) provides an open, modular and fully adaptable baseline wind turbine controller to the scientific community. New control implementations can be added to the existing baseline controller, and in this way, convenient assessments of the proposed algorithms is possible. Because of the open character and modular set-up, scientists are able to collaborate and contribute in making continuous improvements to the code. ROSCO is being developed in Fortran and uses the Bladed-style DISCON controller interface. The compiled controller is configured by a single control settings parameter file, and can work with any wind turbine model and simulation software using the DISCON interface. Baseline parameter files are supplied for the NREL 5-MW and DTU 10-MW reference wind turbines.
 
 ## Compiling ROSCO
+** This is still in early development and is not ready for official release yet. Please do not share without permission from Nikhar Abbas. **
+
 Compiling ROSCO to be used on your machine is made simple using [cmake](https://cmake.org/) on Unix based machines. Currently (November 2019), we recommend that you compile the code using a unix machine (or subsystem on Windows). Compiled binaries are also provided via github.
 
 ### Required Software to build ROSCO
