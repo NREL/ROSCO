@@ -3,7 +3,7 @@
 
 #-------------------------------- LOAD INPUT PARAMETERS ---------------------------------#
 # Change this for your turbine
-parameter_filename = 'NREL5MW.yaml'                         # Name of .yaml input file for the specific turbine
+parameter_filename = 'IEA15MW.yaml'                         # Name of .yaml input file for the specific turbine
 
 
 
