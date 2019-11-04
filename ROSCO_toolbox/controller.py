@@ -11,7 +11,7 @@
 
 import numpy as np
 import datetime
-from ccblade import CCAirfoil, CCBlade
+from wisdem.ccblade import CCAirfoil, CCBlade
 from scipy import interpolate, gradient
 
 # Some useful constants

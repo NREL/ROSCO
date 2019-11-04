@@ -12,8 +12,8 @@
 import os
 import numpy as np
 import datetime
-from ccblade import CCAirfoil, CCBlade
-from AeroelasticSE.FAST_reader import InputReader_OpenFAST
+from wisdem.ccblade import CCAirfoil, CCBlade
+from wisdem.aeroelasticse.FAST_reader import InputReader_OpenFAST
 from scipy import interpolate, gradient
 import pickle
 import matplotlib.pyplot as plt
