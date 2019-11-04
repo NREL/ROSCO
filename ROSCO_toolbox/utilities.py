@@ -120,7 +120,7 @@ class FileProcessing():
         file.write('{0:<12d}        ! PC_ControlMode    - Blade pitch control mode {{0: No pitch, fix to fine pitch, 1: active PI blade pitch control}}\n'.format(controller.PC_ControlMode))
         file.write('{0:<12d}        ! Y_ControlMode		- Yaw control mode {{0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}}\n'.format(controller.Y_ControlMode))
         file.write('{0:<12d}        ! SS_Mode           - Setpoint Smoother mode {{0: no setpoint smoothing, 1: introduce setpoint smoothing}}\n'.format(controller.SS_Mode))
-        file.write('{0:<12d}        ! WE_Mode           - Wind speed estimator mode {{0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator (Ortega et al.)}}\n'.format(controller.WE_Mode))
+        file.write('{0:<12d}        ! WE_Mode           - Wind speed estimator mode {{0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator, 2: Extended Kalman Filter}}\n'.format(controller.WE_Mode))
         file.write('{0:<12d}        ! PS_Mode           - Peak shaving mode {{0: no peak shaving, 1: implement peak shaving}}\n'.format(controller.PS_Mode))
         file.write('\n')
         file.write('!------- FILTERS ----------------------------------------------------------\n') 
