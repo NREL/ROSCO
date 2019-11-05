@@ -17,7 +17,7 @@ CONTAINS
     !       Individual pitch control
     !       Tower fore-aft damping 
     !       Sine excitation on pitch    
-        USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
         
         ! Inputs
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
@@ -102,7 +102,7 @@ CONTAINS
     !       VS_State = 4, above-rated operation using pitch control (constant torque mode)
     !       VS_State = 5, above-rated operation using pitch and torque control (constant power mode)
     !       VS_State = 6, Tip-Speed-Ratio tracking PI controller
-        USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
         ! Inputs
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
@@ -145,7 +145,7 @@ CONTAINS
         ENDIF
 
 
-            ! Saturate the commanded torque using the maximum torque limit:
+        ! Saturate the commanded torque using the maximum torque limit:
         LocalVar%GenTq = MIN(LocalVar%GenTq, CntrPar%VS_MaxTq)                    ! Saturate the command using the maximum torque limit
         
         ! Saturate the commanded torque using the torque rate limit:
@@ -159,8 +159,11 @@ CONTAINS
     END SUBROUTINE VariableSpeedControl
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE YawRateControl(avrSWAP, CntrPar, LocalVar, objInst)
-    
-        USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+        ! Yaw rate controller
+        !       Y_ControlMode = 0, No yaw control
+        !       Y_ControlMode = 1, Simple yaw rate control using yaw drive
+        !       Y_ControlMode = 2, Yaw by IPC (accounted for in IPC subroutine)
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
     
         REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
     
@@ -195,13 +198,11 @@ CONTAINS
     END SUBROUTINE YawRateControl
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE IPC(CntrPar, LocalVar, objInst)
-        !-------------------------------------------------------------------------------------------------------------------------------
         ! Individual pitch control subroutine
-        ! Calculates the commanded pitch angles for IPC employed for blade fatigue load reductions at 1P and 2P
-        !
-        ! Variable declaration and initialization
-        !------------------------------------------------------------------------------------------------------------------------------
-        USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+        !   - Calculates the commanded pitch angles for IPC employed for blade fatigue load reductions at 1P and 2P
+        !   - Includes yaw by IPC
+
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
         
         ! Local variables
         REAL(4)                  :: PitComIPC(3), PitComIPCF(3), PitComIPC_1P(3), PitComIPC_2P(3)
@@ -282,14 +283,11 @@ CONTAINS
             LocalVar%IPC_PitComF(K) = PitComIPCF(K)
         END DO
     END SUBROUTINE IPC
-    
+!-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE ForeAftDamping(CntrPar, LocalVar, objInst)
-        !-------------------------------------------------------------------------------------------------------------------------------
         ! Fore-aft damping controller, reducing the tower fore-aft vibrations using pitch
-        !
-        ! Variable declaration and initialization
-        !------------------------------------------------------------------------------------------------------------------------------
-        USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
         
         ! Local variables
         INTEGER(4) :: K    ! Integer used to loop through turbine blades

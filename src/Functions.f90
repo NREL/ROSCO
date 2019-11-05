@@ -7,10 +7,9 @@ USE Filters
 IMPLICIT NONE
 
 CONTAINS
-    !-------------------------------------------------------------------------------------------------------------------------------
-    ! Saturates inputValue. Makes sure it is not smaller than minValue and not larger than maxValue
+!-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION saturate(inputValue, minValue, maxValue)
-    !
+    ! Saturates inputValue. Makes sure it is not smaller than minValue and not larger than maxValue
 
         IMPLICIT NONE
 
@@ -21,10 +20,9 @@ CONTAINS
         saturate = MIN(MAX(inputValue,minValue), maxValue)
 
     END FUNCTION saturate
-    !-------------------------------------------------------------------------------------------------------------------------------
-    ! Saturates inputValue. Makes sure it is not smaller than minValue and not larger than maxValue
+!-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION ratelimit(inputSignal, inputSignalPrev, minRate, maxRate, DT)
-    !
+    ! Saturates inputValue. Makes sure it is not smaller than minValue and not larger than maxValue
         IMPLICIT NONE
 
         REAL(4), INTENT(IN)     :: inputSignal
@@ -32,7 +30,6 @@ CONTAINS
         REAL(4), INTENT(IN)     :: minRate
         REAL(4), INTENT(IN)     :: maxRate
         REAL(4), INTENT(IN)     :: DT
-        
         ! Local variables
         REAL(4)                 :: rate
 
@@ -41,12 +38,11 @@ CONTAINS
         ratelimit = inputSignalPrev + rate*DT                       ! Saturate the overall command using the rate limit
 
     END FUNCTION ratelimit
-    !-------------------------------------------------------------------------------------------------------------------------------
-    ! PI controller, with output saturation
+!-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, reset, inst)
-    !
-        IMPLICIT NONE
+    ! PI controller, with output saturation
 
+        IMPLICIT NONE
         ! Allocate Inputs
         REAL(4), INTENT(IN)         :: error
         REAL(4), INTENT(IN)         :: kp
@@ -56,8 +52,7 @@ CONTAINS
         REAL(4), INTENT(IN)         :: DT
         INTEGER(4), INTENT(INOUT)   :: inst
         REAL(4), INTENT(IN)         :: I0
-        LOGICAL, INTENT(IN)         :: reset
-        
+        LOGICAL, INTENT(IN)         :: reset     
         ! Allocate local variables
         INTEGER(4)                      :: i                                            ! Counter for making arrays
         REAL(4)                         :: PTerm                                        ! Proportional term
@@ -84,17 +79,18 @@ CONTAINS
         inst = inst + 1
         
     END FUNCTION PIController
-    !-------------------------------------------------------------------------------------------------------------------------------
-    ! interp1d 1-D interpolation (table lookup), xData should be monotonically increasing
+!-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION interp1d(xData, yData, xq)
-    !
+    ! interp1d 1-D interpolation (table lookup), xData should be monotonically increasing
+
         IMPLICIT NONE
-            ! Inputs
+        ! Inputs
         REAL(4), DIMENSION(:), INTENT(IN)       :: xData        ! Provided x data (vector), to be interpolated
         REAL(4), DIMENSION(:), INTENT(IN)       :: yData        ! Provided y data (vector), to be interpolated
         REAL(4), INTENT(IN)                     :: xq           ! x-value for which the y value has to be interpolated
         INTEGER(4)                              :: I            ! Iteration index
         
+        ! Interpolate
         IF (xq <= MINVAL(xData)) THEN
             interp1d = yData(1)
         ELSEIF (xq >= MAXVAL(xData)) THEN
@@ -111,9 +107,9 @@ CONTAINS
         END IF
         
     END FUNCTION interp1d
-    !-------------------------------------------------------------------------------------------------------------------------------
-    ! interp2d 2-D interpolation (table lookup). Query done using bilinear interpolation. 
+!-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION interp2d(xData, yData, zData, xq, yq)
+    ! interp2d 2-D interpolation (table lookup). Query done using bilinear interpolation. 
     ! Note that the interpolated matrix with associated query vectors may be different than "standard", - zData should be formatted accordingly
     ! - xData follows the matrix from left to right
     ! - yData follows the matrix from top to bottom
@@ -125,13 +121,13 @@ CONTAINS
     !       6| g    H   i
 
         IMPLICIT NONE
-            ! Inputs
+        ! Inputs
         REAL(4), DIMENSION(:),   INTENT(IN)     :: xData        ! Provided x data (vector), to find query point (should be monotonically increasing)
         REAL(4), DIMENSION(:),   INTENT(IN)     :: yData        ! Provided y data (vector), to find query point (should be monotonically increasing)
         REAL(4), DIMENSION(:,:), INTENT(IN)     :: zData        ! Provided z data (vector), to be interpolated
         REAL(4),                 INTENT(IN)     :: xq           ! x-value for which the z value has to be interpolated
         REAL(4),                 INTENT(IN)     :: yq           ! y-value for which the z value has to be interpolated
-            ! Allocate variables
+        ! Allocate variables
         INTEGER(4)                              :: i            ! Iteration index & query index, x-direction
         INTEGER(4)                              :: ii           ! Iteration index & second que .  ry index, x-direction
         INTEGER(4)                              :: j            ! Iteration index & query index, y-direction
@@ -196,97 +192,83 @@ CONTAINS
         i = i-1 ! move i back one
         
         ! ---- Do bilinear interpolation ----
-
-        !   Find values at corners 
+        ! Find values at corners 
         fQ(1,1) = zData(i,j)
         fQ(2,1) = zData(ii,j)
         fQ(1,2) = zData(i,jj)
         fQ(2,2) = zData(ii,jj)
-
-        ! fQ(1,1) = zData(size(yData) - i,j)
-        ! fQ(2,1) = zData(size(yData) - ii,j)
-        ! fQ(1,2) = zData(size(yData) - i,jj)
-        ! fQ(2,2) = zData(size(yData) - ii,jj)
-
-        ! !   Interpolate
+        ! Interpolate
         fxy1 = (xData(jj) - xq)/(xData(jj) - xData(j))*fQ(1,1) + (xq - xData(j))/(xData(jj) - xData(j))*fQ(2,1)
         fxy2 = (xData(jj) - xq)/(xData(jj) - xData(j))*fQ(1,2) + (xq - xData(j))/(xData(jj) - xData(j))*fQ(2,1)
         fxy = (yData(ii) - yq)/(yData(ii) - yData(i))*fxy1 + (yq - yData(i))/(yData(ii) - yData(i))*fxy2
 
         interp2d = fxy(1)
 
-
-        ! z = 1/(xData(ii) - xData(i)*(yData(jj) - yData(j))) * MATMUL( (/(xData(ii) - xq),(xq - xData(i))/), MATMUL( fQ , RESHAPE( (/ (yData(jj) - yq) , (yq - yData(j)) /),(/2,1/)) ) )
-        ! interp2d = z(1)
-
-
     END FUNCTION interp2d
-    !-------------------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------------------
+    FUNCTION matinv3(A) RESULT(B)
     ! Performs a direct calculation of the inverse of a 3×3 matrix.
     ! Source: http://fortranwiki.org/fortran/show/Matrix+inversion
-    FUNCTION matinv3(A) RESULT(B)
-    REAL(4), INTENT(IN) :: A(3,3)   !! Matrix
-    REAL(4)             :: B(3,3)   !! Inverse matrix
-    REAL(4)             :: detinv
+        REAL(4), INTENT(IN) :: A(3,3)   !! Matrix
+        REAL(4)             :: B(3,3)   !! Inverse matrix
+        REAL(4)             :: detinv
 
-    ! Calculate the inverse determinant of the matrix
-    detinv = 1/(A(1,1)*A(2,2)*A(3,3) - A(1,1)*A(2,3)*A(3,2)&
-              - A(1,2)*A(2,1)*A(3,3) + A(1,2)*A(2,3)*A(3,1)&
-              + A(1,3)*A(2,1)*A(3,2) - A(1,3)*A(2,2)*A(3,1))
+        ! Calculate the inverse determinant of the matrix
+        detinv = 1/(A(1,1)*A(2,2)*A(3,3) - A(1,1)*A(2,3)*A(3,2)&
+                - A(1,2)*A(2,1)*A(3,3) + A(1,2)*A(2,3)*A(3,1)&
+                + A(1,3)*A(2,1)*A(3,2) - A(1,3)*A(2,2)*A(3,1))
 
-    ! Calculate the inverse of the matrix
-    B(1,1) = +detinv * (A(2,2)*A(3,3) - A(2,3)*A(3,2))
-    B(2,1) = -detinv * (A(2,1)*A(3,3) - A(2,3)*A(3,1))
-    B(3,1) = +detinv * (A(2,1)*A(3,2) - A(2,2)*A(3,1))
-    B(1,2) = -detinv * (A(1,2)*A(3,3) - A(1,3)*A(3,2))
-    B(2,2) = +detinv * (A(1,1)*A(3,3) - A(1,3)*A(3,1))
-    B(3,2) = -detinv * (A(1,1)*A(3,2) - A(1,2)*A(3,1))
-    B(1,3) = +detinv * (A(1,2)*A(2,3) - A(1,3)*A(2,2))
-    B(2,3) = -detinv * (A(1,1)*A(2,3) - A(1,3)*A(2,1))
-    B(3,3) = +detinv * (A(1,1)*A(2,2) - A(1,2)*A(2,1))
+        ! Calculate the inverse of the matrix
+        B(1,1) = +detinv * (A(2,2)*A(3,3) - A(2,3)*A(3,2))
+        B(2,1) = -detinv * (A(2,1)*A(3,3) - A(2,3)*A(3,1))
+        B(3,1) = +detinv * (A(2,1)*A(3,2) - A(2,2)*A(3,1))
+        B(1,2) = -detinv * (A(1,2)*A(3,3) - A(1,3)*A(3,2))
+        B(2,2) = +detinv * (A(1,1)*A(3,3) - A(1,3)*A(3,1))
+        B(3,2) = -detinv * (A(1,1)*A(3,2) - A(1,2)*A(3,1))
+        B(1,3) = +detinv * (A(1,2)*A(2,3) - A(1,3)*A(2,2))
+        B(2,3) = -detinv * (A(1,1)*A(2,3) - A(1,3)*A(2,1))
+        B(3,3) = +detinv * (A(1,1)*A(2,2) - A(1,2)*A(2,1))
     END FUNCTION matinv3
-    !-------------------------------------------------------------------------------------------------------------------------------
-    ! Produces an identity matrix of size n x n
+!-------------------------------------------------------------------------------------------------------------------------------
     FUNCTION identity(n) RESULT(A)
-    ! Allocate variables
-    INTEGER, INTENT(IN)         :: n
-    REAL(4), DIMENSION(n, n)    :: A
-    INTEGER                     :: i
-    INTEGER                     :: j
+    ! Produces an identity matrix of size n x n
 
-    ! Build identity matrix 
-    DO i=1,n  
-        DO j = 1,n
-            IF (i == j) THEN 
-                A(i,j) = 1.0
-            ELSE
-                A(i,j) = 0.0
-            ENDIF
+        INTEGER, INTENT(IN)         :: n
+        REAL(4), DIMENSION(n, n)    :: A
+        INTEGER                     :: i
+        INTEGER                     :: j
+
+        ! Build identity matrix 
+        DO i=1,n  
+            DO j = 1,n
+                IF (i == j) THEN 
+                    A(i,j) = 1.0
+                ELSE
+                    A(i,j) = 0.0
+                ENDIF
+            ENDDO
         ENDDO
-    ENDDO
     
     END FUNCTION identity
-    !-------------------------------------------------------------------------------------------------------------------------------  
-    ! DF controller, with output saturation
+!-------------------------------------------------------------------------------------------------------------------------------  
     REAL FUNCTION DFController(error, Kd, Tf, DT, inst)
-    !
+    ! DF controller, with output saturation
+    
         IMPLICIT NONE
-
-            ! Inputs
+        ! Inputs
         REAL(4), INTENT(IN)     :: error
         REAL(4), INTENT(IN)     :: kd
         REAL(4), INTENT(IN)     :: tf
         REAL(4), INTENT(IN)     :: DT
         INTEGER(4), INTENT(IN)  :: inst
-        
-            ! Local
+        ! Local
         REAL(4)                         :: B                                    ! 
         INTEGER(4)                      :: i                                    ! Counter for making arrays
         REAL(4), DIMENSION(99), SAVE    :: errorLast = (/ (0, i=1,99) /)        ! 
         REAL(4), DIMENSION(99), SAVE    :: DFControllerLast = (/ (0, i=1,99) /) ! 
         INTEGER(4), DIMENSION(99), SAVE :: FirstCall = (/ (1, i=1,99) /)        ! First call of this function?
         
-            ! Initialize persistent variables/arrays, and set inital condition for integrator term
+        ! Initialize persistent variables/arrays, and set inital condition for integrator term
         ! IF (FirstCall(inst) == 1) THEN
             ! FirstCall(inst) = 0
         ! END IF
@@ -297,109 +279,95 @@ CONTAINS
         errorLast(inst) = error
         DFControllerLast(inst) = DFController
     END FUNCTION DFController
-    !-------------------------------------------------------------------------------------------------------------------------------
-    !The Coleman or d-q axis transformation transforms the root out of plane bending moments of each turbine blade
-    !to a direct axis and a quadrature axis
+!-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE ColemanTransform(rootMOOP, aziAngle, nHarmonic, axTOut, axYOut)
-    !...............................................................................................................................
+    ! The Coleman or d-q axis transformation transforms the root out of plane bending moments of each turbine blade
+    ! to a direct axis and a quadrature axis
 
         IMPLICIT NONE
-
-            ! Inputs
-
+        ! Inputs
         REAL(4), INTENT(IN)     :: rootMOOP(3)                      ! Root out of plane bending moments of each blade
         REAL(4), INTENT(IN)     :: aziAngle                         ! Rotor azimuth angle
         INTEGER(4), INTENT(IN)  :: nHarmonic                        ! The harmonic number, nP
-
-            ! Outputs
-
+        ! Outputs
         REAL(4), INTENT(OUT)    :: axTOut, axYOut               ! Direct axis and quadrature axis outputted by this transform
-
-            ! Local
-
+        ! Local
         REAL(4), PARAMETER      :: phi2 = 2.0/3.0*PI                ! Phase difference from first to second blade
         REAL(4), PARAMETER      :: phi3 = 4.0/3.0*PI                ! Phase difference from first to third blade
 
-            ! Body
-
+        ! Body
         axTOut  = 2.0/3.0 * (cos(nHarmonic*(aziAngle))*rootMOOP(1) + cos(nHarmonic*(aziAngle+phi2))*rootMOOP(2) + cos(nHarmonic*(aziAngle+phi3))*rootMOOP(3))
         axYOut  = 2.0/3.0 * (sin(nHarmonic*(aziAngle))*rootMOOP(1) + sin(nHarmonic*(aziAngle+phi2))*rootMOOP(2) + sin(nHarmonic*(aziAngle+phi3))*rootMOOP(3))
         
     END SUBROUTINE ColemanTransform
-    !-------------------------------------------------------------------------------------------------------------------------------
-    !The inverse Coleman or d-q axis transformation transforms the direct axis and quadrature axis
-    !back to root out of plane bending moments of each turbine blade
+!-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE ColemanTransformInverse(axTIn, axYIn, aziAngle, nHarmonic, aziOffset, PitComIPC)
-    !...............................................................................................................................
-
+    ! The inverse Coleman or d-q axis transformation transforms the direct axis and quadrature axis
+    ! back to root out of plane bending moments of each turbine blade
         IMPLICIT NONE
-
-            ! Inputs
-
+        ! Inputs
         REAL(4), INTENT(IN)     :: axTIn, axYIn         ! Direct axis and quadrature axis
         REAL(4), INTENT(IN)     :: aziAngle                     ! Rotor azimuth angle
         REAL(4), INTENT(IN)     :: aziOffset                    ! Phase shift added to the azimuth angle
         INTEGER(4), INTENT(IN)  :: nHarmonic                    ! The harmonic number, nP
-
-            ! Outputs
-
+        ! Outputs
         REAL(4), INTENT(OUT)    :: PitComIPC(3)                 ! Root out of plane bending moments of each blade
-
-            ! Local
-
+        ! Local
         REAL(4), PARAMETER      :: phi2 = 2.0/3.0*PI                ! Phase difference from first to second blade
         REAL(4), PARAMETER      :: phi3 = 4.0/3.0*PI                ! Phase difference from first to third blade
 
-            ! Body
-
+        ! Body
         PitComIPC(1) = cos(nHarmonic*(aziAngle+aziOffset))*axTIn + sin(nHarmonic*(aziAngle+aziOffset))*axYIn
         PitComIPC(2) = cos(nHarmonic*(aziAngle+aziOffset+phi2))*axTIn + sin(nHarmonic*(aziAngle+aziOffset+phi2))*axYIn
         PitComIPC(3) = cos(nHarmonic*(aziAngle+aziOffset+phi3))*axTIn + sin(nHarmonic*(aziAngle+aziOffset+phi3))*axYIn
 
     END SUBROUTINE ColemanTransformInverse
-    !-------------------------------------------------------------------------------------------------------------------------------
-    !Paremeterized Cp(lambda) function for a fixed pitch angle. Circumvents the need of importing a look-up table
+!-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION CPfunction(CP, lambda)
+    ! Paremeterized Cp(lambda) function for a fixed pitch angle. Circumvents the need of importing a look-up table
         IMPLICIT NONE
         
         ! Inputs
         REAL(4), INTENT(IN) :: CP(4)    ! Parameters defining the parameterizable Cp(lambda) function
         REAL(4), INTENT(IN) :: lambda    ! Estimated or measured tip-speed ratio input
         
+        ! Lookup
         CPfunction = exp(-CP(1)/lambda)*(CP(2)/lambda-CP(3))+CP(4)*lambda
         CPfunction = saturate(CPfunction, 0.001, 1.0)
         
     END FUNCTION CPfunction
-    !-------------------------------------------------------------------------------------------------------------------------------
-    !Function for computing the aerodynamic torque, divided by the effective rotor torque of the turbine, for use in wind speed estimation
+!-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION AeroDynTorque(LocalVar, CntrPar, PerfData)
-        USE DRC_Types, ONLY : LocalVariables, ControlParameters, PerformanceData
+    ! Function for computing the aerodynamic torque, divided by the effective rotor torque of the turbine, for use in wind speed estimation
+        
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, PerformanceData
         IMPLICIT NONE
     
-            ! Inputs
+        ! Inputs
         TYPE(ControlParameters), INTENT(IN) :: CntrPar
         TYPE(LocalVariables), INTENT(IN) :: LocalVar
         TYPE(PerformanceData), INTENT(IN) :: PerfData
             
-            ! Local
+        ! Local
         REAL(4) :: RotorArea
         REAL(4) :: Cp
         REAL(4) :: Lambda
         
+        ! Find Torque
         RotorArea = PI*CntrPar%WE_BladeRadius**2
         Lambda = LocalVar%RotSpeed*CntrPar%WE_BladeRadius/LocalVar%WE_Vw
         ! Cp = CPfunction(CntrPar%WE_CP, Lambda)
         Cp = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%BlPitch(1)*R2D, Lambda)
-
         AeroDynTorque = 0.5*(CntrPar%WE_RhoAir*RotorArea)*(LocalVar%WE_Vw**3/LocalVar%RotSpeed)*Cp
         AeroDynTorque = MAX(AeroDynTorque, 0.0)
         
-
     END FUNCTION AeroDynTorque
-    !-------------------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE Debug(LocalVar, CntrPar, avrSWAP, RootName, size_avcOUTNAME)
+    ! Debug routine, defines what gets printed to DEBUG.dbg if LoggingLevel = 1
+    
         USE, INTRINSIC  :: ISO_C_Binding
-        USE DRC_Types, ONLY : LocalVariables, ControlParameters
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters
         
         IMPLICIT NONE
     
@@ -415,9 +383,7 @@ CONTAINS
         REAL(C_FLOAT), INTENT(INOUT)                :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         CHARACTER(size_avcOUTNAME-1), INTENT(IN)    :: RootName     ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
         
-        !..............................................................................................................................
-        ! Initializing debug file
-        !..............................................................................................................................
+        ! Initialize debug file
         IF (LocalVar%iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
         ! If we're debugging, open the debug file and write the header:
             IF (CntrPar%LoggingLevel > 0) THEN
@@ -460,6 +426,4 @@ CONTAINS
             !PRINT *, LocalVar%TestType
         END IF
     END SUBROUTINE Debug
-    !-------------------------------------------------------------------------------------------------------------------------------
-
 END MODULE Functions

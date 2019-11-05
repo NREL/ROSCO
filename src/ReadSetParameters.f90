@@ -11,7 +11,7 @@ CONTAINS
     ! -----------------------------------------------------------------------------------
     ! Read all constant control parameters from DISCON.IN parameter file
     SUBROUTINE ReadControlParameterFileSub(CntrPar)
-        USE DRC_Types, ONLY : ControlParameters
+        USE ROSCO_Types, ONLY : ControlParameters
 
         INTEGER(4), PARAMETER :: UnControllerParameters = 89
         TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
@@ -177,11 +177,12 @@ CONTAINS
         
         !------------------- HOUSEKEEPING -----------------------
         CntrPar%PerfFileName = TRIM(CntrPar%PerfFileName)
+
     END SUBROUTINE ReadControlParameterFileSub
     ! -----------------------------------------------------------------------------------
     ! Calculate setpoints for primary control actions    
     SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
-        USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
         
         ! Allocate variables
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
@@ -239,7 +240,7 @@ CONTAINS
     ! -----------------------------------------------------------------------------------
     ! Read avrSWAP array passed from ServoDyn    
     SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar)
-        USE DRC_Types, ONLY : LocalVariables
+        USE ROSCO_Types, ONLY : LocalVariables
     
         REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
@@ -272,7 +273,7 @@ CONTAINS
     ! Check for errors before any execution
     SUBROUTINE Assert(LocalVar, CntrPar, avrSWAP, aviFAIL, ErrMsg, size_avcMSG)
         USE, INTRINSIC :: ISO_C_Binding
-        USE DRC_Types, ONLY : LocalVariables, ControlParameters
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters
     
         IMPLICIT NONE
     
@@ -420,11 +421,12 @@ CONTAINS
             aviFAIL = -1
             ErrMsg  = 'IPC enabled, but Ptch_Cntrl in ServoDyn has a value of 0. Set it to 1.'
         ENDIF
+
     END SUBROUTINE Assert
     ! -----------------------------------------------------------------------------------
     ! Define parameters for control actions
     SUBROUTINE SetParameters(avrSWAP, aviFAIL, ErrMsg, size_avcMSG, CntrPar, LocalVar, objInst, PerfData)
-        USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData
         
         INTEGER(4), INTENT(IN) :: size_avcMSG
         TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
@@ -467,16 +469,21 @@ CONTAINS
             
             ! Inform users that we are using this user-defined routine:
             aviFAIL = 1
-            ErrMsg = '                                                          '//NEW_LINE('A')// &
-                     'Running the Delft Research Controller (DRC)               '//NEW_LINE('A')// &
-                     'A wind turbine controller for use in the scientific field '//NEW_LINE('A')// &
-                     'Written by S.P. Mulders, Jan-Willem van Wingerden         '//NEW_LINE('A')// &
-                     'Delft University of Technology, The Netherlands           '//NEW_LINE('A')// &
-                     'Visit our GitHub-page to contribute to this project:      '//NEW_LINE('A')// &
-                     'https://github.com/TUDelft-DataDrivenControl              '
-            
+            ErrMsg = '                                                                              '//NEW_LINE('A')// &
+                     '------------------------------------------------------------------------------'//NEW_LINE('A')// &
+                     'Running a controller implemented through NREL''s ROSCO Toolbox                    '//NEW_LINE('A')// &
+                     'A wind turbine controller framework for public use in the scientific field    '//NEW_LINE('A')// &
+                     'Developed in collaboration: National Renewable Energy Lab                     '//NEW_LINE('A')// &
+                     '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
+                     'Primary development by (listed alphabetically): Nikhar J. Abbas               '//NEW_LINE('A')// &
+                     '                                                Sebastiaan P. Mulders         '//NEW_LINE('A')// &
+                     '                                                Jan-Willem van Wingerden      '//NEW_LINE('A')// &
+                     'Visit our GitHub-page to contribute to this project:                          '//NEW_LINE('A')// &
+                     'https://github.com/NREL/ROSCO                                                 '//NEW_LINE('A')// &
+                     '------------------------------------------------------------------------------'
+
             CALL ReadControlParameterFileSub(CntrPar)
-            
+
             IF (CntrPar%WE_Mode > 0) THEN
                 CALL READCpFile(CntrPar,PerfData)
             ENDIF
@@ -502,17 +509,17 @@ CONTAINS
             ! Generator Torque at K omega^2
             LocalVar%GenTq = min(CntrPar%VS_RtTq, CntrPar%VS_Rgn2K*LocalVar%GenSpeed*LocalVar%GenSpeed)
             LocalVar%VS_LastGenTrq = LocalVar%GenTq       
-            print *,'Initial GenTq = ', LocalVar%GenTq 
-
+            
             ! Check validity of input parameters:
             CALL Assert(LocalVar, CntrPar, avrSWAP, aviFAIL, ErrMsg, size_avcMSG)
             
+
         ENDIF
     END SUBROUTINE SetParameters
     ! -----------------------------------------------------------------------------------
     ! Read all constant control parameters from DISCON.IN parameter file
     SUBROUTINE ReadCpFile(CntrPar,PerfData)
-        USE DRC_Types, ONLY : PerformanceData, ControlParameters
+        USE ROSCO_Types, ONLY : PerformanceData, ControlParameters
 
         INTEGER(4), PARAMETER :: UnPerfParameters = 89
         TYPE(PerformanceData), INTENT(INOUT) :: PerfData
@@ -522,6 +529,9 @@ CONTAINS
         OPEN(unit=UnPerfParameters, file=TRIM(CntrPar%PerfFileName), status='old', action='read') ! Should put input file into DISCON.IN
         
         ! ----------------------- Axis Definitions ------------------------
+        READ(UnPerfParameters, *)
+        READ(UnPerfParameters, *)
+        READ(UnPerfParameters, *)
         READ(UnPerfParameters, *)
         ALLOCATE(PerfData%Beta_vec(CntrPar%PerfTableSize(1)))
         READ(UnPerfParameters, *) PerfData%Beta_vec

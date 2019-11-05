@@ -1,5 +1,5 @@
-MODULE DRC_Types
-
+MODULE ROSCO_Types
+! Define Types
 IMPLICIT NONE
 
 TYPE, PUBLIC :: ControlParameters
@@ -175,4 +175,4 @@ TYPE, PUBLIC :: PerformanceData
     REAL(4), DIMENSION(:,:), ALLOCATABLE    :: Cq_mat
 END TYPE PerformanceData
 
-END MODULE DRC_Types
+END MODULE ROSCO_Types
