@@ -249,8 +249,6 @@ CONTAINS
         LocalVar%iStatus = NINT(avrSWAP(1))
         LocalVar%Time = avrSWAP(2)
         LocalVar%DT = avrSWAP(3)
-        ! LocalVar%BlPitch(1) = avrSWAP(4)
-        LocalVar%BlPitch(1) = LocalVar%PitCom(1)
         LocalVar%VS_MechGenPwr = avrSWAP(14)
         LocalVar%VS_GenPwr = avrSWAP(15)
         LocalVar%GenSpeed = avrSWAP(20)
@@ -261,13 +259,21 @@ CONTAINS
         LocalVar%rootMOOP(1) = avrSWAP(30)
         LocalVar%rootMOOP(2) = avrSWAP(31)
         LocalVar%rootMOOP(3) = avrSWAP(32)
-        ! LocalVar%BlPitch(2) = avrSWAP(33)
-        ! LocalVar%BlPitch(3) = avrSWAP(34)
-        LocalVar%BlPitch(2) = LocalVar%PitCom(2)
-        LocalVar%BlPitch(3) = LocalVar%PitCom(3)
         LocalVar%FA_Acc = avrSWAP(53)
         LocalVar%Azimuth = avrSWAP(60)
         LocalVar%NumBl = NINT(avrSWAP(61))
+
+        ! NJA: I think we need to feed back the previous pitch command, rather than use avrSWAP for numerical stability
+        IF (LocalVar%iStatus == 0) THEN
+            LocalVar%BlPitch(1) = avrSWAP(4)
+            LocalVar%BlPitch(2) = avrSWAP(33)
+            LocalVar%BlPitch(3) = avrSWAP(34)
+        ELSE
+            LocalVar%BlPitch(1) = LocalVar%PitCom(1)
+            LocalVar%BlPitch(2) = LocalVar%PitCom(2)
+            LocalVar%BlPitch(3) = LocalVar%PitCom(3)
+        ENDIF
+
     END SUBROUTINE ReadAvrSWAP
     ! -----------------------------------------------------------------------------------
     ! Check for errors before any execution
