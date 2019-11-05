@@ -9,7 +9,11 @@ set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 
 # Enable .dll export
 if(APPLE OR UNIX)
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT")
+  if (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT ")
+  else()
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -ffree-line-length-0")
+  endif()
 endif()
 
 set(SOURCES
