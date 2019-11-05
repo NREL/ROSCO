@@ -1,21 +1,24 @@
-! Turbine: DTU fixed bottom wind turbine
+! !!!!! OUTDATED !!!!! Turbine: DTU fixed bottom wind turbine 
 ! NJA - Might want to make a more formal header for this
 
 !------- DEBUG ------------------------------------------------------------
-0					! LoggingLevel		- 0 = write no debug files, 1 = write standard output .dbg-file, 2 = write standard output .dbg-file and complete avrSWAP-array .dbg2-file
+0					! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: write standard output .dbg-file and complete avrSWAP-array .dbg2-file
 
 !------- CONTROLLER FLAGS -------------------------------------------------
-2					! F_LPFType			- 1 = first-order low-pass filter, 2 = second-order low-pass filter
-0					! F_NotchType		- 0 = disable, 1 = enable: notch on the measured generator speed, 
-0					! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) 0 = off / 1 = (1P reductions) / 2 = (1P+2P reductions)
-1					! VS_ControlMode	- Generator torque control mode in above rated conditions, 0 = constant torque / 1 = constant power
-0					! Y_ControlMode		- Yaw control mode: (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC)
+2					! F_LPFType			- {1: first-order low-pass filter, 2: second-order low-pass filter}, [rad/s] (currently filters generator speed and pitch control signals)
+0					! F_NotchType		- Notch on the measured generator speed {0: disable, 1: enable} 
+0					! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {0: off, 1: 1P reductions, 2: 1P+2P reductions}
+1					! VS_ControlMode	- Generator torque control mode in above rated conditions {0: constant torque, 1: constant power}
+1                   ! PC_ControlMode    - Blade pitch control mode {0: No pitch, fix to fine pitch, 1: active PI blade pitch control}
+0					! Y_ControlMode		- Yaw control mode {0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}
+1                   ! SS_Mode           - Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
 
 !------- FILTERS ----------------------------------------------------------
-2.5132741			! F_LPFCornerFreq		- Corner frequency (-3dB point) in the low-pass filters, filtering generator speed and pitch control signals, [rad/s]
-0.7					! F_LPFDamping			- Damping coefficient if F_FilterType = 2, unused otherwise
+2.5132741			! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [Hz]
+0.7					! F_LPFDamping		- Damping coefficient [used only when F_FilterType = 2]
 0					! F_NotchCornerFreq	- Natural frequency of the notch filter, [rad/s]
-0	0				! F_NotchBetaNumDen	- These two notch damping values (numerator and denominator, resp) determines the width and depth of the notch [-]
+0	0				! F_NotchBetaNumDen	- Two notch damping values (numerator and denominator, resp) - determines the width and depth of the notch, [-]
+0.1                 ! F_SSCornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother, [Hz].
 
 !------- BLADE PITCH CONTROL ----------------------------------------------
 13					! PC_GS_n			- Amount of gain-scheduling table entries
@@ -39,10 +42,10 @@
 0.087266			! IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from IPC), [rad]
 8E-10 0				! IPC_KI			- Integral gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions [-]
 0.436332313	0		! IPC_aziOffset		- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. 
-2.5					! IPC_CornerFreqAct - Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal. Set 0 to disable. [rad/s]
+2.5					! IPC_CornerFreqAct - Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal {0: Disable}, [rad/s]
 
 !------- VS TORQUE CONTROL ------------------------------------------------
-0.944				! VS_GenEff			- Generator efficiency mechanical power -> electrical power, this should match the efficiency defined in the generator properties! [-]
+0.944				! VS_GenEff			- Generator efficiency mechanical power -> electrical power, [should match the efficiency defined in the generator properties!], [-]
 212900				! VS_ArSatTq		- Above rated generator torque PI control saturation, [Nm]
 150000.0			! VS_MaxRat			- Maximum torque rate (in absolute value) in torque controller, [Nm/s].
 250000.0			! VS_MaxTq			- Maximum generator torque in Region 3 (HSS side), [Nm].
@@ -56,12 +59,16 @@
 -27338.24			! VS_KP				- Proportional gain for generator PI torque controller, used in the transitional 2.5 region, [1/(rad/s) Nm]
 -6134.68 			! VS_KI				- Integral gain for generator PI torque controller, used in the transitional 2.5 region, [1/rad Nm]
 
+!------- Setpoint Smoother ------------------------------------------------
+30                  ! SS_VSGainBias     - Variable speed torque controller gain bias, [(rad/s)/rad]. ! These are values from the NREL5MW (though may still be okay)
+0.0001              ! SS_PCGainBias     - Collective pitch controller gain bias, [(rad/s)/Nm].
+
 !------- WIND SPEED ESTIMATOR ---------------------------------------------
 89.166				! WE_BladeRadius	- Blade length [m]
 4					! WE_CP_n			- Amount of parameters in the Cp array
 14.571319658214513	42.809556250371465	2.456512501523107	0.003127994078720		! WE_CP - Parameters that define the parameterized CP(lambda) function XXX Needs to be updated, these are values of the NREL5MW XXX
 20					! WE_Gamma			- Adaption gain of the wind speed estimator algorithm [m/rad]
-50					! WE_GearboxRatio	- Gearbox ratio, >=1  [-]
+50					! WE_GearboxRatio	- Gearbox ratio [>=1],  [-]
 2.0E+08				! WE_Jtot			- Total drivetrain inertia, including blades, hub and casted generator inertia to LSS [kg m^2]
 1.225				! WE_RhoAir			- Air density [kg m^-3]
 

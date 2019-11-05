@@ -2,6 +2,8 @@
 MODULE Functions
 
 USE Constants
+USE Filters
+
 IMPLICIT NONE
 
 CONTAINS
@@ -45,7 +47,7 @@ CONTAINS
     !
         IMPLICIT NONE
 
-        ! Inputs
+        ! Allocate Inputs
         REAL(4), INTENT(IN)         :: error
         REAL(4), INTENT(IN)         :: kp
         REAL(4), INTENT(IN)         :: ki
@@ -56,7 +58,7 @@ CONTAINS
         REAL(4), INTENT(IN)         :: I0
         LOGICAL, INTENT(IN)         :: reset
         
-        ! Local
+        ! Allocate local variables
         INTEGER(4)                      :: i                                            ! Counter for making arrays
         REAL(4)                         :: PTerm                                        ! Proportional term
         REAL(4), DIMENSION(99), SAVE    :: ITerm = (/ (real(9999.9), i = 1,99) /)       ! Integral term, current.
@@ -83,7 +85,7 @@ CONTAINS
         
     END FUNCTION PIController
     !-------------------------------------------------------------------------------------------------------------------------------
-    ! interp1 1-D interpolation (table lookup), xData and yData should be monotonically increasing
+    ! interp1d 1-D interpolation (table lookup), xData should be monotonically increasing
     REAL FUNCTION interp1d(xData, yData, xq)
     !
         IMPLICIT NONE
@@ -110,6 +112,161 @@ CONTAINS
         
     END FUNCTION interp1d
     !-------------------------------------------------------------------------------------------------------------------------------
+    ! interp2d 2-D interpolation (table lookup). Query done using bilinear interpolation. 
+    REAL FUNCTION interp2d(xData, yData, zData, xq, yq)
+    ! Note that the interpolated matrix with associated query vectors may be different than "standard", - zData should be formatted accordingly
+    ! - xData follows the matrix from left to right
+    ! - yData follows the matrix from top to bottom
+    ! A simple case: xData = [1 2 3], yData = [4 5 6]
+    !        | 1    2   3
+    !       -------------
+    !       4| a    b   c
+    !       5| d    e   f
+    !       6| g    H   i
+
+        IMPLICIT NONE
+            ! Inputs
+        REAL(4), DIMENSION(:),   INTENT(IN)     :: xData        ! Provided x data (vector), to find query point (should be monotonically increasing)
+        REAL(4), DIMENSION(:),   INTENT(IN)     :: yData        ! Provided y data (vector), to find query point (should be monotonically increasing)
+        REAL(4), DIMENSION(:,:), INTENT(IN)     :: zData        ! Provided z data (vector), to be interpolated
+        REAL(4),                 INTENT(IN)     :: xq           ! x-value for which the z value has to be interpolated
+        REAL(4),                 INTENT(IN)     :: yq           ! y-value for which the z value has to be interpolated
+            ! Allocate variables
+        INTEGER(4)                              :: i            ! Iteration index & query index, x-direction
+        INTEGER(4)                              :: ii           ! Iteration index & second que .  ry index, x-direction
+        INTEGER(4)                              :: j            ! Iteration index & query index, y-direction
+        INTEGER(4)                              :: jj           ! Iteration index & second query index, y-direction
+        REAL(4), DIMENSION(2,2)                 :: fQ           ! zData value at query points for bilinear interpolation            
+        REAL(4), DIMENSION(1)                   :: fxy           ! Interpolated z-data point to be returned
+        REAL(4)                                 :: fxy1          ! zData value at query point for bilinear interpolation            
+        REAL(4)                                 :: fxy2          ! zData value at query point for bilinear interpolation            
+        
+        ! ---- Find corner indices surrounding desired interpolation point -----
+            ! x-direction
+        IF (xq <= MINVAL(xData)) THEN       ! On lower x-bound, just need to find zData(yq)
+            j = 1
+            jj = 1
+            interp2d = interp1d(yData,zData(:,j),yq)
+            RETURN
+        ELSEIF (xq >= MAXVAL(xData)) THEN   ! On upper x-bound, just need to find zData(yq)
+            j = size(xData)
+            jj = size(xData)
+            interp2d = interp1d(yData,zData(:,j),yq)
+            RETURN
+        ELSE
+            DO j = 1,size(xData)            ! On axis, just need 1d interpolation
+                IF (xq == xData(j)) THEN
+                    jj = j
+                    interp2d = interp1d(yData,zData(:,j),yq)
+                    RETURN
+                ELSEIF (xq <= xData(j)) THEN
+                    jj = j
+                    EXIT
+                ELSE
+                    CONTINUE
+                END IF
+            END DO
+        ENDIF
+        j = j-1 ! Move j back one
+            ! y-direction
+        IF (yq <= MINVAL(yData)) THEN       ! On lower y-bound, just need to find zData(xq)
+            i = 1
+            ii = 1
+            interp2d = interp1d(xData,zData(i,:),xq)
+            RETURN
+        ELSEIF (yq >= MAXVAL(yData)) THEN   ! On upper y-bound, just need to find zData(xq)
+            i = size(yData)
+            ii = size(yData)
+            interp2d = interp1d(xData,zData(i,:),xq)
+            RETURN
+        ELSE
+            DO i = 1,size(yData)
+                IF (yq == yData(i)) THEN    ! On axis, just need 1d interpolation
+                    ii = i
+                    interp2d = interp1d(yData,zData(i,:),xq)
+                    RETURN
+                ELSEIF (yq <= yData(i)) THEN
+                    ii = i
+                    EXIT
+                ELSE
+                    CONTINUE
+                END IF
+            END DO
+        ENDIF
+        i = i-1 ! move i back one
+        
+        ! ---- Do bilinear interpolation ----
+
+        !   Find values at corners 
+        fQ(1,1) = zData(i,j)
+        fQ(2,1) = zData(ii,j)
+        fQ(1,2) = zData(i,jj)
+        fQ(2,2) = zData(ii,jj)
+
+        ! fQ(1,1) = zData(size(yData) - i,j)
+        ! fQ(2,1) = zData(size(yData) - ii,j)
+        ! fQ(1,2) = zData(size(yData) - i,jj)
+        ! fQ(2,2) = zData(size(yData) - ii,jj)
+
+        ! !   Interpolate
+        fxy1 = (xData(jj) - xq)/(xData(jj) - xData(j))*fQ(1,1) + (xq - xData(j))/(xData(jj) - xData(j))*fQ(2,1)
+        fxy2 = (xData(jj) - xq)/(xData(jj) - xData(j))*fQ(1,2) + (xq - xData(j))/(xData(jj) - xData(j))*fQ(2,1)
+        fxy = (yData(ii) - yq)/(yData(ii) - yData(i))*fxy1 + (yq - yData(i))/(yData(ii) - yData(i))*fxy2
+
+        interp2d = fxy(1)
+
+
+        ! z = 1/(xData(ii) - xData(i)*(yData(jj) - yData(j))) * MATMUL( (/(xData(ii) - xq),(xq - xData(i))/), MATMUL( fQ , RESHAPE( (/ (yData(jj) - yq) , (yq - yData(j)) /),(/2,1/)) ) )
+        ! interp2d = z(1)
+
+
+    END FUNCTION interp2d
+    !-------------------------------------------------------------------------------------------------------------------------------
+    ! Performs a direct calculation of the inverse of a 3×3 matrix.
+    ! Source: http://fortranwiki.org/fortran/show/Matrix+inversion
+    FUNCTION matinv3(A) RESULT(B)
+    REAL(4), INTENT(IN) :: A(3,3)   !! Matrix
+    REAL(4)             :: B(3,3)   !! Inverse matrix
+    REAL(4)             :: detinv
+
+    ! Calculate the inverse determinant of the matrix
+    detinv = 1/(A(1,1)*A(2,2)*A(3,3) - A(1,1)*A(2,3)*A(3,2)&
+              - A(1,2)*A(2,1)*A(3,3) + A(1,2)*A(2,3)*A(3,1)&
+              + A(1,3)*A(2,1)*A(3,2) - A(1,3)*A(2,2)*A(3,1))
+
+    ! Calculate the inverse of the matrix
+    B(1,1) = +detinv * (A(2,2)*A(3,3) - A(2,3)*A(3,2))
+    B(2,1) = -detinv * (A(2,1)*A(3,3) - A(2,3)*A(3,1))
+    B(3,1) = +detinv * (A(2,1)*A(3,2) - A(2,2)*A(3,1))
+    B(1,2) = -detinv * (A(1,2)*A(3,3) - A(1,3)*A(3,2))
+    B(2,2) = +detinv * (A(1,1)*A(3,3) - A(1,3)*A(3,1))
+    B(3,2) = -detinv * (A(1,1)*A(3,2) - A(1,2)*A(3,1))
+    B(1,3) = +detinv * (A(1,2)*A(2,3) - A(1,3)*A(2,2))
+    B(2,3) = -detinv * (A(1,1)*A(2,3) - A(1,3)*A(2,1))
+    B(3,3) = +detinv * (A(1,1)*A(2,2) - A(1,2)*A(2,1))
+    END FUNCTION matinv3
+    !-------------------------------------------------------------------------------------------------------------------------------
+    ! Produces an identity matrix of size n x n
+    FUNCTION identity(n) RESULT(A)
+    ! Allocate variables
+    INTEGER, INTENT(IN)         :: n
+    REAL(4), DIMENSION(n, n)    :: A
+    INTEGER                     :: i
+    INTEGER                     :: j
+
+    ! Build identity matrix 
+    DO i=1,n  
+        DO j = 1,n
+            IF (i == j) THEN 
+                A(i,j) = 1.0
+            ELSE
+                A(i,j) = 0.0
+            ENDIF
+        ENDDO
+    ENDDO
+    
+    END FUNCTION identity
+    !-------------------------------------------------------------------------------------------------------------------------------  
     ! DF controller, with output saturation
     REAL FUNCTION DFController(error, Kd, Tf, DT, inst)
     !
@@ -140,131 +297,6 @@ CONTAINS
         errorLast(inst) = error
         DFControllerLast(inst) = DFController
     END FUNCTION DFController
-    !-------------------------------------------------------------------------------------------------------------------------------
-    ! State machines, determines the state of the wind turbine to determine the corresponding control actions
-    ! States:
-    ! - VS/PC_State = 0, Error state, for debugging purposes (VS) / No pitch control active, pitch constant at fine-pitch (PC)
-    ! - VS_State = 1, Region 1(.5) operation, torque control to keep the rotor at cut-in speed towards the Cp-max operational curve
-    ! - VS_State = 2, Region 2, operation, maximum rotor power efficiency (Cp-max) tracking, keep TSR constant at a fixed fine-pitch angle
-    ! - VS_State = 3, Region 2.5, transition between below and above-rated operating conditions (near-rated region) using PI torque control
-    ! - VS_State = 4 + PC_State = 1, above-rated operation using pitch control (constant torque mode)
-    ! - VS_State = 5 + PC_State = 2, above-rated operation using pitch and torque control (constant power mode)
-    SUBROUTINE StateMachine(CntrPar, LocalVar)
-        USE DRC_Types, ONLY : LocalVariables, ControlParameters
-        IMPLICIT NONE
-    
-            ! Inputs
-        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
-        
-            ! Local
-            ! Pitch control state machine
-        IF (LocalVar%iStatus == 0) THEN
-            IF (LocalVar%PitCom(1) >= CntrPar%VS_Rgn3Pitch) THEN ! We are in region 3
-                IF (CntrPar%VS_ControlMode == 1) THEN ! Constant power tracking
-                    LocalVar%VS_State = 5
-                    LocalVar%PC_State = 2
-                ELSE ! Constant torque tracking
-                    LocalVar%VS_State = 4
-                    LocalVar%PC_State = 1
-                END IF
-            ELSE
-                LocalVar%VS_State = 2
-                LocalVar%PC_State = 0
-            END IF
-        ELSE
-            IF ((CntrPar%VS_ControlMode == 0) .AND. (LocalVar%GenTq >= CntrPar%PC_RtTq99)) THEN
-                LocalVar%PC_State = 1
-            ELSEIF ((CntrPar%VS_ControlMode == 1) .AND. (LocalVar%GenArTq >= CntrPar%VS_ArSatTq*0.99)) THEN
-                LocalVar%PC_State = 2
-            ELSE
-                LocalVar%PC_State = 0
-            END IF
-            
-                ! Torque control state machine
-            IF (LocalVar%PC_PitComT >= CntrPar%VS_Rgn3Pitch) THEN ! We are in region 3 ! 
-                IF (CntrPar%VS_ControlMode == 1) THEN ! Constant power tracking
-                    LocalVar%VS_State = 5
-                ELSE ! Constant torque tracking
-                    LocalVar%VS_State = 4
-                END IF
-            ELSE
-                IF (LocalVar%GenArTq >= CntrPar%VS_MaxOMTq*1.01) THEN ! We are in region 2 1/2 - active PI torque control
-                    LocalVar%VS_State = 3
-                ELSEIF (LocalVar%GenBrTq <= CntrPar%VS_MinOMTq*0.99) THEN ! We are in region 1 1/2
-                    LocalVar%VS_State = 1
-                ELSEIF (LocalVar%GenSpeedF < CntrPar%VS_RefSpd)  THEN ! We are in region 2 - optimal torque is proportional to the square of the generator speed
-                    LocalVar%VS_State = 2
-                ELSE ! Error state, for debugging purposes
-                    LocalVar%VS_State = 0
-                END IF
-            END IF
-        END IF
-    END SUBROUTINE StateMachine
-    !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE Debug(LocalVar, CntrPar, avrSWAP, RootName, size_avcOUTNAME)
-        USE, INTRINSIC  :: ISO_C_Binding
-        USE DRC_Types, ONLY : LocalVariables, ControlParameters
-        
-        IMPLICIT NONE
-    
-        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
-        TYPE(LocalVariables), INTENT(IN)        :: LocalVar
-    
-        INTEGER(4), INTENT(IN)                      :: size_avcOUTNAME
-        INTEGER(4)                                  :: I                ! Generic index.
-        CHARACTER(1), PARAMETER                     :: Tab = CHAR(9)                        ! The tab character.
-        CHARACTER(25), PARAMETER                    :: FmtDat = "(F8.3,99('"//Tab//"',ES10.3E2,:))  "   ! The format of the debugging data
-        INTEGER(4), PARAMETER                       :: UnDb = 85        ! I/O unit for the debugging information
-        INTEGER(4), PARAMETER                       :: UnDb2 = 86       ! I/O unit for the debugging information, avrSWAP
-        REAL(C_FLOAT), INTENT(INOUT)                :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
-        CHARACTER(size_avcOUTNAME-1), INTENT(IN)    :: RootName     ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
-        
-        !..............................................................................................................................
-        ! Initializing debug file
-        !..............................................................................................................................
-        IF (LocalVar%iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
-        ! If we're debugging, open the debug file and write the header:
-            IF (CntrPar%LoggingLevel > 0) THEN
-                !OPEN(unit=UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='NEW')
-                OPEN(unit=UnDb, FILE='DEBUG.dbg')
-                WRITE (UnDb,'(A)')  '   LocalVar%Time '  //Tab//'LocalVar%FA_Acc  '//Tab//'LocalVar%FA_AccHPF  '//Tab//'LocalVar%FA_AccHPFI  '//Tab//'LocalVar%PitCom  '
-                WRITE (UnDb,'(A)')  '   (sec) ' //Tab//'(m/s^2)    ' //Tab//'(m/s^2)    ' //Tab//'(m/s)    ' //Tab//'(rad)    '
-                !WRITE (UnDb,'(A)') '   LocalVar%Time '  //Tab//'LocalVar%PC_PitComT  ' //Tab//'LocalVar%PC_SpdErr  ' //Tab//'LocalVar%PC_KP ' //Tab//'LocalVar%PC_KI  ' //Tab//'LocalVar%Y_M  ' //Tab//'LocalVar%rootMOOP(1)  '//Tab//'VS_RtPwr  '//Tab//'LocalVar%GenTq'
-                !WRITE (UnDb,'(A)') '   (sec) ' //Tab//'(rad)    '  //Tab//'(rad/s) '//Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   ' //Tab//'(?)   ' //Tab//'(W)   '//Tab//'(Nm)  '
-            END IF
-            
-            IF (CntrPar%LoggingLevel > 1) THEN
-                !OPEN(UnDb2, FILE=TRIM(RootName)//'.dbg2', STATUS='REPLACE')
-                OPEN(unit=UnDb2, FILE='DEBUG2.dbg')
-                WRITE(UnDb2,'(/////)')
-                WRITE(UnDb2,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1,85)
-                WRITE(UnDb2,'(A,85("'//Tab//'(-)"))')  '(s)'
-            END IF
-        ELSE
-            ! Print simulation status, every 10 seconds
-            IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
-                WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0, LocalVar%WE_Vw ! LocalVar%Time !/1000.0
-                100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')
-                ! PRINT *, LocalVar%PC_State, LocalVar%VS_State, CntrPar%VS_Rgn3Pitch, CntrPar%PC_FinePit, CntrPar%PC_Switch, LocalVar%BlPitch(1) ! Additional debug info
-                ! PRINT *, LocalVar%RotSpeed
-            END IF
-            
-            ! Output debugging information if requested:
-            IF (CntrPar%LoggingLevel > 0) THEN
-                WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%FA_Acc, LocalVar%FA_AccHPF, LocalVar%FA_AccHPFI, LocalVar%PitCom
-            END IF
-            
-            IF (CntrPar%LoggingLevel > 1) THEN
-                WRITE (UnDb2,FmtDat)    LocalVar%Time, avrSWAP(1:85)
-            END IF
-        END IF
-        
-        IF (MODULO(LocalVar%Time, 10.0) == 0.0) THEN
-            !LocalVar%TestType = LocalVar%TestType + 10
-            !PRINT *, LocalVar%TestType
-        END IF
-    END SUBROUTINE Debug
     !-------------------------------------------------------------------------------------------------------------------------------
     !The Coleman or d-q axis transformation transforms the root out of plane bending moments of each turbine blade
     !to a direct axis and a quadrature axis
@@ -340,13 +372,14 @@ CONTAINS
     END FUNCTION CPfunction
     !-------------------------------------------------------------------------------------------------------------------------------
     !Function for computing the aerodynamic torque, divided by the effective rotor torque of the turbine, for use in wind speed estimation
-    REAL FUNCTION AeroDynTorque(LocalVar, CntrPar)
-        USE DRC_Types, ONLY : LocalVariables, ControlParameters
+    REAL FUNCTION AeroDynTorque(LocalVar, CntrPar, PerfData)
+        USE DRC_Types, ONLY : LocalVariables, ControlParameters, PerformanceData
         IMPLICIT NONE
     
             ! Inputs
         TYPE(ControlParameters), INTENT(IN) :: CntrPar
         TYPE(LocalVariables), INTENT(IN) :: LocalVar
+        TYPE(PerformanceData), INTENT(IN) :: PerfData
             
             ! Local
         REAL(4) :: RotorArea
@@ -355,27 +388,78 @@ CONTAINS
         
         RotorArea = PI*CntrPar%WE_BladeRadius**2
         Lambda = LocalVar%RotSpeed*CntrPar%WE_BladeRadius/LocalVar%WE_Vw
-        Cp = CPfunction(CntrPar%WE_CP, Lambda)
-        
+        ! Cp = CPfunction(CntrPar%WE_CP, Lambda)
+        Cp = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%BlPitch(1)*R2D, Lambda)
+
         AeroDynTorque = 0.5*(CntrPar%WE_RhoAir*RotorArea)*(LocalVar%WE_Vw**3/LocalVar%RotSpeed)*Cp
         AeroDynTorque = MAX(AeroDynTorque, 0.0)
         
+
     END FUNCTION AeroDynTorque
     !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE WindSpeedEstimator(LocalVar, CntrPar)
+    SUBROUTINE Debug(LocalVar, CntrPar, avrSWAP, RootName, size_avcOUTNAME)
+        USE, INTRINSIC  :: ISO_C_Binding
         USE DRC_Types, ONLY : LocalVariables, ControlParameters
+        
         IMPLICIT NONE
     
-        ! Inputs
-        TYPE(ControlParameters), INTENT(IN) :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT) :: LocalVar 
+        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
+        TYPE(LocalVariables), INTENT(IN)        :: LocalVar
+    
+        INTEGER(4), INTENT(IN)                      :: size_avcOUTNAME
+        INTEGER(4)                                  :: I                ! Generic index.
+        CHARACTER(1), PARAMETER                     :: Tab = CHAR(9)                        ! The tab character.
+        CHARACTER(25), PARAMETER                    :: FmtDat = "(F8.3,99('"//Tab//"',ES10.3E2,:))  "   ! The format of the debugging data
+        INTEGER(4), PARAMETER                       :: UnDb = 85        ! I/O unit for the debugging information
+        INTEGER(4), PARAMETER                       :: UnDb2 = 86       ! I/O unit for the debugging information, avrSWAP
+        REAL(C_FLOAT), INTENT(INOUT)                :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
+        CHARACTER(size_avcOUTNAME-1), INTENT(IN)    :: RootName     ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
         
-        ! Body
-        LocalVar%WE_VwIdot = CntrPar%WE_Gamma/CntrPar%WE_Jtot*(LocalVar%VS_LastGenTrq*CntrPar%WE_GearboxRatio - AeroDynTorque(LocalVar, CntrPar))
+        !..............................................................................................................................
+        ! Initializing debug file
+        !..............................................................................................................................
+        IF (LocalVar%iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
+        ! If we're debugging, open the debug file and write the header:
+            IF (CntrPar%LoggingLevel > 0) THEN
+                !OPEN(unit=UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='NEW')
+                OPEN(unit=UnDb, FILE='DEBUG.dbg')
+                WRITE (UnDb,'(A)')  '   Time '  //Tab//' WE_TowerTop    ' //Tab//' WE_Vw    '  //Tab//' SS_DelOmega    ' 
+                WRITE (UnDb,'(A)')  '   (sec) '  //Tab//'(m/s) ' //Tab//'(rad) '
+                !WRITE (UnDb,'(A)') '   LocalVar%Time '  //Tab//'LocalVar%PC_PitComT  ' //Tab//'LocalVar%PC_SpdErr  ' //Tab//'LocalVar%PC_KP ' //Tab//'LocalVar%PC_KI  ' //Tab//'LocalVar%Y_M  ' //Tab//'LocalVar%rootMOOP(1)  '//Tab//'VS_RtPwr  '//Tab//'LocalVar%GenTq'
+                !WRITE (UnDb,'(A)') '   (sec) ' //Tab//'(rad)    '  //Tab//'(rad/s) '//Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   ' //Tab//'(?)   ' //Tab//'(W)   '//Tab//'(Nm)  '
+            END IF
+            
+            IF (CntrPar%LoggingLevel > 1) THEN
+                !OPEN(UnDb2, FILE=TRIM(RootName)//'.dbg2', STATUS='REPLACE')
+                OPEN(unit=UnDb2, FILE='DEBUG2.dbg')
+                WRITE(UnDb2,'(/////)')
+                WRITE(UnDb2,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1,85)
+                WRITE(UnDb2,'(A,85("'//Tab//'(-)"))')  '(s)'
+            END IF
+        ELSE
+            ! Print simulation status, every 10 seconds
+            IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
+                WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0, LocalVar%WE_Vw ! LocalVar%Time !/1000.0
+                100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')
+                ! PRINT *, LocalVar%PC_State, LocalVar%VS_State, CntrPar%VS_Rgn3Pitch, CntrPar%PC_FinePit, CntrPar%PC_Switch, LocalVar%BlPitch(1) ! Additional debug info
+                ! PRINT *, LocalVar%RotSpeed
+            END IF
+            
+            ! Output debugging information if requested:
+            IF (CntrPar%LoggingLevel > 0) THEN
+                WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%TestType, LocalVar%WE_Vw, LocalVar%SS_DelOmegaF
+            END IF
+            
+            IF (CntrPar%LoggingLevel > 1) THEN
+                WRITE (UnDb2,FmtDat)    LocalVar%Time, avrSWAP(1:85)
+            END IF
+        END IF
         
-        LocalVar%WE_VwI = LocalVar%WE_VwI + LocalVar%WE_VwIdot*LocalVar%DT
-        LocalVar%WE_Vw = LocalVar%WE_VwI + CntrPar%WE_Gamma*LocalVar%RotSpeed
-        
-    END SUBROUTINE WindSpeedEstimator
+        IF (MODULO(LocalVar%Time, 10.0) == 0.0) THEN
+            !LocalVar%TestType = LocalVar%TestType + 10
+            !PRINT *, LocalVar%TestType
+        END IF
+    END SUBROUTINE Debug
     !-------------------------------------------------------------------------------------------------------------------------------
+
 END MODULE Functions
