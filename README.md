@@ -64,7 +64,13 @@ For LaTeX users:
 ```
 If you have been using the entirety of the [ROSCO toolbox](https://github.com/nrel/rosco_toolbox), please see the ROSCO toolbox README for information on how to cite it.
 
-Note that the initial release of this controller was the Delft Research Controller. This work should be cited as
-* Mulders, S.P. and van Wingerden, J.W. "Delft Research Controller: an open-source and community-driven wind turbine baseline controller." Journal of Physics: Conference Series. Vol. 1037. No. 3. IOP Publishing, 2018. [Link to the paper](https://iopscience.iop.org/article/10.1088/1742-6596/1037/3/032009/meta)
 
+## Acknowledgments 
+The initial release of this controller was the Delft Research Controller. This work should be cited as
+* Mulders, S.P. and van Wingerden, J.W. "Delft Research Controller: an open-source and community-driven wind turbine baseline controller." Journal of Physics: Conference Series. Vol. 1037. No. 3. IOP Publishing, 2018. [Link to the paper](https://iopscience.iop.org/article/10.1088/1742-6596/1037/3/032009/meta)
 The Delft Research Controller was the initial version of this work. It has sense been grown significantly and become NREL's ROSCO. 
+
+Primary contributions to ROSCO has been provided by researchers the National Renewable Energy Laboratory (Nikhar J. Abbas, Alan Wright, and Paul Fleming), Delft University of Technology (Sebastiaan Mulders and Jan-Willem van Wingerden), and the University of Colorado Boulder (Lucy Pao). Much of the intellect behind these contributions has been inspired or derived from an extensive amount of work in the literature. The bulk of this has been cited through the primary publications about this work. 
+
+There are also some specific acknowledgements we would like to communicate:
+* The setpoint smoothing regime implemented through the ROSCO controller was contributed by sowento GmbH. 
