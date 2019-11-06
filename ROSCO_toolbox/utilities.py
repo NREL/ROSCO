@@ -12,6 +12,9 @@
 import datetime
 import os
 import numpy as np
+import matplotlib.pyplot as plt
+from itertools import takewhile
+import struct
 
 # Some useful constants
 now = datetime.datetime.now()
@@ -21,7 +24,7 @@ deg2rad = np.deg2rad(1)
 rpm2RadSec = 2.0*(np.pi)/60.0
 RadSec2rpm = 60/(2.0 * np.pi)
 
-class UseOpenFAST():
+class FAST_IO():
     ''' 
     A collection of utilities that may be useful for using the tools made accessbile in this toolbox with OpenFAST
 
@@ -33,6 +36,7 @@ class UseOpenFAST():
     plot_fast_out
     load_output
     load_ascii_output
+
     '''
     def __init__(self):
         pass
@@ -61,17 +65,62 @@ class UseOpenFAST():
 
         # save starting file path -- note: This is an artifact of needing to call OpenFAST from the same directory as DISCON.IN
         original_path = os.getcwd()
-        # change path, run sim
+        # change path, run OpenFAST
         os.chdir(fast_dir)
         os.system('{} {}'.format(fastcall, os.path.join(fast_dir,'*.fst')))
         # return to original path
         os.chdir(original_path)
 
-    def plot_fast_out(self):
+    def plot_fast_out(self, cases, allinfo, alldata):
         '''
-        Plot OpenFAST outputs 
-            - NJA: this is a good place to emulate Post_LoadFastOut.m
+        Plots OpenFAST outputs for desired channels
+
+        Parameters:
+        -----------
+        cases : dict
+            Dictionary of lists containing desired outputs
+        allinfo : list
+            List of OpenFAST output information, output from load_output
+        alldata: list
+            List of OpenFAST output data, output from load_output
         '''
+        # Plot cases
+        for case in cases.keys():
+            # channels to plot
+            plot_list = cases[case]
+             # instantiate plot and legend
+            fig, axes = plt.subplots(len(plot_list),1, sharex=True)
+            myleg = []
+            for info, data in zip(allinfo, alldata):
+                # Load desired attribute names for simplicity
+                channels = info['channels']
+                # Define time
+                Time = np.ndarray.flatten(data[:,channels.index('Time')])
+                # write legend
+                myleg.append(info['name'])
+                if len(plot_list) > 1:  # Multiple channels
+                    for axj, plot_case in zip(axes, plot_list):
+                        try: 
+                            # plot
+                            axj.plot(Time, (data[:,channels.index(plot_case)]))
+                            # label
+                            axj.set(ylabel = plot_case)
+                            axj.grid(True)
+                        except:
+                            print('{} is not available as an output channel.'.format(plot_case))
+                else:                   # Single channel
+                    try:
+                        # plot
+                        axes.plot(Time, (data[:,channels.index(plot_list[0])]))
+                        # label
+                        axes.set(ylabel = plot_list[0])
+                        axes.grid(True)
+                        plt.show(block=False)
+                    except:
+                            print('{} is not available as an output channel.'.format(plot_list[0]))
+                plt.legend(myleg,loc='upper center',bbox_to_anchor=(0.5, 0.0), borderaxespad=2, ncol=len(alldata))
+
+        plt.show()
 
         
     def load_output(self, filenames):
