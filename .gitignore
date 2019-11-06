@@ -24,9 +24,17 @@ _build
 *.sum
 *.ech
 *.dbg
+*.out
+*.outb
+*.dbg
 
 # Fortran files
 *.85
+
+# Binaries
+*.dylib
+*.so
+*.dll
 
 # Other
 .pytest_cache
