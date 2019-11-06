@@ -11,7 +11,7 @@ FAST_IO = wtc_utilities.FAST_IO()
 
 # Define openfast output filenames
 filenames = ["/Users/nabbas/Documents/TurbineModels/IEA-15-240-RWT/OpenFAST/IEA-15-240-RWT.out",
-            "/Users/nabbas/Documents/TurbineModels/DTU_10MW/DTU10MWRWT/Baseline/DTU_10MW_RWT.out",
+            "/Users/nabbas/Documents/TurbineModels/DTU_10MW/DTU10MWRWT/Baseline/DTU_10MW_RWT.out"]
             # "/Users/nabbas/Documents/TurbineModels/IEA-15-240-RWT/OpenFAST/IEA-15-240-RWT.outb"]
 
 # Load output info and data
