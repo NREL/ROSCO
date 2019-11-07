@@ -193,7 +193,7 @@ class Controller():
         self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A_vs,B_tau,linearize=False,v=v_below_rated)
 
         # Find K for Komega_g^2
-        self.vs_rgn2K = 0.5*rho*Ar*R**5 * turbine.Cp.max / (turbine.Cp.TSR_opt**3 * Ng)
+        self.vs_rgn2K = (pi*rho*R**5.0 * turbine.Cp.max) / (2.0 * turbine.Cp.TSR_opt**3 * Ng**3)
         self.vs_refspd = min(turbine.Cp.TSR_opt * turbine.v_rated/R, turbine.rated_rotor_speed) * Ng
 
         # Define some setpoints
