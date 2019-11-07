@@ -39,6 +39,7 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%SS_Mode        
         READ(UnControllerParameters, *) CntrPar%WE_Mode        
         READ(UnControllerParameters, *) CntrPar%PS_Mode        
+        READ(UnControllerParameters, *) CntrPar%Flp_Mode        
         READ(UnControllerParameters, *)
 
         !----------------- FILTER CONSTANTS ---------------------
@@ -165,6 +166,11 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%PS_WindSpeeds
         ALLOCATE(CntrPar%PS_BldPitchMin(CntrPar%PS_BldPitchMin_N))
         READ(UnControllerParameters, *) CntrPar%PS_BldPitchMin
+        READ(UnControllerParameters, *)      
+
+        !------------ FLAP ACTUATOR ------------
+        READ(UnControllerParameters, *)      
+        READ(UnControllerParameters, *) CntrPar%Flp_Angle
         ! END OF INPUT FILE    
         
         !------------------- CALCULATED CONSTANTS -----------------------
@@ -262,13 +268,20 @@ CONTAINS
         LocalVar%FA_Acc = avrSWAP(53)
         LocalVar%Azimuth = avrSWAP(60)
         LocalVar%NumBl = NINT(avrSWAP(61))
-        LocalVar%BlPitch(1) = avrSWAP(4)
-        LocalVar%BlPitch(2) = avrSWAP(33)
-        LocalVar%BlPitch(3) = avrSWAP(34)
+        ! LocalVar%BlPitch(1) = avrSWAP(4)
+        ! LocalVar%BlPitch(2) = avrSWAP(33)
+        ! LocalVar%BlPitch(3) = avrSWAP(34)
+
+        ! BLADE FLAPS - zero for now
+        LocalVar%BlFlap(1) = 0 !avrSWAP(4)
+        LocalVar%BlFlap(2) = 0 !avrSWAP(33)
+        LocalVar%BlFlap(3) = 0 !avrSWAP(34)
+
+
         ! --- NJA: sometimes feedback bath the previous pitch command helps for numerical stability, sometimes it does not...
-        ! LocalVar%BlPitch(1) = LocalVar%PitCom(1)
-        ! LocalVar%BlPitch(2) = LocalVar%PitCom(2)
-        ! LocalVar%BlPitch(3) = LocalVar%PitCom(3)
+        LocalVar%BlPitch(1) = LocalVar%PitCom(1)
+        LocalVar%BlPitch(2) = LocalVar%PitCom(2)
+        LocalVar%BlPitch(3) = LocalVar%PitCom(3)
 
     END SUBROUTINE ReadAvrSWAP
     ! -----------------------------------------------------------------------------------

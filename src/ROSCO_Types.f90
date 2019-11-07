@@ -94,6 +94,9 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4), DIMENSION(:), ALLOCATABLE  :: PS_WindSpeeds                ! Wind speeds corresponding to minimum blade pitch angles [m/s]
     REAL(4), DIMENSION(:), ALLOCATABLE  :: PS_BldPitchMin               ! Minimum blade pitch angles [rad]
 
+    INTEGER(4)                          :: Flp_Mode                     ! Flap actuator mode {0: off, 1: fixed flap position}
+    REAL(4)                             :: Flp_Angle                    ! Flp_Angle         - Blade flap angle (degrees)
+
     REAL(4)                             :: PC_RtTq99                    ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(4)                             :: VS_MaxOMTq                   ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(4)                             :: VS_MinOMTq                   ! Minimum torque at the beginning of the below-rated region 2, [Nm]
@@ -103,16 +106,17 @@ END TYPE ControlParameters
 TYPE, PUBLIC :: LocalVariables
     ! ---------- From avrSWAP ----------
     INTEGER(4)                      :: iStatus
-    REAL(4)                      :: Time
-    REAL(4)                      :: DT
-    REAL(4)                      :: VS_GenPwr
-    REAL(4)                      :: GenSpeed
-    REAL(4)                      :: RotSpeed
-    REAL(4)                      :: Y_M
-    REAL(4)                      :: HorWindV
-    REAL(4)                      :: rootMOOP(3)
-    REAL(4)                      :: BlPitch(3)
-    REAL(4)                      :: Azimuth
+    REAL(4)                         :: Time
+    REAL(4)                         :: DT
+    REAL(4)                         :: VS_GenPwr
+    REAL(4)                         :: GenSpeed
+    REAL(4)                         :: RotSpeed
+    REAL(4)                         :: Y_M
+    REAL(4)                         :: HorWindV
+    REAL(4)                         :: rootMOOP(3)
+    REAL(4)                         :: BlPitch(3)
+    REAL(4)                         :: Azimuth
+    REAL(4)                         :: BlFlap(3)
     INTEGER(4)                      :: NumBl
     
     ! ---------- -Internal controller variables ----------
@@ -156,6 +160,8 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                             :: Y_ErrLPFSlow                 ! Filtered yaw error by slow low pass filter [rad].
     REAL(4)                             :: Y_MErr                       ! Measured yaw error, measured + setpoint [rad].
     REAL(4)                             :: Y_YawEndT                    ! Yaw end time [s]. Indicates the time up until which yaw is active with a fixed rate
+    
+    
     END TYPE LocalVariables
 
 TYPE, PUBLIC :: ObjectInstances

@@ -305,4 +305,25 @@ CONTAINS
         END DO
         
     END SUBROUTINE ForeAftDamping
+!-------------------------------------------------------------------------------------------------------------------------------
+    REAL FUNCTION FlapActuator(LocalVar, CntrPar, objInst) 
+    ! FlapActuator defines a steady state collective blade flap angle
+    !       Flp_Mode = 0, Nothing
+    !       Flp_Mode = 1, Steady State flap angle
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
+        IMPLICIT NONE
+        ! Inputs
+        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
+        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+        ! Allocate Variables 
+        REAL(4)                     :: V_towertop ! Estimated velocity of tower top (m/s)
+        REAL(4)                     :: Vhat     ! Estimated wind speed without towertop motion [m/s]
+        REAL(4)                     :: Vhatf     ! 30 second low pass filtered Estimated wind speed without towertop motion [m/s]
+
+        ! Steady flap angle
+        ! avrSWAP() = CntrPar%Flp_Angle
+        print *,CntrPar%Flp_Angle
+
+    END FUNCTION FlapActuator
 END MODULE Controllers
