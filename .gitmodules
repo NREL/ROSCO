@@ -1,4 +1,3 @@
-[submodule "DRC_Fortran"]
-	path = DRC_Fortran
-	url = https://github.com/nikhar-abbas/DRC_Fortran.git
-	branch = develop
+[submodule "ROSCO"]
+	path = ROSCO
+	url = https://github.com/NREL/ROSCO.git
