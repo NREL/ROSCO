@@ -479,7 +479,7 @@ CONTAINS
                      '------------------------------------------------------------------------------'//NEW_LINE('A')// &
                      'Running a controller implemented through NREL''s ROSCO Toolbox                    '//NEW_LINE('A')// &
                      'A wind turbine controller framework for public use in the scientific field    '//NEW_LINE('A')// &
-                     'Developed in collaboration: National Renewable Energy Lab                     '//NEW_LINE('A')// &
+                     'Developed in collaboration: National Renewable Energy Laboratory              '//NEW_LINE('A')// &
                      '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
                      'Primary development by (listed alphabetically): Nikhar J. Abbas               '//NEW_LINE('A')// &
                      '                                                Sebastiaan P. Mulders         '//NEW_LINE('A')// &
