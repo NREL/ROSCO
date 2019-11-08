@@ -262,13 +262,13 @@ CONTAINS
         LocalVar%FA_Acc = avrSWAP(53)
         LocalVar%Azimuth = avrSWAP(60)
         LocalVar%NumBl = NINT(avrSWAP(61))
-        LocalVar%BlPitch(1) = avrSWAP(4)
-        LocalVar%BlPitch(2) = avrSWAP(33)
-        LocalVar%BlPitch(3) = avrSWAP(34)
-        ! --- NJA: sometimes feedback bath the previous pitch command helps for numerical stability, sometimes it does not...
-        ! LocalVar%BlPitch(1) = LocalVar%PitCom(1)
-        ! LocalVar%BlPitch(2) = LocalVar%PitCom(2)
-        ! LocalVar%BlPitch(3) = LocalVar%PitCom(3)
+        ! LocalVar%BlPitch(1) = avrSWAP(4)
+        ! LocalVar%BlPitch(2) = avrSWAP(33)
+        ! LocalVar%BlPitch(3) = avrSWAP(34)
+          ! --- NJA: usually feedback back the previous pitch command helps for numerical stability, sometimes it does not...
+        LocalVar%BlPitch(1) = LocalVar%PitCom(1)
+        LocalVar%BlPitch(2) = LocalVar%PitCom(2)
+        LocalVar%BlPitch(3) = LocalVar%PitCom(3)      
 
     END SUBROUTINE ReadAvrSWAP
     ! -----------------------------------------------------------------------------------
