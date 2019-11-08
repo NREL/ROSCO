@@ -98,6 +98,9 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)                             :: VS_MaxOMTq                   ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(4)                             :: VS_MinOMTq                   ! Minimum torque at the beginning of the below-rated region 2, [Nm]
     REAL(4)                             :: VS_Rgn3Pitch                 ! Pitch angle at which the state machine switches to region 3, [rad].
+
+    INTEGER(4)                          :: Flp_Mode                     ! Blade flap actuator mode {0: no flap actuator, 1: steady flap angle}
+    REAL(4)                             :: Flp_Angle                    ! Steady state flap angle (deg)
 END TYPE ControlParameters
 
 TYPE, PUBLIC :: LocalVariables
@@ -156,6 +159,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                             :: Y_ErrLPFSlow                 ! Filtered yaw error by slow low pass filter [rad].
     REAL(4)                             :: Y_MErr                       ! Measured yaw error, measured + setpoint [rad].
     REAL(4)                             :: Y_YawEndT                    ! Yaw end time [s]. Indicates the time up until which yaw is active with a fixed rate
+    REAL(4)                             :: Flp_Angle(3)                 ! Flap Angle (rad)
     END TYPE LocalVariables
 
 TYPE, PUBLIC :: ObjectInstances

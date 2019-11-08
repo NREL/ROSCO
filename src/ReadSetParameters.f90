@@ -39,6 +39,7 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%SS_Mode        
         READ(UnControllerParameters, *) CntrPar%WE_Mode        
         READ(UnControllerParameters, *) CntrPar%PS_Mode        
+        READ(UnControllerParameters, *) CntrPar%Flp_Mode        
         READ(UnControllerParameters, *)
 
         !----------------- FILTER CONSTANTS ---------------------
@@ -165,6 +166,11 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%PS_WindSpeeds
         ALLOCATE(CntrPar%PS_BldPitchMin(CntrPar%PS_BldPitchMin_N))
         READ(UnControllerParameters, *) CntrPar%PS_BldPitchMin
+
+        !------------ Flap Controller ------------
+        READ(UnControllerParameters, *)      
+        READ(UnControllerParameters, *) CntrPar%Flp_Angle 
+        READ(UnControllerParameters, *)    
         ! END OF INPUT FILE    
         
         !------------------- CALCULATED CONSTANTS -----------------------

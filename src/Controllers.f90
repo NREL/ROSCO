@@ -305,4 +305,31 @@ CONTAINS
         END DO
         
     END SUBROUTINE ForeAftDamping
+
+    !-------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE FlapControl(avrSWAP, CntrPar, LocalVar, objInst)
+        ! Yaw rate controller
+        !       Y_ControlMode = 0, No yaw control
+        !       Y_ControlMode = 1, Simple yaw rate control using yaw drive
+        !       Y_ControlMode = 2, Yaw by IPC (accounted for in IPC subroutine)
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+    
+        REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
+    
+        TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
+        TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
+        
+        ! Flap control
+
+        LocalVar%Flp_Angle(1) = CntrPar%Flp_Angle * D2R
+        LocalVar%Flp_Angle(2) = CntrPar%Flp_Angle * D2R
+        LocalVar%Flp_Angle(3) = CntrPar%Flp_Angle * D2R
+
+        ! Send to AVRSwap
+        avrSWAP(120) = LocalVar%Flp_Angle(1)
+        avrSWAP(121) = LocalVar%Flp_Angle(2)
+        avrSWAP(122) = LocalVar%Flp_Angle(3)
+
+    END SUBROUTINE FlapControl
 END MODULE Controllers
