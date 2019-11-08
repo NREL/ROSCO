@@ -116,7 +116,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                         :: rootMOOP(3)
     REAL(4)                         :: BlPitch(3)
     REAL(4)                         :: Azimuth
-    REAL(4)                         :: BlFlap(3)
+    REAL(4)                         :: Flp_Angle(3)
     INTEGER(4)                      :: NumBl
     
     ! ---------- -Internal controller variables ----------

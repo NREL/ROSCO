@@ -306,24 +306,35 @@ CONTAINS
         
     END SUBROUTINE ForeAftDamping
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION FlapActuator(LocalVar, CntrPar, objInst) 
+    SUBROUTINE FlapActuator(avrSWAP, LocalVar, CntrPar, objInst) 
     ! FlapActuator defines a steady state collective blade flap angle
     !       Flp_Mode = 0, Nothing
     !       Flp_Mode = 1, Steady State flap angle
         USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
         IMPLICIT NONE
         ! Inputs
-        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
-        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+        TYPE(ControlParameters),    INTENT(IN)      :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)   :: LocalVar 
+        TYPE(ObjectInstances),      INTENT(INOUT)   :: objInst
+
         ! Allocate Variables 
-        REAL(4)                     :: V_towertop ! Estimated velocity of tower top (m/s)
-        REAL(4)                     :: Vhat     ! Estimated wind speed without towertop motion [m/s]
-        REAL(4)                     :: Vhatf     ! 30 second low pass filtered Estimated wind speed without towertop motion [m/s]
+        REAL(C_FLOAT),              INTENT(INOUT)   :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
+        REAL(4)                                     :: V_towertop   ! Estimated velocity of tower top (m/s)
+        REAL(4)                                     :: Vhat         ! Estimated wind speed without towertop motion [m/s]
+        REAL(4)                                     :: Vhatf        ! 30 second low pass filtered Estimated wind speed without towertop motion [m/s]
 
         ! Steady flap angle
         ! avrSWAP() = CntrPar%Flp_Angle
         print *,CntrPar%Flp_Angle
 
-    END FUNCTION FlapActuator
+        LocalVar%Flp_Angle(1) = CntrPar%Flp_Angle
+        LocalVar%Flp_Angle(2) = CntrPar%Flp_Angle
+        LocalVar%Flp_Angle(3) = CntrPar%Flp_Angle
+
+        ! Write to avrSwap Array
+        avrSWAP(120) = LocalVar%Flp_Angle(1)
+        avrSWAP(121) = LocalVar%Flp_Angle(2)
+        avrSWAP(122) = LocalVar%Flp_Angle(3)
+
+    END SUBROUTINE FlapActuator
 END MODULE Controllers

@@ -268,20 +268,20 @@ CONTAINS
         LocalVar%FA_Acc = avrSWAP(53)
         LocalVar%Azimuth = avrSWAP(60)
         LocalVar%NumBl = NINT(avrSWAP(61))
-        ! LocalVar%BlPitch(1) = avrSWAP(4)
-        ! LocalVar%BlPitch(2) = avrSWAP(33)
-        ! LocalVar%BlPitch(3) = avrSWAP(34)
+        LocalVar%BlPitch(1) = avrSWAP(4)
+        LocalVar%BlPitch(2) = avrSWAP(33)
+        LocalVar%BlPitch(3) = avrSWAP(34)
 
         ! BLADE FLAPS - zero for now
-        LocalVar%BlFlap(1) = 0 !avrSWAP(4)
-        LocalVar%BlFlap(2) = 0 !avrSWAP(33)
-        LocalVar%BlFlap(3) = 0 !avrSWAP(34)
+        LocalVar%Flp_Angle(1) = 0
+        LocalVar%Flp_Angle(2) = 0
+        LocalVar%Flp_Angle(3) = 0
 
 
-        ! --- NJA: sometimes feedback bath the previous pitch command helps for numerical stability, sometimes it does not...
-        LocalVar%BlPitch(1) = LocalVar%PitCom(1)
-        LocalVar%BlPitch(2) = LocalVar%PitCom(2)
-        LocalVar%BlPitch(3) = LocalVar%PitCom(3)
+        ! ! --- NJA: sometimes feedback bath the previous pitch command helps for numerical stability, sometimes it does not...
+        ! LocalVar%BlPitch(1) = LocalVar%PitCom(1)
+        ! LocalVar%BlPitch(2) = LocalVar%PitCom(2)
+        ! LocalVar%BlPitch(3) = LocalVar%PitCom(3)
 
     END SUBROUTINE ReadAvrSWAP
     ! -----------------------------------------------------------------------------------
