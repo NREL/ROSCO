@@ -262,13 +262,17 @@ CONTAINS
         LocalVar%FA_Acc = avrSWAP(53)
         LocalVar%Azimuth = avrSWAP(60)
         LocalVar%NumBl = NINT(avrSWAP(61))
-        ! LocalVar%BlPitch(1) = avrSWAP(4)
-        ! LocalVar%BlPitch(2) = avrSWAP(33)
-        ! LocalVar%BlPitch(3) = avrSWAP(34)
+
           ! --- NJA: usually feedback back the previous pitch command helps for numerical stability, sometimes it does not...
-        LocalVar%BlPitch(1) = LocalVar%PitCom(1)
-        LocalVar%BlPitch(2) = LocalVar%PitCom(2)
-        LocalVar%BlPitch(3) = LocalVar%PitCom(3)      
+        IF (LocalVar%iStatus == 0) THEN
+            LocalVar%BlPitch(1) = avrSWAP(4)
+            LocalVar%BlPitch(2) = avrSWAP(33)
+            LocalVar%BlPitch(3) = avrSWAP(34)
+        ELSE
+            LocalVar%BlPitch(1) = LocalVar%PitCom(1)
+            LocalVar%BlPitch(2) = LocalVar%PitCom(2)
+            LocalVar%BlPitch(3) = LocalVar%PitCom(3)      
+        ENDIF
 
     END SUBROUTINE ReadAvrSWAP
     ! -----------------------------------------------------------------------------------
@@ -508,8 +512,12 @@ CONTAINS
             ! Setpoint Smoother initialization to zero
             LocalVar%SS_DelOmegaF = 0
 
-            ! Generator Torque at K omega^2
-            LocalVar%GenTq = min(CntrPar%VS_RtTq, CntrPar%VS_Rgn2K*LocalVar%GenSpeed*LocalVar%GenSpeed)
+            ! Generator Torque at K omega^2 or rated
+            IF (LocalVar%GenSpeed > 0.98 * CntrPar%PC_RefSpd) THEN
+                LocalVar%GenTq = CntrPar%VS_RtTq
+            ELSE
+                LocalVar%GenTq = min(CntrPar%VS_RtTq, CntrPar%VS_Rgn2K*LocalVar%GenSpeed*LocalVar%GenSpeed)
+            ENDIF            
             LocalVar%VS_LastGenTrq = LocalVar%GenTq       
             
             ! Check validity of input parameters:
