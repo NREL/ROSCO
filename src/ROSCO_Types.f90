@@ -94,6 +94,10 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4), DIMENSION(:), ALLOCATABLE  :: PS_WindSpeeds                ! Wind speeds corresponding to minimum blade pitch angles [m/s]
     REAL(4), DIMENSION(:), ALLOCATABLE  :: PS_BldPitchMin               ! Minimum blade pitch angles [rad]
 
+    INTEGER(4)                          :: SD_Mode                      ! Shutdown mode {0: no shutdown procedure, 1: pitch to max pitch at shutdown}
+    REAL(4)                             :: SD_MaxPit                    ! Maximum blade pitch angle to initiate shutdown, [rad]
+    REAL(4)                             :: SD_CornerFreq                ! Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]
+    
     REAL(4)                             :: PC_RtTq99                    ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(4)                             :: VS_MaxOMTq                   ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(4)                             :: VS_MinOMTq                   ! Minimum torque at the beginning of the below-rated region 2, [Nm]
@@ -156,6 +160,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                             :: Y_ErrLPFSlow                 ! Filtered yaw error by slow low pass filter [rad].
     REAL(4)                             :: Y_MErr                       ! Measured yaw error, measured + setpoint [rad].
     REAL(4)                             :: Y_YawEndT                    ! Yaw end time [s]. Indicates the time up until which yaw is active with a fixed rate
+    LOGICAL(1)                          :: SD                           ! Shutdown, .FALSE. if inactive, .TRUE. if active
     END TYPE LocalVariables
 
 TYPE, PUBLIC :: ObjectInstances

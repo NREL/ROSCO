@@ -61,7 +61,7 @@ CONTAINS
             CALL ForeAftDamping(CntrPar, LocalVar, objInst)
         ELSE
             LocalVar%FA_PitCom = 0.0 ! THIS IS AN ARRAY!!
-        END IF
+        ENDIF
         
         ! Sine excitation on pitch
         IF (CntrPar%Z_EnableSine == 1) THEN
@@ -77,6 +77,10 @@ CONTAINS
             LocalVar%PC_MinPit = CntrPar%PC_MinPit
         ENDIF
 
+        ! Shutdown
+        IF (CntrPar%SD_Mode == 1) THEN
+            LocalVar%PC_PitComT = Shutdown(LocalVar, CntrPar, objInst)
+        ENDIF
 
         ! Combine and saturate all pitch commands:
         DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
@@ -121,7 +125,10 @@ CONTAINS
                 ! VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
                 VS_MaxTq = CntrPar%VS_RtTq
             ENDIF
+            
+            ! TSR tracking vs control
             LocalVar%GenTq = PIController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, VS_MaxTq, LocalVar%DT, LocalVar%VS_LastGenTrq, .FALSE., objInst%instPI)
+      
         
         ! K*Omega^2 control law with PI torque control in transition regions
         ELSE
