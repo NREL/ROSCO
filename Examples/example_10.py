@@ -21,7 +21,10 @@ allinfo, alldata = FAST_IO.load_output(filenames)
 #       - Comment,uncomment, create, and change these as desired...
 cases = {}
 cases['Baseline'] = ['Wind1VelX', 'BldPitch1', 'GenTq', 'RotSpeed', 'GenPwr']
-cases['RotPerf'] = ['RtTSR', 'RtAeroCp']
+cases['Rotor'] = ['BldPitch1', 'RotSpeed', 'GenPwr']
+cases['Wind'] = ['RtVAvgxh', 'RotSpeed']
+# cases['RotPerf'] = ['RtTSR', 'RtAeroCp']
+# cases['Debug'] = ['WE_Vw']
 
 # Plot, woohoo!
 FAST_IO.plot_fast_out(cases, allinfo, alldata)
