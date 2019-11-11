@@ -412,6 +412,7 @@ class FileProcessing():
         file.write('{0:<12d}        ! SS_Mode           - Setpoint Smoother mode {{0: no setpoint smoothing, 1: introduce setpoint smoothing}}\n'.format(controller.SS_Mode))
         file.write('{0:<12d}        ! WE_Mode           - Wind speed estimator mode {{0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator, 2: Extended Kalman Filter}}\n'.format(controller.WE_Mode))
         file.write('{0:<12d}        ! PS_Mode           - Peak shaving mode {{0: no peak shaving, 1: implement peak shaving}}\n'.format(controller.PS_Mode))
+        file.write('{0:<12d}        ! SD_Mode           - Shutdown mode {{0: no shutdown procedure, 1: pitch to max pitch at shutdown}}\n'.format(controller.SD_Mode))
         file.write('\n')
         file.write('!------- FILTERS ----------------------------------------------------------\n') 
         file.write('{:<13.2f}       ! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [rad/s]\n'.format(turbine.bld_edgewise_freq * 1/4)) 
@@ -499,7 +500,11 @@ class FileProcessing():
         file.write('!------- PEAK SHAVING -------------------------------------------\n')
         file.write('{:<11d}         ! PS_BldPitchMin_N  - Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)\n'.format(len(controller.ps.pitch_min)))
         file.write('{}              ! PS_WindSpeeds       - Wind speeds corresponding to minimum blade pitch angles [m/s]\n'.format(''.join('{:<4.2f} '.format(controller.ps.v[i]) for i in range(len(controller.ps.v)))))
-        file.write('{}              ! PS_BldPitchMin          - Minimum blade pitch angles [rad]'.format(''.join('{:<10.8f} '.format(controller.ps.pitch_min[i]) for i in range(len(controller.ps.pitch_min)))))
+        file.write('{}              ! PS_BldPitchMin          - Minimum blade pitch angles [rad]\n'.format(''.join('{:<10.8f} '.format(controller.ps.pitch_min[i]) for i in range(len(controller.ps.pitch_min)))))
+        file.write('\n')
+        file.write('!------- SHUTDOWN -------------------------------------------\n')
+        file.write('{:<014.5f}      ! SD_MaxPit         - Maximum blade pitch angle to initiate shutdown, [rad]\n'.format(controller.sd_maxpit))
+        file.write('{:<014.5f}      ! SD_CornerFreq     - Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]'.format(controller.sd_cornerfreq))
         file.close()
 
     def write_rotor_performance(self,turbine,txt_filename='Cp_Ct_Cq.txt'):

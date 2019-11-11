@@ -58,6 +58,7 @@ class Controller():
         self.SS_Mode = controller_params['SS_Mode']
         self.WE_Mode = controller_params['WE_Mode']
         self.PS_Mode = controller_params['PS_Mode']
+        self.SD_Mode = controller_params['SD_Mode']
 
         # Necessary parameters
         self.zeta_pc = controller_params['zeta_pc']
@@ -104,6 +105,17 @@ class Controller():
                 self.F_LPFDamping = 0.0
         else:
             self.F_LPFDamping = 0.0
+
+        # Shutdown filter default cornering freq at 15s time constant
+        if controller_params['sd_cornerfreq']:
+            self.sd_cornerfreq = controller_params['sd_cornerfreq']
+        else:
+            self.sd_cornerfreq = 0.41888
+        
+        if controller_params['sd_maxpit']:
+            self.sd_maxpit = controller_params['sd_maxpit']
+        else:
+            self.sd_maxpit = None
 
     def tune_controller(self, turbine):
         """
@@ -198,6 +210,10 @@ class Controller():
 
         # Define some setpoints
         self.vs_minspd = (turbine.Cp.TSR_opt * turbine.v_min / turbine.rotor_radius) * Ng
+        if self.sd_maxpit:
+            self.sd_maxpit = self.sd_maxpit
+        else:
+            self.sd_maxpit = pitch_op[-1]
 
         # Store some variables
         self.v = v                                  # Wind speed (m/s)
