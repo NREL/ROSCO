@@ -305,36 +305,31 @@ CONTAINS
         END DO
         
     END SUBROUTINE ForeAftDamping
-!-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE FlapActuator(avrSWAP, LocalVar, CntrPar, objInst) 
-    ! FlapActuator defines a steady state collective blade flap angle
-    !       Flp_Mode = 0, Nothing
-    !       Flp_Mode = 1, Steady State flap angle
-        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
-        IMPLICIT NONE
-        ! Inputs
-        TYPE(ControlParameters),    INTENT(IN)      :: CntrPar
-        TYPE(LocalVariables),       INTENT(INOUT)   :: LocalVar 
-        TYPE(ObjectInstances),      INTENT(INOUT)   :: objInst
 
-        ! Allocate Variables 
-        REAL(C_FLOAT),              INTENT(INOUT)   :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
-        REAL(4)                                     :: V_towertop   ! Estimated velocity of tower top (m/s)
-        REAL(4)                                     :: Vhat         ! Estimated wind speed without towertop motion [m/s]
-        REAL(4)                                     :: Vhatf        ! 30 second low pass filtered Estimated wind speed without towertop motion [m/s]
+    !-------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE FlapControl(avrSWAP, CntrPar, LocalVar, objInst)
+        ! Yaw rate controller
+        !       Y_ControlMode = 0, No yaw control
+        !       Y_ControlMode = 1, Simple yaw rate control using yaw drive
+        !       Y_ControlMode = 2, Yaw by IPC (accounted for in IPC subroutine)
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+    
+        REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
+    
+        TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
+        TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
+        
+        ! Flap control
 
-        ! Steady flap angle
-        ! avrSWAP() = CntrPar%Flp_Angle
-        print *,CntrPar%Flp_Angle
+        LocalVar%Flp_Angle(1) = CntrPar%Flp_Angle * D2R
+        LocalVar%Flp_Angle(2) = CntrPar%Flp_Angle * D2R
+        LocalVar%Flp_Angle(3) = CntrPar%Flp_Angle * D2R
 
-        LocalVar%Flp_Angle(1) = CntrPar%Flp_Angle
-        LocalVar%Flp_Angle(2) = CntrPar%Flp_Angle
-        LocalVar%Flp_Angle(3) = CntrPar%Flp_Angle
-
-        ! Write to avrSwap Array
+        ! Send to AVRSwap
         avrSWAP(120) = LocalVar%Flp_Angle(1)
         avrSWAP(121) = LocalVar%Flp_Angle(2)
         avrSWAP(122) = LocalVar%Flp_Angle(3)
 
-    END SUBROUTINE FlapActuator
+    END SUBROUTINE FlapControl
 END MODULE Controllers

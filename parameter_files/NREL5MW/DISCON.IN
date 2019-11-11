@@ -14,6 +14,7 @@
 1                   ! SS_Mode           - Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
 2                   ! WE_Mode           - Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator, 2: Extended Kalman Filter}
 1                   ! PS_Mode           - Peak shaving mode {0: no peak shaving, 1: implement peak shaving}
+1                   ! Flp_Mode          - Peak actuator mode {0: no flap actuation, 1: steady state flap angle}
 
 !------- FILTERS ----------------------------------------------------------
 1.57                ! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [rad/s]
@@ -102,3 +103,6 @@
 44                  ! PS_BldPitchMin_N  - Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)
 3.00 3.50 4.00 4.50 5.00 5.50 6.00 6.50 7.00 7.50 8.00 8.50 9.00 9.50 10.00 10.50 11.00 11.90 12.40 12.90 13.40 13.90 14.40 14.90 15.40 15.90 16.40 16.90 17.40 17.90 18.40 18.90 19.40 19.90 20.40 20.90 21.40 21.90 22.40 22.90 23.40 23.90 24.40 24.90               ! PS_WindSpeeds       - Wind speeds corresponding to minimum blade pitch angles [m/s]
 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01043930 0.01752641 0.03876018 0.05579366 0.07636280 0.08850549 0.10004206 0.11162711 0.12254282 0.13376138 0.14425013 0.15478810 0.16572605 0.17554639 0.18554307 0.19595332 0.20612251 0.21529640 0.22488312 0.23488900 0.24529504 0.25394261 0.26268712 0.27181488 0.28132974 0.29122769 0.30098555 0.30880015 0.31693135 0.32539084 0.33418433               ! PS_BldPitchMin          - Minimum blade pitch angles [rad]
+
+!------- FLAP ACTUATION -------------------------------------------
+0                   ! Flp_Angle  - Steady state flap angle, [deg]

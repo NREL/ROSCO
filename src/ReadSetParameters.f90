@@ -268,20 +268,7 @@ CONTAINS
         LocalVar%FA_Acc = avrSWAP(53)
         LocalVar%Azimuth = avrSWAP(60)
         LocalVar%NumBl = NINT(avrSWAP(61))
-        LocalVar%BlPitch(1) = avrSWAP(4)
-        LocalVar%BlPitch(2) = avrSWAP(33)
-        LocalVar%BlPitch(3) = avrSWAP(34)
 
-        ! BLADE FLAPS - zero for now
-        LocalVar%Flp_Angle(1) = 0
-        LocalVar%Flp_Angle(2) = 0
-        LocalVar%Flp_Angle(3) = 0
-
-
-        ! ! --- NJA: sometimes feedback bath the previous pitch command helps for numerical stability, sometimes it does not...
-        ! LocalVar%BlPitch(1) = LocalVar%PitCom(1)
-        ! LocalVar%BlPitch(2) = LocalVar%PitCom(2)
-        ! LocalVar%BlPitch(3) = LocalVar%PitCom(3)
 
     END SUBROUTINE ReadAvrSWAP
     ! -----------------------------------------------------------------------------------
@@ -488,7 +475,7 @@ CONTAINS
                      '------------------------------------------------------------------------------'//NEW_LINE('A')// &
                      'Running a controller implemented through NREL''s ROSCO Toolbox                    '//NEW_LINE('A')// &
                      'A wind turbine controller framework for public use in the scientific field    '//NEW_LINE('A')// &
-                     'Developed in collaboration: National Renewable Energy Lab                     '//NEW_LINE('A')// &
+                     'Developed in collaboration: National Renewable Energy Laboratory              '//NEW_LINE('A')// &
                      '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
                      'Primary development by (listed alphabetically): Nikhar J. Abbas               '//NEW_LINE('A')// &
                      '                                                Sebastiaan P. Mulders         '//NEW_LINE('A')// &
@@ -521,8 +508,12 @@ CONTAINS
             ! Setpoint Smoother initialization to zero
             LocalVar%SS_DelOmegaF = 0
 
-            ! Generator Torque at K omega^2
-            LocalVar%GenTq = min(CntrPar%VS_RtTq, CntrPar%VS_Rgn2K*LocalVar%GenSpeed*LocalVar%GenSpeed)
+            ! Generator Torque at K omega^2 or rated
+            IF (LocalVar%GenSpeed > 0.98 * CntrPar%PC_RefSpd) THEN
+                LocalVar%GenTq = CntrPar%VS_RtTq
+            ELSE
+                LocalVar%GenTq = min(CntrPar%VS_RtTq, CntrPar%VS_Rgn2K*LocalVar%GenSpeed*LocalVar%GenSpeed)
+            ENDIF            
             LocalVar%VS_LastGenTrq = LocalVar%GenTq       
             
             ! Check validity of input parameters:
