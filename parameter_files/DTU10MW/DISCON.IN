@@ -1,5 +1,5 @@
 ! Controller parameter input file for the DTU_10MW_RWT wind turbine
-!    - File written using NREL Reference OpenSource Controller tuning logic on 11/07/19
+!    - File written using NREL Reference OpenSource Controller tuning logic on 11/11/19
 
 !------- DEBUG ------------------------------------------------------------
 1                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: write standard output .dbg-file and complete avrSWAP-array .dbg2-file}
@@ -14,6 +14,7 @@
 1                   ! SS_Mode           - Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
 2                   ! WE_Mode           - Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator, 2: Extended Kalman Filter}
 1                   ! PS_Mode           - Peak shaving mode {0: no peak shaving, 1: implement peak shaving}
+0                   ! SD_Mode           - Shutdown mode {0: no shutdown procedure, 1: pitch to max pitch at shutdown}
 
 !------- FILTERS ----------------------------------------------------------
 1.13                ! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [rad/s]
@@ -102,3 +103,7 @@
 42                  ! PS_BldPitchMin_N  - Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)
 4.00 4.50 5.00 5.50 6.00 6.50 7.00 7.50 8.00 8.50 9.00 9.50 10.00 10.50 11.00 11.90 12.40 12.90 13.40 13.90 14.40 14.90 15.40 15.90 16.40 16.90 17.40 17.90 18.40 18.90 19.40 19.90 20.40 20.90 21.40 21.90 22.40 22.90 23.40 23.90 24.40 24.90               ! PS_WindSpeeds       - Wind speeds corresponding to minimum blade pitch angles [m/s]
 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 0.01139256 0.03954465 0.06151733 0.07951239 0.10218597 0.11346152 0.12442215 0.13515521 0.14568190 0.15604391 0.16623229 0.17621767 0.18609242 0.19591524 0.20553978 0.21504302 0.22459719 0.23380511 0.24321524 0.25220762 0.26147499 0.27028214 0.27930685 0.28810785 0.29682237 0.30579567 0.31417250 0.32274307 0.33155921 0.33969923 0.34802211               ! PS_BldPitchMin          - Minimum blade pitch angles [rad]
+
+!------- SHUTDOWN -------------------------------------------
+0.407510000000      ! SD_MaxPit         - Maximum blade pitch angle to initiate shutdown, [rad]
+0.418880000000      ! SD_CornerFreq     - Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]

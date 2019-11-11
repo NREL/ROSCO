@@ -39,6 +39,7 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%SS_Mode        
         READ(UnControllerParameters, *) CntrPar%WE_Mode        
         READ(UnControllerParameters, *) CntrPar%PS_Mode        
+        READ(UnControllerParameters, *) CntrPar%SD_Mode        
         READ(UnControllerParameters, *)
 
         !----------------- FILTER CONSTANTS ---------------------
@@ -165,6 +166,12 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%PS_WindSpeeds
         ALLOCATE(CntrPar%PS_BldPitchMin(CntrPar%PS_BldPitchMin_N))
         READ(UnControllerParameters, *) CntrPar%PS_BldPitchMin
+        READ(UnControllerParameters, *) 
+
+        !------------ SHUTDOWN ------------
+        READ(UnControllerParameters, *)      
+        READ(UnControllerParameters, *) CntrPar%SD_MaxPit  
+        READ(UnControllerParameters, *) CntrPar%SD_CornerFreq
         ! END OF INPUT FILE    
         
         !------------------- CALCULATED CONSTANTS -----------------------
@@ -219,16 +226,21 @@ CONTAINS
         ELSE
             VS_RefSpd = CntrPar%VS_RefSpd
         ENDIF 
+
         
         ! Implement setpoint smoothing
         IF (LocalVar%SS_DelOmegaF > 0) THEN
             VS_RefSpd = VS_RefSpd - LocalVar%SS_DelOmegaF
         ENDIF
 
+        ! Force zero torque in shutdown mode
+        IF (LocalVar%SD) THEN
+            VS_RefSpd = CntrPar%VS_MinOMSpd
+        ENDIF
+
         ! TSR-tracking reference error
         IF (CntrPar%VS_ControlMode == 2) THEN
             LocalVar%VS_SpdErr = VS_RefSpd - LocalVar%GenSpeedF
-            LocalVar%TestType = VS_RefSpd
         ENDIF
 
         ! Define transition region setpoint errors

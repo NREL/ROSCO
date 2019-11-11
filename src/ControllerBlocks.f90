@@ -281,7 +281,48 @@ CONTAINS
         ! Define minimum blade pitch angle as a function of estimated wind speed
         PeakShaving = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, Vhatf)
 
-    END FUNCTION PEAKSHAVING
+    END FUNCTION PeakShaving
+!-------------------------------------------------------------------------------------------------------------------------------
+    REAL FUNCTION Shutdown(LocalVar, CntrPar, objInst) 
+    ! PeakShaving defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
+    !       SS_Mode = 0, No setpoint smoothing
+    !       SS_Mode = 1, Implement setpoint smoothing
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
+        IMPLICIT NONE
+        ! Inputs
+        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
+        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+        ! Allocate Variables 
+        REAL(4)                      :: SD_BlPitchF
+        ! Initialize Shutdown Varible
+        IF (LocalVar%iStatus == 0) THEN
+            LocalVar%SD = .FALSE.
+        ENDIF
+
+        ! See if we should shutdown
+        IF (.NOT. LocalVar%SD ) THEN
+            SD_BlPitchF = LPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%SD_CornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
+            ! Go into shutdown if above max pit
+            IF (SD_BlPitchF > CntrPar%SD_MaxPit) THEN
+                LocalVar%SD  = .TRUE.
+            ELSE
+                LocalVar%SD  = .FALSE.
+            ENDIF 
+        ENDIF
+
+        ! Pitch Blades to 90 degrees at max pitch rate if in shutdown mode
+        IF (LocalVar%SD) THEN
+            Shutdown = LocalVar%BlPitch(1) + CntrPar%PC_MaxRat*LocalVar%DT
+            IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
+                print *, ' ** SHUTDOWN MODE **'
+            ENDIF
+        ELSE
+            Shutdown = LocalVar%PC_PitComT
+        ENDIF
+
+        
+    END FUNCTION Shutdown
 !-------------------------------------------------------------------------------------------------------------------------------
 
 END MODULE ControllerBlocks
