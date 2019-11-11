@@ -39,6 +39,7 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%SS_Mode        
         READ(UnControllerParameters, *) CntrPar%WE_Mode        
         READ(UnControllerParameters, *) CntrPar%PS_Mode        
+        READ(UnControllerParameters, *) CntrPar%SD_Mode        
         READ(UnControllerParameters, *) CntrPar%Flp_Mode        
         READ(UnControllerParameters, *)
 
@@ -166,11 +167,7 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%PS_WindSpeeds
         ALLOCATE(CntrPar%PS_BldPitchMin(CntrPar%PS_BldPitchMin_N))
         READ(UnControllerParameters, *) CntrPar%PS_BldPitchMin
-        READ(UnControllerParameters, *)      
 
-        !------------ FLAP ACTUATOR ------------
-        READ(UnControllerParameters, *)      
-        READ(UnControllerParameters, *) CntrPar%Flp_Angle
         ! END OF INPUT FILE    
         
         !------------------- CALCULATED CONSTANTS -----------------------
@@ -231,10 +228,14 @@ CONTAINS
             VS_RefSpd = VS_RefSpd - LocalVar%SS_DelOmegaF
         ENDIF
 
+        ! Force zero torque in shutdown mode
+        IF (LocalVar%SD) THEN
+            VS_RefSpd = CntrPar%VS_MinOMSpd
+        ENDIF
+
         ! TSR-tracking reference error
         IF (CntrPar%VS_ControlMode == 2) THEN
             LocalVar%VS_SpdErr = VS_RefSpd - LocalVar%GenSpeedF
-            LocalVar%TestType = VS_RefSpd
         ENDIF
 
         ! Define transition region setpoint errors
@@ -269,6 +270,16 @@ CONTAINS
         LocalVar%Azimuth = avrSWAP(60)
         LocalVar%NumBl = NINT(avrSWAP(61))
 
+          ! --- NJA: usually feedback back the previous pitch command helps for numerical stability, sometimes it does not...
+        IF (LocalVar%iStatus == 0) THEN
+            LocalVar%BlPitch(1) = avrSWAP(4)
+            LocalVar%BlPitch(2) = avrSWAP(33)
+            LocalVar%BlPitch(3) = avrSWAP(34)
+        ELSE
+            LocalVar%BlPitch(1) = LocalVar%PitCom(1)
+            LocalVar%BlPitch(2) = LocalVar%PitCom(2)
+            LocalVar%BlPitch(3) = LocalVar%PitCom(3)      
+        ENDIF
 
     END SUBROUTINE ReadAvrSWAP
     ! -----------------------------------------------------------------------------------

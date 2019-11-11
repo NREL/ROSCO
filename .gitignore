@@ -17,3 +17,4 @@ Scripts/CompileDISCONHereCopyRun\.cmd
 # Temp Files
 *~
 .DS_Store
+*.u2d
