@@ -4,8 +4,8 @@
 #################  OUTDATED #################
 ##
 import os
-from WTC_toolbox import utilities as wtc_Utilities
-util = wtc_Utilities.Utilities()
+from ROSCO_toolbox import utilities as wtc_Utilities
+util = wtc_Utilities.FAST_IO()
 
 # define call for OpenFAST
 fastcall = 'openfast_dev'
