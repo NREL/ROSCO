@@ -1,5 +1,5 @@
 # NREL's Reference OpenSource Controller (ROSCO) for wind turbine applications
-** This is still in early development and is not ready for official release yet. Please do not share without permission from Nikhar Abbas. **
+** This is still in early development and has not been officially released yet. Please do not share without permission from Nikhar Abbas. **
 
 NREL's Reference OpenSource Controller (ROSCO) for wind turbine applications uses the Bladed-style DISCON interface used by, e.g., OpenFAST, Bladed (versions 4.5 or earlier) and HAWC2.
 
