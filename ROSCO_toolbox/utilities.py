@@ -55,19 +55,20 @@ class FAST_IO():
         '''
 
         # Define OpenFAST input filename
-        if fastfile:
-            print('Using {} to run OpenFAST simulation'.format(fastfile))
-        else:
+        if not fastfile:
+
             for file in os.listdir(fast_dir):
                 if file.endswith('.fst'):
                     fastfile = file
-                    print(file)
+        print('Using {} to run OpenFAST simulation'.format(fastfile))
 
         # save starting file path -- note: This is an artifact of needing to call OpenFAST from the same directory as DISCON.IN
         original_path = os.getcwd()
         # change path, run OpenFAST
         os.chdir(fast_dir)
-        os.system('{} {}'.format(fastcall, os.path.join(fast_dir,'*.fst')))
+        print('Running OpenFAST simulation for {} through the ROSCO toolbox...'.format(fastfile))
+        os.system('{} {}'.format(fastcall, os.path.join(fast_dir,fastfile)))
+        print('OpenFAST simulation complete. ')
         # return to original path
         os.chdir(original_path)
 
