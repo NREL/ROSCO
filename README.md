@@ -11,7 +11,7 @@ Block diagrams of these capabilities can be seen in [architecture.png](architect
 ## Introduction
 The NREL Reference OpenSource Controller (ROSCO) provides an open, modular and fully adaptable baseline wind turbine controller to the scientific community. The ROSCO toolbox leverages this architecture and implementation to provide a generic tuning process for the controller. Because of the open character and modular set-up, scientists are able to collaborate and contribute in making continuous improvements to the code for the controller and the toolbox. The ROSCO toolbox is a mostly-python code base with a number of functionalities.
 
-* [DRC_Fortran](https://github.com/nikhar-abbas/DRC_Fortran/tree/master) - the fortran source code for the ROSCO controller. 
+* [ROSCO](https://github.com/NREL/ROSCO) - the fortran source code for the ROSCO controller. 
 * [Examples](https://github.com/NREL/ROSCO_toolbox/tree/master/examples) - short working examples of the capabilities of the ROSCO toolbox. 
 * [Tune_Cases](https://github.com/NREL/ROSCO_toolbox/tree/master/Tune_Cases) - example generic tuning scripts for a number of open-source reference turbines.
 * [Test_Cases](https://github.com/NREL/ROSCO_toolbox/tree/master/Test_Cases) - numerous NREL 5MW bases cases to run for controller updates and comparisons. A "test-suite", if you will...
@@ -43,7 +43,7 @@ You should first be sure that you are stull in the `wisdem-env` environment.
 
 1. clone the git repository and initiate the submodule:
 ``` 
-git clone https://github.com/nikhar-abbas/ROSCO_toolbox.git
+git clone https://github.com/NREL/ROSCO_toolbox.git
 cd ROSCO_toolbox
 git submodule init
 git submodule update
@@ -55,9 +55,9 @@ python setup.py install
 Note that this may eventually be moved to a full conda install architecture
 
 #### Compiling ROSCO
-The controller itself is installed as a submodule in the ROSCO toolbox. For further information on compiling and running ROSCO itself, especially if you are on a Windows machine, we point you to the [DRC_Fortran github page](https://github.com/nikhar-abbas/DRC_Fortran/tree/develop). For Unix systems, (or Unix shell's on Windows), cmake makes it easy to compile. In order to compile the controller, you should run the following commands from the [DRC_Fortran](DRC_Fortran) folder (note: this folder will be updated with the move of DRC_Fortran to ROSCO).
+The controller itself is installed as a submodule in the ROSCO toolbox. For further information on compiling and running ROSCO itself, especially if you are on a Windows machine, we point you to the [ROSCO github page](https://github.com/NREL/ROSCO_toolbox.git). For Unix systems, (or Unix shell's on Windows), cmake makes it easy to compile. In order to compile the controller, you should run the following commands from the ROSCO_toolbox folder.
 ```
-cd DRC_Fortran
+cd ROSCO
 mkdir build
 cd build
 cmake ..
@@ -101,10 +101,10 @@ For LaTeX users:
 
 ~~ NJA - add NAWEA/WindTech paper here once published ~~
 
-Additionally, if you have extensively used the [ROSCO](https://github.com/nikhar-abbas/DRC_Fortran/tree/develop) controller or [WISDEM](https://github.com/wisdem/wisdem), please cite them accordingly. 
+Additionally, if you have extensively used the [ROSCO](https://github.com/NREL/ROSCO) controller or [WISDEM](https://github.com/wisdem/wisdem), please cite them accordingly. 
 
 
 ## Additional Contributors and Acknowledgments
 Primary contributions to the ROSCO Toolbox has been provided by researchers the National Renewable Energy Laboratory (Nikhar J. Abbas, Alan Wright, and Paul Fleming) and the University of Colorado Boulder (Lucy Pao). Much of the intellect behind these contributions has been inspired or derived from an extensive amount of work in the literature. The bulk of this has been cited through the primary publications about this work. 
 
-There have been a number of contributors to the logic of the ROSCO controller itself. Please see the [ROSCO github page](https://github.com/nikhar-abbas/DRC_Fortran/tree/develop) for more information on who these contributors have been. 
+There have been a number of contributors to the logic of the ROSCO controller itself. Please see the [ROSCO github page](https://github.com/NREL/ROSCO) for more information on who these contributors have been. 
