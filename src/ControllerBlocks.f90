@@ -1,4 +1,16 @@
-! This module contains additional blocks to supplement the primary controllers used in the Controllers module
+! Copyright 2019 NREL
+
+! Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+! this file except in compliance with the License. You may obtain a copy of the
+! License at http://www.apache.org/licenses/LICENSE-2.0
+
+! Unless required by applicable law or agreed to in writing, software distributed
+! under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+! CONDITIONS OF ANY KIND, either express or implied. See the License for the
+! specific language governing permissions and limitations under the License.
+! -------------------------------------------------------------------------------------------
+
+! This module contains additional routines and functions to supplement the primary controllers used in the Controllers module
 !
 ! Many of these have I/O flags as a part of the DISCON input file 
 !
@@ -6,6 +18,8 @@
 !       State Machine: determine the state of the wind turbine to specify the corresponding control actions
 !       WindSpeedEstimator: Estimate wind speed
 !       SetpointSmoother: Modify generator torque and blade pitch controller setpoints in transition region
+!       PeakShaving: Limit rotor thrust near rated operation
+!       Shutdown: Shutdown control for max bld pitch
 
 MODULE ControllerBlocks
 
