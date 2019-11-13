@@ -466,7 +466,7 @@ class FileProcessing():
         file.write('{:<13.5f}       ! SS_PCGain         - Collective pitch controller setpoint smoother gain, [-].\n'.format(controller.ss_pcgain))
         file.write('\n')
         file.write('!------- WIND SPEED ESTIMATOR ---------------------------------------------\n')
-        file.write('{:<13.3f}       ! WE_BladeRadius	- Blade length [m]\n'.format(turbine.rotor_radius))
+        file.write('{:<13.3f}       ! WE_BladeRadius	- Blade length (distance from hub center to blade tip), [m]\n'.format(turbine.rotor_radius))
         file.write('{:<11d}         ! WE_CP_n			- Amount of parameters in the Cp array\n'.format(1))
         file.write(          '{}    ! WE_CP - Parameters that define the parameterized CP(lambda) function\n'.format(''.join('{:<2.1f} '.format(0.0) for i in range(4))))
         file.write('{:<13.1f}		! WE_Gamma			- Adaption gain of the wind speed estimator algorithm [m/rad]\n'.format(0.0))
