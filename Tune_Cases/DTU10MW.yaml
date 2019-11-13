@@ -1,6 +1,6 @@
---- #  ---------------------NREL Generic controller tuning input file -------------------
-    # Written for use with WTC_Toolbox generic tuning procedures
-    # Turbine: NREL 5MW Reference Wind Turbine
+#  --------------------- ROSCO controller tuning input file -------------------
+    # Written for use with ROSCO_Toolbox tuning procedures
+    # Turbine: DTU 10MW Reference Wind Turbine
 # ------------------------------ OpenFAST PATH DEFINITIONS ------------------------------
 path_params:
   FAST_InputFile: 'DTU_10MW_RWT.fst'                                                      # Name of *.fst file
