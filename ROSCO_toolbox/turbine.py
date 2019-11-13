@@ -162,7 +162,7 @@ class Turbine():
         self.DTTorSpr = fast.fst_vt['ElastoDyn']['DTTorSpr']
         self.generator_inertia = fast.fst_vt['ElastoDyn']['GenIner']
         self.tilt = fast.fst_vt['ElastoDyn']['ShftTilt'] 
-        self.precone = fast.fst_vt['ElastoDyn']['PreCone1']
+        self.precone = fast.fst_vt['ElastoDyn']['PreCone1'] # May need to change to PreCone(1) depending on OpenFAST files
         self.yaw = 0.0
         self.J = self.rotor_inertia + self.generator_inertia * self.Ng**2
         self.rated_torque = self.rated_power/(self.GenEff/100*self.rated_rotor_speed*self.Ng)
