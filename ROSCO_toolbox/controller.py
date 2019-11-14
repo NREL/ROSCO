@@ -77,6 +77,11 @@ class Controller():
         else:
             self.max_pitch = 90*deg2rad      # Default to 90 degrees max pitch
         
+        if controller_params['vs_minspd']:
+            self.vs_minspd = controller_params['vs_minspd']
+        else:
+            self.vs_minspd = None 
+
         if controller_params['ss_vsgain']:
             self.ss_vsgain = controller_params['ss_vsgain']
         else:
@@ -198,18 +203,23 @@ class Controller():
         B_tau = B_tau * np.ones(len(v_below_rated))
         B_beta = B_beta[len(v_below_rated):len(v)]
 
-        # Find gain schedule
+        # -- Find gain schedule --
         self.pc_gain_schedule = ControllerTypes()
         self.pc_gain_schedule.second_order_PI(self.zeta_pc, self.omega_pc,A_pc,B_beta,linearize=True,v=v_above_rated)
         self.vs_gain_schedule = ControllerTypes()
         self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A_vs,B_tau,linearize=False,v=v_below_rated)
 
-        # Find K for Komega_g^2
+        # -- Find K for Komega_g^2 --
         self.vs_rgn2K = (pi*rho*R**5.0 * turbine.Cp.max) / (2.0 * turbine.Cp.TSR_opt**3 * Ng**3)
         self.vs_refspd = min(turbine.Cp.TSR_opt * turbine.v_rated/R, turbine.rated_rotor_speed) * Ng
 
-        # Define some setpoints
-        self.vs_minspd = (turbine.Cp.TSR_opt * turbine.v_min / turbine.rotor_radius) * Ng
+        # -- Define some setpoints --
+        # minimum rotor speed
+        if self.vs_minspd:
+            self.vs_minspd = np.maximum(self.vs_minspd, (turbine.Cp.TSR_opt * turbine.v_min / turbine.rotor_radius) * Ng)
+        else: 
+            self.vs_minspd = (turbine.Cp.TSR_opt * turbine.v_min / turbine.rotor_radius) * Ng
+        # max pitch angle for shutdown
         if self.sd_maxpit:
             self.sd_maxpit = self.sd_maxpit
         else:
