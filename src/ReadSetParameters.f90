@@ -188,7 +188,17 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%PS_WindSpeeds
         ALLOCATE(CntrPar%PS_BldPitchMin(CntrPar%PS_BldPitchMin_N))
         READ(UnControllerParameters, *) CntrPar%PS_BldPitchMin
+        READ(UnControllerParameters, *) 
 
+        !------------ SHUTDOWN ------------
+        READ(UnControllerParameters, *)      
+        READ(UnControllerParameters, *) CntrPar%SD_MaxPit  
+        READ(UnControllerParameters, *) CntrPar%SD_CornerFreq
+        READ(UnControllerParameters, *) 
+
+        !------------ Flaps ------------
+        READ(UnControllerParameters, *)      
+        READ(UnControllerParameters, *) CntrPar%Flp_Angle  
         ! END OF INPUT FILE    
         
         !------------------- CALCULATED CONSTANTS -----------------------
