@@ -264,6 +264,9 @@ CONTAINS
             VS_RefSpd = CntrPar%VS_MinOMSpd
         ENDIF
 
+        ! Force minimum rotor speed
+        VS_RefSpd = max(VS_RefSpd, CntrPar%VS_MinOmSpd)
+
         ! TSR-tracking reference error
         IF (CntrPar%VS_ControlMode == 2) THEN
             LocalVar%VS_SpdErr = VS_RefSpd - LocalVar%GenSpeedF
