@@ -349,15 +349,16 @@ CONTAINS
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
         
         ! Flap control
-
-        LocalVar%Flp_Angle(1) = CntrPar%Flp_Angle * D2R
-        LocalVar%Flp_Angle(2) = CntrPar%Flp_Angle * D2R
-        LocalVar%Flp_Angle(3) = CntrPar%Flp_Angle * D2R
-
-        ! Send to AVRSwap
-        avrSWAP(120) = LocalVar%Flp_Angle(1)
-        avrSWAP(121) = LocalVar%Flp_Angle(2)
-        avrSWAP(122) = LocalVar%Flp_Angle(3)
-
+        IF (CntrPar%Flp_Mode) THEN
+            LocalVar%Flp_Angle(1) = CntrPar%Flp_Angle * D2R
+            LocalVar%Flp_Angle(2) = CntrPar%Flp_Angle * D2R
+            LocalVar%Flp_Angle(3) = CntrPar%Flp_Angle * D2R
+            ! Send to AVRSwap
+            avrSWAP(120) = LocalVar%Flp_Angle(1)
+            avrSWAP(121) = LocalVar%Flp_Angle(2)
+            avrSWAP(122) = LocalVar%Flp_Angle(3)
+        ELSE
+            RETURN
+        ENDIF
     END SUBROUTINE FlapControl
 END MODULE Controllers

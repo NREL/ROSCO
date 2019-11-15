@@ -73,7 +73,8 @@ IF ((LocalVar%iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control 
     CALL VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst)
     CALL PitchControl(avrSWAP, CntrPar, LocalVar, objInst)
     CALL YawRateControl(avrSWAP, CntrPar, LocalVar, objInst)
-
+    CALL FlapControl(avrSWAP, CntrPar, LocalVar, objInst)
+    
     CALL Debug(LocalVar, CntrPar, avrSWAP, RootName, SIZE(avcOUTNAME))
 END IF
 
