@@ -349,7 +349,7 @@ CONTAINS
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
         
         ! Flap control
-        IF (CntrPar%Flp_Mode) THEN
+        IF (CntrPar%Flp_Mode == 1) THEN
             LocalVar%Flp_Angle(1) = CntrPar%Flp_Angle * D2R
             LocalVar%Flp_Angle(2) = CntrPar%Flp_Angle * D2R
             LocalVar%Flp_Angle(3) = CntrPar%Flp_Angle * D2R
