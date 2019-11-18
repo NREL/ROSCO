@@ -167,7 +167,7 @@ CONTAINS
             ELSEIF (LocalVar%VS_State == 4) THEN ! Region 3, constant torque
                 LocalVar%GenTq = CntrPar%VS_RtTq
             ELSEIF (LocalVar%VS_State == 5) THEN ! Region 3, constant power
-                LocalVar%GenTq = (CntrPar%VS_RtPwr/CntrPar%VS_GenEff)/LocalVar%GenSpeedF
+                LocalVar%GenTq = (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF
             END IF
        
         ENDIF
