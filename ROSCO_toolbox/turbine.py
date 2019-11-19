@@ -66,7 +66,7 @@ class Turbine():
         self.v_min = turbine_params['v_min']                 
         self.v_rated = turbine_params['v_rated']               
         self.v_max = turbine_params['v_max']
-        self.max_pitch_rate = turbine_params['max_pitch_rate'] * deg2rad
+        self.max_pitch_rate = turbine_params['max_pitch_rate'] 
         self.min_pitch_rate = -1 * self.max_pitch_rate
         self.max_torque_rate = turbine_params['max_torque_rate']             
         self.rated_power = turbine_params['rated_power']           
@@ -175,7 +175,10 @@ class Turbine():
         elif rot_source == 'cc-blade':
             self.load_from_ccblade(fast)
         else:   # default load from cc-blade
-            if os.path.exists(txt_filename):
+            if txt_filename is None:
+                print('No rotor performance data source available, running CC-Blade.')
+                self.load_from_ccblade(fast)
+            elif os.path.exists(txt_filename):
                 self.load_from_txt(txt_filename)
             else:
                 print('No rotor performance data source available, running CC-Blade.')
