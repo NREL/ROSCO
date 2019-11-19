@@ -77,10 +77,10 @@ class Controller():
         else:
             self.max_pitch = 90*deg2rad      # Default to 90 degrees max pitch
         
-        if controller_params['vs_minspd']:
-            self.vs_minspd = controller_params['vs_minspd']
+        if controller_params['pc_minspd']:
+            self.pc_minspd = controller_params['pc_minspd']
         else:
-            self.vs_minspd = None 
+            self.pc_minspd = None 
 
         if controller_params['ss_vsgain']:
             self.ss_vsgain = controller_params['ss_vsgain']
@@ -214,11 +214,13 @@ class Controller():
         self.vs_refspd = min(turbine.Cp.TSR_opt * turbine.v_rated/R, turbine.rated_rotor_speed) * Ng
 
         # -- Define some setpoints --
-        # minimum rotor speed
-        if self.vs_minspd:
-            self.vs_minspd = np.maximum(self.vs_minspd, (turbine.Cp.TSR_opt * turbine.v_min / turbine.rotor_radius) * Ng)
+        # minimum rotor speed saturation limits
+        self.vs_minspd = (turbine.Cp.TSR_opt * turbine.v_min / turbine.rotor_radius) * Ng
+        if self.pc_minspd:
+            self.pc_minspd = np.maximum(self.pc_minspd, (turbine.Cp.TSR_opt * turbine.v_min / turbine.rotor_radius) * Ng)
         else: 
-            self.vs_minspd = (turbine.Cp.TSR_opt * turbine.v_min / turbine.rotor_radius) * Ng
+            self.pc_minspd = (turbine.Cp.TSR_opt * turbine.v_min / turbine.rotor_radius) * Ng
+
         # max pitch angle for shutdown
         if self.sd_maxpit:
             self.sd_maxpit = self.sd_maxpit
@@ -227,19 +229,27 @@ class Controller():
 
         # Store some variables
         self.v = v                                  # Wind speed (m/s)
+        self.v_below_rated = v_below_rated
         self.pitch_op = pitch_op
         self.pitch_op_pc = pitch_op[len(v_below_rated):len(v)]
         self.TSR_op = TSR_op
         self.A = A 
         self.B_beta = B_beta
         self.B_tau = B_tau
-        # --- Might want these to debug
+        # - Might want these to debug -
         # self.Cp_op = Cp_op
-        # self.v_below_rated = v_below_rated
 
-        # Peak Shaving
+        # --- Minimum pitch saturation ---
+        self.ps_min_bld_pitch = np.ones(len(self.pitch_op)) * self.min_pitch
         self.ps = ControllerBlocks()
-        self.ps.peak_shaving(self, turbine)
+
+        if self.PS_Mode == 1:  # Peak Shaving
+            self.ps.peak_shaving(self, turbine)
+        elif self.PS_Mode == 2: # Cp-maximizing minimum pitch saturation
+            self.ps.min_pitch_saturation(self,turbine)
+        elif self.PS_Mode == 3: # Peak shaving and Cp-maximizing minimum pitch saturation
+            self.ps.peak_shaving(self, turbine)
+            self.ps.min_pitch_saturation(self,turbine)
 
 class ControllerBlocks():
     '''
@@ -302,6 +312,8 @@ class ControllerBlocks():
             f_pitch_min = interpolate.interp1d(Ct_tsr, turbine.pitch_initial_rad, bounds_error=False, fill_value=(turbine.pitch_initial_rad[0],turbine.pitch_initial_rad[-1]))
             pitch_min[i] = f_pitch_min(Ct_max[i])
 
+        controller.ps_min_bld_pitch = pitch_min
+
         # save some outputs for analysis or future work
         self.Tshaved = 0.5 * rho * A * controller.v**2 * Ct_op
         self.pitch_min = pitch_min
@@ -309,6 +321,34 @@ class ControllerBlocks():
         self.Ct_max = Ct_max
         self.Ct_op = Ct_op
         self.T = T
+
+    def min_pitch_saturation(self, controller, turbine):
+        
+        # Find TSR associated with minimum rotor speed
+        TSR_at_minspeed = controller.pc_minspd * turbine.rotor_radius / controller.v_below_rated
+        for i in range(len(TSR_at_minspeed)):
+            if TSR_at_minspeed[i] > controller.TSR_op[i]:
+                controller.TSR_op[i] = TSR_at_minspeed[i]
+        
+                # Initialize some arrays
+                Cp_op = np.empty(len(turbine.pitch_initial_rad),dtype='float64')
+                min_pitch = np.empty(len(TSR_at_minspeed),dtype='float64')
+                
+        
+                # Find Cp-maximizing minimum pitch schedule
+                # for j in range(len(TSR_at_minspeed)):
+                # Find Cp coefficients at below-rated tip speed ratios
+                Cp_op = turbine.Cp.interp_surface(turbine.pitch_initial_rad,TSR_at_minspeed[i])
+                Cp_max = max(Cp_op)
+                f_pitch_min = interpolate.interp1d(Cp_op, turbine.pitch_initial_rad, bounds_error=False, fill_value=(turbine.pitch_initial_rad[0],turbine.pitch_initial_rad[-1]))
+                min_pitch[i] = f_pitch_min(Cp_max)
+                
+                # modify existing minimum pitch schedule
+                # for pind, pitch in enumerate(min_itch):
+                controller.ps_min_bld_pitch[i] = np.maximum(controller.ps_min_bld_pitch[i], min_pitch[i])
+            else:
+                return
+
 
 class ControllerTypes():
     '''
