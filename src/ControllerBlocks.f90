@@ -269,10 +269,10 @@ CONTAINS
 
     END SUBROUTINE SetpointSmoother
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION PeakShaving(LocalVar, CntrPar, objInst) 
-    ! PeakShaving defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
+    REAL FUNCTION PitchSaturation(LocalVar, CntrPar, objInst) 
+    ! PitchSaturation defines a minimum blade pitch angle based on a lookup table provided by DISCON.IN
     !       SS_Mode = 0, No setpoint smoothing
-    !       SS_Mode = 1, Implement setpoint smoothing
+    !       SS_Mode = 1, Implement pitch saturation
         USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
         IMPLICIT NONE
         ! Inputs
@@ -293,9 +293,9 @@ CONTAINS
         Vhatf = LPFilter(Vhat,LocalVar%DT,0.2,LocalVar%iStatus,.FALSE.,objInst%instLPF)
         LocalVar%TestType = Vhatf
         ! Define minimum blade pitch angle as a function of estimated wind speed
-        PeakShaving = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, Vhatf)
+        PitchSaturation = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, Vhatf)
 
-    END FUNCTION PeakShaving
+    END FUNCTION PitchSaturation
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION Shutdown(LocalVar, CntrPar, objInst) 
     ! PeakShaving defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
