@@ -2,41 +2,36 @@
 # Plot expected shaved rotor thrust 
 
 #%%
-import numpy as np
-import matplotlib.pyplot as plt 
+# Python Modules
+import yaml
 import os
+import matplotlib.pyplot as plt
+# ROSCO Modules
+from ROSCO_toolbox import turbine as wtc_turbine
+from ROSCO_toolbox import controller as wtc_controller
+from ROSCO_toolbox import sim as wtc_sim
 
-from WTC_toolbox import controller as wtc_controller
-from WTC_toolbox import turbine as wtc_turbine
-from WTC_toolbox import sim as wtc_sim
+os.chdir('/Users/nabbas/Documents/WindEnergyToolbox/ROSCO_toolbox/Examples')
+
+# Point to yaml and openfast file
+parameter_filename = '../Tune_Cases/IEA15MW.yaml'
+inps = yaml.safe_load(open(parameter_filename))
+path_params         = inps['path_params']
+turbine_params      = inps['turbine_params']
+controller_params   = inps['controller_params']
 
 
-os.chdir('/Users/nabbas/Documents/WindEnergyToolbox/WTC_toolbox/examples')
+# Initialize a turbine class
+turbine = wtc_turbine.Turbine(turbine_params)
+controller = wtc_controller.Controller(controller_params)
 
-# Initialiize turbine and controller classes
-turbine = wtc_turbine.Turbine()
-controller = wtc_controller.Controller()
-file_processing = wtc_controller.FileProcessing()
-
-# Fast input file and Cp surface text file
-FAST_InputFile = '5MW_Land.fst'
-FAST_directory = '../Test_Cases/5MW_Land'
-txt_filename = 'Cp_Ct_Cq.txt'
-
-drivetrain_inertia = 40469564.444
-turbine.load_from_fast(FAST_InputFile,FAST_directory,drivetrain_inertia,dev_branch=True,rot_source='txt', txt_filename=txt_filename)
-
-#%% Load controller
+# Load turbine and tune controller
+turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source='txt',txt_filename='../Tune_Cases/Cp_Ct_Cq.IEA15MW.txt')
 controller.tune_controller(turbine)
-
-
 #%%
-fig, axs = plt.subplots(2,1)
-axs[0].plot(controller.ps.v, controller.ps.T)
-axs[0].plot(controller.ps.v, controller.ps.Tshaved)
 
-axs[1].plot(controller.ps.v, controller.pitch_op)
-axs[1].plot(controller.ps.v, controller.ps.pitch_min)
+plt.plot(controller.v, controller.pitch_op)
+plt.plot(controller.v, controller.ps_min_bld_pitch)
 
 plt.show()
 

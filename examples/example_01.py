@@ -1,33 +1,35 @@
-# Example_01
+# ----------- Example_01 --------------
 # Load a turbine model
-# In this example load a turbine model from FAST using AeroelasticSE
+# In this example load a turbine model from FAST using AeroelasticSE. CCBlade is also run to find the rotor performance properties
 # Use the NREL baseline included with open FAST
-#
-# Some notes on dependencies
-# https://github.com/WISDEM/AeroelasticSE
-#  https://github.com/OpenFAST/openfast
-# Be sure to clone the repo with the --recursive flag or execute git submodule update --init --recursive after cloning.
 
-from WTC_toolbox import turbine as wtc_turbine
-from WTC_toolbox import controller as wtc_controller
-from WTC_toolbox import sim as wtc_sim
+# Python Modules
+import yaml
+import os
+# ROSCO Modules
+from ROSCO_toolbox import turbine as wtc_turbine
+from ROSCO_toolbox import controller as wtc_controller
+from ROSCO_toolbox import sim as wtc_sim
 
-# PARAMETERS
-
-# (USES AERODYN 15, a problem for now)
-# FAST_InputFile = '5MW_OC3Spar_DLL_WTurb_WavesIrr.fst'
-# FAST_directory = '/Users/pfleming/Desktop/git_tools/floating/OpenFAST/reg_tests/r-test/glue-codes/openfast/5MW_OC3Spar_DLL_WTurb_WavesIrr'
-
+os.chdir('/Users/nabbas/Documents/WindEnergyToolbox/ROSCO_toolbox/Examples')
+# Point to openfast files
 FAST_InputFile = '5MW_Land.fst'
-FAST_directory = '/Users/nabbas/Documents/TurbineModels/NREL_5MW/5MW_Land'
+FAST_directory = '../Test_Cases/5MW_Land'
 
-# Initialiize a turbine class
-turbine = wtc_turbine.Turbine()
+# Point to yaml and openfast file
+parameter_filename = '../Tune_Cases/NREL5MW.yaml'
+inps = yaml.safe_load(open(parameter_filename))
+path_params         = inps['path_params']
+turbine_params      = inps['turbine_params']
+controller_params   = inps['controller_params']
+
+
+# Initialize turbine and controller classes
+turbine = wtc_turbine.Turbine(turbine_params)
+turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source='txt',txt_filename=path_params['rotor_performance_filename'])
 
 # Load the turbine model from a FAST input folder
-drivetrain_inertia = 40469564.444
-turbine.load_from_fast(FAST_InputFile,FAST_directory,drivetrain_inertia=drivetrain_inertia,dev_branch=True,rot_source='txt',txt_filename='Cp_Ct_Cq.txt')
-
+turbine.load_from_fast(FAST_InputFile,FAST_directory, FAST_ver='OpenFAST',dev_branch=True,rot_source='txt', txt_filename='Cp_Ct_Cq.txt')
 # Display a little about the turbine
 print(turbine)
 
