@@ -77,10 +77,10 @@ class Controller():
         else:
             self.max_pitch = 90*deg2rad      # Default to 90 degrees max pitch
         
-        if controller_params['pc_minspd']:
-            self.pc_minspd = controller_params['pc_minspd']
+        if controller_params['vs_minspd']:
+            self.vs_minspd = controller_params['vs_minspd']
         else:
-            self.pc_minspd = None 
+            self.vs_minspd = None 
 
         if controller_params['ss_vsgain']:
             self.ss_vsgain = controller_params['ss_vsgain']
@@ -215,11 +215,11 @@ class Controller():
 
         # -- Define some setpoints --
         # minimum rotor speed saturation limits
-        self.vs_minspd = (turbine.Cp.TSR_opt * turbine.v_min / turbine.rotor_radius) * Ng
-        if self.pc_minspd:
-            self.pc_minspd = np.maximum(self.pc_minspd, (turbine.Cp.TSR_opt * turbine.v_min / turbine.rotor_radius) * Ng)
+        if self.vs_minspd:
+            self.vs_minspd = np.maximum(self.vs_minspd, (turbine.Cp.TSR_opt * turbine.v_min / turbine.rotor_radius) * Ng)
         else: 
-            self.pc_minspd = (turbine.Cp.TSR_opt * turbine.v_min / turbine.rotor_radius) * Ng
+            self.vs_minspd = (turbine.Cp.TSR_opt * turbine.v_min / turbine.rotor_radius) * Ng
+        self.pc_minspd = self.vs_minspd
 
         # max pitch angle for shutdown
         if self.sd_maxpit:
