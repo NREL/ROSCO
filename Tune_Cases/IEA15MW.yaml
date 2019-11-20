@@ -10,10 +10,10 @@ path_params:
 
 # -------------------------------- TURBINE PARAMETERS ----------------------------------- 
 turbine_params:
-  rotor_inertia:      374349414.            # Rotor inertia [kg m^2], {Available in Elastodyn .sum file}
-  rated_rotor_speed:  0.785                 # Rated rotor speed [rad/s]
+  rotor_inertia:      356715968.            # Rotor inertia [kg m^2], {Available in Elastodyn .sum file}
+  rated_rotor_speed:  0.79168               # Rated rotor speed [rad/s]
   v_min:              3.                    # Cut-in wind speed [m/s] 
-  v_rated:            10.7                  # Rated wind speed [m/s]
+  v_rated:            10.885                # Rated wind speed [m/s]
   v_max:              25.0                  # Cut-out wind speed [m/s], -- Does not need to be exact (JUST ASSUME FOR NOW)
   max_pitch_rate:     0.0349                # Maximum blade pitch rate [rad/s]
   max_torque_rate:    4500000.              # Maximum torque rate [Nm/s], {~1/4 VS_RtTq/s}
