@@ -41,9 +41,15 @@ class FAST_IO():
     def __init__(self):
         pass
 
-    def run_openfast(self,fast_dir,fastcall='OpenFAST',fastfile=None,):
+    def run_openfast(self,fast_dir,fastcall='OpenFAST',fastfile=None,chdir=False):
         '''
-        Runs a openfast openfast simulation 
+        Runs a openfast openfast simulation.
+        
+        ** Note ** 
+        If running ROSCO, this function must be called from the same folder containing DISCON.IN,
+            or the chdir flag must be turned on. This is an artifact of OpenFAST looking for DISCON.IN
+            in the folder that it is called from. 
+
         Parameters:
         ------------
             fast_dir: string
@@ -52,6 +58,8 @@ class FAST_IO():
                     Line used to call openfast when executing from the terminal.
             fastfile: string, optional
                     Filename for *.fst input file. Function will find *.fst if not provided.
+            chdir: bool, optional
+                    Change directory to openfast model directory before running.
         '''
 
         # Define OpenFAST input filename
@@ -62,15 +70,21 @@ class FAST_IO():
                     fastfile = file
         print('Using {} to run OpenFAST simulation'.format(fastfile))
 
-        # save starting file path -- note: This is an artifact of needing to call OpenFAST from the same directory as DISCON.IN
-        original_path = os.getcwd()
-        # change path, run OpenFAST
-        os.chdir(fast_dir)
-        print('Running OpenFAST simulation for {} through the ROSCO toolbox...'.format(fastfile))
-        os.system('{} {}'.format(fastcall, os.path.join(fast_dir,fastfile)))
-        print('OpenFAST simulation complete. ')
-        # return to original path
-        os.chdir(original_path)
+        if chdir: # Change cwd before calling OpenFAST -- note: This is an artifact of needing to call OpenFAST from the same directory as DISCON.IN
+            # save starting file path 
+            original_path = os.getcwd()
+            # change path, run OpenFAST
+            os.chdir(fast_dir)
+            print('Running OpenFAST simulation for {} through the ROSCO toolbox...'.format(fastfile))
+            os.system('{} {}'.format(fastcall, os.path.join(fastfile)))
+            print('OpenFAST simulation complete. ')
+            # return to original path
+            os.chdir(original_path)
+        else:
+            # Run OpenFAST
+            print('Running OpenFAST simulation for {} through the ROSCO toolbox...'.format(fastfile))
+            os.system('{} {}'.format(fastcall, os.path.join(fast_dir,fastfile)))
+            print('OpenFAST simulation complete. ')
 
     def plot_fast_out(self, cases, allinfo, alldata):
         '''
@@ -91,6 +105,7 @@ class FAST_IO():
             plot_list = cases[case]
              # instantiate plot and legend
             fig, axes = plt.subplots(len(plot_list),1, sharex=True)
+    
             myleg = []
             for info, data in zip(allinfo, alldata):
                 # Load desired attribute names for simplicity
@@ -105,10 +120,11 @@ class FAST_IO():
                             # plot
                             axj.plot(Time, (data[:,channels.index(plot_case)]))
                             # label
-                            axj.set(ylabel = plot_case)
+                            axj.set(ylabel = '{:^} \n ({:^})'.format(plot_case, info['attribute_units'][channels.index(plot_case)]))
                             axj.grid(True)
                         except:
                             print('{} is not available as an output channel.'.format(plot_case))
+                    axes[0].set_title(case)
                 else:                   # Single channel
                     try:
                         # plot
@@ -116,11 +132,11 @@ class FAST_IO():
                         # label
                         axes.set(ylabel = plot_list[0])
                         axes.grid(True)
+                        axes.set_title(case)
                         plt.show(block=False)
                     except:
                             print('{} is not available as an output channel.'.format(plot_list[0]))
                 plt.legend(myleg,loc='upper center',bbox_to_anchor=(0.5, 0.0), borderaxespad=2, ncol=len(alldata))
-
         plt.show()
 
         
