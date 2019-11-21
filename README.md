@@ -24,7 +24,7 @@ There is a short (but _hopefully_ sweet) installation and run process for basic 
 No matter what you desire to do, you will need to install the ROSCO toolbox. 
 
 #### WISDEM Dependencies
-The ROSCO toolbox  two NREL tools that are distributed as a part of the WISDEM packages. AerolasticSE and CCBlade are currently used, with future dependencies or support possible. As such, it is necessary to install WISDEM. This can be done fairly easily by following the [WISDEM installation instructions](https://github.com/wisdem/wisdem). A brief overview of the _user_ steps is provided here, for more detail, especially if you would like to contribute to the development of WISDEM, see the [WISDEM github page](https://github.com/wisdem/wisdem).
+The ROSCO toolbox uses two NREL tools that are distributed as a part of the WISDEM packages. AerolasticSE and CCBlade are currently used, with future dependencies or support possible. As such, it is necessary to install WISDEM. This can be done fairly easily by following the [WISDEM installation instructions](https://github.com/wisdem/wisdem). A brief overview of the _user_ steps is provided here, for more detail, especially if you would like to contribute to the development of WISDEM, see the [WISDEM github page](https://github.com/wisdem/wisdem).
 
 We recommend creating and activating the same Anaconda environment for both WISDEM and ROSCO:
 
@@ -39,7 +39,7 @@ conda activate wisdem-env
 conda install -y wisdem
 ```
 #### Installing ROSCO
-You should first be sure that you are stull in the `wisdem-env` environment.
+You should first be sure that you are still in the `wisdem-env` environment.
 
 1. clone the git repository and initiate the submodule:
 ``` 
@@ -63,7 +63,7 @@ cd build
 cmake ..
 make
 ```
-These commands will compile a binary titled `libdiscon.*` in the build folder, which is the binary necessary run the controller. This should only need to be compiled once. 
+These commands will compile a binary titled `libdiscon.*` in the build folder, which is the binary necessary run the controller. This should only need to be compiled once. The extension should be `.dll`, `.so`, or `.dylib`, depending on the user operating system. 
 
 ### Running ROSCO with Generic Tuning
 The [Tune_Cases](Tune_Cases) folder hosts examples on what needs to happen to write the input file to the ROSCO controller. See below on some details for compiling ROSCO:
