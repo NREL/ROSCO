@@ -77,12 +77,14 @@ class Turbine():
         '''
         Print some data about the turbine.
         '''
-        print('---------------------')
-        print('Turbine Info')
-        print('total_inertia: {:.1f}'.format(self.J))
-        print('rho: %{:.1f}'.format(self.rho))
-        print('rotor_radius: {:.1f}'.format(self.rotor_radius))
-        print('---------------------')
+        print('-------------- Turbine Info --------------')
+        print('Turbine Name: {}'.format(self.TurbineName))
+        print('Rated Power: {} [W]'.format(self.rated_power))
+        print('Total Inertia: {:.1f} [kg m^2]'.format(self.J))
+        print('Rotor Radius: {:.1f} [m]'.format(self.rotor_radius))
+        print('Rated Rotor Speed: {:.1f} [rad/s]'.format(self.rated_rotor_speed))
+        print('Max Cp: {:.2f}'.format(self.Cp.max))
+        print('------------------------------------------')
         return ' '
 
     # Save function
@@ -94,12 +96,13 @@ class Turbine():
         ----------
         filename : str
                    Name of file to save pickle 
-        '''
-        tuple_to_save = (self.J,self.rho,self.rotor_radius, self.Ng,self.rated_rotor_speed,self.v_min,self.v_rated,self.v_max,self.cc_rotor,self.Cp_table,self.Ct_table,self.Cq_table,self.Cp,self.Ct,self.Cq   )
+        # '''
+        tuple_to_save = (self)
         pickle.dump( tuple_to_save, open( filename, "wb" ) )
 
     # Load function
-    def load(self, filename):
+    @staticmethod
+    def load(filename):
         '''
         Load turbine from pickle - outdated, but might be okay!!
 
@@ -108,8 +111,8 @@ class Turbine():
         filename : str
                    Name of pickle file
         '''
-        self.J,self.rho,self.rotor_radius, self.Ng,self.rated_rotor_speed,self.v_min,self.v_rated,self.v_max,self.cc_rotor,self.cp_interp,self.ct_interp,self.cq_interp = pickle.load(open(filename,'rb'))
-
+        turbine = pickle.load(open(filename,'rb'))
+        return turbine
     # Load data from fast input deck
     def load_from_fast(self, FAST_InputFile,FAST_directory, FAST_ver='OpenFAST',dev_branch=True,rot_source=None, txt_filename=None):
         """
