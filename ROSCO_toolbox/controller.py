@@ -70,7 +70,7 @@ class Controller():
         if controller_params['min_pitch']:
             self.min_pitch = controller_params['min_pitch']
         else:
-            self.min_pitch = 0.      # Default to zero degrees min pitch
+            self.min_pitch = None
         
         if controller_params['max_pitch']:
             self.max_pitch = controller_params['max_pitch']
@@ -176,6 +176,10 @@ class Controller():
             pitch_op[i] = f_cp_pitch(Cp_op[i])                                  # expected operation blade pitch values
             dCp_beta[i], dCp_TSR[i] = turbine.Cp.interp_gradient(pitch_op[i],TSR_op[i])       # gradients of Cp surface in Beta and TSR directions
         
+        # Define minimum pitch saturation to be at Cp-maximizing pitch angle if not specifically defined
+        if not self.min_pitch:
+            self.min_pitch = pitch_op[0]
+
         # Full Cp surface gradients
         dCp_dbeta = dCp_beta/np.diff(pitch_initial_rad)[0]
         dCp_dTSR = dCp_TSR/np.diff(TSR_initial)[0]
@@ -325,7 +329,7 @@ class ControllerBlocks():
     def min_pitch_saturation(self, controller, turbine):
         
         # Find TSR associated with minimum rotor speed
-        TSR_at_minspeed = controller.pc_minspd * turbine.rotor_radius / controller.v_below_rated
+        TSR_at_minspeed = (controller.pc_minspd/turbine.Ng) * turbine.rotor_radius / controller.v_below_rated
         for i in range(len(TSR_at_minspeed)):
             if TSR_at_minspeed[i] > controller.TSR_op[i]:
                 controller.TSR_op[i] = TSR_at_minspeed[i]
