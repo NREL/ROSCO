@@ -1,60 +1,49 @@
-# Example_06
-# Step wind simulation, and plot
+# ----------- Example_06 --------------
+# Load a turbine, tune a controller, run OpenFAST simulation 
+# -------------------------------------
+#
+# In this example:
+#   - Load a turbine from OpenFAST
+#   - Tune a controller
+#   - Run an OpenFAST simulation
 
-from WTC_toolbox import turbine as wtc_turbine
-from WTC_toolbox import sim as wtc_sim
-from WTC_toolbox import control_interface as ci
-import numpy as np
-import matplotlib.pyplot as plt
-import os
+# Note - you will need to have a compiled controller in ROSCO/build/ 
+
+# Python Modules
 import yaml
+# ROSCO toolbox modules 
+from ROSCO_toolbox import controller as wtc_controller
+from ROSCO_toolbox import turbine as wtc_turbine
+from ROSCO_toolbox import sim as wtc_sim
+from ROSCO_toolbox import utilities as wtc_utilities
 
-# ensure proper directory location 
-# os.chdir('/Users/nabbas/Documents/WindEnergyToolbox/WTC_toolbox/examples')
-
-# parameter filename
-
-# # Load input file contents, put them in some dictionaries to keep things cleaner
-# inps = yaml.safe_load(open(parameter_filename))
-# path_params = inps['path_params']
-# controller_params = inps['controller_params']
-
-# Load turbine model
-parameter_filename = 'NREL5MW.yaml'         # Name of .yaml input file for the specific turbine
+# Load yaml file 
+parameter_filename = 'NREL5MW_example.yaml'
 inps = yaml.safe_load(open(parameter_filename))
-path_params = inps['path_params']
-turbine_params = inps['turbine_params']
-# Initialiize a turbine class
-turbine = wtc_turbine.Turbine(turbine_params)
+path_params         = inps['path_params']
+turbine_params      = inps['turbine_params']
+controller_params   = inps['controller_params']
 
-# Load turbine from OpenFAST and *.txt file
-FAST_InputFile = '5MW_Land.fst'
-FAST_directory = '/Users/nabbas/Documents/TurbineModels/NREL_5MW/5MW_Land'
+# Instantiate turbine, controller, and file processing classes
+turbine         = wtc_turbine.Turbine(turbine_params)
+controller      = wtc_controller.Controller(controller_params)
+file_processing = wtc_utilities.FileProcessing()
+fast_io         = wtc_utilities.FAST_IO()
+
+# Load turbine data from OpenFAST and rotor performance text file
 turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source='txt',txt_filename=path_params['rotor_performance_filename'])
 
-# # Load turbine quick from python
-# turbine.load('saved_turbine.p')
+# Tune controller 
+controller.tune_controller(turbine)
 
-# Load controller 
-lib_name = 'test_controller/DISCON.dll'
-# lib_name = '/Users/pfleming/Desktop/git_tools/floating/DRC_Fortran/DISCON//DISCON_glin64.so'
-controller_int = ci.ConInt(lib_name)
+# Write parameter input file
+param_file = 'DISCON.IN'   # This must be named DISCON.IN to be seen by the compiled controller binary. 
+file_processing.write_param_file(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
 
-# Load the simulator
-sim = wtc_sim.Sim(turbine,controller_int)
-
-# Define a wind speed history
-dt = 0.1
-tlen = 400      # length of time to simulate (s)
-ws0 = 9         # initial wind speed (m/s)
-t= np.arange(0,tlen,dt) 
-ws = np.ones_like(t) * ws0
-# add steps at every 100s
-for i in range(len(t)):
-    ws[i] = ws[i] + t[i]//100
+# Run OpenFAST
+# --- May need to change fastcall if you use a non-standard command to call openfast
+fast_io.run_openfast(path_params['FAST_directory'], fastcall='openfast', fastfile=path_params['FAST_InputFile'],chdir=False)
 
 
-# Run simulator
-sim.sim_ws_series(t,ws)
-plt.show()
+
 

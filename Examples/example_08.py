@@ -1,46 +1,36 @@
-# Example_08
-# Load gain schedule, write parameter file, run test OpenFAST simulation, 
+# ----------- Example_08 --------------
+# Plot some OpenFAST output data
+# -------------------------------------
+#
+# In this example:
+#   - Load openfast output data
+#   - Plot some available channels
 
-#%%
+# Python Modules
 import numpy as np
-from scipy import interpolate 
-from shutil import copyfile
-from WTC_toolbox import controller as wtc_controller
-from WTC_toolbox import turbine as wtc_turbine
-from WTC_toolbox import sim as wtc_sim
-import os
+import matplotlib.pyplot as plt 
+# ROSCO toolbox modules 
+from ROSCO_toolbox import utilities as wtc_utilities
 
-# os.chdir('/Users/nabbas/Documents/WindEnergyToolbox/WTC_toolbox/examples')
+# Instantiate fast_IO
+FAST_IO = wtc_utilities.FAST_IO()
 
-# Initialiize turbine and controller classes
-turbine = wtc_turbine.Turbine()
-controller = wtc_controller.Controller()
-file_processing = wtc_controller.FileProcessing()
+# Define openfast output filenames
+filenames = ["../Test_Cases/5MW_Land/5MW_Land.out"]
 
-# Initialize Filenames and Directories
-FAST_InputFile = '5MW_Land.fst'
-FAST_directory = os.path.join(os.getcwd(),'../Test_Cases/5MW_Land')
-txt_filename = 'Cp_Ct_Cq.txt'
-DISCON_source = os.path.join(os.getcwd(),'../DRC_Fortran/DISCON/DISCON_glin64.so')
-DISCON_dest = os.path.join(os.getcwd(),'../Test_Cases/5MW_Baseline/DISCON/DISCON_glin64.so')
+# ---- Note: Could plot multiple cases, and binaries...
+# filenames = ["../Test_Cases/5MW_Land/5MW_Land.out",
+#              "../Test_Cases/5MW_Land/5MW_Land.outb"]
 
-# Copy controller from DRC_Fortran directory if necessary
-copyfile(DISCON_source,DISCON_dest)
+# Load output info and data
+allinfo, alldata = FAST_IO.load_output(filenames)
 
-# Load turbine and tune controller
-drivetrain_inertia = 40469564.444
-turbine.load_from_fast(FAST_InputFile,FAST_directory,drivetrain_inertia,dev_branch=True,rot_source='txt', txt_filename=txt_filename)
-controller.tune_controller(turbine)
+#  Define Plot cases 
+#  --- Comment,uncomment, create, and change these as desired...
+cases = {}
+cases['Baseline'] = ['Wind1VelX', 'BldPitch1', 'GenTq', 'RotSpeed']
+cases['Rotor'] = ['BldPitch1', 'GenTq', 'GenPwr']
+cases['Rotor Performance'] = ['RtVAvgxh', 'RtTSR', 'RtAeroCp']
 
-# Write parameter input file
-param_file_source = os.path.join(FAST_directory,'DISCON.IN')
-file_processing.write_param_file(param_file_source,turbine,controller,new_file=True)
-
-# Run OpenFAST
-# --- May need to be changed for specific user's call for OpenFAST
-os.chdir(FAST_directory)
-os.system('openfast_dev %s' % FAST_InputFile)
-
-
-
-
+# Plot, woohoo!
+FAST_IO.plot_fast_out(cases, allinfo, alldata)
