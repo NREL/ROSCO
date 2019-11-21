@@ -72,9 +72,6 @@ class Turbine():
         self.rated_power = turbine_params['rated_power']           
         self.bld_edgewise_freq = turbine_params['bld_edgewise_freq']     
 
-        # # Init the cc-blade rotor
-        # self.cc_rotor = None
-
     # Allow print out of class
     def __str__(self): 
         '''
@@ -91,7 +88,7 @@ class Turbine():
     # Save function
     def save(self,filename):
         '''
-        Save turbine to pickle - outdated, but might be okay!!
+        Save turbine to pickle
 
         Parameters:
         ----------
