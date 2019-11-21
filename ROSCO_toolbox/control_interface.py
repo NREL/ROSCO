@@ -59,6 +59,9 @@ class ControllerInterface():
         # Define some avrSWAP parameters
         self.avrSWAP[2] = self.DT
         self.avrSWAP[60] = self.num_blade
+        self.avrSWAP[20] = 1 # HARD CODE initial rot speed = 1 rad/s
+        self.avrSWAP[26] = 10 # HARD CODE initial wind speed = 10 m/s
+
 
         # Code this as first casll
         self.avrSWAP[0] = 0
@@ -121,7 +124,10 @@ class ControllerInterface():
         # Add states to avr
         self.avrSWAP[1] = t
         self.avrSWAP[2] = dt
-        self.avrSWAP[3] = self.pitch
+        self.avrSWAP[3] = pitch
+        self.avrSWAP[32] = pitch
+        self.avrSWAP[33] = pitch
+        self.avrSWAP[14] = genspeed*torque
         self.avrSWAP[22] = torque
         self.avrSWAP[19] = genspeed
         self.avrSWAP[20] = rotspeed
