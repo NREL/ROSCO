@@ -104,7 +104,7 @@ class Sim():
             gen_torque[i], bld_pitch[i] = self.controller_int.call_controller(t,dt,bld_pitch[i-1],gen_torque[i-1],gen_speed[i],rot_speed[i],ws)
 
             # Calculate the power
-            gen_power[i] = gen_speed[i] * np.pi/30.0 * gen_torque[i] * self.gen_eff
+            gen_power[i] = gen_speed[i] * gen_torque[i] * self.turbine.GenEff
 
         # Save these values
         self.bld_pitch = bld_pitch
@@ -120,19 +120,25 @@ class Sim():
             fig, axarr = plt.subplots(4,1,sharex=True,figsize=(6,10))
 
             ax = axarr[0]
-            ax.plot(self.t_array,self.ws_array,label='Wind Speed')
+            ax.plot(self.t_array,self.ws_array)
+            ax.set_ylabel('Wind Speed (m/s)')
             ax.grid()
             ax.legend()
             ax = axarr[1]
-            ax.plot(self.t_array,self.rot_speed,label='Rot Speed')
+            ax.plot(self.t_array,self.rot_speed)
+            ax.set_ylabel('Rot Speed (rad/s)')
             ax.grid()
             ax.legend()
             ax = axarr[2]
-            ax.plot(self.t_array,self.gen_torque,label='Gen Torque')
+            ax.plot(self.t_array,self.gen_torque)
+            ax.set_ylabel('Gen Torque (N)')
             ax.grid()
             ax.legend()
             ax = axarr[3]
-            ax.plot(self.t_array,self.bld_pitch,label='Bld Pitch')
+            ax.plot(self.t_array,self.bld_pitch*rad2deg)
+            ax.set_ylabel('Bld Pitch (deg)')
+            ax.set_xlabel('Time (s)')
             ax.grid()
             ax.legend()
+
         
