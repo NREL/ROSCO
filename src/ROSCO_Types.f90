@@ -117,6 +117,9 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)                             :: SD_MaxPit                    ! Maximum blade pitch angle to initiate shutdown, [rad]
     REAL(4)                             :: SD_CornerFreq                ! Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]
     
+    INTEGER(4)                          :: FL_Mode                      ! Floating specific feedback mode {0: no nacelle velocity feedback, 1: nacelle velocity feedback}
+    REAL(4)                             :: FL_Kp                        ! Nacelle velocity proportional feedback gain [s]
+
     REAL(4)                             :: PC_RtTq99                    ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(4)                             :: VS_MaxOMTq                   ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(4)                             :: VS_MinOMTq                   ! Minimum torque at the beginning of the below-rated region 2, [Nm]
@@ -136,10 +139,11 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                      :: rootMOOP(3)
     REAL(4)                      :: BlPitch(3)
     REAL(4)                      :: Azimuth
-    INTEGER(4)                      :: NumBl
-    
+    INTEGER(4)                   :: NumBl
+    REAL(4)                      :: FA_Acc                       ! Tower fore-aft acceleration [m/s^2]
+    REAL(4)                      :: NacIMU_FA_Acc                       ! Tower fore-aft acceleration [m/s^2]
+
     ! ---------- -Internal controller variables ----------
-    REAL(4)                             :: FA_Acc                       ! Tower fore-aft acceleration [m/s^2]
     REAL(4)                             :: FA_AccHPF                    ! High-pass filtered fore-aft acceleration [m/s^2]
     REAL(4)                             :: FA_AccHPFI                   ! Tower velocity, high-pass filtered and integrated fore-aft acceleration [m/s]
     REAL(4)                             :: FA_PitCom(3)                 ! Tower fore-aft vibration damping pitch contribution [rad]

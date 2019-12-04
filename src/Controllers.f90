@@ -103,6 +103,11 @@ CONTAINS
             LocalVar%PC_PitComT = Shutdown(LocalVar, CntrPar, objInst)
         ENDIF
 
+        ! FloatingFeedback
+        IF (CntrPar%Fl_Mode == 1) THEN
+            CALL FloatingFeedback(LocalVar, CntrPar, objInst)
+        ENDIF
+
         ! Combine and saturate all pitch commands:
         DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
             LocalVar%PitCom(K) = saturate(LocalVar%PC_PitComT, LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
@@ -333,4 +338,22 @@ CONTAINS
         END DO
         
     END SUBROUTINE ForeAftDamping
+!-------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE FloatingFeedback(LocalVar, CntrPar, objInst) 
+    ! FloatingFeedback defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
+    !       FL_Mode = 0, No feedback
+    !       FL_Mode = 1, Proportional feedback of nacelle velocity
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
+        IMPLICIT NONE
+        ! Inputs
+        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
+        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+        ! Allocate Variables 
+        REAL(4)                      :: NacIMU_FA_vel ! Tower fore-aft velocity
+        
+        NacIMU_FA_vel = PIController(-LocalVar%NacIMU_FA_Acc, 0.0, 1.0, -100.0 , 100.0 ,LocalVar%DT, 0.0, .FALSE., objInst%instPI)
+        LocalVar%PC_PitComT = LocalVar%PC_PitComT + NacIMU_FA_vel * CntrPar%FL_Kp 
+
+    END SUBROUTINE FloatingFeedback
 END MODULE Controllers
