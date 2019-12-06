@@ -199,6 +199,8 @@ CONTAINS
         !------------ Flaps ------------
         READ(UnControllerParameters, *)      
         READ(UnControllerParameters, *) CntrPar%Flp_Angle  
+        READ(UnControllerParameters, *) CntrPar%Flp_Kp  
+        READ(UnControllerParameters, *) CntrPar%Flp_Ki  
         ! END OF INPUT FILE    
         
         !------------------- CALCULATED CONSTANTS -----------------------

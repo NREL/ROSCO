@@ -347,12 +347,45 @@ CONTAINS
         TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
-        
+        ! Internal Variables
+        Integer(4)                                :: K
+        REAL(4)                                   :: rootMOOP_F(3)
+        REAL(4)                                   :: RootMyb_Vel(3)
+        REAL(4), SAVE                             :: RootMyb_Last(3)
+        REAL(4)                                   :: RootMyb_VelErr(3)
+
         ! Flap control
-        IF (CntrPar%Flp_Mode == 1) THEN
-            LocalVar%Flp_Angle(1) = CntrPar%Flp_Angle
-            LocalVar%Flp_Angle(2) = CntrPar%Flp_Angle
-            LocalVar%Flp_Angle(3) = CntrPar%Flp_Angle
+        IF (CntrPar%Flp_Mode > 1) THEN
+            IF ((LocalVar%iStatus == 0) .and. (CntrPar%Flp_Mode == 1)) THEN
+                RootMyb_Last(1) = 0 - LocalVar%rootMOOP(1)
+                RootMyb_Last(2) = 0 - LocalVar%rootMOOP(2)
+                RootMyb_Last(3) = 0 - LocalVar%rootMOOP(3)
+            ELSEIF (CntrPar%Flp_Mode == 1) THEN
+                LocalVar%Flp_Angle(1) = CntrPar%Flp_Angle
+                LocalVar%Flp_Angle(2) = CntrPar%Flp_Angle
+                LocalVar%Flp_Angle(3) = CntrPar%Flp_Angle
+                ! IF (MOD(LocalVar%Time,10.0) == 0) THEN
+                !     LocalVar%Flp_Angle(1) = LocalVar%Flp_Angle(1) + 1
+                !     LocalVar%Flp_Angle(2) = LocalVar%Flp_Angle(2) + 1
+                !     LocalVar%Flp_Angle(3) = LocalVar%Flp_Angle(3) + 1
+                ! ENDIF
+            ELSEIF (CntrPar%Flp_Mode == 2) THEN
+                DO K = 1,3
+                    ! LPF Blade root bending moment (tau = 0.1, critically damped to attempt to mitigate phase delays)
+                    RootMOOP_F(K) = SecLPFilter(LocalVar%rootMOOP(K),LocalVar%DT,62.8319, 0.7,LocalVar%iStatus, .FALSE.,objInst%instLPF)
+                    ! Find derivative and derivative error of blade root bending moment
+                    RootMyb_Vel(K) = (RootMOOP_F(K) - RootMyb_Last(K))/LocalVar%DT
+                    RootMyb_VelErr(K) = 0 - RootMyb_Vel(K)!LocalVar%rootMOOP(K)
+                    ! Find flap angle
+                    ! LocalVar%Flp_Angle(K) = PIController(RootMyb_VelErr(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, -10.0, 10.0, LocalVar%DT, 0.0, .FALSE., objInst%instPI)
+                    LocalVar%Flp_Angle(K) = PIIController(RootMyb_VelErr(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, 0.05, -10.0, 10.0, LocalVar%DT, 0.0, .FALSE., objInst%instPI)
+                    ! Add some integral gain to encourage zero flap angle
+                    ! LocalVar%Flp_Angle(K) = LocalVar%Flp_Angle(K) + PIController(0 - LocalVar%Flp_Angle(K), 0.0, 0.01, -10.0, 10.0, LocalVar%DT, 0.0, .FALSE., objInst%instPI)
+                    ! Saturation Limits
+                    ! LocalVar%Flp_Angle(K) = saturate(LocalVar%Flp_Angle(K),-10.0, 10.0)
+                    RootMyb_Last(K) = RootMOOP_F(K)
+                ENDDO
+            ENDIF
             ! Send to AVRSwap
             avrSWAP(120) = LocalVar%Flp_Angle(1)
             avrSWAP(121) = LocalVar%Flp_Angle(2)

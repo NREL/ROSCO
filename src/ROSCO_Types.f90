@@ -117,9 +117,11 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)                             :: SD_MaxPit                    ! Maximum blade pitch angle to initiate shutdown, [rad]
     REAL(4)                             :: SD_CornerFreq                ! Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]
     
-    INTEGER(4)                          :: Flp_Mode                     ! Flap actuator mode {0: off, 1: fixed flap position}
-    REAL(4)                             :: Flp_Angle                    ! Flp_Angle         - Blade flap angle (degrees)
-
+    INTEGER(4)                          :: Flp_Mode                     ! Flap actuator mode {0: off, 1: fixed flap position, 2: PI flap control}
+    REAL(4)                             :: Flp_Angle                    ! Fixed flap angle (degrees)
+    REAL(4)                             :: Flp_Kp                       ! PI flap control proportional gain 
+    REAL(4)                             :: Flp_Ki                       ! PI flap control integral gain 
+    
     REAL(4)                             :: PC_RtTq99                    ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(4)                             :: VS_MaxOMTq                   ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(4)                             :: VS_MinOMTq                   ! Minimum torque at the beginning of the below-rated region 2, [Nm]
