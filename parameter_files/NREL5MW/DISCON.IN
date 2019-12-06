@@ -110,4 +110,6 @@
 0.418880000000      ! SD_CornerFreq     - Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]
 
 !------- FLAP ACTUATION -------------------------------------------
-0                   ! Flp_Angle  - Steady state flap angle, [deg]
+0                   ! Flp_Angle         - Steady state flap angle, [deg]
+0.0                 ! Flp_Kp            - PI flap controller proportional gain
+0.0                 ! Flp_Ki            - PI flap controller integral gain
