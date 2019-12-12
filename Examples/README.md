@@ -10,3 +10,4 @@ Examples:
 6. Load a turbine, tune a controller, run an OpenFAST simulation.
 7. Load saved turbine, tune controller, plot minimum pitch schedule.
 8. Plot some OpenFAST output data.
+9. Run turbsim to compile binary.
