@@ -86,7 +86,7 @@ class FAST_IO():
             os.system('{} {}'.format(fastcall, os.path.join(fast_dir,fastfile)))
             print('OpenFAST simulation complete. ')
 
-    def plot_fast_out(self, cases, allinfo, alldata):
+    def plot_fast_out(self, cases, allinfo, alldata, showplot=True, fignum=None):
         '''
         Plots OpenFAST outputs for desired channels
 
@@ -98,13 +98,17 @@ class FAST_IO():
             List of OpenFAST output information, output from load_output
         alldata: list
             List of OpenFAST output data, output from load_output
+        showplot: bool, optional
+            Show the plot
+        fignum: int, optional
+            Define figure number. Note: Should only be used when plotting a singular case. 
         '''
         # Plot cases
         for case in cases.keys():
             # channels to plot
             plot_list = cases[case]
              # instantiate plot and legend
-            fig, axes = plt.subplots(len(plot_list),1, sharex=True)
+            fig, axes = plt.subplots(len(plot_list),1, sharex=True,num=fignum)
     
             myleg = []
             for info, data in zip(allinfo, alldata):
@@ -133,11 +137,11 @@ class FAST_IO():
                         axes.set(ylabel = plot_list[0])
                         axes.grid(True)
                         axes.set_title(case)
-                        plt.show(block=False)
                     except:
                             print('{} is not available as an output channel.'.format(plot_list[0]))
                 plt.legend(myleg,loc='upper center',bbox_to_anchor=(0.5, 0.0), borderaxespad=2, ncol=len(alldata))
-        plt.show()
+        if showplot:
+            plt.show()
 
         
     def load_output(self, filenames):
