@@ -3,7 +3,7 @@
 
 #-------------------------------- LOAD INPUT PARAMETERS ---------------------------------#
 # Change this for your turbine
-parameter_filename = 'IEA15MW.yaml'                         # Name of .yaml input file for the specific turbine
+parameter_filename = 'NREL5MW.yaml'                         # Name of .yaml input file for the specific turbine
 
 
 
@@ -39,16 +39,12 @@ turbine         = wtc_turbine.Turbine(turbine_params)
 file_processing = wtc_utilities.FileProcessing()
 
 # Load Turbine, write rotor performance file if it doesn't exist
-if path_params['rotor_performance_filename']:
-    if os.path.exists(path_params['rotor_performance_filename']):
-        turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source='txt',txt_filename=path_params['rotor_performance_filename'])
-    else:
-        turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source=None, txt_filename=path_params['rotor_performance_filename'])
-        file_processing.write_rotor_performance(turbine,txt_filename=path_params['rotor_performance_filename'])
+if os.path.exists(path_params['rotor_performance_filename']):
+    turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source='txt',txt_filename=path_params['rotor_performance_filename'])
 else:
-    turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source=None)
+    turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source=None, txt_filename=path_params['rotor_performance_filename'])
     file_processing.write_rotor_performance(turbine,txt_filename=path_params['rotor_performance_filename'])
-
+    
 # Instantiate controller tuning and tune controller
 controller      = wtc_controller.Controller(controller_params)
 controller.tune_controller(turbine)
