@@ -4,7 +4,7 @@
 #
 # In this example:
 #   - Load a yaml file
-#   - Load a turbien from openfast
+#   - Load a turbine from openfast
 #   - Tune a controller
 #   - Plot minimum pitch schedule
 

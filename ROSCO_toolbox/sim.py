@@ -123,22 +123,18 @@ class Sim():
             ax.plot(self.t_array,self.ws_array)
             ax.set_ylabel('Wind Speed (m/s)')
             ax.grid()
-            ax.legend()
             ax = axarr[1]
             ax.plot(self.t_array,self.rot_speed)
             ax.set_ylabel('Rot Speed (rad/s)')
             ax.grid()
-            ax.legend()
             ax = axarr[2]
             ax.plot(self.t_array,self.gen_torque)
             ax.set_ylabel('Gen Torque (N)')
             ax.grid()
-            ax.legend()
             ax = axarr[3]
             ax.plot(self.t_array,self.bld_pitch*rad2deg)
             ax.set_ylabel('Bld Pitch (deg)')
             ax.set_xlabel('Time (s)')
             ax.grid()
-            ax.legend()
 
         

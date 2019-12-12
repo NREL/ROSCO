@@ -45,6 +45,6 @@ for i in range(len(t)):
     ws[i] = ws[i] + t[i]//100
 
 # Run simulator and plot results
-sim.sim_ws_series(t,ws)
+sim.sim_ws_series(t,ws,rotor_rpm_init=4)
 plt.show()
 
