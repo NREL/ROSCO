@@ -13,7 +13,7 @@
 0                   ! Y_ControlMode		- Yaw control mode {0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}
 1                   ! SS_Mode           - Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
 2                   ! WE_Mode           - Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator, 2: Extended Kalman Filter}
-0                   ! PS_Mode           - Pitch saturation mode {0: no pitch saturation, 1: implement pitch saturation}
+1                   ! PS_Mode           - Pitch saturation mode {0: no pitch saturation, 1: implement pitch saturation}
 0                   ! SD_Mode           - Shutdown mode {0: no shutdown procedure, 1: pitch to max pitch at shutdown}
 
 !------- FILTERS ----------------------------------------------------------
@@ -102,7 +102,7 @@
 !------- MINIMUM PITCH SATURATION -------------------------------------------
 44                  ! PS_BldPitchMin_N  - Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)
 3.00 3.50 4.00 4.50 5.00 5.50 6.00 6.50 7.00 7.50 8.00 8.50 9.00 9.50 10.00 10.50 11.00 11.90 12.40 12.90 13.40 13.90 14.40 14.90 15.40 15.90 16.40 16.90 17.40 17.90 18.40 18.90 19.40 19.90 20.40 20.90 21.40 21.90 22.40 22.90 23.40 23.90 24.40 24.90               ! PS_WindSpeeds       - Wind speeds corresponding to minimum blade pitch angles [m/s]
-0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332 0.00436332               ! PS_BldPitchMin          - Minimum blade pitch angles [rad]
+-0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01745329 -0.01486382 0.01237168 0.03354512 0.05058442 0.06785805 0.07982589 0.09144663 0.10278531 0.11391901 0.12476594 0.13542816 0.14598388 0.15645256 0.16661147 0.17686110 0.18679962 0.19679911 0.20654203 0.21640543 0.22587499 0.23568735 0.24488639 0.25430458 0.26378655 0.27269155 0.28193203 0.29124891 0.29982426 0.30873652 0.31795843 0.32649329               ! PS_BldPitchMin          - Minimum blade pitch angles [rad]
 
 !------- SHUTDOWN -------------------------------------------
 0.436300000000      ! SD_MaxPit         - Maximum blade pitch angle to initiate shutdown, [rad]
