@@ -35,6 +35,7 @@ _build
 *.dylib
 *.so
 *.dll
+*.bts
 
 # Other
 .pytest_cache
