@@ -129,11 +129,6 @@ CONTAINS
         REAL(4)                 :: Tau_r            ! Estimated rotor torque [Nm]
         REAL(4)                 :: a                ! wind variance
         REAL(4)                 :: lambda           ! tip-speed-ratio [rad]
-
-        ! REAL(4), DIMENSION(1,23)    :: WE_EKF_Vref
-        ! REAL(4)                 :: WE_EKF_Vref(23)
-        ! REAL(4)                 :: WE_EKF_Aref(23)
-        ! REAL(4)                 :: WE_EKF_Cpref(23)
         !           - Covariance matrices
         REAL(4), DIMENSION(3,3)         :: F        ! First order system jacobian 
         REAL(4), DIMENSION(3,3), SAVE   :: P        ! Covariance estiamte 
@@ -144,12 +139,6 @@ CONTAINS
         REAL(4), DIMENSION(1,1)         :: S        ! Innovation covariance 
         REAL(4), DIMENSION(3,1), SAVE   :: K        ! Kalman gain matrix
         REAL(4)                         :: R_m      ! Measurement noise covariance [(rad/s)^2]
-        REAL(4)                         :: temp     ! temp variable
-
-        ! WE_EKF_Vref = (/ 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 /)
-        ! WE_EKF_Aref = (/ -0.0203, -0.0270, -0.0338, -0.0405, -0.0473, -0.0540, -0.0608, -0.0675, -0.0743, -0.0671, -0.0939, -0.1257, -0.1601, -0.1973, -0.2364, -0.2783, -0.3223, -0.3678, -0.4153, -0.4632, -0.5122, -0.5629, -0.6194 /)
-        ! WE_EKF_Cpref = (/ 0.4957, 0.4957, 0.4957, 0.4957, 0.4957, 0.4957, 0.4957, 0.4957, 0.4957, 0.4193, 0.3298, 0.2641, 0.2147, 0.1769, 0.1475, 0.1242, 0.1056, 0.0906, 0.0782, 0.0680, 0.0596, 0.0524, 0.0464 /)
-
         
         ! ---- Define wind speed estimate ---- 
         
@@ -178,11 +167,8 @@ CONTAINS
                 xh = RESHAPE((/om_r, v_t, v_m/),(/3,1/))
                 P = RESHAPE((/0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 1.0/),(/3,3/))
                 K = RESHAPE((/0.0,0.0,0.0/),(/3,1/))
+                
             ELSE
-                ! Update estimated values
-                ! v_h = v_m + v_t
-                a = PI * v_m/(2.0*L)
-
                 ! Find estimated operating Cp and system pole
                 A_op = interp1d(CntrPar%WE_FOPoles_v,CntrPar%WE_FOPoles,v_h)
 
@@ -204,8 +190,8 @@ CONTAINS
                 Q(3,3) = (2.0**2.0)/600.0
 
                 ! Prediction update
-                ! Tau_r = 0.5 * CntrPar%WE_RhoAir * PI *CntrPar%WE_BladeRadius**3 * Cp_op * v_h**2 * 1.0/(lambda)
                 Tau_r = AeroDynTorque(LocalVar,CntrPar,PerfData)
+                a = PI * v_m/(2.0*L)
                 dxh(1,1) = 1.0/CntrPar%WE_Jtot * (Tau_r - CntrPar%WE_GearboxRatio * LocalVar%VS_LastGenTrq)
                 dxh(2,1) = -a*v_t
                 dxh(3,1) = 0.0
@@ -216,7 +202,8 @@ CONTAINS
                 ! Measurement update
                 S = MATMUL(H,MATMUL(P,TRANSPOSE(H))) + R_m        ! NJA: (H*T*H') \approx 0
                 K = MATMUL(P,TRANSPOSE(H))/S(1,1)
-                xh = xh + K*(LocalVar%GenSpeedF/CntrPar%WE_GearboxRatio - xh(1,1))
+                ! xh = xh + K*(LocalVar%GenSpeedF/CntrPar%WE_GearboxRatio - xh(1,1))
+                xh = xh + K*(LocalVar%GenSpeedF/CntrPar%WE_GearboxRatio - om_r)
                 P = MATMUL(identity(3) - MATMUL(K,H),P)
                 
                 ! Wind Speed Estimate
@@ -227,9 +214,7 @@ CONTAINS
                 v_t = xh(2,1)
                 v_m = xh(3,1)
                 v_h = v_t + v_m
-                LocalVar%TestType = v_m + v_t
                 LocalVar%WE_Vw = v_m + v_t
-                ! LocalVar%WE_Vw = LPFilter(v_m + v_t,LocalVar%DT,0.5,LocalVar%iStatus,.FALSE.,objInst%instLPF)
             ENDIF
 
         ELSE        
@@ -259,7 +244,7 @@ CONTAINS
         ! ------ Setpoint Smoothing ------
         IF ( CntrPar%SS_Mode == 1) THEN
             ! Find setpoint shift amount
-            DelOmega = ((LocalVar%BlPitch(1) - CntrPar%PC_MinPit)/0.524) * CntrPar%SS_VSGain - ((CntrPar%VS_RtPwr - LocalVar%VS_GenPwr))/CntrPar%VS_RtPwr * CntrPar%SS_PCGain ! Normalize to 30 degrees for now
+            DelOmega = ((LocalVar%BlPitch(1) - CntrPar%PC_MinPit)/0.524) * CntrPar%SS_VSGain - ((CntrPar%VS_RtTq - LocalVar%VS_LastGenTrq))/CntrPar%VS_RtTq * CntrPar%SS_PCGain ! Normalize to 30 degrees for now
             DelOmega = DelOmega * CntrPar%PC_RefSpd
             ! Filter
             LocalVar%SS_DelOmegaF = LPFilter(DelOmega, LocalVar%DT, CntrPar%F_SSCornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF) 
@@ -269,10 +254,10 @@ CONTAINS
 
     END SUBROUTINE SetpointSmoother
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION PeakShaving(LocalVar, CntrPar, objInst) 
-    ! PeakShaving defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
+    REAL FUNCTION PitchSaturation(LocalVar, CntrPar, objInst) 
+    ! PitchSaturation defines a minimum blade pitch angle based on a lookup table provided by DISCON.IN
     !       SS_Mode = 0, No setpoint smoothing
-    !       SS_Mode = 1, Implement setpoint smoothing
+    !       SS_Mode = 1, Implement pitch saturation
         USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
         IMPLICIT NONE
         ! Inputs
@@ -293,9 +278,9 @@ CONTAINS
         Vhatf = LPFilter(Vhat,LocalVar%DT,0.2,LocalVar%iStatus,.FALSE.,objInst%instLPF)
         LocalVar%TestType = Vhatf
         ! Define minimum blade pitch angle as a function of estimated wind speed
-        PeakShaving = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, Vhatf)
+        PitchSaturation = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, Vhatf)
 
-    END FUNCTION PeakShaving
+    END FUNCTION PitchSaturation
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION Shutdown(LocalVar, CntrPar, objInst) 
     ! PeakShaving defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
