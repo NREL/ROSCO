@@ -27,7 +27,9 @@ IMPLICIT NONE
 CONTAINS
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION LPFilter(InputSignal, DT, CornerFreq, iStatus, reset, inst)
-    ! Discrete time Low-Pass Filter
+    ! Discrete time Low-Pass Filter of the form:
+    !                           H(z) = (b1z + b0) / (a1*z + a0)
+    !
         REAL(4), INTENT(IN)         :: InputSignal
         REAL(4), INTENT(IN)         :: DT                       ! time step [s]
         REAL(4), INTENT(IN)         :: CornerFreq               ! corner frequency [rad/s]
@@ -36,13 +38,17 @@ CONTAINS
         LOGICAL(4), INTENT(IN)      :: reset                    ! Reset the filter to the input signal
 
             ! Local
+        REAL(4), SAVE                   :: a1                   ! Denominator coefficient 1
+        REAL(4), SAVE                   :: a0                   ! Denominator coefficient 0
+        REAL(4), SAVE                   :: b1                    ! Numerator coefficient 1
+        REAL(4), SAVE                   :: b0                    ! Numerator coefficient 0 
 
         REAL(4), DIMENSION(99), SAVE    :: InputSignalLast      ! Input signal the last time this filter was called. Supports 99 separate instances.
         REAL(4), DIMENSION(99), SAVE    :: OutputSignalLast ! Output signal the last time this filter was called. Supports 99 separate instances.
 
             ! Initialization
-
-        IF ((iStatus == 0) .OR. reset) THEN
+        IF ((iStatus == 0) .OR. reset) THEN   
+            ! a1 = 
             OutputSignalLast(inst) = InputSignal
             InputSignalLast(inst) = InputSignal
         ENDIF
