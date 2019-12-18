@@ -32,23 +32,20 @@ CONTAINS
     ! -----------------------------------------------------------------------------------
     ! Read all constant control parameters from DISCON.IN parameter file
     SUBROUTINE ReadControlParameterFileSub(CntrPar, accINFILE, accINFILE_size)!, accINFILE_size)
-
+        USE, INTRINSIC :: ISO_C_Binding
         USE ROSCO_Types, ONLY : ControlParameters
 
         INTEGER(4) :: accINFILE_size
-        CHARACTER(KIND=C_CHAR), INTENT(IN)      :: accINFILE(89)
-        CHARACTER(89) :: DISCON_IN
+        CHARACTER, DIMENSION(accINFILE_size), INTENT(IN)      :: accINFILE
         INTEGER(4), PARAMETER :: UnControllerParameters = 89
         TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
         ! CHARACTER(KIND=C_CHAR) :: DISCON_IN(LEN(TRIM(accINFILE)))
         
         ! OPEN(unit=UnControllerParameters, file='/Users/nabbas/Documents/TurbineModels/NREL_5MW/5MW_Land/./DISCON.IN', status='old', action='read')
-        ! print *, 'accINFILE: ', accINFILE
+        print *, 'accINFILE: ', accINFILE
         ! DISCON_IN = TRIM(accINFILE)
         ! accINFILE = "DISCON.IN"
-        DISCON_IN = TRANSFER(accINFILE,' ')
-        print *, DISCON_IN
-        OPEN(unit=UnControllerParameters, FILE=trim(DISCON_IN), status='old', action='read')
+        OPEN(unit=UnControllerParameters, file=accINFILE, status='old', action='read')
         
         !----------------------- HEADER ------------------------
         READ(UnControllerParameters, *)
