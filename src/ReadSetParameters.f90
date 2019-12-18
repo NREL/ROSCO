@@ -31,13 +31,17 @@ USE Functions
 CONTAINS
     ! -----------------------------------------------------------------------------------
     ! Read all constant control parameters from DISCON.IN parameter file
-    SUBROUTINE ReadControlParameterFileSub(CntrPar)
+    SUBROUTINE ReadControlParameterFileSub(CntrPar, accINFILE, accINFILE_size)!, accINFILE_size)
+        USE, INTRINSIC :: ISO_C_Binding
         USE ROSCO_Types, ONLY : ControlParameters
 
-        INTEGER(4), PARAMETER :: UnControllerParameters = 89
-        TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
-        
-        OPEN(unit=UnControllerParameters, file='DISCON.IN', status='old', action='read')
+        INTEGER(4)                              :: accINFILE_size               ! size of DISCON input filename
+        CHARACTER(accINFILE_size), INTENT(IN)   :: accINFILE(accINFILE_size)    ! DISCON input filename
+        INTEGER(4), PARAMETER                   :: UnControllerParameters = 89  ! Unit number to open file
+        TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar                      ! Control parameter type
+       
+
+        OPEN(unit=UnControllerParameters, file=accINFILE(1), status='old', action='read')
         
         !----------------------- HEADER ------------------------
         READ(UnControllerParameters, *)
@@ -467,7 +471,7 @@ CONTAINS
     END SUBROUTINE Assert
     ! -----------------------------------------------------------------------------------
     ! Define parameters for control actions
-    SUBROUTINE SetParameters(avrSWAP, aviFAIL, ErrMsg, size_avcMSG, CntrPar, LocalVar, objInst, PerfData)
+    SUBROUTINE SetParameters(avrSWAP, aviFAIL, accINFILE, ErrMsg, size_avcMSG, CntrPar, LocalVar, objInst, PerfData)
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData
         
         INTEGER(4), INTENT(IN) :: size_avcMSG
@@ -475,9 +479,10 @@ CONTAINS
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT) :: objInst
         TYPE(PerformanceData), INTENT(INOUT) :: PerfData
-        
+
         REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
         INTEGER(C_INT), INTENT(OUT) :: aviFAIL              ! A flag used to indicate the success of this DLL call set as follows: 0 if the DLL call was successful, >0 if the DLL call was successful but cMessage should be issued as a warning messsage, <0 if the DLL call was unsuccessful or for any other reason the simulation is to be stopped at this point with cMessage as the error message.
+        CHARACTER(KIND=C_CHAR), INTENT(IN)      :: accINFILE(NINT(avrSWAP(50)))     ! The name of the parameter input file
         CHARACTER(size_avcMSG-1), INTENT(OUT) :: ErrMsg     ! a Fortran version of the C string argument (not considered an array here) [subtract 1 for the C null-character]
         INTEGER(4) :: K    ! Index used for looping through blades.
         
@@ -523,8 +528,7 @@ CONTAINS
                      'Visit our GitHub-page to contribute to this project:                          '//NEW_LINE('A')// &
                      'https://github.com/NREL/ROSCO                                                 '//NEW_LINE('A')// &
                      '------------------------------------------------------------------------------'
-
-            CALL ReadControlParameterFileSub(CntrPar)
+            CALL ReadControlParameterFileSub(CntrPar, accINFILE, NINT(avrSWAP(50)))
 
             IF (CntrPar%WE_Mode > 0) THEN
                 CALL READCpFile(CntrPar,PerfData)
