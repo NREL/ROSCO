@@ -35,17 +35,13 @@ CONTAINS
         USE, INTRINSIC :: ISO_C_Binding
         USE ROSCO_Types, ONLY : ControlParameters
 
-        INTEGER(4) :: accINFILE_size
-        CHARACTER, DIMENSION(accINFILE_size), INTENT(IN)      :: accINFILE
-        INTEGER(4), PARAMETER :: UnControllerParameters = 89
-        TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
-        ! CHARACTER(KIND=C_CHAR) :: DISCON_IN(LEN(TRIM(accINFILE)))
-        
-        ! OPEN(unit=UnControllerParameters, file='/Users/nabbas/Documents/TurbineModels/NREL_5MW/5MW_Land/./DISCON.IN', status='old', action='read')
-        print *, 'accINFILE: ', accINFILE
-        ! DISCON_IN = TRIM(accINFILE)
-        ! accINFILE = "DISCON.IN"
-        OPEN(unit=UnControllerParameters, file=accINFILE, status='old', action='read')
+        INTEGER(4)                              :: accINFILE_size               ! size of DISCON input filename
+        CHARACTER(accINFILE_size), INTENT(IN)   :: accINFILE(accINFILE_size)    ! DISCON input filename
+        INTEGER(4), PARAMETER                   :: UnControllerParameters = 89  ! Unit number to open file
+        TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar                      ! Control parameter type
+       
+
+        OPEN(unit=UnControllerParameters, file=accINFILE(1), status='old', action='read')
         
         !----------------------- HEADER ------------------------
         READ(UnControllerParameters, *)
