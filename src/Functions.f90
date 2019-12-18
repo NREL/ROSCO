@@ -206,7 +206,8 @@ CONTAINS
             DO i = 1,size(yData)
                 IF (yq == yData(i)) THEN    ! On axis, just need 1d interpolation
                     ii = i
-                    interp2d = interp1d(yData,zData(i,:),xq)
+                    interp2d = interp1d(xData,zData(i,:),xq)
+                    ! interp2d = interp1d(yData,zData(i,:),xq)
                     RETURN
                 ELSEIF (yq <= yData(i)) THEN
                     ii = i
