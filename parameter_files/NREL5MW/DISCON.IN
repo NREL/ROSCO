@@ -23,6 +23,7 @@
 0.00                ! F_NotchCornerFreq	- Natural frequency of the notch filter, [rad/s]
 0.0   0.0           ! F_NotchBetaNumDen	- Two notch damping values (numerator and denominator, resp) - determines the width and depth of the notch, [-]
 0.628319000000      ! F_SSCornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother, [rad/s].
+0.1   0.7           ! F_FlCornerFreq    - Corner frequency and damping in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s, -].
 
 !------- BLADE PITCH CONTROL ----------------------------------------------
 27                  ! PC_GS_n			- Amount of gain-scheduling table entries

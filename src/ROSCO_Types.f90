@@ -31,6 +31,8 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)                             :: F_NotchCornerFreq            ! Natural frequency of the notch filter, [rad/s]
     REAL(4), DIMENSION(:), ALLOCATABLE  :: F_NotchBetaNumDen            ! These two notch damping values (numerator and denominator) determines the width and depth of the notch
     Real(4)                             :: F_SSCornerFreq               ! Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
+    Real(4)                             :: F_FlCornerFreq               ! Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s].
+    Real(4)                             :: F_FlDamping                  ! Damping constant in the first order low pass filter of the tower-top fore-aft motion for floating feedback control [-].
 
     REAL(4)                             :: FA_HPFCornerFreq             ! Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]
     REAL(4)                             :: FA_IntSat                    ! Integrator saturation (maximum signal amplitude contrbution to pitch from FA damper), [rad]

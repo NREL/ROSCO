@@ -257,10 +257,10 @@ CONTAINS
         
         ! Filtering the tower fore-aft acceleration signal 
         IF ((LocalVar%iStatus == 0)) THEN
-            LocalVar%NACIMU_FA_AccF = SecLPFilter(0.0, LocalVar%DT, 0.1, 0.7, LocalVar%iStatus, .TRUE., objInst%instSecLPF) ! Initialize at 0.0 acceleration. NJA: seems to be more stable
+            LocalVar%NACIMU_FA_AccF = SecLPFilter(0.0, LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .TRUE., objInst%instSecLPF) ! Initialize at 0.0 acceleration. NJA: seems to be more stable
             ! LocalVar%NACIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, 0.1, 0.7, LocalVar%iStatus, .TRUE., objInst%instSecLPF)
         ELSE
-            LocalVar%NACIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, 0.075, 0.7, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
+            LocalVar%NACIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
         ENDIF
         LocalVar%FA_AccHPF = HPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%FA_HPFCornerFreq, LocalVar%iStatus, .FALSE., objInst%instHPF)
         
