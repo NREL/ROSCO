@@ -12,12 +12,12 @@
 ! This module contains all the filters and related subroutines
 
 ! Filters:
-!       HPFilter: High-pass filter
 !       LPFilter: Low-pass filter
+!       SecLPFilter: Second order low-pass filter
+!       HPFilter: High-pass filter
 !       NotchFilter: Notch filter
 !       NotchFilterSlopes: Notch Filter with descending slopes
 !       PreFilterMeasuredSignals: Pre-filter signals during each run iteration
-!       SecLPFilter: Second order low-pass filter
 
 MODULE Filters
 !...............................................................................................................................
@@ -53,12 +53,16 @@ CONTAINS
             InputSignalLast(inst) = InputSignal
         ENDIF
 
-            ! Body
+        ! Define coefficients
+        a1 = 2 + CornerFreq*DT
+        a0 = CornerFreq*DT - 2
+        b1 = CornerFreq*DT
+        b0 = CornerFreq*DT
 
-        LPFilter = (DT*CornerFreq*InputSignal + DT*CornerFreq*InputSignalLast(inst) - (DT*CornerFreq-2.0)*OutputSignalLast(inst))/(DT*CornerFreq+2.0)
+        ! Filter
+        LPFilter = 1.0/a1 * (-a0*OutputSignalLast(inst) + b1*InputSignal + b0*InputSignalLast(inst))
 
-            ! Save signals for next time step
-
+        ! Save signals for next time step
         InputSignalLast(inst)  = InputSignal
         OutputSignalLast(inst) = LPFilter
         inst = inst + 1
@@ -66,8 +70,8 @@ CONTAINS
     END FUNCTION LPFilter
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION SecLPFilter(InputSignal, DT, CornerFreq, Damp, iStatus, reset, inst)
-    ! Discrete time second order Low-Pass Filter
-        
+    ! Discrete time Low-Pass Filter of the form:
+    !                           H(z) = (b2z^2 + b1z + b0) / (a2z^2 + a1*z + a0)
         IMPLICIT NONE
         REAL(4), INTENT(IN)         :: InputSignal
         REAL(4), INTENT(IN)         :: DT                       ! time step [s]
@@ -78,6 +82,12 @@ CONTAINS
         LOGICAL(4), INTENT(IN)      :: reset                    ! Reset the filter to the input signal
 
         ! Local
+        REAL(4), SAVE                   :: a2                   ! Denominator coefficient 2
+        REAL(4), SAVE                   :: a1                   ! Denominator coefficient 1
+        REAL(4), SAVE                   :: a0                   ! Denominator coefficient 0
+        REAL(4), SAVE                   :: b2                    ! Numerator coefficient 2
+        REAL(4), SAVE                   :: b1                    ! Numerator coefficient 1
+        REAL(4), SAVE                   :: b0                    ! Numerator coefficient 0 
         REAL(4), DIMENSION(99), SAVE :: InputSignalLast1    ! Input signal the last time this filter was called. Supports 99 separate instances.
         REAL(4), DIMENSION(99), SAVE :: InputSignalLast2    ! Input signal the next to last time this filter was called. Supports 99 separate instances.
         REAL(4), DIMENSION(99), SAVE :: OutputSignalLast1   ! Output signal the last time this filter was called. Supports 99 separate instances.
@@ -91,15 +101,21 @@ CONTAINS
             InputSignalLast2(inst)   = InputSignal
         ENDIF
 
-        ! Body
-        SecLPFilter = 1/(4+4*DT*Damp*CornerFreq+DT**2*CornerFreq**2) * ( (8-2*DT**2*CornerFreq**2)*OutputSignalLast1(inst) &
-                        + (-4+4*DT*Damp*CornerFreq-DT**2*CornerFreq**2)*OutputSignalLast2(inst) + (DT**2*CornerFreq**2)*InputSignal &
-                            + (2*DT**2*CornerFreq**2)*InputSignalLast1(inst) + (DT**2*CornerFreq**2)*InputSignalLast2(inst) )
+        ! Coefficients
+        a2 = DT**2*CornerFreq**2 + 4 + 4*Damp*CornerFreq*DT
+        a1 = 2*DT**2*CornerFreq**2 - 8
+        a0 = DT**2*CornerFreq**2 + 4 - 4*Damp*CornerFreq*DT
+        b2 = DT**2*CornerFreq**2 
+        b1 = 2*DT**2*CornerFreq**2 
+        b0 = DT**2*CornerFreq**2 
+        
+        SecLPFilter = 1.0/a2* (-a1*OutputSignalLast1(inst) - a0*OutputSignalLast2(inst) + b2*InputSignal &
+                                + b1*InputSignalLast1(inst) + b0*InputSignalLast2(inst))
 
         ! Save signals for next time step
-        InputSignalLast2(inst)   = InputSignalLast1 (inst)
+        InputSignalLast2(inst)   = InputSignalLast1(inst)
         InputSignalLast1(inst)   = InputSignal
-        OutputSignalLast2(inst)  = OutputSignalLast1 (inst)
+        OutputSignalLast2(inst)  = OutputSignalLast1(inst)
         OutputSignalLast1(inst)  = SecLPFilter
         inst = inst + 1
 
@@ -240,7 +256,13 @@ CONTAINS
         END IF
         
         ! Filtering the tower fore-aft acceleration signal 
+        IF ((LocalVar%iStatus == 0)) THEN
+            LocalVar%NACIMU_FA_AccF = SecLPFilter(0.0, LocalVar%DT, 0.1, 0.7, LocalVar%iStatus, .TRUE., objInst%instSecLPF) ! Initialize at 0.0 acceleration. NJA: seems to be more stable
+            ! LocalVar%NACIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, 0.1, 0.7, LocalVar%iStatus, .TRUE., objInst%instSecLPF)
+        ELSE
+            LocalVar%NACIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, 0.075, 0.7, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
+        ENDIF
         LocalVar%FA_AccHPF = HPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%FA_HPFCornerFreq, LocalVar%iStatus, .FALSE., objInst%instHPF)
         
-        END SUBROUTINE PreFilterMeasuredSignals
+    END SUBROUTINE PreFilterMeasuredSignals
     END MODULE Filters
