@@ -356,10 +356,14 @@ CONTAINS
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables 
+        REAL(4)                      :: NACIMU_FA_AccF ! Low-pass filtered tower fore-aft acceleration
         REAL(4)                      :: NacIMU_FA_vel ! Tower fore-aft velocity
         
-        NacIMU_FA_vel = PIController(-LocalVar%NacIMU_FA_Acc, 0.0, 1.0, -100.0 , 100.0 ,LocalVar%DT, 0.0, .FALSE., objInst%instPI)
-        LocalVar%PC_PitComT = LocalVar%PC_PitComT + NacIMU_FA_vel * CntrPar%FL_Kp 
+        ! Calculate floating contribution to pitch command
+        
+        NacIMU_FA_vel = PIController(LocalVar%NacIMU_FA_AccF, 0.0, 1.0, -100.0 , 100.0 ,LocalVar%DT, 0.0, .FALSE., objInst%instPI)
+        LocalVar%TestType = NacIMU_FA_vel 
+        LocalVar%Fl_PitCom = (0.0 - NacIMU_FA_vel) * CntrPar%FL_Kp
 
     END SUBROUTINE FloatingFeedback
 END MODULE Controllers
