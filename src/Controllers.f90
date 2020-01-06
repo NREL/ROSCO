@@ -157,14 +157,14 @@ CONTAINS
             
             ! TSR tracking vs control
             LocalVar%GenTq = PIController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, VS_MaxTq, LocalVar%DT, LocalVar%VS_LastGenTrq, .FALSE., objInst%instPI)
-      
+            LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, VS_MaxTq)
         
         ! K*Omega^2 control law with PI torque control in transition regions
         ELSE
             ! Update PI loops for region 1.5 and 2.5 PI control
             ! LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_RtTq, .TRUE., objInst%instPI)
             LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_MaxOMTq, .FALSE., objInst%instPI)
-            LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, .TRUE., objInst%instPI)
+            LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, .FALSE., objInst%instPI)
             
             IF (LocalVar%VS_State == 1) THEN ! Region 1.5
                 LocalVar%GenTq = LocalVar%GenBrTq
@@ -177,7 +177,10 @@ CONTAINS
             ELSEIF (LocalVar%VS_State == 5) THEN ! Region 3, constant power
                 LocalVar%GenTq = (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF
             END IF
-       
+            
+            ! Saturate
+            LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, VS_MaxTq)
+
         ENDIF
 
 
