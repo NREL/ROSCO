@@ -360,9 +360,7 @@ CONTAINS
         REAL(4)                      :: NacIMU_FA_vel ! Tower fore-aft velocity
         
         ! Calculate floating contribution to pitch command
-        
-        NacIMU_FA_vel = PIController(LocalVar%NacIMU_FA_AccF, 0.0, 1.0, -100.0 , 100.0 ,LocalVar%DT, 0.0, .FALSE., objInst%instPI)
-        LocalVar%TestType = NacIMU_FA_vel 
+        NacIMU_FA_vel = PIController(LocalVar%NacIMU_FA_AccF, 0.0, 1.0, -100.0 , 100.0 ,LocalVar%DT, 0.0, .FALSE., objInst%instPI) ! NJA: should never reach saturation limits....
         LocalVar%Fl_PitCom = (0.0 - NacIMU_FA_vel) * CntrPar%FL_Kp
 
     END SUBROUTINE FloatingFeedback
