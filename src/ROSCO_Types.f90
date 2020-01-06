@@ -184,6 +184,9 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                             :: Y_MErr                       ! Measured yaw error, measured + setpoint [rad].
     REAL(4)                             :: Y_YawEndT                    ! Yaw end time [s]. Indicates the time up until which yaw is active with a fixed rate
     LOGICAL(1)                          :: SD                           ! Shutdown, .FALSE. if inactive, .TRUE. if active
+    
+    REAL(4)                             :: Fl_PitCom                           ! Shutdown, .FALSE. if inactive, .TRUE. if active
+    REAL(4)                             :: NACIMU_FA_AccF
     END TYPE LocalVariables
 
 TYPE, PUBLIC :: ObjectInstances
