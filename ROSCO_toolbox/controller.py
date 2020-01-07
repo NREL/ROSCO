@@ -256,7 +256,7 @@ class Controller():
             self.ps.peak_shaving(self, turbine)
             self.ps.min_pitch_saturation(self,turbine)
 
-        # --- Tower-top feedback term ---
+        # --- Floating feedback term ---
         if self.Fl_Mode == 1: # Floating feedback
             Kpf = (dtau_dv/dtau_dbeta)*turbine.TowerHt * Ng;
             self.Kpf = Kpf[-1]
