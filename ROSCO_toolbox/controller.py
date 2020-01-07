@@ -59,6 +59,7 @@ class Controller():
         self.WE_Mode = controller_params['WE_Mode']
         self.PS_Mode = controller_params['PS_Mode']
         self.SD_Mode = controller_params['SD_Mode']
+        self.Fl_Mode = controller_params['Fl_Mode']
 
         # Necessary parameters
         self.zeta_pc = controller_params['zeta_pc']

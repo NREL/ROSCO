@@ -434,6 +434,7 @@ class FileProcessing():
         file.write('{0:<12d}        ! WE_Mode           - Wind speed estimator mode {{0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator, 2: Extended Kalman Filter}}\n'.format(controller.WE_Mode))
         file.write('{0:<12d}        ! PS_Mode           - Pitch saturation mode {{0: no pitch saturation, 1: implement pitch saturation}}\n'.format(controller.PS_Mode > 0))
         file.write('{0:<12d}        ! SD_Mode           - Shutdown mode {{0: no shutdown procedure, 1: pitch to max pitch at shutdown}}\n'.format(controller.SD_Mode))
+        file.write('{0:<12d}        ! Fl_Mode           - Floating specific feedback mode {{0: no nacelle velocity feedback, 1: nacelle velocity feedback}}\n'.format(controller.Fl_Mode))
         file.write('\n')
         file.write('!------- FILTERS ----------------------------------------------------------\n') 
         file.write('{:<13.2f}       ! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [rad/s]\n'.format(turbine.bld_edgewise_freq * 1/4)) 
