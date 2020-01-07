@@ -16,7 +16,7 @@ import yaml
 from ROSCO_toolbox import turbine as wtc_turbine
 
 # Load yaml file
-parameter_filename = '../Tune_Cases/NREL5MW.yaml'
+parameter_filename = 'NREL5MW_example.yaml'
 inps = yaml.safe_load(open(parameter_filename))
 path_params         = inps['path_params']
 turbine_params      = inps['turbine_params']
