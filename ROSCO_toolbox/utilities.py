@@ -526,6 +526,8 @@ class FileProcessing():
         file.write('!------- SHUTDOWN -------------------------------------------\n')
         file.write('{:<014.5f}      ! SD_MaxPit         - Maximum blade pitch angle to initiate shutdown, [rad]\n'.format(controller.sd_maxpit))
         file.write('{:<014.5f}      ! SD_CornerFreq     - Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]'.format(controller.sd_cornerfreq))
+        file.write('!------- Floating -------------------------------------------\n')
+        file.write('{:<014.5f}      ! Fl_Kp             - Nacelle velocity proportional feedback gain [s]\n'.format(controller.Kpf))
         file.close()
 
     def write_rotor_performance(self,turbine,txt_filename='Cp_Ct_Cq.txt'):

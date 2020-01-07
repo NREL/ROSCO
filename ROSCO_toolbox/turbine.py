@@ -154,6 +154,7 @@ class Turbine():
         self.Rhub =  fast.fst_vt['ElastoDyn']['HubRad']
         self.hubHt = fast.fst_vt['ElastoDyn']['TowerHt'] 
         self.NumBl = fast.fst_vt['ElastoDyn']['NumBl']
+        self.TowerHt = fast.fst_vt['ElastoDyn']['TowerHt']
         self.shearExp = 0.2  #HARD CODED FOR NOW
         self.rho = fast.fst_vt['AeroDyn15']['AirDens']
         self.mu = fast.fst_vt['AeroDyn15']['KinVisc']

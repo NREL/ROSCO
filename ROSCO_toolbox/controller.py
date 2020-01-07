@@ -197,7 +197,7 @@ class Controller():
 
         # Wind Disturbance Input
         dlambda_dv = -(TSR_op/v)
-        # dtau_dv = dtau_dlambda*dlambda_dv
+        dtau_dv = dtau_dlambda*dlambda_dv
         # B_v = dtau_dv/J # wind speed input - currently unused 
 
 
@@ -255,6 +255,13 @@ class Controller():
             self.ps.peak_shaving(self, turbine)
             self.ps.min_pitch_saturation(self,turbine)
 
+        # --- Tower-top feedback term ---
+        if self.Fl_Mode == 1: # Floating feedback
+            Kpf = (dtau_dv/dtau_dbeta)*turbine.TowerHt * Ng;
+            self.Kpf = Kpf[-1]
+        else:
+            self.Kpf = 0.0
+        
 class ControllerBlocks():
     '''
     Class ControllerBlocks defines tuning parameters for additional controller features or "blocks"
