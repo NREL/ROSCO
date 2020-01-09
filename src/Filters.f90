@@ -48,7 +48,6 @@ CONTAINS
 
             ! Initialization
         IF ((iStatus == 0) .OR. reset) THEN   
-            ! a1 = 
             OutputSignalLast(inst) = InputSignal
             InputSignalLast(inst) = InputSignal
         ENDIF
