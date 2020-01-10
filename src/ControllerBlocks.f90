@@ -18,7 +18,7 @@
 !       State Machine: determine the state of the wind turbine to specify the corresponding control actions
 !       WindSpeedEstimator: Estimate wind speed
 !       SetpointSmoother: Modify generator torque and blade pitch controller setpoints in transition region
-!       PeakShaving: Limit rotor thrust near rated operation
+!       PitchSaturation: Prescribe specific minimum pitch schedule
 !       Shutdown: Shutdown control for max bld pitch
 
 MODULE ControllerBlocks
@@ -202,14 +202,10 @@ CONTAINS
                 ! Measurement update
                 S = MATMUL(H,MATMUL(P,TRANSPOSE(H))) + R_m        ! NJA: (H*T*H') \approx 0
                 K = MATMUL(P,TRANSPOSE(H))/S(1,1)
-                ! xh = xh + K*(LocalVar%GenSpeedF/CntrPar%WE_GearboxRatio - xh(1,1))
                 xh = xh + K*(LocalVar%GenSpeedF/CntrPar%WE_GearboxRatio - om_r)
                 P = MATMUL(identity(3) - MATMUL(K,H),P)
                 
                 ! Wind Speed Estimate
-                ! xh(1,1) = saturate(xh(1,1),0.0, CntrPar%PC_RefSpd * 1.5)
-                ! xh(2,1) = saturate(xh(2,1),-10.0, 10.0)
-                ! xh(3,1) = saturate(xh(3,1),0.0, MAXVAL(WE_EKF_Vref))
                 om_r = xh(1,1)
                 v_t = xh(2,1)
                 v_m = xh(3,1)
@@ -276,7 +272,7 @@ CONTAINS
 
         Vhat = LocalVar%WE_Vw
         Vhatf = LPFilter(Vhat,LocalVar%DT,0.2,LocalVar%iStatus,.FALSE.,objInst%instLPF)
-        LocalVar%TestType = Vhatf
+        
         ! Define minimum blade pitch angle as a function of estimated wind speed
         PitchSaturation = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, Vhatf)
 
@@ -301,7 +297,9 @@ CONTAINS
 
         ! See if we should shutdown
         IF (.NOT. LocalVar%SD ) THEN
+            ! Filter pitch signal
             SD_BlPitchF = LPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%SD_CornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
+            
             ! Go into shutdown if above max pit
             IF (SD_BlPitchF > CntrPar%SD_MaxPit) THEN
                 LocalVar%SD  = .TRUE.
