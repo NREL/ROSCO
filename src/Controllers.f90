@@ -18,6 +18,7 @@
 !           YawRateControl: Nacelle yaw control
 !           IPC: Individual pitch control
 !           ForeAftDamping: Tower fore-aft damping control
+!           FloatingFeedback: Tower fore-aft feedback for floating offshore wind turbines
 
 MODULE Controllers
 
@@ -103,10 +104,19 @@ CONTAINS
             LocalVar%PC_PitComT = Shutdown(LocalVar, CntrPar, objInst)
         ENDIF
 
-        ! Combine and saturate all pitch commands:
+        ! FloatingFeedback
+        IF (CntrPar%Fl_Mode == 1) THEN
+            CALL FloatingFeedback(LocalVar, CntrPar, objInst)
+            LocalVar%PC_PitComT = LocalVar%PC_PitComT + LocalVar%Fl_PitCom
+        ENDIF
+
+        ! Saturate collective pitch commands:
+        LocalVar%PC_PitComT = saturate(LocalVar%PC_PitComT, LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
+        
+        ! Combine and saturate all individual pitch commands:
         DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
-            LocalVar%PitCom(K) = saturate(LocalVar%PC_PitComT, LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
-            LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%IPC_PitComF(K) + LocalVar%FA_PitCom(K) + LocalVar%PC_SineExcitation
+            LocalVar%PitCom(K) = LocalVar%PC_PitComT + LocalVar%IPC_PitComF(K) + LocalVar%FA_PitCom(K) + LocalVar%PC_SineExcitation
+            LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
             LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), LocalVar%BlPitch(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
         END DO
 
@@ -137,27 +147,28 @@ CONTAINS
         REAL(4)                                 :: VS_MaxTq      ! Locally allocated maximum torque saturation limits
         
         ! -------- Variable-Speed Torque Controller --------
+        ! Define max torque
+        IF (LocalVar%VS_State == 4) THEN
+            VS_MaxTq = CntrPar%VS_RtTq
+        ELSE
+            VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
+            ! VS_MaxTq = CntrPar%VS_RtTq
+        ENDIF
+
         ! Optimal Tip-Speed-Ratio tracking controller
         IF (CntrPar%VS_ControlMode == 2) THEN
-            ! Define max torque
-            IF (LocalVar%VS_State >= 4) THEN
-                VS_MaxTq = CntrPar%VS_RtTq
-            ELSE
-                ! VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
-                VS_MaxTq = CntrPar%VS_RtTq
-            ENDIF
-            
-            ! TSR tracking vs control
+            ! PI controller
             LocalVar%GenTq = PIController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, VS_MaxTq, LocalVar%DT, LocalVar%VS_LastGenTrq, .FALSE., objInst%instPI)
-      
+            LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, VS_MaxTq)
         
         ! K*Omega^2 control law with PI torque control in transition regions
         ELSE
             ! Update PI loops for region 1.5 and 2.5 PI control
             ! LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_RtTq, .TRUE., objInst%instPI)
             LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_MaxOMTq, .FALSE., objInst%instPI)
-            LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, .TRUE., objInst%instPI)
+            LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, .FALSE., objInst%instPI)
             
+            ! The action
             IF (LocalVar%VS_State == 1) THEN ! Region 1.5
                 LocalVar%GenTq = LocalVar%GenBrTq
             ELSEIF (LocalVar%VS_State == 2) THEN ! Region 2
@@ -169,7 +180,9 @@ CONTAINS
             ELSEIF (LocalVar%VS_State == 5) THEN ! Region 3, constant power
                 LocalVar%GenTq = (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF
             END IF
-       
+            
+            ! Saturate
+            LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, VS_MaxTq)
         ENDIF
 
 
@@ -333,8 +346,27 @@ CONTAINS
         END DO
         
     END SUBROUTINE ForeAftDamping
+!-------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE FloatingFeedback(LocalVar, CntrPar, objInst) 
+    ! FloatingFeedback defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
+    !       FL_Mode = 0, No feedback
+    !       FL_Mode = 1, Proportional feedback of nacelle velocity
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
+        IMPLICIT NONE
+        ! Inputs
+        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
+        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+        ! Allocate Variables 
+        REAL(4)                      :: NACIMU_FA_AccF ! Low-pass filtered tower fore-aft acceleration
+        REAL(4)                      :: NacIMU_FA_vel ! Tower fore-aft velocity
+        
+        ! Calculate floating contribution to pitch command
+        NacIMU_FA_vel = PIController(LocalVar%NacIMU_FA_AccF, 0.0, 1.0, -100.0 , 100.0 ,LocalVar%DT, 0.0, .FALSE., objInst%instPI) ! NJA: should never reach saturation limits....
+        LocalVar%Fl_PitCom = (0.0 - NacIMU_FA_vel) * CntrPar%FL_Kp
 
-    !-------------------------------------------------------------------------------------------------------------------------------
+    END SUBROUTINE FloatingFeedback
+!-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE FlapControl(avrSWAP, CntrPar, LocalVar, objInst)
         ! Yaw rate controller
         !       Y_ControlMode = 0, No yaw control

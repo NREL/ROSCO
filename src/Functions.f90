@@ -99,7 +99,6 @@ CONTAINS
             ITerm(inst) = ITerm(inst) + DT*ki*error
             ITerm(inst) = saturate(ITerm(inst), minValue, maxValue)
             PIController = PTerm + ITerm(inst)
-            PIController = saturate(PIController, minValue, maxValue)
         
             ITermLast(inst) = ITerm(inst)
         END IF
@@ -465,16 +464,12 @@ CONTAINS
         IF (LocalVar%iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
         ! If we're debugging, open the debug file and write the header:
             IF (CntrPar%LoggingLevel > 0) THEN
-                !OPEN(unit=UnDb, FILE=TRIM(RootName)//'.dbg', STATUS='NEW')
                 OPEN(unit=UnDb, FILE='DEBUG.dbg')
-                WRITE (UnDb,'(A)')  '   Time '  //Tab//' WE_TowerTop    ' //Tab//' WE_Vw    '  //Tab//' GenSpeedF    ' 
-                WRITE (UnDb,'(A)')  '   (sec) '  //Tab//'(m/s) ' //Tab//'(m/s) ' //Tab//'(rad/s) '
-                !WRITE (UnDb,'(A)') '   LocalVar%Time '  //Tab//'LocalVar%PC_PitComT  ' //Tab//'LocalVar%PC_SpdErr  ' //Tab//'LocalVar%PC_KP ' //Tab//'LocalVar%PC_KI  ' //Tab//'LocalVar%Y_M  ' //Tab//'LocalVar%rootMOOP(1)  '//Tab//'VS_RtPwr  '//Tab//'LocalVar%GenTq'
-                !WRITE (UnDb,'(A)') '   (sec) ' //Tab//'(rad)    '  //Tab//'(rad/s) '//Tab//'(-) ' //Tab//'(-)   ' //Tab//'(rad)   ' //Tab//'(?)   ' //Tab//'(W)   '//Tab//'(Nm)  '
+                WRITE (UnDb,'(A)')  '   Time '  //Tab//' WE_TowerTop    ' //Tab//' WE_Vw    '  //Tab//' NacIMU_FA_Acc    ' //Tab//' FA_Acc    '   //Tab//' Fl_Pitcom    '
+                WRITE (UnDb,'(A)')  '   (sec) '  //Tab//'(m/s) ' //Tab//'(rad) ' //Tab//'(rad/s^2) ' //Tab//'(m/s^2) '//Tab//'(rad) ' 
             END IF
             
             IF (CntrPar%LoggingLevel > 1) THEN
-                !OPEN(UnDb2, FILE=TRIM(RootName)//'.dbg2', STATUS='REPLACE')
                 OPEN(unit=UnDb2, FILE='DEBUG2.dbg')
                 WRITE(UnDb2,'(/////)')
                 WRITE(UnDb2,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1,85)
@@ -485,13 +480,11 @@ CONTAINS
             IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
                 WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0, LocalVar%WE_Vw ! LocalVar%Time !/1000.0
                 100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')
-                ! PRINT *, LocalVar%PC_State, LocalVar%VS_State, CntrPar%VS_Rgn3Pitch, CntrPar%PC_FinePit, CntrPar%PC_Switch, LocalVar%BlPitch(1) ! Additional debug info
-                ! PRINT *, LocalVar%RotSpeed
             END IF
             
             ! Output debugging information if requested:
             IF (CntrPar%LoggingLevel > 0) THEN
-                WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%TestType, LocalVar%WE_Vw, LocalVar%GenSpeedF
+                WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%TestType, LocalVar%WE_Vw, LocalVar%NacIMU_FA_Acc, LocalVar%FA_Acc, LocalVar%Fl_PitCom
             END IF
             
             IF (CntrPar%LoggingLevel > 1) THEN

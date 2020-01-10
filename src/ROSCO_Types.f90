@@ -31,6 +31,8 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)                             :: F_NotchCornerFreq            ! Natural frequency of the notch filter, [rad/s]
     REAL(4), DIMENSION(:), ALLOCATABLE  :: F_NotchBetaNumDen            ! These two notch damping values (numerator and denominator) determines the width and depth of the notch
     Real(4)                             :: F_SSCornerFreq               ! Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
+    Real(4)                             :: F_FlCornerFreq               ! Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s].
+    Real(4)                             :: F_FlDamping                  ! Damping constant in the first order low pass filter of the tower-top fore-aft motion for floating feedback control [-].
 
     REAL(4)                             :: FA_HPFCornerFreq             ! Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]
     REAL(4)                             :: FA_IntSat                    ! Integrator saturation (maximum signal amplitude contrbution to pitch from FA damper), [rad]
@@ -117,6 +119,9 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)                             :: SD_MaxPit                    ! Maximum blade pitch angle to initiate shutdown, [rad]
     REAL(4)                             :: SD_CornerFreq                ! Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]
     
+    INTEGER(4)                          :: FL_Mode                      ! Floating specific feedback mode {0: no nacelle velocity feedback, 1: nacelle velocity feedback}
+    REAL(4)                             :: FL_Kp                        ! Nacelle velocity proportional feedback gain [s]
+
     INTEGER(4)                          :: Flp_Mode                     ! Flap actuator mode {0: off, 1: fixed flap position, 2: PI flap control}
     REAL(4)                             :: Flp_Angle                    ! Fixed flap angle (degrees)
     REAL(4)                             :: Flp_Kp                       ! PI flap control proportional gain 
@@ -132,20 +137,21 @@ END TYPE ControlParameters
 TYPE, PUBLIC :: LocalVariables
     ! ---------- From avrSWAP ----------
     INTEGER(4)                      :: iStatus
-    REAL(4)                         :: Time
-    REAL(4)                         :: DT
-    REAL(4)                         :: VS_GenPwr
-    REAL(4)                         :: GenSpeed
-    REAL(4)                         :: RotSpeed
-    REAL(4)                         :: Y_M
-    REAL(4)                         :: HorWindV
-    REAL(4)                         :: rootMOOP(3)
-    REAL(4)                         :: BlPitch(3)
-    REAL(4)                         :: Azimuth
-    INTEGER(4)                      :: NumBl
-    
+    REAL(4)                      :: Time
+    REAL(4)                      :: DT
+    REAL(4)                      :: VS_GenPwr
+    REAL(4)                      :: GenSpeed
+    REAL(4)                      :: RotSpeed
+    REAL(4)                      :: Y_M
+    REAL(4)                      :: HorWindV
+    REAL(4)                      :: rootMOOP(3)
+    REAL(4)                      :: BlPitch(3)
+    REAL(4)                      :: Azimuth
+    INTEGER(4)                   :: NumBl
+    REAL(4)                      :: FA_Acc                       ! Tower fore-aft acceleration [m/s^2]
+    REAL(4)                      :: NacIMU_FA_Acc                       ! Tower fore-aft acceleration [m/s^2]
+
     ! ---------- -Internal controller variables ----------
-    REAL(4)                             :: FA_Acc                       ! Tower fore-aft acceleration [m/s^2]
     REAL(4)                             :: FA_AccHPF                    ! High-pass filtered fore-aft acceleration [m/s^2]
     REAL(4)                             :: FA_AccHPFI                   ! Tower velocity, high-pass filtered and integrated fore-aft acceleration [m/s]
     REAL(4)                             :: FA_PitCom(3)                 ! Tower fore-aft vibration damping pitch contribution [rad]
@@ -186,6 +192,8 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                             :: Y_MErr                       ! Measured yaw error, measured + setpoint [rad].
     REAL(4)                             :: Y_YawEndT                    ! Yaw end time [s]. Indicates the time up until which yaw is active with a fixed rate
     LOGICAL(1)                          :: SD                           ! Shutdown, .FALSE. if inactive, .TRUE. if active
+    REAL(4)                             :: Fl_PitCom                           ! Shutdown, .FALSE. if inactive, .TRUE. if active
+    REAL(4)                             :: NACIMU_FA_AccF
     REAL(4)                             :: Flp_Angle(3)                 ! Flap Angle (rad)
     END TYPE LocalVariables
 

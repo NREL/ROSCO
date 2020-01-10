@@ -65,6 +65,7 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%WE_Mode        
         READ(UnControllerParameters, *) CntrPar%PS_Mode        
         READ(UnControllerParameters, *) CntrPar%SD_Mode        
+        READ(UnControllerParameters, *) CntrPar%FL_Mode        
         READ(UnControllerParameters, *) CntrPar%Flp_Mode        
         READ(UnControllerParameters, *)
 
@@ -76,6 +77,7 @@ CONTAINS
         ALLOCATE(CntrPar%F_NotchBetaNumDen(2))
         READ(UnControllerParameters,*) CntrPar%F_NotchBetaNumDen
         READ(UnControllerParameters,*) CntrPar%F_SSCornerFreq
+        READ(UnControllerParameters,*) CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping
         READ(UnControllerParameters, *)
 
         !----------- BLADE PITCH CONTROLLER CONSTANTS -----------
@@ -158,7 +160,6 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%WE_FOPoles_v
         ALLOCATE(CntrPar%WE_FOPoles(CntrPar%WE_FOPoles_n))
         READ(UnControllerParameters, *) CntrPar%WE_FOPoles
-
         READ(UnControllerParameters, *)
 
         !-------------- YAW CONTROLLER CONSTANTS -----------------
@@ -198,6 +199,11 @@ CONTAINS
         READ(UnControllerParameters, *)      
         READ(UnControllerParameters, *) CntrPar%SD_MaxPit  
         READ(UnControllerParameters, *) CntrPar%SD_CornerFreq
+        READ(UnControllerParameters, *)      
+
+        !------------ FLOATING ------------
+        READ(UnControllerParameters, *)      
+        READ(UnControllerParameters, *) CntrPar%Fl_Kp  
         READ(UnControllerParameters, *) 
 
         !------------ Flaps ------------
@@ -307,6 +313,7 @@ CONTAINS
         LocalVar%rootMOOP(2) = avrSWAP(31)
         LocalVar%rootMOOP(3) = avrSWAP(32)
         LocalVar%FA_Acc = avrSWAP(53)
+        LocalVar%NacIMU_FA_Acc = avrSWAP(83)
         LocalVar%Azimuth = avrSWAP(60)
         LocalVar%NumBl = NINT(avrSWAP(61))
 

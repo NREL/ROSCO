@@ -10,7 +10,7 @@
 ! specific language governing permissions and limitations under the License.
 ! -------------------------------------------------------------------------------------------
 
-! Hih level run script
+! High level run script
 
 !=======================================================================
 SUBROUTINE DISCON(avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG) BIND (C, NAME='DISCON')
