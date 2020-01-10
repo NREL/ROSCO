@@ -226,8 +226,8 @@ CONTAINS
 
         ! Save signals for next time step
         InputSignalLast2(inst)   = InputSignalLast1(inst)
-        InputSignalLast1(inst)   = InputSignal          !Save input signal for next time step
-        OutputSignalLast2(inst)  = OutputSignalLast1(inst)      !Save input signal for next time step
+        InputSignalLast1(inst)   = InputSignal                  ! Save input signal for next time step
+        OutputSignalLast2(inst)  = OutputSignalLast1(inst)      ! Save input signal for next time step
         OutputSignalLast1(inst)  = NotchFilter
         inst = inst + 1
 

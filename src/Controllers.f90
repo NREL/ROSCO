@@ -18,6 +18,7 @@
 !           YawRateControl: Nacelle yaw control
 !           IPC: Individual pitch control
 !           ForeAftDamping: Tower fore-aft damping control
+!           FloatingFeedback: Tower fore-aft feedback for floating offshore wind turbines
 
 MODULE Controllers
 
@@ -111,9 +112,10 @@ CONTAINS
 
         ! Saturate collective pitch commands:
         LocalVar%PC_PitComT = saturate(LocalVar%PC_PitComT, LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
+        
         ! Combine and saturate all individual pitch commands:
         DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
-            LocalVar%PitCom(K) = LocalVar%PC_PitComT + LocalVar%IPC_PitComF(K) + LocalVar%FA_PitCom(K) + LocalVar%PC_SineExcitation !+ LocalVar%Fl_PitCom
+            LocalVar%PitCom(K) = LocalVar%PC_PitComT + LocalVar%IPC_PitComF(K) + LocalVar%FA_PitCom(K) + LocalVar%PC_SineExcitation
             LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
             LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), LocalVar%BlPitch(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
         END DO
@@ -145,17 +147,17 @@ CONTAINS
         REAL(4)                                 :: VS_MaxTq      ! Locally allocated maximum torque saturation limits
         
         ! -------- Variable-Speed Torque Controller --------
+        ! Define max torque
+        IF (LocalVar%VS_State == 4) THEN
+            VS_MaxTq = CntrPar%VS_RtTq
+        ELSE
+            VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
+            ! VS_MaxTq = CntrPar%VS_RtTq
+        ENDIF
+
         ! Optimal Tip-Speed-Ratio tracking controller
         IF (CntrPar%VS_ControlMode == 2) THEN
-            ! Define max torque
-            IF (LocalVar%VS_State >= 4) THEN
-                VS_MaxTq = CntrPar%VS_RtTq
-            ELSE
-                ! VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
-                VS_MaxTq = CntrPar%VS_RtTq
-            ENDIF
-            
-            ! TSR tracking vs control
+            ! PI controller
             LocalVar%GenTq = PIController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, VS_MaxTq, LocalVar%DT, LocalVar%VS_LastGenTrq, .FALSE., objInst%instPI)
             LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, VS_MaxTq)
         
@@ -166,6 +168,7 @@ CONTAINS
             LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_MaxOMTq, .FALSE., objInst%instPI)
             LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, .FALSE., objInst%instPI)
             
+            ! The action
             IF (LocalVar%VS_State == 1) THEN ! Region 1.5
                 LocalVar%GenTq = LocalVar%GenBrTq
             ELSEIF (LocalVar%VS_State == 2) THEN ! Region 2
@@ -180,7 +183,6 @@ CONTAINS
             
             ! Saturate
             LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, VS_MaxTq)
-
         ENDIF
 
 
