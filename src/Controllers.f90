@@ -404,7 +404,8 @@ CONTAINS
             ELSEIF (CntrPar%Flp_Mode == 2) THEN
                 DO K = 1,3
                     ! LPF Blade root bending moment (tau = 0.1, critically damped to attempt to mitigate phase delays)
-                    RootMOOP_F(K) = SecLPFilter(LocalVar%rootMOOP(K),LocalVar%DT,62.8319, 0.7,LocalVar%iStatus, .FALSE.,objInst%instLPF)
+                    RootMOOP_F(K) = SecLPFilter(LocalVar%rootMOOP(K),LocalVar%DT, CntrPar%F_FlpCornerFreq, CntrPar%F_FlpDamping, LocalVar%iStatus, .FALSE.,objInst%instLPF)
+                    
                     ! Find derivative and derivative error of blade root bending moment
                     RootMyb_Vel(K) = (RootMOOP_F(K) - RootMyb_Last(K))/LocalVar%DT
                     RootMyb_VelErr(K) = 0 - RootMyb_Vel(K)!LocalVar%rootMOOP(K)

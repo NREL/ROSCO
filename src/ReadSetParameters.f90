@@ -78,6 +78,7 @@ CONTAINS
         READ(UnControllerParameters,*) CntrPar%F_NotchBetaNumDen
         READ(UnControllerParameters,*) CntrPar%F_SSCornerFreq
         READ(UnControllerParameters,*) CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping
+        READ(UnControllerParameters,*) CntrPar%F_FlpCornerFreq, CntrPar%F_FlpDamping
         READ(UnControllerParameters, *)
 
         !----------- BLADE PITCH CONTROLLER CONSTANTS -----------
