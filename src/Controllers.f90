@@ -408,14 +408,15 @@ CONTAINS
                     
                     ! Find derivative and derivative error of blade root bending moment
                     RootMyb_Vel(K) = (RootMOOP_F(K) - RootMyb_Last(K))/LocalVar%DT
-                    RootMyb_VelErr(K) = 0 - RootMyb_Vel(K)!LocalVar%rootMOOP(K)
-                    ! Find flap angle
-                    ! LocalVar%Flp_Angle(K) = PIController(RootMyb_VelErr(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, -10.0, 10.0, LocalVar%DT, 0.0, .FALSE., objInst%instPI)
+                    RootMyb_VelErr(K) = 0 - RootMyb_Vel(K)
+                    
+                    ! Find flap angle command - includes an integral term to encourage zero flap angle
                     LocalVar%Flp_Angle(K) = PIIController(RootMyb_VelErr(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, 0.05, -10.0, 10.0, LocalVar%DT, 0.0, .FALSE., objInst%instPI)
-                    ! Add some integral gain to encourage zero flap angle
-                    ! LocalVar%Flp_Angle(K) = LocalVar%Flp_Angle(K) + PIController(0 - LocalVar%Flp_Angle(K), 0.0, 0.01, -10.0, 10.0, LocalVar%DT, 0.0, .FALSE., objInst%instPI)
+
                     ! Saturation Limits
-                    ! LocalVar%Flp_Angle(K) = saturate(LocalVar%Flp_Angle(K),-10.0, 10.0)
+                    LocalVar%Flp_Angle(K) = saturate(LocalVar%Flp_Angle(K),-10.0, 10.0)
+                    
+                    ! Save some data for next iteration
                     RootMyb_Last(K) = RootMOOP_F(K)
                 ENDDO
             ENDIF
