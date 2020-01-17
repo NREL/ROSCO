@@ -151,8 +151,8 @@ CONTAINS
         IF (LocalVar%VS_State == 4) THEN
             VS_MaxTq = CntrPar%VS_RtTq
         ELSE
-            VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
-            ! VS_MaxTq = CntrPar%VS_RtTq
+            ! VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
+            VS_MaxTq = CntrPar%VS_RtTq
         ENDIF
 
         ! Optimal Tip-Speed-Ratio tracking controller
@@ -358,12 +358,11 @@ CONTAINS
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables 
-        REAL(4)                      :: NACIMU_FA_AccF ! Low-pass filtered tower fore-aft acceleration
         REAL(4)                      :: NacIMU_FA_vel ! Tower fore-aft velocity
         
         ! Calculate floating contribution to pitch command
         NacIMU_FA_vel = PIController(LocalVar%NacIMU_FA_AccF, 0.0, 1.0, -100.0 , 100.0 ,LocalVar%DT, 0.0, .FALSE., objInst%instPI) ! NJA: should never reach saturation limits....
-        LocalVar%Fl_PitCom = (0.0 - NacIMU_FA_vel) * CntrPar%FL_Kp
+        LocalVar%Fl_PitCom = (0.0 - NacIMU_FA_vel) * CntrPar%FL_Kp !* LocalVar%PC_KP/maxval(CntrPar%PC_GS_KP)
 
     END SUBROUTINE FloatingFeedback
 END MODULE Controllers
