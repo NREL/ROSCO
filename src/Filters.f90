@@ -21,14 +21,15 @@
 
 MODULE Filters
 !...............................................................................................................................
-
-IMPLICIT NONE
+    USE Constants
+    IMPLICIT NONE
 
 CONTAINS
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION LPFilter(InputSignal, DT, CornerFreq, iStatus, reset, inst)
     ! Discrete time Low-Pass Filter of the form:
-    !                           H(z) = (b1z + b0) / (a1*z + a0)
+    !                               Continuous Time Form:   H(s) = CornerFreq/(1 + CornerFreq)
+    !                               Discrete Time Form:     H(z) = (b1z + b0) / (a1*z + a0)
     !
         REAL(4), INTENT(IN)         :: InputSignal
         REAL(4), INTENT(IN)         :: DT                       ! time step [s]
@@ -70,8 +71,8 @@ CONTAINS
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION SecLPFilter(InputSignal, DT, CornerFreq, Damp, iStatus, reset, inst)
     ! Discrete time Low-Pass Filter of the form:
-    !                           H(z) = (b2z^2 + b1z + b0) / (a2z^2 + a1*z + a0)
-        IMPLICIT NONE
+    !                               Continuous Time Form:   H(s) = CornerFreq^2/(s^2 + 2*CornerFreq*Damp*s + CornerFreq^2)
+    !                               Discrete Time From:     H(z) = (b2*z^2 + b1*z + b0) / (a2*z^2 + a1*z + a0)
         REAL(4), INTENT(IN)         :: InputSignal
         REAL(4), INTENT(IN)         :: DT                       ! time step [s]
         REAL(4), INTENT(IN)         :: CornerFreq               ! corner frequency [rad/s]
@@ -84,13 +85,13 @@ CONTAINS
         REAL(4), SAVE                   :: a2                   ! Denominator coefficient 2
         REAL(4), SAVE                   :: a1                   ! Denominator coefficient 1
         REAL(4), SAVE                   :: a0                   ! Denominator coefficient 0
-        REAL(4), SAVE                   :: b2                    ! Numerator coefficient 2
-        REAL(4), SAVE                   :: b1                    ! Numerator coefficient 1
-        REAL(4), SAVE                   :: b0                    ! Numerator coefficient 0 
-        REAL(4), DIMENSION(99), SAVE :: InputSignalLast1    ! Input signal the last time this filter was called. Supports 99 separate instances.
-        REAL(4), DIMENSION(99), SAVE :: InputSignalLast2    ! Input signal the next to last time this filter was called. Supports 99 separate instances.
-        REAL(4), DIMENSION(99), SAVE :: OutputSignalLast1   ! Output signal the last time this filter was called. Supports 99 separate instances.
-        REAL(4), DIMENSION(99), SAVE :: OutputSignalLast2   ! Output signal the next to last time this filter was called. Supports 99 separate instances.
+        REAL(4), SAVE                   :: b2                   ! Numerator coefficient 2
+        REAL(4), SAVE                   :: b1                   ! Numerator coefficient 1
+        REAL(4), SAVE                   :: b0                   ! Numerator coefficient 0 
+        REAL(4), DIMENSION(99), SAVE    :: InputSignalLast1     ! Input signal the last time this filter was called. Supports 99 separate instances.
+        REAL(4), DIMENSION(99), SAVE    :: InputSignalLast2     ! Input signal the next to last time this filter was called. Supports 99 separate instances.
+        REAL(4), DIMENSION(99), SAVE    :: OutputSignalLast1    ! Output signal the last time this filter was called. Supports 99 separate instances.
+        REAL(4), DIMENSION(99), SAVE    :: OutputSignalLast2    ! Output signal the next to last time this filter was called. Supports 99 separate instances.
 
         ! Initialization
         IF ((iStatus == 0) .OR. reset )  THEN
@@ -98,24 +99,25 @@ CONTAINS
             OutputSignalLast2(inst)  = InputSignal
             InputSignalLast1(inst)   = InputSignal
             InputSignalLast2(inst)   = InputSignal
+            
+            ! Coefficients
+            a2 = DT**2.0*CornerFreq**2.0 + 4.0 + 4.0*Damp*CornerFreq*DT
+            a1 = 2.0*DT**2.0*CornerFreq**2.0 - 8.0
+            a0 = DT**2.0*CornerFreq**2.0 + 4.0 - 4.0*Damp*CornerFreq*DT
+            b2 = DT**2.0*CornerFreq**2.0
+            b1 = 2.0*DT**2.0*CornerFreq**2.0
+            b0 = DT**2.0*CornerFreq**2.0
         ENDIF
 
-        ! Coefficients
-        a2 = DT**2*CornerFreq**2 + 4 + 4*Damp*CornerFreq*DT
-        a1 = 2*DT**2*CornerFreq**2 - 8
-        a0 = DT**2*CornerFreq**2 + 4 - 4*Damp*CornerFreq*DT
-        b2 = DT**2*CornerFreq**2 
-        b1 = 2*DT**2*CornerFreq**2 
-        b0 = DT**2*CornerFreq**2 
-        
-        SecLPFilter = 1.0/a2* (-a1*OutputSignalLast1(inst) - a0*OutputSignalLast2(inst) + b2*InputSignal &
-                                + b1*InputSignalLast1(inst) + b0*InputSignalLast2(inst))
+        ! Filter
+        SecLPFilter = 1.0/a2 * (b2*InputSignal + b1*InputSignalLast1(inst) + b0*InputSignalLast2(inst) - a1*OutputSignalLast1(inst) - a0*OutputSignalLast2(inst))
 
         ! Save signals for next time step
         InputSignalLast2(inst)   = InputSignalLast1(inst)
         InputSignalLast1(inst)   = InputSignal
         OutputSignalLast2(inst)  = OutputSignalLast1(inst)
         OutputSignalLast1(inst)  = SecLPFilter
+
         inst = inst + 1
 
     END FUNCTION SecLPFilter
@@ -190,7 +192,9 @@ CONTAINS
     END FUNCTION NotchFilterSlopes
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION NotchFilter(InputSignal, DT, omega, betaNum, betaDen, iStatus, reset, inst)
-    ! Discrete time Notch Filter, G = (s^2 + 2*omega*betaNum*s + omega^2)/(s^2 + 2*omega*betaDen*s + omega^2)
+    ! Discrete time Notch Filter 
+    !                               Continuous Time Form: G(s) = (s^2 + 2*omega*betaNum*s + omega^2)/(s^2 + 2*omega*betaDen*s + omega^2)
+    !                               Discrete Time Form:   H(z) = (b2*z^2 +b1*z^2 + b0*z)/((z^2 +a1*z^2 + a0*z))
 
         REAL(4), INTENT(IN)     :: InputSignal
         REAL(4), INTENT(IN)     :: DT                       ! time step [s]
@@ -201,7 +205,7 @@ CONTAINS
         INTEGER, INTENT(INOUT)  :: inst                     ! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
         LOGICAL(4), INTENT(IN)  :: reset                    ! Reset the filter to the input signal
         ! Local
-        REAL(4)                         :: K, P1, P2, P3, P4, P5    ! Constant gain
+        REAL(4)                         :: K, b2, b1, b0, a1, a0    ! Constant gain
         REAL(4), DIMENSION(99), SAVE    :: InputSignalLast1         ! Input signal the last time this filter was called. Supports 99 separate instances.
         REAL(4), DIMENSION(99), SAVE    :: InputSignalLast2         ! Input signal the next to last time this filter was called. Supports 99 separate instances.
         REAL(4), DIMENSION(99), SAVE    :: OutputSignalLast1        ! Output signal the last time this filter was called. Supports 99 separate instances.
@@ -215,14 +219,14 @@ CONTAINS
             InputSignalLast2(inst)   = InputSignal
         ENDIF
         K = 2/DT
-        P1 = (K**2 + 2*omega*BetaNum*K + omega**2)/(K**2 + 2*omega*BetaDen*K + omega**2)
-        P2 = (2*omega**2 - 2*K**2)  / (K**2 + 2*omega*BetaDen*K + omega**2);
-        P3 = (K**2 - 2*omega*BetaNum*K + omega**2) / (K**2 + 2*omega*BetaDen*K + omega**2)
-        P4 = (2*omega**2 - 2*K**2)  / (K**2 + 2*omega*BetaDen*K + omega**2)
-        P5 = (K**2 - 2*omega*BetaDen*K + omega**2)/ (K**2 + 2*omega*BetaDen*K + omega**2)
+        b2 = (K**2 + 2*omega*BetaNum*K + omega**2)/(K**2 + 2*omega*BetaDen*K + omega**2)
+        b1 = (2*omega**2 - 2*K**2)  / (K**2 + 2*omega*BetaDen*K + omega**2);
+        b0 = (K**2 - 2*omega*BetaNum*K + omega**2) / (K**2 + 2*omega*BetaDen*K + omega**2)
+        a1 = (2*omega**2 - 2*K**2)  / (K**2 + 2*omega*BetaDen*K + omega**2)
+        a0 = (K**2 - 2*omega*BetaDen*K + omega**2)/ (K**2 + 2*omega*BetaDen*K + omega**2)
         
         ! Body
-        NotchFilter = P1*InputSignal + P2*InputSignalLast1(inst) + P3*InputSignalLast2(inst) - P4*OutputSignalLast1(inst) - P5*OutputSignalLast2(inst)
+        NotchFilter = b2*InputSignal + b1*InputSignalLast1(inst) + b0*InputSignalLast2(inst) - a1*OutputSignalLast1(inst) - a0*OutputSignalLast2(inst)
 
         ! Save signals for next time step
         InputSignalLast2(inst)   = InputSignalLast1(inst)
