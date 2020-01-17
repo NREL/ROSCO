@@ -248,19 +248,25 @@ CONTAINS
             LocalVar%GenSpeedF = LPFilter(LocalVar%GenSpeed, LocalVar%DT, CntrPar%F_LPFCornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
         ELSEIF (CntrPar%F_LPFType == 2) THEN   
             LocalVar%GenSpeedF = SecLPFilter(LocalVar%GenSpeed, LocalVar%DT, CntrPar%F_LPFCornerFreq, CntrPar%F_LPFDamping, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Second-order low-pass filter on generator speed
-        END IF
-        
-        IF (CntrPar%F_NotchType == 1) THEN
+        ENDIF
+        ! Apply Notch Fitler
+        IF (CntrPar%F_NotchType == 1 .OR. CntrPar%F_NotchType == 3) THEN
             LocalVar%GenSpeedF = NotchFilter(LocalVar%GenSpeedF, LocalVar%DT, CntrPar%F_NotchCornerFreq, CntrPar%F_NotchBetaNumDen(1), CntrPar%F_NotchBetaNumDen(2), LocalVar%iStatus, .FALSE., objInst%instNotch)
-        END IF
+        ENDIF
         
         ! Filtering the tower fore-aft acceleration signal 
-        IF ((LocalVar%iStatus == 0)) THEN
-            LocalVar%NACIMU_FA_AccF = SecLPFilter(0.0, LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .TRUE., objInst%instSecLPF) ! Initialize at 0.0 acceleration. NJA: seems to be more stable
-            ! LocalVar%NACIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, 0.1, 0.7, LocalVar%iStatus, .TRUE., objInst%instSecLPF)
+        IF (LocalVar%iStatus == 0) THEN
+            LocalVar%NacIMU_FA_AccF = SecLPFilter(0.0, LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
+            IF (CntrPar%F_NotchType >= 2) THEN
+                LocalVar%NacIMU_FA_AccF = NotchFilter(0.0, LocalVar%DT, CntrPar%F_NotchCornerFreq, CntrPar%F_NotchBetaNumDen(1), CntrPar%F_NotchBetaNumDen(2),LocalVar%iStatus, .TRUE., objInst%instNotch) ! Fixed Damping
+            ENDIF
         ELSE
-            LocalVar%NACIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
+            LocalVar%NacIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
+            IF (CntrPar%F_NotchType >= 2) THEN
+                LocalVar%NACIMU_FA_AccF = NotchFilter(LocalVar%NacIMU_FA_AccF, LocalVar%DT, CntrPar%F_NotchCornerFreq, CntrPar%F_NotchBetaNumDen(1), CntrPar%F_NotchBetaNumDen(2), LocalVar%iStatus, .FALSE., objInst%instNotch) ! Fixed Damping
+            ENDIF
         ENDIF
+
         LocalVar%FA_AccHPF = HPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%FA_HPFCornerFreq, LocalVar%iStatus, .FALSE., objInst%instHPF)
         
     END SUBROUTINE PreFilterMeasuredSignals
