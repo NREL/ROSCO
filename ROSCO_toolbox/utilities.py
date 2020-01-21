@@ -86,7 +86,7 @@ class FAST_IO():
             os.system('{} {}'.format(fastcall, os.path.join(fast_dir,fastfile)))
             print('OpenFAST simulation complete. ')
 
-    def plot_fast_out(self, cases, allinfo, alldata, showplot=True, fignum=None):
+    def plot_fast_out(self, cases, allinfo, alldata, showplot=True, fignum=None, xlim=None):
         '''
         Plots OpenFAST outputs for desired channels
 
@@ -140,6 +140,8 @@ class FAST_IO():
                     except:
                             print('{} is not available as an output channel.'.format(plot_list[0]))
                 plt.legend(myleg,loc='upper center',bbox_to_anchor=(0.5, 0.0), borderaxespad=2, ncol=len(alldata))
+            if xlim:
+                plt.xlim(xlim)
         if showplot:
             plt.show()
 
