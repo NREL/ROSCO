@@ -19,7 +19,9 @@ turbine_params:
   max_torque_rate:    4500000.              # Maximum torque rate [Nm/s], {~1/4 VS_RtTq/s}
   rated_power:        15000000.             # Rated Power [W]
   bld_edgewise_freq:  3.4164                # Blade edgewise first natural frequency [rad/s]
-  # Optional - should be defined if Fl_Mode = 1
+  # Optional 
+  TSR_operational:    9.0                # Desired below-rated operational tip speed ratio (Cp-maximizing TSR is used if not defined)
+  # - should be defined if Fl_Mode = 1
   twr_freq:           # None                # Tower natural frequency [rad/s]
   ptfm_freq:          # None                # Platform natural frequency [rad/s]         
 #------------------------------- CONTROLLER PARAMETERS ----------------------------------
