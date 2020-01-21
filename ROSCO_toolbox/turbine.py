@@ -72,6 +72,16 @@ class Turbine():
         self.rated_power = turbine_params['rated_power']           
         self.bld_edgewise_freq = turbine_params['bld_edgewise_freq']     
 
+        if turbine_params['twr_freq']:
+            self.twr_freq = turbine_params['twr_freq']
+        else:
+            self.twr_freq = 0.0
+
+        if turbine_params['ptfm_freq']:
+            self.ptfm_freq = turbine_params['ptfm_freq']
+        else:
+            self.ptfm_freq = 0.0
+
     # Allow print out of class
     def __str__(self): 
         '''
@@ -170,6 +180,7 @@ class Turbine():
         self.yaw = 0.0
         self.J = self.rotor_inertia + self.generator_inertia * self.Ng**2
         self.rated_torque = self.rated_power/(self.GenEff/100*self.rated_rotor_speed*self.Ng)
+        self.max_torque = self.rated_torque * 1.1
         self.rotor_radius = self.TipRad
         # self.omega_dt = np.sqrt(self.DTTorSpr/self.J)
 

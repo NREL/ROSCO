@@ -19,7 +19,9 @@ turbine_params:
   max_torque_rate:    4500000.              # Maximum torque rate [Nm/s], {~1/4 VS_RtTq/s}
   rated_power:        15000000.             # Rated Power [W]
   bld_edgewise_freq:  3.4164                # Blade edgewise first natural frequency [rad/s]
-
+  # Optional - should be defined if Fl_Mode = 1
+  twr_freq:           # None                # Tower natural frequency [rad/s]
+  ptfm_freq:          # None                # Platform natural frequency [rad/s]         
 #------------------------------- CONTROLLER PARAMETERS ----------------------------------
 controller_params:
   # Controller flags 
@@ -34,6 +36,7 @@ controller_params:
   WE_Mode:            2                     # Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator (Ortega et al.)}
   PS_Mode:            2                     # Pitch saturation mode {0: no pitch saturation, 1: peak shaving, 2: Cp-maximizing pitch saturation, 3: peak shaving and Cp-maximizing pitch saturation}
   SD_Mode:            0                     # Shutdown mode {0: no shutdown procedure, 1: pitch to max pitch at shutdown}
+  Fl_Mode:            0                     # Floating specific feedback mode {0: no nacelle velocity feedback, 1: nacelle velocity feedback}
   # Controller parameters       
   zeta_pc:            1.0                   # Pitch controller desired damping ratio [-]
   omega_pc:           0.12                  # Pitch controller desired natural frequency [rad/s]

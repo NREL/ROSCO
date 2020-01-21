@@ -198,7 +198,9 @@ class Controller():
 
         # Wind Disturbance Input
         dlambda_dv = -(TSR_op/v)
-        dtau_dv = dtau_dlambda*dlambda_dv
+        # dtau_dv = dtau_dlambda*dlambda_dv
+        dtau_dv = (0.5 * rho * Ar * 1/rated_rotor_speed) * (dCp_dTSR*dlambda_dv*v**3 + Cp_op*3*v**2)
+
         # B_v = dtau_dv/J # wind speed input - currently unused 
 
 
@@ -258,10 +260,18 @@ class Controller():
 
         # --- Floating feedback term ---
         if self.Fl_Mode == 1: # Floating feedback
-            Kpf = (dtau_dv/dtau_dbeta)*turbine.TowerHt * Ng;
-            self.Kpf = Kpf[-1]
+            Kpf = (dtau_dv/dtau_dbeta)*turbine.TowerHt * Ng * 2.0 * pi;
+            self.Kpf = Kpf[len(v_below_rated)]
         else:
             self.Kpf = 0.0
+        
+        # And check for .yaml input inconsistencies
+        if self.Fl_Mode > 0:
+            if turbine.twr_freq == 0.0 or turbine.ptfm_freq == 0.0:
+                print('WARNING: twr_freq and ptfm_freq should be defined for floating turbine control!!')
+            # Turn on the notch filter if floating
+            self.F_NotchType == 1
+
         
 class ControllerBlocks():
     '''
@@ -348,7 +358,6 @@ class ControllerBlocks():
                 
         
                 # Find Cp-maximizing minimum pitch schedule
-                # for j in range(len(TSR_at_minspeed)):
                 # Find Cp coefficients at below-rated tip speed ratios
                 Cp_op = turbine.Cp.interp_surface(turbine.pitch_initial_rad,TSR_at_minspeed[i])
                 Cp_max = max(Cp_op)
@@ -356,7 +365,6 @@ class ControllerBlocks():
                 min_pitch[i] = f_pitch_min(Cp_max)
                 
                 # modify existing minimum pitch schedule
-                # for pind, pitch in enumerate(min_itch):
                 controller.ps_min_bld_pitch[i] = np.maximum(controller.ps_min_bld_pitch[i], min_pitch[i])
             else:
                 return

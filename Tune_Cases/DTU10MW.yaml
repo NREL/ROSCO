@@ -34,6 +34,10 @@ controller_params:
   WE_Mode:            2                     # Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator 2: Extended Kalman Filter}
   PS_Mode:            0                     # Pitch saturation mode {0: no pitch saturation, 1: peak shaving, 2: Cp-maximizing pitch saturation, 3: peak shaving and Cp-maximizing pitch saturation}
   SD_Mode:            0                     # Shutdown mode {0: no shutdown procedure, 1: pitch to max pitch at shutdown}
+  Fl_Mode:            0                     # Floating specific feedback mode {0: no nacelle velocity feedback, 1: nacelle velocity feedback}
+  # Optional - should be defined if Fl_Mode = 1
+  twr_freq:           # None                # Tower natural frequency [rad/s]
+  ptfm_freq:          # None                # Platform natural frequency [rad/s]         
 # Controller parameters
   zeta_pc:            0.8                   # Pitch controller desired damping ratio [-]
   omega_pc:           0.3                   # Pitch controller desired natural frequency [rad/s]
