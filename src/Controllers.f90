@@ -95,6 +95,7 @@ CONTAINS
         ! Peak Shaving
         IF (CntrPar%PS_Mode == 1) THEN
             LocalVar%PC_MinPit = PitchSaturation(LocalVar,CntrPar,objInst)
+            LocalVar%PC_MinPit = max(LocalVar%PC_MinPit, CntrPar%PC_MinPit)
         ELSE
             LocalVar%PC_MinPit = CntrPar%PC_MinPit
         ENDIF
