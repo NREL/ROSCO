@@ -7,8 +7,8 @@ The basic steps are as follows
 1. Fill out the .yaml input file to tune the controller
 2. Run `tune_ROSCO.py`, or your own version of it.
 3. Copy `DISCON.IN` and `Cp_Ct_Cq.*.txt` (or similar) to the base folder for your wind turbine model.
-4. Ensure that `PerfFileName` points to the proper name and location of `Cp_Ct_Cq.*.txt`
-5. Ensure that `DISCON.IN` is in the same folder that the simulations is being called from. So, for OpenFAST, it should be in the same folder as `*.fst`
+4. Ensure that `PerfFileName` in `DISCON.IN` points to the proper name and location of `Cp_Ct_Cq.*.txt`
+5. Ensure that `DLL_InFile` in the OpenFAST ServoDyn input file properly points to `DISCON.IN`.
 6. Enjoy the results. Possibly retune your controller. 
 
 ## The .yaml File
