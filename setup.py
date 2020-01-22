@@ -40,7 +40,7 @@ REQUIRED = [
     'numpy>=1.16',
     'pytest>=4',
     'scipy>=1.1',
-    'wisdem>=2.0'   # This is NREL's distrubtion of WISDEM. CC-Blade and Aeroelastic SE are used as of January 2020
+    # 'wisdem>=2.0'   # This is NREL's distrubtion of WISDEM. CC-Blade and Aeroelastic SE are used as of January 2020
                     # https://github.com/wisdem/wisdem
 ]
 
