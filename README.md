@@ -21,7 +21,7 @@ There is a short (but _hopefully_ sweet) installation and run process for basic 
 ### Installing the complete ROSCO Toolbox
 If you would like to use the ROSCO toolbox, you will need to install the ROSCO toolbox. For the tuning (and a few other) capabilities, you will additionally need to install WISDEM. 
 
-If you do not have WISDEM or the ROSCO toolbox installed and would like to install WISDEM, the ROSCO toolbox and and compile the controller on your unix machine, just copy and paste the following text into the terminal that is navigated base subfolder of your choosing. This code block is broken up in a piece-wise description in the following sections...
+If you do not have WISDEM or the ROSCO toolbox installed and would like to install WISDEM, the ROSCO toolbox, and compile the controller on your unix machine please do the following: open your terminal, navigate to the folder of your choosing, and copy and paste the below text into the command line. This code block is broken up in a piece-wise description in the following sections.
 ```
 #  -- Install WISDEM --
 conda config --add channels conda-forge
@@ -93,7 +93,7 @@ The [Tune_Cases](Tune_Cases) folder hosts examples on what needs to happen to wr
 
 #### ROSCO Toolbox Generic Tuning
 IF you would like to run the generic tuning process for ROSCO, examples are shown in the [Tune_Cases](Tune_Cases) folder. When you run your own version of [tune_NREL5MW.py](Tune_Cases/tune_NREL5MW.py), you will have two files that are necessary to run the controller. 
-1. `DISCON.IN` - the input file to `libdiscon.*`. When running the controller, `DISCON.IN` must be appropriately pointed to by the `DLL_FileName` parameter in OpenFAST. 
+1. `DISCON.IN` - the input file to `libdiscon.*`. When running the controller in OpenFAST, `DISCON.IN` must be appropriately pointed to by the `DLL_FileName` parameter in ServoDyn. 
 2. `Cp_Cq_Ct.txt` (or similar) - The contains rotor performance tables that are necessary to run the wind speed estimators in ROSCO. This can live wherever you desire, just be sure to point to it properly with the `PerfFileName` parameter in `DISCON.IN`.
 
 ### Updating ROSCO Toolbox
@@ -130,7 +130,7 @@ If the ROSCO generic tuning theory and implementation played a roll in your rese
  year={2019},
  organization={IOP Publishing}
  note={In Review}
-
+```
 Additionally, if you have extensively used the [ROSCO](https://github.com/NREL/ROSCO) controller or [WISDEM](https://github.com/wisdem/wisdem), please cite them accordingly. 
 
 

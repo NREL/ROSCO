@@ -27,7 +27,7 @@ from setuptools import find_packages, setup, Command
 # Package meta-data.
 NAME = 'ROSCO_toolbox'
 DESCRIPTION = 'A toolbox for development of wind turbine controllers.'
-URL = 'https://github.com/NREL/ROSO_toolbox'
+URL = 'https://github.com/NREL/ROSCO_toolbox'
 EMAIL = 'nikhar.abbas@nrel.gov'
 AUTHOR = 'NREL National Wind Technology Center'
 REQUIRES_PYTHON = '>=3.3.0'
