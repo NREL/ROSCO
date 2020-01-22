@@ -42,7 +42,7 @@ file_processing.write_param_file(turbine,controller,param_file=param_file, txt_f
 
 # Run OpenFAST
 # --- May need to change fastcall if you use a non-standard command to call openfast
-fast_io.run_openfast(path_params['FAST_directory'], fastcall='openfast', fastfile=path_params['FAST_InputFile'],chdir=False)
+fast_io.run_openfast(path_params['FAST_directory'], fastcall='openfast_dev', fastfile=path_params['FAST_InputFile'],chdir=True)
 
 
 

@@ -19,7 +19,7 @@ from ROSCO_toolbox import sim as wtc_sim
 from ROSCO_toolbox import utilities as wtc_utilities
 
 # Load yaml file 
-parameter_filename = '../Tune_Cases/NREL5MW.yaml'
+parameter_filename = 'NREL5MW_example.yaml'
 inps = yaml.safe_load(open(parameter_filename))
 path_params         = inps['path_params']
 turbine_params      = inps['turbine_params']

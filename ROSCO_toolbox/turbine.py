@@ -211,7 +211,7 @@ class Turbine():
 
         # Define operational TSR
         if not self.TSR_operational:
-            self.TSR_operational = self.TSR_opt
+            self.TSR_operational = self.Cp.TSR_opt
 
         # Pull out some floating-related data
         wave_tp = fast.fst_vt['HydroDyn']['WaveTp'] 
