@@ -83,9 +83,9 @@ class Turbine():
             self.ptfm_freq = 0.0
 
         if turbine_params['TSR_operational']:
-            self.tsr_operational = turbine_params['TSR_operational']
+            self.TSR_operational = turbine_params['TSR_operational']
         else:
-            self.tsr_operational = None
+            self.TSR_operational = None
 
     # Allow print out of class
     def __str__(self): 
@@ -208,6 +208,10 @@ class Turbine():
         self.Cp = RotorPerformance(self.Cp_table,self.pitch_initial_rad,self.TSR_initial)
         self.Ct = RotorPerformance(self.Ct_table,self.pitch_initial_rad,self.TSR_initial)
         self.Cq = RotorPerformance(self.Cq_table,self.pitch_initial_rad,self.TSR_initial)
+
+        # Define operational TSR
+        if not self.TSR_operational:
+            self.TSR_operational = self.TSR_opt
 
         # Pull out some floating-related data
         wave_tp = fast.fst_vt['HydroDyn']['WaveTp'] 
@@ -391,11 +395,6 @@ class RotorPerformance():
         performance_fine = f_performance(TSR_fine_ind)
         performance_max_ind = np.where(performance_fine == np.max(performance_fine))
         self.TSR_opt = float(TSR_fine[performance_max_ind[0]])
-        
-        # Save below-rated operational TSR
-        if not self.TSR_operational:
-            self.TSR_operational = self.TSR_opt
-
 
     def interp_surface(self,pitch,TSR):
         '''

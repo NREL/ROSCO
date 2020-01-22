@@ -151,7 +151,7 @@ class Controller():
         v = np.concatenate((v_below_rated, v_above_rated))
 
         # separate TSRs by operations regions
-        TSR_below_rated = np.ones(len(v_below_rated))*turbine.Cp.TSR_opt # below rated     
+        TSR_below_rated = np.ones(len(v_below_rated))*turbine.TSR_operational # below rated     
         TSR_above_rated = rated_rotor_speed*R/v_above_rated                     # above rated
         TSR_op = np.concatenate((TSR_below_rated, TSR_above_rated))   # operational TSRs
 
@@ -218,14 +218,14 @@ class Controller():
 
         # -- Find K for Komega_g^2 --
         self.vs_rgn2K = (pi*rho*R**5.0 * turbine.Cp.max) / (2.0 * turbine.Cp.TSR_opt**3 * Ng**3)
-        self.vs_refspd = min(turbine.Cp.TSR_opt * turbine.v_rated/R, turbine.rated_rotor_speed) * Ng
+        self.vs_refspd = min(turbine.TSR_operational * turbine.v_rated/R, turbine.rated_rotor_speed) * Ng
 
         # -- Define some setpoints --
         # minimum rotor speed saturation limits
         if self.vs_minspd:
-            self.vs_minspd = np.maximum(self.vs_minspd, (turbine.Cp.TSR_opt * turbine.v_min / turbine.rotor_radius) * Ng)
+            self.vs_minspd = np.maximum(self.vs_minspd, (turbine.TSR_operational * turbine.v_min / turbine.rotor_radius) * Ng)
         else: 
-            self.vs_minspd = (turbine.Cp.TSR_opt * turbine.v_min / turbine.rotor_radius) * Ng
+            self.vs_minspd = (turbine.TSR_operational * turbine.v_min / turbine.rotor_radius) * Ng
         self.pc_minspd = self.vs_minspd
 
         # max pitch angle for shutdown
