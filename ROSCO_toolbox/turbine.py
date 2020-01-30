@@ -14,7 +14,8 @@ import numpy as np
 import datetime
 from wisdem.ccblade import CCAirfoil, CCBlade
 from wisdem.aeroelasticse.FAST_reader import InputReader_OpenFAST
-from scipy import interpolate, gradient
+from scipy import interpolate
+from numpy import gradient
 import pickle
 import matplotlib.pyplot as plt
 
@@ -128,6 +129,7 @@ class Turbine():
         '''
         turbine = pickle.load(open(filename,'rb'))
         return turbine
+    
     # Load data from fast input deck
     def load_from_fast(self, FAST_InputFile,FAST_directory, FAST_ver='OpenFAST',dev_branch=True,rot_source=None, txt_filename=None):
         """
@@ -388,7 +390,7 @@ class RotorPerformance():
         #       -- nja: this seems to work a little better than interpolating
         performance_beta_max = np.ndarray.flatten(performance_table[:,self.max_ind[1]]) # performance metric at maximizing pitch angle
         TSR_ind = np.arange(0,len(TSR_initial))
-        TSR_fine_ind = np.linspace(TSR_initial[0],TSR_initial[-1],(TSR_initial[-1] - TSR_initial[0])*100)
+        TSR_fine_ind = np.linspace(TSR_initial[0],TSR_initial[-1],int(TSR_initial[-1] - TSR_initial[0])*100)
         f_TSR = interpolate.interp1d(TSR_initial,TSR_initial,bounds_error='False',kind='quadratic')    # interpolate function for Cp(tsr) values
         TSR_fine = f_TSR(TSR_fine_ind)
         f_performance = interpolate.interp1d(TSR_initial,performance_beta_max,bounds_error='False',kind='quadratic')    # interpolate function for Cp(tsr) values
