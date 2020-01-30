@@ -60,6 +60,7 @@ class Controller():
         self.PS_Mode = controller_params['PS_Mode']
         self.SD_Mode = controller_params['SD_Mode']
         self.Fl_Mode = controller_params['Fl_Mode']
+        self.Flp_Mode = controller_params['Flp_Mode']
 
         # Necessary parameters
         self.zeta_pc = controller_params['zeta_pc']
@@ -273,7 +274,12 @@ class Controller():
             self.Kp_float = 0.0
 
 
-        
+        # Flap actuation - dummy for now
+        if self.Flp_Mode >= 1:
+            self.flp_angle = 0.0
+            self.Kp_flap = 0.0
+            self.Ki_flap = 0.0
+
 class ControllerBlocks():
     '''
     Class ControllerBlocks defines tuning parameters for additional controller features or "blocks"

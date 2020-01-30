@@ -88,6 +88,12 @@ class Turbine():
         else:
             self.TSR_operational = None
 
+        if turbine_params['bld_flapwise_freq']:
+            self.bld_flapwise_freq = turbine_params['bld_flapwise_freq']
+        else:
+            self.bld_flapwise_freq = None
+
+
     # Allow print out of class
     def __str__(self): 
         '''
