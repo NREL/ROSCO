@@ -251,11 +251,11 @@ class Turbine():
         # Use airfoil data from FAST file read, assumes AeroDyn 15, assumes 1 Re num per airfoil
         af_dict = {}
         for i, _ in enumerate(fast.fst_vt['AeroDyn15']['af_data']):
-            Re    = [fast.fst_vt['AeroDyn15']['af_data'][i]['Re']]
-            Alpha = fast.fst_vt['AeroDyn15']['af_data'][i]['Alpha']
-            Cl    = fast.fst_vt['AeroDyn15']['af_data'][i]['Cl']
-            Cd    = fast.fst_vt['AeroDyn15']['af_data'][i]['Cd']
-            Cm    = fast.fst_vt['AeroDyn15']['af_data'][i]['Cm']
+            Re    = [fast.fst_vt['AeroDyn15']['af_data'][i][0]['Re']]
+            Alpha = fast.fst_vt['AeroDyn15']['af_data'][i][0]['Alpha']
+            Cl    = fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cl']
+            Cd    = fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cd']
+            Cm    = fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cm']
             af_dict[i] = CCAirfoil(Alpha, Re, Cl, Cd, Cm)
         # define airfoils for CCBlade
         af = [0]*len(r)
