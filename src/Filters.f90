@@ -39,10 +39,10 @@ CONTAINS
         LOGICAL(4), INTENT(IN)      :: reset                    ! Reset the filter to the input signal
 
             ! Local
-        REAL(4), SAVE                   :: a1                   ! Denominator coefficient 1
-        REAL(4), SAVE                   :: a0                   ! Denominator coefficient 0
-        REAL(4), SAVE                   :: b1                    ! Numerator coefficient 1
-        REAL(4), SAVE                   :: b0                    ! Numerator coefficient 0 
+        REAL(4), DIMENSION(99), SAVE    :: a1                   ! Denominator coefficient 1
+        REAL(4), DIMENSION(99), SAVE    :: a0                   ! Denominator coefficient 0
+        REAL(4), DIMENSION(99), SAVE    :: b1                    ! Numerator coefficient 1
+        REAL(4), DIMENSION(99), SAVE    :: b0                    ! Numerator coefficient 0 
 
         REAL(4), DIMENSION(99), SAVE    :: InputSignalLast      ! Input signal the last time this filter was called. Supports 99 separate instances.
         REAL(4), DIMENSION(99), SAVE    :: OutputSignalLast ! Output signal the last time this filter was called. Supports 99 separate instances.
@@ -51,16 +51,16 @@ CONTAINS
         IF ((iStatus == 0) .OR. reset) THEN   
             OutputSignalLast(inst) = InputSignal
             InputSignalLast(inst) = InputSignal
+            a1(inst) = 2 + CornerFreq*DT
+            a0(inst) = CornerFreq*DT - 2
+            b1(inst) = CornerFreq*DT
+            b0(inst) = CornerFreq*DT
         ENDIF
 
         ! Define coefficients
-        a1 = 2 + CornerFreq*DT
-        a0 = CornerFreq*DT - 2
-        b1 = CornerFreq*DT
-        b0 = CornerFreq*DT
 
         ! Filter
-        LPFilter = 1.0/a1 * (-a0*OutputSignalLast(inst) + b1*InputSignal + b0*InputSignalLast(inst))
+        LPFilter = 1.0/a1(inst) * (-a0(inst)*OutputSignalLast(inst) + b1(inst)*InputSignal + b0(inst)*InputSignalLast(inst))
 
         ! Save signals for next time step
         InputSignalLast(inst)  = InputSignal
@@ -82,12 +82,12 @@ CONTAINS
         LOGICAL(4), INTENT(IN)      :: reset                    ! Reset the filter to the input signal
 
         ! Local
-        REAL(4), SAVE                   :: a2                   ! Denominator coefficient 2
-        REAL(4), SAVE                   :: a1                   ! Denominator coefficient 1
-        REAL(4), SAVE                   :: a0                   ! Denominator coefficient 0
-        REAL(4), SAVE                   :: b2                   ! Numerator coefficient 2
-        REAL(4), SAVE                   :: b1                   ! Numerator coefficient 1
-        REAL(4), SAVE                   :: b0                   ! Numerator coefficient 0 
+        REAL(4), DIMENSION(99), SAVE    :: a2                   ! Denominator coefficient 2
+        REAL(4), DIMENSION(99), SAVE    :: a1                   ! Denominator coefficient 1
+        REAL(4), DIMENSION(99), SAVE    :: a0                   ! Denominator coefficient 0
+        REAL(4), DIMENSION(99), SAVE    :: b2                   ! Numerator coefficient 2
+        REAL(4), DIMENSION(99), SAVE    :: b1                   ! Numerator coefficient 1
+        REAL(4), DIMENSION(99), SAVE    :: b0                   ! Numerator coefficient 0 
         REAL(4), DIMENSION(99), SAVE    :: InputSignalLast1     ! Input signal the last time this filter was called. Supports 99 separate instances.
         REAL(4), DIMENSION(99), SAVE    :: InputSignalLast2     ! Input signal the next to last time this filter was called. Supports 99 separate instances.
         REAL(4), DIMENSION(99), SAVE    :: OutputSignalLast1    ! Output signal the last time this filter was called. Supports 99 separate instances.
@@ -101,16 +101,20 @@ CONTAINS
             InputSignalLast2(inst)   = InputSignal
             
             ! Coefficients
-            a2 = DT**2.0*CornerFreq**2.0 + 4.0 + 4.0*Damp*CornerFreq*DT
-            a1 = 2.0*DT**2.0*CornerFreq**2.0 - 8.0
-            a0 = DT**2.0*CornerFreq**2.0 + 4.0 - 4.0*Damp*CornerFreq*DT
-            b2 = DT**2.0*CornerFreq**2.0
-            b1 = 2.0*DT**2.0*CornerFreq**2.0
-            b0 = DT**2.0*CornerFreq**2.0
+            a2(inst) = DT**2.0*CornerFreq**2.0 + 4.0 + 4.0*Damp*CornerFreq*DT
+            a1(inst) = 2.0*DT**2.0*CornerFreq**2.0 - 8.0
+            a0(inst) = DT**2.0*CornerFreq**2.0 + 4.0 - 4.0*Damp*CornerFreq*DT
+            b2(inst) = DT**2.0*CornerFreq**2.0
+            b1(inst) = 2.0*DT**2.0*CornerFreq**2.0
+            b0(inst) = DT**2.0*CornerFreq**2.0
         ENDIF
 
         ! Filter
-        SecLPFilter = 1.0/a2 * (b2*InputSignal + b1*InputSignalLast1(inst) + b0*InputSignalLast2(inst) - a1*OutputSignalLast1(inst) - a0*OutputSignalLast2(inst))
+        SecLPFilter = 1.0/a2(inst) * (b2(inst)*InputSignal + b1(inst)*InputSignalLast1(inst) + b0(inst)*InputSignalLast2(inst) - a1(inst)*OutputSignalLast1(inst) - a0(inst)*OutputSignalLast2(inst))
+
+        ! SecLPFilter = 1/(4+4*DT*Damp*CornerFreq+DT**2*CornerFreq**2) * ( (8-2*DT**2*CornerFreq**2)*OutputSignalLast1(inst) &
+        !                 + (-4+4*DT*Damp*CornerFreq-DT**2*CornerFreq**2)*OutputSignalLast2(inst) + (DT**2*CornerFreq**2)*InputSignal &
+        !                     + (2*DT**2*CornerFreq**2)*InputSignalLast1(inst) + (DT**2*CornerFreq**2)*InputSignalLast2(inst) )
 
         ! Save signals for next time step
         InputSignalLast2(inst)   = InputSignalLast1(inst)
@@ -205,7 +209,7 @@ CONTAINS
         INTEGER, INTENT(INOUT)  :: inst                     ! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
         LOGICAL(4), INTENT(IN)  :: reset                    ! Reset the filter to the input signal
         ! Local
-        REAL(4)                         :: K, b2, b1, b0, a1, a0    ! Constant gain
+        REAL(4), DIMENSION(99), SAVE    :: K, b2, b1, b0, a1, a0    ! Constant gain
         REAL(4), DIMENSION(99), SAVE    :: InputSignalLast1         ! Input signal the last time this filter was called. Supports 99 separate instances.
         REAL(4), DIMENSION(99), SAVE    :: InputSignalLast2         ! Input signal the next to last time this filter was called. Supports 99 separate instances.
         REAL(4), DIMENSION(99), SAVE    :: OutputSignalLast1        ! Output signal the last time this filter was called. Supports 99 separate instances.
@@ -217,16 +221,16 @@ CONTAINS
             OutputSignalLast2(inst)  = InputSignal
             InputSignalLast1(inst)   = InputSignal
             InputSignalLast2(inst)   = InputSignal
+            K(inst) = 2/DT
+            b2(inst) = (K(inst)**2 + 2*omega*BetaNum*K(inst) + omega**2)/(K(inst)**2 + 2*omega*BetaDen*K(inst) + omega**2)
+            b1(inst) = (2*omega**2 - 2*K(inst)**2)  / (K(inst)**2 + 2*omega*BetaDen*K(inst) + omega**2);
+            b0(inst) = (K(inst)**2 - 2*omega*BetaNum*K(inst) + omega**2) / (K(inst)**2 + 2*omega*BetaDen*K(inst) + omega**2)
+            a1(inst) = (2*omega**2 - 2*K(inst)**2)  / (K(inst)**2 + 2*omega*BetaDen*K(inst) + omega**2)
+            a0(inst) = (K(inst)**2 - 2*omega*BetaDen*K(inst) + omega**2)/ (K(inst)**2 + 2*omega*BetaDen*K(inst) + omega**2)
         ENDIF
-        K = 2/DT
-        b2 = (K**2 + 2*omega*BetaNum*K + omega**2)/(K**2 + 2*omega*BetaDen*K + omega**2)
-        b1 = (2*omega**2 - 2*K**2)  / (K**2 + 2*omega*BetaDen*K + omega**2);
-        b0 = (K**2 - 2*omega*BetaNum*K + omega**2) / (K**2 + 2*omega*BetaDen*K + omega**2)
-        a1 = (2*omega**2 - 2*K**2)  / (K**2 + 2*omega*BetaDen*K + omega**2)
-        a0 = (K**2 - 2*omega*BetaDen*K + omega**2)/ (K**2 + 2*omega*BetaDen*K + omega**2)
         
         ! Body
-        NotchFilter = b2*InputSignal + b1*InputSignalLast1(inst) + b0*InputSignalLast2(inst) - a1*OutputSignalLast1(inst) - a0*OutputSignalLast2(inst)
+        NotchFilter = b2(inst)*InputSignal + b1(inst)*InputSignalLast1(inst) + b0(inst)*InputSignalLast2(inst) - a1(inst)*OutputSignalLast1(inst) - a0(inst)*OutputSignalLast2(inst)
 
         ! Save signals for next time step
         InputSignalLast2(inst)   = InputSignalLast1(inst)
@@ -257,7 +261,8 @@ CONTAINS
         IF (CntrPar%F_NotchType == 1 .OR. CntrPar%F_NotchType == 3) THEN
             LocalVar%GenSpeedF = NotchFilter(LocalVar%GenSpeedF, LocalVar%DT, CntrPar%F_NotchCornerFreq, CntrPar%F_NotchBetaNumDen(1), CntrPar%F_NotchBetaNumDen(2), LocalVar%iStatus, .FALSE., objInst%instNotch)
         ENDIF
-        
+
+        LocalVar%TestType = LocalVar%GenSpeedF
         ! Filtering the tower fore-aft acceleration signal 
         IF (LocalVar%iStatus == 0) THEN
             LocalVar%NacIMU_FA_AccF = SecLPFilter(0.0, LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
