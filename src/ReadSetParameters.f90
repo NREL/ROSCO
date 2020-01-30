@@ -471,6 +471,15 @@ CONTAINS
                 ErrMsg  = 'Y_omegaLPSlow must be greater than zero.'
             ENDIF
         ENDIF
+
+        ! --- Floating Control ---
+        IF (CntrPar%FL_Mode > 0) THEN
+            IF (CntrPar%F_NotchType <= 1 .OR. CntrPar%F_NotchCornerFreq == 0.0) THEN
+                aviFAIL = -1
+                ErrMsg = 'F_NotchType and F_NotchCornerFreq must be specified for Fl_Mode greater than zero.'
+            ENDIF
+        ENDIF
+        
         ! Abort if the user has not requested a pitch angle actuator (See Appendix A
         ! of Bladed User's Guide):
         IF (NINT(avrSWAP(10)) /= 0)  THEN ! .TRUE. if a pitch angle actuator hasn't been requested

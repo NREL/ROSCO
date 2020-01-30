@@ -151,7 +151,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                      :: Azimuth
     INTEGER(4)                   :: NumBl
     REAL(4)                      :: FA_Acc                       ! Tower fore-aft acceleration [m/s^2]
-    REAL(4)                      :: NacIMU_FA_Acc                       ! Tower fore-aft acceleration [m/s^2]
+    REAL(4)                      :: NacIMU_FA_Acc                       ! Tower fore-aft acceleration [rad/s^2]
 
     ! ---------- -Internal controller variables ----------
     REAL(4)                             :: FA_AccHPF                    ! High-pass filtered fore-aft acceleration [m/s^2]
