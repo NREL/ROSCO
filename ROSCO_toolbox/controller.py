@@ -179,7 +179,8 @@ class Controller():
         
         # Define minimum pitch saturation to be at Cp-maximizing pitch angle if not specifically defined
         if not self.min_pitch:
-            self.min_pitch = pitch_op[0]
+            self.min_pitch = 0.0
+            self.min_pitch = max(self.min_pitch,pitch_op[0])
 
         # Full Cp surface gradients
         dCp_dbeta = dCp_beta/np.diff(pitch_initial_rad)[0]
@@ -260,17 +261,17 @@ class Controller():
 
         # --- Floating feedback term ---
         if self.Fl_Mode == 1: # Floating feedback
-            Kpf = (dtau_dv/dtau_dbeta)*turbine.TowerHt * Ng * 2.0 * pi;
-            self.Kpf = Kpf[len(v_below_rated)]
-        else:
-            self.Kpf = 0.0
-        
-        # And check for .yaml input inconsistencies
-        if self.Fl_Mode > 0:
+            Kp_float = (dtau_dv/dtau_dbeta)*turbine.TowerHt * Ng * 2.0 * pi;
+            self.Kp_float = Kp_float[len(v_below_rated)]
+            
+            # And check for .yaml input inconsistencies
             if turbine.twr_freq == 0.0 or turbine.ptfm_freq == 0.0:
                 print('WARNING: twr_freq and ptfm_freq should be defined for floating turbine control!!')
             # Turn on the notch filter if floating
-            self.F_NotchType == 1
+            self.F_NotchType = 2
+        else:
+            self.Kp_float = 0.0
+
 
         
 class ControllerBlocks():
