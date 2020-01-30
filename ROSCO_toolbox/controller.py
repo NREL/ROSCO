@@ -179,7 +179,8 @@ class Controller():
         
         # Define minimum pitch saturation to be at Cp-maximizing pitch angle if not specifically defined
         if not self.min_pitch:
-            self.min_pitch = pitch_op[0]
+            self.min_pitch = 0.0
+            self.min_pitch = max(self.min_pitch,pitch_op[0])
 
         # Full Cp surface gradients
         dCp_dbeta = dCp_beta/np.diff(pitch_initial_rad)[0]
