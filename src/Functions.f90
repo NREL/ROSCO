@@ -108,7 +108,7 @@ CONTAINS
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION PIIController(error, error2, kp, ki, ki2, minValue, maxValue, DT, I0, reset, inst)
     ! PI controller, with output saturation. 
-    ! Added error2 term for additional proportial control input
+    ! Added error2 term for additional integral control input
 
         IMPLICIT NONE
         ! Allocate Inputs
