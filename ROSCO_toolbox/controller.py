@@ -12,7 +12,7 @@
 import numpy as np
 import datetime
 from wisdem.ccblade import CCAirfoil, CCBlade
-from scipy import interpolate, gradient
+from scipy import interpolate, gradient, integrate
 
 # Some useful constants
 now = datetime.datetime.now()
@@ -200,7 +200,6 @@ class Controller():
 
         # Wind Disturbance Input
         dlambda_dv = -(TSR_op/v)
-        # dtau_dv = dtau_dlambda*dlambda_dv
         dtau_dv = (0.5 * rho * Ar * 1/rated_rotor_speed) * (dCp_dTSR*dlambda_dv*v**3 + Cp_op*3*v**2)
 
         # B_v = dtau_dv/J # wind speed input - currently unused 
@@ -245,6 +244,8 @@ class Controller():
         self.A = A 
         self.B_beta = B_beta
         self.B_tau = B_tau
+        self.TSR_op = TSR_op
+        self.omega_op = TSR_op*v/R
         # - Might want these to debug -
         # self.Cp_op = Cp_op
 
@@ -277,9 +278,82 @@ class Controller():
         # Flap actuation - dummy for now
         if self.Flp_Mode >= 1:
             self.flp_angle = 0.0
-            self.Kp_flap = 0.0
-            self.Ki_flap = 0.0
+            self.tune_flap_controller(turbine)
 
+    def tune_flap_controller(self,turbine):
+        '''
+        Tune controller for distributed aerodynamic control
+
+        Parameters:
+        -----------
+        turbine : class
+                  Turbine class containing necessary turbine information to accurately tune the controller. 
+        '''
+        # Find blade aerodynamic coefficients
+        v_rel = []
+        phi_vec = []
+        alpha=[]
+        for i, _ in enumerate(self.v):
+            turbine.cc_rotor.induction_inflow=True
+            # Axial and tangential inductions
+            a, ap, alpha0, cl, cd = turbine.cc_rotor.distributedAeroLoads(self.v[i], self.omega_op[i], self.pitch_op[i], 0.0)
+            # Relative windspeed
+            v_rel.append([np.sqrt(self.v[i]**2*(1-a)**2 + self.omega_op[i]**2*turbine.span**2*(1-ap)**2)])
+            # Inflow wind direction
+            phi_vec.append(self.pitch_op[i] + turbine.twist*deg2rad)
+
+        # Lift and drag coefficients
+        Cl0 = np.zeros_like(turbine.af_data)
+        Cd0 = np.zeros_like(turbine.af_data)
+        Clp = np.zeros_like(turbine.af_data)
+        Cdp = np.zeros_like(turbine.af_data)
+        Clm = np.zeros_like(turbine.af_data)
+        Cdm = np.zeros_like(turbine.af_data)
+        
+        for i,section in enumerate(turbine.af_data):
+            # assume airfoil section as AOA of zero for slope calculations - for now
+            a0_ind = section[0]['Alpha'].index(0.0)
+            # Coefficients 
+            if section[0]['NumTabs'] == 3:  # sections with flaps
+                Clm[i,] = section[0]['Cl'][a0_ind]
+                Cdm[i,] = section[0]['Cd'][a0_ind]
+                Cl0[i,] = section[1]['Cl'][a0_ind]
+                Cd0[i,] = section[1]['Cd'][a0_ind]
+                Clp[i,] = section[2]['Cl'][a0_ind]
+                Cdp[i,] = section[2]['Cd'][a0_ind]
+                Ctrl_flp = float(section[2]['Ctrl'])
+            else:                           # sections without flaps
+                Cl0[i,] = Clp[i,] = Clm[i,] = section[0]['Cl'][a0_ind]
+                Cd0[i,] = Cdp[i,] = Cdm[i,] = section[0]['Cd'][a0_ind]
+                Ctrl = float(section[0]['Ctrl'])
+
+        # Find slopes
+        Kcl = (Clp - Cl0)/( (Ctrl_flp-Ctrl)*deg2rad )
+        Kcd = (Cdp - Cd0)/( (Ctrl_flp-Ctrl)*deg2rad )
+
+        # Find integrated constants
+        kappa = np.zeros(len(v_rel))
+        C1 = np.zeros(len(v_rel))
+        C2 = np.zeros(len(v_rel))
+        for i, (v_sec,phi) in enumerate(zip(v_rel, phi_vec)):
+            C1[i] = integrate.trapz(0.5 * turbine.rho * turbine.chord * v_sec[0]**2 * turbine.span * Kcl * np.cos(phi))
+            C1[i] = integrate.trapz(0.5 * turbine.rho * turbine.chord * v_sec[0]**2 * turbine.span * Kcl * np.cos(phi))
+
+            kappa[i]=C1[i]+C2[i]
+
+        # ------ Controller tuning -------
+        # Open loop blade response
+        zetaf  = turbine.bld_flapwise_damp
+        omegaf = turbine.bld_flapwise_freq
+        
+        # Desired Closed loop response
+        zeta  = 0.7
+        omega = turbine.bld_flapwise_freq*(3/2)
+
+        # PI Gains
+        self.Kp_flap = (2*zeta*omega - 2*zetaf*omegaf)/(kappa*omegaf**2)
+        self.Ki_flap = (omega**2 - omegaf**2)/(kappa*omegaf**2)
+        
 class ControllerBlocks():
     '''
     Class ControllerBlocks defines tuning parameters for additional controller features or "blocks"
