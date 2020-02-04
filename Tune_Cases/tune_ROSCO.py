@@ -19,10 +19,9 @@ import matplotlib.pyplot as plt
 import yaml 
 import os
 # Import ROSCO_toolbox modules 
-from ROSCO_toolbox import controller as wtc_controller
-from ROSCO_toolbox import turbine as wtc_turbine
-from ROSCO_toolbox import sim as wtc_sim
-from ROSCO_toolbox import utilities as wtc_utilities
+from ROSCO_toolbox import controller as ROSCO_controller
+from ROSCO_toolbox import turbine as ROSCO_controller
+from ROSCO_toolbox import utilities as ROSCO_utilities
 # Initialize parameter dictionaries
 turbine_params = {}
 control_params = {}
@@ -35,8 +34,8 @@ controller_params = inps['controller_params']
 
 #---------------------------------- DO THE FUN STUFF ------------------------------------#
 # Initialiize turbine and controller
-turbine         = wtc_turbine.Turbine(turbine_params)
-file_processing = wtc_utilities.FileProcessing()
+turbine         = ROSCO_controller.Turbine(turbine_params)
+file_processing = ROSCO_utilities.FileProcessing()
 
 # Load Turbine, write rotor performance file if it doesn't exist
 if os.path.exists(path_params['rotor_performance_filename']):
@@ -45,8 +44,12 @@ else:
     turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source=None, txt_filename=path_params['rotor_performance_filename'])
     file_processing.write_rotor_performance(turbine,txt_filename=path_params['rotor_performance_filename'])
     
+# Flap tuning if necessary
+if controller_params['Flp_Mode']:
+    turbine.load_blade_info(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True)
+
 # Instantiate controller tuning and tune controller
-controller      = wtc_controller.Controller(controller_params)
+controller      = ROSCO_controller.Controller(controller_params)
 controller.tune_controller(turbine)
 
 # Write parameter input file
