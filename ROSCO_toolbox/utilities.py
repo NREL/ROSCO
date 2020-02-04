@@ -401,6 +401,7 @@ class FileProcessing():
 
     def __init__(self):
         pass
+
     def write_param_file(self, turbine, controller, param_file='DISCON.IN', txt_filename='Cp_Ct_Cq.txt'):
         """
         Print the controller parameters to the DISCON.IN input file for the generic controller
@@ -437,7 +438,7 @@ class FileProcessing():
         file.write('{0:<12d}        ! PS_Mode           - Pitch saturation mode {{0: no pitch saturation, 1: implement pitch saturation}}\n'.format(controller.PS_Mode > 0))
         file.write('{0:<12d}        ! SD_Mode           - Shutdown mode {{0: no shutdown procedure, 1: pitch to max pitch at shutdown}}\n'.format(controller.SD_Mode))
         file.write('{0:<12d}        ! Fl_Mode           - Floating specific feedback mode {{0: no nacelle velocity feedback, 1: nacelle velocity feedback}}\n'.format(controller.Fl_Mode))
-        file.write('{0:<12d}        ! Flp_Mode          - Flap control mode {{0: no flap control, 1: steady state flap angle, 2: Proportional flap control}}\n'.format(controller.Fl_Mode))
+        file.write('{0:<12d}        ! Flp_Mode          - Flap control mode {{0: no flap control, 1: steady state flap angle, 2: Proportional flap control}}\n'.format(controller.Flp_Mode))
         file.write('\n')
         file.write('!------- FILTERS ----------------------------------------------------------\n') 
         file.write('{:<13.5f}       ! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [rad/s]\n'.format(turbine.bld_edgewise_freq * 1/4)) 
@@ -446,7 +447,7 @@ class FileProcessing():
         file.write('{:<10.5f}{:<9.5f} ! F_NotchBetaNumDen	- Two notch damping values (numerator and denominator, resp) - determines the width and depth of the notch, [-]\n'.format(0.0,0.25))
         file.write('{:<014.5f}      ! F_SSCornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother, [rad/s].\n'.format(controller.ss_cornerfreq))
         file.write('{:<10.5f}{:<9.5f} ! F_FlCornerFreq    - Corner frequency and damping in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s, -].\n'.format(turbine.ptfm_freq, 1.0))
-        file.write('{:<10.5f}{:<9.5f} ! F_FlpCornerFreq    - Corner frequency and damping in the second order low pass filter of the blade root bending moment for flap control [rad/s, -].\n'.format(turbine.bld_flapwise_freq, 0.7))
+        file.write('{:<10.5f}{:<9.5f} ! F_FlpCornerFreq    - Corner frequency and damping in the second order low pass filter of the blade root bending moment for flap control [rad/s, -].\n'.format(turbine.bld_flapwise_freq*1/2, 0.7))
         
         file.write('\n')
         file.write('!------- BLADE PITCH CONTROL ----------------------------------------------\n')
@@ -539,8 +540,8 @@ class FileProcessing():
         file.write('\n')
         file.write('!------- FLAP ACTUATION -----------------------------------------------------\n')
         file.write('{:<014.5f}      ! Flp_Angle         - Initial or steady state flap angle [rad]\n'.format(controller.flp_angle))
-        file.write('{:<014.5f}      ! Flp_Kp            - Blade root bending moment proportional gain for flap control [s]\n'.format(controller.Kp_flap))
-        file.write('{:<014.5f}      ! Flp_Ki            - Flap displacement integral gain for flap control [s]'.format(controller.Ki_flap))
+        file.write('{:<014.8e}      ! Flp_Kp            - Blade root bending moment proportional gain for flap control [s]\n'.format(controller.Kp_flap[-1]))
+        file.write('{:<014.8e}      ! Flp_Ki            - Flap displacement integral gain for flap control [s]'.format(controller.Ki_flap[-1]))
         file.close()
 
     def write_rotor_performance(self,turbine,txt_filename='Cp_Ct_Cq.txt'):
@@ -593,3 +594,55 @@ class FileProcessing():
             file.write('\n')
         file.write('\n')
         file.close()
+
+    def load_from_txt(txt_filename):
+        '''
+        Load rotor performance data from a *.txt file. 
+
+        Parameters:
+        -----------
+            txt_filename: str
+                            Filename of the text containing the Cp, Ct, and Cq data. This should be in the format printed by the write_rotorperformance function
+        '''
+        print('Loading rotor performace data from text file:', txt_filename)
+
+        with open(txt_filename) as pfile:
+            for line in pfile:
+                # Read Blade Pitch Angles (degrees)
+                if 'Pitch angle' in line:
+                    pitch_initial = np.array([float(x) for x in pfile.readline().strip().split()])
+                    pitch_initial_rad = pitch_initial * deg2rad             # degrees to rad            -- should this be conditional?
+
+                # Read Tip Speed Ratios (rad)
+                if 'TSR' in line:
+                    TSR_initial = np.array([float(x) for x in pfile.readline().strip().split()])
+                
+                # Read Power Coefficients
+                if 'Power' in line:
+                    pfile.readline()
+                    Cp = np.empty((len(TSR_initial),len(pitch_initial)))
+                    for tsr_i in range(len(TSR_initial)):
+                        Cp[tsr_i] = np.array([float(x) for x in pfile.readline().strip().split()])
+                
+                # Read Thrust Coefficients
+                if 'Thrust' in line:
+                    pfile.readline()
+                    Ct = np.empty((len(TSR_initial),len(pitch_initial)))
+                    for tsr_i in range(len(TSR_initial)):
+                        Ct[tsr_i] = np.array([float(x) for x in pfile.readline().strip().split()])
+
+                # Read Torque Coefficients
+                if 'Torque' in line:
+                    pfile.readline()
+                    Cq = np.empty((len(TSR_initial),len(pitch_initial)))
+                    for tsr_i in range(len(TSR_initial)):
+                        Cq[tsr_i] = np.array([float(x) for x in pfile.readline().strip().split()])
+
+            # return pitch_initial_rad TSR_initial Cp Ct Cq
+            # Store necessary metrics for analysis and tuning
+            # self.pitch_initial_rad = pitch_initial_rad
+            # self.TSR_initial = TSR_initial
+            # self.Cp_table = Cp
+            # self.Ct_table = Ct 
+            # self.Cq_table = Cq
+            return pitch_initial_rad, TSR_initial, Cp, Ct, Cq

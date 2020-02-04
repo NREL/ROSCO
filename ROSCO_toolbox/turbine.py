@@ -13,11 +13,12 @@ import os
 import numpy as np
 import datetime
 from wisdem.ccblade import CCAirfoil, CCBlade
-from wisdem.aeroelasticse.FAST_reader import InputReader_OpenFAST
 from scipy import interpolate
 from numpy import gradient
 import pickle
 import matplotlib.pyplot as plt
+
+from ROSCO_toolbox import utilities as ROSCO_utilities
 
 # Some useful constants
 now = datetime.datetime.now()
@@ -158,6 +159,7 @@ class Turbine():
             txt_filename: str, optional
                           filename for *.txt, only used if rot_source='txt'
         """
+        from wisdem.aeroelasticse.FAST_reader import InputReader_OpenFAST
 
         print('Loading FAST model: %s ' % FAST_InputFile)
         self.TurbineName = FAST_InputFile.strip('.fst')
@@ -199,7 +201,7 @@ class Turbine():
 
         # Load Cp, Ct, Cq tables
         if rot_source == 'txt':
-            self.load_from_txt(txt_filename)
+            self.pitch_initial_rad, self.TSR_initial, self.Cp_table, self.Ct_table, self.Cq_table = ROSCO_utilities.FileProcessing.load_from_txt(txt_filename)
         elif rot_source == 'cc-blade':
             self.load_from_ccblade(fast)
         else:   # default load from cc-blade
@@ -207,7 +209,7 @@ class Turbine():
                 print('No rotor performance data source available, running CC-Blade.')
                 self.load_from_ccblade(fast)
             elif os.path.exists(txt_filename):
-                self.load_from_txt(txt_filename)
+                self.pitch_initial_rad, self.TSR_initial, self.Cp_table, self.Ct_table, self.Cq_table = ROSCO_utilities.FileProcessing.load_from_txt(txt_filename)
             else:
                 print('No rotor performance data source available, running CC-Blade.')
                 self.load_from_ccblade(fast)
@@ -305,57 +307,73 @@ class Turbine():
         self.Cp_table = Cp
         self.Ct_table = Ct 
         self.Cq_table = Cq
-        
-    def load_from_txt(self,txt_filename):
+    
+    def load_blade_info(self, FAST_InputFile,FAST_directory, FAST_ver='OpenFAST',dev_branch=True):
         '''
-        Load rotor performance data from a *.txt file. 
-
+        Loads wind turbine blade data from an OpenFAST model
+        
         Parameters:
         -----------
-            txt_filename: str
-                          Filename of the text containing the Cp, Ct, and Cq data. This should be in the format printed by the write_rotorperformance function
+            Fast_InputFile: str
+                            Primary fast model input file (*.fst)
+            FAST_directory: str
+                            Directory for primary fast model input file
+            FAST_ver: string, optional
+                        fast version, usually OpenFAST
+            dev_branch: bool, optional
+                        dev_branch input to InputReader_OpenFAST, probably True
         '''
-        print('Loading rotor performace data from text file:', txt_filename)
+        from wisdem.aeroelasticse.FAST_reader import InputReader_OpenFAST
 
-        with open(txt_filename) as pfile:
-            for line in pfile:
-                # Read Blade Pitch Angles (degrees)
-                if 'Pitch angle' in line:
-                    pitch_initial = np.array([float(x) for x in pfile.readline().strip().split()])
-                    pitch_initial_rad = pitch_initial * deg2rad             # degrees to rad            -- should this be conditional?
+        # Load Fast input deck
+        self.TurbineName = FAST_InputFile.strip('.fst')
+        fast = InputReader_OpenFAST(FAST_ver=FAST_ver,dev_branch=dev_branch)
+        fast.FAST_InputFile = FAST_InputFile
+        fast.FAST_directory = FAST_directory
+        fast.execute()
 
-                # Read Tip Speed Ratios (rad)
-                if 'TSR' in line:
-                    TSR_initial = np.array([float(x) for x in pfile.readline().strip().split()])
-                
-                # Read Power Coefficients
-                if 'Power' in line:
-                    pfile.readline()
-                    Cp = np.empty((len(TSR_initial),len(pitch_initial)))
-                    for tsr_i in range(len(TSR_initial)):
-                        Cp[tsr_i] = np.array([float(x) for x in pfile.readline().strip().split()])
-                
-                # Read Thrust Coefficients
-                if 'Thrust' in line:
-                    pfile.readline()
-                    Ct = np.empty((len(TSR_initial),len(pitch_initial)))
-                    for tsr_i in range(len(TSR_initial)):
-                        Ct[tsr_i] = np.array([float(x) for x in pfile.readline().strip().split()])
+        # Make sure cc_rotor exists for DAC analysis
+        try:
+            exists(self.cc_rotor)
+        except NameError:
+            # Create CC-Blade Rotor
+            r0 = np.array(fast.fst_vt['AeroDynBlade']['BlSpn']) 
+            chord0 = np.array(fast.fst_vt['AeroDynBlade']['BlChord'])
+            theta0 = np.array(fast.fst_vt['AeroDynBlade']['BlTwist'])
+            # -- Adjust for Aerodyn15
+            r = r0 + self.Rhub
+            chord_intfun = interpolate.interp1d(r0,chord0, bounds_error=None, fill_value='extrapolate', kind='zero')
+            chord = chord_intfun(r)
+            theta_intfun = interpolate.interp1d(r0,theta0, bounds_error=None, fill_value='extrapolate', kind='zero')
+            theta = theta_intfun(r)
+            af_idx = np.array(fast.fst_vt['AeroDynBlade']['BlAFID']).astype(int) - 1 #Reset to 0 index
+            AFNames = fast.fst_vt['AeroDyn15']['AFNames']   
 
-                # Read Torque Coefficients
-                if 'Torque' in line:
-                    pfile.readline()
-                    Cq = np.empty((len(TSR_initial),len(pitch_initial)))
-                    for tsr_i in range(len(TSR_initial)):
-                        Cq[tsr_i] = np.array([float(x) for x in pfile.readline().strip().split()])
+            # Use airfoil data from FAST file read, assumes AeroDyn 15, assumes 1 Re num per airfoil
+            af_dict = {}
+            for i, _ in enumerate(fast.fst_vt['AeroDyn15']['af_data']):
+                Re    = [fast.fst_vt['AeroDyn15']['af_data'][i][0]['Re']]
+                Alpha = fast.fst_vt['AeroDyn15']['af_data'][i][0]['Alpha']
+                Cl    = fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cl']
+                Cd    = fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cd']
+                Cm    = fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cm']
+                af_dict[i] = CCAirfoil(Alpha, Re, Cl, Cd, Cm)
+            # define airfoils for CCBlade
+            af = [0]*len(r)
+            for i in range(len(r)):
+                af[i] = af_dict[af_idx[i]]
 
-            # Store necessary metrics for analysis and tuning
-            self.pitch_initial_rad = pitch_initial_rad
-            self.TSR_initial = TSR_initial
-            self.Cp_table = Cp
-            self.Ct_table = Ct 
-            self.Cq_table = Cq
-    
+            # Now save the CC-Blade rotor
+            nSector = 8  # azimuthal discretizations
+            self.cc_rotor = CCBlade(r, chord, theta, af, self.Rhub, self.rotor_radius, self.NumBl, rho=self.rho, mu=self.mu,
+                            precone=-self.precone, tilt=-self.tilt, yaw=self.yaw, shearExp=self.shearExp, hubHt=self.hubHt, nSector=nSector)
+
+        # Save some blade  data 
+        self.af_data = fast.fst_vt['AeroDyn15']['af_data']
+        self.span = r 
+        self.chord = chord
+        self.twist = theta
+        self.bld_flapwise_damp = fast.fst_vt['ElastoDynBlade']['BldFlDmp1']
 
 class RotorPerformance():
     '''
