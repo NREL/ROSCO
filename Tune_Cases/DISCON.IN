@@ -1,5 +1,5 @@
 ! Controller parameter input file for the RotorSE_FAST_BAR_2010n_noRe wind turbine
-!    - File written using ROSCO Controller tuning logic on 01/30/20
+!    - File written using ROSCO Controller tuning logic on 02/04/20
 
 !------- DEBUG ------------------------------------------------------------
 1                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: write standard output .dbg-file and complete avrSWAP-array .dbg2-file}
@@ -16,7 +16,7 @@
 0                   ! PS_Mode           - Pitch saturation mode {0: no pitch saturation, 1: implement pitch saturation}
 0                   ! SD_Mode           - Shutdown mode {0: no shutdown procedure, 1: pitch to max pitch at shutdown}
 0                   ! Fl_Mode           - Floating specific feedback mode {0: no nacelle velocity feedback, 1: nacelle velocity feedback}
-0                   ! Flp_Mode          - Flap control mode {0: no flap control, 1: steady state flap angle, 2: Proportional flap control}
+2                   ! Flp_Mode          - Flap control mode {0: no flap control, 1: steady state flap angle, 2: Proportional flap control}
 
 !------- FILTERS ----------------------------------------------------------
 0.81771             ! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [rad/s]
@@ -25,13 +25,13 @@
 0.00000   0.25000   ! F_NotchBetaNumDen	- Two notch damping values (numerator and denominator, resp) - determines the width and depth of the notch, [-]
 0.628320000000      ! F_SSCornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother, [rad/s].
 0.00000   1.00000   ! F_FlCornerFreq    - Corner frequency and damping in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s, -].
-6.28320   0.70000   ! F_FlpCornerFreq    - Corner frequency and damping in the second order low pass filter of the blade root bending moment for flap control [rad/s, -].
+1.30801   0.70000   ! F_FlpCornerFreq    - Corner frequency and damping in the second order low pass filter of the blade root bending moment for flap control [rad/s, -].
 
 !------- BLADE PITCH CONTROL ----------------------------------------------
 33                  ! PC_GS_n			- Amount of gain-scheduling table entries
 0.060561  0.087418  0.108955  0.127743  0.144764  0.160579  0.175451  0.189552  0.203065  0.216076  0.228662  0.240896  0.252838  0.264321  0.275599  0.286763  0.297535  0.308156  0.318699  0.328845  0.339099  0.348902  0.358788  0.368427  0.377867  0.387618  0.396536  0.405768  0.415077  0.423668  0.431969  0.431969  0.431969                ! PC_GS_angles	    - Gain-schedule table: pitch angles
--0.016644  -0.013717  -0.011477  -0.009709  -0.008277  -0.007094  -0.006100  -0.005254  -0.004524  -0.003888  -0.003329  -0.002834  -0.002393  -0.001996  -0.001639  -0.001314  -0.001019  -0.000748  -0.000500  -0.000271  -0.000060  0.000136  0.000319  0.000489  0.000648  0.000797  0.000936  0.001068  0.001191  0.001308  0.001419  0.001523  0.001622                ! PC_GS_KP		- Gain-schedule table: pitch controller kp gains
--0.001202  -0.001042  -0.000920  -0.000823  -0.000745  -0.000680  -0.000626  -0.000579  -0.000539  -0.000505  -0.000474  -0.000447  -0.000423  -0.000401  -0.000382  -0.000364  -0.000348  -0.000333  -0.000319  -0.000307  -0.000295  -0.000285  -0.000275  -0.000265  -0.000257  -0.000248  -0.000241  -0.000234  -0.000227  -0.000220  -0.000214  -0.000209  -0.000203                ! PC_GS_KI		- Gain-schedule table: pitch controller ki gains
+-0.020652  -0.017191  -0.014543  -0.012453  -0.010760  -0.009361  -0.008186  -0.007185  -0.006322  -0.005570  -0.004909  -0.004324  -0.003802  -0.003334  -0.002911  -0.002527  -0.002178  -0.001858  -0.001565  -0.001294  -0.001044  -0.000812  -0.000596  -0.000395  -0.000207  -0.000031  0.000134  0.000289  0.000435  0.000574  0.000704  0.000828  0.000945                ! PC_GS_KP		- Gain-schedule table: pitch controller kp gains
+-0.000835  -0.000724  -0.000639  -0.000572  -0.000517  -0.000472  -0.000435  -0.000402  -0.000375  -0.000350  -0.000329  -0.000310  -0.000294  -0.000279  -0.000265  -0.000253  -0.000241  -0.000231  -0.000222  -0.000213  -0.000205  -0.000198  -0.000191  -0.000184  -0.000178  -0.000172  -0.000167  -0.000162  -0.000158  -0.000153  -0.000149  -0.000145  -0.000141                ! PC_GS_KI		- Gain-schedule table: pitch controller ki gains
 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0                ! PC_GS_KD			- Gain-schedule table: pitch controller kd gains
 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0                ! PC_GS_TF			- Gain-schedule table: pitch controller tf gains (derivative filter)
 1.570800000000      ! PC_MaxPit			- Maximum physical pitch limit, [rad].
@@ -79,7 +79,7 @@
 96.8                ! WE_GearboxRatio	- Gearbox ratio [>=1],  [-]
 311169343.31448      ! WE_Jtot			- Total drivetrain inertia, including blades, hub and casted generator inertia to LSS, [kg m^2]
 1.225               ! WE_RhoAir			- Air density, [kg m^-3]
-"Cp_Ct_Cq.BAR.txt"      ! PerfFileName      - File containing rotor performance tables (Cp,Ct,Cq)
+"../BAR_00/Cp_Ct_Cq.BAR.txt"      ! PerfFileName      - File containing rotor performance tables (Cp,Ct,Cq)
 104     48          ! PerfTableSize     - Size of rotor performance tables, first number refers to number of blade pitch angles, second number referse to number of tip-speed ratios
 44                  ! WE_FOPoles_N      - Number of first-order system poles used in EKF
 3.00 3.50 4.00 4.50 5.00 5.50 6.00 6.50 7.00 7.50 8.00 8.77 9.27 9.77 10.27 10.77 11.27 11.77 12.27 12.77 13.27 13.77 14.27 14.77 15.27 15.77 16.27 16.77 17.27 17.77 18.27 18.77 19.27 19.77 20.27 20.77 21.27 21.77 22.27 22.77 23.27 23.77 24.27 24.77               ! WE_FOPoles_v      - Wind speeds corresponding to first-order system poles [m/s]
@@ -117,5 +117,5 @@
 
 !------- FLAP ACTUATION -----------------------------------------------------
 0.000000000000      ! Flp_Angle         - Initial or steady state flap angle [rad]
-0.000000000000      ! Flp_Kp            - Blade root bending moment proportional gain for flap control [s]
-0.000000000000      ! Flp_Ki            - Flap displacement integral gain for flap control [s]
+2.32411940e-08      ! Flp_Kp            - Blade root bending moment proportional gain for flap control [s]
+6.63706103e-08      ! Flp_Ki            - Flap displacement integral gain for flap control [s]
