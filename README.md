@@ -70,7 +70,7 @@ git submodule update
 ```
 2. Install ROSCO from the cloned home directory
 ```
-python setup.py install
+python setup.py develop
 ```
 or
 ```
