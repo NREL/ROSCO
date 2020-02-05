@@ -20,7 +20,7 @@ import yaml
 import os
 # Import ROSCO_toolbox modules 
 from ROSCO_toolbox import controller as ROSCO_controller
-from ROSCO_toolbox import turbine as ROSCO_controller
+from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox import utilities as ROSCO_utilities
 # Initialize parameter dictionaries
 turbine_params = {}
@@ -34,7 +34,7 @@ controller_params = inps['controller_params']
 
 #---------------------------------- DO THE FUN STUFF ------------------------------------#
 # Initialiize turbine and controller
-turbine         = ROSCO_controller.Turbine(turbine_params)
+turbine         = ROSCO_turbine.Turbine(turbine_params)
 file_processing = ROSCO_utilities.FileProcessing()
 
 # Load Turbine, write rotor performance file if it doesn't exist
