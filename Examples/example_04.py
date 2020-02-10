@@ -37,7 +37,7 @@ turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory
 controller.tune_controller(turbine)
 
 # Write parameter input file
-param_file = 'DISCON.IN'   # This must be named DISCON.IN to be seen by the compiled controller binary. 
+param_file = 'DISCON.IN'   
 file_processing.write_param_file(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
 
 # Plot gain schedule
