@@ -275,10 +275,13 @@ class Controller():
             self.Kp_float = 0.0
 
 
-        # Flap actuation - dummy for now
+        # Flap actuation 
         if self.Flp_Mode >= 1:
             self.flp_angle = 0.0
             self.tune_flap_controller(turbine)
+        else:
+            self.Ki_flap = 0.0
+            self.Kp_flap = 0.0
 
     def tune_flap_controller(self,turbine):
         '''
@@ -312,7 +315,7 @@ class Controller():
         
         for i,section in enumerate(turbine.af_data):
             # assume airfoil section as AOA of zero for slope calculations - for now
-            a0_ind = section[0]['Alpha'].index(0.0)
+            a0_ind = section[0]['Alpha'].index(np.min(np.abs(section[0]['Alpha'])))
             # Coefficients 
             if section[0]['NumTabs'] == 3:  # sections with flaps
                 Clm[i,] = section[0]['Cl'][a0_ind]
@@ -347,12 +350,14 @@ class Controller():
         omegaf = turbine.bld_flapwise_freq
         
         # Desired Closed loop response
-        zeta  = 0.7
-        omega = turbine.bld_flapwise_freq*(3/2)
+        zeta  = 1.0
+        # omega = turbine.bld_flapwise_freq*(0.5)
+        ts = 1/(turbine.rated_rotor_speed/(2*pi)) / 2 # Closed-loop omega at 1/2 1P frequency
+        omega = 4.6/(ts*zeta)
 
         # PI Gains
-        self.Kp_flap = (2*zeta*omega - 2*zetaf*omegaf)/(kappa*omegaf**2)
-        self.Ki_flap = (omega**2 - omegaf**2)/(kappa*omegaf**2)
+        self.Kp_flap = -(2*zeta*omega - 2*zetaf*omegaf)/(kappa*omegaf**2)
+        self.Ki_flap = -(omega**2 - omegaf**2)/(kappa*omegaf**2)
         
 class ControllerBlocks():
     '''
