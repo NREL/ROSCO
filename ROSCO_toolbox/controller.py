@@ -280,8 +280,8 @@ class Controller():
             self.flp_angle = 0.0
             self.tune_flap_controller(turbine)
         else:
-            self.Ki_flap = 0.0
-            self.Kp_flap = 0.0
+            self.Ki_flap = np.array([0.0])
+            self.Kp_flap = np.array([0.0])
 
     def tune_flap_controller(self,turbine):
         '''
