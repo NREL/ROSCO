@@ -67,6 +67,9 @@ class Controller():
         self.omega_pc = controller_params['omega_pc']
         self.zeta_vs = controller_params['zeta_vs']
         self.omega_vs = controller_params['omega_vs']
+        if self.Flp_Mode > 0:
+            self.zeta_flp = controller_params['zeta_flp']
+            self.omega_flp = controller_params['omega_flp']
 
         # Optional parameters, default to standard if not defined
         if controller_params['min_pitch']:
@@ -280,6 +283,7 @@ class Controller():
             self.flp_angle = 0.0
             self.tune_flap_controller(turbine)
         else:
+            self.flp_angle = 0.0
             self.Ki_flap = np.array([0.0])
             self.Kp_flap = np.array([0.0])
 
@@ -349,14 +353,12 @@ class Controller():
         omegaf = turbine.bld_flapwise_freq
         
         # Desired Closed loop response
-        zeta  = 1.0
-        # omega = turbine.bld_flapwise_freq*(0.5)
-        ts = 1/(turbine.rated_rotor_speed/(2*pi)) / 2 # Closed-loop omega at 1/2 1P frequency
-        omega = 4.6/(ts*zeta)
+        # zeta  = self.zeta_flp
+        # omega = 4.6/(ts*zeta)
 
         # PI Gains
-        self.Kp_flap = -(2*zeta*omega - 2*zetaf*omegaf)/(kappa*omegaf**2)
-        self.Ki_flap = -(omega**2 - omegaf**2)/(kappa*omegaf**2)
+        self.Kp_flap = -(2*self.zeta_flp*self.omega_flp - 2*zetaf*omegaf)/(kappa*omegaf**2)
+        self.Ki_flap = -(self.omega_flp**2 - omegaf**2)/(kappa*omegaf**2)
         
 class ControllerBlocks():
     '''

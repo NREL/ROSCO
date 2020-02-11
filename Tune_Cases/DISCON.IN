@@ -1,5 +1,5 @@
 ! Controller parameter input file for the RotorSE_FAST_BAR_2010n_noRe wind turbine
-!    - File written using ROSCO Controller tuning logic on 02/07/20
+!    - File written using ROSCO Controller tuning logic on 02/11/20
 
 !------- DEBUG ------------------------------------------------------------
 1                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: write standard output .dbg-file and complete avrSWAP-array .dbg2-file}
@@ -16,7 +16,7 @@
 0                   ! PS_Mode           - Pitch saturation mode {0: no pitch saturation, 1: implement pitch saturation}
 0                   ! SD_Mode           - Shutdown mode {0: no shutdown procedure, 1: pitch to max pitch at shutdown}
 0                   ! Fl_Mode           - Floating specific feedback mode {0: no nacelle velocity feedback, 1: nacelle velocity feedback}
-2                   ! Flp_Mode          - Flap control mode {0: no flap control, 1: steady state flap angle, 2: Proportional flap control}
+0                   ! Flp_Mode          - Flap control mode {0: no flap control, 1: steady state flap angle, 2: Proportional flap control}
 
 !------- FILTERS ----------------------------------------------------------
 0.81771             ! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [rad/s]
@@ -79,7 +79,7 @@
 96.8                ! WE_GearboxRatio	- Gearbox ratio [>=1],  [-]
 311169343.31448      ! WE_Jtot			- Total drivetrain inertia, including blades, hub and casted generator inertia to LSS, [kg m^2]
 1.225               ! WE_RhoAir			- Air density, [kg m^-3]
-"../BAR_00/Cp_Ct_Cq.BAR.txt"      ! PerfFileName      - File containing rotor performance tables (Cp,Ct,Cq)
+"../Tune_Cases/Cp_Ct_Cq.BAR.txt"      ! PerfFileName      - File containing rotor performance tables (Cp,Ct,Cq)
 104     48          ! PerfTableSize     - Size of rotor performance tables, first number refers to number of blade pitch angles, second number referse to number of tip-speed ratios
 44                  ! WE_FOPoles_N      - Number of first-order system poles used in EKF
 3.00 3.50 4.00 4.50 5.00 5.50 6.00 6.50 7.00 7.50 8.00 8.77 9.27 9.77 10.27 10.77 11.27 11.77 12.27 12.77 13.27 13.77 14.27 14.77 15.27 15.77 16.27 16.77 17.27 17.77 18.27 18.77 19.27 19.77 20.27 20.77 21.27 21.77 22.27 22.77 23.27 23.77 24.27 24.77               ! WE_FOPoles_v      - Wind speeds corresponding to first-order system poles [m/s]
@@ -117,5 +117,5 @@
 
 !------- FLAP ACTUATION -----------------------------------------------------
 0.000000000000      ! Flp_Angle         - Initial or steady state flap angle [rad]
-6.31118604e-10      ! Flp_Kp            - Blade root bending moment proportional gain for flap control [s]
-4.17673981e-08      ! Flp_Ki            - Flap displacement integral gain for flap control [s]
+0.00000000e+00      ! Flp_Kp            - Blade root bending moment proportional gain for flap control [s]
+0.00000000e+00      ! Flp_Ki            - Flap displacement integral gain for flap control [s]

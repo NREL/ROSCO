@@ -40,12 +40,15 @@ controller_params:
   PS_Mode:            0                       # Peak shaving mode {0: no peak shaving, 1: implement peak shaving}
   SD_Mode:            0                       # Shutdown mode {0: no shutdown procedure, 1: pitch to max pitch at shutdown}
   Fl_Mode:            0                       # Floating specific feedback mode {0: no nacelle velocity feedback, 1: nacelle velocity feedback}
-  Flp_Mode:           2                       # Flap control mode {0: no flap control, 1: steady state flap angle, 2: Proportional flap control}
+  Flp_Mode:           0                       # Flap control mode {0: no flap control, 1: steady state flap angle, 2: Proportional flap control}
   # Controller parameters 
   zeta_pc:            1.2                     # Pitch controller desired damping ratio [-]
   omega_pc:           0.1                    # Pitch controller desired natural frequency [rad/s]
   zeta_vs:            0.5                     # Torque controller desired damping ratio [-]
   omega_vs:           0.1                     # Torque controller desired natural frequency [rad/s]
+  # Only needed if Flp_Mode > 0
+  zeta_flp:           # None 0.5                    # Flap controller desired damping ratio [-]
+  omega_flp:          # None 0.1                    # Flap controller desired natural frequency [rad/s]
   # Optional - these can be defined, but do not need to be
   max_pitch:          # None                  # Maximum pitch angle [rad], {default = 90 degrees}
   min_pitch:          # None                  # Minimum pitch angle [rad], {default = 0 degrees}
