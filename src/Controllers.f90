@@ -397,7 +397,9 @@ CONTAINS
                 LocalVar%Flp_Angle(2) = CntrPar%Flp_Angle
                 LocalVar%Flp_Angle(3) = CntrPar%Flp_Angle
                 ! Initialize filter
-                RootMOOP_F(K) = SecLPFilter(LocalVar%rootMOOP(K),LocalVar%DT, CntrPar%F_FlpCornerFreq, CntrPar%F_FlpDamping, LocalVar%iStatus, .FALSE.,objInst%instLPF)
+                RootMOOP_F(1) = SecLPFilter(LocalVar%rootMOOP(1),LocalVar%DT, CntrPar%F_FlpCornerFreq, CntrPar%F_FlpDamping, LocalVar%iStatus, .FALSE.,objInst%instSecLPF)
+                RootMOOP_F(2) = SecLPFilter(LocalVar%rootMOOP(2),LocalVar%DT, CntrPar%F_FlpCornerFreq, CntrPar%F_FlpDamping, LocalVar%iStatus, .FALSE.,objInst%instSecLPF)
+                RootMOOP_F(3) = SecLPFilter(LocalVar%rootMOOP(3),LocalVar%DT, CntrPar%F_FlpCornerFreq, CntrPar%F_FlpDamping, LocalVar%iStatus, .FALSE.,objInst%instSecLPF)
             ! Steady flap angle
             ELSEIF (CntrPar%Flp_Mode == 1) THEN
                 LocalVar%Flp_Angle(1) = LocalVar%Flp_Angle(1) 
@@ -411,9 +413,9 @@ CONTAINS
 
             ! PII flap control
             ELSEIF (CntrPar%Flp_Mode == 2) THEN
-                DO K = 1,3
+                DO K = 1,LocalVar%NumBl
                     ! LPF Blade root bending moment
-                    RootMOOP_F(K) = SecLPFilter(LocalVar%rootMOOP(K),LocalVar%DT, CntrPar%F_FlpCornerFreq, CntrPar%F_FlpDamping, LocalVar%iStatus, .FALSE.,objInst%instLPF)
+                    RootMOOP_F(K) = SecLPFilter(LocalVar%rootMOOP(K),LocalVar%DT, CntrPar%F_FlpCornerFreq, CntrPar%F_FlpDamping, LocalVar%iStatus, .FALSE.,objInst%instSecLPF)
                     
                     ! Find derivative and derivative error of blade root bending moment
                     RootMyb_Vel(K) = (RootMOOP_F(K) - RootMyb_Last(K))/LocalVar%DT
@@ -426,7 +428,7 @@ CONTAINS
                     
                     ! Save some data for next iteration
                     RootMyb_Last(K) = RootMOOP_F(K)
-                ENDDO
+                END DO
             ENDIF
 
             ! Send to AVRSwap
