@@ -344,7 +344,7 @@ class Controller():
         C2 = np.zeros(len(v_rel))
         for i, (v_sec,phi) in enumerate(zip(v_rel, phi_vec)):
             C1[i] = integrate.trapz(0.5 * turbine.rho * turbine.chord * v_sec[0]**2 * turbine.span * Kcl * np.cos(phi))
-            C2[i] = integrate.trapz(0.5 * turbine.rho * turbine.chord * v_sec[0]**2 * turbine.span * Kcd * np.cos(phi))
+            C2[i] = integrate.trapz(0.5 * turbine.rho * turbine.chord * v_sec[0]**2 * turbine.span * Kcd * np.sin(phi))
             kappa[i]=C1[i]+C2[i]
 
         # ------ Controller tuning -------
@@ -357,8 +357,8 @@ class Controller():
         # omega = 4.6/(ts*zeta)
 
         # PI Gains
-        self.Kp_flap = -(2*self.zeta_flp*self.omega_flp - 2*zetaf*omegaf)/(kappa*omegaf**2)
-        self.Ki_flap = -(self.omega_flp**2 - omegaf**2)/(kappa*omegaf**2)
+        self.Kp_flap = (2*self.zeta_flp*self.omega_flp - 2*zetaf*omegaf)/(kappa*omegaf**2)
+        self.Ki_flap = (self.omega_flp**2 - omegaf**2)/(kappa*omegaf**2)
         
 class ControllerBlocks():
     '''
