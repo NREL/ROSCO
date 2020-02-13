@@ -4,6 +4,7 @@
 #
 # In this example:
 #   - Load openfast output data
+#   - Trim the time series
 #   - Plot some available channels
 
 # Python Modules
@@ -16,14 +17,18 @@ from ROSCO_toolbox import utilities as wtc_utilities
 fast_io = wtc_utilities.FAST_IO()
 
 # Define openfast output filenames
-filenames = ["../Test_Cases/5MW_Land/5MW_Land.outb"]
+# filenames = ["../Test_Cases/5MW_Land/5MW_Land.outb"]
 
 # ---- Note: Could plot multiple cases, and binaries...
-# filenames = ["../Test_Cases/5MW_Land/5MW_Land.out",
-#              "../Test_Cases/5MW_Land/5MW_Land.outb"]
+filenames = ["../Test_Cases/5MW_Land/5MW_Land.out",
+             "../Test_Cases/5MW_Land/5MW_Land.outb"]
 
 # Load output info and data
 allinfo, alldata = fast_io.load_output(filenames)
+
+# Trim time series
+for i,(info,data) in enumerate(zip(allinfo,alldata)):
+    alldata[i] = fast_io.trim_output(info, data, tmin=0, tmax=50)
 
 #  Define Plot cases 
 #  --- Comment,uncomment, create, and change these as desired...
