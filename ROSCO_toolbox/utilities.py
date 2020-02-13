@@ -387,7 +387,38 @@ class FAST_IO():
                 'attribute_units': ChanUnit}
         return data, info
 
+    def trim_output(self, info, data, tmin=0, tmax=100000):
+        '''
+        Trim loaded fast output data 
 
+        Parameters
+        ----------
+        info : dict
+            info from load_output containing:
+                - name: filename
+                - description: description of dataset
+                - channels: list of channel names
+                - attribute_units: list of attribute units
+        data : ndarray
+            output data from load_outputinfo
+        tmin : float, optional
+            start time
+        tmax : float, optional
+            end time
+        
+        Returns
+        -------
+        data : ndarray
+            input data ndarray with values trimed to times tmin and tmax
+        '''
+        time_init = np.ndarray.flatten(data[:, info['channels'].index('Time')])
+        Tinds = np.where(time_init<=tmin) 
+        Tinds = np.append(Tinds, np.where(time_init>=tmax))
+        tvals = [time.tolist() for time in time_init[Tinds]]
+
+        data = np.delete(data, Tinds, 0)
+
+        return data
 class FileProcessing():
     """
     Class FileProcessing used to write out controller 
