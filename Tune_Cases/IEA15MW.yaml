@@ -19,8 +19,9 @@ turbine_params:
   max_torque_rate:    4500000.              # Maximum torque rate [Nm/s], {~1/4 VS_RtTq/s}
   rated_power:        15000000.             # Rated Power [W]
   bld_edgewise_freq:  3.4164                # Blade edgewise first natural frequency [rad/s]
+  bld_flapwise_freq:  0.0                   # Blade flapwise first natural frequency [rad/s]
   # Optional 
-  TSR_operational:    9.0                # Desired below-rated operational tip speed ratio (Cp-maximizing TSR is used if not defined)
+  TSR_operational:    9.0                   # Desired below-rated operational tip speed ratio (Cp-maximizing TSR is used if not defined)
   # - should be defined if Fl_Mode = 1
   twr_freq:           # None                # Tower natural frequency [rad/s]
   ptfm_freq:          # None                # Platform natural frequency [rad/s]         
@@ -39,18 +40,23 @@ controller_params:
   PS_Mode:            2                     # Pitch saturation mode {0: no pitch saturation, 1: peak shaving, 2: Cp-maximizing pitch saturation, 3: peak shaving and Cp-maximizing pitch saturation}
   SD_Mode:            0                     # Shutdown mode {0: no shutdown procedure, 1: pitch to max pitch at shutdown}
   Fl_Mode:            0                     # Floating specific feedback mode {0: no nacelle velocity feedback, 1: nacelle velocity feedback}
+  Flp_Mode:           0                     # Flap control mode {0: no flap control, 1: steady state flap angle, 2: Proportional flap control}
   # Controller parameters       
   zeta_pc:            1.0                   # Pitch controller desired damping ratio [-]
   omega_pc:           0.12                  # Pitch controller desired natural frequency [rad/s]
   zeta_vs:            1.2                   # Torque controller desired damping ratio [-]
   omega_vs:           0.08                  # Torque controller desired natural frequency [rad/s]
+  # Only needed if Flp_Mode > 0
+  zeta_flp:           # None                  # Flap controller desired damping ratio [-]
+  omega_flp:          # None                  # Flap controller desired natural frequency [rad/s]
   # Optional - these can be defined, but do not need to be
-  max_pitch:          # None                # Maximum pitch angle [rad], {default = 90 degrees}
-  min_pitch:          0.0                # Minimum pitch angle [rad], {default = 0 degrees}
+  max_pitch:          # None                  # Maximum pitch angle [rad], {default = 90 degrees}
+  min_pitch:          0.0                   # Minimum pitch angle [rad], {default = 0 degrees}
   vs_minspd:          0.5235                # Minimum rotor speed [rad/s], {default = 0 rad/s}
-  ss_cornerfreq:      # None                # First order low-pass filter cornering frequency for setpoint smoother [rad/s]
-  ss_vsgain:          # None                # Torque controller setpoint smoother gain bias percentage [%, <= 1 ], {default = 100%}
-  ss_pcgain:          # None                # Pitch controller setpoint smoother gain bias percentage  [%, <= 1 ], {default = 0.1%}
-  ps_percent:         # None                # Percent peak shaving  [%, <= 1 ], {default = 80%}
-  sd_maxpit:          # None                # Maximum blade pitch angle to initiate shutdown [rad], {default = bld pitch at v_max}
-  sd_cornerfreq:      # None                # Cutoff Frequency for first order low-pass filter for blade pitch angle [rad/s], {default = 0.41888 ~ time constant of 15s}
+  ss_cornerfreq:      # None                  # First order low-pass filter cornering frequency for setpoint smoother [rad/s]
+  ss_vsgain:          # None                  # Torque controller setpoint smoother gain bias percentage [%, <= 1 ], {default = 100%}
+  ss_pcgain:          # None                  # Pitch controller setpoint smoother gain bias percentage  [%, <= 1 ], {default = 0.1%}
+  ps_percent:         # None                  # Percent peak shaving  [%, <= 1 ], {default = 80%}
+  sd_maxpit:          # None                  # Maximum blade pitch angle to initiate shutdown [rad], {default = bld pitch at v_max}
+  sd_cornerfreq:      # None                  # Cutoff Frequency for first order low-pass filter for blade pitch angle [rad/s], {default = 0.41888 ~ time constant of 15s}
+  flp_maxpit:         # None                  # Maximum (and minimum) flap pitch angle [rad]
