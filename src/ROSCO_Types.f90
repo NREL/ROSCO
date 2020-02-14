@@ -128,6 +128,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)                             :: Flp_Angle                    ! Fixed flap angle (degrees)
     REAL(4)                             :: Flp_Kp                       ! PI flap control proportional gain 
     REAL(4)                             :: Flp_Ki                       ! PI flap control integral gain 
+    REAL(4)                             :: Flp_MaxPit                   ! Maximum (and minimum) flap pitch angle [rad]
     
     REAL(4)                             :: PC_RtTq99                    ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(4)                             :: VS_MaxOMTq                   ! Maximum torque at the end of the below-rated region 2, [Nm]

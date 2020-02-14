@@ -119,3 +119,4 @@
 0.000000000000      ! Flp_Angle         - Initial or steady state flap angle [rad]
 4.19206006e-08      ! Flp_Kp            - Blade root bending moment proportional gain for flap control [s]
 1.19713981e-07      ! Flp_Ki            - Flap displacement integral gain for flap control [s]
+0.174532925199      ! Flp_MaxPit        - Maximum (and minimum) flap pitch angle [rad]

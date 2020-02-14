@@ -212,6 +212,7 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%Flp_Angle  
         READ(UnControllerParameters, *) CntrPar%Flp_Kp  
         READ(UnControllerParameters, *) CntrPar%Flp_Ki  
+        READ(UnControllerParameters, *) CntrPar%Flp_MaxPit  
         ! END OF INPUT FILE    
         
         !------------------- CALCULATED CONSTANTS -----------------------
