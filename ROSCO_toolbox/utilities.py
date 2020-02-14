@@ -143,7 +143,7 @@ class FAST_IO():
             if xlim:
                 plt.xlim(xlim)
         if showplot:
-            plt.show()
+            plt.draw()
 
         
     def load_output(self, filenames):
@@ -478,7 +478,7 @@ class FileProcessing():
         file.write('{:<10.5f}{:<9.5f} ! F_NotchBetaNumDen	- Two notch damping values (numerator and denominator, resp) - determines the width and depth of the notch, [-]\n'.format(0.0,0.25))
         file.write('{:<014.5f}      ! F_SSCornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother, [rad/s].\n'.format(controller.ss_cornerfreq))
         file.write('{:<10.5f}{:<9.5f} ! F_FlCornerFreq    - Corner frequency and damping in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s, -].\n'.format(turbine.ptfm_freq, 1.0))
-        file.write('{:<10.5f}{:<9.5f} ! F_FlpCornerFreq    - Corner frequency and damping in the second order low pass filter of the blade root bending moment for flap control [rad/s, -].\n'.format(turbine.bld_flapwise_freq*1/3, 1.0))
+        file.write('{:<10.5f}{:<9.5f} ! F_FlpCornerFreq   - Corner frequency and damping in the second order low pass filter of the blade root bending moment for flap control [rad/s, -].\n'.format(turbine.bld_flapwise_freq*1/3, 1.0))
         
         file.write('\n')
         file.write('!------- BLADE PITCH CONTROL ----------------------------------------------\n')
