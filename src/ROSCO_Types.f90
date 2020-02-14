@@ -33,6 +33,8 @@ TYPE, PUBLIC :: ControlParameters
     Real(4)                             :: F_SSCornerFreq               ! Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
     Real(4)                             :: F_FlCornerFreq               ! Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s].
     Real(4)                             :: F_FlDamping                  ! Damping constant in the first order low pass filter of the tower-top fore-aft motion for floating feedback control [-].
+    Real(4)                             :: F_FlpCornerFreq              ! Corner frequency (-3dB point) in the second order low pass filter of the blade root bending moment for flap control [rad/s].
+    Real(4)                             :: F_FlpDamping                 ! Damping constant in the first order low pass filter of the blade root bending moment for flap control[-].
 
     REAL(4)                             :: FA_HPFCornerFreq             ! Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]
     REAL(4)                             :: FA_IntSat                    ! Integrator saturation (maximum signal amplitude contrbution to pitch from FA damper), [rad]
@@ -122,10 +124,17 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(4)                          :: FL_Mode                      ! Floating specific feedback mode {0: no nacelle velocity feedback, 1: nacelle velocity feedback}
     REAL(4)                             :: FL_Kp                        ! Nacelle velocity proportional feedback gain [s]
 
+    INTEGER(4)                          :: Flp_Mode                     ! Flap actuator mode {0: off, 1: fixed flap position, 2: PI flap control}
+    REAL(4)                             :: Flp_Angle                    ! Fixed flap angle (degrees)
+    REAL(4)                             :: Flp_Kp                       ! PI flap control proportional gain 
+    REAL(4)                             :: Flp_Ki                       ! PI flap control integral gain 
+    REAL(4)                             :: Flp_MaxPit                   ! Maximum (and minimum) flap pitch angle [rad]
+    
     REAL(4)                             :: PC_RtTq99                    ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(4)                             :: VS_MaxOMTq                   ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(4)                             :: VS_MinOMTq                   ! Minimum torque at the beginning of the below-rated region 2, [Nm]
     REAL(4)                             :: VS_Rgn3Pitch                 ! Pitch angle at which the state machine switches to region 3, [rad].
+
 END TYPE ControlParameters
 
 TYPE, PUBLIC :: LocalVariables
@@ -186,9 +195,9 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                             :: Y_MErr                       ! Measured yaw error, measured + setpoint [rad].
     REAL(4)                             :: Y_YawEndT                    ! Yaw end time [s]. Indicates the time up until which yaw is active with a fixed rate
     LOGICAL(1)                          :: SD                           ! Shutdown, .FALSE. if inactive, .TRUE. if active
-    
     REAL(4)                             :: Fl_PitCom                           ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(4)                             :: NACIMU_FA_AccF
+    REAL(4)                             :: Flp_Angle(3)                 ! Flap Angle (rad)
     END TYPE LocalVariables
 
 TYPE, PUBLIC :: ObjectInstances

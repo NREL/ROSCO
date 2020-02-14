@@ -262,7 +262,6 @@ CONTAINS
             LocalVar%GenSpeedF = NotchFilter(LocalVar%GenSpeedF, LocalVar%DT, CntrPar%F_NotchCornerFreq, CntrPar%F_NotchBetaNumDen(1), CntrPar%F_NotchBetaNumDen(2), LocalVar%iStatus, .FALSE., objInst%instNotch)
         ENDIF
 
-        LocalVar%TestType = LocalVar%GenSpeedF
         ! Filtering the tower fore-aft acceleration signal 
         IF (LocalVar%iStatus == 0) THEN
             ! LocalVar%NacIMU_FA_AccF = SecLPFilter(0.0, LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping

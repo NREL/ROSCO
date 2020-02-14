@@ -66,6 +66,7 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%PS_Mode        
         READ(UnControllerParameters, *) CntrPar%SD_Mode        
         READ(UnControllerParameters, *) CntrPar%FL_Mode        
+        READ(UnControllerParameters, *) CntrPar%Flp_Mode        
         READ(UnControllerParameters, *)
 
         !----------------- FILTER CONSTANTS ---------------------
@@ -77,6 +78,7 @@ CONTAINS
         READ(UnControllerParameters,*) CntrPar%F_NotchBetaNumDen
         READ(UnControllerParameters,*) CntrPar%F_SSCornerFreq
         READ(UnControllerParameters,*) CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping
+        READ(UnControllerParameters,*) CntrPar%F_FlpCornerFreq, CntrPar%F_FlpDamping
         READ(UnControllerParameters, *)
 
         !----------- BLADE PITCH CONTROLLER CONSTANTS -----------
@@ -159,7 +161,6 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%WE_FOPoles_v
         ALLOCATE(CntrPar%WE_FOPoles(CntrPar%WE_FOPoles_n))
         READ(UnControllerParameters, *) CntrPar%WE_FOPoles
-
         READ(UnControllerParameters, *)
 
         !-------------- YAW CONTROLLER CONSTANTS -----------------
@@ -204,6 +205,14 @@ CONTAINS
         !------------ FLOATING ------------
         READ(UnControllerParameters, *)      
         READ(UnControllerParameters, *) CntrPar%Fl_Kp  
+        READ(UnControllerParameters, *) 
+
+        !------------ Flaps ------------
+        READ(UnControllerParameters, *)      
+        READ(UnControllerParameters, *) CntrPar%Flp_Angle  
+        READ(UnControllerParameters, *) CntrPar%Flp_Kp  
+        READ(UnControllerParameters, *) CntrPar%Flp_Ki  
+        READ(UnControllerParameters, *) CntrPar%Flp_MaxPit  
         ! END OF INPUT FILE    
         
         !------------------- CALCULATED CONSTANTS -----------------------
@@ -258,7 +267,6 @@ CONTAINS
         ELSE
             VS_RefSpd = CntrPar%VS_RefSpd
         ENDIF 
-
         
         ! Implement setpoint smoothing
         IF (LocalVar%SS_DelOmegaF > 0) THEN
