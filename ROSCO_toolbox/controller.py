@@ -289,7 +289,11 @@ class Controller():
         # Flap actuation 
         if self.Flp_Mode >= 1:
             self.flp_angle = 0.0
-            self.tune_flap_controller(turbine)
+            try:
+                self.tune_flap_controller(turbine)
+            except AttributeError:
+                print('ERROR: If Flp_Mode > 0, you need to have blade information loaded in the turbine object.')
+                raise
         else:
             self.flp_angle = 0.0
             self.Ki_flap = np.array([0.0])
