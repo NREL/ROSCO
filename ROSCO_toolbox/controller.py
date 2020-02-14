@@ -127,6 +127,14 @@ class Controller():
         else:
             self.sd_maxpit = None
 
+        if controller_params['flp_maxpit']:
+            self.flp_maxpit = controller_params['flp_maxpit']
+        else:
+            if controller_params['Flp_Mode'] > 0:
+                self.flp_maxpit = 10.0 * deg2rad
+            else:
+                self.flp_maxpit = 0.0
+
     def tune_controller(self, turbine):
         """
         Given a turbine model, tune a controller based on the NREL generic controller tuning process

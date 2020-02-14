@@ -572,7 +572,8 @@ class FileProcessing():
         file.write('!------- FLAP ACTUATION -----------------------------------------------------\n')
         file.write('{:<014.5f}      ! Flp_Angle         - Initial or steady state flap angle [rad]\n'.format(controller.flp_angle))
         file.write('{:<014.8e}      ! Flp_Kp            - Blade root bending moment proportional gain for flap control [s]\n'.format(controller.Kp_flap[-1]))
-        file.write('{:<014.8e}      ! Flp_Ki            - Flap displacement integral gain for flap control [s]'.format(controller.Ki_flap[-1]))
+        file.write('{:<014.8e}      ! Flp_Ki            - Flap displacement integral gain for flap control [s]\n'.format(controller.Ki_flap[-1]))
+        file.write('{:<014.5f}      ! Flp_MaxPit        - Maximum (and minimum) flap pitch angle [rad]'.format(controller.flp_maxpit))
         file.close()
 
     def write_rotor_performance(self,turbine,txt_filename='Cp_Ct_Cq.txt'):
