@@ -85,13 +85,6 @@ CONTAINS
             LocalVar%FA_PitCom = 0.0 ! THIS IS AN ARRAY!!
         ENDIF
         
-        ! Sine excitation on pitch
-        IF (CntrPar%Z_EnableSine == 1) THEN
-            LocalVar%PC_SineExcitation = CntrPar%Z_PitchAmplitude*sin(CntrPar%Z_PitchFrequency*LocalVar%Time)
-        ELSE
-            LocalVar%PC_SineExcitation = 0
-        END IF
-        
         ! Peak Shaving
         IF (CntrPar%PS_Mode == 1) THEN
             LocalVar%PC_MinPit = PitchSaturation(LocalVar,CntrPar,objInst)
@@ -116,7 +109,7 @@ CONTAINS
         
         ! Combine and saturate all individual pitch commands:
         DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
-            LocalVar%PitCom(K) = LocalVar%PC_PitComT + LocalVar%IPC_PitComF(K) + LocalVar%FA_PitCom(K) + LocalVar%PC_SineExcitation
+            LocalVar%PitCom(K) = LocalVar%PC_PitComT + LocalVar%IPC_PitComF(K) + LocalVar%FA_PitCom(K) 
             LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
             LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), LocalVar%BlPitch(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
         END DO

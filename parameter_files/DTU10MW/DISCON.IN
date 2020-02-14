@@ -40,9 +40,6 @@
 50.26500000000      ! PC_RefSpd			- Desired (reference) HSS speed for pitch controller, [rad/s].
 0.000000000000      ! PC_FinePit		- Record 5: Below-rated pitch angle set-point, [rad]
 0.017450000000      ! PC_Switch			- Angle above lowest minimum pitch angle for switch, [rad]
-0                   ! Z_EnableSine		- Enable/disable sine pitch excitation, used to validate for dynamic induction control, will be removed later, [-]
-0.000000000000      ! Z_PitchAmplitude	- Amplitude of sine pitch excitation, [rad]
-0.000000000000      ! Z_PitchFrequency	- Frequency of sine pitch excitation, [rad/s]
 
 !------- INDIVIDUAL PITCH CONTROL -----------------------------------------
 0.0                 ! IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from IPC), [rad]

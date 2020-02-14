@@ -101,10 +101,6 @@ CONTAINS
         READ(UnControllerParameters, *) CntrPar%PC_RefSpd
         READ(UnControllerParameters, *) CntrPar%PC_FinePit
         READ(UnControllerParameters, *) CntrPar%PC_Switch
-        !-- sine pitch excitiation --
-        READ(UnControllerParameters, *) CntrPar%Z_EnableSine
-        READ(UnControllerParameters, *) CntrPar%Z_PitchAmplitude
-        READ(UnControllerParameters, *) CntrPar%Z_PitchFrequency
         READ(UnControllerParameters, *)
 
         !------------------- IPC CONSTANTS -----------------------

@@ -108,10 +108,6 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)                             :: Y_omegaLPSlow                ! Corner frequency slow low pass filter, 1/60 [Hz]
     REAL(4)                             :: Y_Rate                       ! Yaw rate [rad/s]
     
-    INTEGER(4)                          :: Z_EnableSine                 ! Enable/disable sine pitch excitation
-    REAL(4)                             :: Z_PitchAmplitude             ! Amplitude of sine pitch excitation
-    REAL(4)                             :: Z_PitchFrequency             ! Frequency of sine pitch excitation
-    
     INTEGER(4)                          :: PS_Mode                      ! Pitch saturation mode {0: no peak shaving, 1: implement pitch saturation}
     INTEGER(4)                          :: PS_BldPitchMin_N             ! Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)
     REAL(4), DIMENSION(:), ALLOCATABLE  :: PS_WindSpeeds                ! Wind speeds corresponding to minimum blade pitch angles [m/s]
