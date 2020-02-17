@@ -15,24 +15,24 @@ import matplotlib.pyplot as plt
 import numpy as np
 import yaml 
 # ROSCO toolbox modules 
-from ROSCO_toolbox import controller as wtc_controller
-from ROSCO_toolbox import turbine as wtc_turbine
-from ROSCO_toolbox import sim as wtc_sim
-from ROSCO_toolbox import utilities as wtc_utilities
-from ROSCO_toolbox import control_interface as wtc_ci
+from ROSCO_toolbox import controller as ROSCO_controller
+from ROSCO_toolbox import turbine as ROSCO_turbine
+from ROSCO_toolbox import sim as ROSCO_sim
+from ROSCO_toolbox import utilities as ROSCO_utilities
+from ROSCO_toolbox import control_interface as ROSCO_ci
 
 # Specify controller dynamic library path and name
 lib_name = ('../ROSCO/build/libdiscon.dylib')
 
 # Load turbine model from saved pickle
-turbine = wtc_turbine.Turbine
+turbine = ROSCO_turbine.Turbine
 turbine = turbine.load('NREL5MW_saved.p')
 
 # Load controller library
-controller_int = wtc_ci.ControllerInterface(lib_name)
+controller_int = ROSCO_ci.ControllerInterface(lib_name)
 
 # Load the simulator
-sim = wtc_sim.Sim(turbine,controller_int)
+sim = ROSCO_sim.Sim(turbine,controller_int)
 
 # Define a wind speed history
 dt = 0.1

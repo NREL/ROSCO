@@ -13,7 +13,7 @@
 # Python Modules
 import yaml
 # ROSCO Modules
-from ROSCO_toolbox import turbine as wtc_turbine
+from ROSCO_toolbox import turbine as ROSCO_turbine
 
 # Load yaml file
 parameter_filename = 'NREL5MW_example.yaml'
@@ -22,7 +22,7 @@ path_params         = inps['path_params']
 turbine_params      = inps['turbine_params']
 
 # Load turbine data from openfast model
-turbine = wtc_turbine.Turbine(turbine_params)
+turbine = ROSCO_turbine.Turbine(turbine_params)
 turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source='txt',txt_filename=path_params['rotor_performance_filename'])
 
 # Print some basic turbine info

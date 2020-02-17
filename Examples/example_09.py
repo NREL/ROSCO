@@ -9,10 +9,10 @@
 import numpy as np
 import matplotlib.pyplot as plt 
 # ROSCO toolbox modules 
-from ROSCO_toolbox import utilities as wtc_utilities
+from ROSCO_toolbox import utilities as ROSCO_utilities
 
 # Instantiate fast_IO
-fast_io = wtc_utilities.FAST_IO()
+fast_io = ROSCO_utilities.FAST_IO()
 
 # Define openfast output filenames
 wind_directory = '../Test_Cases/Wind/'

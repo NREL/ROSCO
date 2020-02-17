@@ -9,11 +9,11 @@
 # Python modules
 import matplotlib.pyplot as plt
 # ROSCO toolbox modules 
-from ROSCO_toolbox import turbine as wtc_turbine
+from ROSCO_toolbox import turbine as ROSCO_turbine
 
 
 # Initialize a turbine class -- Don't need to instantiate!
-turbine = wtc_turbine.Turbine
+turbine = ROSCO_turbine.Turbine
 
 # Load quick from python pickle
 turbine = turbine.load('NREL5MW_saved.p')

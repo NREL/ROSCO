@@ -1,5 +1,5 @@
 % Post_TestCases.m
-% Script to load and plot data from test cases in the WTC_Toolbox
+% Script to load and plot data from test cases in the ROSCO_Toolbox
 
 %% Define and load test cases
 

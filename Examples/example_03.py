@@ -11,8 +11,8 @@
 # Python modules
 import yaml 
 # ROSCO toolbox modules 
-from ROSCO_toolbox import turbine as wtc_turbine
-from ROSCO_toolbox import utilities as wtc_utilities
+from ROSCO_toolbox import turbine as ROSCO_turbine
+from ROSCO_toolbox import utilities as ROSCO_utilities
 # Initialize parameter dictionaries
 turbine_params = {}
 control_params = {}
@@ -25,10 +25,10 @@ turbine_params      = inps['turbine_params']
 controller_params   = inps['controller_params']
 
 # Load turbine data from openfast model
-turbine = wtc_turbine.Turbine(turbine_params)
+turbine = ROSCO_turbine.Turbine(turbine_params)
 turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source=None,txt_filename=None)
 
 # Write rotor performance text file
 txt_filename = 'Cp_Ct_Cq.Ex03.txt'
-file_processing = wtc_utilities.FileProcessing()
+file_processing = ROSCO_utilities.FileProcessing()
 file_processing.write_rotor_performance(turbine,txt_filename=txt_filename)

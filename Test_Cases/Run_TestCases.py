@@ -6,8 +6,8 @@
 # Import and define modules and classes
 import os
 import matplotlib.pyplot as plt
-from ROSCO_toolbox import utilities as wtc_Utilities
-fast_io = wtc_Utilities.FAST_IO()
+from ROSCO_toolbox import utilities as ROSCO_Utilities
+fast_io = ROSCO_Utilities.FAST_IO()
 
 # Define call for OpenFAST
 fastcall = 'openfast_dev'
