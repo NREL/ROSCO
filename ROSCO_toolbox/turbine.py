@@ -200,19 +200,20 @@ class Turbine():
         # self.omega_dt = np.sqrt(self.DTTorSpr/self.J)
 
         # Load Cp, Ct, Cq tables
-        if rot_source == 'txt':
+        if rot_source == 'cc-blade': # Use cc-blade
+            self.load_from_ccblade()
+        elif rot_source == 'txt':    # Use specified text file
             self.pitch_initial_rad, self.TSR_initial, self.Cp_table, self.Ct_table, self.Cq_table = ROSCO_utilities.FileProcessing.load_from_txt(txt_filename)
-        elif rot_source == 'cc-blade':
-            self.load_from_ccblade(fast)
-        else:   # default load from cc-blade
-            if txt_filename is None:
+        else:   # Use text file from DISCON.in
+            if os.path.exists(self.fast.fst_vt['DISCON_in']['PerfFileName']):
+                self.pitch_initial_rad = self.fast.fst_vt['DISCON_in']['Cp_pitch_initial_rad']
+                self.TSR_initial = self.fast.fst_vt['DISCON_in']['Cp_TSR_initial']
+                self.Cp_table = self.fast.fst_vt['DISCON_in']['Cp_table']
+                self.Ct_table = self.fast.fst_vt['DISCON_in']['Ct_table']
+                self.Cq_table = self.fast.fst_vt['DISCON_in']['Cq_table']
+            else:   # Load from cc-blade
                 print('No rotor performance data source available, running CC-Blade.')
-                self.load_from_ccblade(fast)
-            elif os.path.exists(txt_filename):
-                self.pitch_initial_rad, self.TSR_initial, self.Cp_table, self.Ct_table, self.Cq_table = ROSCO_utilities.FileProcessing.load_from_txt(txt_filename)
-            else:
-                print('No rotor performance data source available, running CC-Blade.')
-                self.load_from_ccblade(fast)
+                self.load_from_ccblade()
 
         # Parse rotor performance data
         self.Cp = RotorPerformance(self.Cp_table,self.pitch_initial_rad,self.TSR_initial)
