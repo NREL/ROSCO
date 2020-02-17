@@ -163,10 +163,10 @@ class Turbine():
 
         print('Loading FAST model: %s ' % FAST_InputFile)
         self.TurbineName = FAST_InputFile.strip('.fst')
-        fast = InputReader_OpenFAST(FAST_ver=FAST_ver,dev_branch=dev_branch)
-        fast.FAST_InputFile = FAST_InputFile
-        fast.FAST_directory = FAST_directory
-        fast.execute()
+        self.fast = InputReader_OpenFAST(FAST_ver=FAST_ver,dev_branch=dev_branch)
+        self.fast.FAST_InputFile = FAST_InputFile
+        self.fast.FAST_directory = FAST_directory
+        self.fast.execute()
 
         if txt_filename:
             self.rotor_performance_filename = txt_filename
@@ -175,23 +175,23 @@ class Turbine():
 
 
         # Grab general turbine parameters
-        self.TipRad = fast.fst_vt['ElastoDyn']['TipRad']
-        self.Rhub =  fast.fst_vt['ElastoDyn']['HubRad']
-        self.hubHt = fast.fst_vt['ElastoDyn']['TowerHt'] 
-        self.NumBl = fast.fst_vt['ElastoDyn']['NumBl']
-        self.TowerHt = fast.fst_vt['ElastoDyn']['TowerHt']
+        self.TipRad = self.fast.fst_vt['ElastoDyn']['TipRad']
+        self.Rhub =  self.fast.fst_vt['ElastoDyn']['HubRad']
+        self.hubHt = self.fast.fst_vt['ElastoDyn']['TowerHt'] 
+        self.NumBl = self.fast.fst_vt['ElastoDyn']['NumBl']
+        self.TowerHt = self.fast.fst_vt['ElastoDyn']['TowerHt']
         self.shearExp = 0.2  #HARD CODED FOR NOW
-        self.rho = fast.fst_vt['AeroDyn15']['AirDens']
-        self.mu = fast.fst_vt['AeroDyn15']['KinVisc']
-        self.Ng = fast.fst_vt['ElastoDyn']['GBRatio']
-        self.GenEff = fast.fst_vt['ServoDyn']['GenEff']
-        self.DTTorSpr = fast.fst_vt['ElastoDyn']['DTTorSpr']
-        self.generator_inertia = fast.fst_vt['ElastoDyn']['GenIner']
-        self.tilt = fast.fst_vt['ElastoDyn']['ShftTilt'] 
+        self.rho = self.fast.fst_vt['AeroDyn15']['AirDens']
+        self.mu = self.fast.fst_vt['AeroDyn15']['KinVisc']
+        self.Ng = self.fast.fst_vt['ElastoDyn']['GBRatio']
+        self.GenEff = self.fast.fst_vt['ServoDyn']['GenEff']
+        self.DTTorSpr = self.fast.fst_vt['ElastoDyn']['DTTorSpr']
+        self.generator_inertia = self.fast.fst_vt['ElastoDyn']['GenIner']
+        self.tilt = self.fast.fst_vt['ElastoDyn']['ShftTilt'] 
         try:
-            self.precone = fast.fst_vt['ElastoDyn']['PreCone1'] # May need to change to PreCone(1) depending on OpenFAST files
+            self.precone = self.fast.fst_vt['ElastoDyn']['PreCone1'] # May need to change to PreCone(1) depending on OpenFAST files
         except:
-            self.precone = fast.fst_vt['ElastoDyn']['PreCone(1)']
+            self.precone = self.fast.fst_vt['ElastoDyn']['PreCone(1)']
         self.yaw = 0.0
         self.J = self.rotor_inertia + self.generator_inertia * self.Ng**2
         self.rated_torque = self.rated_power/(self.GenEff/100*self.rated_rotor_speed*self.Ng)
@@ -224,14 +224,14 @@ class Turbine():
             self.TSR_operational = self.Cp.TSR_opt
 
         # Pull out some floating-related data
-        wave_tp = fast.fst_vt['HydroDyn']['WaveTp'] 
+        wave_tp = self.fast.fst_vt['HydroDyn']['WaveTp'] 
         try:
             self.wave_peak_period = 1/wave_tp       # Will work if HydroDyn exists and a peak period is defined...
         except:
             self.wave_peak_period = 0.0             # Set as 0.0 when HydroDyn doesn't exist (fixed bottom)
 
     # Load rotor performance data from CCBlade 
-    def load_from_ccblade(self,fast):
+    def load_from_ccblade(self):
         '''
         Loads rotor performance information by running cc-blade aerodynamic analysis. Designed to work with Aerodyn15 blade input files. 
 
@@ -241,29 +241,29 @@ class Turbine():
                   Dictionary containing fast model details - defined using from InputReader_OpenFAST (distributed as a part of AeroelasticSE)
 
         '''
-        print('Loading rotor performace data from CC-Blade.')
+        print('Loading rotor performance data from CC-Blade.')
         
         # Create CC-Blade Rotor
-        r0 = np.array(fast.fst_vt['AeroDynBlade']['BlSpn']) 
-        chord0 = np.array(fast.fst_vt['AeroDynBlade']['BlChord'])
-        theta0 = np.array(fast.fst_vt['AeroDynBlade']['BlTwist'])
+        r0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlSpn']) 
+        chord0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlChord'])
+        theta0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlTwist'])
         # -- Adjust for Aerodyn15
         r = r0 + self.Rhub
         chord_intfun = interpolate.interp1d(r0,chord0, bounds_error=None, fill_value='extrapolate', kind='zero')
         chord = chord_intfun(r)
         theta_intfun = interpolate.interp1d(r0,theta0, bounds_error=None, fill_value='extrapolate', kind='zero')
         theta = theta_intfun(r)
-        af_idx = np.array(fast.fst_vt['AeroDynBlade']['BlAFID']).astype(int) - 1 #Reset to 0 index
-        AFNames = fast.fst_vt['AeroDyn15']['AFNames']   
+        af_idx = np.array(self.fast.fst_vt['AeroDynBlade']['BlAFID']).astype(int) - 1 #Reset to 0 index
+        AFNames = self.fast.fst_vt['AeroDyn15']['AFNames']   
 
         # Use airfoil data from FAST file read, assumes AeroDyn 15, assumes 1 Re num per airfoil
         af_dict = {}
-        for i, _ in enumerate(fast.fst_vt['AeroDyn15']['af_data']):
-            Re    = [fast.fst_vt['AeroDyn15']['af_data'][i][0]['Re']]
-            Alpha = fast.fst_vt['AeroDyn15']['af_data'][i][0]['Alpha']
-            Cl    = fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cl']
-            Cd    = fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cd']
-            Cm    = fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cm']
+        for i, _ in enumerate(self.fast.fst_vt['AeroDyn15']['af_data']):
+            Re    = [self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Re']]
+            Alpha = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Alpha']
+            Cl    = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cl']
+            Cd    = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cd']
+            Cm    = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cm']
             af_dict[i] = CCAirfoil(Alpha, Re, Cl, Cd, Cm)
         # define airfoils for CCBlade
         af = [0]*len(r)
@@ -308,55 +308,49 @@ class Turbine():
         self.Ct_table = Ct 
         self.Cq_table = Cq
     
-    def load_blade_info(self, FAST_InputFile,FAST_directory, FAST_ver='OpenFAST',dev_branch=True):
+    def load_blade_info(self):
         '''
-        Loads wind turbine blade data from an OpenFAST model
+        Loads wind turbine blade data from an OpenFAST model. 
+        Should be used if blade information is needed (i.e.) for flap controller tuning, but a rotor performance file is defined and and cc-blade is not run already. 
         
         Parameters:
         -----------
-            Fast_InputFile: str
-                            Primary fast model input file (*.fst)
-            FAST_directory: str
-                            Directory for primary fast model input file
-            FAST_ver: string, optional
-                        fast version, usually OpenFAST
-            dev_branch: bool, optional
-                        dev_branch input to InputReader_OpenFAST, probably True
+            self - note: needs to contain fast input file info provided by load_from_fast.
         '''
         from wisdem.aeroelasticse.FAST_reader import InputReader_OpenFAST
 
         # Load Fast input deck
-        self.TurbineName = FAST_InputFile.strip('.fst')
-        fast = InputReader_OpenFAST(FAST_ver=FAST_ver,dev_branch=dev_branch)
-        fast.FAST_InputFile = FAST_InputFile
-        fast.FAST_directory = FAST_directory
-        fast.execute()
+        # self.TurbineName = FAST_InputFile.strip('.fst')
+        # fast = InputReader_OpenFAST(FAST_ver=FAST_ver,dev_branch=dev_branch)
+        # self.fast.FAST_InputFile = FAST_InputFile
+        # self.fast.FAST_directory = FAST_directory
+        # self.fast.execute()
 
         # Make sure cc_rotor exists for DAC analysis
         try:
             exists(self.cc_rotor)
         except NameError:
             # Create CC-Blade Rotor
-            r0 = np.array(fast.fst_vt['AeroDynBlade']['BlSpn']) 
-            chord0 = np.array(fast.fst_vt['AeroDynBlade']['BlChord'])
-            theta0 = np.array(fast.fst_vt['AeroDynBlade']['BlTwist'])
+            r0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlSpn']) 
+            chord0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlChord'])
+            theta0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlTwist'])
             # -- Adjust for Aerodyn15
             r = r0 + self.Rhub
             chord_intfun = interpolate.interp1d(r0,chord0, bounds_error=None, fill_value='extrapolate', kind='zero')
             chord = chord_intfun(r)
             theta_intfun = interpolate.interp1d(r0,theta0, bounds_error=None, fill_value='extrapolate', kind='zero')
             theta = theta_intfun(r)
-            af_idx = np.array(fast.fst_vt['AeroDynBlade']['BlAFID']).astype(int) - 1 #Reset to 0 index
-            AFNames = fast.fst_vt['AeroDyn15']['AFNames']   
+            af_idx = np.array(self.fast.fst_vt['AeroDynBlade']['BlAFID']).astype(int) - 1 #Reset to 0 index
+            AFNames = self.fast.fst_vt['AeroDyn15']['AFNames']   
 
             # Use airfoil data from FAST file read, assumes AeroDyn 15, assumes 1 Re num per airfoil
             af_dict = {}
-            for i, _ in enumerate(fast.fst_vt['AeroDyn15']['af_data']):
-                Re    = [fast.fst_vt['AeroDyn15']['af_data'][i][0]['Re']]
-                Alpha = fast.fst_vt['AeroDyn15']['af_data'][i][0]['Alpha']
-                Cl    = fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cl']
-                Cd    = fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cd']
-                Cm    = fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cm']
+            for i, _ in enumerate(self.fast.fst_vt['AeroDyn15']['af_data']):
+                Re    = [self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Re']]
+                Alpha = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Alpha']
+                Cl    = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cl']
+                Cd    = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cd']
+                Cm    = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cm']
                 af_dict[i] = CCAirfoil(Alpha, Re, Cl, Cd, Cm)
             # define airfoils for CCBlade
             af = [0]*len(r)
@@ -369,11 +363,11 @@ class Turbine():
                             precone=-self.precone, tilt=-self.tilt, yaw=self.yaw, shearExp=self.shearExp, hubHt=self.hubHt, nSector=nSector)
 
         # Save some blade  data 
-        self.af_data = fast.fst_vt['AeroDyn15']['af_data']
+        self.af_data = self.fast.fst_vt['AeroDyn15']['af_data']
         self.span = r 
         self.chord = chord
         self.twist = theta
-        self.bld_flapwise_damp = fast.fst_vt['ElastoDynBlade']['BldFlDmp1']
+        self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade']['BldFlDmp1']
 
 class RotorPerformance():
     '''
