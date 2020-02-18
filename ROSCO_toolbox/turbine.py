@@ -259,13 +259,23 @@ class Turbine():
 
         # Use airfoil data from FAST file read, assumes AeroDyn 15, assumes 1 Re num per airfoil
         af_dict = {}
-        for i, _ in enumerate(self.fast.fst_vt['AeroDyn15']['af_data']):
-            Re    = [self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Re']]
-            Alpha = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Alpha']
-            Cl    = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cl']
-            Cd    = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cd']
-            Cm    = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cm']
-            af_dict[i] = CCAirfoil(Alpha, Re, Cl, Cd, Cm)
+        try:
+            for i, _ in enumerate(self.fast.fst_vt['AeroDyn15']['af_data']):
+                Re    = [self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Re']]
+                Alpha = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Alpha']
+                Cl    = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cl']
+                Cd    = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cd']
+                Cm    = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cm']
+                af_dict[i] = CCAirfoil(Alpha, Re, Cl, Cd, Cm)
+        except: # Read airfoil tables without tab cabalities (will remove once wisdem master branch cleans up)
+            for i, _ in enumerate(self.fast.fst_vt['AeroDyn15']['af_data']):
+                Re    = [self.fast.fst_vt['AeroDyn15']['af_data'][i]['Re']]
+                Alpha = self.fast.fst_vt['AeroDyn15']['af_data'][i]['Alpha']
+                Cl    = self.fast.fst_vt['AeroDyn15']['af_data'][i]['Cl']
+                Cd    = self.fast.fst_vt['AeroDyn15']['af_data'][i]['Cd']
+                Cm    = self.fast.fst_vt['AeroDyn15']['af_data'][i]['Cm']
+                af_dict[i] = CCAirfoil(Alpha, Re, Cl, Cd, Cm)
+
         # define airfoils for CCBlade
         af = [0]*len(r)
         for i in range(len(r)):
