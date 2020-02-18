@@ -10,6 +10,7 @@
 # specific language governing permissions and limitations under the License.
 
 import numpy as np
+import sys
 import datetime
 from wisdem.ccblade import CCAirfoil, CCBlade
 from scipy import interpolate, gradient, integrate
@@ -369,6 +370,9 @@ class Controller():
         # omega = 4.6/(ts*zeta)
 
         # PI Gains
+        if (self.zeta_flp == 0 or self.omega_flp == 0) or (not self.zeta_flp or not self.omega_flp):
+            sys.exit('ERROR! --- Zeta and Omega flap must be nonzero for Flp_Mode >= 1 ---')
+
         self.Kp_flap = (2*self.zeta_flp*self.omega_flp - 2*zetaf*omegaf)/(kappa*omegaf**2)
         self.Ki_flap = (self.omega_flp**2 - omegaf**2)/(kappa*omegaf**2)
         
