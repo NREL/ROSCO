@@ -356,13 +356,25 @@ class Turbine():
 
             # Use airfoil data from FAST file read, assumes AeroDyn 15, assumes 1 Re num per airfoil
             af_dict = {}
-            for i, _ in enumerate(self.fast.fst_vt['AeroDyn15']['af_data']):
-                Re    = [self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Re']]
-                Alpha = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Alpha']
-                Cl    = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cl']
-                Cd    = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cd']
-                Cm    = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cm']
-                af_dict[i] = CCAirfoil(Alpha, Re, Cl, Cd, Cm)
+            for i, section in enumerate(self.fast.fst_vt['AeroDyn15']['af_data']):
+                Re = [section[0]['Re']]
+                Alpha = section[0]['Alpha']
+                if section[0]['NumTabs'] > 1:  # sections with flaps
+                    ref_tab = int(np.floor(section[0]['NumTabs']/2))
+                    Cl = section[ref_tab]['Cl']
+                    Cd = section[ref_tab]['Cd']
+                    Cm = section[ref_tab]['Cm']
+                    af_dict[i] = CCAirfoil(Alpha, Re, Cl, Cd, Cm)
+                else:                           # sections without flaps
+                    Cl = section[0]['Cl']
+                    Cd = section[0]['Cd']
+                    Cm = section[0]['Cm']
+                    af_dict[i] = CCAirfoil(Alpha, Re, Cl, Cd, Cm)
+
+
+
+
+
             # define airfoils for CCBlade
             af = [0]*len(r)
             for i in range(len(r)):
