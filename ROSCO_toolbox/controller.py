@@ -45,7 +45,7 @@ class Controller():
 
         print('-----------------------------------------------------------------------------')
         print('   Tuning a reference wind turbine controller using NREL\'s ROSCO toolbox    ')
-        print('      Developed by Nikhar J. Abbas for collaborotave research purposes.      ')
+        print('      Developed by Nikhar J. Abbas for collaborative research purposes.      ')
         print('-----------------------------------------------------------------------------')
 
         # Controller Flags
