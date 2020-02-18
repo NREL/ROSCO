@@ -46,7 +46,7 @@ else:
     
 # Flap tuning if necessary
 if controller_params['Flp_Mode']:
-    turbine.load_blade_info(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True)
+    turbine.load_blade_info()
 
 # Instantiate controller tuning and tune controller
 controller      = ROSCO_controller.Controller(controller_params)
