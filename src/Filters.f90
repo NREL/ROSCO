@@ -168,6 +168,7 @@ CONTAINS
         INTEGER, INTENT(INOUT)  :: inst                     ! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
         LOGICAL(4), INTENT(IN)  :: reset                    ! Reset the filter to the input signal
         ! Local
+        REAL(4), DIMENSION(99), SAVE :: b2, b0, a2, a1, a0    ! Input signal the last time this filter was called. Supports 99 separate instances.
         REAL(4), DIMENSION(99), SAVE :: InputSignalLast1    ! Input signal the last time this filter was called. Supports 99 separate instances.
         REAL(4), DIMENSION(99), SAVE :: InputSignalLast2    ! Input signal the next to last time this filter was called. Supports 99 separate instances.
         REAL(4), DIMENSION(99), SAVE :: OutputSignalLast1   ! Output signal the last time this filter was called. Supports 99 separate instances.
@@ -179,12 +180,19 @@ CONTAINS
             OutputSignalLast2(inst)  = InputSignal
             InputSignalLast1(inst)   = InputSignal
             InputSignalLast2(inst)   = InputSignal
+            b2(inst) = 2.0 * DT * CornerFreq
+            b0(inst) = -b2(inst)
+            a2(inst) = Damp*DT**2.0*CornerFreq**2.0 + 2.0*DT*CornerFreq + 4.0*Damp
+            a1(inst) = 2.0*Damp*DT**2.0*CornerFreq**2.0 - 8.0*Damp
+            a0(inst) = Damp*DT**2.0*CornerFreq**2.0 - 2*DT*CornerFreq + 4.0*Damp
         ENDIF
 
+        NotchFilterSlopes = 1.0/a2(inst) * (b2(inst)*InputSignal + b0(inst)*InputSignalLast2(inst) &
+                            - a1(inst)*OutputSignalLast1(inst)  - a0(inst)*OutputSignalLast2(inst))
         ! Body
-        NotchFilterSlopes = 1.0/(4.0+2.0*DT*Damp*CornerFreq+DT**2.0*CornerFreq**2.0) * ( (8.0-2.0*DT**2.0*CornerFreq**2.0)*OutputSignalLast1(inst) &
-                        + (-4.0+2.0*DT*Damp*CornerFreq-DT**2.0*CornerFreq**2.0)*OutputSignalLast2(inst) + &
-                            (2.0*DT*Damp*CornerFreq)*InputSignal + (-2.0*DT*Damp*CornerFreq)*InputSignalLast2(inst) )
+        ! NotchFilterSlopes = 1.0/(4.0+2.0*DT*Damp*CornerFreq+DT**2.0*CornerFreq**2.0) * ( (8.0-2.0*DT**2.0*CornerFreq**2.0)*OutputSignalLast1(inst) &
+        !                 + (-4.0+2.0*DT*Damp*CornerFreq-DT**2.0*CornerFreq**2.0)*OutputSignalLast2(inst) + &
+        !                     (2.0*DT*Damp*CornerFreq)*InputSignal + (-2.0*DT*Damp*CornerFreq)*InputSignalLast2(inst) )
 
         ! Save signals for next time step
         InputSignalLast2(inst)   = InputSignalLast1(inst)
@@ -221,12 +229,12 @@ CONTAINS
             OutputSignalLast2(inst)  = InputSignal
             InputSignalLast1(inst)   = InputSignal
             InputSignalLast2(inst)   = InputSignal
-            K(inst) = 2/DT
-            b2(inst) = (K(inst)**2 + 2*omega*BetaNum*K(inst) + omega**2)/(K(inst)**2 + 2*omega*BetaDen*K(inst) + omega**2)
-            b1(inst) = (2*omega**2 - 2*K(inst)**2)  / (K(inst)**2 + 2*omega*BetaDen*K(inst) + omega**2);
-            b0(inst) = (K(inst)**2 - 2*omega*BetaNum*K(inst) + omega**2) / (K(inst)**2 + 2*omega*BetaDen*K(inst) + omega**2)
-            a1(inst) = (2*omega**2 - 2*K(inst)**2)  / (K(inst)**2 + 2*omega*BetaDen*K(inst) + omega**2)
-            a0(inst) = (K(inst)**2 - 2*omega*BetaDen*K(inst) + omega**2)/ (K(inst)**2 + 2*omega*BetaDen*K(inst) + omega**2)
+            K(inst) = 2.0/DT
+            b2(inst) = (K(inst)**2.0 + 2.0*omega*BetaNum*K(inst) + omega**2.0)/(K(inst)**2.0 + 2.0*omega*BetaDen*K(inst) + omega**2.0)
+            b1(inst) = (2.0*omega**2.0 - 2.0*K(inst)**2.0)  / (K(inst)**2.0 + 2.0*omega*BetaDen*K(inst) + omega**2.0);
+            b0(inst) = (K(inst)**2.0 - 2.0*omega*BetaNum*K(inst) + omega**2.0) / (K(inst)**2.0 + 2.0*omega*BetaDen*K(inst) + omega**2.0)
+            a1(inst) = (2.0*omega**2.0 - 2.0*K(inst)**2.0)  / (K(inst)**2.0 + 2.0*omega*BetaDen*K(inst) + omega**2.0)
+            a0(inst) = (K(inst)**2.0 - 2.0*omega*BetaDen*K(inst) + omega**2.0)/ (K(inst)**2.0 + 2.0*omega*BetaDen*K(inst) + omega**2.0)
         ENDIF
         
         ! Body
