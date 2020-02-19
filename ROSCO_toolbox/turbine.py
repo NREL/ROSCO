@@ -163,10 +163,10 @@ class Turbine():
 
         print('Loading FAST model: %s ' % FAST_InputFile)
         self.TurbineName = FAST_InputFile.strip('.fst')
-        self.fast = InputReader_OpenFAST(FAST_ver=FAST_ver,dev_branch=dev_branch)
-        self.fast.FAST_InputFile = FAST_InputFile
-        self.fast.FAST_directory = FAST_directory
-        self.fast.execute()
+        fast = self.fast = InputReader_OpenFAST(FAST_ver=FAST_ver,dev_branch=dev_branch)
+        fast.FAST_InputFile = FAST_InputFile
+        fast.FAST_directory = FAST_directory
+        fast.execute()
 
         if txt_filename:
             self.rotor_performance_filename = txt_filename
@@ -175,23 +175,23 @@ class Turbine():
 
 
         # Grab general turbine parameters
-        self.TipRad = self.fast.fst_vt['ElastoDyn']['TipRad']
-        self.Rhub =  self.fast.fst_vt['ElastoDyn']['HubRad']
-        self.hubHt = self.fast.fst_vt['ElastoDyn']['TowerHt'] 
-        self.NumBl = self.fast.fst_vt['ElastoDyn']['NumBl']
-        self.TowerHt = self.fast.fst_vt['ElastoDyn']['TowerHt']
+        self.TipRad = fast.fst_vt['ElastoDyn']['TipRad']
+        self.Rhub =  fast.fst_vt['ElastoDyn']['HubRad']
+        self.hubHt = fast.fst_vt['ElastoDyn']['TowerHt'] 
+        self.NumBl = fast.fst_vt['ElastoDyn']['NumBl']
+        self.TowerHt = fast.fst_vt['ElastoDyn']['TowerHt']
         self.shearExp = 0.2  #HARD CODED FOR NOW
-        self.rho = self.fast.fst_vt['AeroDyn15']['AirDens']
-        self.mu = self.fast.fst_vt['AeroDyn15']['KinVisc']
-        self.Ng = self.fast.fst_vt['ElastoDyn']['GBRatio']
-        self.GenEff = self.fast.fst_vt['ServoDyn']['GenEff']
-        self.DTTorSpr = self.fast.fst_vt['ElastoDyn']['DTTorSpr']
-        self.generator_inertia = self.fast.fst_vt['ElastoDyn']['GenIner']
-        self.tilt = self.fast.fst_vt['ElastoDyn']['ShftTilt'] 
+        self.rho = fast.fst_vt['AeroDyn15']['AirDens']
+        self.mu = fast.fst_vt['AeroDyn15']['KinVisc']
+        self.Ng = fast.fst_vt['ElastoDyn']['GBRatio']
+        self.GenEff = fast.fst_vt['ServoDyn']['GenEff']
+        self.DTTorSpr = fast.fst_vt['ElastoDyn']['DTTorSpr']
+        self.generator_inertia = fast.fst_vt['ElastoDyn']['GenIner']
+        self.tilt = fast.fst_vt['ElastoDyn']['ShftTilt'] 
         try:
-            self.precone = self.fast.fst_vt['ElastoDyn']['PreCone1'] # May need to change to PreCone(1) depending on OpenFAST files
+            self.precone = fast.fst_vt['ElastoDyn']['PreCone1'] # May need to change to PreCone(1) depending on OpenFAST files
         except:
-            self.precone = self.fast.fst_vt['ElastoDyn']['PreCone(1)']
+            self.precone = fast.fst_vt['ElastoDyn']['PreCone(1)']
         self.yaw = 0.0
         self.J = self.rotor_inertia + self.generator_inertia * self.Ng**2
         self.rated_torque = self.rated_power/(self.GenEff/100*self.rated_rotor_speed*self.Ng)
@@ -205,12 +205,13 @@ class Turbine():
         elif rot_source == 'txt':    # Use specified text file
             self.pitch_initial_rad, self.TSR_initial, self.Cp_table, self.Ct_table, self.Cq_table = ROSCO_utilities.FileProcessing.load_from_txt(txt_filename)
         else:   # Use text file from DISCON.in
-            if os.path.exists(self.fast.fst_vt['DISCON_in']['PerfFileName']):
-                self.pitch_initial_rad = self.fast.fst_vt['DISCON_in']['Cp_pitch_initial_rad']
-                self.TSR_initial = self.fast.fst_vt['DISCON_in']['Cp_TSR_initial']
-                self.Cp_table = self.fast.fst_vt['DISCON_in']['Cp_table']
-                self.Ct_table = self.fast.fst_vt['DISCON_in']['Ct_table']
-                self.Cq_table = self.fast.fst_vt['DISCON_in']['Cq_table']
+            if os.path.exists(os.path.join(FAST_directory, fast.fst_vt['ServoDyn']['DLL_InFile'])):
+                if  os.path.exists(fast.fst_vt['DISCON_in']['PerfFileName']):
+                    self.pitch_initial_rad = fast.fst_vt['DISCON_in']['Cp_pitch_initial_rad']
+                    self.TSR_initial = fast.fst_vt['DISCON_in']['Cp_TSR_initial']
+                    self.Cp_table = fast.fst_vt['DISCON_in']['Cp_table']
+                    self.Ct_table = fast.fst_vt['DISCON_in']['Ct_table']
+                    self.Cq_table = fast.fst_vt['DISCON_in']['Cq_table']
             else:   # Load from cc-blade
                 print('No rotor performance data source available, running CC-Blade.')
                 self.load_from_ccblade()
@@ -225,7 +226,7 @@ class Turbine():
             self.TSR_operational = self.Cp.TSR_opt
 
         # Pull out some floating-related data
-        wave_tp = self.fast.fst_vt['HydroDyn']['WaveTp'] 
+        wave_tp = fast.fst_vt['HydroDyn']['WaveTp'] 
         try:
             self.wave_peak_period = 1/wave_tp       # Will work if HydroDyn exists and a peak period is defined...
         except:
