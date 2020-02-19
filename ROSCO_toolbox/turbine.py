@@ -92,7 +92,7 @@ class Turbine():
         if turbine_params['bld_flapwise_freq']:
             self.bld_flapwise_freq = turbine_params['bld_flapwise_freq']
         else:
-            self.bld_flapwise_freq = None
+            self.bld_flapwise_freq = 0.0
 
 
     # Allow print out of class
