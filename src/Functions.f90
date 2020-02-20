@@ -145,7 +145,7 @@ CONTAINS
             PTerm = kp*error
             ITerm(inst) = ITerm(inst) + DT*ki*error
             ITerm2(inst) = ITerm2(inst) + DT*ki2*error2
-            ITerm(inst) = saturate(ITerm(inst), minValue - ITerm2(inst), maxValue + ITerm2(inst))
+            ITerm(inst) = saturate(ITerm(inst), minValue, maxValue)
             ITerm2(inst) = saturate(ITerm2(inst), minValue, maxValue)
             PIIController = PTerm + ITerm(inst) + ITerm2(inst)
             PIIController = saturate(PIIController, minValue, maxValue)
