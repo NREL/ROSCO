@@ -340,8 +340,9 @@ class Turbine():
 
         # Make sure cc_rotor exists for DAC analysis
         try:
-            exists(self.cc_rotor)
-        except NameError:
+            if self.cc_rotor:
+                pass
+        except AttributeError:
             # Create CC-Blade Rotor
             r0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlSpn']) 
             chord0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlChord'])
