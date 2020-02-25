@@ -422,7 +422,7 @@ CONTAINS
                     ! Find flap angle command - includes an integral term to encourage zero flap angle
                     LocalVar%Flp_Angle(K) = PIIController(RootMyb_VelErr(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, 0.05, -CntrPar%Flp_MaxPit , CntrPar%Flp_MaxPit , LocalVar%DT, 0.0, .FALSE., objInst%instPI)
                     ! Saturation Limits
-                    LocalVar%Flp_Angle(K) = saturate(LocalVar%Flp_Angle(K),-10.0, 10.0)
+                    LocalVar%Flp_Angle(K) = saturate(LocalVar%Flp_Angle(K), -CntrPar%Flp_MaxPit, CntrPar%Flp_MaxPit)
                     
                     ! Save some data for next iteration
                     RootMyb_Last(K) = RootMOOP_F(K)
