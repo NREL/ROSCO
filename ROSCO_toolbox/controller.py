@@ -212,9 +212,7 @@ class Controller():
 
         # Wind Disturbance Input
         dlambda_dv = -(TSR_op/v)
-        dtau_dv = (0.5 * rho * Ar * 1/rated_rotor_speed) * (dCp_dTSR*dlambda_dv*v**3 + Cp_op*3*v**2) * Ng
-        # dtau_dv = dtau_dlambda * dlambda_dv
-
+        dtau_dv = (0.5 * rho * Ar * 1/rated_rotor_speed) * (dCp_dTSR*dlambda_dv*v**3 + Cp_op*3*v**2) 
         # B_v = dtau_dv/J # wind speed input - currently unused 
 
 
@@ -276,7 +274,7 @@ class Controller():
 
         # --- Floating feedback term ---
         if self.Fl_Mode == 1: # Floating feedback
-            Kp_float = (dtau_dv/dtau_dbeta) * turbine.TowerHt * Ng /  (2.0 * pi)
+            Kp_float = (dtau_dv/dtau_dbeta) * turbine.TowerHt * Ng 
             self.Kp_float = Kp_float[len(v_below_rated)]
             # Turn on the notch filter if floating
             self.F_NotchType = 2
