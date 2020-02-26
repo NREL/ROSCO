@@ -117,8 +117,8 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)                             :: SD_MaxPit                    ! Maximum blade pitch angle to initiate shutdown, [rad]
     REAL(4)                             :: SD_CornerFreq                ! Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]
     
-    INTEGER(4)                          :: FL_Mode                      ! Floating specific feedback mode {0: no nacelle velocity feedback, 1: nacelle velocity feedback}
-    REAL(4)                             :: FL_Kp                        ! Nacelle velocity proportional feedback gain [s]
+    INTEGER(4)                          :: Fl_Mode                      ! Floating specific feedback mode {0: no nacelle velocity feedback, 1: nacelle velocity feedback}
+    REAL(4)                             :: Fl_Kp                        ! Nacelle velocity proportional feedback gain [s]
 
     INTEGER(4)                          :: Flp_Mode                     ! Flap actuator mode {0: off, 1: fixed flap position, 2: PI flap control}
     REAL(4)                             :: Flp_Angle                    ! Fixed flap angle (degrees)

@@ -109,7 +109,7 @@
 0.418880000000      ! SD_CornerFreq     - Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]
 
 !------- FLOATING --------------------------------------------
--122.923490000      ! FL_Kp             - Nacelle velocity proportional feedback gain [s]
+-122.923490000      ! Fl_Kp             - Nacelle velocity proportional feedback gain [s]
 
 !------- FLAP ACTUATION -------------------------------------------
 0                   ! Flp_Angle         - Steady state flap angle, [deg]

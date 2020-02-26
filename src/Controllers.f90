@@ -343,8 +343,8 @@ CONTAINS
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE FloatingFeedback(LocalVar, CntrPar, objInst) 
     ! FloatingFeedback defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
-    !       FL_Mode = 0, No feedback
-    !       FL_Mode = 1, Proportional feedback of nacelle velocity
+    !       Fl_Mode = 0, No feedback
+    !       Fl_Mode = 1, Proportional feedback of nacelle velocity
         USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
         IMPLICIT NONE
         ! Inputs
@@ -356,7 +356,7 @@ CONTAINS
         
         ! Calculate floating contribution to pitch command
         NacIMU_FA_vel = PIController(LocalVar%NacIMU_FA_AccF, 0.0, 1.0, -100.0 , 100.0 ,LocalVar%DT, 0.0, .FALSE., objInst%instPI) ! NJA: should never reach saturation limits....
-        LocalVar%Fl_PitCom = (0.0 - NacIMU_FA_vel) * CntrPar%FL_Kp !* LocalVar%PC_KP/maxval(CntrPar%PC_GS_KP)
+        LocalVar%Fl_PitCom = (0.0 - NacIMU_FA_vel) * CntrPar%Fl_Kp !* LocalVar%PC_KP/maxval(CntrPar%PC_GS_KP)
 
     END SUBROUTINE FloatingFeedback
 !-------------------------------------------------------------------------------------------------------------------------------

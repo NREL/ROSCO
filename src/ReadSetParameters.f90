@@ -199,7 +199,7 @@ CONTAINS
         READ(UnControllerParameters, *)      
 
         !------------ FLOATING ------------
-        READ(UnControllerParameters, *)      
+        READ(UnControllerParameters, *)
         READ(UnControllerParameters, *) CntrPar%Fl_Kp  
         READ(UnControllerParameters, *) 
 
@@ -250,6 +250,7 @@ CONTAINS
         ELSE
             PC_RefSpd = CntrPar%PC_RefSpd
         ENDIF
+
         LocalVar%PC_SpdErr = PC_RefSpd - LocalVar%GenSpeedF            ! Speed error
         LocalVar%PC_PwrErr = CntrPar%VS_RtPwr - LocalVar%VS_GenPwr             ! Power error
         
@@ -470,7 +471,7 @@ CONTAINS
         ENDIF
 
         ! --- Floating Control ---
-        IF (CntrPar%FL_Mode > 0) THEN
+        IF (CntrPar%Fl_Mode > 0) THEN
             IF (CntrPar%F_NotchType <= 1 .OR. CntrPar%F_NotchCornerFreq == 0.0) THEN
                 aviFAIL = -1
                 ErrMsg = 'F_NotchType and F_NotchCornerFreq must be specified for Fl_Mode greater than zero.'
