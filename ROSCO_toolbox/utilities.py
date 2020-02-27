@@ -411,13 +411,18 @@ class FAST_IO():
         data : ndarray
             input data ndarray with values trimed to times tmin and tmax
         '''
+        # initial time array and associated index
         time_init = np.ndarray.flatten(data[:, info['channels'].index('Time')])
         Tinds = np.where(time_init<=tmin) 
         Tinds = np.append(Tinds, np.where(time_init>=tmax))
         tvals = [time.tolist() for time in time_init[Tinds]]
 
+        # Delete all vales in data where time is not in desired range
         data = np.delete(data, Tinds, 0)
 
+        # Reset time vector to zero
+        data[:, info['channels'].index('Time')] = np.ndarray.flatten(
+            data[:, info['channels'].index('Time')]) - 50
         return data
 class FileProcessing():
     """
