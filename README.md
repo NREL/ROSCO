@@ -56,8 +56,11 @@ conda activate wisdem-env
 ``` 
 conda install -y wisdem
 ```
+
+If you wish to use the generic controller tuning capabilities for distributed aerodynamic control that are available in the ROSCO toolbox, you will need to install the `IEAontology4all` branch of WISDEM. For this, please follow the "for developers" instructions on downloading and compiling WISDEM, and be sure to `git checkout IEAontology4all` before `python setup.py develop`.
+
 #### Installing ROSCO
-You should first be sure that you are still in the `wisdem-env` environment.
+You should first be sure that you are still in the `wisdem-env` environment that you installed wisdem in.
 
 If you would like to take a deeper dive into the source-code, see example tuning cases, or contribute to the toolbox, you should:
 
@@ -92,9 +95,9 @@ These commands will compile a binary titled `libdiscon.*` in the build folder, w
 The [Tune_Cases](Tune_Cases) folder hosts examples on what needs to happen to write the input file to the ROSCO controller. See below on some details for compiling ROSCO:
 
 #### ROSCO Toolbox Generic Tuning
-IF you would like to run the generic tuning process for ROSCO, examples are shown in the [Tune_Cases](Tune_Cases) folder. When you run your own version of [tune_NREL5MW.py](Tune_Cases/tune_NREL5MW.py), you will have two files that are necessary to run the controller. 
-1. `DISCON.IN` - the input file to `libdiscon.*`. When running the controller in OpenFAST, `DISCON.IN` must be appropriately pointed to by the `DLL_FileName` parameter in ServoDyn. 
-2. `Cp_Cq_Ct.txt` (or similar) - The contains rotor performance tables that are necessary to run the wind speed estimators in ROSCO. This can live wherever you desire, just be sure to point to it properly with the `PerfFileName` parameter in `DISCON.IN`.
+IF you would like to run the generic tuning process for ROSCO, examples are shown in the [Tune_Cases](Tune_Cases) folder. When you run your own version of [tune_ROSCO.py](Tune_Cases/tune_ROSCO.py), you will have two files that are necessary to run the controller. 
+1. `DISCON.IN` (or similar) - the input file to `libdiscon.*`. When running the controller in OpenFAST, `DISCON.IN` must be appropriately pointed to by the `DLL_FileName` parameter in ServoDyn. 
+2. `Cp_Cq_Ct.txt` (or similar) - This file contains rotor performance tables that are necessary to run the wind speed estimators in ROSCO. This can live wherever you desire, just be sure to point to it properly with the `PerfFileName` parameter in `DISCON.IN`.
 
 ### Updating ROSCO Toolbox
 Simple git commands should update the toolbox and controller as development continues:
@@ -102,6 +105,7 @@ Simple git commands should update the toolbox and controller as development cont
 git pull
 git submodule update 
 ```
+and then recompile and reinstall as necessary...
 
 ## Referencing
 If the ROSCO Toolbox played a role in your research, please cite it. This software can be
@@ -129,12 +133,12 @@ If the ROSCO generic tuning theory and implementation played a roll in your rese
  booktitle={Journal of Physics: Conference Series},
  year={2019},
  organization={IOP Publishing}
- note={In Review}
+ note={In Process}
 ```
 Additionally, if you have extensively used the [ROSCO](https://github.com/NREL/ROSCO) controller or [WISDEM](https://github.com/wisdem/wisdem), please cite them accordingly. 
 
 
 ## Additional Contributors and Acknowledgments
-Primary contributions to the ROSCO Toolbox has been provided by researchers the National Renewable Energy Laboratory (Nikhar J. Abbas, Alan Wright, and Paul Fleming) and the University of Colorado Boulder (Lucy Pao). Much of the intellect behind these contributions has been inspired or derived from an extensive amount of work in the literature. The bulk of this has been cited through the primary publications about this work. 
+Primary contributions to the ROSCO Toolbox have been provided by researchers the National Renewable Energy Laboratory (Nikhar J. Abbas, Alan Wright, and Paul Fleming) and the University of Colorado Boulder (Lucy Pao). Much of the intellect behind these contributions has been inspired or derived from an extensive amount of work in the literature. The bulk of this has been cited through the primary publications about this work. 
 
 There have been a number of contributors to the logic of the ROSCO controller itself. Please see the [ROSCO github page](https://github.com/NREL/ROSCO) for more information on who these contributors have been. 
