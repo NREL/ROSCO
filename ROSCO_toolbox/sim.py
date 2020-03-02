@@ -48,10 +48,6 @@ class Sim():
         self.turbine = turbine
         self.controller_int = controller_int
 
-        # TOTAL TEMPORARY HACK
-        self.gb_eff = 0.95
-        self.gen_eff = 0.95
-
 
     def sim_ws_series(self,t_array,ws_array,rotor_rpm_init=10,init_pitch=0.0, make_plots=True):
         '''
@@ -101,14 +97,14 @@ class Sim():
             # Update the turbine state
             #       -- 1DOF model: rotor speed and generator speed (scaled by Ng)
             aero_torque[i] = 0.5 * self.turbine.rho * (np.pi * R**2) * cq * R * ws**2
-            rot_speed[i] = rot_speed[i-1] + (dt/self.turbine.J)*(aero_torque[i] * self.gb_eff - self.turbine.Ng * gen_torque[i-1])
-            gen_speed[i] = rot_speed[i] * self.turbine.Ng 
+            rot_speed[i] = rot_speed[i-1] + (dt/self.turbine.J)*(aero_torque[i] * self.turbine.GenEff/100 - self.turbine.Ng * gen_torque[i-1])
+            gen_speed[i] = rot_speed[i] * self.turbine.Ng
 
             # Call the controller
-            gen_torque[i], bld_pitch[i] = self.controller_int.call_controller(t,dt,bld_pitch[i-1],gen_torque[i-1],gen_speed[i],rot_speed[i],ws)
+            gen_torque[i], bld_pitch[i] = self.controller_int.call_controller(t,dt,bld_pitch[i-1],gen_torque[i-1],gen_speed[i],self.turbine.GenEff/100,rot_speed[i],ws)
 
             # Calculate the power
-            gen_power[i] = gen_speed[i] * gen_torque[i] * self.turbine.GenEff
+            gen_power[i] = gen_speed[i] * gen_torque[i]
 
         # Save these values
         self.bld_pitch = bld_pitch

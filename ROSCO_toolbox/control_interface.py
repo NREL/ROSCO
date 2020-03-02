@@ -35,12 +35,12 @@ class ControllerInterface():
 
     """
 
-    def __init__(self, lib_name):
+    def __init__(self, lib_name, param_filename='DISCON.IN'):
         """
         Setup the interface
         """
         self.lib_name = lib_name
-        self.param_name = 'DISCON.IN' # this appears to be hard-coded so match here for now
+        self.param_name = param_filename
 
         # Temp fixed parameters
         # PARAMETERS
@@ -101,7 +101,7 @@ class ControllerInterface():
         self.avrSWAP = data
 
 
-    def call_controller(self,t,dt,pitch,torque,genspeed,rotspeed,ws):
+    def call_controller(self,t,dt,pitch,torque,genspeed,geneff,rotspeed,ws):
         '''
         Runs the controller. Passes current turbine state to the controller, and returns control inputs back
         
@@ -115,6 +115,8 @@ class ControllerInterface():
                blade pitch, (rad)
         genspeed: float
                   generator speed, (rad/s)
+        geneff: float
+                  generator efficiency, (rad/s)
         rotspeed: float
                   rotor speed, (rad/s)
         ws: float
@@ -127,7 +129,7 @@ class ControllerInterface():
         self.avrSWAP[3] = pitch
         self.avrSWAP[32] = pitch
         self.avrSWAP[33] = pitch
-        self.avrSWAP[14] = genspeed*torque
+        self.avrSWAP[14] = genspeed*torque*geneff
         self.avrSWAP[22] = torque
         self.avrSWAP[19] = genspeed
         self.avrSWAP[20] = rotspeed
