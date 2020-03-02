@@ -579,6 +579,45 @@ class FileProcessing():
         file.write('{:<014.5f}      ! Flp_MaxPit        - Maximum (and minimum) flap pitch angle [rad]'.format(controller.flp_maxpit))
         file.close()
 
+    def read_DISCON(self, DISCON_filename):
+        '''
+        Read the DISCON input file.
+
+        Parameters:
+        ----------
+        DISCON_filename: string
+            Name of DISCON input file to read
+        
+        Returns:
+        --------
+        DISCON_in: Dict
+            Dictionary containing input parameters from DISCON_in, organized by parameter name
+        '''
+        # discon_in_file = os.path.normpath(os.path.join(self.FAST_directory, self.fst_vt['ServoDyn']['DLL_InFile']))
+
+        DISCON_in = {}
+
+        with open(DISCON_filename) as discon:
+            for line in discon:
+
+                # Skip whitespace and comment lines
+                if (line[0] != '!') == (len(line.strip()) != 0):
+                    
+                    if (line.split()[1] != '!'):    # Array valued entries
+                        array_length = line.split().index('!')
+                        param = line.split()[array_length+1]
+                        values = np.array( [float(x) for x in line.split()[:array_length]] )
+                        DISCON_in[param] = values
+                    else:                           # All other entries
+                        param = line.split()[2]
+                        value = line.split()[0]
+                        # Remove printed quotations if string is in quotes
+                        if (value[0] == '"') or (value[0] == "'"):
+                            value = value[1:-1]
+                        DISCON_in[param] = value
+
+        return DISCON_in
+    
     def write_rotor_performance(self,turbine,txt_filename='Cp_Ct_Cq.txt'):
         '''
         Write text file containing rotor performance data
@@ -630,7 +669,7 @@ class FileProcessing():
         file.write('\n')
         file.close()
 
-    def load_from_txt(txt_filename):
+    def load_from_txt(self, txt_filename):
         '''
         Load rotor performance data from a *.txt file. 
 
