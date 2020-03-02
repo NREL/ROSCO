@@ -120,8 +120,7 @@ class Turbine():
         filename : str
                    Name of file to save pickle 
         # '''
-        tuple_to_save = (self)
-        pickle.dump( tuple_to_save, open( filename, "wb" ) )
+        pickle.dump(self, open( filename, "wb" ) )
 
     # Load function
     @staticmethod
@@ -185,6 +184,7 @@ class Turbine():
         self.mu = fast.fst_vt['AeroDyn15']['KinVisc']
         self.Ng = fast.fst_vt['ElastoDyn']['GBRatio']
         self.GenEff = fast.fst_vt['ServoDyn']['GenEff']
+        self.GBoxEff = fast.fst_vt['ElastoDyn']['GBoxEff']
         self.DTTorSpr = fast.fst_vt['ElastoDyn']['DTTorSpr']
         self.generator_inertia = fast.fst_vt['ElastoDyn']['GenIner']
         self.tilt = fast.fst_vt['ElastoDyn']['ShftTilt'] 

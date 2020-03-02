@@ -54,6 +54,8 @@ class FAST_IO():
         ------------
             fast_dir: string
                     Name of OpenFAST directory containing input files.
+            fast_file: string
+                    Name of OpenFAST directory containing input files.
             fastcall: string, optional
                     Line used to call openfast when executing from the terminal.
             fastfile: string, optional
@@ -64,7 +66,6 @@ class FAST_IO():
 
         # Define OpenFAST input filename
         if not fastfile:
-
             for file in os.listdir(fast_dir):
                 if file.endswith('.fst'):
                     fastfile = file

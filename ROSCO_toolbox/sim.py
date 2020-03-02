@@ -7,11 +7,10 @@
 # Unless required by applicable law or agreed to in writing, software distributed
 # under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
+# speROSCO_cific language governing permissions and limitations under the License.
 
 import numpy as np
 from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox import control_interface as ci
 import matplotlib.pyplot as plt
 import sys
 
@@ -24,6 +23,11 @@ class Sim():
     """
     Simple controller simulation interface for a wind turbine.
      - Currently runs a 1DOF simple rotor model based on an OpenFAST model
+
+    Note: Due to the complex nature of the wind speed estimators implemented in ROSCO, 
+    using them for simulations is known to cause problems for the simple simulator. 
+    We suggesting using WE_Mode = 0 for the simulator
+
 
     Methods:
     --------
