@@ -18,7 +18,7 @@ fast_io = ROSCO_utilities.FAST_IO()
 
 # Define openfast output filenames
 wind_directory = '../Test_Cases/Wind/'
-turbsim_infile = '90m_12mps.inp'
+turbsim_infile = '90m_12mps_twr.inp'
 
 fast_io.run_openfast(wind_directory, fastcall='turbsim', fastfile=turbsim_infile, chdir=False)
 

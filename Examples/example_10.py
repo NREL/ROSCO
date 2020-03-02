@@ -9,6 +9,10 @@ In this example:
 - Read text file with rotor performance properties
 - Load blade information
 - Tune controller with flap actuator
+
+Note: You will need a turbine model with DAC capabilites in order to run this. 
+    The curious user can contact Nikhar Abbas (nikhar.abbas@nrel.gov) for available
+    models, if they do not have any themselves. 
 '''
 
 # Python Modules

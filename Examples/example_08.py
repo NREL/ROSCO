@@ -24,7 +24,7 @@ fast_io = ROSCO_utilities.FAST_IO()
 # filenames = ["../Test_Cases/5MW_Land/5MW_Land.outb"]
 
 # ---- Note: Could plot multiple cases, textfiles, and binaries...
-filenames = "../Test_Cases/5MW_Land_DLL_WTurb/5MW_Land_DLL_WTurb.out",
+filenames = ["../Test_Cases/5MW_Land_DLL_WTurb/5MW_Land_DLL_WTurb.out",
             "../Test_Cases/5MW_Land_DLL_WTurb/5MW_Land_DLL_WTurb.outb"]
 
 # Load output info and data
