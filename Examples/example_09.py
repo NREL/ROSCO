@@ -1,9 +1,11 @@
-# ----------- Example_09 --------------
-# Run TurbSim to create binary
-# -------------------------------------
-#
-# In this example:
-#   - Leverage the run_openfast functionality to compile a turbsim binary
+'''
+----------- Example_09 --------------
+Run TurbSim to create wind field binary
+-------------------------------------
+
+In this example:
+  - Leverage the run_openfast functionality to compile a turbsim binary
+'''
 
 # Python Modules
 import numpy as np

@@ -1,13 +1,14 @@
-# ----------- Example_03 --------------
-# Run CCblade, save a rotor performance text file
-# -------------------------------------
-#
-# In this example:
-# - Read .yaml input file
-# - Load an openfast turbine model
-# - Run ccblade to get rotor performance properties
-# - Write a text file with rotor performance properties
+'''
+----------- Example_03 --------------
+Run CCblade, save a rotor performance text file
+-------------------------------------
 
+In this example:
+- Read .yaml input file
+- Load an openfast turbine model
+- Run ccblade to get rotor performance properties
+- Write a text file with rotor performance properties
+'''
 # Python modules
 import yaml 
 # ROSCO toolbox modules 

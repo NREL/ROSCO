@@ -1,15 +1,19 @@
-# ----------- Example_05 --------------
-# Run and plot a simple simple step wind simulation
-# -------------------------------------
-#
-# In this example:
-#   - Load turbine from saved pickle
-#   - Tune a controller
-#   - Run and plot a simple step wind simulation
-#
-# Note - you will need to have a compiled controller in ROSCO, and 
-#        properly point to it in the `controller_path` variable
+'''
+----------- Example_05 --------------
+Run and plot a simple simple step wind simulation
+-------------------------------------
 
+In this example:
+  - Load turbine from saved pickle
+  - Tune a controller
+  - Run and plot a simple step wind simulation
+
+Notes - You will need to have a compiled controller in ROSCO, and 
+        properly point to it in the `lib_name` variable.
+      - The complex nature of the wind speed estimators implemented in ROSCO
+        make using them for simulations is known to cause problems for 
+        the simple simulator. We suggesting using WE_Mode = 0 in DISCON.IN.
+'''
 # Python modules
 import matplotlib.pyplot as plt 
 import numpy as np
@@ -22,14 +26,15 @@ from ROSCO_toolbox import utilities as ROSCO_utilities
 from ROSCO_toolbox import control_interface as ROSCO_ci
 
 # Specify controller dynamic library path and name
-lib_name = ('../ROSCO/build/libdiscon.dylib')
+lib_name = '../ROSCO/build/libdiscon.dylib'
+param_filename = 'DISCON.IN'
 
 # Load turbine model from saved pickle
 turbine = ROSCO_turbine.Turbine
 turbine = turbine.load('NREL5MW_saved.p')
 
 # Load controller library
-controller_int = ROSCO_ci.ControllerInterface(lib_name)
+controller_int = ROSCO_ci.ControllerInterface(lib_name,param_filename=param_filename)
 
 # Load the simulator
 sim = ROSCO_sim.Sim(turbine,controller_int)

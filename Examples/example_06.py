@@ -1,14 +1,15 @@
-# ----------- Example_06 --------------
-# Load a turbine, tune a controller, run OpenFAST simulation 
-# -------------------------------------
-#
-# In this example:
-#   - Load a turbine from OpenFAST
-#   - Tune a controller
-#   - Run an OpenFAST simulation
+'''
+----------- Example_06 --------------
+Load a turbine, tune a controller, run OpenFAST simulation 
+-------------------------------------
 
-# Note - you will need to have a compiled controller in ROSCO/build/ 
+In this example:
+  - Load a turbine from OpenFAST
+  - Tune a controller
+  - Run an OpenFAST simulation
 
+Note - you will need to have a compiled controller in ROSCO/build/ 
+'''
 # Python Modules
 import yaml
 # ROSCO toolbox modules 
