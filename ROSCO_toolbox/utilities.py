@@ -614,6 +614,15 @@ class FileProcessing():
                             value = value[1:-1]
                         else:
                             value = float(value)
+                            # Some checks for variables that are generally passed as lists
+                            if param.lower() == 'vs_kp':
+                                value = [value]
+                            if param.lower() == 'vs_ki':
+                                value = [value]
+                            if param.lower() == 'flp_kp':
+                                value = [value]
+                            if param.lower() == 'flp_ki':
+                                value = [value]
                         DISCON_in[param] = value
 
         return DISCON_in
