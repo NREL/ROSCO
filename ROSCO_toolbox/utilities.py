@@ -593,10 +593,8 @@ class FileProcessing():
         DISCON_in: Dict
             Dictionary containing input parameters from DISCON_in, organized by parameter name
         '''
-        # discon_in_file = os.path.normpath(os.path.join(self.FAST_directory, self.fst_vt['ServoDyn']['DLL_InFile']))
-
+        
         DISCON_in = {}
-
         with open(DISCON_filename) as discon:
             for line in discon:
 
