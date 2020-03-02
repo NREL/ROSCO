@@ -432,14 +432,14 @@ class FileProcessing():
 
     Methods:
     -----------
-    write_param_file
+    write_DISCON
     write_rotor_performance
     """
 
     def __init__(self):
         pass
 
-    def write_param_file(self, turbine, controller, param_file='DISCON.IN', txt_filename='Cp_Ct_Cq.txt'):
+    def write_DISCON(self, turbine, controller, param_file='DISCON.IN', txt_filename='Cp_Ct_Cq.txt'):
         """
         Print the controller parameters to the DISCON.IN input file for the generic controller
 

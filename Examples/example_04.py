@@ -39,7 +39,7 @@ controller.tune_controller(turbine)
 
 # Write parameter input file
 param_file = 'DISCON.IN'   
-file_processing.write_param_file(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
+file_processing.write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
 
 # Plot gain schedule
 plt.figure(0)
