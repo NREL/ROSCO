@@ -203,7 +203,9 @@ class Turbine():
         if rot_source == 'cc-blade': # Use cc-blade
             self.load_from_ccblade()
         elif rot_source == 'txt':    # Use specified text file
-            self.pitch_initial_rad, self.TSR_initial, self.Cp_table, self.Ct_table, self.Cq_table = ROSCO_utilities.FileProcessing.load_from_txt(txt_filename)
+            file_processing = ROSCO_utilities.FileProcessing()
+            self.pitch_initial_rad, self.TSR_initial, self.Cp_table, self.Ct_table, self.Cq_table = file_processing.load_from_txt(
+                txt_filename)
         else:   # Use text file from DISCON.in
             if os.path.exists(os.path.join(FAST_directory, fast.fst_vt['ServoDyn']['DLL_InFile'])):
                 if  os.path.exists(fast.fst_vt['DISCON_in']['PerfFileName']):
