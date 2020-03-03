@@ -54,6 +54,8 @@ class FAST_IO():
         ------------
             fast_dir: string
                     Name of OpenFAST directory containing input files.
+            fast_file: string
+                    Name of OpenFAST directory containing input files.
             fastcall: string, optional
                     Line used to call openfast when executing from the terminal.
             fastfile: string, optional
@@ -64,7 +66,6 @@ class FAST_IO():
 
         # Define OpenFAST input filename
         if not fastfile:
-
             for file in os.listdir(fast_dir):
                 if file.endswith('.fst'):
                     fastfile = file
@@ -411,13 +412,18 @@ class FAST_IO():
         data : ndarray
             input data ndarray with values trimed to times tmin and tmax
         '''
+        # initial time array and associated index
         time_init = np.ndarray.flatten(data[:, info['channels'].index('Time')])
         Tinds = np.where(time_init<=tmin) 
         Tinds = np.append(Tinds, np.where(time_init>=tmax))
         tvals = [time.tolist() for time in time_init[Tinds]]
 
+        # Delete all vales in data where time is not in desired range
         data = np.delete(data, Tinds, 0)
 
+        # Reset time vector to zero
+        data[:, info['channels'].index('Time')] = np.ndarray.flatten(
+            data[:, info['channels'].index('Time')]) - 50
         return data
 class FileProcessing():
     """
@@ -426,14 +432,14 @@ class FileProcessing():
 
     Methods:
     -----------
-    write_param_file
+    write_DISCON
     write_rotor_performance
     """
 
     def __init__(self):
         pass
 
-    def write_param_file(self, turbine, controller, param_file='DISCON.IN', txt_filename='Cp_Ct_Cq.txt'):
+    def write_DISCON(self, turbine, controller, param_file='DISCON.IN', txt_filename='Cp_Ct_Cq.txt'):
         """
         Print the controller parameters to the DISCON.IN input file for the generic controller
 
@@ -455,21 +461,21 @@ class FileProcessing():
         file.write('!    - File written using ROSCO Controller tuning logic on %s\n' % now.strftime('%m/%d/%y'))
         file.write('\n')
         file.write('!------- DEBUG ------------------------------------------------------------\n')
-        file.write('{0:<12d}        ! LoggingLevel		- {{0: write no debug files, 1: write standard output .dbg-file, 2: write standard output .dbg-file and complete avrSWAP-array .dbg2-file}}\n'.format(controller.LoggingLevel))
+        file.write('{0:<12d}        ! LoggingLevel		- {{0: write no debug files, 1: write standard output .dbg-file, 2: write standard output .dbg-file and complete avrSWAP-array .dbg2-file}}\n'.format(int(controller.LoggingLevel)))
         file.write('\n')
         file.write('!------- CONTROLLER FLAGS -------------------------------------------------\n')
-        file.write('{0:<12d}        ! F_LPFType			- {{1: first-order low-pass filter, 2: second-order low-pass filter}}, [rad/s] (currently filters generator speed and pitch control signals\n'.format(controller.F_LPFType))
-        file.write('{0:<12d}        ! F_NotchType		- Notch on the measured generator speed and/or tower fore-aft motion (for floating) {{0: disable, 1: generator speed, 2: tower-top fore-aft motion, 3: generator speed and tower-top fore-aft motion}}\n'.format(controller.F_NotchType))
-        file.write('{0:<12d}        ! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {{0: off, 1: 1P reductions, 2: 1P+2P reductions}}\n'.format(controller.IPC_ControlMode))
-        file.write('{0:<12d}        ! VS_ControlMode	- Generator torque control mode in above rated conditions {{0: constant torque, 1: constant power, 2: TSR tracking PI control}}\n'.format(controller.VS_ControlMode))
-        file.write('{0:<12d}        ! PC_ControlMode    - Blade pitch control mode {{0: No pitch, fix to fine pitch, 1: active PI blade pitch control}}\n'.format(controller.PC_ControlMode))
-        file.write('{0:<12d}        ! Y_ControlMode		- Yaw control mode {{0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}}\n'.format(controller.Y_ControlMode))
-        file.write('{0:<12d}        ! SS_Mode           - Setpoint Smoother mode {{0: no setpoint smoothing, 1: introduce setpoint smoothing}}\n'.format(controller.SS_Mode))
-        file.write('{0:<12d}        ! WE_Mode           - Wind speed estimator mode {{0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator, 2: Extended Kalman Filter}}\n'.format(controller.WE_Mode))
-        file.write('{0:<12d}        ! PS_Mode           - Pitch saturation mode {{0: no pitch saturation, 1: implement pitch saturation}}\n'.format(controller.PS_Mode > 0))
-        file.write('{0:<12d}        ! SD_Mode           - Shutdown mode {{0: no shutdown procedure, 1: pitch to max pitch at shutdown}}\n'.format(controller.SD_Mode))
-        file.write('{0:<12d}        ! Fl_Mode           - Floating specific feedback mode {{0: no nacelle velocity feedback, 1: nacelle velocity feedback}}\n'.format(controller.Fl_Mode))
-        file.write('{0:<12d}        ! Flp_Mode          - Flap control mode {{0: no flap control, 1: steady state flap angle, 2: Proportional flap control}}\n'.format(controller.Flp_Mode))
+        file.write('{0:<12d}        ! F_LPFType			- {{1: first-order low-pass filter, 2: second-order low-pass filter}}, [rad/s] (currently filters generator speed and pitch control signals\n'.format(int(controller.F_LPFType)))
+        file.write('{0:<12d}        ! F_NotchType		- Notch on the measured generator speed and/or tower fore-aft motion (for floating) {{0: disable, 1: generator speed, 2: tower-top fore-aft motion, 3: generator speed and tower-top fore-aft motion}}\n'.format(int(controller.F_NotchType)))
+        file.write('{0:<12d}        ! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {{0: off, 1: 1P reductions, 2: 1P+2P reductions}}\n'.format(int(controller.IPC_ControlMode)))
+        file.write('{0:<12d}        ! VS_ControlMode	- Generator torque control mode in above rated conditions {{0: constant torque, 1: constant power, 2: TSR tracking PI control}}\n'.format(int(controller.VS_ControlMode)))
+        file.write('{0:<12d}        ! PC_ControlMode    - Blade pitch control mode {{0: No pitch, fix to fine pitch, 1: active PI blade pitch control}}\n'.format(int(controller.PC_ControlMode)))
+        file.write('{0:<12d}        ! Y_ControlMode		- Yaw control mode {{0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}}\n'.format(int(controller.Y_ControlMode)))
+        file.write('{0:<12d}        ! SS_Mode           - Setpoint Smoother mode {{0: no setpoint smoothing, 1: introduce setpoint smoothing}}\n'.format(int(controller.SS_Mode)))
+        file.write('{0:<12d}        ! WE_Mode           - Wind speed estimator mode {{0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator, 2: Extended Kalman Filter}}\n'.format(int(controller.WE_Mode)))
+        file.write('{0:<12d}        ! PS_Mode           - Pitch saturation mode {{0: no pitch saturation, 1: implement pitch saturation}}\n'.format(int(controller.PS_Mode > 0)))
+        file.write('{0:<12d}        ! SD_Mode           - Shutdown mode {{0: no shutdown procedure, 1: pitch to max pitch at shutdown}}\n'.format(int(controller.SD_Mode)))
+        file.write('{0:<12d}        ! Fl_Mode           - Floating specific feedback mode {{0: no nacelle velocity feedback, 1: nacelle velocity feedback}}\n'.format(int(controller.Fl_Mode)))
+        file.write('{0:<12d}        ! Flp_Mode          - Flap control mode {{0: no flap control, 1: steady state flap angle, 2: Proportional flap control}}\n'.format(int(controller.Flp_Mode)))
         file.write('\n')
         file.write('!------- FILTERS ----------------------------------------------------------\n') 
         file.write('{:<13.5f}       ! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [rad/s]\n'.format(turbine.bld_edgewise_freq * 1/4)) 
@@ -477,7 +483,7 @@ class FileProcessing():
         file.write('{:<13.5f}       ! F_NotchCornerFreq	- Natural frequency of the notch filter, [rad/s]\n'.format(turbine.twr_freq))
         file.write('{:<10.5f}{:<9.5f} ! F_NotchBetaNumDen	- Two notch damping values (numerator and denominator, resp) - determines the width and depth of the notch, [-]\n'.format(0.0,0.25))
         file.write('{:<014.5f}      ! F_SSCornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother, [rad/s].\n'.format(controller.ss_cornerfreq))
-        file.write('{:<10.5f}{:<9.5f} ! F_FlCornerFreq    - Natural frequency and quality factor in the inverted notch filter of the tower-top fore-aft motion for floating feedback control [rad/s, -].\n'.format(turbine.ptfm_freq, 0.5))
+        file.write('{:<10.5f}{:<9.5f} ! F_FlCornerFreq    - Natural frequency and damping in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s, -].\n'.format(turbine.ptfm_freq, 1.0))
         file.write('{:<10.5f}{:<9.5f} ! F_FlpCornerFreq   - Corner frequency and damping in the second order low pass filter of the blade root bending moment for flap control [rad/s, -].\n'.format(turbine.bld_flapwise_freq*1/3, 1.0))
         
         file.write('\n')
@@ -573,6 +579,54 @@ class FileProcessing():
         file.write('{:<014.5f}      ! Flp_MaxPit        - Maximum (and minimum) flap pitch angle [rad]'.format(controller.flp_maxpit))
         file.close()
 
+    def read_DISCON(self, DISCON_filename):
+        '''
+        Read the DISCON input file.
+
+        Parameters:
+        ----------
+        DISCON_filename: string
+            Name of DISCON input file to read
+        
+        Returns:
+        --------
+        DISCON_in: Dict
+            Dictionary containing input parameters from DISCON_in, organized by parameter name
+        '''
+        
+        DISCON_in = {}
+        with open(DISCON_filename) as discon:
+            for line in discon:
+
+                # Skip whitespace and comment lines
+                if (line[0] != '!') == (len(line.strip()) != 0):
+                    
+                    if (line.split()[1] != '!'):    # Array valued entries
+                        array_length = line.split().index('!')
+                        param = line.split()[array_length+1]
+                        values = np.array( [float(x) for x in line.split()[:array_length]] )
+                        DISCON_in[param] = values
+                    else:                           # All other entries
+                        param = line.split()[2]
+                        value = line.split()[0]
+                        # Remove printed quotations if string is in quotes
+                        if (value[0] == '"') or (value[0] == "'"):
+                            value = value[1:-1]
+                        else:
+                            value = float(value)
+                            # Some checks for variables that are generally passed as lists
+                            if param.lower() == 'vs_kp':
+                                value = [value]
+                            if param.lower() == 'vs_ki':
+                                value = [value]
+                            if param.lower() == 'flp_kp':
+                                value = [value]
+                            if param.lower() == 'flp_ki':
+                                value = [value]
+                        DISCON_in[param] = value
+
+        return DISCON_in
+    
     def write_rotor_performance(self,turbine,txt_filename='Cp_Ct_Cq.txt'):
         '''
         Write text file containing rotor performance data
@@ -624,7 +678,7 @@ class FileProcessing():
         file.write('\n')
         file.close()
 
-    def load_from_txt(txt_filename):
+    def load_from_txt(self, txt_filename):
         '''
         Load rotor performance data from a *.txt file. 
 

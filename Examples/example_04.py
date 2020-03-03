@@ -1,14 +1,15 @@
-# ----------- Example_04 --------------
-# Load a turbine model and tune the controller
-# -------------------------------------
-#
-# In this example:
-#   - Read a .yaml file
-#   - Load a turbine model from OpenFAST
-#   - Tune a controller
-#   - Write a controller input file
-#   - Plot gain schedule
+'''
+----------- Example_04 --------------
+Load a turbine model and tune the controller
+-------------------------------------
 
+In this example:
+  - Read a .yaml file
+  - Load a turbine model from OpenFAST
+  - Tune a controller
+  - Write a controller input file
+  - Plot gain schedule
+'''
 # Python modules
 import matplotlib.pyplot as plt 
 import yaml 
@@ -38,7 +39,7 @@ controller.tune_controller(turbine)
 
 # Write parameter input file
 param_file = 'DISCON.IN'   
-file_processing.write_param_file(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
+file_processing.write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
 
 # Plot gain schedule
 plt.figure(0)

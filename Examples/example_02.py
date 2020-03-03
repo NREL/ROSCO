@@ -1,10 +1,12 @@
-# ----------- Example_02 --------------
-# Load a turbine model from saved pickle, make a quick cp plot 
-# -------------------------------------
-#
-# In this example:
-#   - Load a turbine from a saved pickle
-#   - Plot Cp Surface
+'''
+----------- Example_02 --------------
+Load a turbine model from saved pickle, make a quick cp plot 
+-------------------------------------
+
+In this example:
+  - Load a turbine from a saved pickle
+  - Plot Cp Surface
+'''
 
 # Python modules
 import matplotlib.pyplot as plt

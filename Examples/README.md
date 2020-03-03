@@ -11,3 +11,4 @@ Examples:
 7. Load saved turbine, tune controller, plot minimum pitch schedule.
 8. Plot some OpenFAST output data.
 9. Run turbsim to compile binary.
+10. Tune a controller for distributed aerodynamic control.

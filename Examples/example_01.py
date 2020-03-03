@@ -1,14 +1,16 @@
-# ----------- Example_01 --------------
-# Load and save a turbine model
-# -------------------------------------
-# In this example:
-# - Read .yaml input file
-# - Load an openfast turbine model
-# - Read text file with rotor performance properties
-# - Print some basic turbine properties
-# - Save the turbine as a picklle
-# 
-# Note: Uses the NREL 5MW included in the Test Cases and is a part of the OpenFAST distribution
+'''
+----------- Example_01 --------------
+Load and save a turbine model
+-------------------------------------
+In this example:
+- Read .yaml input file
+- Load an openfast turbine model
+- Read text file with rotor performance properties
+- Print some basic turbine properties
+- Save the turbine as a picklle
+
+Note: Uses the NREL 5MW included in the Test Cases and is a part of the OpenFAST distribution
+'''
 
 # Python Modules
 import yaml

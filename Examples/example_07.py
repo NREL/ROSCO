@@ -1,13 +1,14 @@
-# ----------- Example_07 --------------
-# Load saved turbine, tune controller, plot minimum pitch schedule
-# -------------------------------------
-#
-# In this example:
-#   - Load a yaml file
-#   - Load a turbine from openfast
-#   - Tune a controller
-#   - Plot minimum pitch schedule
+'''
+----------- Example_07 --------------
+Load saved turbine, tune controller, plot minimum pitch schedule
+-------------------------------------
 
+In this example:
+  - Load a yaml file
+  - Load a turbine from openfast
+  - Tune a controller
+  - Plot minimum pitch schedule
+'''
 
 # Python modules
 import matplotlib.pyplot as plt 

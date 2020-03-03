@@ -1,11 +1,15 @@
-# ----------- Example_08 --------------
-# Plot some OpenFAST output data
-# -------------------------------------
-#
-# In this example:
-#   - Load openfast output data
-#   - Trim the time series
-#   - Plot some available channels
+'''
+----------- Example_08 --------------
+Plot some OpenFAST output data
+-------------------------------------
+
+In this example:
+  - Load openfast output data
+  - Trim the time series
+  - Plot some available channels
+
+Note: need to run openfast model in '../Test_Cases/5MW_Land_DLL_WTurb/' to plot
+'''
 
 # Python Modules
 import numpy as np
@@ -19,9 +23,9 @@ fast_io = ROSCO_utilities.FAST_IO()
 # Define openfast output filenames
 # filenames = ["../Test_Cases/5MW_Land/5MW_Land.outb"]
 
-# ---- Note: Could plot multiple cases, and binaries...
-filenames = ["../Test_Cases/5MW_Land/5MW_Land.out",
-             "../Test_Cases/5MW_Land/5MW_Land.outb"]
+# ---- Note: Could plot multiple cases, textfiles, and binaries...
+filenames = ["../Test_Cases/5MW_Land_DLL_WTurb/5MW_Land_DLL_WTurb.out",
+            "../Test_Cases/5MW_Land_DLL_WTurb/5MW_Land_DLL_WTurb.outb"]
 
 # Load output info and data
 allinfo, alldata = fast_io.load_output(filenames)

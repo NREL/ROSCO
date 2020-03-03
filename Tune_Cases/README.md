@@ -6,13 +6,13 @@ The basic steps are as follows
 
 1. Fill out the .yaml input file to tune the controller
 2. Run `tune_ROSCO.py`, or your own version of it.
-3. Copy `DISCON.IN` and `Cp_Ct_Cq.*.txt` (or similar) to the base folder for your wind turbine model.
+3. Copy `DISCON.IN` and `Cp_Ct_Cq.txt` (or similar) to the desired folder for your wind turbine model.
 4. Ensure that `PerfFileName` in `DISCON.IN` points to the proper name and location of `Cp_Ct_Cq.*.txt`
 5. Ensure that `DLL_InFile` in the OpenFAST ServoDyn input file properly points to `DISCON.IN`.
 6. Enjoy the results. Possibly retune your controller. 
 
 ## The .yaml File
-We use a .yaml file to define the inputs to the generic controlling scripts. This y.aml file defines three different dictionaries with a few parameters each that must be defined
+We use a .yaml file to define the inputs to the generic controlling scripts. This .yaml file defines three different dictionaries with a number of parameters. The parameters that must be defined are listed below
 
 1. path_params:
 * `FAST_InputFile` - the name of the `*.fst` file
@@ -40,11 +40,30 @@ We use a .yaml file to define the inputs to the generic controlling scripts. Thi
 * `Y_ControlMode` - Default = 0 - Yaw control mode {0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}
 * `SS_Mode` - Default = 1 - Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
 * `WE_Mode` - Default = 2 - Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator, 2: Extended Kalman Filter}
-* `PS_Mode` - Default = 0 - Peak shaving mode {0: no peak shaving, 1: implement peak shaving}
+* `PS_Mode` - Default = 0 - Pitch saturation mode {0: no pitch saturation, 1: peak shaving, 2: Cp-maximizing pitch saturation, 3: peak shaving and Cp-maximizing pitch saturation}
 * `zeta_pc` - Pitch controller desired damping ratio (-)
 * `omega_pc` - Pitch controller desired natural frequency (rad/s)
 * `zeta_vs` - Torque controller desired damping ratio (-)
 * `omega_vs` - Torque controller desired natural frequency (rad/s)
+
+#### Optional Parameters
+There are a few parameters that are only needed for specific controller behaviors, or to adjust behaviors to be different than the default:
+1. turbine_params:
+* `twr_freq` - Tower fore-aft natural frequency (rad/s), only used inf Fl_Mode = 1
+* `ptfm_freq` - Platform fore-aft natural frequency (rad/s), only used inf Fl_Mode = 1
+2. controller_params
+* `zeta_flp` -  Flap controller desired damping ratio, only used if Flp_Mode = 1
+* `omega_flp`-  Flap controller desired natural frequency (rad/s), only used if Flp_Mode = 1
+* `max_pitch`-  Maximum pitch angle (rad), {default = 90 degrees}
+* `min_pitch`-  Minimum pitch angle (rad), {default = 0 degrees}
+* `vs_minspd`-  Minimum rotor speed (rad/s), {default = 0 rad/s}
+* `ss_cornerfreq`-  First order low-pass filter cornering frequency for setpoint smoother (rad/s)
+* `ss_vsgain`-  Torque controller setpoint smoother gain bias percentage [%, <= 1 ], {default = 100%}
+* `ss_pcgain`-  Pitch controller setpoint smoother gain bias percentage  [%, <= 1 ], {default = 0.1%}
+* `ps_percent`-  Percent peak shaving  [%, <= 1 ], {default = 80%}, only used if PS_Mode = 1 or 3
+* `sd_maxpit`-  Maximum blade pitch angle to initiate shutdown (rad), {default = bld pitch at v_max}, only used if SD_Mode = 1
+* `sd_cornerfreq`-  Cutoff Frequency for first order low-pass filter for blade pitch angle rad/s, {default = 0.41888 ~ time constant of 15s}, only used if SD_Mode = 1
+* `flp_maxpit`-  Maximum (and minimum) flap pitch angle (rad), only used if Flp_Mode = 2
 
 ### The controller parameters
 The controller flags have some default values for the ROSCO controller implementation (provided in the previous section). This, subsequently, leaves four turbine parameters that the user must decide `zeta_pc`, `omega_pc`, `zeta_vs`, and `omega_vs`. The example .yaml scripts provided offer some insight into what these values might be for different sizes and types of turbines. Generally speaking, we desire slower responses in the the variable speed (vs) torque controller. This equates to `zeta_vs = 1` and `omega_vs = 0.3` for the NREL 5MW wind turbine. These values tend to translate fairly well to larger turbines, but decreasing `omega_vs = 0.3` may be desired. For the pitch controller, the NREL 5MW turbine was tuned such that `zeta_pc = 0.7`, and `omega_pc = 0.6` in the legacy controller. As a high level rule of thumb, increasing the desired damping to be over-damped (`zeta_pc ~ 1.0`) and the natural frequency to be much slower (`omega_pc = 0.2`) seems to produce smoother wind turbine responses in large turbines with highly flexible rotors. 

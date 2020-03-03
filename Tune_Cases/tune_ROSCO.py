@@ -3,7 +3,7 @@
 
 #-------------------------------- LOAD INPUT PARAMETERS ---------------------------------#
 # Change this for your turbine
-parameter_filename = 'BAR.yaml'                         # Name of .yaml input file for the specific turbine
+parameter_filename = 'NREL5MW.yaml'                         # Name of .yaml input file for the specific turbine
 
 
 
@@ -54,7 +54,7 @@ controller.tune_controller(turbine)
 
 # Write parameter input file
 param_file = 'DISCON.IN'   # This must be named DISCON.IN to be seen by the compiled controller binary. 
-file_processing.write_param_file(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
+file_processing.write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
 
 # Plot rotor performance 
 turbine.Cp.plot_performance(turbine.Cp_table, turbine.pitch_initial_rad, turbine.TSR_initial)

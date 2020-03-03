@@ -120,8 +120,7 @@ class Turbine():
         filename : str
                    Name of file to save pickle 
         # '''
-        tuple_to_save = (self)
-        pickle.dump( tuple_to_save, open( filename, "wb" ) )
+        pickle.dump(self, open( filename, "wb" ) )
 
     # Load function
     @staticmethod
@@ -185,6 +184,7 @@ class Turbine():
         self.mu = fast.fst_vt['AeroDyn15']['KinVisc']
         self.Ng = fast.fst_vt['ElastoDyn']['GBRatio']
         self.GenEff = fast.fst_vt['ServoDyn']['GenEff']
+        self.GBoxEff = fast.fst_vt['ElastoDyn']['GBoxEff']
         self.DTTorSpr = fast.fst_vt['ElastoDyn']['DTTorSpr']
         self.generator_inertia = fast.fst_vt['ElastoDyn']['GenIner']
         self.tilt = fast.fst_vt['ElastoDyn']['ShftTilt'] 
@@ -203,7 +203,9 @@ class Turbine():
         if rot_source == 'cc-blade': # Use cc-blade
             self.load_from_ccblade()
         elif rot_source == 'txt':    # Use specified text file
-            self.pitch_initial_rad, self.TSR_initial, self.Cp_table, self.Ct_table, self.Cq_table = ROSCO_utilities.FileProcessing.load_from_txt(txt_filename)
+            file_processing = ROSCO_utilities.FileProcessing()
+            self.pitch_initial_rad, self.TSR_initial, self.Cp_table, self.Ct_table, self.Cq_table = file_processing.load_from_txt(
+                txt_filename)
         else:   # Use text file from DISCON.in
             if os.path.exists(os.path.join(FAST_directory, fast.fst_vt['ServoDyn']['DLL_InFile'])):
                 if  os.path.exists(fast.fst_vt['DISCON_in']['PerfFileName']):
@@ -340,8 +342,9 @@ class Turbine():
 
         # Make sure cc_rotor exists for DAC analysis
         try:
-            exists(self.cc_rotor)
-        except NameError:
+            if self.cc_rotor:
+                pass
+        except AttributeError:
             # Create CC-Blade Rotor
             r0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlSpn']) 
             chord0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlChord'])

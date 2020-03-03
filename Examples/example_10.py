@@ -1,14 +1,19 @@
-# ----------- Example_10 --------------
-# Tune a controller for distributed aerodynamic control
-# -------------------------------------
-# In this example:
-# - Read .yaml input file
-# - Load an openfast turbine model
-# - Read text file with rotor performance properties
-# - Load blade information
-# - Tune controller with flap actuator
-# 
-# Note: Uses the NREL 5MW included in the Test Cases and is a part of the OpenFAST distribution
+'''
+----------- Example_10 --------------
+Tune a controller for distributed aerodynamic control
+-------------------------------------
+
+In this example:
+- Read .yaml input file
+- Load an openfast turbine model
+- Read text file with rotor performance properties
+- Load blade information
+- Tune controller with flap actuator
+
+Note: You will need a turbine model with DAC capabilites in order to run this. 
+    The curious user can contact Nikhar Abbas (nikhar.abbas@nrel.gov) for available
+    models, if they do not have any themselves. 
+'''
 
 # Python Modules
 import yaml
