@@ -271,13 +271,7 @@ CONTAINS
         ENDIF
 
         ! Filtering the tower fore-aft acceleration signal 
-        IF (LocalVar%iStatus == 0) THEN
-            LocalVar%NacIMU_FA_AccF = SecLPFilter(0.0, LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
-            ! LocalVar%NacIMU_FA_AccF = NotchFilterSlopes(0.0, LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .FALSE., objInst%instNotchSlopes) ! Fixed Damping
-            IF (CntrPar%F_NotchType >= 2) THEN
-                LocalVar%NacIMU_FA_AccF = NotchFilter(0.0, LocalVar%DT, CntrPar%F_NotchCornerFreq, CntrPar%F_NotchBetaNumDen(1), CntrPar%F_NotchBetaNumDen(2),LocalVar%iStatus, .TRUE., objInst%instNotch) ! Fixed Damping
-            ENDIF
-        ELSE
+        IF (CntrPar%Fl_Mode == 1) THEN
             LocalVar%NacIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
             ! LocalVar%NacIMU_FA_AccF = NotchFilterSlopes(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .FALSE., objInst%instNotchSlopes) ! Fixed Damping
             IF (CntrPar%F_NotchType >= 2) THEN

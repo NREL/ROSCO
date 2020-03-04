@@ -78,11 +78,14 @@ CONTAINS
             END IF
             
             ! --- Torque control state machine ---
-            IF (LocalVar%PC_PitComT >= CntrPar%VS_Rgn3Pitch) THEN           ! Region 3
-                IF (CntrPar%VS_ControlMode == 1) THEN 
-                    LocalVar%VS_State = 5 ! Constant power tracking
-                ELSE 
-                    LocalVar%VS_State = 4 ! Constant torque tracking
+            IF (LocalVar%PC_PitComT >= CntrPar%VS_Rgn3Pitch) THEN       
+
+                IF (LocalVar%PC_PitComT >= LocalVar%PC_MinPit + CntrPar%PC_Switch) THEN ! Make sure we aren't implement pitch saturation
+                    IF (CntrPar%VS_ControlMode == 1) THEN                   ! Region 3
+                        LocalVar%VS_State = 5 ! Constant power tracking
+                    ELSE 
+                        LocalVar%VS_State = 4 ! Constant torque tracking
+                    END IF
                 END IF
             ELSE
                 IF (LocalVar%GenArTq >= CntrPar%VS_MaxOMTq*1.01) THEN       ! Region 2 1/2 - active PI torque control
