@@ -25,13 +25,13 @@ from shutil import rmtree
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
-NAME = 'ROSCO_toolbox'
+NAME = 'rosco-toolbox'
 DESCRIPTION = 'A toolbox for development of wind turbine controllers.'
 URL = 'https://github.com/NREL/ROSCO_toolbox'
 EMAIL = 'nikhar.abbas@nrel.gov'
 AUTHOR = 'NREL National Wind Technology Center'
 REQUIRES_PYTHON = '>=3.3.0'
-VERSION = '1.0.0'
+VERSION = '2.0.0'
 
 # These packages are required for all of the code to be executed. 
 # - Maybe you can get away with older versions...
@@ -41,8 +41,6 @@ REQUIRED = [
     'pytest>=4',
     'scipy>=1.1',
     'pyYAML>=5.3'
-    # 'wisdem>=2.0'   # This is NREL's distrubtion of WISDEM. CC-Blade and Aeroelastic SE are used as of January 2020
-                    # https://github.com/wisdem/wisdem
 ]
 
 # Read the docs, one day, so we'll throw it in here!
@@ -62,9 +60,8 @@ EXTRAS = {
 here = os.path.abspath(os.path.dirname(__file__))
 
 # Import the README and use it as the long-description.
-# Note: this will only work if 'README.md' is present in your MANIFEST.in file!
 try:
-    with io.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
+    with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
         long_description = '\n' + f.read()
 except FileNotFoundError:
     long_description = DESCRIPTION
@@ -137,7 +134,7 @@ setup(
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,
-    license='Apache-2.0',
+    license='Apache License, Version 2.0',
     classifiers=[
         # Trove classifiers
         # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
