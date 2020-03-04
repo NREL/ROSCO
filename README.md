@@ -128,12 +128,17 @@ For LaTeX users:
 If the ROSCO generic tuning theory and implementation played a roll in your research, please cite the following paper
 ```
 @inproceedings{Abbas_WindTech2019,
- title={An Update to the National Renewable Energy Laboratory Baseline Wind Turbine Controller},
- author={Abbas, Nikhar J. and Pao, Lucy and Wright, Alan},
- booktitle={Journal of Physics: Conference Series},
- year={2019},
- organization={IOP Publishing}
- note={In Process}
+	doi = {10.1088/1742-6596/1452/1/012002},
+	url = {https://doi.org/10.1088%2F1742-6596%2F1452%2F1%2F012002},
+	year = 2020,
+	month = {jan},
+	publisher = {{IOP} Publishing},
+	volume = {1452},
+	pages = {012002},
+	author = {Nikhar J. Abbas and Alan Wright and Lucy Pao},
+	title = {An Update to the National Renewable Energy Laboratory Baseline Wind Turbine Controller},
+	journal = {Journal of Physics: Conference Series}
+}
 ```
 Additionally, if you have extensively used the [ROSCO](https://github.com/NREL/ROSCO) controller or [WISDEM](https://github.com/wisdem/wisdem), please cite them accordingly. 
 
