@@ -25,7 +25,7 @@ from shutil import rmtree
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
-NAME = 'ROSCO_toolbox'
+NAME = 'rosco-toolbox'
 DESCRIPTION = 'A toolbox for development of wind turbine controllers.'
 URL = 'https://github.com/NREL/ROSCO_toolbox'
 EMAIL = 'nikhar.abbas@nrel.gov'
