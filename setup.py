@@ -31,16 +31,16 @@ URL = 'https://github.com/NREL/ROSCO_toolbox'
 EMAIL = 'nikhar.abbas@nrel.gov'
 AUTHOR = 'NREL National Wind Technology Center'
 REQUIRES_PYTHON = '>=3.3.0'
-VERSION = '2.0.0'
+VERSION = '2.0.1'
 
 # These packages are required for all of the code to be executed. 
 # - Maybe you can get away with older versions...
 REQUIRED = [
-    'matplotlib>=3',
-    'numpy>=1.16',
-    'pytest>=4',
-    'scipy>=1.1',
-    'pyYAML>=5.3'
+    'matplotlib',
+    'numpy',
+    'pytest',
+    'scipy',
+    'pyYAML',
 ]
 
 # Read the docs, one day, so we'll throw it in here!
