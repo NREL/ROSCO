@@ -293,6 +293,8 @@ CONTAINS
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables 
         REAL(4)                      :: SD_BlPitchF
+        REAL(4)                      :: SD_YawErrF
+
         ! Initialize Shutdown Varible
         IF (LocalVar%iStatus == 0) THEN
             LocalVar%SD = .FALSE.
@@ -308,7 +310,7 @@ CONTAINS
             ! Go into shutdown if above max pit
             IF (SD_BlPitchF > CntrPar%SD_MaxPit) THEN
                 LocalVar%SD  = .TRUE.
-            ELSEIF (SD_YawErrF > 30.0*D2R) THEN
+            ELSEIF (SD_YawErrF > ABS(30.0*D2R)) THEN ! Hard code @ 30deg for now
                 LocalVar%SD  = .TRUE.
             ELSE
                 LocalVar%SD  = .FALSE.
