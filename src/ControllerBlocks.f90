@@ -302,9 +302,13 @@ CONTAINS
         IF (.NOT. LocalVar%SD ) THEN
             ! Filter pitch signal
             SD_BlPitchF = LPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%SD_CornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
+            ! Filter yaw error
+            SD_YawErrF  = LPFilter(LocalVar%Y_M, LocalVar%DT, CntrPar%SD_CornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
             
             ! Go into shutdown if above max pit
             IF (SD_BlPitchF > CntrPar%SD_MaxPit) THEN
+                LocalVar%SD  = .TRUE.
+            ELSEIF (SD_YawErrF > 30.0*D2R) THEN
                 LocalVar%SD  = .TRUE.
             ELSE
                 LocalVar%SD  = .FALSE.
@@ -314,6 +318,10 @@ CONTAINS
         ! Pitch Blades to 90 degrees at max pitch rate if in shutdown mode
         IF (LocalVar%SD) THEN
             Shutdown = LocalVar%BlPitch(1) + CntrPar%PC_MaxRat*LocalVar%DT
+            
+            ! If Pitch-to-stall 
+            ! Shutdown = LocalVar%BlPitch(1) - CntrPar%PC_MaxRat*LocalVar%DT
+            ! LocalVar%PC_MinPit = -90*R2D
             IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
                 print *, ' ** SHUTDOWN MODE **'
             ENDIF
