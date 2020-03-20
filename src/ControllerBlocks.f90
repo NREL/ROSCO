@@ -307,14 +307,16 @@ CONTAINS
             ! Filter yaw error
             SD_YawErrF  = LPFilter(LocalVar%Y_M, LocalVar%DT, CntrPar%SD_CornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
             
-            ! Go into shutdown if above max pit
-            IF (SD_BlPitchF > CntrPar%SD_MaxPit) THEN
-                LocalVar%SD  = .TRUE.
-            ELSEIF (ABS(SD_YawErrF) > 60.0*D2R) THEN ! Hard code @ 30deg for now
-                LocalVar%SD  = .TRUE.
-            ELSE
-                LocalVar%SD  = .FALSE.
-            ENDIF 
+            ! Go into shutdown 
+            IF (LocalVar%Time > 30.0) THEN
+                IF (SD_BlPitchF > CntrPar%SD_MaxPit) THEN
+                    LocalVar%SD  = .TRUE.
+                ELSEIF (ABS(SD_YawErrF) > 60.0*D2R) THEN ! Hard code @ 30deg for now
+                    LocalVar%SD  = .TRUE.
+                ELSE
+                    LocalVar%SD  = .FALSE.
+                ENDIF 
+            ENDIF
         ENDIF
 
         ! Pitch Blades to 90 degrees at max pitch rate if in shutdown mode
