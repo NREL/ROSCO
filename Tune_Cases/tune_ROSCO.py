@@ -53,7 +53,7 @@ controller      = ROSCO_controller.Controller(controller_params)
 controller.tune_controller(turbine)
 
 # Write parameter input file
-param_file = 'DISCON.IN'   # This must be named DISCON.IN to be seen by the compiled controller binary. 
+param_file = 'DISCON.IN'   
 file_processing.write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
 
 # Plot rotor performance 
