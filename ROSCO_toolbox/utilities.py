@@ -733,3 +733,135 @@ class FileProcessing():
             # self.Ct_table = Ct 
             # self.Cq_table = Cq
             return pitch_initial_rad, TSR_initial, Cp, Ct, Cq
+
+class DataProcessing():
+    """
+    Class DataProcessing used to process internal ROSCO toolbox data
+
+    Methods:
+    -----------
+    DISCON_dict
+    """
+    def init(self):
+        pass
+
+    def DISCON_dict(self, turbine, controller, txt_filename=None):
+        '''
+        Convert the turbine and controller objects to a dictionary organized by the parameter names 
+        that are defined in the DISCON.IN file.
+
+        Parameters
+        ----------
+        turbine: obj
+            Turbine object output from the turbine class
+        controller: obj
+            Controller object output from the controller class
+        txt_filename: string, optional
+            Name of rotor performance filename
+        '''
+        DISCON_dict = {}
+        # ------- DEBUG -------
+        DISCON_dict['LoggingLevel']	    = controller.LoggingLevel
+        # ------- CONTROLLER FLAGS -------
+        DISCON_dict['F_LPFType']	    = controller.F_LPFType
+        DISCON_dict['F_NotchType']		= controller.F_NotchType
+        DISCON_dict['IPC_ControlMode']	= controller.IPC_ControlMode
+        DISCON_dict['VS_ControlMode']	= controller.VS_ControlMode
+        DISCON_dict['PC_ControlMode']   = controller.PC_ControlMode
+        DISCON_dict['Y_ControlMode']	= controller.Y_ControlMode
+        DISCON_dict['SS_Mode']          = controller.SS_Mode
+        DISCON_dict['WE_Mode']          = controller.WE_Mode
+        DISCON_dict['PS_Mode']          = controller.PS_Mode
+        DISCON_dict['SD_Mode']          = controller.SD_Mode
+        DISCON_dict['Fl_Mode']          = controller.Fl_Mode
+        DISCON_dict['Flp_Mode']         = controller.Flp_Mode
+        # ------- FILTERS -------
+        DISCON_dict['F_LPFCornerFreq']	    = turbine.bld_edgewise_freq * 1/4
+        DISCON_dict['F_LPFDamping']		    = controller.F_LPFDamping
+        DISCON_dict['F_NotchCornerFreq']    = turbine.twr_freq
+        DISCON_dict['F_NotchBetaNumDen']    = [0.0, 0.25]
+        DISCON_dict['F_SSCornerFreq']       = controller.ss_cornerfreq
+        DISCON_dict['F_FlCornerFreq']       = [turbine.ptfm_freq, 1.0]
+        DISCON_dict['F_FlpCornerFreq']      = [turbine.bld_flapwise_freq*1/3, 1.0]
+        # ------- BLADE PITCH CONTROL -------
+        DISCON_dict['PC_GS_n']			= len(controller.pitch_op_pc)
+        DISCON_dict['PC_GS_angles']	    = controller.pitch_op_pc
+        DISCON_dict['PC_GS_KP']		    = controller.pc_gain_schedule.Kp
+        DISCON_dict['PC_GS_KI']		    = controller.pc_gain_schedule.Ki
+        DISCON_dict['PC_GS_KD']			= [0.0 for i in range(len(controller.pc_gain_schedule.Ki))]
+        DISCON_dict['PC_GS_TF']			= [0.0 for i in range(len(controller.pc_gain_schedule.Ki))]
+        DISCON_dict['PC_MaxPit']		= controller.max_pitch
+        DISCON_dict['PC_MinPit']		= controller.min_pitch
+        DISCON_dict['PC_MaxRat']		= turbine.max_pitch_rate
+        DISCON_dict['PC_MinRat']		= turbine.min_pitch_rate
+        DISCON_dict['PC_RefSpd']		= turbine.rated_rotor_speed*turbine.Ng
+        DISCON_dict['PC_FinePit']		= controller.min_pitch
+        DISCON_dict['PC_Switch']		= 1 * deg2rad
+        # ------- INDIVIDUAL PITCH CONTROL -------
+        DISCON_dict['IPC_IntSat']		= 0.0
+        DISCON_dict['IPC_KI']			= [0.0, 0.0]
+        DISCON_dict['IPC_aziOffset']	= [0.0, 0.0]
+        DISCON_dict['IPC_CornerFreqAct'] = 0.0
+        # ------- VS TORQUE CONTROL -------
+        DISCON_dict['VS_GenEff']		= turbine.GenEff
+        DISCON_dict['VS_ArSatTq']		= turbine.rated_torque
+        DISCON_dict['VS_MaxRat']		= turbine.max_torque_rate
+        DISCON_dict['VS_MaxTq']			= turbine.max_torque
+        DISCON_dict['VS_MinTq']			= 0.0
+        DISCON_dict['VS_MinOMSpd']		= controller.vs_minspd
+        DISCON_dict['VS_Rgn2K']			= controller.vs_rgn2K
+        DISCON_dict['VS_RtPwr']			= turbine.rated_power
+        DISCON_dict['VS_RtTq']			= turbine.rated_torque
+        DISCON_dict['VS_RefSpd']		= controller.vs_refspd
+        DISCON_dict['VS_n']				= 1
+        DISCON_dict['VS_KP']			= controller.vs_gain_schedule.Kp[-1]
+        DISCON_dict['VS_KI']			= controller.vs_gain_schedule.Ki[-1]
+        DISCON_dict['VS_TSRopt']		= turbine.TSR_operational
+        # ------- SETPOINT SMOOTHER -------
+        DISCON_dict['SS_VSGain']         = controller.ss_vsgain
+        DISCON_dict['SS_PCGain']         = controller.ss_pcgain
+        # ------- WIND SPEED ESTIMATOR -------
+        DISCON_dict['WE_BladeRadius']	= turbine.rotor_radius
+        DISCON_dict['WE_CP_n']			= 1
+        DISCON_dict['WE_CP']            = [0.0 for i in range(4)]
+        DISCON_dict['WE_Gamma']			= 0.0
+        DISCON_dict['WE_GearboxRatio']	= turbine.Ng
+        DISCON_dict['WE_Jtot']			= turbine.J
+        DISCON_dict['WE_RhoAir']		= turbine.rho
+        DISCON_dict['PerfFileName']     = txt_filename
+        DISCON_dict['PerfTableSize']    = [len(turbine.Cp.pitch_initial_rad),len(turbine.Cp.TSR_initial)]
+        DISCON_dict['WE_FOPoles_N']     = len(controller.A)
+        DISCON_dict['WE_FOPoles_v']     = controller.v
+        DISCON_dict['WE_FOPoles']       = controller.A
+        # ------- YAW CONTROL -------
+        DISCON_dict['Y_ErrThresh']		= 0.0
+        DISCON_dict['Y_IPC_IntSat']		= 0.0
+        DISCON_dict['Y_IPC_n']			= 1
+        DISCON_dict['Y_IPC_KP']			= 0.0
+        DISCON_dict['Y_IPC_KI']			= 0.0
+        DISCON_dict['Y_IPC_omegaLP']    = 0.0
+        DISCON_dict['Y_IPC_zetaLP']		= 0.0
+        DISCON_dict['Y_MErrSet']		= 0.0
+        DISCON_dict['Y_omegaLPFast']	= 0.0
+        DISCON_dict['Y_omegaLPSlow']	= 0.0
+        DISCON_dict['Y_Rate']			= 0.0
+        # ------- TOWER FORE-AFT DAMPING -------
+        DISCON_dict['JA']                = -1
+        DISCON_dict['FA_HPF_CornerFreq'] = 0.0
+        DISCON_dict['FA_IntSat']		 = 0.0
+        # ------- MINIMUM PITCH SATURATION -------
+        DISCON_dict['PS_BldPitchMin_N'] = len(controller.ps_min_bld_pitch)
+        DISCON_dict['PS_WindSpeeds']    = controller.v
+        DISCON_dict['PS_BldPitchMin']   = controller.ps_min_bld_pitch
+        # ------- SHUTDOWN -------
+        DISCON_dict['SD_MaxPit']        = controller.sd_maxpit
+        DISCON_dict['SD_CornerFreq']    = controller.sd_cornerfreq
+        # ------- Floating -------
+        DISCON_dict['Fl_Kp']            = controller.Kp_float
+        # ------- FLAP ACTUATION -------
+        DISCON_dict['Flp_Angle']        = controller.flp_angle
+        DISCON_dict['Flp_Kp']           = controller.Kp_flap[-1]
+        DISCON_dict['Flp_Ki']           = controller.Ki_flap[-1]
+        DISCON_dict['Flp_MaxPit']       = controller.flp_maxpit
+
+        return DISCON_dict
