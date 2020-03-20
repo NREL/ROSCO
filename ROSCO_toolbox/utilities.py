@@ -423,8 +423,10 @@ class FAST_IO():
 
         # Reset time vector to zero
         data[:, info['channels'].index('Time')] = np.ndarray.flatten(
-            data[:, info['channels'].index('Time')]) - 50
+            data[:, info['channels'].index('Time')]) - tmin
         return data
+
+
 class FileProcessing():
     """
     Class FileProcessing used to write out controller 
@@ -433,7 +435,9 @@ class FileProcessing():
     Methods:
     -----------
     write_DISCON
+    read_DISCON
     write_rotor_performance
+    load_from_txt
     """
 
     def __init__(self):
