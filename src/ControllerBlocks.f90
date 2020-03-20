@@ -310,7 +310,7 @@ CONTAINS
             ! Go into shutdown if above max pit
             IF (SD_BlPitchF > CntrPar%SD_MaxPit) THEN
                 LocalVar%SD  = .TRUE.
-            ELSEIF (SD_YawErrF > ABS(30.0*D2R)) THEN ! Hard code @ 30deg for now
+            ELSEIF (ABS(SD_YawErrF) > 60.0*D2R) THEN ! Hard code @ 30deg for now
                 LocalVar%SD  = .TRUE.
             ELSE
                 LocalVar%SD  = .FALSE.
