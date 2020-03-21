@@ -814,8 +814,8 @@ class DataProcessing():
         DISCON_dict['VS_RtTq']			= turbine.rated_torque
         DISCON_dict['VS_RefSpd']		= controller.vs_refspd
         DISCON_dict['VS_n']				= 1
-        DISCON_dict['VS_KP']			= controller.vs_gain_schedule.Kp[-1]
-        DISCON_dict['VS_KI']			= controller.vs_gain_schedule.Ki[-1]
+        DISCON_dict['VS_KP']			= [controller.vs_gain_schedule.Kp[-1]]
+        DISCON_dict['VS_KI']			= [controller.vs_gain_schedule.Ki[-1]]
         DISCON_dict['VS_TSRopt']		= turbine.TSR_operational
         # ------- SETPOINT SMOOTHER -------
         DISCON_dict['SS_VSGain']         = controller.ss_vsgain
@@ -860,8 +860,8 @@ class DataProcessing():
         DISCON_dict['Fl_Kp']            = controller.Kp_float
         # ------- FLAP ACTUATION -------
         DISCON_dict['Flp_Angle']        = controller.flp_angle
-        DISCON_dict['Flp_Kp']           = controller.Kp_flap[-1]
-        DISCON_dict['Flp_Ki']           = controller.Ki_flap[-1]
+        DISCON_dict['Flp_Kp']           = [controller.Kp_flap[-1]]
+        DISCON_dict['Flp_Ki']           = [controller.Ki_flap[-1]]
         DISCON_dict['Flp_MaxPit']       = controller.flp_maxpit
 
         return DISCON_dict
