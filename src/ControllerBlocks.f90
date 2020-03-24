@@ -294,6 +294,10 @@ CONTAINS
         ! Allocate Variables 
         REAL(4)                      :: SD_BlPitchF
         REAL(4)                      :: SD_YawErrF
+        REAL(4)                      :: V_NearRated
+        REAL(4)                      :: YawSD_Slope
+        REAL(4)                      :: Offset
+        REAL(4)                      :: MaxYaw
 
         ! Initialize Shutdown Varible
         IF (LocalVar%iStatus == 0) THEN
@@ -306,12 +310,22 @@ CONTAINS
             SD_BlPitchF = LPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%SD_CornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
             ! Filter yaw error
             SD_YawErrF  = LPFilter(LocalVar%Y_M, LocalVar%DT, CntrPar%SD_CornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
-            
-            ! Go into shutdown 
+
+            ! Find maximum yaw angle
+            V_NearRated = CntrPar%PC_RefSpd*CntrPar%WE_BladeRadius/CntrPar%VS_TSRopt/CntrPar%WE_GearboxRatio
+            YawSD_Slope = (90.0 - 60.0)/(5.0 - V_NearRated)
+            Offset = 90.0 - YawSD_Slope*5.0
+            IF (LocalVar%WE_Vw < 5.0) THEN
+                MaxYaw = 90.0
+            ELSE 
+                MaxYaw = YawSD_Slope * LocalVar%WE_Vw + Offset ! In Degrees
+            ENDIF
+
+            ! Shutdown?
             IF (LocalVar%Time > 30.0) THEN
                 IF (SD_BlPitchF > CntrPar%SD_MaxPit) THEN
                     LocalVar%SD  = .TRUE.
-                ELSEIF (ABS(SD_YawErrF) > 60.0*D2R) THEN ! Hard code @ 30deg for now
+                ELSEIF (ABS(SD_YawErrF) > MaxYaw*D2R) THEN ! Hard code @ 30deg for now
                     LocalVar%SD  = .TRUE.
                 ELSE
                     LocalVar%SD  = .FALSE.
