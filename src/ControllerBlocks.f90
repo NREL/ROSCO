@@ -313,10 +313,10 @@ CONTAINS
 
             ! Find maximum yaw angle
             V_NearRated = CntrPar%PC_RefSpd*CntrPar%WE_BladeRadius/CntrPar%VS_TSRopt/CntrPar%WE_GearboxRatio
-            YawSD_Slope = (90.0 - 60.0)/(5.0 - V_NearRated)
-            Offset = 90.0 - YawSD_Slope*5.0
+            YawSD_Slope = (120.0 - 60.0)/(5.0 - V_NearRated)
+            Offset = 120.0 - YawSD_Slope*5.0
             IF (LocalVar%WE_Vw < 5.0) THEN
-                MaxYaw = 90.0
+                MaxYaw = 360.0 ! No shutdown in WE_Vw < 5.0 m/s
             ELSE 
                 MaxYaw = YawSD_Slope * LocalVar%WE_Vw + Offset ! In Degrees
             ENDIF
