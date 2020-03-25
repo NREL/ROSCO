@@ -320,8 +320,8 @@ CONTAINS
             ELSE 
                 MaxYaw = YawSD_Slope * LocalVar%WE_Vw + Offset ! In Degrees
             ENDIF
-            MaxYaw = max(MaxYaw, 50)
-            
+            MaxYaw = max(MaxYaw, 50.0)
+
             ! Shutdown?
             IF (LocalVar%Time > 30.0) THEN
                 IF (SD_BlPitchF > CntrPar%SD_MaxPit) THEN
