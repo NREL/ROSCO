@@ -294,6 +294,9 @@ class Controller():
             except AttributeError:
                 print('ERROR: If Flp_Mode > 0, you need to have blade information loaded in the turbine object.')
                 raise
+            except UnboundLocalError:
+                print('ERROR: You are attempting to tune a flap controller for a blade without flaps!')
+                raise
         else:
             self.flp_angle = 0.0
             self.Ki_flap = np.array([0.0])
