@@ -23,7 +23,7 @@ Second, you will need to compile the controller. From the ROSCO home directory:
 mkdir build
 cd build
 cmake ..
-make install
+make
 ```
 A dynamic link library will be compiled into the directory with the title `libdiscon.*`, where the file extension is `.so`, `.dll`, or `.dylib`, depending on the user's operating system.  
 
