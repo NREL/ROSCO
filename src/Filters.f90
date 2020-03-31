@@ -282,7 +282,7 @@ CONTAINS
         LocalVar%FA_AccHPF = HPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%FA_HPFCornerFreq, LocalVar%iStatus, .FALSE., objInst%instHPF)
         
         ! Wind Speed Estimator
-        LocalVar%We_Vw = LPFilter(LocalVar%We_Vw, LocalVar%DT, 0.628, LocalVar%iStatus, .FALSE., objInst%instLPF)
+        LocalVar%We_Vw_F = LPFilter(LocalVar%We_Vw, LocalVar%DT, 0.6283, LocalVar%iStatus, .FALSE., objInst%instLPF)
 
     END SUBROUTINE PreFilterMeasuredSignals
     END MODULE Filters
