@@ -403,12 +403,12 @@ CONTAINS
         
         IF (CntrPar%VS_KP(1) > 0.0) THEN
             aviFAIL = -1
-            ErrMsg  = 'VS_KP must be greater than zero.'
+            ErrMsg  = 'VS_KP must be less than zero.'
         ENDIF
         
         IF (CntrPar%VS_KI(1) > 0.0) THEN
             aviFAIL = -1
-            ErrMsg  = 'VS_KI must be greater than zero.'
+            ErrMsg  = 'VS_KI must be less than zero.'
         ENDIF
         
         IF (CntrPar%PC_RefSpd <= 0.0) THEN
