@@ -309,7 +309,7 @@ CONTAINS
             ! Filter pitch signal
             SD_BlPitchF = LPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%SD_CornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
             ! Filter yaw error
-            SD_YawErrF  = LPFilter(LocalVar%Y_M, LocalVar%DT, CntrPar%SD_CornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
+            SD_YawErrF  = LPFilter(LocalVar%Y_M, LocalVar%DT, 0.2*CntrPar%SD_CornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
 
             ! Find maximum yaw angle
             V_NearRated = CntrPar%PC_RefSpd*CntrPar%WE_BladeRadius/CntrPar%VS_TSRopt/CntrPar%WE_GearboxRatio
