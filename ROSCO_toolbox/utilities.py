@@ -147,18 +147,18 @@ class FAST_IO():
             plt.draw()
 
         
-    def load_output(self, filenames):
+    def load_output(self, filenames, output_dict=False, tmin=0, tmax=10000):
         """Load a FAST binary or ascii output file
         Parameters
         ----------
-        filenames : str or list
-            filename or list of filenames
+        filenames : list
+            list of filenames
         Returns
         -------
-        data : ndarray
-            data values
-        info : dict
-            info containing:
+        data : list
+            list of ndarrays containing data values
+        info : list
+            List of info for each openfast output filecontaining:
                 - name: filename
                 - description: description of dataset
                 - channels: list of channel names
@@ -169,6 +169,8 @@ class FAST_IO():
             
         data = []
         info = []
+        fastout_dict = {}
+        fastout_dict['filenames'] = []
         for i, filename in enumerate(filenames):
             assert os.path.isfile(filename), "File, %s, does not exists" % filename
             with open(filename, 'r') as f:
@@ -177,13 +179,26 @@ class FAST_IO():
                 except UnicodeDecodeError:
                     pass
                     data_bin, info_bin = self.load_binary_output(filename)
+                    data_bin = self.trim_output(info_bin, data_bin, tmin, tmax)
                     data.append(data_bin)
                     info.append(info_bin)
                 else:
                     data_ascii, info_ascii = self.load_ascii_output(filename)
+                    data_ascii = self.trim_output(info_ascii, data_ascii, tmin, tmax)
                     data.append(data_ascii)
                     info.append(info_ascii)
-        return info, data
+        
+                if output_dict:
+                    for channel in info[-1]['channels']:
+                        if channel not in fastout_dict.keys():
+                            fastout_dict[channel] = []
+                        fastout_dict[channel].append(
+                            np.array(data[-1][:, info[-1]['channels'].index(channel)]).tolist())
+                    fastout_dict['filenames'].append(filename)
+        if output_dict:
+            return info, data, fastout_dict
+        else:
+            return info, data
 
     def load_ascii_output(self, filename):
         '''
@@ -195,6 +210,7 @@ class FAST_IO():
             filename
         '''
         with open(filename) as f:
+            print('Loading data from {}'.format(filename))
             info = {}
             info['name'] = os.path.splitext(os.path.basename(filename))[0]
             # Header is whatever is before the keyword `time`
@@ -291,6 +307,7 @@ class FAST_IO():
         LenUnit = 10  #;  % number of characters per unit name
 
         with open(filename, 'rb') as fid:
+            print('Loading data from {}'.format(filename))
             FileID = fread(fid, 1, 'int16')[0]  #;             % FAST output file format, INT(2)
             if FileID not in [FileFmtID_WithTime, FileFmtID_WithoutTime]:
                 raise Exception('FileID not supported {}. Is it a FAST binary file?'.format(FileID))
