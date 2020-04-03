@@ -30,7 +30,7 @@ DESCRIPTION = 'A toolbox for development of wind turbine controllers.'
 URL = 'https://github.com/NREL/ROSCO_toolbox'
 EMAIL = 'nikhar.abbas@nrel.gov'
 AUTHOR = 'NREL National Wind Technology Center'
-REQUIRES_PYTHON = '>=3.3.0'
+REQUIRES_PYTHON = '>=3.4'
 VERSION = '2.0.1'
 
 # These packages are required for all of the code to be executed. 
@@ -46,9 +46,9 @@ REQUIRED = [
 # Read the docs, one day, so we'll throw it in here!
 EXTRAS = {
     'docs': {
-        'readthedocs-sphinx-ext==0.5.15',
-        'Sphinx==2.0',
-        'sphinxcontrib-napoleon==0.7'
+        'readthedocs-sphinx-ext>=0.5.15',
+        'Sphinx>=2.0',
+        'sphinxcontrib-napoleon>=0.7'
     }
 }
 
@@ -125,27 +125,11 @@ setup(
     python_requires=REQUIRES_PYTHON,
     url=URL,
     packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
-    # If your package is a single module, use this instead of 'packages':
-    # py_modules=['mypackage'],
-
-    # entry_points={
-    #     'console_scripts': ['mycli=mymodule:cli'],
-    # },
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,
     license='Apache License, Version 2.0',
-    classifiers=[
-        # Trove classifiers
-        # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
-        'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: PyPy'
-    ],
-    # $ setup.py publish support.
+
     cmdclass={
         'upload': UploadCommand,
     },
