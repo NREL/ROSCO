@@ -92,16 +92,16 @@ CONTAINS
         ELSE
             LocalVar%PC_MinPit = CntrPar%PC_MinPit
         ENDIF
-
-        ! Shutdown
-        IF (CntrPar%SD_Mode == 1) THEN
-            LocalVar%PC_PitComT = Shutdown(LocalVar, CntrPar, objInst)
-        ENDIF
-
+        
         ! FloatingFeedback
         IF (CntrPar%Fl_Mode == 1) THEN
             CALL FloatingFeedback(LocalVar, CntrPar, objInst)
             LocalVar%PC_PitComT = LocalVar%PC_PitComT + LocalVar%Fl_PitCom
+        ENDIF
+        
+        ! Shutdown
+        IF (CntrPar%SD_Mode == 1) THEN
+            LocalVar%PC_PitComT = Shutdown(LocalVar, CntrPar, objInst)
         ENDIF
 
         ! Saturate collective pitch commands:
