@@ -288,7 +288,7 @@ CONTAINS
         USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
         IMPLICIT NONE
         ! Inputs
-        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
+        TYPE(ControlParameters), INTENT(INOUT)     :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables 
@@ -298,6 +298,8 @@ CONTAINS
         REAL(4)                      :: YawSD_Slope
         REAL(4)                      :: Offset
         REAL(4)                      :: MaxYaw
+        REAL(4)                      :: SD_slope
+        REAL(4), Save                :: SD_time = 0.0
 
         ! Initialize Shutdown Varible
         IF (LocalVar%iStatus == 0) THEN
@@ -326,7 +328,7 @@ CONTAINS
             IF (LocalVar%Time > 30.0) THEN
                 IF (SD_BlPitchF > CntrPar%SD_MaxPit) THEN
                     LocalVar%SD  = .TRUE.
-                ELSEIF (ABS(SD_YawErrF) > MaxYaw*D2R) THEN ! Hard code @ 30deg for now
+                ELSEIF (ABS(SD_YawErrF) > MaxYaw*D2R) THEN 
                     LocalVar%SD  = .TRUE.
                 ELSE
                     LocalVar%SD  = .FALSE.
@@ -336,11 +338,19 @@ CONTAINS
 
         ! Pitch Blades to 90 degrees at max pitch rate if in shutdown mode
         IF (LocalVar%SD) THEN
-            Shutdown = LocalVar%BlPitch(1) + CntrPar%PC_MaxRat*LocalVar%DT
-            
+            ! "e-stop"
+            ! Shutdown = LocalVar%BlPitch(1) + CntrPar%PC_MaxRat*LocalVar%DT
+
             ! If Pitch-to-stall 
             ! Shutdown = LocalVar%BlPitch(1) - CntrPar%PC_MaxRat*LocalVar%DT
             ! LocalVar%PC_MinPit = -90*R2D
+
+            ! "Normal" shutdown
+            SD_time = SD_time + LocalVar%DT
+            SD_slope = - (CntrPar%VS_RefSpd / 60.0)
+            CntrPar%PC_RefSpd = SD_slope*SD_time + CntrPar%VS_RefSpd
+            CntrPar%PC_RefSpd = max(CntrPar%PC_RefSpd, 0.0)
+
             IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
                 print *, ' ** SHUTDOWN MODE **'
             ENDIF
