@@ -313,18 +313,15 @@ CONTAINS
             SD_BlPitchF = LPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%SD_CornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
             ! Filter yaw error
             SD_YawErrF  = LPFilter(LocalVar%Y_M, LocalVar%DT, 0.2*CntrPar%SD_CornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
-
             ! Find maximum yaw angle
-            V_NearRated = CntrPar%PC_RefSpd*CntrPar%WE_BladeRadius/CntrPar%VS_TSRopt/CntrPar%WE_GearboxRatio
-            YawSD_Slope = (120.0 - 60.0)/(5.0 - V_NearRated)
-            Offset = 120.0 - YawSD_Slope*5.0
-            IF (LocalVar%WE_Vw < 5.0) THEN
+            YawSD_Slope = (120.0 - 60.0)/(CntrPar%VS_MinOMSpd - CntrPar%PC_RefSpd)
+            Offset = 120.0 - YawSD_Slope * CntrPar%VS_MinOMSpd
+            IF (LocalVar%GenSpeedF < CntrPar%VS_MinOMSpd) THEN
                 MaxYaw = 360.0 ! No shutdown in WE_Vw < 5.0 m/s
             ELSE 
-                MaxYaw = YawSD_Slope * LocalVar%WE_Vw + Offset ! In Degrees
+                MaxYaw = YawSD_Slope * LocalVar%GenSpeedF + Offset ! In Degrees
             ENDIF
             MaxYaw = max(MaxYaw, 50.0)
-
             ! Shutdown?
             IF (LocalVar%Time > 30.0) THEN
                 ! IF (SD_BlPitchF > CntrPar%SD_MaxPit) THEN
