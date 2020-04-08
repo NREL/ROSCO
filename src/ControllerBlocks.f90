@@ -326,7 +326,9 @@ CONTAINS
 
             ! Shutdown?
             IF (LocalVar%Time > 30.0) THEN
-                IF (SD_BlPitchF > CntrPar%SD_MaxPit) THEN
+                ! IF (SD_BlPitchF > CntrPar%SD_MaxPit) THEN
+                !     LocalVar%SD  = .TRUE.
+                IF (LocalVar%GenSpeedF > CntrPar%PC_RefSpd*1.2) THEN
                     LocalVar%SD  = .TRUE.
                 ELSEIF (ABS(SD_YawErrF) > MaxYaw*D2R) THEN 
                     LocalVar%SD  = .TRUE.
