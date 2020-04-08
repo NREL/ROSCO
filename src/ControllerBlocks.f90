@@ -350,6 +350,15 @@ CONTAINS
             SD_slope = - (CntrPar%VS_RefSpd / 60.0)
             CntrPar%PC_RefSpd = SD_slope*SD_time + CntrPar%VS_RefSpd
             CntrPar%PC_RefSpd = max(CntrPar%PC_RefSpd, 0.0)
+            ELSE
+                ! "Normal" shutdown
+                SD_time = SD_time + LocalVar%DT
+                SD_slope = - (CntrPar%PC_RefSpd / 30.0)
+                LocalVar%SD_RefSpd = SD_slope*SD_time + CntrPar%PC_RefSpd
+                LocalVar%SD_RefSpd = max(LocalVar%SD_RefSpd, 0.0)
+                    
+                Shutdown = LocalVar%PC_PitComT
+            ENDIF
 
             IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
                 print *, ' ** SHUTDOWN MODE **'
