@@ -301,7 +301,7 @@ CONTAINS
         REAL(4)                      :: SD_slope
         REAL(4), Save                :: SD_time = 0.0
         Logical                      :: downwind=.TRUE.
-
+        Logical                      :: SD_p2s=.FALSE.
         ! Initialize Shutdown Varible
         IF (LocalVar%iStatus == 0) THEN
             LocalVar%SD = .FALSE.
@@ -343,10 +343,11 @@ CONTAINS
         IF (LocalVar%SD) THEN
             
             ! E-stop - Pitch-to-stall (downwind, Below Rated)
-            IF ( (downwind) .AND. (LocalVar%GenTq <= CntrPar%VS_ArSatTq) .AND. (LocalVar%PC_PitComT < 2.0) ) THEN
+            IF (( (downwind) .AND. (LocalVar%GenTq < 0.9*CntrPar%VS_ArSatTq) .AND. (LocalVar%PC_PitComT < 2.0*D2R) ) .OR. (SD_p2s) ) THEN
                 Shutdown = LocalVar%BlPitch(1) - CntrPar%PC_MaxRat*LocalVar%DT
                 LocalVar%PC_MinPit = -90*D2R
             
+                SD_p2s = .TRUE.
                 ! SD_time = SD_time + LocalVar%DT
                 ! SD_slope = - (CntrPar%PC_RefSpd / 30.0)
                 ! LocalVar%SD_RefSpd = SD_slope*SD_time + CntrPar%PC_RefSpd
