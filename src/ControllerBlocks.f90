@@ -300,6 +300,7 @@ CONTAINS
         REAL(4)                      :: MaxYaw
         REAL(4)                      :: SD_slope
         REAL(4), Save                :: SD_time = 0.0
+        Logical                      :: downwind=.TRUE.
 
         ! Initialize Shutdown Varible
         IF (LocalVar%iStatus == 0) THEN
@@ -326,7 +327,9 @@ CONTAINS
 
             ! Shutdown?
             IF (LocalVar%Time > 30.0) THEN
-                IF (SD_BlPitchF > CntrPar%SD_MaxPit) THEN
+                ! IF (SD_BlPitchF > CntrPar%SD_MaxPit) THEN
+                !     LocalVar%SD  = .TRUE.
+                IF (LocalVar%GenSpeedF > CntrPar%PC_RefSpd*1.2) THEN
                     LocalVar%SD  = .TRUE.
                 ELSEIF (ABS(SD_YawErrF) > MaxYaw*D2R) THEN 
                     LocalVar%SD  = .TRUE.
@@ -338,18 +341,30 @@ CONTAINS
 
         ! Pitch Blades to 90 degrees at max pitch rate if in shutdown mode
         IF (LocalVar%SD) THEN
-            ! "e-stop"
-            ! Shutdown = LocalVar%BlPitch(1) + CntrPar%PC_MaxRat*LocalVar%DT
+            
+            ! E-stop - Pitch-to-stall (downwind, Below Rated)
+            IF ( (downwind) .AND. (LocalVar%GenTq <= CntrPar%VS_ArSatTq) .AND. (LocalVar%PC_PitComT < 2.0) ) THEN
+                Shutdown = LocalVar%BlPitch(1) - CntrPar%PC_MaxRat*LocalVar%DT
+                LocalVar%PC_MinPit = -90*D2R
+            
+                ! SD_time = SD_time + LocalVar%DT
+                ! SD_slope = - (CntrPar%PC_RefSpd / 30.0)
+                ! LocalVar%SD_RefSpd = SD_slope*SD_time + CntrPar%PC_RefSpd
+                ! LocalVar%SD_RefSpd = max(LocalVar%SD_RefSpd, 0.0)
 
-            ! If Pitch-to-stall 
-            ! Shutdown = LocalVar%BlPitch(1) - CntrPar%PC_MaxRat*LocalVar%DT
-            ! LocalVar%PC_MinPit = -90*R2D
-
-            ! "Normal" shutdown
-            SD_time = SD_time + LocalVar%DT
-            SD_slope = - (CntrPar%VS_RefSpd / 60.0)
-            CntrPar%PC_RefSpd = SD_slope*SD_time + CntrPar%VS_RefSpd
-            CntrPar%PC_RefSpd = max(CntrPar%PC_RefSpd, 0.0)
+            ! E-stop - Pitch-to-feather (Upwind)
+            ELSEIF (LocalVar%BlPitch(1) > CntrPar%SD_MaxPit) THEN
+                Shutdown = LocalVar%BlPitch(1) + CntrPar%PC_MaxRat*LocalVar%DT
+            
+            ELSE
+                ! "Normal" shutdown
+                SD_time = SD_time + LocalVar%DT
+                SD_slope = - (CntrPar%PC_RefSpd / 30.0)
+                LocalVar%SD_RefSpd = SD_slope*SD_time + CntrPar%PC_RefSpd
+                LocalVar%SD_RefSpd = max(LocalVar%SD_RefSpd, 0.0)
+                    
+                Shutdown = LocalVar%PC_PitComT
+            ENDIF
 
             IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
                 print *, ' ** SHUTDOWN MODE **'

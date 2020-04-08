@@ -251,6 +251,10 @@ CONTAINS
             PC_RefSpd = CntrPar%PC_RefSpd
         ENDIF
 
+        IF (LocalVar%SD) THEN
+            PC_RefSpd = LocalVar%SD_RefSpd
+        ENDIF
+
         LocalVar%PC_SpdErr = PC_RefSpd - LocalVar%GenSpeedF            ! Speed error
         LocalVar%PC_PwrErr = CntrPar%VS_RtPwr - LocalVar%VS_GenPwr             ! Power error
         
@@ -273,6 +277,7 @@ CONTAINS
         ! Force zero torque in shutdown mode
         IF (LocalVar%SD) THEN
             VS_RefSpd = CntrPar%VS_MinOMSpd
+            ! VS_RefSpd = LocalVar%SD_RefSpd
         ENDIF
 
         ! Force minimum rotor speed
@@ -282,7 +287,7 @@ CONTAINS
         IF (CntrPar%VS_ControlMode == 2) THEN
             LocalVar%VS_SpdErr = VS_RefSpd - LocalVar%GenSpeedF
         ENDIF
-
+        
         ! Define transition region setpoint errors
         LocalVar%VS_SpdErrAr = VS_RefSpd - LocalVar%GenSpeedF               ! Current speed error - Region 2.5 PI-control (Above Rated)
         LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd - LocalVar%GenSpeedF     ! Current speed error - Region 1.5 PI-control (Below Rated)
