@@ -144,8 +144,74 @@ class FAST_IO():
             if xlim:
                 plt.xlim(xlim)
         if showplot:
-            plt.draw()
+            plt.show()
 
+    def plot_fast_out_dict(self, cases, fast_dict, showplot=False, fignum=None, xlim=None):
+        '''
+        Plots OpenFAST outputs for desired channels
+
+        Parameters:
+        -----------
+        cases : dict
+            Dictionary of lists containing desired outputs
+        fast_dict : dict
+            Dictionary of OpenFAST output information, output from load_output
+        showplot: bool, optional
+            Show the plot
+        fignum: int, optional
+            Define figure number. Note: Should only be used when plotting a singular case. 
+        '''
+        figlist = []
+        axeslist = []
+        # Plot cases
+        for case in cases.keys():
+            # channels to plot
+            channels = cases[case]
+            # instantiate plot and legend
+            fig, axes = plt.subplots(len(channels), 1, sharex=True, num=fignum)
+
+            myleg = []
+            for fidx, Time in enumerate(fast_dict['Time']):
+                # write legend
+                myleg.append(fast_dict['meta'][fidx]['name'])
+                if len(channels) > 1:  # Multiple channels
+                    for axj, channel in zip(axes, channels):
+                        try:
+                            # plot
+                            axj.plot(Time, fast_dict[channel][fidx])
+                            # label
+                            unit_idx = fast_dict['meta'][fidx]['channels'].index(channel)
+                            axj.set(ylabel='{:^} \n ({:^})'.format(
+                                channel, 
+                                fast_dict['meta'][fidx]['attribute_units'][unit_idx]))
+                            axj.grid(True)
+                        except:
+                            print('{} is not available as an output channel.'.format(channel))
+                    axes[0].set_title(case)
+                else:                   # Single channel
+                    try:
+                        # plot
+                        axes.plot(Time, fast_dict[channel][fidx])
+                        # label
+                        axes.set(ylabel=channel[0])
+                        axes.grid(True)
+                        axes.set_title(case)
+                    except:
+                        print('{} is not available as an output channel.'.format(channel))
+                plt.legend(myleg, loc='upper center', bbox_to_anchor=(
+                    0.5, 0.0), borderaxespad=2, ncol=len(fast_dict['filenames']))
+            
+            figlist.append(fig)
+            axeslist.append(axes)
+            
+            if xlim:
+                plt.xlim(xlim)
+            
+        if showplot:
+            plt.show()
+
+
+        return figlist, axeslist
         
     def load_output(self, filenames, output_dict=False, tmin=0, tmax=10000):
         """Load a FAST binary or ascii output file
