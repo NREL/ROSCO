@@ -343,6 +343,7 @@ class FAST_IO():
         info = []
         fastout_dict = {}
         fastout_dict['filenames'] = []
+        fastout_dict['meta'] = []
         for i, filename in enumerate(filenames):
             assert os.path.isfile(filename), "File, %s, does not exists" % filename
             with open(filename, 'r') as f:
@@ -359,14 +360,16 @@ class FAST_IO():
                     data_ascii = self.trim_output(info_ascii, data_ascii, tmin, tmax)
                     data.append(data_ascii)
                     info.append(info_ascii)
-        
-                if output_dict:
-                    for channel in info[-1]['channels']:
-                        if channel not in fastout_dict.keys():
-                            fastout_dict[channel] = []
-                        fastout_dict[channel].append(
-                            np.array(data[-1][:, info[-1]['channels'].index(channel)]).tolist())
-                    fastout_dict['filenames'].append(filename)
+
+            if output_dict:
+                for channel in info[i]['channels']:
+                    if channel not in fastout_dict.keys():
+                        fastout_dict[channel] = [[]]*(i)
+                    fastout_dict[channel].append(
+                        np.array(data[i][:, info[i]['channels'].index(channel)]))
+                fastout_dict['filenames'].append(filename)
+                fastout_dict['meta'].append(info[i])
+
         if output_dict:
             return info, data, fastout_dict
         else:
