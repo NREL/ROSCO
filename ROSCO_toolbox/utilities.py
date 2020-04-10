@@ -13,8 +13,11 @@ import datetime
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from itertools import takewhile
+from matplotlib import transforms
+from itertools import takewhile, product
 import struct
+
+from wisdem.aeroelasticse.Util import spectral
 
 # Some useful constants
 now = datetime.datetime.now()
@@ -212,8 +215,111 @@ class FAST_IO():
 
 
         return figlist, axeslist
+
+    def plot_spectral(self, fast_dict, cases, 
+                        averaging='None', averaging_window='Hann', detrend=False, nExp=None, 
+                        show_RtSpeed=False, RtSpeed_idx=None,
+                        add_freqs=None, add_freq_labels=None,
+                        showplot=False, fignum=None):
+        '''
+        Plots OpenFAST outputs for desired channels
+
+        Parameters:
+        -----------
+        fast_dict : dict
+            Dictionary of OpenFAST output information, output from load_output
+        cases : list of tuples (str, int)
+            Dictionary of lists containing desired outputs. 
+            Of the format (channel, case), i.e. [('RotSpeed', 0)]
+        averaging: str, optional
+            PSD averaging method. None, Welch
+        averaging_window: str, optional
+            PSD averaging window method. Hamming, Hann, Rectangular
+        detrend: bool, optional
+            Detrend data?
+        nExp: float, optional
+            Exponent for hamming windowing
+        show_RtSpeed: Bool, optional
+            Plot 1p and 3p rotor speeds for simulation cases plotted
+        RtSpeed_idx: ind, optional
+            Specify the index for the simulation case that the rotor speed is plotted from. 
+        add_freqs: list, optional
+            List of floats containing additional frequencies to plot lines of
+        add_freq_labels: list, optional
+            List of strings to label add_freqs
+        showplot: bool, optional
+            Show the plot
+        fignum: int, optional
+            Define figure number. Note: Should only be used when plotting a singular case. 
+
+        Returns:
+        -------
+        fig, ax - corresponds to generated figure
+        '''
+        if averaging.lower() not in ['none', 'welch']:
+            raise ValueError('{} is not a supported averaging method.'.format(averaging))
+
+        if averaging_window.lower() not in ['hamming', 'hann', 'rectangular']:
+            raise ValueError('{} is not a supported averaging window.'.format(averaging_window))
+
+
+        fig, ax = plt.subplots(num=fignum)
+
+        leg = []
+        for channel, run in cases:
+            try: 
+                # Find time
+                Time = fast_dict['Time'][run]
+                # Load PSD
+                fq, y, info = spectral.fft_wrap(Time, fast_dict[channel][run], averaging=averaging, averaging_window=averaging_window, detrend=detrend, nExp=nExp)
+                # Plot data
+                plt.loglog(fq, y, label='{}, run: {}'.format(channel, str(run)))
+            except: 
+                print('{} is not an available channel in run {}'.format(channel, str(run)))
+        # Show rotor speed range (1P, 3P, 6P?)
+        if show_RtSpeed:
+            if not RtSpeed_idx:
+                RtSpeed_idx = [0]
+                print('No rotor speed run indices defined, plotting for the first run only.')
+            for rt_idx in RtSpeed_idx:
+                f_1P_min = min(fast_dict['RotSpeed'][rt_idx]) / 60. #Hz
+                f_1P_max = max(fast_dict['RotSpeed'][rt_idx]) / 60.
+                f_3P_min = f_1P_min*3
+                f_3P_max = f_1P_max*3
+                f_6P_min = f_1P_min*6
+                f_6P_max = f_1P_max*6
+                plt.axvspan(f_1P_min, f_1P_max, alpha=0.5, color=[0.7,0.7,0.7], label='1P')
+                plt.axvspan(f_3P_min, f_3P_max, alpha=0.5, color=[0.8,0.8,0.8], label='3P')
+                # if f_6P_min<1.:
+                #     plt.axvspan(f_6P_min, f_6P_max, alpha=0.5, color=[0.9,0.9,0.9], label='6P')
         
-    def load_output(self, filenames, output_dict=False, tmin=0, tmax=10000):
+        # Add specific frequencies if desired
+        if add_freqs:
+            co = np.linspace(0.3, 0.0, len(add_freqs))
+            if add_freq_labels is None:
+                add_freq_labels = [None]*len(add_freqs)
+            for freq,flabel,c in zip(add_freqs,add_freq_labels,co):
+                plt.axvline(freq, color=[c,c,c]) #, label=flabel)
+                trans = transforms.blended_transform_factory(ax.transData, ax.transAxes)
+                plt.text(freq+(10**np.floor(np.log10(freq))/10), 0.01, flabel, transform=trans)
+
+        # Formatting
+        plt.legend(loc='best')
+        if len(list(cases)) > 1:
+            plt.ylabel('PSD')
+        else:
+            unit_idx = fast_dict['meta'][run]['channels'].index(channel)
+            plt.ylabel('PSD ({}$^2$/Hz)'.format(fast_dict['meta'][run]['attribute_units'][unit_idx]))
+        plt.xlabel('Frequency (Hz)')
+        plt.grid(True)
+
+        if showplot:
+            plt.show()
+
+        return fig, ax
+
+
+    def load_FAST_out(self, filenames, output_dict=False, tmin=0, tmax=10000):
         """Load a FAST binary or ascii output file
         Parameters
         ----------
