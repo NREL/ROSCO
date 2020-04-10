@@ -90,7 +90,7 @@ class FAST_IO():
             os.system('{} {}'.format(fastcall, os.path.join(fast_dir,fastfile)))
             print('OpenFAST simulation complete. ')
 
-    def plot_fast_out(self, cases, allinfo, alldata, showplot=True, fignum=None, xlim=None):
+    def plot_fast_out(self, cases, allinfo, alldata, showplot=False, fignum=None, xlim=None):
         '''
         Plots OpenFAST outputs for desired channels
 
