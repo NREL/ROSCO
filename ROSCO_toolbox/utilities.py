@@ -575,6 +575,45 @@ class FAST_IO():
             data[:, info['channels'].index('Time')]) - tmin
         return data
 
+    def trim_output_dict(self, fast_data, tmin=0, tmax=100000):
+        '''
+        Trim loaded fast output data 
+
+        Parameters
+        ----------
+        info : dict
+            info from load_output containing:
+                - name: filename
+                - description: description of dataset
+                - channels: list of channel names
+                - attribute_units: list of attribute units
+        fast_data : ndarray
+            List of all output data from load_outputinfo (list containing dictionaries)
+        tmin : float, optional
+            start time
+        tmax : float, optional
+            end time
+        
+        Returns
+        -------
+        data : ndarray
+            input data ndarray with values trimed to times tmin and tmax
+        '''
+        # initial time array and associated index
+        for fd in fast_data:
+            # time_init = np.ndarray.flatten(data[:, fast_dict['channels'].index('Time')])
+            T0ind = np.searchsorted(fd['Time'], tmin)
+            Tfind = np.searchsorted(fd['Time'], tmax) + 1
+            # tvals = [time.tolist() for time in time_init[Tinds]]
+
+            # Remove all vales in data where time is not in desired range
+            for key in fd.keys():
+                if key.lower() == 'time':
+                    fd['Time'] = fd['Time'][T0ind:Tfind] - fd['Time'][T0ind]
+                elif key != 'meta':
+                    fd[key] = fd[key][T0ind:Tfind]
+
+            return fast_dict
 
 class FileProcessing():
     """
