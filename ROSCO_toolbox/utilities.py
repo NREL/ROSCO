@@ -38,98 +38,8 @@ class FAST_Plots():
 
     def __init__(self):
         pass
-        If running ROSCO, this function must be called from the same folder containing DISCON.IN,
-            or the chdir flag must be turned on. This is an artifact of OpenFAST looking for DISCON.IN
-            in the folder that it is called from. 
-
-        Parameters:
-        ------------
-            fast_dir: string
-                    Name of OpenFAST directory containing input files.
-            fast_file: string
-                    Name of OpenFAST directory containing input files.
-            fastcall: string, optional
-                    Line used to call openfast when executing from the terminal.
-            fastfile: string, optional
-                    Filename for *.fst input file. Function will find *.fst if not provided.
-            chdir: bool, optional
-                    Change directory to openfast model directory before running.
-        '''
-
-        # Define OpenFAST input filename
-        if not fastfile:
-            for file in os.listdir(fast_dir):
-                if file.endswith('.fst'):
-                    fastfile = file
-        print('Using {} to run OpenFAST simulation'.format(fastfile))
-
-        if chdir: # Change cwd before calling OpenFAST -- note: This is an artifact of needing to call OpenFAST from the same directory as DISCON.IN
-            # save starting file path 
-            original_path = os.getcwd()
-            # change path, run OpenFAST
-            os.chdir(fast_dir)
-            print('Running OpenFAST simulation for {} through the ROSCO toolbox...'.format(fastfile))
-            os.system('{} {}'.format(fastcall, os.path.join(fastfile)))
-            print('OpenFAST simulation complete. ')
-            # return to original path
-            os.chdir(original_path)
-        else:
-            # Run OpenFAST
-            print('Running OpenFAST simulation for {} through the ROSCO toolbox...'.format(fastfile))
-            os.system('{} {}'.format(fastcall, os.path.join(fast_dir,fastfile)))
-            print('OpenFAST simulation complete. ')
-
-    def plot_fast_out(self, cases, allinfo, alldata, showplot=False, fignum=None, xlim=None):
-        '''
-        Plots OpenFAST outputs for desired channels
-
-        Parameters:
-        -----------
-        cases : dict
-            Dictionary of lists containing desired outputs
-        allinfo : list
-            List of OpenFAST output information, output from load_output
-        alldata: list
-            List of OpenFAST output data, output from load_output
-        showplot: bool, optional
-            Show the plot
-        fignum: int, optional
-            Define figure number. Note: Should only be used when plotting a singular case. 
-        '''
     
     def plot_fast_out(self, cases, fast_dict, showplot=False, fignum=None, xlim=None):
-                # Define time
-                Time = np.ndarray.flatten(data[:,channels.index('Time')])
-                # write legend
-                myleg.append(info['name'])
-                if len(plot_list) > 1:  # Multiple channels
-                    for axj, plot_case in zip(axes, plot_list):
-                        try: 
-                            # plot
-                            axj.plot(Time, (data[:,channels.index(plot_case)]))
-                            # label
-                            axj.set(ylabel = '{:^} \n ({:^})'.format(plot_case, info['attribute_units'][channels.index(plot_case)]))
-                            axj.grid(True)
-                        except:
-                            print('{} is not available as an output channel.'.format(plot_case))
-                    axes[0].set_title(case)
-                else:                   # Single channel
-                    try:
-                        # plot
-                        axes.plot(Time, (data[:,channels.index(plot_list[0])]))
-                        # label
-                        axes.set(ylabel = plot_list[0])
-                        axes.grid(True)
-                        axes.set_title(case)
-                    except:
-                            print('{} is not available as an output channel.'.format(plot_list[0]))
-                plt.legend(myleg,loc='upper center',bbox_to_anchor=(0.5, 0.0), borderaxespad=2, ncol=len(alldata))
-            if xlim:
-                plt.xlim(xlim)
-        if showplot:
-            plt.show()
-
-    def plot_fast_out_dict(self, cases, fast_dict, showplot=False, fignum=None, xlim=None):
         '''
         Plots OpenFAST outputs for desired channels
 
@@ -395,12 +305,12 @@ class FAST_IO():
             
         data = []
         info = []
-        fastout_dict = {}
-        fastout_dict['filenames'] = []
-        fastout_dict['meta'] = []
+        fastout = []
         for i, filename in enumerate(filenames):
             assert os.path.isfile(filename), "File, %s, does not exists" % filename
             with open(filename, 'r') as f:
+                if verbose:
+                    print('Loading data from {}'.format(filename))
                 try:
                     f.readline()
                 except UnicodeDecodeError:
@@ -415,19 +325,14 @@ class FAST_IO():
                     data.append(data_ascii)
                     info.append(info_ascii)
 
-            if output_dict:
-                for channel in info[i]['channels']:
-                    if channel not in fastout_dict.keys():
-                        fastout_dict[channel] = [[]]*(i)
-                    fastout_dict[channel].append(
-                        np.array(data[i][:, info[i]['channels'].index(channel)]))
-                fastout_dict['filenames'].append(filename)
-                fastout_dict['meta'].append(info[i])
+            alldata_dict = dict(zip(info[i]['channels'], data[i].T))
+            alldata_dict['meta'] =  info[i]
+            alldata_dict['meta']['filename'] =  filename
+            fastout.append(alldata_dict)
 
-        if output_dict:
-            return info, data, fastout_dict
-        else:
-            return info, data
+        # return info, data, fastout
+        return fastout
+
 
     def load_ascii_output(self, filename):
         '''
@@ -439,7 +344,6 @@ class FAST_IO():
             filename
         '''
         with open(filename) as f:
-            print('Loading data from {}'.format(filename))
             info = {}
             info['name'] = os.path.splitext(os.path.basename(filename))[0]
             # Header is whatever is before the keyword `time`
@@ -536,7 +440,6 @@ class FAST_IO():
         LenUnit = 10  #;  % number of characters per unit name
 
         with open(filename, 'rb') as fid:
-            print('Loading data from {}'.format(filename))
             FileID = fread(fid, 1, 'int16')[0]  #;             % FAST output file format, INT(2)
             if FileID not in [FileFmtID_WithTime, FileFmtID_WithoutTime]:
                 raise Exception('FileID not supported {}. Is it a FAST binary file?'.format(FileID))
