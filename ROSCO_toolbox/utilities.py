@@ -163,6 +163,13 @@ class FAST_IO():
             Show the plot
         fignum: int, optional
             Define figure number. Note: Should only be used when plotting a singular case. 
+
+        Returns:
+        --------
+        figlist: list
+            list of figure handles
+        axeslist: list
+            list of axes handles
         '''
         figlist = []
         axeslist = []
@@ -174,19 +181,20 @@ class FAST_IO():
             fig, axes = plt.subplots(len(channels), 1, sharex=True, num=fignum)
 
             myleg = []
-            for fidx, Time in enumerate(fast_dict['Time']):
+            for fast_out in fast_dict:
                 # write legend
-                myleg.append(fast_dict['meta'][fidx]['name'])
+                Time = fast_out['Time']
+                myleg.append(fast_out['meta']['name'])
                 if len(channels) > 1:  # Multiple channels
                     for axj, channel in zip(axes, channels):
                         try:
                             # plot
-                            axj.plot(Time, fast_dict[channel][fidx])
+                            axj.plot(Time, fast_out[channel])
                             # label
-                            unit_idx = fast_dict['meta'][fidx]['channels'].index(channel)
+                            unit_idx = fast_out['meta']['channels'].index(channel)
                             axj.set(ylabel='{:^} \n ({:^})'.format(
-                                channel, 
-                                fast_dict['meta'][fidx]['attribute_units'][unit_idx]))
+                                channel,
+                                fast_out['meta']['attribute_units'][unit_idx]))
                             axj.grid(True)
                         except:
                             print('{} is not available as an output channel.'.format(channel))
@@ -194,33 +202,34 @@ class FAST_IO():
                 else:                   # Single channel
                     try:
                         # plot
-                        axes.plot(Time, fast_dict[channel][fidx])
+                        axes.plot(Time, fast_out[channel])
                         # label
-                        axes.set(ylabel=channel[0])
+                        axes.set(ylabel='{:^} \n ({:^})'.format(
+                            channel,
+                            fast_out['meta']['attribute_units'][unit_idx]))
                         axes.grid(True)
                         axes.set_title(case)
                     except:
                         print('{} is not available as an output channel.'.format(channel))
                 plt.legend(myleg, loc='upper center', bbox_to_anchor=(
-                    0.5, 0.0), borderaxespad=2, ncol=len(fast_dict['filenames']))
-            
+                    0.5, 0.0), borderaxespad=2, ncol=len(fast_dict))
+
             figlist.append(fig)
             axeslist.append(axes)
-            
+
             if xlim:
                 plt.xlim(xlim)
-            
+
         if showplot:
             plt.show()
 
-
         return figlist, axeslist
 
-    def plot_spectral(self, fast_dict, cases, 
-                        averaging='None', averaging_window='Hann', detrend=False, nExp=None, 
-                        show_RtSpeed=False, RtSpeed_idx=None,
-                        add_freqs=None, add_freq_labels=None,
-                        showplot=False, fignum=None):
+    def plot_spectral(self, fast_dict, cases,
+                      averaging='None', averaging_window='Hann', detrend=False, nExp=None,
+                      show_RtSpeed=False, RtSpeed_idx=None,
+                      add_freqs=None, add_freq_labels=None,
+                      showplot=False, fignum=None):
         '''
         Plots OpenFAST outputs for desired channels
 
@@ -262,44 +271,44 @@ class FAST_IO():
         if averaging_window.lower() not in ['hamming', 'hann', 'rectangular']:
             raise ValueError('{} is not a supported averaging window.'.format(averaging_window))
 
-
         fig, ax = plt.subplots(num=fignum)
 
         leg = []
         for channel, run in cases:
-            try: 
+            try:
                 # Find time
-                Time = fast_dict['Time'][run]
+                Time = fast_dict[run]['Time']
                 # Load PSD
-                fq, y, info = spectral.fft_wrap(Time, fast_dict[channel][run], averaging=averaging, averaging_window=averaging_window, detrend=detrend, nExp=nExp)
+                fq, y, info = spectral.fft_wrap(
+                    Time, fast_dict[run][channel], averaging=averaging, averaging_window=averaging_window, detrend=detrend, nExp=nExp)
                 # Plot data
                 plt.loglog(fq, y, label='{}, run: {}'.format(channel, str(run)))
-            except: 
+            except:
                 print('{} is not an available channel in run {}'.format(channel, str(run)))
         # Show rotor speed range (1P, 3P, 6P?)
         if show_RtSpeed:
             if not RtSpeed_idx:
                 RtSpeed_idx = [0]
-                print('No rotor speed run indices defined, plotting for the first run only.')
+                print('No rotor speed run indices defined, plotting spectral range for the first run only.')
             for rt_idx in RtSpeed_idx:
-                f_1P_min = min(fast_dict['RotSpeed'][rt_idx]) / 60. #Hz
-                f_1P_max = max(fast_dict['RotSpeed'][rt_idx]) / 60.
+                f_1P_min = min(fast_dict[rt_idx]['RotSpeed']) / 60.  # Hz
+                f_1P_max = max(fast_dict[rt_idx]['RotSpeed']) / 60.
                 f_3P_min = f_1P_min*3
                 f_3P_max = f_1P_max*3
                 f_6P_min = f_1P_min*6
                 f_6P_max = f_1P_max*6
-                plt.axvspan(f_1P_min, f_1P_max, alpha=0.5, color=[0.7,0.7,0.7], label='1P')
-                plt.axvspan(f_3P_min, f_3P_max, alpha=0.5, color=[0.8,0.8,0.8], label='3P')
+                plt.axvspan(f_1P_min, f_1P_max, alpha=0.5, color=[0.7, 0.7, 0.7], label='1P')
+                plt.axvspan(f_3P_min, f_3P_max, alpha=0.5, color=[0.8, 0.8, 0.8], label='3P')
                 # if f_6P_min<1.:
                 #     plt.axvspan(f_6P_min, f_6P_max, alpha=0.5, color=[0.9,0.9,0.9], label='6P')
-        
+
         # Add specific frequencies if desired
         if add_freqs:
             co = np.linspace(0.3, 0.0, len(add_freqs))
             if add_freq_labels is None:
                 add_freq_labels = [None]*len(add_freqs)
-            for freq,flabel,c in zip(add_freqs,add_freq_labels,co):
-                plt.axvline(freq, color=[c,c,c]) #, label=flabel)
+            for freq, flabel, c in zip(add_freqs, add_freq_labels, co):
+                plt.axvline(freq, color=[c, c, c])  # , label=flabel)
                 trans = transforms.blended_transform_factory(ax.transData, ax.transAxes)
                 plt.text(freq+(10**np.floor(np.log10(freq))/10), 0.01, flabel, transform=trans)
 
@@ -308,8 +317,9 @@ class FAST_IO():
         if len(list(cases)) > 1:
             plt.ylabel('PSD')
         else:
-            unit_idx = fast_dict['meta'][run]['channels'].index(channel)
-            plt.ylabel('PSD ({}$^2$/Hz)'.format(fast_dict['meta'][run]['attribute_units'][unit_idx]))
+            unit_idx = fast_dict[run]['meta']['channels'].index(channel)
+            plt.ylabel(
+                'PSD ({}$^2$/Hz)'.format(fast_dict[run]['meta']['attribute_units'][unit_idx]))
         plt.xlabel('Frequency (Hz)')
         plt.grid(True)
 
@@ -318,8 +328,72 @@ class FAST_IO():
 
         return fig, ax
 
+class FAST_IO():
+    ''' 
+    A collection of utilities that may be useful for using the tools made accessbile in this toolbox with OpenFAST
 
-    def load_FAST_out(self, filenames, output_dict=False, tmin=0, tmax=10000):
+    A number of the file processing tools used here were provided by or modified from Emanual Branlard's weio library: https://github.com/ebranlard/weio. 
+
+    Methods:
+    --------
+    run_openfast
+    load_output
+    load_ascii_output
+    load_binary_output
+    trim_output
+
+    '''
+    def __init__(self):
+        pass
+
+    def run_openfast(self,fast_dir,fastcall='OpenFAST',fastfile=None,chdir=False):
+        '''
+        Runs a openfast openfast simulation.
+        
+        ** Note ** 
+        If running ROSCO, this function must be called from the same folder containing DISCON.IN,
+            or the chdir flag must be turned on. This is an artifact of OpenFAST looking for DISCON.IN
+            in the folder that it is called from. 
+
+        Parameters:
+        ------------
+            fast_dir: string
+                    Name of OpenFAST directory containing input files.
+            fast_file: string
+                    Name of OpenFAST directory containing input files.
+            fastcall: string, optional
+                    Line used to call openfast when executing from the terminal.
+            fastfile: string, optional
+                    Filename for *.fst input file. Function will find *.fst if not provided.
+            chdir: bool, optional
+                    Change directory to openfast model directory before running.
+        '''
+
+        # Define OpenFAST input filename
+        if not fastfile:
+            for file in os.listdir(fast_dir):
+                if file.endswith('.fst'):
+                    fastfile = file
+        print('Using {} to run OpenFAST simulation'.format(fastfile))
+
+        if chdir: # Change cwd before calling OpenFAST -- note: This is an artifact of needing to call OpenFAST from the same directory as DISCON.IN
+            # save starting file path 
+            original_path = os.getcwd()
+            # change path, run OpenFAST
+            os.chdir(fast_dir)
+            print('Running OpenFAST simulation for {} through the ROSCO toolbox...'.format(fastfile))
+            os.system('{} {}'.format(fastcall, os.path.join(fastfile)))
+            print('OpenFAST simulation complete. ')
+            # return to original path
+            os.chdir(original_path)
+        else:
+            # Run OpenFAST
+            print('Running OpenFAST simulation for {} through the ROSCO toolbox...'.format(fastfile))
+            os.system('{} {}'.format(fastcall, os.path.join(fast_dir,fastfile)))
+            print('OpenFAST simulation complete. ')
+
+
+    def load_FAST_out(self, filenames, tmin=0, tmax=10000, verbose=False):
         """Load a FAST binary or ascii output file
         Parameters
         ----------
