@@ -27,28 +27,17 @@ deg2rad = np.deg2rad(1)
 rpm2RadSec = 2.0*(np.pi)/60.0
 RadSec2rpm = 60/(2.0 * np.pi)
 
-class FAST_IO():
-    ''' 
-    A collection of utilities that may be useful for using the tools made accessbile in this toolbox with OpenFAST
-
-    A number of the file processing tools used here were provided by or modified from Emanual Branlard's weio library: https://github.com/ebranlard/weio. 
+class FAST_Plots():
+    '''
+    Some plotting utilities for OpenFAST data. 
 
     Methods:
-    --------
-    run_openfast
     plot_fast_out
-    load_output
-    load_ascii_output
-
+    plot_spectral
     '''
+
     def __init__(self):
         pass
-
-    def run_openfast(self,fast_dir,fastcall='OpenFAST',fastfile=None,chdir=False):
-        '''
-        Runs a openfast openfast simulation.
-        
-        ** Note ** 
         If running ROSCO, this function must be called from the same folder containing DISCON.IN,
             or the chdir flag must be turned on. This is an artifact of OpenFAST looking for DISCON.IN
             in the folder that it is called from. 
@@ -107,17 +96,8 @@ class FAST_IO():
         fignum: int, optional
             Define figure number. Note: Should only be used when plotting a singular case. 
         '''
-        # Plot cases
-        for case in cases.keys():
-            # channels to plot
-            plot_list = cases[case]
-             # instantiate plot and legend
-            fig, axes = plt.subplots(len(plot_list),1, sharex=True,num=fignum)
     
-            myleg = []
-            for info, data in zip(allinfo, alldata):
-                # Load desired attribute names for simplicity
-                channels = info['channels']
+    def plot_fast_out(self, cases, fast_dict, showplot=False, fignum=None, xlim=None):
                 # Define time
                 Time = np.ndarray.flatten(data[:,channels.index('Time')])
                 # write legend
