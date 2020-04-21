@@ -48,7 +48,7 @@ class FAST_Plots():
         cases : dict
             Dictionary of lists containing desired outputs
         fast_dict : dict
-            Dictionary of OpenFAST output information, output from load_output
+            Dictionary of OpenFAST output information, output from load_fast_out
         showplot: bool, optional
             Show the plot
         fignum: int, optional
@@ -126,7 +126,7 @@ class FAST_Plots():
         Parameters:
         -----------
         fast_dict : dict
-            Dictionary of OpenFAST output information, output from load_output
+            Dictionary of OpenFAST output information, output from load_fast_out
         cases : list of tuples (str, int)
             Dictionary of lists containing desired outputs. 
             Of the format (channel, case), i.e. [('RotSpeed', 0)]
@@ -227,7 +227,7 @@ class FAST_IO():
     Methods:
     --------
     run_openfast
-    load_output
+    load_fast_out
     load_ascii_output
     load_binary_output
     trim_output
@@ -283,28 +283,30 @@ class FAST_IO():
             print('OpenFAST simulation complete. ')
 
 
-    def load_FAST_out(self, filenames, tmin=0, tmax=10000, verbose=False):
+    def load_FAST_out(self, filenames, tmin=None, tmax=None, verbose=False):
         """Load a FAST binary or ascii output file
+        
         Parameters
         ----------
         filenames : list
             list of filenames
+        tmin : float, optional
+            initial time to trim output data to 
+        tmax : float, optional
+            final data to trim output data to
+        verbose : bool, optional
+            Print updates
+        
         Returns
         -------
-        data : list
-            list of ndarrays containing data values
-        info : list
-            List of info for each openfast output filecontaining:
-                - name: filename
-                - description: description of dataset
-                - channels: list of channel names
-                - attribute_units: list of attribute units
+        fastout: list
+            List of dictionaries containing OpenFAST output data.
         """
         if type(filenames) is str:
             filenames = [filenames]
             
-        data = []
-        info = []
+        # data = []
+        # info = []
         fastout = []
         for i, filename in enumerate(filenames):
             assert os.path.isfile(filename), "File, %s, does not exists" % filename
@@ -314,23 +316,21 @@ class FAST_IO():
                 try:
                     f.readline()
                 except UnicodeDecodeError:
-                    pass
-                    data_bin, info_bin = self.load_binary_output(filename)
-                    data_bin = self.trim_output(info_bin, data_bin, tmin, tmax)
-                    data.append(data_bin)
-                    info.append(info_bin)
+                    data, info = self.load_binary_output(filename)
                 else:
-                    data_ascii, info_ascii = self.load_ascii_output(filename)
-                    data_ascii = self.trim_output(info_ascii, data_ascii, tmin, tmax)
-                    data.append(data_ascii)
-                    info.append(info_ascii)
+                    data, info = self.load_ascii_output(filename)
 
-            alldata_dict = dict(zip(info[i]['channels'], data[i].T))
-            alldata_dict['meta'] =  info[i]
-            alldata_dict['meta']['filename'] =  filename
-            fastout.append(alldata_dict)
+            # Build dictionary
+            fast_data = dict(zip(info['channels'],data.T))
+            fast_data['meta'] = info
+            fast_data['meta']['filename'] = filename
+            fastout.append(fast_data)
 
-        # return info, data, fastout
+        # Trim outputs
+        if (tmin) or (tmax):
+            self.trim_output(fastout, tmin=tmin, tmax=tmax, verbose=verbose)
+
+        # return fastout
         return fastout
 
 
@@ -342,6 +342,17 @@ class FAST_IO():
         ----------
         filename : str
             filename
+        
+        Returns
+        -------
+        data : ndarray
+            data values
+        info : dict
+            info containing:
+                - name: filename
+                - description: description of dataset
+                - channels: list of attribute names
+                - attribute_units: list of attribute units
         '''
         with open(filename) as f:
             info = {}
@@ -537,20 +548,15 @@ class FAST_IO():
                 'attribute_units': ChanUnit}
         return data, info
 
-    def trim_output(self, info, data, tmin=0, tmax=100000):
+
+    def trim_output(self, fast_data, tmin=None, tmax=None, verbose=False):
         '''
         Trim loaded fast output data 
 
         Parameters
         ----------
-        info : dict
-            info from load_output containing:
-                - name: filename
-                - description: description of dataset
-                - channels: list of channel names
-                - attribute_units: list of attribute units
-        data : ndarray
-            output data from load_outputinfo
+        fast_data : list
+            List of all output data from load_fast_out (list containing dictionaries)
         tmin : float, optional
             start time
         tmax : float, optional
@@ -558,62 +564,47 @@ class FAST_IO():
         
         Returns
         -------
-        data : ndarray
-            input data ndarray with values trimed to times tmin and tmax
+        fast_data : list
+            list of dictionaries containing trimmed fast output data
         '''
-        # initial time array and associated index
-        time_init = np.ndarray.flatten(data[:, info['channels'].index('Time')])
-        Tinds = np.where(time_init<=tmin) 
-        Tinds = np.append(Tinds, np.where(time_init>=tmax))
-        tvals = [time.tolist() for time in time_init[Tinds]]
+        if isinstance(fast_data, dict):
+            fast_data = [fast_data]
 
-        # Delete all vales in data where time is not in desired range
-        data = np.delete(data, Tinds, 0)
 
-        # Reset time vector to zero
-        data[:, info['channels'].index('Time')] = np.ndarray.flatten(
-            data[:, info['channels'].index('Time')]) - tmin
-        return data
-
-    def trim_output_dict(self, fast_data, tmin=0, tmax=100000):
-        '''
-        Trim loaded fast output data 
-
-        Parameters
-        ----------
-        info : dict
-            info from load_output containing:
-                - name: filename
-                - description: description of dataset
-                - channels: list of channel names
-                - attribute_units: list of attribute units
-        fast_data : ndarray
-            List of all output data from load_outputinfo (list containing dictionaries)
-        tmin : float, optional
-            start time
-        tmax : float, optional
-            end time
-        
-        Returns
-        -------
-        data : ndarray
-            input data ndarray with values trimed to times tmin and tmax
-        '''
+                
         # initial time array and associated index
         for fd in fast_data:
-            # time_init = np.ndarray.flatten(data[:, fast_dict['channels'].index('Time')])
-            T0ind = np.searchsorted(fd['Time'], tmin)
-            Tfind = np.searchsorted(fd['Time'], tmax) + 1
-            # tvals = [time.tolist() for time in time_init[Tinds]]
+            if verbose:
+                if tmin: 
+                    tmin_v = str(tmin) + ' seconds'
+                else:  
+                    tmin_v = 'the beginning'
+                if tmax: 
+                    tmax_v = str(tmax) + ' seconds'
+                else: 
+                    tmax_v = 'the end'
+
+                print('Trimming output data for {} from {} to {}.'.format(fd['meta']['name'], tmin_v, tmax_v))
+            # Find time index range
+            if tmin:
+                T0ind = np.searchsorted(fd['Time'], tmin)
+            else:
+                T0ind = 0
+            if tmax:
+                Tfind = np.searchsorted(fd['Time'], tmax) + 1
+            else: 
+                Tfind = len(fd['Time'])
+            
+            # # Modify time
+            fd['Time'] = fd['Time'][T0ind:Tfind] - fd['Time'][T0ind]
 
             # Remove all vales in data where time is not in desired range
             for key in fd.keys():
-                if key.lower() == 'time':
-                    fd['Time'] = fd['Time'][T0ind:Tfind] - fd['Time'][T0ind]
-                elif key != 'meta':
+                if key.lower() not in ['time', 'meta']:
                     fd[key] = fd[key][T0ind:Tfind]
 
-            return fast_dict
+
+        return fast_data
 
 class FileProcessing():
     """
