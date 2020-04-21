@@ -1,2 +1,0 @@
-# Requirements list for ROSCO_toolbox (can add late)
-
