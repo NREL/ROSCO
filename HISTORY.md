@@ -1,6 +1,18 @@
 # History
 
 ---------------------
+## 2.1.0 - (2020-04-21)
+Mostly major updates to the post processing scripts. Some of these may be considered API changes, but we'll treat them as feature adds for now.
+
+A brief overview of major changes:
+- `load_output` is renamed to `load_fast_out`
+- `load_fast_out` now writes out a list of dictionaries containing openfast data, where each list item corresponds to an OpenFAST output case.
+- All plotting functions were moved to a class `FAST_plots`
+- `plot_fast_out` only receives the output from `load_fast_out` for the OpenFAST data to plot
+- `plot_spectral` is included for a number of frequency-domain based plotting capabilities
+- `trim_fast_out` is modified to only modify data passed in the new dictionary-based structure
+- some verbosity flags have been included
+---------------------
 ## 2.0.0 - (2020-03-04)
 Admittedly poor versioning since the last release. Lots of updates...
 
