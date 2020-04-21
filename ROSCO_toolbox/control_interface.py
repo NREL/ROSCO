@@ -67,9 +67,10 @@ class ControllerInterface():
         self.avrSWAP[0] = 0
 
         # Put some values in
-        self.avrSWAP[48] = len(self.param_name)
-        self.avrSWAP[49] = self.char_buffer
+        self.avrSWAP[58] = self.char_buffer
+        self.avrSWAP[49] = len(self.param_name)
         self.avrSWAP[50] = self.char_buffer
+        self.avrSWAP[51] = self.char_buffer
 
         # Initialize DISCON and related
         self.aviFAIL = c_int32() # 1

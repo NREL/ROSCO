@@ -116,7 +116,7 @@ cited as:
 For LaTeX users:
 
 ```
-    @misc{ROSCO_toolbox_2019,
+@misc{ROSCO_toolbox_2019,
     author = {NREL},
     title = {{ROSCO Toolbox. Version 0.1.0}},
     year = {2019},
