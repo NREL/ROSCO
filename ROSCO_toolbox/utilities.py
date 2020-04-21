@@ -13,8 +13,11 @@ import datetime
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from itertools import takewhile
+from matplotlib import transforms
+from itertools import takewhile, product
 import struct
+
+from wisdem.aeroelasticse.Util import spectral
 
 # Some useful constants
 now = datetime.datetime.now()
@@ -23,6 +26,197 @@ rad2deg = np.rad2deg(1)
 deg2rad = np.deg2rad(1)
 rpm2RadSec = 2.0*(np.pi)/60.0
 RadSec2rpm = 60/(2.0 * np.pi)
+
+class FAST_Plots():
+    '''
+    Some plotting utilities for OpenFAST data. 
+
+    Methods:
+    plot_fast_out
+    plot_spectral
+    '''
+
+    def __init__(self):
+        pass
+    
+    def plot_fast_out(self, cases, fast_dict, showplot=False, fignum=None, xlim=None):
+        '''
+        Plots OpenFAST outputs for desired channels
+
+        Parameters:
+        -----------
+        cases : dict
+            Dictionary of lists containing desired outputs
+        fast_dict : dict
+            Dictionary of OpenFAST output information, output from load_fast_out
+        showplot: bool, optional
+            Show the plot
+        fignum: int, optional
+            Define figure number. Note: Should only be used when plotting a singular case. 
+
+        Returns:
+        --------
+        figlist: list
+            list of figure handles
+        axeslist: list
+            list of axes handles
+        '''
+        figlist = []
+        axeslist = []
+        # Plot cases
+        for case in cases.keys():
+            # channels to plot
+            channels = cases[case]
+            # instantiate plot and legend
+            fig, axes = plt.subplots(len(channels), 1, sharex=True, num=fignum)
+
+            myleg = []
+            for fast_out in fast_dict:
+                # write legend
+                Time = fast_out['Time']
+                myleg.append(fast_out['meta']['name'])
+                if len(channels) > 1:  # Multiple channels
+                    for axj, channel in zip(axes, channels):
+                        try:
+                            # plot
+                            axj.plot(Time, fast_out[channel])
+                            # label
+                            unit_idx = fast_out['meta']['channels'].index(channel)
+                            axj.set(ylabel='{:^} \n ({:^})'.format(
+                                channel,
+                                fast_out['meta']['attribute_units'][unit_idx]))
+                            axj.grid(True)
+                        except:
+                            print('{} is not available as an output channel.'.format(channel))
+                    axes[0].set_title(case)
+                else:                   # Single channel
+                    try:
+                        # plot
+                        axes.plot(Time, fast_out[channel])
+                        # label
+                        axes.set(ylabel='{:^} \n ({:^})'.format(
+                            channel,
+                            fast_out['meta']['attribute_units'][unit_idx]))
+                        axes.grid(True)
+                        axes.set_title(case)
+                    except:
+                        print('{} is not available as an output channel.'.format(channel))
+                plt.legend(myleg, loc='upper center', bbox_to_anchor=(
+                    0.5, 0.0), borderaxespad=2, ncol=len(fast_dict))
+
+            figlist.append(fig)
+            axeslist.append(axes)
+
+            if xlim:
+                plt.xlim(xlim)
+
+        if showplot:
+            plt.show()
+
+        return figlist, axeslist
+
+    def plot_spectral(self, fast_dict, cases,
+                      averaging='None', averaging_window='Hann', detrend=False, nExp=None,
+                      show_RtSpeed=False, RtSpeed_idx=None,
+                      add_freqs=None, add_freq_labels=None,
+                      showplot=False, fignum=None):
+        '''
+        Plots OpenFAST outputs for desired channels
+
+        Parameters:
+        -----------
+        fast_dict : dict
+            Dictionary of OpenFAST output information, output from load_fast_out
+        cases : list of tuples (str, int)
+            Dictionary of lists containing desired outputs. 
+            Of the format (channel, case), i.e. [('RotSpeed', 0)]
+        averaging: str, optional
+            PSD averaging method. None, Welch
+        averaging_window: str, optional
+            PSD averaging window method. Hamming, Hann, Rectangular
+        detrend: bool, optional
+            Detrend data?
+        nExp: float, optional
+            Exponent for hamming windowing
+        show_RtSpeed: Bool, optional
+            Plot 1p and 3p rotor speeds for simulation cases plotted
+        RtSpeed_idx: ind, optional
+            Specify the index for the simulation case that the rotor speed is plotted from. 
+        add_freqs: list, optional
+            List of floats containing additional frequencies to plot lines of
+        add_freq_labels: list, optional
+            List of strings to label add_freqs
+        showplot: bool, optional
+            Show the plot
+        fignum: int, optional
+            Define figure number. Note: Should only be used when plotting a singular case. 
+
+        Returns:
+        -------
+        fig, ax - corresponds to generated figure
+        '''
+        if averaging.lower() not in ['none', 'welch']:
+            raise ValueError('{} is not a supported averaging method.'.format(averaging))
+
+        if averaging_window.lower() not in ['hamming', 'hann', 'rectangular']:
+            raise ValueError('{} is not a supported averaging window.'.format(averaging_window))
+
+        fig, ax = plt.subplots(num=fignum)
+
+        leg = []
+        for channel, run in cases:
+            try:
+                # Find time
+                Time = fast_dict[run]['Time']
+                # Load PSD
+                fq, y, info = spectral.fft_wrap(
+                    Time, fast_dict[run][channel], averaging=averaging, averaging_window=averaging_window, detrend=detrend, nExp=nExp)
+                # Plot data
+                plt.loglog(fq, y, label='{}, run: {}'.format(channel, str(run)))
+            except:
+                print('{} is not an available channel in run {}'.format(channel, str(run)))
+        # Show rotor speed range (1P, 3P, 6P?)
+        if show_RtSpeed:
+            if not RtSpeed_idx:
+                RtSpeed_idx = [0]
+                print('No rotor speed run indices defined, plotting spectral range for the first run only.')
+            for rt_idx in RtSpeed_idx:
+                f_1P_min = min(fast_dict[rt_idx]['RotSpeed']) / 60.  # Hz
+                f_1P_max = max(fast_dict[rt_idx]['RotSpeed']) / 60.
+                f_3P_min = f_1P_min*3
+                f_3P_max = f_1P_max*3
+                f_6P_min = f_1P_min*6
+                f_6P_max = f_1P_max*6
+                plt.axvspan(f_1P_min, f_1P_max, alpha=0.5, color=[0.7, 0.7, 0.7], label='1P')
+                plt.axvspan(f_3P_min, f_3P_max, alpha=0.5, color=[0.8, 0.8, 0.8], label='3P')
+                # if f_6P_min<1.:
+                #     plt.axvspan(f_6P_min, f_6P_max, alpha=0.5, color=[0.9,0.9,0.9], label='6P')
+
+        # Add specific frequencies if desired
+        if add_freqs:
+            co = np.linspace(0.3, 0.0, len(add_freqs))
+            if add_freq_labels is None:
+                add_freq_labels = [None]*len(add_freqs)
+            for freq, flabel, c in zip(add_freqs, add_freq_labels, co):
+                plt.axvline(freq, color=[c, c, c])  # , label=flabel)
+                trans = transforms.blended_transform_factory(ax.transData, ax.transAxes)
+                plt.text(freq+(10**np.floor(np.log10(freq))/10), 0.01, flabel, transform=trans)
+
+        # Formatting
+        plt.legend(loc='best')
+        if len(list(cases)) > 1:
+            plt.ylabel('PSD')
+        else:
+            unit_idx = fast_dict[run]['meta']['channels'].index(channel)
+            plt.ylabel(
+                'PSD ({}$^2$/Hz)'.format(fast_dict[run]['meta']['attribute_units'][unit_idx]))
+        plt.xlabel('Frequency (Hz)')
+        plt.grid(True)
+
+        if showplot:
+            plt.show()
+
+        return fig, ax
 
 class FAST_IO():
     ''' 
@@ -33,9 +227,10 @@ class FAST_IO():
     Methods:
     --------
     run_openfast
-    plot_fast_out
-    load_output
+    load_fast_out
     load_ascii_output
+    load_binary_output
+    trim_output
 
     '''
     def __init__(self):
@@ -87,118 +282,57 @@ class FAST_IO():
             os.system('{} {}'.format(fastcall, os.path.join(fast_dir,fastfile)))
             print('OpenFAST simulation complete. ')
 
-    def plot_fast_out(self, cases, allinfo, alldata, showplot=True, fignum=None, xlim=None):
-        '''
-        Plots OpenFAST outputs for desired channels
 
-        Parameters:
-        -----------
-        cases : dict
-            Dictionary of lists containing desired outputs
-        allinfo : list
-            List of OpenFAST output information, output from load_output
-        alldata: list
-            List of OpenFAST output data, output from load_output
-        showplot: bool, optional
-            Show the plot
-        fignum: int, optional
-            Define figure number. Note: Should only be used when plotting a singular case. 
-        '''
-        # Plot cases
-        for case in cases.keys():
-            # channels to plot
-            plot_list = cases[case]
-             # instantiate plot and legend
-            fig, axes = plt.subplots(len(plot_list),1, sharex=True,num=fignum)
-    
-            myleg = []
-            for info, data in zip(allinfo, alldata):
-                # Load desired attribute names for simplicity
-                channels = info['channels']
-                # Define time
-                Time = np.ndarray.flatten(data[:,channels.index('Time')])
-                # write legend
-                myleg.append(info['name'])
-                if len(plot_list) > 1:  # Multiple channels
-                    for axj, plot_case in zip(axes, plot_list):
-                        try: 
-                            # plot
-                            axj.plot(Time, (data[:,channels.index(plot_case)]))
-                            # label
-                            axj.set(ylabel = '{:^} \n ({:^})'.format(plot_case, info['attribute_units'][channels.index(plot_case)]))
-                            axj.grid(True)
-                        except:
-                            print('{} is not available as an output channel.'.format(plot_case))
-                    axes[0].set_title(case)
-                else:                   # Single channel
-                    try:
-                        # plot
-                        axes.plot(Time, (data[:,channels.index(plot_list[0])]))
-                        # label
-                        axes.set(ylabel = plot_list[0])
-                        axes.grid(True)
-                        axes.set_title(case)
-                    except:
-                            print('{} is not available as an output channel.'.format(plot_list[0]))
-                plt.legend(myleg,loc='upper center',bbox_to_anchor=(0.5, 0.0), borderaxespad=2, ncol=len(alldata))
-            if xlim:
-                plt.xlim(xlim)
-        if showplot:
-            plt.draw()
-
-        
-    def load_output(self, filenames, output_dict=False, tmin=0, tmax=10000):
+    def load_FAST_out(self, filenames, tmin=None, tmax=None, verbose=False):
         """Load a FAST binary or ascii output file
+        
         Parameters
         ----------
         filenames : list
             list of filenames
+        tmin : float, optional
+            initial time to trim output data to 
+        tmax : float, optional
+            final data to trim output data to
+        verbose : bool, optional
+            Print updates
+        
         Returns
         -------
-        data : list
-            list of ndarrays containing data values
-        info : list
-            List of info for each openfast output filecontaining:
-                - name: filename
-                - description: description of dataset
-                - channels: list of channel names
-                - attribute_units: list of attribute units
+        fastout: list
+            List of dictionaries containing OpenFAST output data.
         """
         if type(filenames) is str:
             filenames = [filenames]
             
-        data = []
-        info = []
-        fastout_dict = {}
-        fastout_dict['filenames'] = []
+        # data = []
+        # info = []
+        fastout = []
         for i, filename in enumerate(filenames):
             assert os.path.isfile(filename), "File, %s, does not exists" % filename
             with open(filename, 'r') as f:
+                if verbose:
+                    print('Loading data from {}'.format(filename))
                 try:
                     f.readline()
                 except UnicodeDecodeError:
-                    pass
-                    data_bin, info_bin = self.load_binary_output(filename)
-                    data_bin = self.trim_output(info_bin, data_bin, tmin, tmax)
-                    data.append(data_bin)
-                    info.append(info_bin)
+                    data, info = self.load_binary_output(filename)
                 else:
-                    data_ascii, info_ascii = self.load_ascii_output(filename)
-                    data_ascii = self.trim_output(info_ascii, data_ascii, tmin, tmax)
-                    data.append(data_ascii)
-                    info.append(info_ascii)
-        
-                if output_dict:
-                    for channel in info[-1]['channels']:
-                        if channel not in fastout_dict.keys():
-                            fastout_dict[channel] = []
-                        fastout_dict[channel].append(
-                            np.array(data[-1][:, info[-1]['channels'].index(channel)]).tolist())
-                    fastout_dict['filenames'].append(filename)
-        if output_dict:
-            return info, data, fastout_dict
-        else:
-            return info, data
+                    data, info = self.load_ascii_output(filename)
+
+            # Build dictionary
+            fast_data = dict(zip(info['channels'],data.T))
+            fast_data['meta'] = info
+            fast_data['meta']['filename'] = filename
+            fastout.append(fast_data)
+
+        # Trim outputs
+        if (tmin) or (tmax):
+            self.trim_output(fastout, tmin=tmin, tmax=tmax, verbose=verbose)
+
+        # return fastout
+        return fastout
+
 
     def load_ascii_output(self, filename):
         '''
@@ -208,9 +342,19 @@ class FAST_IO():
         ----------
         filename : str
             filename
+        
+        Returns
+        -------
+        data : ndarray
+            data values
+        info : dict
+            info containing:
+                - name: filename
+                - description: description of dataset
+                - channels: list of attribute names
+                - attribute_units: list of attribute units
         '''
         with open(filename) as f:
-            print('Loading data from {}'.format(filename))
             info = {}
             info['name'] = os.path.splitext(os.path.basename(filename))[0]
             # Header is whatever is before the keyword `time`
@@ -307,7 +451,6 @@ class FAST_IO():
         LenUnit = 10  #;  % number of characters per unit name
 
         with open(filename, 'rb') as fid:
-            print('Loading data from {}'.format(filename))
             FileID = fread(fid, 1, 'int16')[0]  #;             % FAST output file format, INT(2)
             if FileID not in [FileFmtID_WithTime, FileFmtID_WithoutTime]:
                 raise Exception('FileID not supported {}. Is it a FAST binary file?'.format(FileID))
@@ -405,20 +548,15 @@ class FAST_IO():
                 'attribute_units': ChanUnit}
         return data, info
 
-    def trim_output(self, info, data, tmin=0, tmax=100000):
+
+    def trim_output(self, fast_data, tmin=None, tmax=None, verbose=False):
         '''
         Trim loaded fast output data 
 
         Parameters
         ----------
-        info : dict
-            info from load_output containing:
-                - name: filename
-                - description: description of dataset
-                - channels: list of channel names
-                - attribute_units: list of attribute units
-        data : ndarray
-            output data from load_outputinfo
+        fast_data : list
+            List of all output data from load_fast_out (list containing dictionaries)
         tmin : float, optional
             start time
         tmax : float, optional
@@ -426,23 +564,47 @@ class FAST_IO():
         
         Returns
         -------
-        data : ndarray
-            input data ndarray with values trimed to times tmin and tmax
+        fast_data : list
+            list of dictionaries containing trimmed fast output data
         '''
+        if isinstance(fast_data, dict):
+            fast_data = [fast_data]
+
+
+                
         # initial time array and associated index
-        time_init = np.ndarray.flatten(data[:, info['channels'].index('Time')])
-        Tinds = np.where(time_init<=tmin) 
-        Tinds = np.append(Tinds, np.where(time_init>=tmax))
-        tvals = [time.tolist() for time in time_init[Tinds]]
+        for fd in fast_data:
+            if verbose:
+                if tmin: 
+                    tmin_v = str(tmin) + ' seconds'
+                else:  
+                    tmin_v = 'the beginning'
+                if tmax: 
+                    tmax_v = str(tmax) + ' seconds'
+                else: 
+                    tmax_v = 'the end'
 
-        # Delete all vales in data where time is not in desired range
-        data = np.delete(data, Tinds, 0)
+                print('Trimming output data for {} from {} to {}.'.format(fd['meta']['name'], tmin_v, tmax_v))
+            # Find time index range
+            if tmin:
+                T0ind = np.searchsorted(fd['Time'], tmin)
+            else:
+                T0ind = 0
+            if tmax:
+                Tfind = np.searchsorted(fd['Time'], tmax) + 1
+            else: 
+                Tfind = len(fd['Time'])
+            
+            # # Modify time
+            fd['Time'] = fd['Time'][T0ind:Tfind] - fd['Time'][T0ind]
 
-        # Reset time vector to zero
-        data[:, info['channels'].index('Time')] = np.ndarray.flatten(
-            data[:, info['channels'].index('Time')]) - tmin
-        return data
+            # Remove all vales in data where time is not in desired range
+            for key in fd.keys():
+                if key.lower() not in ['time', 'meta']:
+                    fd[key] = fd[key][T0ind:Tfind]
 
+
+        return fast_data
 
 class FileProcessing():
     """
