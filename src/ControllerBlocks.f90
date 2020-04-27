@@ -188,7 +188,7 @@ CONTAINS
                 F(2,3) = PI * v_t/(2.0*L)
 
                 ! Update process noise covariance
-                Q(1,1) = 0.00001
+                Q(1,1) = 0.0005
                 Q(2,2) =(PI * (v_m**3.0) * (Ti**2.0)) / L
                 Q(3,3) = (2.0**2.0)/600.0
 
