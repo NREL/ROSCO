@@ -195,7 +195,7 @@ CONTAINS
                 ! Prediction update
                 Tau_r = AeroDynTorque(LocalVar,CntrPar,PerfData)
                 a = PI * v_m/(2.0*L)
-                dxh(1,1) = 1.0/CntrPar%WE_Jtot * (Tau_r - CntrPar%WE_GearboxRatio * LocalVar%VS_LastGenTrq)
+                dxh(1,1) = 1.0/CntrPar%WE_Jtot * (Tau_r - CntrPar%WE_GearboxRatio * LocalVar%VS_LastGenTrqF)
                 dxh(2,1) = -a*v_t
                 dxh(3,1) = 0.0
                 
