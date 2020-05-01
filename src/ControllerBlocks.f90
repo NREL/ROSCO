@@ -243,7 +243,7 @@ CONTAINS
         ! ------ Setpoint Smoothing ------
         IF ( CntrPar%SS_Mode == 1) THEN
             ! Find setpoint shift amount
-            DelOmega = ((LocalVar%BlPitch(1) - CntrPar%PC_MinPit)/0.524) * CntrPar%SS_VSGain - ((CntrPar%VS_RtTq - LocalVar%VS_LastGenTrq))/CntrPar%VS_RtTq * CntrPar%SS_PCGain ! Normalize to 30 degrees for now
+            DelOmega = ((LocalVar%PC_PitComT - CntrPar%PC_MinPit)/0.524) * CntrPar%SS_VSGain - ((CntrPar%VS_RtTq - LocalVar%VS_LastGenTrq))/CntrPar%VS_RtTq * CntrPar%SS_PCGain ! Normalize to 30 degrees for now
             DelOmega = DelOmega * CntrPar%PC_RefSpd
             ! Filter
             LocalVar%SS_DelOmegaF = LPFilter(DelOmega, LocalVar%DT, CntrPar%F_SSCornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF) 
@@ -267,11 +267,6 @@ CONTAINS
         REAL(4)                     :: V_towertop ! Estimated velocity of tower top (m/s)
         REAL(4)                     :: Vhat     ! Estimated wind speed without towertop motion [m/s]
         REAL(4)                     :: Vhatf     ! 30 second low pass filtered Estimated wind speed without towertop motion [m/s]
-
-        ! Account for towertop motions in wind speed estimate
-        !       Integrate Towertop Acceleration  
-        ! dV_towertop = 
-        ! V_towertop = PIController(LocalVar%FA_Acc, 0.0, 1.0, -100.00, 100.00, LocalVar%DT, 0.0, .FALSE., objInst%instPI)
 
         Vhat = LocalVar%WE_Vw
         Vhatf = LPFilter(Vhat,LocalVar%DT,0.2,LocalVar%iStatus,.FALSE.,objInst%instLPF)
