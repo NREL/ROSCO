@@ -154,8 +154,8 @@ CONTAINS
         ! Extended Kalman Filter (EKF) implementation
         ELSEIF (CntrPar%WE_Mode == 2) THEN
             ! Define contant values
-            L = 4.0 * CntrPar%WE_BladeRadius
-            Ti = 0.2
+            L = 6.0 * CntrPar%WE_BladeRadius
+            Ti = 0.18
             R_m = 0.02
             H = RESHAPE((/1.0 , 0.0 , 0.0/),(/1,3/))
             ! Define matrices to be filled
@@ -188,7 +188,7 @@ CONTAINS
                 F(2,3) = PI * v_t/(2.0*L)
 
                 ! Update process noise covariance
-                Q(1,1) = 0.0005
+                Q(1,1) = 0.00001
                 Q(2,2) =(PI * (v_m**3.0) * (Ti**2.0)) / L
                 Q(3,3) = (2.0**2.0)/600.0
 
@@ -218,7 +218,7 @@ CONTAINS
 
         ELSE        
             ! Define Variables
-            F_WECornerFreq = 0.0333  ! Fix to 30 second time constant for now    
+            F_WECornerFreq = 0.20944  ! Fix to 30 second time constant for now    
 
             ! Filter wind speed at hub height as directly passed from OpenFAST
             LocalVar%WE_Vw = LPFilter(LocalVar%HorWindV, LocalVar%DT, F_WECornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
