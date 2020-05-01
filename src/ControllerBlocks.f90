@@ -149,7 +149,7 @@ CONTAINS
         IF (CntrPar%WE_Mode == 1) THEN      
             LocalVar%WE_VwIdot = CntrPar%WE_Gamma/CntrPar%WE_Jtot*(LocalVar%VS_LastGenTrq*CntrPar%WE_GearboxRatio - AeroDynTorque(LocalVar, CntrPar, PerfData))
             LocalVar%WE_VwI = LocalVar%WE_VwI + LocalVar%WE_VwIdot*LocalVar%DT
-            LocalVar%WE_Vw = LocalVar%WE_VwI + CntrPar%WE_Gamma*LocalVar%RotSpeed
+            LocalVar%WE_Vw = LocalVar%WE_VwI + CntrPar%WE_Gamma*LocalVar%RotSpeedF
 
         ! Extended Kalman Filter (EKF) implementation
         ELSEIF (CntrPar%WE_Mode == 2) THEN
@@ -163,7 +163,7 @@ CONTAINS
             Q = RESHAPE((/0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0/),(/3,3/))
             IF (LocalVar%iStatus == 0) THEN
                 ! Initialize recurring values
-                om_r = LocalVar%RotSpeed
+                om_r = LocalVar%RotSpeedF
                 v_t = 0.0
                 v_m = LocalVar%HorWindV
                 v_h = LocalVar%HorWindV
@@ -175,9 +175,9 @@ CONTAINS
                 ! Find estimated operating Cp and system pole
                 A_op = interp1d(CntrPar%WE_FOPoles_v,CntrPar%WE_FOPoles,v_h)
 
-                ! TEST INTERP2D
-                lambda = LocalVar%RotSpeed * CntrPar%WE_BladeRadius/v_h
-                Cp_op = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%BlPitch(1)*R2D, lambda )
+                ! Find Cp
+                lambda = LocalVar%RotSpeedF * CntrPar%WE_BladeRadius/v_h
+                Cp_op = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%PC_PitComTF*R2D, lambda)
                 Cp_op = max(0.0,Cp_op)
                 
                 ! Update Jacobian
@@ -205,7 +205,7 @@ CONTAINS
                 ! Measurement update
                 S = MATMUL(H,MATMUL(P,TRANSPOSE(H))) + R_m        ! NJA: (H*T*H') \approx 0
                 K = MATMUL(P,TRANSPOSE(H))/S(1,1)
-                xh = xh + K*(LocalVar%GenSpeedF/CntrPar%WE_GearboxRatio - om_r)
+                xh = xh + K*(LocalVar%RotSpeedF - om_r)
                 P = MATMUL(identity(3) - MATMUL(K,H),P)
                 
                 ! Wind Speed Estimate
