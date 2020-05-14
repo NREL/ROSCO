@@ -268,8 +268,9 @@ CONTAINS
         REAL(4)                     :: Vhat     ! Estimated wind speed without towertop motion [m/s]
         REAL(4)                     :: Vhatf     ! 30 second low pass filtered Estimated wind speed without towertop motion [m/s]
 
-        Vhat = LocalVar%WE_Vw
-        Vhatf = LPFilter(Vhat,LocalVar%DT,0.2,LocalVar%iStatus,.FALSE.,objInst%instLPF)
+        V_towertop = PIController(LocalVar%FA_Acc, 0.0, 1.0, -100.0, 100.0, LocalVar%DT, 0.0, .FALSE., objInst%instPI)
+        Vhat = LocalVar%WE_Vw_F + V_towertop
+        Vhatf = SecLPFilter(Vhat,LocalVar%DT,0.21,0.7,LocalVar%iStatus,.FALSE.,objInst%instSecLPF) ! 30 second time constant
         
         ! Define minimum blade pitch angle as a function of estimated wind speed
         PitchSaturation = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, Vhatf)
