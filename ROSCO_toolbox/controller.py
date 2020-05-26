@@ -318,7 +318,18 @@ class Controller():
         for i, _ in enumerate(self.v):
             turbine.cc_rotor.induction_inflow=True
             # Axial and tangential inductions
-            a, ap, alpha0, cl, cd = turbine.cc_rotor.distributedAeroLoads(self.v[i], self.omega_op[i], self.pitch_op[i], 0.0)
+            try: 
+                a, ap, alpha0, cl, cd = turbine.cc_rotor.distributedAeroLoads(
+                                                self.v[i], self.omega_op[i], self.pitch_op[i], 0.0)
+            except ValueError:
+                loads, derivs = turbine.cc_rotor.distributedAeroLoads(
+                                                self.v[i], self.omega_op[i], self.pitch_op[i], 0.0)
+                a = loads['a']
+                ap = loads['ap']
+                alpha0 = loads['alpha']
+                cl = loads['Cl']
+                cd = loads['Cd']
+                 
             # Relative windspeed
             v_rel.append([np.sqrt(self.v[i]**2*(1-a)**2 + self.omega_op[i]**2*turbine.span**2*(1-ap)**2)])
             # Inflow wind direction
