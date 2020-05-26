@@ -306,8 +306,13 @@ class Turbine():
 
         # Get values from cc-blade
         print('Running CCBlade aerodynamic analysis, this may take a minute...')
-        # P, T, Q, M, CP, CT, CQ, CM = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
-        _, _, _, _, CP, CT, CQ, _ = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
+        try:
+            _, _, _, _, CP, CT, CQ, _ = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
+        except ValueError: # On IEAontology4all
+            outputs, derivs = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
+            CP = outputs['CP']
+            CT = outputs['CT']
+            CQ = outputs['CQ']
         print('CCBlade aerodynamic analysis run successfully.')
 
         # Reshape Cp, Ct and Cq
@@ -321,6 +326,11 @@ class Turbine():
         self.Cp_table = Cp
         self.Ct_table = Ct 
         self.Cq_table = Cq
+        
+        # Save some blade parameters
+        self.span = r
+        self.chord = chord
+        self.twist = theta
     
     def load_blade_info(self):
         '''
@@ -343,7 +353,8 @@ class Turbine():
         # Make sure cc_rotor exists for DAC analysis
         try:
             if self.cc_rotor:
-                pass
+                self.af_data = self.fast.fst_vt['AeroDyn15']['af_data']
+                self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade']['BldFlDmp1']/100 * 0.7
         except AttributeError:
             # Create CC-Blade Rotor
             r0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlSpn']) 
@@ -389,12 +400,12 @@ class Turbine():
             self.cc_rotor = CCBlade(r, chord, theta, af, self.Rhub, self.rotor_radius, self.NumBl, rho=self.rho, mu=self.mu,
                             precone=-self.precone, tilt=-self.tilt, yaw=self.yaw, shearExp=self.shearExp, hubHt=self.hubHt, nSector=nSector)
 
-        # Save some blade  data 
-        self.af_data = self.fast.fst_vt['AeroDyn15']['af_data']
-        self.span = r 
-        self.chord = chord
-        self.twist = theta
-        self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade']['BldFlDmp1']/100 * 0.7
+            # Save some blade  data 
+            self.af_data = self.fast.fst_vt['AeroDyn15']['af_data']
+            self.span = r 
+            self.chord = chord
+            self.twist = theta
+            self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade']['BldFlDmp1']/100 * 0.7
 
 class RotorPerformance():
     '''
