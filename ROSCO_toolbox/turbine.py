@@ -194,7 +194,7 @@ class Turbine():
             self.precone = fast.fst_vt['ElastoDyn']['PreCone(1)']
         self.yaw = 0.0
         self.J = self.rotor_inertia + self.generator_inertia * self.Ng**2
-        self.rated_torque = self.rated_power/(self.GenEff/100*self.rated_rotor_speed*self.Ng)
+        self.rated_torque = self.rated_power/(self.GenEff/100*self.rated_rotor_speed*self.Ng*self.GBoxEff/100)
         self.max_torque = self.rated_torque * 1.1
         self.rotor_radius = self.TipRad
         # self.omega_dt = np.sqrt(self.DTTorSpr/self.J)
