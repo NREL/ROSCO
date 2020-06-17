@@ -17,6 +17,7 @@ from scipy import interpolate
 from numpy import gradient
 import pickle
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from ROSCO_toolbox import utilities as ROSCO_utilities
 
@@ -331,6 +332,187 @@ class Turbine():
         self.span = r
         self.chord = chord
         self.twist = theta
+    
+    def generate_rotperf_fast(self, openfast_path, FAST_runDirectory=None, run_BeamDyn=False,
+                              debug_level=1, run_type='multi'):
+        '''
+        Use openfast to generate Cp surface data. Will be slow, especially if using BeamDyn,
+        but may be necessary if cc-blade is not sufficient.
+        NOTE: Needs processing
+        '''
+
+        # Load additional WISDEM tools
+        from wisdem.aeroelasticse import runFAST_pywrapper, CaseGen_General
+        from wisdem.aeroelasticse.Util import FileTools
+        # Load pCrunch tools
+        from pCrunch import pdTools, Processing
+
+
+        # setup values for surface
+        v0 = self.v_rated + 2
+        TSR_initial = np.arange(3, 15,1)
+        pitch_initial = np.arange(-1,25,1)
+        rotspeed_initial = TSR_initial*v0/self.rotor_radius * RadSec2rpm # rpms
+
+        # Specify Case Inputs
+        case_inputs = {}
+
+        # ------- Setup OpenFAST inputs --------
+        case_inputs[('Fst','TMax')] = {'vals': [330], 'group': 0}
+        case_inputs[('Fst','CompInflow')] = {'vals': [1], 'group': 0}
+        case_inputs[('Fst','CompAero')] = {'vals': [2], 'group': 0}
+        case_inputs[('Fst','CompServo')] = {'vals': [1], 'group': 0}
+        case_inputs[('Fst','CompHydro')] = {'vals': [0], 'group': 0}
+        if run_BeamDyn:
+            case_inputs[('Fst','CompElast')] = {'vals': [2], 'group': 0}
+        else:
+            case_inputs[('Fst','CompElast')] = {'vals': [1], 'group': 0}
+        case_inputs[('Fst', 'OutFileFmt')] = {'vals': [2], 'group': 0}
+
+        # AeroDyn15
+        case_inputs[('AeroDyn15', 'WakeMod')] = {'vals': [1], 'group': 0}
+        case_inputs[('AeroDyn15', 'AfAeroMod')] = {'vals': [1], 'group': 0}
+        case_inputs[('AeroDyn15', 'TwrPotent')] = {'vals': [0], 'group': 0}
+        
+        # ElastoDyn
+        case_inputs[('ElastoDyn', 'FlapDOF1')] = {'vals': ['True'], 'group': 0}
+        case_inputs[('ElastoDyn', 'FlapDOF2')] = {'vals': ['True'], 'group': 0}
+        case_inputs[('ElastoDyn', 'EdgeDOF')] = {'vals': ['True'], 'group': 0}
+        case_inputs[('ElastoDyn', 'TeetDOF')] = {'vals': ['False'], 'group': 0}
+        case_inputs[('ElastoDyn', 'DrTrDOF')] = {'vals': ['False'], 'group': 0}
+        case_inputs[('ElastoDyn', 'GenDOF')] = {'vals': ['False'], 'group': 0}
+        case_inputs[('ElastoDyn', 'YawDOF')] = {'vals': ['False'], 'group': 0}
+        case_inputs[('ElastoDyn', 'TwFADOF1')] = {'vals': ['False'], 'group': 0}
+        case_inputs[('ElastoDyn', 'TwFADOF2')] = {'vals': ['False'], 'group': 0}
+        case_inputs[('ElastoDyn', 'TwSSDOF1')] = {'vals': ['False'], 'group': 0}
+        case_inputs[('ElastoDyn', 'TwSSDOF2')] = {'vals': ['False'], 'group': 0}
+        case_inputs[('ElastoDyn', 'PtfmSgDOF')] = {'vals': ['False'], 'group': 0}
+        case_inputs[('ElastoDyn', 'PtfmSwDOF')] = {'vals': ['False'], 'group': 0}
+        case_inputs[('ElastoDyn', 'PtfmHvDOF')] = {'vals': ['False'], 'group': 0}
+        case_inputs[('ElastoDyn', 'PtfmRDOF')] = {'vals': ['False'], 'group': 0}
+        case_inputs[('ElastoDyn', 'PtfmPDOF')] = {'vals': ['False'], 'group': 0}
+        case_inputs[('ElastoDyn', 'PtfmYDOF')] = {'vals': ['False'], 'group': 0}
+
+        # BeamDyn
+        # NEEDED
+
+        # InflowWind
+        case_inputs[('InflowWind', 'WindType')] = {'vals': [1], 'group': 0}
+        case_inputs[('InflowWind', 'HWindSpeed')] = {'vals': [v0], 'group': 0}
+        case_inputs[('InflowWind', 'PLexp')] = {'vals': [0], 'group': 0}
+
+        # ServoDyn
+        case_inputs[('ServoDyn', 'PCMode')] = {'vals': [0], 'group': 0}
+        case_inputs[('ServoDyn', 'VSContrl')] = {'vals': [0], 'group': 0} 
+        case_inputs[('ServoDyn', 'HSSBrMode')] = {'vals': [0], 'group': 0}
+        case_inputs[('ServoDyn', 'YCMode')] = {'vals': [0], 'group': 0}
+
+        # ------- Setup sweep values inputs --------
+        case_inputs[('ElastoDyn', 'BlPitch1')] = {'vals': list(pitch_initial), 'group': 1}
+        case_inputs[('ElastoDyn', 'BlPitch2')] = {'vals': list(pitch_initial), 'group': 1}
+        case_inputs[('ElastoDyn', 'BlPitch3')] = {'vals': list(pitch_initial), 'group': 1}
+        case_inputs[('ElastoDyn', 'RotSpeed')] = {'vals': list(rotspeed_initial), 'group': 2}
+
+
+        # FAST details
+        fastBatch = runFAST_pywrapper.runFAST_pywrapper_batch(FAST_ver='OpenFAST', dev_branch=True)
+        fastBatch.FAST_exe = openfast_path  # Path to executable
+        fastBatch.FAST_InputFile = self.fast.FAST_InputFile
+        fastBatch.FAST_directory = self.fast.FAST_directory
+        if not FAST_runDirectory:
+            FAST_runDirectory = os.path.join(os.getcwd(), 'RotPerf_OpenFAST')
+        fastBatch.FAST_runDirectory = FAST_runDirectory
+        fastBatch.debug_level = debug_level
+
+        # Generate cases
+        case_name_base = self.TurbineName + '_rotperf'
+        case_list, case_name_list = CaseGen_General.CaseGen_General(
+            case_inputs, dir_matrix=fastBatch.FAST_runDirectory, namebase=case_name_base)
+        fastBatch.case_list = case_list
+        fastBatch.case_name_list = case_name_list
+
+        # Make sure proper outputs exist
+        var_out = [
+            # ElastoDyn (this is probably overkill on the outputs)
+            "BldPitch1", "BldPitch2", "BldPitch3", "Azimuth", "RotSpeed", "GenSpeed", "NacYaw",
+            "OoPDefl1", "IPDefl1", "TwstDefl1", "OoPDefl2", "IPDefl2", "TwstDefl2", "OoPDefl3",
+            "IPDefl3", "TwstDefl3", "RootFxc1",
+            "RootFyc1", "RootFzc1", "RootMxc1", "RootMyc1", "RootMzc1", "RootFxc2", "RootFyc2",
+            "RootFzc2", "RootMxc2", "RootMyc2", "RootMzc2", "RootFxc3", "RootFyc3", "RootFzc3",
+            "RootMxc3", "RootMyc3", "RootMzc3", "Spn1MLxb1", "Spn1MLyb1", "Spn1MLzb1", "Spn1MLxb2",
+            "Spn1MLyb2", "Spn1MLzb2", "Spn1MLxb3", "Spn1MLyb3", "Spn1MLzb3", "RotThrust", "LSSGagFya",
+            "LSSGagFza", "RotTorq", "LSSGagMya", "LSSGagMza", 
+            # ServoDyn
+            "GenPwr", "GenTq",
+            # AeroDyn15
+            "RtArea", "RtVAvgxh", "B1N3Clrnc", "B2N3Clrnc", "B3N3Clrnc",
+            "RtAeroCp", 'RtAeroCq', 'RtAeroCt', 'RtTSR', # NECESSARY
+            # InflowWind
+            "Wind1VelX", 
+        ]
+        channels = {}
+        for var in var_out:
+            channels[var] = True
+        fastBatch.channels = channels
+
+        # Run OpenFAST
+        if run_type.lower() == 'multi':
+            fastBatch.run_multi()
+        elif run_type.lower()=='MPI':
+            fastBatch.run_mpi()
+        elif run_type.lower()=='serial':
+            fastBatch.run_serial()
+
+        # ========== Post Processing ==========
+        # Save statistics
+        fp = Processing.FAST_Processing()
+
+        # Find all outfiles
+        fname_case_matrix = os.path.join(FAST_runDirectory, 'case_matrix.yaml')
+        case_matrix = FileTools.load_yaml(fname_case_matrix, package=1)
+        cm = pd.DataFrame(case_matrix)
+        # Parse case matrix and find outfiles names
+        outfiles = []
+        case_names = cm['Case_Name']
+        outfiles = []
+        for name in case_names:
+            outfiles.append(os.path.join(FAST_runDirectory, name + '.outb'))
+
+
+
+        # Set some processing parameters
+        fp.OpenFAST_outfile_list = outfiles
+        fp.namebase = case_name_base
+        fp.t0 = 270 
+        fp.parallel_analysis = True
+        fp.results_dir = os.path.join(FAST_runDirectory,'stats')
+        fp.verbose = True
+        # Save for debug!
+        fp.save_LoadRanking = False
+        fp.save_SummaryStats = False
+
+        print('Processing openfast data on {} cores.'.format(fp.parallel_cores))
+
+        # Load and save statistics and load rankings
+        stats, load_rankings = fp.batch_processing()
+
+        # Get means of last 30 seconds of 300 second simulation
+        CP = stats[0]['RtAeroCp']['mean']
+        CT = stats[0]['RtAeroCt']['mean']
+        CQ = stats[0]['RtAeroCq']['mean']
+
+        # Reshape Cp, Ct and Cq
+        Cp = np.transpose(np.reshape(CP, (len(pitch_initial), len(TSR_initial))))
+        Ct = np.transpose(np.reshape(CT, (len(pitch_initial), len(TSR_initial))))
+        Cq = np.transpose(np.reshape(CQ, (len(pitch_initial), len(TSR_initial))))
+
+        # Store necessary metrics for analysis
+        self.pitch_initial_rad = pitch_initial * deg2rad
+        self.TSR_initial = TSR_initial
+        self.Cp_table = Cp
+        self.Ct_table = Ct
+        self.Cq_table = Cq
+
     
     def load_blade_info(self):
         '''
