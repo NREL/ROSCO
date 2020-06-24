@@ -214,6 +214,9 @@ CONTAINS
                 v_m = xh(3,1)
                 v_h = v_t + v_m
                 LocalVar%WE_Vw = v_m + v_t
+
+                ! Debug Outputs
+                LocalVar%WE_Cp = Cp_op
             ENDIF
 
         ELSE        

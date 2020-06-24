@@ -185,6 +185,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                             :: WE_Vw                        ! Estimated wind speed [m/s]
     REAL(4)                             :: WE_VwI                       ! Integrated wind speed quantity for estimation [m/s]
     REAL(4)                             :: WE_VwIdot                    ! Differentiated integrated wind speed quantity for estimation [m/s]
+    REAL(4)                             :: WE_Cp                        ! Cp that WSE uses to determine aerodynamic torque, for debug purposes [-]
     REAL(4)                             :: Y_AccErr                     ! Accumulated yaw error [rad].
     REAL(4)                             :: Y_ErrLPFFast                 ! Filtered yaw error by fast low pass filter [rad].
     REAL(4)                             :: Y_ErrLPFSlow                 ! Filtered yaw error by slow low pass filter [rad].
