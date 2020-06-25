@@ -177,9 +177,12 @@ class Controller():
         TSR_initial = turbine.TSR_initial
 
         # initialize variables
-        pitch_op = np.empty(len(TSR_op))
-        dCp_beta = np.empty(len(TSR_op))
-        dCp_TSR = np.empty(len(TSR_op))
+        pitch_op    = np.empty(len(TSR_op))
+        dCp_beta    = np.empty(len(TSR_op))
+        dCp_TSR     = np.empty(len(TSR_op))
+        dCt_beta    = np.empty(len(TSR_op))
+        dCt_TSR     = np.empty(len(TSR_op))
+        Ct_op       = np.empty(len(TSR_op))
 
         # ------------- Find Linearized State "Matrices" ------------- #
         for i in range(len(TSR_op)):
@@ -189,21 +192,37 @@ class Controller():
             f_cp_pitch = interpolate.interp1d(Cp_TSR,pitch_initial_rad)         # interpolate function for Cp(tsr) values
             pitch_op[i] = f_cp_pitch(Cp_op[i])                                  # expected operation blade pitch values
             dCp_beta[i], dCp_TSR[i] = turbine.Cp.interp_gradient(pitch_op[i],TSR_op[i])       # gradients of Cp surface in Beta and TSR directions
+            dCt_beta[i], dCt_TSR[i] = turbine.Ct.interp_gradient(pitch_op[i],TSR_op[i])       # gradients of Cp surface in Beta and TSR directions
         
+            # Thrust
+            Ct_TSR      = np.ndarray.flatten(turbine.Ct.interp_surface(turbine.pitch_initial_rad, TSR_op[i]))     # all Cp values for a given tsr
+            f_ct        = interpolate.interp1d(pitch_initial_rad,Ct_TSR)
+            Ct_op[i]    = f_ct(pitch_op[i])
+            Ct_op[i]    = np.clip(Ct_op[i], np.min(Ct_TSR), np.max(Ct_TSR))        # saturate Ct values to be on Ct surface
+
+
         # Define minimum pitch saturation to be at Cp-maximizing pitch angle if not specifically defined
         if not self.min_pitch:
             self.min_pitch = 0.0
             self.min_pitch = max(self.min_pitch,pitch_op[0])
 
-        # Full Cp surface gradients
-        dCp_dbeta = dCp_beta/np.diff(pitch_initial_rad)[0]
-        dCp_dTSR = dCp_TSR/np.diff(TSR_initial)[0]
+        # Full Cx surface gradients
+        dCp_dbeta   = dCp_beta/np.diff(pitch_initial_rad)[0]
+        dCp_dTSR    = dCp_TSR/np.diff(TSR_initial)[0]
+        dCt_dbeta   = dCt_beta/np.diff(pitch_initial_rad)[0]
+        dCt_dTSR    = dCt_TSR/np.diff(TSR_initial)[0]
         
         # Linearized system derivatives
-        dtau_dbeta = Ng/2*rho*Ar*R*(1/TSR_op)*dCp_dbeta*v**2
-        dtau_dlambda = Ng/2*rho*Ar*R*v**2*(1/(TSR_op**2))*(dCp_dTSR*TSR_op - Cp_op)
-        dlambda_domega = R/v/Ng
-        dtau_domega = dtau_dlambda*dlambda_domega
+        dtau_dbeta      = Ng/2*rho*Ar*R*(1/TSR_op)*dCp_dbeta*v**2
+        dtau_dlambda    = Ng/2*rho*Ar*R*v**2*(1/(TSR_op**2))*(dCp_dTSR*TSR_op - Cp_op)
+        dlambda_domega  = R/v/Ng
+        dtau_domega     = dtau_dlambda*dlambda_domega
+
+        dlambda_dv      = -(TSR_op/v)
+
+        Pi_beta         = 1/2 * rho * Ar * v**2 * dCt_dbeta
+        Pi_omega        = 1/2 * rho * Ar * R * v * dCt_dTSR
+        Pi_wind         = 1/2 * rho * Ar * v**2 * dCt_dTSR * dlambda_dv + rho * Ar * v * Ct_op
 
         # Second order system coefficients
         A = dtau_domega/J             # Plant pole
@@ -211,22 +230,20 @@ class Controller():
         B_beta = dtau_dbeta/J         # Blade pitch input 
 
         # Wind Disturbance Input
-        dlambda_dv = -(TSR_op/v)
         dtau_dv = (0.5 * rho * Ar * 1/rated_rotor_speed) * (dCp_dTSR*dlambda_dv*v**3 + Cp_op*3*v**2) 
-        # B_v = dtau_dv/J # wind speed input - currently unused 
+        B_wind = dtau_dv/J # wind speed input - currently unused 
 
 
         # separate and define below and above rated parameters
         A_vs = A[0:len(v_below_rated)]          # below rated
         A_pc = A[len(v_below_rated):len(v)]     # above rated
-        B_tau = B_tau * np.ones(len(v_below_rated))
-        B_beta = B_beta[len(v_below_rated):len(v)]
+        B_tau = B_tau * np.ones(len(v))
 
         # -- Find gain schedule --
         self.pc_gain_schedule = ControllerTypes()
-        self.pc_gain_schedule.second_order_PI(self.zeta_pc, self.omega_pc,A_pc,B_beta,linearize=True,v=v_above_rated)
+        self.pc_gain_schedule.second_order_PI(self.zeta_pc, self.omega_pc,A_pc,B_beta[len(v_below_rated):len(v)],linearize=True,v=v_above_rated)
         self.vs_gain_schedule = ControllerTypes()
-        self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A_vs,B_tau,linearize=False,v=v_below_rated)
+        self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A_vs,B_tau[0:len(v_below_rated)],linearize=False,v=v_below_rated)
 
         # -- Find K for Komega_g^2 --
         self.vs_rgn2K = (pi*rho*R**5.0 * turbine.Cp.max) / (2.0 * turbine.Cp.TSR_opt**3 * Ng**3)
@@ -247,16 +264,21 @@ class Controller():
             self.sd_maxpit = pitch_op[-1]
 
         # Store some variables
-        self.v = v                                  # Wind speed (m/s)
-        self.v_below_rated = v_below_rated
-        self.pitch_op = pitch_op
-        self.pitch_op_pc = pitch_op[len(v_below_rated):len(v)]
-        self.TSR_op = TSR_op
-        self.A = A 
-        self.B_beta = B_beta
-        self.B_tau = B_tau
-        self.TSR_op = TSR_op
-        self.omega_op = TSR_op*v/R
+        self.v              = v                                  # Wind speed (m/s)
+        self.v_below_rated  = v_below_rated
+        self.pitch_op       = pitch_op
+        self.pitch_op_pc    = pitch_op[len(v_below_rated):len(v)]
+        self.TSR_op         = TSR_op
+        self.A              = A 
+        self.B_beta         = B_beta
+        self.B_tau          = B_tau
+        self.B_wind         = B_wind
+        self.TSR_op         = TSR_op
+        self.omega_op       = TSR_op*v/R
+        self.Pi_omega       = Pi_omega
+        self.Pi_beta        = Pi_beta
+        self.Pi_wind        = Pi_wind
+
         # - Might want these to debug -
         # self.Cp_op = Cp_op
 

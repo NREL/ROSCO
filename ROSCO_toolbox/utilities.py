@@ -17,10 +17,10 @@ from matplotlib import transforms
 from itertools import takewhile, product
 import struct
 
-try:
-    from wisdem.aeroelasticse.Util import spectral
-except:
-    pass
+# try:
+# #    from wisdem.aeroelasticse.Util import spectral
+# except:
+#     pass
 
 # Some useful constants
 now = datetime.datetime.now()
