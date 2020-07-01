@@ -6,13 +6,17 @@ set(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/ftnmods")
 # Sets the optimization level to -O2 and includes -g 
 set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 
-# Enable .dll export
+message(STATUS "CMAKE_Fortran_COMPILER_ID = ${CMAKE_Fortran_COMPILER_ID}")
 if(APPLE OR UNIX)
+  # Enable .dll export
   if (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT ")
   else()
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -ffree-line-length-0")
   endif()
+elseif(WIN32 AND MINGW)
+  # Ensure static linking to avoid requiring Fortran runtime dependencies
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ffree-line-length-0 -static-libgcc -static-libgfortran -static")
 endif()
 
 set(SOURCES
