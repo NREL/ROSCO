@@ -103,11 +103,11 @@ CONTAINS
         END IF
     END SUBROUTINE StateMachine
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData)
+    SUBROUTINE WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar)
     ! Wind Speed Estimator estimates wind speed at hub height. Currently implements two types of estimators
     !       WE_Mode = 0, Filter hub height wind speed as passed from servodyn using first order low pass filter with 1Hz cornering frequency
     !       WE_Mode = 1, Use Inversion and Inveriance filter as defined by Ortege et. al. 
-        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances, PerformanceData
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances, PerformanceData, DebugVariables
         IMPLICIT NONE
     
         ! Inputs
@@ -115,6 +115,7 @@ CONTAINS
         TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar 
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
         TYPE(PerformanceData),      INTENT(INOUT)       :: PerfData
+        TYPE(DebugVariables),       INTENT(INOUT)       :: DebugVar
         ! Allocate Variables
         REAL(4)                 :: F_WECornerFreq   ! Corner frequency (-3dB point) for first order low pass filter for measured hub height wind speed [Hz]
 
@@ -216,7 +217,7 @@ CONTAINS
                 LocalVar%WE_Vw = v_m + v_t
 
                 ! Debug Outputs
-                LocalVar%WE_Cp = Cp_op
+                DebugVar%WE_Cp = Cp_op
             ENDIF
 
         ELSE        

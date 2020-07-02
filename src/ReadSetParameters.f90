@@ -549,7 +549,24 @@ CONTAINS
                      '                                                Jan-Willem van Wingerden      '//NEW_LINE('A')// &
                      'Visit our GitHub-page to contribute to this project:                          '//NEW_LINE('A')// &
                      'https://github.com/NREL/ROSCO                                                 '//NEW_LINE('A')// &
+                     '                                                                              '//NEW_LINE('A')// &
                      '------------------------------------------------------------------------------'
+
+                print *, 'Version 1.0.1: pretty debug'
+
+            ! ErrMsg = '                                                                              '//NEW_LINE('A')// &
+            !          '------------------------------------------------------------------------------'//NEW_LINE('A')// &
+            !          'Running a controller implemented through NREL''s ROSCO Toolbox                    '//NEW_LINE('A')// &
+            !          'A wind turbine controller framework for public use in the scientific field    '//NEW_LINE('A')// &
+            !          'Developed in collaboration: National Renewable Energy Laboratory              '//NEW_LINE('A')// &
+            !          '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
+            !          '                                                                              '//NEW_LINE('A')// &
+            !          'Visit our GitHub-page to contribute to this project:                          '//NEW_LINE('A')// &
+            !          'https://github.com/NREL/ROSCO                                                 '//NEW_LINE('A')// &
+            !          '                                                                              '//NEW_LINE('A')// &
+            !          'Version: 1.0.0                                                                '//NEW_LINE('A')// &
+            !          '------------------------------------------------------------------------------'
+
             CALL ReadControlParameterFileSub(CntrPar, accINFILE, NINT(avrSWAP(50)))
 
             IF (CntrPar%WE_Mode > 0) THEN
