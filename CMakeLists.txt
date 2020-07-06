@@ -3,8 +3,10 @@ project(ROSCO VERSION 2.0.1 LANGUAGES Fortran)
 
 set(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/ftnmods")
 
-# Sets the optimization level to -O2 and includes -g 
-set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+if (NOT CMAKE_BUILD_TYPE)
+  # Sets the optimization level to -O2 and includes -g for debugging
+  set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the build type: Debug RelWithDebInfo Release" FORCE)
+endif()
 
 # Enable .dll export
 if(APPLE OR UNIX)
