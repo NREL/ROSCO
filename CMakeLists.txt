@@ -31,4 +31,10 @@ set(SOURCES
 )
 
 add_library(discon SHARED ${SOURCES})
-# add_library(discon_yawAPI SHARED ${SOURCES})
+
+install(TARGETS discon
+  EXPORT "${CMAKE_PROJECT_NAME}Libraries"
+  RUNTIME DESTINATION lib
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
