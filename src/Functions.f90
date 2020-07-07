@@ -515,7 +515,7 @@ CONTAINS
             END IF
             
             IF (CntrPar%LoggingLevel > 1) THEN
-                WRITE (UnDb2,FmtDat)    LocalVar%Time, DebugOutData
+                WRITE (UnDb2,FmtDat)    LocalVar%Time, avrSWAP(1:85)
             END IF
         END IF
 
