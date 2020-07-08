@@ -226,12 +226,12 @@ CONTAINS
             interp2d = interp1d(yData,zData(:,j),yq)
             RETURN
         ELSE
-            DO j = 1,size(xData)            ! On axis, just need 1d interpolation
-                IF (xq == xData(j)) THEN
+            DO j = 1,size(xData)            
+                IF (xq == xData(j)) THEN ! On axis, just need 1d interpolation
                     jj = j
                     interp2d = interp1d(yData,zData(:,j),yq)
                     RETURN
-                ELSEIF (xq <= xData(j)) THEN
+                ELSEIF (xq < xData(j)) THEN
                     jj = j
                     EXIT
                 ELSE
@@ -256,9 +256,8 @@ CONTAINS
                 IF (yq == yData(i)) THEN    ! On axis, just need 1d interpolation
                     ii = i
                     interp2d = interp1d(xData,zData(i,:),xq)
-                    ! interp2d = interp1d(yData,zData(i,:),xq)
                     RETURN
-                ELSEIF (yq <= yData(i)) THEN
+                ELSEIF (yq < yData(i)) THEN
                     ii = i
                     EXIT
                 ELSE
@@ -275,8 +274,8 @@ CONTAINS
         fQ(1,2) = zData(i,jj)
         fQ(2,2) = zData(ii,jj)
         ! Interpolate
-        fxy1 = (xData(jj) - xq)/(xData(jj) - xData(j))*fQ(1,1) + (xq - xData(j))/(xData(jj) - xData(j))*fQ(2,1)
-        fxy2 = (xData(jj) - xq)/(xData(jj) - xData(j))*fQ(1,2) + (xq - xData(j))/(xData(jj) - xData(j))*fQ(2,1)
+        fxy1 = (xData(jj) - xq)/(xData(jj) - xData(j))*fQ(1,1) + (xq - xData(j))/(xData(jj) - xData(j))*fQ(1,2)
+        fxy2 = (xData(jj) - xq)/(xData(jj) - xData(j))*fQ(2,1) + (xq - xData(j))/(xData(jj) - xData(j))*fQ(2,2)
         fxy = (yData(ii) - yq)/(yData(ii) - yData(i))*fxy1 + (yq - yData(i))/(yData(ii) - yData(i))*fxy2
 
         interp2d = fxy(1)
