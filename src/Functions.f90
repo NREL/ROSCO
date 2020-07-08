@@ -440,33 +440,65 @@ CONTAINS
         
     END FUNCTION AeroDynTorque
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE Debug(LocalVar, CntrPar, avrSWAP, RootName, size_avcOUTNAME)
+    SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME)
     ! Debug routine, defines what gets printed to DEBUG.dbg if LoggingLevel = 1
     
         USE, INTRINSIC  :: ISO_C_Binding
-        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, DebugVariables
         
         IMPLICIT NONE
     
         TYPE(ControlParameters), INTENT(IN)     :: CntrPar
         TYPE(LocalVariables), INTENT(IN)        :: LocalVar
+        TYPE(DebugVariables), INTENT(IN)        :: DebugVar
     
         INTEGER(4), INTENT(IN)                      :: size_avcOUTNAME
-        INTEGER(4)                                  :: I                ! Generic index.
+        INTEGER(4)                                  :: I , nDebugOuts               ! Generic index.
         CHARACTER(1), PARAMETER                     :: Tab = CHAR(9)                        ! The tab character.
-        CHARACTER(25), PARAMETER                    :: FmtDat = "(F8.3,99('"//Tab//"',ES10.3E2,:))  "   ! The format of the debugging data
+        CHARACTER(29), PARAMETER                    :: FmtDat = "(F10.3,TR5,99(ES10.3E2,TR5:))"   ! The format of the debugging data
         INTEGER(4), PARAMETER                       :: UnDb = 85        ! I/O unit for the debugging information
         INTEGER(4), PARAMETER                       :: UnDb2 = 86       ! I/O unit for the debugging information, avrSWAP
         REAL(C_FLOAT), INTENT(INOUT)                :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         CHARACTER(size_avcOUTNAME-1), INTENT(IN)    :: RootName     ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
         
+        CHARACTER(10)                               :: DebugOutStr1,  DebugOutStr2, DebugOutStr3, DebugOutStr4, DebugOutStr5, &
+                                                         DebugOutStr6, DebugOutStr7, DebugOutStr8, DebugOutStr9, DebugOutStr10, &
+                                                         DebugOutStr11, DebugOutStr12, DebugOutStr13, DebugOutStr14, DebugOutStr15, & 
+                                                         DebugOutUni1,  DebugOutUni2, DebugOutUni3, DebugOutUni4, DebugOutUni5, &
+                                                         DebugOutUni6, DebugOutUni7, DebugOutUni8, DebugOutUni9, DebugOutUni10, &
+                                                         DebugOutUni11, DebugOutUni12, DebugOutUni13, DebugOutUni14, DebugOutUni15 
+        CHARACTER(10), ALLOCATABLE                  :: DebugOutStrings(:), DebugOutUnits(:)
+        REAL(4), ALLOCATABLE                        :: DebugOutData(:)
+
+        ! Set up Debug Strings and Data
+        ! Note that Debug strings have 10 character limit
+        nDebugOuts = 8
+        ALLOCATE(DebugOutData(nDebugOuts))
+        !                 Header                            Unit                                Variable
+        DebugOutStr1  = 'IMU_FA_AccF';     DebugOutUni1  = '(m/s)';      DebugOutData(1)  = LocalVar%NacIMU_FA_AccF
+        DebugOutStr2  = 'WE_Vw';           DebugOutUni2  = '(rad)';      DebugOutData(2)  = LocalVar%WE_Vw
+        DebugOutStr3  = 'IMU_FA_Acc';      DebugOutUni3  = '(rad/s^2)';  DebugOutData(3)  = LocalVar%NacIMU_FA_Acc
+        DebugOutStr4  = 'FA_Acc';          DebugOutUni4  = '(m/s^2)';    DebugOutData(4)  = LocalVar%FA_Acc
+        DebugOutStr5  = 'Fl_Pitcom';       DebugOutUni5  = '(rad)';      DebugOutData(5)  = LocalVar%Fl_Pitcom
+        DebugOutStr6  = 'WE_Cp';           DebugOutUni6  = '(-)';        DebugOutData(6)  = DebugVar%WE_Cp
+        DebugOutStr7  = 'PC_MinPit';       DebugOutUni7  = '(rad)';      DebugOutData(7)  = LocalVar%PC_MinPit
+        DebugOutStr8  = 'SS_dOmF';         DebugOutUni8  = '(rad/s)';    DebugOutData(8)  = LocalVar%SS_DelOmegaF
+
+        Allocate(DebugOutStrings(nDebugOuts))
+        Allocate(DebugOutUnits(nDebugOuts))
+        DebugOutStrings =   [CHARACTER(10)  :: DebugOutStr1, DebugOutStr2, DebugOutStr3, DebugOutStr4, &
+                                                DebugOutStr5, DebugOutStr6, DebugOutStr7, DebugOutStr8]
+        DebugOutUnits =     [CHARACTER(10)  :: DebugOutUni1, DebugOutUni2, DebugOutUni3, DebugOutUni4, &
+                                                DebugOutUni5, DebugOutUni6, DebugOutUni7, DebugOutUni8]
+        
         ! Initialize debug file
         IF (LocalVar%iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
         ! If we're debugging, open the debug file and write the header:
+            ! Note that the headers will be Truncated to 10 characters!!
             IF (CntrPar%LoggingLevel > 0) THEN
                 OPEN(unit=UnDb, FILE='DEBUG.dbg')
-                WRITE (UnDb,'(A)')  '   Time '  //Tab//' NacIMU_FA_AccF    ' //Tab//' WE_Vw    '  //Tab//' NacIMU_FA_Acc    ' //Tab//' FA_Acc    '   //Tab//' Fl_Pitcom    ' //Tab//' test    '
-                WRITE (UnDb,'(A)')  '   (sec) '  //Tab//'(m/s) ' //Tab//'(rad) ' //Tab//'(rad/s^2) ' //Tab//'(m/s^2) '//Tab//'(rad) ' //Tab//'(rad/s) ' 
+                WRITE (UnDb,'(99(a10,TR5:))') 'Time',   DebugOutStrings
+                WRITE (UnDb,'(99(a10,TR5:))') '(sec)',  DebugOutUnits
             END IF
             
             IF (CntrPar%LoggingLevel > 1) THEN
@@ -482,14 +514,14 @@ CONTAINS
                 100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')
             END IF
             
-            ! Output debugging information if requested:
-            IF (CntrPar%LoggingLevel > 0) THEN
-                WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%NacIMU_FA_AccF, LocalVar%WE_Vw, LocalVar%NacIMU_FA_Acc, LocalVar%FA_Acc, LocalVar%Fl_PitCom, LocalVar%TestType
-            END IF
-            
             IF (CntrPar%LoggingLevel > 1) THEN
                 WRITE (UnDb2,FmtDat)    LocalVar%Time, avrSWAP(1:85)
             END IF
+        END IF
+
+        ! Want debug on first timestep
+        IF (CntrPar%LoggingLevel > 0) THEN
+            WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%NacIMU_FA_AccF, LocalVar%WE_Vw, LocalVar%NacIMU_FA_Acc, LocalVar%FA_Acc, LocalVar%Fl_PitCom, DebugVar%WE_Cp, LocalVar%PC_MinPit, LocalVar%SS_DelOmegaF
         END IF
         
         IF (MODULO(LocalVar%Time, 10.0) == 0.0) THEN

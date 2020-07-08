@@ -53,6 +53,7 @@ TYPE(ControlParameters), SAVE         :: CntrPar
 TYPE(LocalVariables), SAVE            :: LocalVar
 TYPE(ObjectInstances), SAVE           :: objInst
 TYPE(PerformanceData), SAVE           :: PerfData
+TYPE(DebugVariables), SAVE            :: DebugVar
 
 !------------------------------------------------------------------------------------------------------------------------------
 ! Main control calculations
@@ -66,7 +67,7 @@ IF ((LocalVar%iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control 
     CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
     
     CALL StateMachine(CntrPar, LocalVar)
-    CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData)
+    CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar)
     
     CALL SetpointSmoother(LocalVar, CntrPar, objInst)
 
@@ -75,7 +76,7 @@ IF ((LocalVar%iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control 
     CALL YawRateControl(avrSWAP, CntrPar, LocalVar, objInst)
     CALL FlapControl(avrSWAP, CntrPar, LocalVar, objInst)
     
-    CALL Debug(LocalVar, CntrPar, avrSWAP, RootName, SIZE(avcOUTNAME))
+    CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, SIZE(avcOUTNAME))
 END IF
 
 avcMSG = TRANSFER(TRIM(ErrMsg)//C_NULL_CHAR, avcMSG, SIZE(avcMSG))
