@@ -61,9 +61,9 @@ TYPE(DebugVariables), SAVE            :: DebugVar
 ! Read avrSWAP array into derived types/variables
 CALL ReadAvrSWAP(avrSWAP, LocalVar)
 CALL SetParameters(avrSWAP, aviFAIL, accINFILE, ErrMsg, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData)
-CALL PreFilterMeasuredSignals(CntrPar, LocalVar, objInst)
 
 IF ((LocalVar%iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculations if no error has occurred and we are not on the last time step
+    CALL PreFilterMeasuredSignals(CntrPar, LocalVar, objInst)
     CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
     
     CALL StateMachine(CntrPar, LocalVar)

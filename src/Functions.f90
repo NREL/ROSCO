@@ -513,19 +513,16 @@ CONTAINS
                 100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')
             END IF
             
-            IF (CntrPar%LoggingLevel > 1) THEN
-                WRITE (UnDb2,FmtDat)    LocalVar%Time, avrSWAP(1:85)
-            END IF
+        ENDIF
+
+        ! Write debug files
+        IF (CntrPar%LoggingLevel > 0) THEN
+            WRITE (UnDb,FmtDat) LocalVar%Time, DebugOutData
         END IF
 
-        ! Want debug on first timestep
-        IF (CntrPar%LoggingLevel > 0) THEN
-            WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%NacIMU_FA_AccF, LocalVar%WE_Vw, LocalVar%NacIMU_FA_Acc, LocalVar%FA_Acc, LocalVar%Fl_PitCom, DebugVar%WE_Cp, LocalVar%PC_MinPit, LocalVar%SS_DelOmegaF
+        IF (CntrPar%LoggingLevel > 1) THEN
+            WRITE (UnDb2,FmtDat)    LocalVar%Time, avrSWAP(1:85)
         END IF
-        
-        IF (MODULO(LocalVar%Time, 10.0) == 0.0) THEN
-            !LocalVar%TestType = LocalVar%TestType + 10
-            !PRINT *, LocalVar%TestType
-        END IF
+
     END SUBROUTINE Debug
 END MODULE Functions
