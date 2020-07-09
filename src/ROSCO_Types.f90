@@ -217,4 +217,8 @@ TYPE, PUBLIC :: PerformanceData
     REAL(4), DIMENSION(:,:), ALLOCATABLE    :: Cq_mat
 END TYPE PerformanceData
 
+TYPE, PUBLIC :: DebugVariables
+    REAL(4)                             :: WE_Cp                        ! Cp that WSE uses to determine aerodynamic torque, for debug purposes [-]
+END TYPE DebugVariables
+
 END MODULE ROSCO_Types
