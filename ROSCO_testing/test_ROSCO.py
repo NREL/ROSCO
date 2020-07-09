@@ -110,7 +110,7 @@ if __name__ == '__main__':
 
     # Runtime options
     cores               = 8 # how many cores? if > 1, will run in parallel but might be harder to debug
-    overwrite           = True  # do you want to overwrite fast sims?
+    overwrite           = False  # do you want to overwrite fast sims?
     reCrunch            = False  # do you want to re-run pCrunch?
 
     # Turbine Setup
@@ -192,7 +192,7 @@ if __name__ == '__main__':
         fp.save_SummaryStats        = True
 
         # Load and save statistics and load rankings
-        if not os.path.join(fp.results_dir,'dataset1_LoadRanking.yaml') or reCrunch:
+        if not os.path.exists(os.path.join(fp.results_dir,'dataset1_LoadRanking.yaml')) or reCrunch:
             stats, load_rankings = fp.batch_processing()
 
         # Compare to results in compRunDir
@@ -204,6 +204,7 @@ if __name__ == '__main__':
 
         loadRanksThis   = Processing.load_yaml(os.path.join(fp.results_dir,'dataset1_LoadRanking.yaml'))
 
+        # If no comparison exists, just print own stats
         try:
             loadRanksComp   = Processing.load_yaml(os.path.join(compRunDir,testTurbines[0],'stats','dataset1_LoadRanking.yaml'))
 
@@ -211,7 +212,10 @@ if __name__ == '__main__':
             print('----------------------------------------')
             print('\t\t{}\t{}'.format('This Control','Baseline'))
             for meas in caseMeasures:
-                print('Max {} \t{:1.3e}\t{:1.3e}'.format(meas,loadRanksThis[meas]['max'][0],loadRanksComp[meas]['max'][0]))
+                try:
+                    print('Max {} \t{:1.3e}\t{:1.3e}'.format(meas,loadRanksThis[meas]['max'][0],loadRanksComp[meas]['max'][0]))
+                except:
+                    print('{} is not in stats'.format(meas))
 
         except:
             print('No comparison files exist!')
@@ -220,7 +224,10 @@ if __name__ == '__main__':
             print('----------------------------------------')
             print('\t\t{}\t{}'.format('This Control','Baseline'))
             for meas in caseMeasures:
-                print('Max {} \t{:1.3e}'.format(meas,loadRanksThis[meas]['max'][0]))
+                try:
+                    print('Max {} \t{:1.3e}'.format(meas,loadRanksThis[meas]['max'][0]))
+                except:
+                    print('{} is not in stats'.format(meas))
 
 
     
