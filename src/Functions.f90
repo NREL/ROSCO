@@ -275,8 +275,8 @@ CONTAINS
         fQ(1,2) = zData(i,jj)
         fQ(2,2) = zData(ii,jj)
         ! Interpolate
-        fxy1 = (xData(jj) - xq)/(xData(jj) - xData(j))*fQ(1,1) + (xq - xData(j))/(xData(jj) - xData(j))*fQ(2,1)
-        fxy2 = (xData(jj) - xq)/(xData(jj) - xData(j))*fQ(1,2) + (xq - xData(j))/(xData(jj) - xData(j))*fQ(2,1)
+        fxy1 = (xData(jj) - xq)/(xData(jj) - xData(j))*fQ(1,1) + (xq - xData(j))/(xData(jj) - xData(j))*fQ(1,2)
+        fxy2 = (xData(jj) - xq)/(xData(jj) - xData(j))*fQ(2,1) + (xq - xData(j))/(xData(jj) - xData(j))*fQ(2,2)
         fxy = (yData(ii) - yq)/(yData(ii) - yData(i))*fxy1 + (yq - yData(i))/(yData(ii) - yData(i))*fxy2
 
         interp2d = fxy(1)
@@ -472,7 +472,7 @@ CONTAINS
 
         ! Set up Debug Strings and Data
         ! Note that Debug strings have 10 character limit
-        nDebugOuts = 8
+        nDebugOuts = 9
         ALLOCATE(DebugOutData(nDebugOuts))
         !                 Header                            Unit                                Variable
         DebugOutStr1  = 'IMU_FA_AccF';     DebugOutUni1  = '(m/s)';      DebugOutData(1)  = LocalVar%NacIMU_FA_AccF
@@ -483,13 +483,16 @@ CONTAINS
         DebugOutStr6  = 'WE_Cp';           DebugOutUni6  = '(-)';        DebugOutData(6)  = DebugVar%WE_Cp
         DebugOutStr7  = 'PC_MinPit';       DebugOutUni7  = '(rad)';      DebugOutData(7)  = LocalVar%PC_MinPit
         DebugOutStr8  = 'SS_dOmF';         DebugOutUni8  = '(rad/s)';    DebugOutData(8)  = LocalVar%SS_DelOmegaF
+        DebugOutStr9  = 'WE_Pitch';        DebugOutUni8  = '(rad)';      DebugOutData(9)  = DebugVar%WE_Pitch
 
         Allocate(DebugOutStrings(nDebugOuts))
         Allocate(DebugOutUnits(nDebugOuts))
         DebugOutStrings =   [CHARACTER(10)  :: DebugOutStr1, DebugOutStr2, DebugOutStr3, DebugOutStr4, &
-                                                DebugOutStr5, DebugOutStr6, DebugOutStr7, DebugOutStr8]
+                                                DebugOutStr5, DebugOutStr6, DebugOutStr7, DebugOutStr8, &
+                                                DebugOutStr9]
         DebugOutUnits =     [CHARACTER(10)  :: DebugOutUni1, DebugOutUni2, DebugOutUni3, DebugOutUni4, &
-                                                DebugOutUni5, DebugOutUni6, DebugOutUni7, DebugOutUni8]
+                                                DebugOutUni5, DebugOutUni6, DebugOutUni7, DebugOutUni8, &
+                                                DebugOutUni9]
         
         ! Initialize debug file
         IF (LocalVar%iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
@@ -521,7 +524,7 @@ CONTAINS
 
         ! Want debug on first timestep
         IF (CntrPar%LoggingLevel > 0) THEN
-            WRITE (UnDb,FmtDat)     LocalVar%Time, LocalVar%NacIMU_FA_AccF, LocalVar%WE_Vw, LocalVar%NacIMU_FA_Acc, LocalVar%FA_Acc, LocalVar%Fl_PitCom, DebugVar%WE_Cp, LocalVar%PC_MinPit, LocalVar%SS_DelOmegaF
+            WRITE (UnDb,FmtDat)  LocalVar%Time, DebugOutData
         END IF
         
         IF (MODULO(LocalVar%Time, 10.0) == 0.0) THEN
