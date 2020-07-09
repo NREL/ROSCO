@@ -99,7 +99,7 @@ if __name__ == '__main__':
 
     ### Parameter Set up
     # Run Directory (for all turbines)
-    baseRunDir          = '/Users/dzalkind/Tools/SaveData/ROSCO/PitchSat'
+    baseRunDir          = '/Users/dzalkind/Tools/SaveData/ROSCO/WSE_Params'
 
     # Compare results to this Directory:
     compRunDir          = '/Users/dzalkind/Tools/SaveData/ROSCO/Baseline2'
@@ -114,7 +114,7 @@ if __name__ == '__main__':
     reCrunch            = False  # do you want to re-run pCrunch?
 
     # Turbine Setup
-    testTurbines = ['NREL-5MW']   # current options are: IEA-15MW
+    testTurbines = ['IEA-15MW']   # current options are: IEA-15MW, NREL-5MW
 
     # Loop through test turbines
     for turbine in testTurbines:
@@ -140,7 +140,7 @@ if __name__ == '__main__':
         fastRead.execute()
 
 
-        runDir = os.path.join(baseRunDir,testTurbines[0])
+        runDir = os.path.join(baseRunDir,turbine)
         namebase = 'ROTest'
         TMax     = 700
         turbine_class = 'I'
@@ -155,7 +155,7 @@ if __name__ == '__main__':
         # Set up FAST Sims, move setup up
         fastBatch = runFAST_pywrapper_batch(FAST_ver='OpenFAST', dev_branch=True)
         fastBatch.FAST_exe = Openfast_exe   # Path to executable
-        fastBatch.FAST_runDirectory = os.path.join(baseRunDir,testTurbines[0])
+        fastBatch.FAST_runDirectory = os.path.join(baseRunDir,turbine)
         fastBatch.FAST_InputFile = fastRead.FAST_InputFile  # FAST input file (ext=.fst)
         fastBatch.FAST_directory = fastRead.FAST_directory   # Path to fst directory files
         fastBatch.debug_level       = 2
@@ -206,7 +206,7 @@ if __name__ == '__main__':
 
         # If no comparison exists, just print own stats
         try:
-            loadRanksComp   = Processing.load_yaml(os.path.join(compRunDir,testTurbines[0],'stats','dataset1_LoadRanking.yaml'))
+            loadRanksComp   = Processing.load_yaml(os.path.join(compRunDir,turbine,'stats','dataset1_LoadRanking.yaml'))
 
             print('\t\t{}'.format(turbine))
             print('----------------------------------------')
