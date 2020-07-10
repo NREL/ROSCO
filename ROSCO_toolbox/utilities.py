@@ -598,6 +598,9 @@ class FAST_IO():
             else: 
                 Tfind = len(fd['Time'])
             
+            if T0ind+1 > len(fd['Time']):
+                raise ValueError('The initial time to trim {} to is after the end of the simulation.'.format(fd['meta']['name']))
+
             # # Modify time
             fd['Time'] = fd['Time'][T0ind:Tfind] - fd['Time'][T0ind]
 
