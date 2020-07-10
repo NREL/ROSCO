@@ -47,6 +47,7 @@ class Turbine():
     load_from_fast
     load_from_ccblade
     load_from_txt
+    generate_rotperf_fast
     write_rotor_performance
 
     Parameters:
@@ -338,7 +339,20 @@ class Turbine():
         '''
         Use openfast to generate Cp surface data. Will be slow, especially if using BeamDyn,
         but may be necessary if cc-blade is not sufficient.
-        NOTE: Needs processing
+
+        Parameters:
+        -----------
+        openfast_path: str
+            path to openfast
+        FAST_runDirectory: str
+            directory to run openfast simulations in
+        run_BeamDyn: bool
+            Flag to run beamdyn - does not exist yet
+        debug_level: float
+            0 - no outputs, 1 - simple outputs, 2 - all outputs
+        run_type: str
+            'serial' - run in serial, 'multi' - run using python multiprocessing tools, 
+            'mpi' - run using mpi tools
         '''
 
         # Load additional WISDEM tools
@@ -359,7 +373,7 @@ class Turbine():
 
         # ------- Setup OpenFAST inputs --------
         case_inputs[('Fst','TMax')] = {'vals': [330], 'group': 0}
-        case_inputs[('Fst','CompInflow')] = {'vals': [1], 'group': 0}
+        case_inputs[('Fst','Compinflow')] = {'vals': [1], 'group': 0}
         case_inputs[('Fst','CompAero')] = {'vals': [2], 'group': 0}
         case_inputs[('Fst','CompServo')] = {'vals': [1], 'group': 0}
         case_inputs[('Fst','CompHydro')] = {'vals': [0], 'group': 0}
@@ -458,7 +472,7 @@ class Turbine():
         # Run OpenFAST
         if run_type.lower() == 'multi':
             fastBatch.run_multi()
-        elif run_type.lower()=='MPI':
+        elif run_type.lower()=='mpi':
             fastBatch.run_mpi()
         elif run_type.lower()=='serial':
             fastBatch.run_serial()
