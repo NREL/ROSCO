@@ -210,15 +210,15 @@ class Turbine():
                 txt_filename)
         else:   # Use text file from DISCON.in
             if os.path.exists(os.path.join(FAST_directory, fast.fst_vt['ServoDyn']['DLL_InFile'])):
-                if  os.path.exists(fast.fst_vt['DISCON_in']['PerfFileName']):
+                try:
                     self.pitch_initial_rad = fast.fst_vt['DISCON_in']['Cp_pitch_initial_rad']
                     self.TSR_initial = fast.fst_vt['DISCON_in']['Cp_TSR_initial']
                     self.Cp_table = fast.fst_vt['DISCON_in']['Cp_table']
                     self.Ct_table = fast.fst_vt['DISCON_in']['Ct_table']
                     self.Cq_table = fast.fst_vt['DISCON_in']['Cq_table']
-            else:   # Load from cc-blade
-                print('No rotor performance data source available, running CC-Blade.')
-                self.load_from_ccblade()
+                except:   # Load from cc-blade
+                    print('No rotor performance data source available, running CC-Blade.')
+                    self.load_from_ccblade()
 
         # Parse rotor performance data
         self.Cp = RotorPerformance(self.Cp_table,self.pitch_initial_rad,self.TSR_initial)
