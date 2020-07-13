@@ -236,7 +236,6 @@ CONTAINS
         REAL(4)                                 :: VS_RefSpd        ! Referece speed for variable speed torque controller, [rad/s] 
         REAL(4)                                 :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
         REAL(4)                                 :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
-        REAL(4)                                 :: WE_Vw_f          ! Filtered Wind Speed Estimate
         ! temp
         ! REAL(4)                                 :: VS_TSRop = 7.5
 
@@ -257,9 +256,7 @@ CONTAINS
         ! ----- Torque controller reference errors -----
         ! Define VS reference generator speed [rad/s]
         IF (CntrPar%VS_ControlMode == 2) THEN
-            ! WE_Vw_f = LPFilter(LocalVar%We_Vw, LocalVar%DT, 0.625, LocalVar%iStatus, .FALSE., objInst%instLPF)
-            WE_Vw_f = LocalVar%We_Vw
-            VS_RefSpd = (CntrPar%VS_TSRopt * WE_Vw_f / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
+            VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
             VS_RefSpd = saturate(VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
         ELSE
             VS_RefSpd = CntrPar%VS_RefSpd
@@ -404,12 +401,12 @@ CONTAINS
         
         IF (CntrPar%VS_KP(1) > 0.0) THEN
             aviFAIL = -1
-            ErrMsg  = 'VS_KP must be greater than zero.'
+            ErrMsg  = 'VS_KP must be less than zero.'
         ENDIF
         
         IF (CntrPar%VS_KI(1) > 0.0) THEN
             aviFAIL = -1
-            ErrMsg  = 'VS_KI must be greater than zero.'
+            ErrMsg  = 'VS_KI must be less than zero.'
         ENDIF
         
         IF (CntrPar%PC_RefSpd <= 0.0) THEN
