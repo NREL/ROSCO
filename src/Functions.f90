@@ -226,12 +226,12 @@ CONTAINS
             interp2d = interp1d(yData,zData(:,j),yq)
             RETURN
         ELSE
-            DO j = 1,size(xData)            ! On axis, just need 1d interpolation
-                IF (xq == xData(j)) THEN
+            DO j = 1,size(xData)            
+                IF (xq == xData(j)) THEN ! On axis, just need 1d interpolation
                     jj = j
                     interp2d = interp1d(yData,zData(:,j),yq)
                     RETURN
-                ELSEIF (xq <= xData(j)) THEN
+                ELSEIF (xq < xData(j)) THEN
                     jj = j
                     EXIT
                 ELSE
@@ -256,9 +256,8 @@ CONTAINS
                 IF (yq == yData(i)) THEN    ! On axis, just need 1d interpolation
                     ii = i
                     interp2d = interp1d(xData,zData(i,:),xq)
-                    ! interp2d = interp1d(yData,zData(i,:),xq)
                     RETURN
-                ELSEIF (yq <= yData(i)) THEN
+                ELSEIF (yq < yData(i)) THEN
                     ii = i
                     EXIT
                 ELSE
@@ -432,10 +431,10 @@ CONTAINS
         
         ! Find Torque
         RotorArea = PI*CntrPar%WE_BladeRadius**2
-        Lambda = LocalVar%RotSpeed*CntrPar%WE_BladeRadius/LocalVar%WE_Vw
+        Lambda = LocalVar%RotSpeedF*CntrPar%WE_BladeRadius/LocalVar%WE_Vw
         ! Cp = CPfunction(CntrPar%WE_CP, Lambda)
-        Cp = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%BlPitch(1)*R2D, Lambda)
-        AeroDynTorque = 0.5*(CntrPar%WE_RhoAir*RotorArea)*(LocalVar%WE_Vw**3/LocalVar%RotSpeed)*Cp
+        Cp = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%PC_PitComTF*R2D, Lambda)
+        AeroDynTorque = 0.5*(CntrPar%WE_RhoAir*RotorArea)*(LocalVar%WE_Vw**3/LocalVar%RotSpeedF)*Cp
         AeroDynTorque = MAX(AeroDynTorque, 0.0)
         
     END FUNCTION AeroDynTorque
@@ -463,8 +462,8 @@ CONTAINS
         
         CHARACTER(10)                               :: DebugOutStr1,  DebugOutStr2, DebugOutStr3, DebugOutStr4, DebugOutStr5, &
                                                          DebugOutStr6, DebugOutStr7, DebugOutStr8, DebugOutStr9, DebugOutStr10, &
-                                                         DebugOutStr11, DebugOutStr12, DebugOutStr13, DebugOutStr14, DebugOutStr15, & 
-                                                         DebugOutUni1,  DebugOutUni2, DebugOutUni3, DebugOutUni4, DebugOutUni5, &
+                                                         DebugOutStr11, DebugOutStr12, DebugOutStr13, DebugOutStr14, DebugOutStr15                                                         
+        CHARACTER(10)                               :: DebugOutUni1,  DebugOutUni2, DebugOutUni3, DebugOutUni4, DebugOutUni5, &
                                                          DebugOutUni6, DebugOutUni7, DebugOutUni8, DebugOutUni9, DebugOutUni10, &
                                                          DebugOutUni11, DebugOutUni12, DebugOutUni13, DebugOutUni14, DebugOutUni15 
         CHARACTER(10), ALLOCATABLE                  :: DebugOutStrings(:), DebugOutUnits(:)
@@ -517,19 +516,16 @@ CONTAINS
                 100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')
             END IF
             
-            IF (CntrPar%LoggingLevel > 1) THEN
-                WRITE (UnDb2,FmtDat)    LocalVar%Time, avrSWAP(1:85)
-            END IF
-        END IF
+        ENDIF
 
-        ! Want debug on first timestep
+        ! Write debug files
         IF (CntrPar%LoggingLevel > 0) THEN
             WRITE (UnDb,FmtDat)  LocalVar%Time, DebugOutData
         END IF
-        
-        IF (MODULO(LocalVar%Time, 10.0) == 0.0) THEN
-            !LocalVar%TestType = LocalVar%TestType + 10
-            !PRINT *, LocalVar%TestType
+
+        IF (CntrPar%LoggingLevel > 1) THEN
+            WRITE (UnDb2,FmtDat)    LocalVar%Time, avrSWAP(1:85)
         END IF
+
     END SUBROUTINE Debug
 END MODULE Functions

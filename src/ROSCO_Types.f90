@@ -154,6 +154,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                             :: FA_AccHPF                    ! High-pass filtered fore-aft acceleration [m/s^2]
     REAL(4)                             :: FA_AccHPFI                   ! Tower velocity, high-pass filtered and integrated fore-aft acceleration [m/s]
     REAL(4)                             :: FA_PitCom(3)                 ! Tower fore-aft vibration damping pitch contribution [rad]
+    REAL(4)                             :: RotSpeedF                    ! Filtered LSS (generator) speed [rad/s].
     REAL(4)                             :: GenSpeedF                    ! Filtered HSS (generator) speed [rad/s].
     REAL(4)                             :: GenTq                        ! Electrical generator torque, [Nm].
     REAL(4)                             :: GenTqMeas                    ! Measured generator torque [Nm]
@@ -168,6 +169,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                             :: PC_MaxPit                    ! Maximum pitch setting in pitch controller (variable) [rad].
     REAL(4)                             :: PC_MinPit                    ! Minimum pitch setting in pitch controller (variable) [rad].
     REAL(4)                             :: PC_PitComT                   ! Total command pitch based on the sum of the proportional and integral terms [rad].
+    REAL(4)                             :: PC_PitComTF                   ! Filtered Total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(4)                             :: PC_PitComT_IPC(3)            ! Total command pitch based on the sum of the proportional and integral terms, including IPC term [rad].
     REAL(4)                             :: PC_PwrErr                    ! Power error with respect to rated power [W]
     REAL(4)                             :: PC_SineExcitation            ! Sine contribution to pitch signal
@@ -183,8 +185,10 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                             :: VS_SpdErr                    ! Current speed error for tip-speed-ratio tracking controller (generator torque control) [rad/s].
     INTEGER(4)                          :: VS_State                     ! State of the torque control system
     REAL(4)                             :: WE_Vw                        ! Estimated wind speed [m/s]
+    REAL(4)                             :: WE_Vw_F                      ! Filtered estimated wind speed [m/s]
     REAL(4)                             :: WE_VwI                       ! Integrated wind speed quantity for estimation [m/s]
     REAL(4)                             :: WE_VwIdot                    ! Differentiated integrated wind speed quantity for estimation [m/s]
+    REAL(4)                             :: VS_LastGenTrqF               ! Differentiated integrated wind speed quantity for estimation [m/s]
     REAL(4)                             :: Y_AccErr                     ! Accumulated yaw error [rad].
     REAL(4)                             :: Y_ErrLPFFast                 ! Filtered yaw error by fast low pass filter [rad].
     REAL(4)                             :: Y_ErrLPFSlow                 ! Filtered yaw error by slow low pass filter [rad].
