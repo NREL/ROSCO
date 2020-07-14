@@ -121,7 +121,7 @@ class ROSCO_testing():
         iec.Turbsim_exe = self.Turbsim_exe
         iec.debug_level = self.debug_level
         iec.cores = self.cores
-        iec.run_dir = os.path.join(self.runDir,'wind')
+        iec.run_dir = self.runDir
         iec.overwrite = self.overwrite
         # iec.overwrite       = False
         if self.cores > 1:
@@ -390,7 +390,7 @@ class ROSCO_testing():
         wind_dir_init = self.windDir
         for ci, discon in enumerate(DISCON_filenames):
             # temporarily change run directories
-            self.runDir = os.path.join(run_dir_init, 'discon_{}'.format(ci))
+            self.runDir = os.path.join(run_dir_init, 'controller_{}'.format(ci))
             self.windDir = os.path.join(run_dir_init, 'wind')  # wind in base runDir
 
             # Point to different DISCON.IN files using more_case_inputs
