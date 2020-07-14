@@ -138,7 +138,7 @@ class ROSCO_testing():
         iec.Turbsim_exe = self.Turbsim_exe
         iec.debug_level = self.debug_level
         iec.cores = self.cores
-        iec.run_dir = self.runDir
+        iec.run_dir = os.path.join(self.runDir,'wind')
         iec.overwrite = self.overwrite
         # iec.overwrite       = False
         if self.cores > 1:
