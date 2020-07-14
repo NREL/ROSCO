@@ -77,7 +77,7 @@ class ROSCO_testing():
         more_case_inputs: dict
             Additional case inputs
         '''
-        TMax = 10
+        TMax = 360
 
         fastRead = InputReader_OpenFAST(
             FAST_ver=self.FAST_ver, dev_branch=self.dev_branch)
