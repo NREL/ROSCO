@@ -165,11 +165,21 @@ class ROSCO_testing():
         case_list, case_name_list = iec.execute(case_inputs=case_inputs)
 
         # Ensure proper output channels
-        channels =  ['BldPitch1', 'BldPitch2', 'BldPitch3', 'GenTq', 'GenPwr', 'RotSpeed']
-        channels += ["TipDxc1", "TipDyc1", "TipDzc1", "TipDxc2",
+        var_out =  ['BldPitch1', 'BldPitch2', 'BldPitch3', 'GenTq', 'GenPwr', 'RotSpeed']
+        var_out += ["TipDxc1", "TipDyc1", "TipDzc1", "TipDxc2",
                     "TipDyc2", "TipDzc2", "TipDxc3", "TipDyc3", "TipDzc3"]
-        channels += ["RootMxc1", "RootMyc1", "RootMzc1", "RootMxc2",
-                     "RootMyc2", "RootMzc2", "RootMxc3", "RootMyc3", "RootMzc3"]
+        var_out += ["RootMxc1", "RootMyc1", "RootMzc1",
+                     "RootMxc2", "RootMyc2", "RootMzc2",
+                     "RootMxc3", "RootMyc3", "RootMzc3",
+                     "RootMxb1", "RootMyb1", "RootMzb1",
+                     "RootMxb2", "RootMyb2", "RootMzb2",
+                     "RootMxb3", "RootMyb3", "RootMzb3"]  
+        var_out += ["TwrBsMxt", "TwrBsMyt", "TwrBsMzt",
+                     "TwrBsFxt", "TwrBsFyt", "TwrBsFzt"]
+
+        channels = {}
+        for var in var_out:
+            channels[var] = True
 
         # Set up FAST Sims
         fastBatch = runFAST_pywrapper_batch()
@@ -183,6 +193,7 @@ class ROSCO_testing():
 
         fastBatch.case_list = case_list
         fastBatch.case_name_list = case_name_list
+        fastBatch.channels = channels
 
         # Check if simulation has been run
         if self.outfile_fmt == 1:
@@ -301,11 +312,21 @@ class ROSCO_testing():
         case_list, case_name_list = iec.execute(case_inputs=case_inputs)
 
         # Ensure proper output channels
-        channels = ['BldPitch1', 'BldPitch2', 'BldPitch3', 'GenTq', 'GenPwr', 'RotSpeed']
-        channels += ["TipDxc1", "TipDyc1", "TipDzc1", "TipDxc2",
+        var_out = ['BldPitch1', 'BldPitch2', 'BldPitch3', 'GenTq', 'GenPwr', 'RotSpeed']
+        var_out += ["TipDxc1", "TipDyc1", "TipDzc1", "TipDxc2",
                      "TipDyc2", "TipDzc2", "TipDxc3", "TipDyc3", "TipDzc3"]
-        channels += ["RootMxc1", "RootMyc1", "RootMzc1", "RootMxc2",
-                     "RootMyc2", "RootMzc2", "RootMxc3", "RootMyc3", "RootMzc3"]
+        var_out += ["RootMxc1", "RootMyc1", "RootMzc1", 
+                     "RootMxc2", "RootMyc2", "RootMzc2", 
+                     "RootMxc3", "RootMyc3", "RootMzc3",
+                     "RootMxb1", "RootMyb1", "RootMzb1",
+                     "RootMxb2", "RootMyb2", "RootMzb2",
+                     "RootMxb3", "RootMyb3", "RootMzb3"]
+        var_out += ["TwrBsMxt", "TwrBsMyt", "TwrBsMzt",
+                     "TwrBsFxt", "TwrBsFyt", "TwrBsFzt"]
+
+        channels = {}
+        for var in var_out:
+            channels[var] = True
 
         # Set up FAST Sims, move setup up
         fastBatch = runFAST_pywrapper_batch()
@@ -319,6 +340,7 @@ class ROSCO_testing():
 
         fastBatch.case_list = case_list
         fastBatch.case_name_list = case_name_list
+        fastBatch.channels = channels
 
         # Check if simulation has been run
         if self.outfile_fmt == 1:
