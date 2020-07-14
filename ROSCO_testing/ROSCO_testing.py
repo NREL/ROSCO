@@ -389,7 +389,7 @@ class ROSCO_testing():
             elif testtype.lower() == 'heavy':
                 self.ROSCO_Test_heavy()
             else:
-                ValueError('{} is an invalid testtype for controller comparison'.format(testtype))
+                raise ValueError('{} is an invalid testtype for controller comparison'.format(testtype))
 
         # reset self
         self.runDir = run_dir_init
@@ -425,7 +425,7 @@ class ROSCO_testing():
             elif testtype.lower() == 'heavy':
                 self.ROSCO_Test_heavy(more_case_inputs=more_case_inputs)
             else:
-                ValueError('{} is an invalid testtype for DISCON comparison'.format(testtype))
+                raise ValueError('{} is an invalid testtype for DISCON comparison'.format(testtype))
 
         # reset self
         self.runDir = run_dir_init
