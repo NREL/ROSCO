@@ -3,4 +3,4 @@
 
 __author__ = """Nikhar J. Abbas and Paul Fleming"""
 __email__ = 'nikhar.abbas@nrel.gov'
-__version__ = '2.1.0'
+__version__ = '2.1.1'
