@@ -187,13 +187,15 @@ class Controller():
             Cp_TSR = np.ndarray.flatten(turbine.Cp.interp_surface(turbine.pitch_initial_rad, TSR_op[i]))     # all Cp values for a given tsr
             Cp_op[i] = np.clip(Cp_op[i], np.min(Cp_TSR), np.max(Cp_TSR))        # saturate Cp values to be on Cp surface
             f_cp_pitch = interpolate.interp1d(Cp_TSR,pitch_initial_rad)         # interpolate function for Cp(tsr) values
-            pitch_op[i] = f_cp_pitch(Cp_op[i])                                  # expected operation blade pitch values
+            if isinstance(self.min_pitch, float):
+                pitch_op[i] = max(self.min_pitch, f_cp_pitch(Cp_op[i]))             # expected operation blade pitch values
+            else:
+                pitch_op[i] = f_cp_pitch(Cp_op[i])                                  # expected operation blade pitch values
             dCp_beta[i], dCp_TSR[i] = turbine.Cp.interp_gradient(pitch_op[i],TSR_op[i])       # gradients of Cp surface in Beta and TSR directions
         
         # Define minimum pitch saturation to be at Cp-maximizing pitch angle if not specifically defined
         if not self.min_pitch:
-            self.min_pitch = 0.0
-            self.min_pitch = max(self.min_pitch,pitch_op[0])
+            self.min_pitch = pitch_op[0]
 
         # Full Cp surface gradients
         dCp_dbeta = dCp_beta/np.diff(pitch_initial_rad)[0]
@@ -229,7 +231,7 @@ class Controller():
         self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A_vs,B_tau,linearize=False,v=v_below_rated)
 
         # -- Find K for Komega_g^2 --
-        self.vs_rgn2K = (pi*rho*R**5.0 * turbine.Cp.max) / (2.0 * turbine.Cp.TSR_opt**3 * Ng**3)
+        self.vs_rgn2K = (pi*rho*R**5.0 * turbine.Cp.max) / (2.0 * turbine.Cp.TSR_opt**3 * Ng**3)/ (turbine.GenEff/100 * turbine.GBoxEff/100)
         self.vs_refspd = min(turbine.TSR_operational * turbine.v_rated/R, turbine.rated_rotor_speed) * Ng
 
         # -- Define some setpoints --
@@ -448,7 +450,7 @@ class ControllerBlocks():
                 Ct_max[i] = np.minimum( np.max(Ct_tsr), Ct_max[i])
             # Define minimum pitch angle
             f_pitch_min = interpolate.interp1d(Ct_tsr, turbine.pitch_initial_rad, bounds_error=False, fill_value=(turbine.pitch_initial_rad[0],turbine.pitch_initial_rad[-1]))
-            pitch_min[i] = f_pitch_min(Ct_max[i])
+            pitch_min[i] = max(controller.min_pitch, f_pitch_min(Ct_max[i]))
 
         controller.ps_min_bld_pitch = pitch_min
 

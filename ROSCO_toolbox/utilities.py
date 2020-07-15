@@ -598,6 +598,9 @@ class FAST_IO():
             else: 
                 Tfind = len(fd['Time'])
             
+            if T0ind+1 > len(fd['Time']):
+                raise ValueError('The initial time to trim {} to is after the end of the simulation.'.format(fd['meta']['name']))
+
             # # Modify time
             fd['Time'] = fd['Time'][T0ind:Tfind] - fd['Time'][T0ind]
 
@@ -829,10 +832,10 @@ class FileProcessing():
         file.write('# ------------ Written on {} using the ROSCO toolbox ------------ \n\n'.format(now.strftime('%b-%d-%y')))
 
         # Pitch angles, TSR, and wind speed
-        file.write('# Pitch angle vector - x axis (matrix columns) (deg)\n')
+        file.write('# Pitch angle vector, {} entries - x axis (matrix columns) (deg)\n'.format(len(turbine.Cp.pitch_initial_rad)))
         for i in range(len(turbine.Cp.pitch_initial_rad)):
             file.write('{:0.4}   '.format(turbine.Cp.pitch_initial_rad[i] * rad2deg))
-        file.write('\n# TSR vector - y axis (matrix rows) (-)\n')
+        file.write('\n# TSR vector, {} entries - y axis (matrix rows) (-)\n'.format(len(turbine.TSR_initial)))
         for i in range(len(turbine.TSR_initial)):
             file.write('{:0.4}    '.format(turbine.Cp.TSR_initial[i]))
         file.write('\n# Wind speed vector - z axis (m/s)\n')
