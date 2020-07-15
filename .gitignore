@@ -45,3 +45,8 @@ examples/cp_ct_cq_lut.p
 # Files Generated in Examples
 Examples/DISCON.IN
 Examples/*.p
+
+# Matlab Stuff
+Matlab_Toolbox/*.slxc
+*.mat
+
