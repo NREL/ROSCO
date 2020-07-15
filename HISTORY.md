@@ -1,5 +1,16 @@
 # History
+---------------------
+## 2.1.1 - (2020-06-15)
+Mostly some minor bug fixes and a function for generating rotor performance files using AeroDyn.
 
+Major Updates
+- generate_rotperf_FAST is included in the functionalities in turbine.py now. This makes it possible to call OpenFAST and use aerodyn or beamdyn (pending) to generate the - Cp, Ct, Cq tables. Slow, but useful for verification.
+- Include GBEff and GenEff appropriately in turbine.rated_torque and controller.VS_Rgn2K calculations
+
+Minor Updates
+- min_pitch was not appropriately accounted for if user-defined
+- print size of arrays in Cp_Ct_Cq.txt files
+- minor typos and commenting cleanup
 ---------------------
 ## 2.1.0 - (2020-04-21)
 Mostly major updates to the post processing scripts. Some of these may be considered API changes, but we'll treat them as feature adds for now.
