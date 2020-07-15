@@ -19,6 +19,8 @@ from wisdem.aeroelasticse.CaseGen_General import CaseGen_General
 from wisdem.aeroelasticse.CaseGen_IEC import CaseGen_IEC
 from pCrunch import pdTools
 from pCrunch import Processing, Analysis
+from wisdem.aeroelasticse.Util import FileTools
+import pandas as pd
 
 # Moved ROSCO_Test into toolbox so that it doesn't rely on my fork of aeroelasticse
 def ROSCO_Test(fst_vt, runDir, namebase, TMax, turbine_class, turbulence_class, Turbsim_exe='', debug_level=0, cores=0, mpi_run=False, mpi_comm_map_down=[]):
@@ -102,7 +104,7 @@ if __name__ == '__main__':
     baseRunDir          = '/Users/dzalkind/Tools/SaveData/ROSCO/WSE_Params'
 
     # Compare results to this Directory:
-    compRunDir          = '/Users/dzalkind/Tools/SaveData/ROSCO/Baseline2'
+    compRunDir          = '/Users/dzalkind/Tools/SaveData/ROSCO/PitchSat'
     
     # Executable paths
     Turbsim_exe         = '/Users/dzalkind/Tools/openfast/build/modules/turbsim/turbsim'  # move up
@@ -152,7 +154,7 @@ if __name__ == '__main__':
             Turbsim_exe=Turbsim_exe, debug_level=2, cores=cores, mpi_run=False, mpi_comm_map_down=[])
 
 
-        # Set up FAST Sims, move setup up
+        # Set up FAST Sims
         fastBatch = runFAST_pywrapper_batch(FAST_ver='OpenFAST', dev_branch=True)
         fastBatch.FAST_exe = Openfast_exe   # Path to executable
         fastBatch.FAST_runDirectory = os.path.join(baseRunDir,turbine)
@@ -168,7 +170,7 @@ if __name__ == '__main__':
         # Check if simulation has been run
         outFileNames = [os.path.join(fastBatch.FAST_runDirectory,case_name + '.outb') for case_name in case_name_list]
         outFileThere = [os.path.exists(outFileName) for outFileName in outFileNames]
-        print('here')
+        # print('here')
         
         # Run simulations if they're not all there or if you want to overwrite
         if not all(outFileThere) or overwrite:
@@ -177,57 +179,8 @@ if __name__ == '__main__':
             else:
                 fastBatch.run_serial()
         
-        # Set up pCrunch
-        # Initialize processing classes
-        fp = Processing.FAST_Processing()
+        
 
-        # Set some processing parameters
-        fp.OpenFAST_outfile_list    = outFileNames
-        fp.t0                       = 100          # DZ: I'd like this to be 60 or 100, but there are errors there
-        fp.parallel_analysis        = True
-        fp.parallel_cores           = cores
-        fp.results_dir              = os.path.join(runDir, 'stats')
-        fp.verbose                  = True
-        fp.save_LoadRanking         = True
-        fp.save_SummaryStats        = True
-
-        # Load and save statistics and load rankings
-        if not os.path.exists(os.path.join(fp.results_dir,'dataset1_LoadRanking.yaml')) or reCrunch:
-            stats, load_rankings = fp.batch_processing()
-
-        # Compare to results in compRunDir
-        # Check these maxima
-        caseMeasures    = ['RotSpeed',
-                            'RootMyb',
-                            'TwrBsMyt',
-                            'PtfmPitch']
-
-        loadRanksThis   = Processing.load_yaml(os.path.join(fp.results_dir,'dataset1_LoadRanking.yaml'))
-
-        # If no comparison exists, just print own stats
-        try:
-            loadRanksComp   = Processing.load_yaml(os.path.join(compRunDir,turbine,'stats','dataset1_LoadRanking.yaml'))
-
-            print('\t\t{}'.format(turbine))
-            print('----------------------------------------')
-            print('\t\t{}\t{}'.format('This Control','Baseline'))
-            for meas in caseMeasures:
-                try:
-                    print('Max {} \t{:1.3e}\t{:1.3e}'.format(meas,loadRanksThis[meas]['max'][0],loadRanksComp[meas]['max'][0]))
-                except:
-                    print('{} is not in stats'.format(meas))
-
-        except:
-            print('No comparison files exist!')
-
-            print('\t\t{}'.format(turbine))
-            print('----------------------------------------')
-            print('\t\t{}\t{}'.format('This Control','Baseline'))
-            for meas in caseMeasures:
-                try:
-                    print('Max {} \t{:1.3e}'.format(meas,loadRanksThis[meas]['max'][0]))
-                except:
-                    print('{} is not in stats'.format(meas))
-
+        
 
     

@@ -42,3 +42,6 @@ _build
 .pytest_cache
 examples/cp_ct_cq_lut.p
 
+# Files Generated in Examples
+Examples/DISCON.IN
+Examples/*.p
