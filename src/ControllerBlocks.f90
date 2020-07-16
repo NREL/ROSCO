@@ -144,6 +144,11 @@ CONTAINS
         REAL(4), DIMENSION(3,1), SAVE   :: K        ! Kalman gain matrix
         REAL(4)                         :: R_m      ! Measurement noise covariance [(rad/s)^2]
         
+        ! ---- Debug Inputs ------
+        DebugVar%WE_b   = LocalVar%PC_PitComTF*R2D
+        DebugVar%WE_w   = LocalVar%RotSpeedF
+        DebugVar%WE_t   = LocalVar%VS_LastGenTrqF
+
         ! ---- Define wind speed estimate ---- 
         
         ! Inversion and Invariance Filter implementation

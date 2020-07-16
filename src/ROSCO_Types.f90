@@ -219,7 +219,9 @@ END TYPE PerformanceData
 
 TYPE, PUBLIC :: DebugVariables
     REAL(4)                             :: WE_Cp                        ! Cp that WSE uses to determine aerodynamic torque, for debug purposes [-]
-    REAL(4)                             :: WE_Pitch                       ! Cp that WSE uses to determine aerodynamic torque, for debug purposes [-]
+    REAL(4)                             :: WE_b                       ! Pitch that WSE uses to determine aerodynamic torque, for debug purposes [-]
+    REAL(4)                             :: WE_w                       ! Rotor Speed that WSE uses to determine aerodynamic torque, for debug purposes [-]
+    REAL(4)                             :: WE_t                      ! Torque that WSE uses, for debug purposes [-]
 END TYPE DebugVariables
 
 END MODULE ROSCO_Types
