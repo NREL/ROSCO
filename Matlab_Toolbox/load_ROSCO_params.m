@@ -55,6 +55,7 @@ R.PC_MaxPit     = GetFASTPar(P.SD_dllP,'PC_MaxPit');
 R.PC_MinPit     = GetFASTPar(P.SD_dllP,'PC_MinPit');
 R.PC_MaxRat     = GetFASTPar(P.SD_dllP,'PC_MaxPit');
 
+R.PC_IC         = GetFASTPar(P.EDP,'BlPitch(1)');
 
 %% Setpoint Smoothing Control Parameters
 
@@ -63,12 +64,13 @@ R.SS_PCGain     = GetFASTPar(P.SD_dllP,'SS_PCGain');
 
 %% Filter Parameters
 
-R.F_LPFType     = GetFASTPar(P.SD_dllP,'F_LPFType');
+R.F_LPFType         = GetFASTPar(P.SD_dllP,'F_LPFType');
+R.F_LPFCornerFreq   = GetFASTPar(P.SD_dllP,'F_LPFCornerFreq');
 
 if R.F_LPFType == 2
-    F_HSS           = Af_LPF(GetFASTPar(P.SD_dllP,'F_LPFCornerFreq'),GetFASTPar(P.SD_dllP,'F_LPFDamping'),simu.dt);
+    F_HSS           = Af_LPF(R.F_LPFCornerFreq,GetFASTPar(P.SD_dllP,'F_LPFDamping'),simu.dt);
 else
-    F_HSS           = Af_LPF(GetFASTPar(P.SD_dllP,'F_LPFCornerFreq'),GetFASTPar(P.SD_dllP,'F_LPFDamping'),simu.dt,1);
+    F_HSS           = Af_LPF(R.F_LPFCornerFreq,GetFASTPar(P.SD_dllP,'F_LPFDamping'),simu.dt,1);
 end
 F.HSS.b         = F_HSS.num{1};
 F.HSS.a         = F_HSS.den{1};
@@ -77,13 +79,15 @@ F_SS            = Af_LPF(GetFASTPar(P.SD_dllP,'F_SSCornerFreq'),1,simu.dt,1);
 F.F_SS.b        = F_SS.num{1};
 F.F_SS.a        = F_SS.den{1};
 
-F_Wind          = Af_LPF(0.0333,1,simu.dt,1);
+F_Wind          = Af_LPF(0.20944,1,simu.dt,1);
 F.Wind.b     = F_Wind.num{1};
 F.Wind.a     = F_Wind.den{1};
 
 
 %% Wind Speed Estimator Parameters
 % Only the EKF is implemented, for meow
+
+R.WE_Mode           = GetFASTPar(P.SD_dllP,'WE_Mode');
 
 R.WE_BladeRadius    = GetFASTPar(P.SD_dllP,'WE_BladeRadius');
 R.WE_CP_n           = GetFASTPar(P.SD_dllP,'WE_CP_n');
@@ -103,6 +107,16 @@ R.WE_FOPoles        = GetFASTPar(P.SD_dllP,'WE_FOPoles');
 R.WE_v0             = 12;
 R.WE_om0            = GetFASTPar(P.EDP,'RotSpeed') * R.WE_GearboxRatio;
 
+% Pitch Input
+R.NumBl              = GetFASTPar(P.EDP,'NumBl');
+F_WSEBlPitch         = Af_LPF(R.F_LPFCornerFreq/2,1,simu.dt,1);
+F.F_WSEBlPitch.b     = F_WSEBlPitch.num{1};
+F.F_WSEBlPitch.a     = F_WSEBlPitch.den{1};
+
+% Torque Input
+F_GenTq             = Af_LPF(R.F_LPFCornerFreq,0.7,simu.dt);
+F.F_GenTq.b         = F_GenTq.num{1};
+F.F_GenTq.a         = F_GenTq.den{1};
 
 %% Floating Platform Damper
 
@@ -114,6 +128,11 @@ R.F_FlCornerFreq    = GetFASTPar(P.SD_dllP,'F_FlCornerFreq');
 F_Fl_LPF            = Af_LPF(R.F_FlCornerFreq(1),R.F_FlCornerFreq(2),simu.dt) * Af_HPF(R.F_FlCornerFreq(1)/20,1,simu.dt,1);
 F.F_Fl.b            = F_Fl_LPF.num{1};
 F.F_Fl.a            = F_Fl_LPF.den{1};
+
+% High Pass Filter
+F_Fl_HPF            = Af_LPF(1/60,1,simu.dt,1);
+F.F_Fl_HPF.b        = F_Fl_HPF.num{1};
+F.F_Fl_HPF.a        = F_Fl_HPF.den{1};
 
 % Optional Notch
 F.F_NotchType       = GetFASTPar(P.SD_dllP,'F_NotchType');
@@ -160,7 +179,7 @@ R.PS_WindSpeeds     = GetFASTPar(P.SD_dllP,'PS_WindSpeeds');
 R.PS_BldPitchMin    = GetFASTPar(P.SD_dllP,'PS_BldPitchMin');
 
 % Filter (hard coded)
-F_PS                = Af_LPF(0.2,1,simu.dt,1);
+F_PS                = Af_LPF(0.21,1,simu.dt,1);
 F.F_PS.a            = F_PS.den{1};
 F.F_PS.b            = F_PS.num{1};
 
