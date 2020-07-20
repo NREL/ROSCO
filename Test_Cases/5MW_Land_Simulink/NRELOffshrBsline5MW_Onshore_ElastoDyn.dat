@@ -154,5 +154,6 @@ True          TabDelim    - Use tab delimiters in text tabular output file? (fla
 "TwrBsMyt"                - Side-to-side bending, fore-aft bending, and yaw moments at the base of the tower (mudline)
 "TwrBsMzt"                - Side-to-side bending, fore-aft bending, and yaw moments at the base of the tower (mudline)
 "NcIMURAys"               - Nacell IMU Measurement of angular acceleration about the y-axis (Fore-aft)
+"NcIMUTAys"
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------
