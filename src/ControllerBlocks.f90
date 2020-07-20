@@ -213,6 +213,7 @@ CONTAINS
                 K = MATMUL(P,TRANSPOSE(H))/S(1,1)
                 xh = xh + K*(LocalVar%RotSpeedF - om_r)
                 P = MATMUL(identity(3) - MATMUL(K,H),P)
+
                 
                 ! Wind Speed Estimate
                 om_r = xh(1,1)
@@ -223,6 +224,8 @@ CONTAINS
 
                 ! Debug Outputs
                 DebugVar%WE_Cp = Cp_op
+                DebugVar%WE_D = v_m
+
             ENDIF
 
         ELSE        

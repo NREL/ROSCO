@@ -471,7 +471,7 @@ CONTAINS
 
         ! Set up Debug Strings and Data
         ! Note that Debug strings have 10 character limit
-        nDebugOuts = 11
+        nDebugOuts = 12
         ALLOCATE(DebugOutData(nDebugOuts))
         !                 Header                            Unit                                Variable
         DebugOutStr1  = 'FA_AccF';         DebugOutUni1  = '(m/s)';      DebugOutData(1)  = LocalVar%NacIMU_FA_AccF
@@ -485,15 +485,16 @@ CONTAINS
         DebugOutStr9  = 'WE_b';            DebugOutUni9  = '(deg)';      DebugOutData(9)  = DebugVar%WE_b
         DebugOutStr10  = 'WE_t';            DebugOutUni10  = '(Nm)';      DebugOutData(10)  = DebugVar%WE_t
         DebugOutStr11  = 'WE_w';            DebugOutUni11  = '(rad/s)';      DebugOutData(11)  = DebugVar%WE_w
+        DebugOutStr12  = 'WE_D';            DebugOutUni12  = '()';      DebugOutData(12)  = DebugVar%WE_D
 
         Allocate(DebugOutStrings(nDebugOuts))
         Allocate(DebugOutUnits(nDebugOuts))
         DebugOutStrings =   [CHARACTER(10)  :: DebugOutStr1, DebugOutStr2, DebugOutStr3, DebugOutStr4, &
                                                 DebugOutStr5, DebugOutStr6, DebugOutStr7, DebugOutStr8, &
-                                                DebugOutStr9, DebugOutStr10, DebugOutStr11]
+                                                DebugOutStr9, DebugOutStr10, DebugOutStr11, DebugOutStr12]
         DebugOutUnits =     [CHARACTER(10)  :: DebugOutUni1, DebugOutUni2, DebugOutUni3, DebugOutUni4, &
                                                 DebugOutUni5, DebugOutUni6, DebugOutUni7, DebugOutUni8, &
-                                                DebugOutUni9, DebugOutUni10, DebugOutUni11]
+                                                DebugOutUni9, DebugOutUni10, DebugOutUni11, DebugOutUni12]
         
         ! Initialize debug file
         IF (LocalVar%iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
