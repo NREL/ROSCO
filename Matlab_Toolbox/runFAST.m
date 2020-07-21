@@ -20,10 +20,7 @@ simu.ParamScript        = '/Users/dzalkind/Tools/matlab-tools/Simulations/Simuli
 
 [ControlScriptPath,ControScript] = fileparts(simu.ParamScript);
 addpath(ControlScriptPath);
-
-addpath(fast.FAST_SFuncDir)
-
-warning off all
+addpath(fast.FAST_SFuncDir);
 
 %% Read FAST Files & Load ROSCO Params from DISCON.IN
 
@@ -57,7 +54,7 @@ TMax               = simu.TMax;
 
 SimulinkModel = simu.SimModel;
 
-Out         = sim(SimulinkModel, 'StopTime',num2str(GetFASTPar(Param.FP,'TMax')));
+Out         = sim(SimulinkModel, 'StopTime', num2str(simu.TMax));
 sigsOut     = get(Out,'sigsOut');   %internal control signals
 
 %% Get OutData
