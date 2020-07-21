@@ -144,6 +144,11 @@ CONTAINS
         REAL(4), DIMENSION(3,1), SAVE   :: K        ! Kalman gain matrix
         REAL(4)                         :: R_m      ! Measurement noise covariance [(rad/s)^2]
         
+        ! ---- Debug Inputs ------
+        DebugVar%WE_b   = LocalVar%PC_PitComTF*R2D
+        DebugVar%WE_w   = LocalVar%RotSpeedF
+        DebugVar%WE_t   = LocalVar%VS_LastGenTrqF
+
         ! ---- Define wind speed estimate ---- 
         
         ! Inversion and Invariance Filter implementation
@@ -208,6 +213,7 @@ CONTAINS
                 K = MATMUL(P,TRANSPOSE(H))/S(1,1)
                 xh = xh + K*(LocalVar%RotSpeedF - om_r)
                 P = MATMUL(identity(3) - MATMUL(K,H),P)
+
                 
                 ! Wind Speed Estimate
                 om_r = xh(1,1)
@@ -218,6 +224,8 @@ CONTAINS
 
                 ! Debug Outputs
                 DebugVar%WE_Cp = Cp_op
+                DebugVar%WE_D = v_m
+
             ENDIF
 
         ELSE        
@@ -268,12 +276,10 @@ CONTAINS
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables 
-        REAL(4)                     :: V_towertop ! Estimated velocity of tower top (m/s)
         REAL(4)                     :: Vhat     ! Estimated wind speed without towertop motion [m/s]
         REAL(4)                     :: Vhatf     ! 30 second low pass filtered Estimated wind speed without towertop motion [m/s]
 
-        V_towertop = PIController(LocalVar%FA_Acc, 0.0, 1.0, -100.0, 100.0, LocalVar%DT, 0.0, .FALSE., objInst%instPI)
-        Vhat = LocalVar%WE_Vw_F + V_towertop
+        Vhat = LocalVar%WE_Vw_F
         Vhatf = SecLPFilter(Vhat,LocalVar%DT,0.21,0.7,LocalVar%iStatus,.FALSE.,objInst%instSecLPF) ! 30 second time constant
         
         ! Define minimum blade pitch angle as a function of estimated wind speed
