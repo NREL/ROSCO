@@ -183,7 +183,7 @@ else:
     print('\t\t{}\t{}'.format('Controller1', 'Controller2'))
     for meas in allrankings[0].keys():
         try:
-            print('Max {} \t{:1.3e}\t{:1.3e}Y'.format(
+            print('Max {} \t{:1.3e}\t{:1.3e}'.format(
                 meas, allrankings[0][meas]['max'][0], allrankings[1][meas]['max'][0]))
         except:
             print('{} is not in load rankings'.format(meas))
