@@ -67,6 +67,11 @@ if isempty(OutData)
     [OutData,OutList] = ReadFASTbinary([fast.FAST_directory,filesep,fast.FAST_InputFile(1:end-4),SFuncOutStr,'.outb']);
 end
 
+% Dump data to structure
+for i = 1:length(OutList)
+    simout.(OutList{i}) = OutData(:,i);
+end
 
-
+%% Plot
+Pl_FastPlots(simout)
 
