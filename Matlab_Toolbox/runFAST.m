@@ -16,12 +16,6 @@ simu.SimModel           = '/Users/dzalkind/Tools/ROSCO_toolbox/Matlab_Toolbox/Si
 % Script for loading parameters
 simu.ParamScript        = '/Users/dzalkind/Tools/matlab-tools/Simulations/SimulinkModels/load_ROSCO_params';
 
-
-%% Simulation Parameters
-
-simu.TMax   = 60;
-
-
 %% Simulink Setup
 
 [ControlScriptPath,ControScript] = fileparts(simu.ParamScript);
@@ -35,7 +29,9 @@ warning off all
 
 [Param,Cx] = ReadWrite_FAST(fast);
 
-simu.dt     = 1/80;   % hard code since we are not reading/writing fast files
+% Simulation Parameters
+simu.TMax   = Param.FP.Val{contains(Param.FP.Label,'TMax')};
+simu.dt   = Param.FP.Val{contains(Param.FP.Label,'DT')};
 [R,F] = feval(ControScript,Param,simu);
 
 %% Premake OutList for Simulink
