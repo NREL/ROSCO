@@ -57,6 +57,23 @@ class ROSCO_testing():
         self.FAST_directory = os.path.join(os.getcwd(), '../Test_Cases/NREL-5MW')
         self.FAST_InputFile = 'NREL-5MW.fst'
 
+        # Desired output channesl
+        self.var_out = [
+                        'BldPitch1', 'BldPitch2', 'BldPitch3', 'GenTq', 'GenPwr', 'RotSpeed',
+                        'TipDxc1', 'TipDyc1', 'TipDzc1', 'TipDxc2',
+                        'TipDyc2', 'TipDzc2', 'TipDxc3', 'TipDyc3', 'TipDzc3',
+                        'RootMxc1', 'RootMyc1', 'RootMzc1',
+                        'RootMxc2', 'RootMyc2', 'RootMzc2',
+                        'RootMxc3', 'RootMyc3', 'RootMzc3',
+                        'RootMxb1', 'RootMyb1', 'RootMzb1',
+                        'RootMxb2', 'RootMyb2', 'RootMzb2',
+                        'RootMxb3', 'RootMyb3', 'RootMzb3',
+                        'TwrBsMxt', 'TwrBsMyt', 'TwrBsMzt',
+                        'TwrBsFxt', 'TwrBsFyt', 'TwrBsFzt',
+                        'Wind1VelX', 'Wind1VelY', 'Wind1VelZ',
+                        'RtVAvgxh', 'RtVAvgyh', 'RtVAvgzh'
+                        ]
+                        
         if self.cores > mp.cpu_count():
             self.parallel_cores = mp.cpu_count()
 
@@ -165,17 +182,7 @@ class ROSCO_testing():
         case_list, case_name_list = iec.execute(case_inputs=case_inputs)
 
         # Ensure proper output channels
-        var_out =  ['BldPitch1', 'BldPitch2', 'BldPitch3', 'GenTq', 'GenPwr', 'RotSpeed']
-        var_out += ["TipDxc1", "TipDyc1", "TipDzc1", "TipDxc2",
-                    "TipDyc2", "TipDzc2", "TipDxc3", "TipDyc3", "TipDzc3"]
-        var_out += ["RootMxc1", "RootMyc1", "RootMzc1",
-                     "RootMxc2", "RootMyc2", "RootMzc2",
-                     "RootMxc3", "RootMyc3", "RootMzc3",
-                     "RootMxb1", "RootMyb1", "RootMzb1",
-                     "RootMxb2", "RootMyb2", "RootMzb2",
-                     "RootMxb3", "RootMyb3", "RootMzb3"]  
-        var_out += ["TwrBsMxt", "TwrBsMyt", "TwrBsMzt",
-                     "TwrBsFxt", "TwrBsFyt", "TwrBsFzt"]
+        var_out = self.var_out
 
         channels = {}
         for var in var_out:
@@ -312,17 +319,7 @@ class ROSCO_testing():
         case_list, case_name_list = iec.execute(case_inputs=case_inputs)
 
         # Ensure proper output channels
-        var_out = ['BldPitch1', 'BldPitch2', 'BldPitch3', 'GenTq', 'GenPwr', 'RotSpeed']
-        var_out += ["TipDxc1", "TipDyc1", "TipDzc1", "TipDxc2",
-                     "TipDyc2", "TipDzc2", "TipDxc3", "TipDyc3", "TipDzc3"]
-        var_out += ["RootMxc1", "RootMyc1", "RootMzc1", 
-                     "RootMxc2", "RootMyc2", "RootMzc2", 
-                     "RootMxc3", "RootMyc3", "RootMzc3",
-                     "RootMxb1", "RootMyb1", "RootMzb1",
-                     "RootMxb2", "RootMyb2", "RootMzb2",
-                     "RootMxb3", "RootMyb3", "RootMzb3"]
-        var_out += ["TwrBsMxt", "TwrBsMyt", "TwrBsMzt",
-                     "TwrBsFxt", "TwrBsFyt", "TwrBsFzt"]
+        var_out = self.var_out
 
         channels = {}
         for var in var_out:
