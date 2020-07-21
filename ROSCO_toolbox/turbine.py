@@ -176,20 +176,20 @@ class Turbine():
 
 
         # Grab general turbine parameters
-        self.TipRad = fast.fst_vt['ElastoDyn']['TipRad']
-        self.Rhub =  fast.fst_vt['ElastoDyn']['HubRad']
-        self.hubHt = fast.fst_vt['ElastoDyn']['TowerHt'] 
-        self.NumBl = fast.fst_vt['ElastoDyn']['NumBl']
-        self.TowerHt = fast.fst_vt['ElastoDyn']['TowerHt']
-        self.shearExp = 0.2  #HARD CODED FOR NOW
-        self.rho = fast.fst_vt['AeroDyn15']['AirDens']
-        self.mu = fast.fst_vt['AeroDyn15']['KinVisc']
-        self.Ng = fast.fst_vt['ElastoDyn']['GBRatio']
-        self.GenEff = fast.fst_vt['ServoDyn']['GenEff']
-        self.GBoxEff = fast.fst_vt['ElastoDyn']['GBoxEff']
-        self.DTTorSpr = fast.fst_vt['ElastoDyn']['DTTorSpr']
-        self.generator_inertia = fast.fst_vt['ElastoDyn']['GenIner']
-        self.tilt = fast.fst_vt['ElastoDyn']['ShftTilt'] 
+        self.TipRad             = fast.fst_vt['ElastoDyn']['TipRad']
+        self.Rhub               = fast.fst_vt['ElastoDyn']['HubRad']
+        self.hubHt              = fast.fst_vt['ElastoDyn']['TowerHt'] + fast.fst_vt['ElastoDyn']['Twr2Shft']
+        self.NumBl              = fast.fst_vt['ElastoDyn']['NumBl']
+        self.TowerHt            = fast.fst_vt['ElastoDyn']['TowerHt']
+        self.shearExp           = 0.2  #HARD CODED FOR NOW
+        self.rho                = fast.fst_vt['AeroDyn15']['AirDens']
+        self.mu                 = fast.fst_vt['AeroDyn15']['KinVisc']
+        self.Ng                 = fast.fst_vt['ElastoDyn']['GBRatio']
+        self.GenEff             = fast.fst_vt['ServoDyn']['GenEff']
+        self.GBoxEff            = fast.fst_vt['ElastoDyn']['GBoxEff']
+        self.DTTorSpr           = fast.fst_vt['ElastoDyn']['DTTorSpr']
+        self.generator_inertia  = fast.fst_vt['ElastoDyn']['GenIner']
+        self.tilt               = fast.fst_vt['ElastoDyn']['ShftTilt'] 
         try:
             self.precone = fast.fst_vt['ElastoDyn']['PreCone1'] # May need to change to PreCone(1) depending on OpenFAST files
         except:
