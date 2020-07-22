@@ -55,7 +55,7 @@ CONTAINS
         ! Initialize State machine if first call
         IF (LocalVar%iStatus == 0) THEN ! .TRUE. if we're on the first call to the DLL
 
-            IF (LocalVar%PitCom(1) >= CntrPar%VS_Rgn3Pitch) THEN ! We are in region 3
+            IF (LocalVar%PitCom(1) >= LocalVar%VS_Rgn3Pitch) THEN ! We are in region 3
                 IF (CntrPar%VS_ControlMode == 1) THEN ! Constant power tracking
                     LocalVar%VS_State = 5
                     LocalVar%PC_State = 1
@@ -78,14 +78,12 @@ CONTAINS
             END IF
             
             ! --- Torque control state machine ---
-            IF (LocalVar%PC_PitComT >= CntrPar%VS_Rgn3Pitch) THEN       
+            IF (LocalVar%PC_PitComT >= LocalVar%VS_Rgn3Pitch) THEN       
 
-                IF (LocalVar%PC_PitComT >= LocalVar%PC_MinPit + CntrPar%PC_Switch) THEN ! Make sure we aren't implement pitch saturation
-                    IF (CntrPar%VS_ControlMode == 1) THEN                   ! Region 3
-                        LocalVar%VS_State = 5 ! Constant power tracking
-                    ELSE 
-                        LocalVar%VS_State = 4 ! Constant torque tracking
-                    END IF
+                IF (CntrPar%VS_ControlMode == 1) THEN                   ! Region 3
+                    LocalVar%VS_State = 5 ! Constant power tracking
+                ELSE 
+                    LocalVar%VS_State = 4 ! Constant torque tracking
                 END IF
             ELSE
                 IF (LocalVar%GenArTq >= CntrPar%VS_MaxOMTq*1.01) THEN       ! Region 2 1/2 - active PI torque control

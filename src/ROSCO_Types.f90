@@ -129,7 +129,6 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)                             :: PC_RtTq99                    ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(4)                             :: VS_MaxOMTq                   ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(4)                             :: VS_MinOMTq                   ! Minimum torque at the beginning of the below-rated region 2, [Nm]
-    REAL(4)                             :: VS_Rgn3Pitch                 ! Pitch angle at which the state machine switches to region 3, [rad].
 
 END TYPE ControlParameters
 
@@ -184,6 +183,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(4)                             :: VS_SpdErrBr                  ! Current speed error for region 1.5 PI controller (generator torque control) [rad/s].
     REAL(4)                             :: VS_SpdErr                    ! Current speed error for tip-speed-ratio tracking controller (generator torque control) [rad/s].
     INTEGER(4)                          :: VS_State                     ! State of the torque control system
+    REAL(4)                             :: VS_Rgn3Pitch                 ! Pitch angle at which the state machine switches to region 3, [rad].
     REAL(4)                             :: WE_Vw                        ! Estimated wind speed [m/s]
     REAL(4)                             :: WE_Vw_F                      ! Filtered estimated wind speed [m/s]
     REAL(4)                             :: WE_VwI                       ! Integrated wind speed quantity for estimation [m/s]

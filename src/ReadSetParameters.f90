@@ -215,7 +215,6 @@ CONTAINS
         CntrPar%PC_RtTq99 = CntrPar%VS_RtTq*0.99
         CntrPar%VS_MinOMTq = CntrPar%VS_Rgn2K*CntrPar%VS_MinOMSpd**2
         CntrPar%VS_MaxOMTq = CntrPar%VS_Rgn2K*CntrPar%VS_RefSpd**2
-        CntrPar%VS_Rgn3Pitch = CntrPar%PC_FinePit + CntrPar%PC_Switch
         
         CLOSE(UnControllerParameters)
         
@@ -283,8 +282,10 @@ CONTAINS
         ! Define transition region setpoint errors
         LocalVar%VS_SpdErrAr = VS_RefSpd - LocalVar%GenSpeedF               ! Current speed error - Region 2.5 PI-control (Above Rated)
         LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd - LocalVar%GenSpeedF     ! Current speed error - Region 1.5 PI-control (Below Rated)
-    
-    
+        
+        ! Region 3 minimum pitch angle for state machine
+        LocalVar%VS_Rgn3Pitch = LocalVar%PC_MinPit + CntrPar%PC_Switch
+
     END SUBROUTINE ComputeVariablesSetpoints
     ! -----------------------------------------------------------------------------------
     ! Read avrSWAP array passed from ServoDyn    
