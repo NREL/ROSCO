@@ -215,7 +215,6 @@ CONTAINS
         CntrPar%PC_RtTq99 = CntrPar%VS_RtTq*0.99
         CntrPar%VS_MinOMTq = CntrPar%VS_Rgn2K*CntrPar%VS_MinOMSpd**2
         CntrPar%VS_MaxOMTq = CntrPar%VS_Rgn2K*CntrPar%VS_RefSpd**2
-        
         CLOSE(UnControllerParameters)
         
         !------------------- HOUSEKEEPING -----------------------
@@ -226,7 +225,7 @@ CONTAINS
     ! Calculate setpoints for primary control actions    
     SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
-        
+        USE Constants
         ! Allocate variables
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
@@ -268,7 +267,7 @@ CONTAINS
 
         ! Force zero torque in shutdown mode
         IF (LocalVar%SD) THEN
-            VS_RefSpd = CntrPar%VS_MinOMSpd
+            VS_RefSpd = CntrPar%VS_MinOMSpd * CntrPar%WE_GearboxRatio
         ENDIF
 
         ! Force minimum rotor speed
@@ -281,7 +280,7 @@ CONTAINS
 
         ! Define transition region setpoint errors
         LocalVar%VS_SpdErrAr = VS_RefSpd - LocalVar%GenSpeedF               ! Current speed error - Region 2.5 PI-control (Above Rated)
-        LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd - LocalVar%GenSpeedF     ! Current speed error - Region 1.5 PI-control (Below Rated)
+        LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd * CntrPar%WE_GearboxRatio - LocalVar%GenSpeedF     ! Current speed error - Region 1.5 PI-control (Below Rated)
         
         ! Region 3 minimum pitch angle for state machine
         LocalVar%VS_Rgn3Pitch = LocalVar%PC_MinPit + CntrPar%PC_Switch

@@ -88,10 +88,10 @@ CONTAINS
             ELSE
                 IF (LocalVar%GenArTq >= CntrPar%VS_MaxOMTq*1.01) THEN       ! Region 2 1/2 - active PI torque control
                     LocalVar%VS_State = 3                 
-                ELSEIF (LocalVar%GenSpeedF < CntrPar%VS_RefSpd)  THEN       ! Region 2 - optimal torque is proportional to the square of the generator speed
-                
+                ELSEIF ((LocalVar%GenSpeedF < CntrPar%VS_RefSpd) .AND. &
+                        (LocalVar%GenBrTq >= CntrPar%VS_MinOMTq)) THEN       ! Region 2 - optimal torque is proportional to the square of the generator speed
                     LocalVar%VS_State = 2
-                ELSEIF (LocalVar%GenBrTq <= CntrPar%VS_MinOMTq*0.99) THEN   ! Region 1 1/2
+                ELSEIF (LocalVar%GenBrTq < CntrPar%VS_MinOMTq) THEN   ! Region 1 1/2
                 
                     LocalVar%VS_State = 1
                 ELSE                                                        ! Error state, Debug
