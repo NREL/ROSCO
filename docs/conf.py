@@ -17,12 +17,12 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'ROSCO_toolbox'
-copyright = '2020, Nikhar J. Abbas'
-author = 'Nikhar J. Abbas'
+project = u'ROSCO_toolbox'
+copyright = u'2020, National Renewable Energy Laboratory'
+author = u'ROSCO development team'
 
 # The full version, including alpha/beta/rc tags
-release = '2.1.1'
+release = u'2.1.1'
 
 
 # -- General configuration ---------------------------------------------------
