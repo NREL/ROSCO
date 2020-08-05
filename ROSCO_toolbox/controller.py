@@ -209,7 +209,7 @@ class Controller():
 
 
         # Define minimum pitch saturation to be at Cp-maximizing pitch angle if not specifically defined
-        if not self.min_pitch:
+        if not isinstance(self.min_pitch, float):
             self.min_pitch = pitch_op[0]
 
         # Full Cx surface gradients
