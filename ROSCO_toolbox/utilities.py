@@ -18,7 +18,7 @@ from itertools import takewhile, product
 import struct
 
 try:
-    from wisdem.aeroelasticse.Util import spectral
+   from wisdem.aeroelasticse.Util import spectral
 except:
     pass
 
