@@ -73,7 +73,7 @@ class Controller():
             self.omega_flp = controller_params['omega_flp']
 
         # Optional parameters, default to standard if not defined
-        if controller_params['min_pitch']:
+        if isinstance(controller_params['min_pitch'], float):
             self.min_pitch = controller_params['min_pitch']
         else:
             self.min_pitch = None
@@ -190,10 +190,14 @@ class Controller():
             Cp_TSR = np.ndarray.flatten(turbine.Cp.interp_surface(turbine.pitch_initial_rad, TSR_op[i]))     # all Cp values for a given tsr
             Cp_op[i] = np.clip(Cp_op[i], np.min(Cp_TSR), np.max(Cp_TSR))        # saturate Cp values to be on Cp surface
             f_cp_pitch = interpolate.interp1d(Cp_TSR,pitch_initial_rad)         # interpolate function for Cp(tsr) values
-            if isinstance(self.min_pitch, float):
-                pitch_op[i] = max(self.min_pitch, f_cp_pitch(Cp_op[i]))             # expected operation blade pitch values
+            # expected operation blade pitch values
+            if v[i] <= turbine.v_rated and isinstance(self.min_pitch, float): # Below rated & defined min_pitch
+                pitch_op[i] = min(self.min_pitch, f_cp_pitch(Cp_op[i]))
+            elif isinstance(self.min_pitch, float):
+                pitch_op[i] = max(self.min_pitch, f_cp_pitch(Cp_op[i]))             
             else:
-                pitch_op[i] = f_cp_pitch(Cp_op[i])                                  # expected operation blade pitch values
+                pitch_op[i] = f_cp_pitch(Cp_op[i])     
+
             dCp_beta[i], dCp_TSR[i] = turbine.Cp.interp_gradient(pitch_op[i],TSR_op[i])       # gradients of Cp surface in Beta and TSR directions
             dCt_beta[i], dCt_TSR[i] = turbine.Ct.interp_gradient(pitch_op[i],TSR_op[i])       # gradients of Cp surface in Beta and TSR directions
         
