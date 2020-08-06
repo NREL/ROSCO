@@ -382,14 +382,32 @@ class FAST_IO():
 
     def load_binary_output(self, filename, use_buffer=True):
         """
-        03/09/15: Ported from ReadFASTbinary.m by Mads M Pedersen, DTU Wind
-        24/10/18: Low memory/buffered version by E. Branlard, NREL
-        18/01/19: New file format for exctended channels, by E. Branlard, NREL
+                
         Info about ReadFASTbinary.m:
-        % Author: Bonnie Jonkman, National Renewable Energy Laboratory
-        % (c) 2012, National Renewable Energy Laboratory
-        %
-        %  Edited for FAST v7.02.00b-bjj  22-Oct-2012
+        
+        Original Author: Bonnie Jonkman, National Renewable Energy Laboratory
+        (c) 2012, National Renewable Energy Laboratory
+        Edited for FAST v7.02.00b-bjj  22-Oct-2012
+        03/09/15: Ported from ReadFASTbinary.m by Mads M Pedersen, DTU Wind
+        10/24/18: Low memory/buffered version by E. Branlard, NREL
+        18/01/19: New file format for exctended channels, by E. Branlard, NREL
+        11/4/19: Implemented in ROSCO toolbox by N. Abbas, NREL
+        8/6/20: Synced between rosco toolbox and weio by P Bortolotti, NREL
+
+        Parameters
+        ----------
+        filename : str
+            filename
+        Returns
+        -------
+        data : ndarray
+            data values
+        info : dict
+            info containing:
+                - name: filename
+                - description: description of dataset
+                - channels: list of attribute names
+                - attribute_units: list of attribute units
         """
         def fread(fid, n, type):
             fmt, nbytes = {'uint8': ('B', 1), 'int16':('h', 2), 'int32':('i', 4), 'float32':('f', 4), 'float64':('d', 8)}[type]
@@ -539,6 +557,66 @@ class FAST_IO():
                 'attribute_names': ChanName,
                 'attribute_units': ChanUnit}
         return data, info
+
+    def trim_output(self, fast_data, tmin=None, tmax=None, verbose=False):
+        '''
+        Trim loaded fast output data 
+        Parameters
+        ----------
+        fast_data : list
+            List of all output data from load_fast_out (list containing dictionaries)
+        tmin : float, optional
+            start time
+        tmax : float, optional
+            end time
+        
+        Returns
+        -------
+        fast_data : list
+            list of dictionaries containing trimmed fast output data
+        '''
+        if isinstance(fast_data, dict):
+            fast_data = [fast_data]
+
+
+
+        # initial time array and associated index
+        for fd in fast_data:
+            if verbose:
+                if tmin: 
+                    tmin_v = str(tmin) + ' seconds'
+                else:  
+                    tmin_v = 'the beginning'
+                if tmax: 
+                    tmax_v = str(tmax) + ' seconds'
+                else: 
+                    tmax_v = 'the end'
+
+                print('Trimming output data for {} from {} to {}.'.format(fd['meta']['name'], tmin_v, tmax_v))
+            # Find time index range
+            if tmin:
+                T0ind = np.searchsorted(fd['Time'], tmin)
+            else:
+                T0ind = 0
+            if tmax:
+                Tfind = np.searchsorted(fd['Time'], tmax) + 1
+            else: 
+                Tfind = len(fd['Time'])
+
+            if T0ind+1 > len(fd['Time']):
+                raise ValueError('The initial time to trim {} to is after the end of the simulation.'.format(fd['meta']['name']))
+
+            # # Modify time
+            fd['Time'] = fd['Time'][T0ind:Tfind] - fd['Time'][T0ind]
+
+            # Remove all vales in data where time is not in desired range
+            for key in fd.keys():
+                if key.lower() not in ['time', 'meta']:
+                    fd[key] = fd[key][T0ind:Tfind]
+
+
+        return fast_data
+
 
 class FileProcessing():
     """
