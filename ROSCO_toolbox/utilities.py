@@ -554,7 +554,7 @@ class FAST_IO():
 
         info = {'name': os.path.splitext(os.path.basename(filename))[0],
                 'description': DescStr,
-                'attribute_names': ChanName,
+                'channels': ChanName,
                 'attribute_units': ChanUnit}
         return data, info
 
