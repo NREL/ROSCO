@@ -382,32 +382,14 @@ class FAST_IO():
 
     def load_binary_output(self, filename, use_buffer=True):
         """
-        
-        Info about ReadFASTbinary.m:
-        
-        Original Author: Bonnie Jonkman, National Renewable Energy Laboratory
-        (c) 2012, National Renewable Energy Laboratory
-        Edited for FAST v7.02.00b-bjj  22-Oct-2012
-
         03/09/15: Ported from ReadFASTbinary.m by Mads M Pedersen, DTU Wind
-        10/24/18: Low memory/buffered version by E. Branlard, NREL
-        11/4/19: Implemented in ROSCO toolbox by N. Abbas, NREL
-
-        Paramters
-        ----------
-        filename : str
-            filename
-
-        Returns
-        -------
-        data : ndarray
-            data values
-        info : dict
-            info containing:
-                - name: filename
-                - description: description of dataset
-                - channels: list of attribute names
-                - attribute_units: list of attribute units
+        24/10/18: Low memory/buffered version by E. Branlard, NREL
+        18/01/19: New file format for exctended channels, by E. Branlard, NREL
+        Info about ReadFASTbinary.m:
+        % Author: Bonnie Jonkman, National Renewable Energy Laboratory
+        % (c) 2012, National Renewable Energy Laboratory
+        %
+        %  Edited for FAST v7.02.00b-bjj  22-Oct-2012
         """
         def fread(fid, n, type):
             fmt, nbytes = {'uint8': ('B', 1), 'int16':('h', 2), 'int32':('i', 4), 'float32':('f', 4), 'float64':('d', 8)}[type]
@@ -448,19 +430,28 @@ class FAST_IO():
             return data
 
 
-        FileFmtID_WithTime = 1  #% File identifiers used in FAST
-        FileFmtID_WithoutTime = 2
-        LenName = 10  #;  % number of characters per channel name
-        LenUnit = 10  #;  % number of characters per unit name
+        FileFmtID_WithTime              = 1 # File identifiers used in FAST
+        FileFmtID_WithoutTime           = 2
+        FileFmtID_NoCompressWithoutTime = 3
+        FileFmtID_ChanLen_In            = 4
 
         with open(filename, 'rb') as fid:
+            #----------------------------        
+            # get the header information
+            #----------------------------
+
             FileID = fread(fid, 1, 'int16')[0]  #;             % FAST output file format, INT(2)
-            if FileID not in [FileFmtID_WithTime, FileFmtID_WithoutTime]:
+
+            if FileID not in [FileFmtID_WithTime, FileFmtID_WithoutTime, FileFmtID_NoCompressWithoutTime, FileFmtID_ChanLen_In]:
                 raise Exception('FileID not supported {}. Is it a FAST binary file?'.format(FileID))
+
+            if FileID == FileFmtID_ChanLen_In: 
+                LenName = fread(fid, 1, 'int16')[0] # Number of characters in channel names and units
+            else:
+                LenName = 10                    # Default number of characters per channel name
 
             NumOutChans = fread(fid, 1, 'int32')[0]  #;             % The number of output channels, INT(4)
             NT = fread(fid, 1, 'int32')[0]  #;             % The number of time steps, INT(4)
-
 
             if FileID == FileFmtID_WithTime:
                 TimeScl = fread(fid, 1, 'float64')  #;           % The time slopes for scaling, REAL(8)
@@ -469,38 +460,32 @@ class FAST_IO():
                 TimeOut1 = fread(fid, 1, 'float64')  #;           % The first time in the time series, REAL(8)
                 TimeIncr = fread(fid, 1, 'float64')  #;           % The time increment, REAL(8)
 
+            if FileID == FileFmtID_NoCompressWithoutTime:
+                ColScl = np.ones ((NumOutChans, 1)) # The channel slopes for scaling, REAL(4)
+                ColOff = np.zeros((NumOutChans, 1)) # The channel offsets for scaling, REAL(4)
+            else:
+                ColScl = fread(fid, NumOutChans, 'float32')  # The channel slopes for scaling, REAL(4)
+                ColOff = fread(fid, NumOutChans, 'float32')  # The channel offsets for scaling, REAL(4)
 
-
-
-            ColScl = fread(fid, NumOutChans, 'float32')  #; % The channel slopes for scaling, REAL(4)
-            ColOff = fread(fid, NumOutChans, 'float32')  #; % The channel offsets for scaling, REAL(4)
-
-            LenDesc = fread(fid, 1, 'int32')[0]  #;  % The number of characters in the description string, INT(4)
+            LenDesc      = fread(fid, 1, 'int32')[0]  #;  % The number of characters in the description string, INT(4)
             DescStrASCII = fread(fid, LenDesc, 'uint8')  #;  % DescStr converted to ASCII
-            DescStr = "".join(map(chr, DescStrASCII)).strip()
-
-
+            DescStr      = "".join(map(chr, DescStrASCII)).strip()
 
             ChanName = []  # initialize the ChanName cell array
             for iChan in range(NumOutChans + 1):
                 ChanNameASCII = fread(fid, LenName, 'uint8')  #; % ChanName converted to numeric ASCII
                 ChanName.append("".join(map(chr, ChanNameASCII)).strip())
 
-
             ChanUnit = []  # initialize the ChanUnit cell array
             for iChan in range(NumOutChans + 1):
-                ChanUnitASCII = fread(fid, LenUnit, 'uint8')  #; % ChanUnit converted to numeric ASCII
+                ChanUnitASCII = fread(fid, LenName, 'uint8')  #; % ChanUnit converted to numeric ASCII
                 ChanUnit.append("".join(map(chr, ChanUnitASCII)).strip()[1:-1])
 
-
-            #    %-------------------------
-            #    % get the channel time series
-            #    %-------------------------
+            # -------------------------
+            #  get the channel time series
+            # -------------------------
 
             nPts = NT * NumOutChans  #;           % number of data points in the file
-            #print('NT',NT)
-            #print('NumOutChans',NumOutChans)
-
 
             if FileID == FileFmtID_WithTime:
                 PackedTime = fread(fid, NT, 'int32')  #; % read the time data
@@ -510,10 +495,17 @@ class FAST_IO():
 
             if use_buffer:
                 # Reading data using buffers, and allowing an offset for time column (nOff=1)
-                data = freadRowOrderTableBuffered(fid, nPts, 'int16', NumOutChans, nOff=1, type_out='float64')
+                if FileID == FileFmtID_NoCompressWithoutTime:
+                    data = freadRowOrderTableBuffered(fid, nPts, 'float64', NumOutChans, nOff=1, type_out='float64')
+                else:
+                    data = freadRowOrderTableBuffered(fid, nPts, 'int16', NumOutChans, nOff=1, type_out='float64')
             else:
                 # NOTE: unpacking huge data not possible on 32bit machines
-                PackedData = fread(fid, nPts, 'int16')  #; % read the channel data
+                if FileID == FileFmtID_NoCompressWithoutTime:
+                    PackedData = fread(fid, nPts, 'float64')  #; % read the channel data
+                else:
+                    PackedData = fread(fid, nPts, 'int16')  #; % read the channel data
+
                 cnt = len(PackedData)
                 if cnt < nPts:
                     raise Exception('Could not read entire %s file: read %d of %d values' % (filename, cnt, nPts))
@@ -525,12 +517,9 @@ class FAST_IO():
         else:
             time = TimeOut1 + TimeIncr * np.arange(NT)
 
-        #import pdb
-        #pdb.set_trace()
-
-        #    %-------------------------
-        #    % Scale the packed binary to real data
-        #    %-------------------------
+        # -------------------------
+        #  Scale the packed binary to real data
+        # -------------------------
         if use_buffer:
             # Scaling Data
             for iCol in range(NumOutChans):
@@ -547,70 +536,9 @@ class FAST_IO():
 
         info = {'name': os.path.splitext(os.path.basename(filename))[0],
                 'description': DescStr,
-                'channels': ChanName,
+                'attribute_names': ChanName,
                 'attribute_units': ChanUnit}
         return data, info
-
-
-    def trim_output(self, fast_data, tmin=None, tmax=None, verbose=False):
-        '''
-        Trim loaded fast output data 
-
-        Parameters
-        ----------
-        fast_data : list
-            List of all output data from load_fast_out (list containing dictionaries)
-        tmin : float, optional
-            start time
-        tmax : float, optional
-            end time
-        
-        Returns
-        -------
-        fast_data : list
-            list of dictionaries containing trimmed fast output data
-        '''
-        if isinstance(fast_data, dict):
-            fast_data = [fast_data]
-
-
-                
-        # initial time array and associated index
-        for fd in fast_data:
-            if verbose:
-                if tmin: 
-                    tmin_v = str(tmin) + ' seconds'
-                else:  
-                    tmin_v = 'the beginning'
-                if tmax: 
-                    tmax_v = str(tmax) + ' seconds'
-                else: 
-                    tmax_v = 'the end'
-
-                print('Trimming output data for {} from {} to {}.'.format(fd['meta']['name'], tmin_v, tmax_v))
-            # Find time index range
-            if tmin:
-                T0ind = np.searchsorted(fd['Time'], tmin)
-            else:
-                T0ind = 0
-            if tmax:
-                Tfind = np.searchsorted(fd['Time'], tmax) + 1
-            else: 
-                Tfind = len(fd['Time'])
-            
-            if T0ind+1 > len(fd['Time']):
-                raise ValueError('The initial time to trim {} to is after the end of the simulation.'.format(fd['meta']['name']))
-
-            # # Modify time
-            fd['Time'] = fd['Time'][T0ind:Tfind] - fd['Time'][T0ind]
-
-            # Remove all vales in data where time is not in desired range
-            for key in fd.keys():
-                if key.lower() not in ['time', 'meta']:
-                    fd[key] = fd[key][T0ind:Tfind]
-
-
-        return fast_data
 
 class FileProcessing():
     """
