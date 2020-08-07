@@ -258,12 +258,14 @@ CONTAINS
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
 
-        ! Filter the HSS (generator) speed measurement:
+        ! Filter the HSS (generator) and LSS (rotor) speed measurement:
         ! Apply Low-Pass Filter (choice between first- and second-order low-pass filter)
         IF (CntrPar%F_LPFType == 1) THEN
             LocalVar%GenSpeedF = LPFilter(LocalVar%GenSpeed, LocalVar%DT, CntrPar%F_LPFCornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
+            LocalVar%RotSpeedF = LPFilter(LocalVar%RotSpeed, LocalVar%DT, CntrPar%F_LPFCornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
         ELSEIF (CntrPar%F_LPFType == 2) THEN   
             LocalVar%GenSpeedF = SecLPFilter(LocalVar%GenSpeed, LocalVar%DT, CntrPar%F_LPFCornerFreq, CntrPar%F_LPFDamping, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Second-order low-pass filter on generator speed
+            LocalVar%RotSpeedF = SecLPFilter(LocalVar%RotSpeed, LocalVar%DT, CntrPar%F_LPFCornerFreq, CntrPar%F_LPFDamping, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Second-order low-pass filter on generator speed
         ENDIF
         ! Apply Notch Fitler
         IF (CntrPar%F_NotchType == 1 .OR. CntrPar%F_NotchType == 3) THEN
@@ -272,7 +274,13 @@ CONTAINS
 
         ! Filtering the tower fore-aft acceleration signal 
         IF (CntrPar%Fl_Mode == 1) THEN
-            LocalVar%NacIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
+            ! Force to start at 0
+            IF (LocalVar%iStatus == 0) THEN
+                LocalVar%NacIMU_FA_AccF = SecLPFilter(0., LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
+            ELSE
+                LocalVar%NacIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
+            ENDIF
+                LocalVar%NacIMU_FA_AccF = HPFilter(LocalVar%NacIMU_FA_AccF, LocalVar%DT, 0.0167, LocalVar%iStatus, .FALSE., objInst%instHPF) 
             ! LocalVar%NacIMU_FA_AccF = NotchFilterSlopes(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .FALSE., objInst%instNotchSlopes) ! Fixed Damping
             IF (CntrPar%F_NotchType >= 2) THEN
                 LocalVar%NACIMU_FA_AccF = NotchFilter(LocalVar%NacIMU_FA_AccF, LocalVar%DT, CntrPar%F_NotchCornerFreq, CntrPar%F_NotchBetaNumDen(1), CntrPar%F_NotchBetaNumDen(2), LocalVar%iStatus, .FALSE., objInst%instNotch) ! Fixed Damping
@@ -281,5 +289,13 @@ CONTAINS
 
         LocalVar%FA_AccHPF = HPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%FA_HPFCornerFreq, LocalVar%iStatus, .FALSE., objInst%instHPF)
         
+        ! Wind Speed Estimator
+        ! LocalVar%We_Vw_F = SecLPFilter(LocalVar%We_Vw, LocalVar%DT, 0.62831, 0.7, LocalVar%iStatus, .FALSE., objInst%instSecLPF)
+        LocalVar%We_Vw_F = LPFilter(LocalVar%We_Vw, LocalVar%DT, CntrPar%F_LPFCornerFreq/2.0, LocalVar%iStatus, .FALSE., objInst%instLPF)
+
+        ! Control commands (used by WSE, mostly)
+        LocalVar%VS_LastGenTrqF = SecLPFilter(LocalVar%VS_LastGenTrq, LocalVar%dt, CntrPar%F_LPFCornerFreq, 0.7, LocalVar%iStatus, .FALSE., objInst%instSecLPF)
+        LocalVar%PC_PitComTF = LPFilter(LocalVar%PC_PitComT, LocalVar%dt, CntrPar%F_LPFCornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
+
     END SUBROUTINE PreFilterMeasuredSignals
     END MODULE Filters

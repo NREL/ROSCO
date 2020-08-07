@@ -68,7 +68,7 @@ CONTAINS
         IF (LocalVar%iStatus == 0) THEN
             LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, CntrPar%PC_FinePit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%PitCom(1), .TRUE., objInst%instPI)
         ELSE
-            LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, CntrPar%PC_FinePit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%BlPitch(1), .FALSE., objInst%instPI)
+            LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, LocalVar%PC_MinPit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%BlPitch(1), .FALSE., objInst%instPI)
         END IF
         
         ! Find individual pitch control contribution
@@ -85,12 +85,12 @@ CONTAINS
             LocalVar%FA_PitCom = 0.0 ! THIS IS AN ARRAY!!
         ENDIF
         
-        ! Peak Shaving
+        ! Pitch Saturation
         IF (CntrPar%PS_Mode == 1) THEN
             LocalVar%PC_MinPit = PitchSaturation(LocalVar,CntrPar,objInst)
-            LocalVar%PC_MinPit = max(LocalVar%PC_MinPit, CntrPar%PC_MinPit)
+            LocalVar%PC_MinPit = max(LocalVar%PC_MinPit, CntrPar%PC_FinePit)
         ELSE
-            LocalVar%PC_MinPit = CntrPar%PC_MinPit
+            LocalVar%PC_MinPit = CntrPar%PC_FinePit
         ENDIF
 
         ! Shutdown
@@ -110,8 +110,10 @@ CONTAINS
         PitComT_Last = LocalVar%PC_PitComT
 
         ! Combine and saturate all individual pitch commands:
+        ! Filter to emulate pitch actuator
         DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
             LocalVar%PitCom(K) = LocalVar%PC_PitComT + LocalVar%IPC_PitComF(K) + LocalVar%FA_PitCom(K) 
+            ! LocalVar%PitCom(K) = SecLPFilter(LocalVar%PitCom(K), LocalVar%DT, , Damp, iStatus, reset, inst)
             LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
             LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), LocalVar%BlPitch(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
         END DO
@@ -160,7 +162,6 @@ CONTAINS
         ! K*Omega^2 control law with PI torque control in transition regions
         ELSE
             ! Update PI loops for region 1.5 and 2.5 PI control
-            ! LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_RtTq, .TRUE., objInst%instPI)
             LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_MaxOMTq, .FALSE., objInst%instPI)
             LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, .FALSE., objInst%instPI)
             

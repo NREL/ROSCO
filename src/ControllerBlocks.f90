@@ -55,7 +55,7 @@ CONTAINS
         ! Initialize State machine if first call
         IF (LocalVar%iStatus == 0) THEN ! .TRUE. if we're on the first call to the DLL
 
-            IF (LocalVar%PitCom(1) >= CntrPar%VS_Rgn3Pitch) THEN ! We are in region 3
+            IF (LocalVar%PitCom(1) >= LocalVar%VS_Rgn3Pitch) THEN ! We are in region 3
                 IF (CntrPar%VS_ControlMode == 1) THEN ! Constant power tracking
                     LocalVar%VS_State = 5
                     LocalVar%PC_State = 1
@@ -78,22 +78,20 @@ CONTAINS
             END IF
             
             ! --- Torque control state machine ---
-            IF (LocalVar%PC_PitComT >= CntrPar%VS_Rgn3Pitch) THEN       
+            IF (LocalVar%PC_PitComT >= LocalVar%VS_Rgn3Pitch) THEN       
 
-                IF (LocalVar%PC_PitComT >= LocalVar%PC_MinPit + CntrPar%PC_Switch) THEN ! Make sure we aren't implement pitch saturation
-                    IF (CntrPar%VS_ControlMode == 1) THEN                   ! Region 3
-                        LocalVar%VS_State = 5 ! Constant power tracking
-                    ELSE 
-                        LocalVar%VS_State = 4 ! Constant torque tracking
-                    END IF
+                IF (CntrPar%VS_ControlMode == 1) THEN                   ! Region 3
+                    LocalVar%VS_State = 5 ! Constant power tracking
+                ELSE 
+                    LocalVar%VS_State = 4 ! Constant torque tracking
                 END IF
             ELSE
                 IF (LocalVar%GenArTq >= CntrPar%VS_MaxOMTq*1.01) THEN       ! Region 2 1/2 - active PI torque control
                     LocalVar%VS_State = 3                 
-                ELSEIF (LocalVar%GenSpeedF < CntrPar%VS_RefSpd)  THEN       ! Region 2 - optimal torque is proportional to the square of the generator speed
-                
+                ELSEIF ((LocalVar%GenSpeedF < CntrPar%VS_RefSpd) .AND. &
+                        (LocalVar%GenBrTq >= CntrPar%VS_MinOMTq)) THEN       ! Region 2 - optimal torque is proportional to the square of the generator speed
                     LocalVar%VS_State = 2
-                ELSEIF (LocalVar%GenBrTq <= CntrPar%VS_MinOMTq*0.99) THEN   ! Region 1 1/2
+                ELSEIF (LocalVar%GenBrTq < CntrPar%VS_MinOMTq) THEN   ! Region 1 1/2
                 
                     LocalVar%VS_State = 1
                 ELSE                                                        ! Error state, Debug
@@ -103,11 +101,11 @@ CONTAINS
         END IF
     END SUBROUTINE StateMachine
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData)
+    SUBROUTINE WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar)
     ! Wind Speed Estimator estimates wind speed at hub height. Currently implements two types of estimators
     !       WE_Mode = 0, Filter hub height wind speed as passed from servodyn using first order low pass filter with 1Hz cornering frequency
     !       WE_Mode = 1, Use Inversion and Inveriance filter as defined by Ortege et. al. 
-        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances, PerformanceData
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances, PerformanceData, DebugVariables
         IMPLICIT NONE
     
         ! Inputs
@@ -115,6 +113,7 @@ CONTAINS
         TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar 
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
         TYPE(PerformanceData),      INTENT(INOUT)       :: PerfData
+        TYPE(DebugVariables),       INTENT(INOUT)       :: DebugVar
         ! Allocate Variables
         REAL(4)                 :: F_WECornerFreq   ! Corner frequency (-3dB point) for first order low pass filter for measured hub height wind speed [Hz]
 
@@ -143,19 +142,24 @@ CONTAINS
         REAL(4), DIMENSION(3,1), SAVE   :: K        ! Kalman gain matrix
         REAL(4)                         :: R_m      ! Measurement noise covariance [(rad/s)^2]
         
+        ! ---- Debug Inputs ------
+        DebugVar%WE_b   = LocalVar%PC_PitComTF*R2D
+        DebugVar%WE_w   = LocalVar%RotSpeedF
+        DebugVar%WE_t   = LocalVar%VS_LastGenTrqF
+
         ! ---- Define wind speed estimate ---- 
         
         ! Inversion and Invariance Filter implementation
         IF (CntrPar%WE_Mode == 1) THEN      
             LocalVar%WE_VwIdot = CntrPar%WE_Gamma/CntrPar%WE_Jtot*(LocalVar%VS_LastGenTrq*CntrPar%WE_GearboxRatio - AeroDynTorque(LocalVar, CntrPar, PerfData))
             LocalVar%WE_VwI = LocalVar%WE_VwI + LocalVar%WE_VwIdot*LocalVar%DT
-            LocalVar%WE_Vw = LocalVar%WE_VwI + CntrPar%WE_Gamma*LocalVar%RotSpeed
+            LocalVar%WE_Vw = LocalVar%WE_VwI + CntrPar%WE_Gamma*LocalVar%RotSpeedF
 
         ! Extended Kalman Filter (EKF) implementation
         ELSEIF (CntrPar%WE_Mode == 2) THEN
             ! Define contant values
-            L = 4.0 * CntrPar%WE_BladeRadius
-            Ti = 0.2
+            L = 6.0 * CntrPar%WE_BladeRadius
+            Ti = 0.18
             R_m = 0.02
             H = RESHAPE((/1.0 , 0.0 , 0.0/),(/1,3/))
             ! Define matrices to be filled
@@ -163,7 +167,7 @@ CONTAINS
             Q = RESHAPE((/0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0/),(/3,3/))
             IF (LocalVar%iStatus == 0) THEN
                 ! Initialize recurring values
-                om_r = LocalVar%RotSpeed
+                om_r = LocalVar%RotSpeedF
                 v_t = 0.0
                 v_m = LocalVar%HorWindV
                 v_h = LocalVar%HorWindV
@@ -177,6 +181,7 @@ CONTAINS
 
                 ! TEST INTERP2D
                 lambda = LocalVar%RotSpeed * CntrPar%WE_BladeRadius/v_h
+                DebugVar%WE_Pitch = LocalVar%BlPitch(1)
                 Cp_op = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%BlPitch(1)*R2D, lambda )
                 Cp_op = max(0.0,Cp_op)
                 
@@ -195,7 +200,7 @@ CONTAINS
                 ! Prediction update
                 Tau_r = AeroDynTorque(LocalVar,CntrPar,PerfData)
                 a = PI * v_m/(2.0*L)
-                dxh(1,1) = 1.0/CntrPar%WE_Jtot * (Tau_r - CntrPar%WE_GearboxRatio * LocalVar%VS_LastGenTrq)
+                dxh(1,1) = 1.0/CntrPar%WE_Jtot * (Tau_r - CntrPar%WE_GearboxRatio * LocalVar%VS_LastGenTrqF)
                 dxh(2,1) = -a*v_t
                 dxh(3,1) = 0.0
                 
@@ -205,8 +210,9 @@ CONTAINS
                 ! Measurement update
                 S = MATMUL(H,MATMUL(P,TRANSPOSE(H))) + R_m        ! NJA: (H*T*H') \approx 0
                 K = MATMUL(P,TRANSPOSE(H))/S(1,1)
-                xh = xh + K*(LocalVar%GenSpeedF/CntrPar%WE_GearboxRatio - om_r)
+                xh = xh + K*(LocalVar%RotSpeedF - om_r)
                 P = MATMUL(identity(3) - MATMUL(K,H),P)
+
                 
                 ! Wind Speed Estimate
                 om_r = xh(1,1)
@@ -214,11 +220,16 @@ CONTAINS
                 v_m = xh(3,1)
                 v_h = v_t + v_m
                 LocalVar%WE_Vw = v_m + v_t
+
+                ! Debug Outputs
+                DebugVar%WE_Cp = Cp_op
+                DebugVar%WE_D = v_m
+
             ENDIF
 
         ELSE        
             ! Define Variables
-            F_WECornerFreq = 0.0333  ! Fix to 30 second time constant for now    
+            F_WECornerFreq = 0.20944  ! Fix to 30 second time constant for now    
 
             ! Filter wind speed at hub height as directly passed from OpenFAST
             LocalVar%WE_Vw = LPFilter(LocalVar%HorWindV, LocalVar%DT, F_WECornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
@@ -243,7 +254,7 @@ CONTAINS
         ! ------ Setpoint Smoothing ------
         IF ( CntrPar%SS_Mode == 1) THEN
             ! Find setpoint shift amount
-            DelOmega = ((LocalVar%BlPitch(1) - CntrPar%PC_MinPit)/0.524) * CntrPar%SS_VSGain - ((CntrPar%VS_RtTq - LocalVar%VS_LastGenTrq))/CntrPar%VS_RtTq * CntrPar%SS_PCGain ! Normalize to 30 degrees for now
+            DelOmega = ((LocalVar%PC_PitComT - CntrPar%PC_MinPit)/0.524) * CntrPar%SS_VSGain - ((CntrPar%VS_RtTq - LocalVar%VS_LastGenTrq))/CntrPar%VS_RtTq * CntrPar%SS_PCGain ! Normalize to 30 degrees for now
             DelOmega = DelOmega * CntrPar%PC_RefSpd
             ! Filter
             LocalVar%SS_DelOmegaF = LPFilter(DelOmega, LocalVar%DT, CntrPar%F_SSCornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF) 
@@ -264,17 +275,11 @@ CONTAINS
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables 
-        REAL(4)                     :: V_towertop ! Estimated velocity of tower top (m/s)
         REAL(4)                     :: Vhat     ! Estimated wind speed without towertop motion [m/s]
         REAL(4)                     :: Vhatf     ! 30 second low pass filtered Estimated wind speed without towertop motion [m/s]
 
-        ! Account for towertop motions in wind speed estimate
-        !       Integrate Towertop Acceleration  
-        ! dV_towertop = 
-        ! V_towertop = PIController(LocalVar%FA_Acc, 0.0, 1.0, -100.00, 100.00, LocalVar%DT, 0.0, .FALSE., objInst%instPI)
-
-        Vhat = LocalVar%WE_Vw
-        Vhatf = LPFilter(Vhat,LocalVar%DT,0.2,LocalVar%iStatus,.FALSE.,objInst%instLPF)
+        Vhat = LocalVar%WE_Vw_F
+        Vhatf = SecLPFilter(Vhat,LocalVar%DT,0.21,0.7,LocalVar%iStatus,.FALSE.,objInst%instSecLPF) ! 30 second time constant
         
         ! Define minimum blade pitch angle as a function of estimated wind speed
         PitchSaturation = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, Vhatf)

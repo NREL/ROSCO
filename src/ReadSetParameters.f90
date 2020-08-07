@@ -215,8 +215,6 @@ CONTAINS
         CntrPar%PC_RtTq99 = CntrPar%VS_RtTq*0.99
         CntrPar%VS_MinOMTq = CntrPar%VS_Rgn2K*CntrPar%VS_MinOMSpd**2
         CntrPar%VS_MaxOMTq = CntrPar%VS_Rgn2K*CntrPar%VS_RefSpd**2
-        CntrPar%VS_Rgn3Pitch = CntrPar%PC_FinePit + CntrPar%PC_Switch
-        
         CLOSE(UnControllerParameters)
         
         !------------------- HOUSEKEEPING -----------------------
@@ -227,7 +225,7 @@ CONTAINS
     ! Calculate setpoints for primary control actions    
     SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
-        
+        USE Constants
         ! Allocate variables
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
@@ -236,7 +234,6 @@ CONTAINS
         REAL(4)                                 :: VS_RefSpd        ! Referece speed for variable speed torque controller, [rad/s] 
         REAL(4)                                 :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
         REAL(4)                                 :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
-        REAL(4)                                 :: WE_Vw_f          ! Filtered Wind Speed Estimate
         ! temp
         ! REAL(4)                                 :: VS_TSRop = 7.5
 
@@ -257,9 +254,7 @@ CONTAINS
         ! ----- Torque controller reference errors -----
         ! Define VS reference generator speed [rad/s]
         IF (CntrPar%VS_ControlMode == 2) THEN
-            ! WE_Vw_f = LPFilter(LocalVar%We_Vw, LocalVar%DT, 0.625, LocalVar%iStatus, .FALSE., objInst%instLPF)
-            WE_Vw_f = LocalVar%We_Vw
-            VS_RefSpd = (CntrPar%VS_TSRopt * WE_Vw_f / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
+            VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
             VS_RefSpd = saturate(VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
         ELSE
             VS_RefSpd = CntrPar%VS_RefSpd
@@ -286,8 +281,10 @@ CONTAINS
         ! Define transition region setpoint errors
         LocalVar%VS_SpdErrAr = VS_RefSpd - LocalVar%GenSpeedF               ! Current speed error - Region 2.5 PI-control (Above Rated)
         LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd - LocalVar%GenSpeedF     ! Current speed error - Region 1.5 PI-control (Below Rated)
-    
-    
+        
+        ! Region 3 minimum pitch angle for state machine
+        LocalVar%VS_Rgn3Pitch = LocalVar%PC_MinPit + CntrPar%PC_Switch
+
     END SUBROUTINE ComputeVariablesSetpoints
     ! -----------------------------------------------------------------------------------
     ! Read avrSWAP array passed from ServoDyn    
@@ -404,12 +401,12 @@ CONTAINS
         
         IF (CntrPar%VS_KP(1) > 0.0) THEN
             aviFAIL = -1
-            ErrMsg  = 'VS_KP must be greater than zero.'
+            ErrMsg  = 'VS_KP must be less than zero.'
         ENDIF
         
         IF (CntrPar%VS_KI(1) > 0.0) THEN
             aviFAIL = -1
-            ErrMsg  = 'VS_KI must be greater than zero.'
+            ErrMsg  = 'VS_KI must be less than zero.'
         ENDIF
         
         IF (CntrPar%PC_RefSpd <= 0.0) THEN
@@ -550,6 +547,9 @@ CONTAINS
                      'Visit our GitHub-page to contribute to this project:                          '//NEW_LINE('A')// &
                      'https://github.com/NREL/ROSCO                                                 '//NEW_LINE('A')// &
                      '------------------------------------------------------------------------------'
+
+                ! print *, 'Version 1.0.1: pretty debug'
+
             CALL ReadControlParameterFileSub(CntrPar, accINFILE, NINT(avrSWAP(50)))
 
             IF (CntrPar%WE_Mode > 0) THEN
