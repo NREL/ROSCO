@@ -181,7 +181,6 @@ CONTAINS
 
                 ! TEST INTERP2D
                 lambda = LocalVar%RotSpeed * CntrPar%WE_BladeRadius/v_h
-                DebugVar%WE_Pitch = LocalVar%BlPitch(1)
                 Cp_op = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%BlPitch(1)*R2D, lambda )
                 Cp_op = max(0.0,Cp_op)
                 
