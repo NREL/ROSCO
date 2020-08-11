@@ -263,27 +263,22 @@ CONTAINS
 
     END SUBROUTINE SetpointSmoother
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION PitchSaturation(LocalVar, CntrPar, objInst) 
+    SUBROUTINE PitchSaturation(LocalVar, CntrPar, objInst, DebugVar) 
     ! PitchSaturation defines a minimum blade pitch angle based on a lookup table provided by DISCON.IN
     !       SS_Mode = 0, No setpoint smoothing
     !       SS_Mode = 1, Implement pitch saturation
-        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances, DebugVariables
         IMPLICIT NONE
         ! Inputs
         TYPE(ControlParameters), INTENT(IN)     :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
-        ! Allocate Variables 
-        REAL(4)                     :: Vhat     ! Estimated wind speed without towertop motion [m/s]
-        REAL(4)                     :: Vhatf     ! 30 second low pass filtered Estimated wind speed without towertop motion [m/s]
+        TYPE(DebugVariables), INTENT(INOUT)     :: DebugVar
 
-        Vhat = LocalVar%WE_Vw_F
-        Vhatf = SecLPFilter(Vhat,LocalVar%DT,0.21,0.7,LocalVar%iStatus,.FALSE.,objInst%instSecLPF) ! 30 second time constant
-        
         ! Define minimum blade pitch angle as a function of estimated wind speed
-        PitchSaturation = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, Vhatf)
+        LocalVar%PC_MinPit = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, LocalVar%WE_Vw_F)
 
-    END FUNCTION PitchSaturation
+    END SUBROUTINE PitchSaturation
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION Shutdown(LocalVar, CntrPar, objInst) 
     ! PeakShaving defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
