@@ -31,7 +31,7 @@ MODULE Controllers
 
 CONTAINS
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE PitchControl(avrSWAP, CntrPar, LocalVar, objInst)
+    SUBROUTINE PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar)
     ! Blade pitch controller, generally maximizes rotor speed below rated (region 2) and regulates rotor speed above rated (region 3)
     !       PC_State = 0, fix blade pitch to fine pitch angle (PC_FinePit)
     !       PC_State = 1, is gain scheduled PI controller 
@@ -39,12 +39,13 @@ CONTAINS
     !       Individual pitch control
     !       Tower fore-aft damping 
     !       Sine excitation on pitch    
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables
         
         ! Inputs
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+        TYPE(DebugVariables), INTENT(INOUT)      :: DebugVar
         ! Allocate Variables:
         REAL(C_FLOAT), INTENT(INOUT)    :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from the DLL controller.
         INTEGER(4)                      :: K            ! Index used for looping through blades.

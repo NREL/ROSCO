@@ -290,8 +290,7 @@ CONTAINS
         LocalVar%FA_AccHPF = HPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%FA_HPFCornerFreq, LocalVar%iStatus, .FALSE., objInst%instHPF)
         
         ! Wind Speed Estimator
-        ! LocalVar%We_Vw_F = SecLPFilter(LocalVar%We_Vw, LocalVar%DT, 0.62831, 0.7, LocalVar%iStatus, .FALSE., objInst%instSecLPF)
-        LocalVar%We_Vw_F = LPFilter(LocalVar%We_Vw, LocalVar%DT, CntrPar%F_LPFCornerFreq/2.0, LocalVar%iStatus, .FALSE., objInst%instLPF)
+        LocalVar%We_Vw_F = SecLPFilter(LocalVar%WE_Vw,LocalVar%DT,0.21,0.7,LocalVar%iStatus,.FALSE.,objInst%instSecLPF) ! 30 second time constant
 
         ! Control commands (used by WSE, mostly)
         LocalVar%VS_LastGenTrqF = SecLPFilter(LocalVar%VS_LastGenTrq, LocalVar%dt, CntrPar%F_LPFCornerFreq, 0.7, LocalVar%iStatus, .FALSE., objInst%instSecLPF)

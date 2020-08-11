@@ -222,7 +222,8 @@ CONTAINS
 
                 ! Debug Outputs
                 DebugVar%WE_Cp = Cp_op
-                DebugVar%WE_D = v_m
+                DebugVar%WE_Vm = v_m
+                DebugVar%WE_Vt = v_t
 
             ENDIF
 

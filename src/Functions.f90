@@ -471,30 +471,33 @@ CONTAINS
 
         ! Set up Debug Strings and Data
         ! Note that Debug strings have 10 character limit
-        nDebugOuts = 12
+        nDebugOuts = 14
         ALLOCATE(DebugOutData(nDebugOuts))
         !                 Header                            Unit                                Variable
-        DebugOutStr1  = 'FA_AccF';         DebugOutUni1  = '(m/s)';      DebugOutData(1)  = LocalVar%NacIMU_FA_AccF
-        DebugOutStr2  = 'WE_Vw';           DebugOutUni2  = '(rad)';      DebugOutData(2)  = LocalVar%WE_Vw
+        DebugOutStr1  = 'FA_AccF';          DebugOutUni1  = '(m/s)';      DebugOutData(1)  = LocalVar%NacIMU_FA_AccF
+        DebugOutStr2  = 'WE_Vw';            DebugOutUni2  = '(rad)';      DebugOutData(2)  = LocalVar%WE_Vw
         DebugOutStr3  = 'FA_AccR';          DebugOutUni3  = '(rad/s^2)';  DebugOutData(3)  = LocalVar%NacIMU_FA_Acc
-        DebugOutStr4  = 'FA_Acc';          DebugOutUni4  = '(m/s^2)';    DebugOutData(4)  = LocalVar%FA_Acc
-        DebugOutStr5  = 'Fl_Pitcom';       DebugOutUni5  = '(rad)';      DebugOutData(5)  = LocalVar%Fl_Pitcom
-        DebugOutStr6  = 'WE_Cp';           DebugOutUni6  = '(-)';        DebugOutData(6)  = DebugVar%WE_Cp
-        DebugOutStr7  = 'PC_MinPit';       DebugOutUni7  = '(rad)';      DebugOutData(7)  = LocalVar%PC_MinPit
-        DebugOutStr8  = 'SS_dOmF';         DebugOutUni8  = '(rad/s)';    DebugOutData(8)  = LocalVar%SS_DelOmegaF
-        DebugOutStr9  = 'WE_b';            DebugOutUni9  = '(deg)';      DebugOutData(9)  = DebugVar%WE_b
+        DebugOutStr4  = 'FA_Acc';           DebugOutUni4  = '(m/s^2)';    DebugOutData(4)  = LocalVar%FA_Acc
+        DebugOutStr5  = 'Fl_Pitcom';        DebugOutUni5  = '(rad)';      DebugOutData(5)  = LocalVar%Fl_Pitcom
+        DebugOutStr6  = 'WE_Cp';            DebugOutUni6  = '(-)';        DebugOutData(6)  = DebugVar%WE_Cp
+        DebugOutStr7  = 'PC_MinPit';        DebugOutUni7  = '(rad)';      DebugOutData(7)  = LocalVar%PC_MinPit
+        DebugOutStr8  = 'SS_dOmF';          DebugOutUni8  = '(rad/s)';    DebugOutData(8)  = LocalVar%SS_DelOmegaF
+        DebugOutStr9  = 'WE_b';             DebugOutUni9  = '(deg)';      DebugOutData(9)  = DebugVar%WE_b
         DebugOutStr10  = 'WE_t';            DebugOutUni10  = '(Nm)';      DebugOutData(10)  = DebugVar%WE_t
-        DebugOutStr11  = 'WE_w';            DebugOutUni11  = '(rad/s)';      DebugOutData(11)  = DebugVar%WE_w
-        DebugOutStr12  = 'WE_D';            DebugOutUni12  = '()';      DebugOutData(12)  = DebugVar%WE_D
+        DebugOutStr11  = 'WE_w';            DebugOutUni11  = '(rad/s)';   DebugOutData(11)  = DebugVar%WE_w
+        DebugOutStr12  = 'WE_Vm';            DebugOutUni12  = '()';        DebugOutData(12)  = DebugVar%WE_Vm
+        DebugOutStr14  = 'WE_Vw_F';        DebugOutUni14  = '(m/s)';     DebugOutData(13)  = LocalVar%WE_Vw_F
 
         Allocate(DebugOutStrings(nDebugOuts))
         Allocate(DebugOutUnits(nDebugOuts))
         DebugOutStrings =   [CHARACTER(10)  :: DebugOutStr1, DebugOutStr2, DebugOutStr3, DebugOutStr4, &
                                                 DebugOutStr5, DebugOutStr6, DebugOutStr7, DebugOutStr8, &
-                                                DebugOutStr9, DebugOutStr10, DebugOutStr11, DebugOutStr12]
+                                                DebugOutStr9, DebugOutStr10, DebugOutStr11, DebugOutStr12, &
+                                                DebugOutStr13]
         DebugOutUnits =     [CHARACTER(10)  :: DebugOutUni1, DebugOutUni2, DebugOutUni3, DebugOutUni4, &
                                                 DebugOutUni5, DebugOutUni6, DebugOutUni7, DebugOutUni8, &
-                                                DebugOutUni9, DebugOutUni10, DebugOutUni11, DebugOutUni12]
+                                                DebugOutUni9, DebugOutUni10, DebugOutUni11, DebugOutUni12, &
+                                                DebugOutUni13]
         
         ! Initialize debug file
         IF (LocalVar%iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
