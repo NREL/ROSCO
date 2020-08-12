@@ -132,14 +132,14 @@ CONTAINS
         REAL(8)                 :: a                ! wind variance
         REAL(8)                 :: lambda           ! tip-speed-ratio [rad]
         !           - Covariance matrices
-        REAL(8), DIMENSION(3,3)         :: F        ! First order system jacobian 
-        REAL(8), DIMENSION(3,3), SAVE   :: P        ! Covariance estiamte 
-        REAL(8), DIMENSION(1,3)         :: H        ! Output equation jacobian 
-        REAL(8), DIMENSION(3,1), SAVE   :: xh       ! Estimated state matrix
-        REAL(8), DIMENSION(3,1)         :: dxh      ! Estimated state matrix deviation from previous timestep
-        REAL(8), DIMENSION(3,3)         :: Q        ! Process noise covariance matrix
+        REAL(8), DIMENSION(2,2)         :: F        ! First order system jacobian 
+        REAL(8), DIMENSION(2,2), SAVE   :: P        ! Covariance estiamte 
+        REAL(8), DIMENSION(1,2)         :: H        ! Output equation jacobian 
+        REAL(8), DIMENSION(2,1), SAVE   :: xh       ! Estimated state matrix
+        REAL(8), DIMENSION(2,1)         :: dxh      ! Estimated state matrix deviation from previous timestep
+        REAL(8), DIMENSION(2,2)         :: Q        ! Process noise covariance matrix
         REAL(8), DIMENSION(1,1)         :: S        ! Innovation covariance 
-        REAL(8), DIMENSION(3,1), SAVE   :: K        ! Kalman gain matrix
+        REAL(8), DIMENSION(2,1), SAVE   :: K        ! Kalman gain matrix
         REAL(8)                         :: R_m      ! Measurement noise covariance [(rad/s)^2]
         
         REAL(8), DIMENSION(3,1), SAVE   :: B
@@ -162,19 +162,19 @@ CONTAINS
             L = 6.0 * CntrPar%WE_BladeRadius
             Ti = 0.18
             R_m = 0.02
-            H = RESHAPE((/1.0 , 0.0 , 0.0/),(/1,3/))
+            H = RESHAPE((/1.0 , 0.0/),(/1,2/))
             ! Define matrices to be filled
-            F = RESHAPE((/0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0/),(/3,3/))
-            Q = RESHAPE((/0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0/),(/3,3/))
+            F = RESHAPE((/0.0, 0.0, 0.0, 0.0/),(/2,2/))
+            Q = RESHAPE((/0.0, 0.0, 0.0, 0.0/),(/2,2/))
             IF (LocalVar%iStatus == 0) THEN
                 ! Initialize recurring values
                 om_r = LocalVar%RotSpeedF
-                v_t = 0.0
-                v_m = LocalVar%HorWindV
+                ! v_t = 0.0
+                ! v_m = LocalVar%HorWindV
                 v_h = LocalVar%HorWindV
-                xh = RESHAPE((/om_r, v_t, v_m/),(/3,1/))
-                P = RESHAPE((/0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 1.0/),(/3,3/))
-                K = RESHAPE((/0.0,0.0,0.0/),(/3,1/))
+                xh = RESHAPE((/om_r, v_h/),(/2,1/))
+                P = RESHAPE((/0.01, 0.0, 0.0, 0.01/),(/2,2/))
+                K = RESHAPE((/0.0,0.0,0.0/),(/2,1/))
                 
             ELSE
                 ! Find estimated operating Cp and system pole
@@ -188,21 +188,21 @@ CONTAINS
                 ! Update Jacobian
                 F(1,1) = A_op
                 F(1,2) = 1.0/(2.0*CntrPar%WE_Jtot) * CntrPar%WE_RhoAir * PI *CntrPar%WE_BladeRadius**2.0 * Cp_op * 3.0 * v_h**2.0 * 1.0/om_r
-                F(1,3) = 1.0/(2.0*CntrPar%WE_Jtot) * CntrPar%WE_RhoAir * PI *CntrPar%WE_BladeRadius**2.0 * Cp_op * 3.0 * v_h**2.0 * 1.0/om_r
-                F(2,2) = PI * v_m/(2.0*L)
-                F(2,3) = PI * v_t/(2.0*L)
+                ! F(1,3) = 1.0/(2.0*CntrPar%WE_Jtot) * CntrPar%WE_RhoAir * PI *CntrPar%WE_BladeRadius**2.0 * Cp_op * 3.0 * v_h**2.0 * 1.0/om_r
+                F(2,2) = PI * v_h/(2.0*L)
+                ! F(2,3) = PI * v_t/(2.0*L)
 
                 ! Update process noise covariance
                 Q(1,1) = 0.00001
-                Q(2,2) =(PI * (v_m**3.0) * (Ti**2.0)) / L
-                Q(3,3) = (2.0**2.0)/600.0
+                Q(2,2) =(PI * (v_h**3.0) * (Ti**2.0)) / L + (2.0**2.0)/600.0
+                ! Q(3,3) = (2.0**2.0)/600.0
 
                 ! Prediction update
                 Tau_r = AeroDynTorque(LocalVar,CntrPar,PerfData)
-                a = PI * v_m/(2.0*L)
+                a = PI * v_h/(2.0*L)
                 dxh(1,1) = 1.0/CntrPar%WE_Jtot * (Tau_r - CntrPar%WE_GearboxRatio * LocalVar%VS_LastGenTrqF)
-                dxh(2,1) = -a*v_t
-                dxh(3,1) = 0.0
+                dxh(2,1) = -a*v_h
+                ! dxh(3,1) = 0.0
                 
                 xh = xh + LocalVar%DT * dxh ! state update
                 P = P + LocalVar%DT*(MATMUL(F,P) + MATMUL(P,TRANSPOSE(F)) + Q - MATMUL(K * R_m, TRANSPOSE(K))) 
@@ -216,10 +216,11 @@ CONTAINS
                 
                 ! Wind Speed Estimate
                 om_r = xh(1,1)
-                v_t = xh(2,1)
-                v_m = xh(3,1)
-                v_h = v_t + v_m
-                LocalVar%WE_Vw = v_m + v_t
+                v_h = xh(2,1)
+                ! v_m = xh(3,1)
+                ! v_h = v_t + v_m
+                ! LocalVar%WE_Vw = v_m + v_t
+                LocalVar%WE_Vw = V_h
 
             ENDIF
             ! Debug Outputs
