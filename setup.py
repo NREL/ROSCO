@@ -31,7 +31,7 @@ URL = 'https://github.com/NREL/ROSCO_toolbox'
 EMAIL = 'nikhar.abbas@nrel.gov'
 AUTHOR = 'NREL National Wind Technology Center'
 REQUIRES_PYTHON = '>=3.4'
-VERSION = '2.1.1'
+VERSION = '2.1.4'
 
 # These packages are required for all of the code to be executed. 
 # - Maybe you can get away with older versions...
