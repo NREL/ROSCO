@@ -231,11 +231,11 @@ CONTAINS
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
 
-        REAL(4)                                 :: VS_RefSpd        ! Referece speed for variable speed torque controller, [rad/s] 
-        REAL(4)                                 :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
-        REAL(4)                                 :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
+        REAL(8)                                 :: VS_RefSpd        ! Referece speed for variable speed torque controller, [rad/s] 
+        REAL(8)                                 :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
+        REAL(8)                                 :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
         ! temp
-        ! REAL(4)                                 :: VS_TSRop = 7.5
+        ! REAL(8)                                 :: VS_TSRop = 7.5
 
         ! ----- Calculate yaw misalignment error -----
         LocalVar%Y_MErr = LocalVar%Y_M + CntrPar%Y_MErrSet ! Yaw-alignment error

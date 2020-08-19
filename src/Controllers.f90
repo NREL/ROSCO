@@ -49,7 +49,7 @@ CONTAINS
         ! Allocate Variables:
         REAL(C_FLOAT), INTENT(INOUT)    :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from the DLL controller.
         INTEGER(4)                      :: K            ! Index used for looping through blades.
-        REAL(4), Save                :: PitComT_Last 
+        REAL(8), Save                :: PitComT_Last 
 
         ! ------- Blade Pitch Controller --------
         ! Load PC State
@@ -58,7 +58,7 @@ CONTAINS
         ELSE ! debug mode, fix at fine pitch
             LocalVar%PC_MaxPit = CntrPar%PC_FinePit
         END IF
-        
+
         ! Compute (interpolate) the gains based on previously commanded blade pitch angles and lookup table:
         LocalVar%PC_KP = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KP, LocalVar%PC_PitComT) ! Proportional gain
         LocalVar%PC_KI = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KI, LocalVar%PC_PitComT) ! Integral gain
@@ -143,7 +143,7 @@ CONTAINS
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables
         REAL(C_FLOAT), INTENT(INOUT)            :: avrSWAP(*)    ! The swap array, used to pass data to, and receive data from, the DLL controller.
-        REAL(4)                                 :: VS_MaxTq      ! Locally allocated maximum torque saturation limits
+        REAL(8)                                 :: VS_MaxTq      ! Locally allocated maximum torque saturation limits
         
         ! -------- Variable-Speed Torque Controller --------
         ! Define max torque
@@ -244,14 +244,14 @@ CONTAINS
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
         
         ! Local variables
-        REAL(4)                  :: PitComIPC(3), PitComIPCF(3), PitComIPC_1P(3), PitComIPC_2P(3)
+        REAL(8)                  :: PitComIPC(3), PitComIPCF(3), PitComIPC_1P(3), PitComIPC_2P(3)
         INTEGER(4)               :: K                                       ! Integer used to loop through turbine blades
-        REAL(4)                  :: axisTilt_1P, axisYaw_1P, axisYawF_1P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
-        REAL(4), SAVE            :: IntAxisTilt_1P, IntAxisYaw_1P           ! Integral of the direct axis and quadrature axis, 1P
-        REAL(4)                  :: axisTilt_2P, axisYaw_2P, axisYawF_2P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
-        REAL(4), SAVE            :: IntAxisTilt_2P, IntAxisYaw_2P           ! Integral of the direct axis and quadrature axis, 1P
-        REAL(4)                  :: IntAxisYawIPC_1P                        ! IPC contribution with yaw-by-IPC component
-        REAL(4)                  :: Y_MErrF, Y_MErrF_IPC                    ! Unfiltered and filtered yaw alignment error [rad]
+        REAL(8)                  :: axisTilt_1P, axisYaw_1P, axisYawF_1P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
+        REAL(8), SAVE            :: IntAxisTilt_1P, IntAxisYaw_1P           ! Integral of the direct axis and quadrature axis, 1P
+        REAL(8)                  :: axisTilt_2P, axisYaw_2P, axisYawF_2P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
+        REAL(8), SAVE            :: IntAxisTilt_2P, IntAxisYaw_2P           ! Integral of the direct axis and quadrature axis, 1P
+        REAL(8)                  :: IntAxisYawIPC_1P                        ! IPC contribution with yaw-by-IPC component
+        REAL(8)                  :: Y_MErrF, Y_MErrF_IPC                    ! Unfiltered and filtered yaw alignment error [rad]
         
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
@@ -356,7 +356,7 @@ CONTAINS
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables 
-        REAL(4)                      :: NacIMU_FA_vel ! Tower fore-aft velocity
+        REAL(8)                      :: NacIMU_FA_vel ! Tower fore-aft velocity
         
         ! Calculate floating contribution to pitch command
         NacIMU_FA_vel = PIController(LocalVar%NacIMU_FA_AccF, 0.0, 1.0, -100.0 , 100.0 ,LocalVar%DT, 0.0, .FALSE., objInst%instPI) ! NJA: should never reach saturation limits....
