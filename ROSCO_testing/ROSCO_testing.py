@@ -58,7 +58,7 @@ class ROSCO_testing():
         #  - Default to NREL 5MW 
         self.Turbine_Class = 'I'
         self.Turbulence_Class = 'A'
-        self.FAST_directory = os.path.join(os.getcwd(), '../Test_Cases/NREL-5MW')
+        self.FAST_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Test_Cases/NREL-5MW')
         self.FAST_InputFile = 'NREL-5MW.fst'
 
         # Desired output channesl
