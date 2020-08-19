@@ -98,7 +98,7 @@ CONTAINS
             PTerm = kp*error
             ITerm(inst) = ITerm(inst) + DT*ki*error
             ITerm(inst) = saturate(ITerm(inst), minValue, maxValue)
-            PIController = PTerm + ITerm(inst)
+            PIController = saturate(PTerm + ITerm(inst), minValue, maxValue)
         
             ITermLast(inst) = ITerm(inst)
         END IF
