@@ -267,7 +267,7 @@ CONTAINS
 
     END SUBROUTINE SetpointSmoother
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE PitchSaturation(LocalVar, CntrPar, objInst, DebugVar) 
+    REAL FUNCTION PitchSaturation(LocalVar, CntrPar, objInst, DebugVar) 
     ! PitchSaturation defines a minimum blade pitch angle based on a lookup table provided by DISCON.IN
     !       SS_Mode = 0, No setpoint smoothing
     !       SS_Mode = 1, Implement pitch saturation
@@ -280,9 +280,9 @@ CONTAINS
         TYPE(DebugVariables), INTENT(INOUT)     :: DebugVar
 
         ! Define minimum blade pitch angle as a function of estimated wind speed
-        LocalVar%PC_MinPit = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, LocalVar%WE_Vw_F)
+        PitchSaturation = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, LocalVar%WE_Vw_F)
 
-    END SUBROUTINE PitchSaturation
+    END FUNCTION PitchSaturation
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION Shutdown(LocalVar, CntrPar, objInst) 
     ! PeakShaving defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
