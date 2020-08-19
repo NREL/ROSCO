@@ -221,7 +221,7 @@ CONTAINS
                 v_h = v_t + v_m
                 LocalVar%WE_Vw = v_m + v_t
 
-
+            ENDIF
             ! Debug Outputs
             DebugVar%WE_Cp = Cp_op
             DebugVar%WE_Vm = v_m
@@ -252,7 +252,7 @@ CONTAINS
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables
-        Real(4)                      :: DelOmega                            ! Reference generator speed shift, rad/s.
+        REAL(8)                      :: DelOmega                            ! Reference generator speed shift, rad/s.
         
         ! ------ Setpoint Smoothing ------
         IF ( CntrPar%SS_Mode == 1) THEN
@@ -295,7 +295,7 @@ CONTAINS
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables 
-        REAL(4)                      :: SD_BlPitchF
+        REAL(8)                      :: SD_BlPitchF
         ! Initialize Shutdown Varible
         IF (LocalVar%iStatus == 0) THEN
             LocalVar%SD = .FALSE.
