@@ -88,7 +88,7 @@ CONTAINS
         
         ! Pitch Saturation
         IF (CntrPar%PS_Mode == 1) THEN
-            CALL PitchSaturation(LocalVar,CntrPar,objInst,DebugVar)
+            LocalVar%PC_MinPit = PitchSaturation(LocalVar,CntrPar,objInst,DebugVar)
             LocalVar%PC_MinPit = max(LocalVar%PC_MinPit, CntrPar%PC_FinePit)
         ELSE
             LocalVar%PC_MinPit = CntrPar%PC_FinePit
@@ -101,7 +101,7 @@ CONTAINS
 
         ! FloatingFeedback
         IF (CntrPar%Fl_Mode == 1) THEN
-            CALL FloatingFeedback(LocalVar, CntrPar, objInst)
+            LocalVar%Fl_PitCom = FloatingFeedback(LocalVar, CntrPar, objInst)
             LocalVar%PC_PitComT = LocalVar%PC_PitComT + LocalVar%Fl_PitCom
         ENDIF
 
@@ -345,7 +345,7 @@ CONTAINS
         
     END SUBROUTINE ForeAftDamping
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE FloatingFeedback(LocalVar, CntrPar, objInst) 
+    REAL FUNCTION FloatingFeedback(LocalVar, CntrPar, objInst) 
     ! FloatingFeedback defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
     !       Fl_Mode = 0, No feedback
     !       Fl_Mode = 1, Proportional feedback of nacelle velocity
@@ -353,16 +353,16 @@ CONTAINS
         IMPLICIT NONE
         ! Inputs
         TYPE(ControlParameters), INTENT(IN)     :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
+        TYPE(LocalVariables), INTENT(IN)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables 
         REAL(8)                      :: NacIMU_FA_vel ! Tower fore-aft velocity
         
         ! Calculate floating contribution to pitch command
         NacIMU_FA_vel = PIController(LocalVar%NacIMU_FA_AccF, 0.0, 1.0, -100.0 , 100.0 ,LocalVar%DT, 0.0, .FALSE., objInst%instPI) ! NJA: should never reach saturation limits....
-        LocalVar%Fl_PitCom = (0.0 - NacIMU_FA_vel) * CntrPar%Fl_Kp !* LocalVar%PC_KP/maxval(CntrPar%PC_GS_KP)
+        FloatingFeedback = (0.0 - NacIMU_FA_vel) * CntrPar%Fl_Kp !* LocalVar%PC_KP/maxval(CntrPar%PC_GS_KP)
 
-    END SUBROUTINE FloatingFeedback
+    END FUNCTION FloatingFeedback
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE FlapControl(avrSWAP, CntrPar, LocalVar, objInst)
         ! Yaw rate controller
@@ -378,10 +378,10 @@ CONTAINS
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
         ! Internal Variables
         Integer(4)                                :: K
-        REAL(4)                                   :: rootMOOP_F(3)
-        REAL(4)                                   :: RootMyb_Vel(3)
-        REAL(4), SAVE                             :: RootMyb_Last(3)
-        REAL(4)                                   :: RootMyb_VelErr(3)
+        REAL(8)                                   :: rootMOOP_F(3)
+        REAL(8)                                   :: RootMyb_Vel(3)
+        REAL(8), SAVE                             :: RootMyb_Last(3)
+        REAL(8)                                   :: RootMyb_VelErr(3)
 
         ! Flap control
         IF (CntrPar%Flp_Mode >= 1) THEN
