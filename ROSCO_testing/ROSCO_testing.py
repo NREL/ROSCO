@@ -89,7 +89,7 @@ class ROSCO_testing():
 
         super(ROSCO_testing, self).__init__()
 
-    def ROSCO_Test_lite(self, more_case_inputs=None):
+    def ROSCO_Test_lite(self, more_case_inputs=None, U=[]):
         '''
         DLC 1.1 - 5 wind speeds, 60s
 
@@ -97,8 +97,20 @@ class ROSCO_testing():
         -----------
         more_case_inputs: dict
             Additional case inputs
+        U: list
+            List of wind inputs
         '''
-        TMax = 360
+
+        # Check for time and wind inputs
+        if ('Fst','TMax') in more_case_inputs.keys():
+            TMax = np.max(more_case_inputs[('Fst','TMax')]['vals'])
+        else:
+            TMax = 360
+        
+        if len(U) > 0:
+            WindSpeeds = U
+        else:
+            WindSpeeds = [5, 8, 11, 14, 17]
 
         fastRead = InputReader_OpenFAST(
             FAST_ver=self.FAST_ver, dev_branch=self.dev_branch)
@@ -126,9 +138,8 @@ class ROSCO_testing():
 
         iec.dlc_inputs = {}
         iec.dlc_inputs['DLC'] = [1.1]  # ,6.1,6.3]
-        iec.dlc_inputs['U'] = [[5, 8, 11, 14, 17]]
-        # nothing special about these seeds, randomly generated (???)
-        iec.dlc_inputs['Seeds'] = [[11346]]
+        iec.dlc_inputs['U'] = [WindSpeeds]
+        iec.dlc_inputs['Seeds'] = [[971231]]
         iec.dlc_inputs['Yaw'] = [[]]
         iec.transient_dir_change = '-'  # '+','-','both': sign for transient events in EDC, EWS
         iec.transient_shear_orientation = 'v'  # 'v','h','both': vertical or horizontal shear for EWS
@@ -163,6 +174,7 @@ class ROSCO_testing():
         case_inputs[('ServoDyn', 'GenTiStp')] = {'vals': ['True'], 'group': 0}
         case_inputs[('ServoDyn', 'SpdGenOn')] = {'vals': [0.], 'group': 0}
         case_inputs[('ServoDyn', 'DLL_FileName')] = {'vals': [self.rosco_path], 'group': 0}
+        case_inputs[('ServoDyn', 'DLL_DT')] = {'vals': ['"default"'], 'group': 0}
 
         case_inputs[("AeroDyn15", "WakeMod")] = {'vals': [1], 'group': 0}
         case_inputs[("AeroDyn15", "AFAeroMod")] = {'vals': [2], 'group': 0}
@@ -183,7 +195,7 @@ class ROSCO_testing():
             case_inputs.update(more_case_inputs)
         
         # generate cases
-        case_list, case_name_list = iec.execute(case_inputs=case_inputs)
+        case_list, case_name_list, _ = iec.execute(case_inputs=case_inputs)
 
         # Ensure proper output channels
         var_out = self.var_out
@@ -364,7 +376,7 @@ class ROSCO_testing():
             else:
                 fastBatch.run_serial()
 
-    def ROSCO_Controller_Comp(self, controller_paths, testtype='light'):
+    def ROSCO_Controller_Comp(self, controller_paths, testtype='light', more_case_inputs=[], U=[]):
         '''
         Heavy or light testing for n controllers, n = len(controller_paths)
 
@@ -386,7 +398,7 @@ class ROSCO_testing():
             self.windDir = os.path.join(run_dir_init, 'wind')  # wind in base runDir
 
             if testtype.lower() == 'light':
-                self.ROSCO_Test_lite()
+                self.ROSCO_Test_lite(more_case_inputs=more_case_inputs, U=U)
             elif testtype.lower() == 'heavy':
                 self.ROSCO_Test_heavy()
             else:
