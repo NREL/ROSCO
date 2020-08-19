@@ -221,12 +221,14 @@ CONTAINS
                 v_h = v_t + v_m
                 LocalVar%WE_Vw = v_m + v_t
 
-                ! Debug Outputs
-                DebugVar%WE_Cp = Cp_op
-                DebugVar%WE_Vm = v_m
-                DebugVar%WE_Vt = v_t
 
-            ENDIF
+            ! Debug Outputs
+            DebugVar%WE_Cp = Cp_op
+            DebugVar%WE_Vm = v_m
+            DebugVar%WE_Vt = v_t
+            DebugVar%WE_lambda = lambda
+            DebugVar%WE_F12 = F(1,2)
+            DebugVar%WE_F13 = F(1,3)
 
         ELSE        
             ! Define Variables

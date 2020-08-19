@@ -462,42 +462,56 @@ CONTAINS
         
         CHARACTER(10)                               :: DebugOutStr1,  DebugOutStr2, DebugOutStr3, DebugOutStr4, DebugOutStr5, &
                                                          DebugOutStr6, DebugOutStr7, DebugOutStr8, DebugOutStr9, DebugOutStr10, &
-                                                         DebugOutStr11, DebugOutStr12, DebugOutStr13, DebugOutStr14, DebugOutStr15                                                         
+                                                         DebugOutStr11, DebugOutStr12, DebugOutStr13, DebugOutStr14, DebugOutStr15, & 
+                                                         DebugOutStr16, DebugOutStr17, DebugOutStr18, DebugOutStr19, DebugOutStr20                                                           
         CHARACTER(10)                               :: DebugOutUni1,  DebugOutUni2, DebugOutUni3, DebugOutUni4, DebugOutUni5, &
                                                          DebugOutUni6, DebugOutUni7, DebugOutUni8, DebugOutUni9, DebugOutUni10, &
-                                                         DebugOutUni11, DebugOutUni12, DebugOutUni13, DebugOutUni14, DebugOutUni15 
+                                                         DebugOutUni11, DebugOutUni12, DebugOutUni13, DebugOutUni14, DebugOutUni15, & 
+                                                         DebugOutUni16, DebugOutUni17, DebugOutUni18, DebugOutUni19, DebugOutUni20 
         CHARACTER(10), ALLOCATABLE                  :: DebugOutStrings(:), DebugOutUnits(:)
-        REAL(4), ALLOCATABLE                        :: DebugOutData(:)
+        REAL(8), ALLOCATABLE                        :: DebugOutData(:)
 
         ! Set up Debug Strings and Data
         ! Note that Debug strings have 10 character limit
-        nDebugOuts = 14
+        nDebugOuts = 20
         ALLOCATE(DebugOutData(nDebugOuts))
         !                 Header                            Unit                                Variable
-        DebugOutStr1  = 'FA_AccF';          DebugOutUni1  = '(m/s)';      DebugOutData(1)  = LocalVar%NacIMU_FA_AccF
-        DebugOutStr2  = 'WE_Vw';            DebugOutUni2  = '(rad)';      DebugOutData(2)  = LocalVar%WE_Vw
-        DebugOutStr3  = 'FA_AccR';          DebugOutUni3  = '(rad/s^2)';  DebugOutData(3)  = LocalVar%NacIMU_FA_Acc
-        DebugOutStr4  = 'FA_Acc';           DebugOutUni4  = '(m/s^2)';    DebugOutData(4)  = LocalVar%FA_Acc
-        DebugOutStr5  = 'Fl_Pitcom';        DebugOutUni5  = '(rad)';      DebugOutData(5)  = LocalVar%Fl_Pitcom
-        DebugOutStr6  = 'WE_Cp';            DebugOutUni6  = '(-)';        DebugOutData(6)  = DebugVar%WE_Cp
-        DebugOutStr7  = 'PC_MinPit';        DebugOutUni7  = '(rad)';      DebugOutData(7)  = LocalVar%PC_MinPit
-        DebugOutStr8  = 'SS_dOmF';          DebugOutUni8  = '(rad/s)';    DebugOutData(8)  = LocalVar%SS_DelOmegaF
-        DebugOutStr9  = 'WE_b';             DebugOutUni9  = '(deg)';      DebugOutData(9)  = DebugVar%WE_b
-        DebugOutStr10  = 'WE_t';            DebugOutUni10  = '(Nm)';      DebugOutData(10)  = DebugVar%WE_t
-        DebugOutStr11  = 'WE_w';            DebugOutUni11  = '(rad/s)';   DebugOutData(11)  = DebugVar%WE_w
-        DebugOutStr12  = 'WE_Vm';            DebugOutUni12  = '()';        DebugOutData(12)  = DebugVar%WE_Vm
-        DebugOutStr14  = 'WE_Vw_F';        DebugOutUni14  = '(m/s)';     DebugOutData(13)  = LocalVar%WE_Vw_F
+        ! Filters
+        DebugOutStr1   = 'FA_AccF';     DebugOutUni1   = '(m/s)';      DebugOutData(1)   = LocalVar%NacIMU_FA_AccF
+        DebugOutStr2   = 'FA_AccR';     DebugOutUni2   = '(rad/s^2)';  DebugOutData(2)   = LocalVar%NacIMU_FA_Acc
+        DebugOutStr3  = 'RotSpeed';     DebugOutUni3  = '(rad/s)';     DebugOutData(3)  = LocalVar%RotSpeed
+        DebugOutStr4  = 'RotSpeedF';    DebugOutUni4  = '(rad/s)';     DebugOutData(4)  = LocalVar%RotSpeedF
+        DebugOutStr5  = 'GenSpeed';     DebugOutUni5  = '(rad/s)';     DebugOutData(5)  = LocalVar%GenSpeed
+        DebugOutStr6  = 'GenSpeedF';    DebugOutUni6  = '(rad/s)';     DebugOutData(6)  = LocalVar%GenSpeedF
+        ! Floating
+        DebugOutStr7  = 'FA_Acc';        DebugOutUni7  = '(m/s^2)';    DebugOutData(7)  = LocalVar%FA_Acc
+        DebugOutStr8  = 'Fl_Pitcom';     DebugOutUni8  = '(rad)';      DebugOutData(8)  = LocalVar%Fl_Pitcom
+        DebugOutStr9  = 'PC_MinPit';     DebugOutUni9  = '(rad)';      DebugOutData(9)  = LocalVar%PC_MinPit
+        DebugOutStr10  = 'SS_dOmF';      DebugOutUni10  = '(rad/s)';   DebugOutData(10)  = LocalVar%SS_DelOmegaF
+        ! WSE
+        DebugOutStr11  = 'WE_Vw';        DebugOutUni11  = '(rad)';     DebugOutData(11)  = LocalVar%WE_Vw
+        DebugOutStr12  = 'WE_b';         DebugOutUni12  = '(deg)';     DebugOutData(12)  = DebugVar%WE_b
+        DebugOutStr13  = 'WE_t';         DebugOutUni13  = '(Nm)';      DebugOutData(13)  = DebugVar%WE_t
+        DebugOutStr14  = 'WE_w';         DebugOutUni14  = '(rad/s)';   DebugOutData(14)  = DebugVar%WE_w
+        DebugOutStr15  = 'WE_Vm';        DebugOutUni15  = '(m/s)';     DebugOutData(15)  = DebugVar%WE_Vm
+        DebugOutStr16  = 'WE_Vt';        DebugOutUni16  = '(m/s)';     DebugOutData(16)  = DebugVar%WE_Vt
+        DebugOutStr17  = 'WE_Cp';        DebugOutUni17  = '(-)';       DebugOutData(17)  = DebugVar%WE_Cp
+        DebugOutStr18  = 'WE_lambda';    DebugOutUni18  = '(rad/s)';   DebugOutData(18)  = DebugVar%WE_lambda
+        DebugOutStr19  = 'WE_F12';       DebugOutUni19  = '(-)';       DebugOutData(19)  = DebugVar%WE_F12
+        DebugOutStr20  = 'WE_F13';       DebugOutUni20  = '(-)';       DebugOutData(20)  = DebugVar%WE_F13
 
         Allocate(DebugOutStrings(nDebugOuts))
         Allocate(DebugOutUnits(nDebugOuts))
         DebugOutStrings =   [CHARACTER(10)  :: DebugOutStr1, DebugOutStr2, DebugOutStr3, DebugOutStr4, &
                                                 DebugOutStr5, DebugOutStr6, DebugOutStr7, DebugOutStr8, &
                                                 DebugOutStr9, DebugOutStr10, DebugOutStr11, DebugOutStr12, &
-                                                DebugOutStr13]
+                                                DebugOutStr13, DebugOutStr14, DebugOutStr15, DebugOutStr16, &
+                                                DebugOutStr17, DebugOutStr18, DebugOutStr19, DebugOutStr20]
         DebugOutUnits =     [CHARACTER(10)  :: DebugOutUni1, DebugOutUni2, DebugOutUni3, DebugOutUni4, &
                                                 DebugOutUni5, DebugOutUni6, DebugOutUni7, DebugOutUni8, &
                                                 DebugOutUni9, DebugOutUni10, DebugOutUni11, DebugOutUni12, &
-                                                DebugOutUni13]
+                                                DebugOutUni13, DebugOutUni14, DebugOutUni15, DebugOutUni1, &
+                                                DebugOutUni17, DebugOutUni18, DebugOutUni19, DebugOutUni20]
         
         ! Initialize debug file
         IF (LocalVar%iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
