@@ -41,7 +41,11 @@ class ROSCO_testing():
         self.FAST_exe = 'openfast_single'       # name of openfast executable (may need full path)
         self.Turbsim_exe = 'turbsim_single'     # name of turbsim executable
         self.FAST_ver = 'OpenFAST'  # Fast version
-        self.rosco_path = os.path.join(os.getcwd(), glob.glob('../ROSCO/build/libdiscon*')[0])  # Path to ROSCO controller - default to ROSCO Toolbox submodule
+        # Path to ROSCO controller - default to ROSCO Toolbox submodule
+        try:
+            self.rosco_path = glob.glob(os.path.join(os.path.dirname(os.path.realpath(__file__)),'../ROSCO/build/libdiscon.*'))[0]
+        except:
+            print('No compiled ROSCO version found, please provide ROSCO_testing.rosco_path.')
         self.dev_branch = True      # openfast dev branch?
         self.debug_level = 2        # debug level. 0 - no outputs, 1 - minimal outputs, 2 - all outputs
         self.overwrite = False      # overwrite existing files? 
