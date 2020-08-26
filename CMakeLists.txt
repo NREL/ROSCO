@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
-project(ROSCO VERSION 2.0.1 LANGUAGES Fortran)
+project(ROSCO VERSION 2.0.3 LANGUAGES Fortran)
 
 set(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/ftnmods")
 
@@ -12,9 +12,9 @@ message(STATUS "CMAKE_Fortran_COMPILER_ID = ${CMAKE_Fortran_COMPILER_ID}")
 if(APPLE OR UNIX)
   # Enable .dll export
   if (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT ")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -r8 -double_size 64")
   else()
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -ffree-line-length-0")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -ffree-line-length-0 -fdefault-real-8 -fdefault-double-8")
   endif()
 elseif(WIN32 AND MINGW)
   # Ensure static linking to avoid requiring Fortran runtime dependencies

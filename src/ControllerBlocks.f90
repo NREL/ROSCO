@@ -115,33 +115,34 @@ CONTAINS
         TYPE(PerformanceData),      INTENT(INOUT)       :: PerfData
         TYPE(DebugVariables),       INTENT(INOUT)       :: DebugVar
         ! Allocate Variables
-        REAL(4)                 :: F_WECornerFreq   ! Corner frequency (-3dB point) for first order low pass filter for measured hub height wind speed [Hz]
+        REAL(8)                 :: F_WECornerFreq   ! Corner frequency (-3dB point) for first order low pass filter for measured hub height wind speed [Hz]
 
         !       Only used in EKF, if WE_Mode = 2
-        REAL(4), SAVE           :: om_r             ! Estimated rotor speed [rad/s]
-        REAL(4), SAVE           :: v_t              ! Estimated wind speed, turbulent component [m/s]
-        REAL(4), SAVE           :: v_m              ! Estimated wind speed, 10-minute averaged [m/s]
-        REAL(4), SAVE           :: v_h              ! Combined estimated wind speed [m/s]
-        REAL(4)                 :: L                ! Turbulent length scale parameter [m]
-        REAL(4)                 :: Ti               ! Turbulent intensity, [-]
-        ! REAL(4), DIMENSION(3,3) :: I
+        REAL(8), SAVE           :: om_r             ! Estimated rotor speed [rad/s]
+        REAL(8), SAVE           :: v_t              ! Estimated wind speed, turbulent component [m/s]
+        REAL(8), SAVE           :: v_m              ! Estimated wind speed, 10-minute averaged [m/s]
+        REAL(8), SAVE           :: v_h              ! Combined estimated wind speed [m/s]
+        REAL(8)                 :: L                ! Turbulent length scale parameter [m]
+        REAL(8)                 :: Ti               ! Turbulent intensity, [-]
+        ! REAL(8), DIMENSION(3,3) :: I
         !           - operating conditions
-        REAL(4)                 :: A_op             ! Estimated operational system pole [UNITS!]
-        REAL(4)                 :: Cp_op            ! Estimated operational Cp [-]
-        REAL(4)                 :: Tau_r            ! Estimated rotor torque [Nm]
-        REAL(4)                 :: a                ! wind variance
-        REAL(4)                 :: lambda           ! tip-speed-ratio [rad]
+        REAL(8)                 :: A_op             ! Estimated operational system pole [UNITS!]
+        REAL(8)                 :: Cp_op            ! Estimated operational Cp [-]
+        REAL(8)                 :: Tau_r            ! Estimated rotor torque [Nm]
+        REAL(8)                 :: a                ! wind variance
+        REAL(8)                 :: lambda           ! tip-speed-ratio [rad]
         !           - Covariance matrices
-        REAL(4), DIMENSION(3,3)         :: F        ! First order system jacobian 
-        REAL(4), DIMENSION(3,3), SAVE   :: P        ! Covariance estiamte 
-        REAL(4), DIMENSION(1,3)         :: H        ! Output equation jacobian 
-        REAL(4), DIMENSION(3,1), SAVE   :: xh       ! Estimated state matrix
-        REAL(4), DIMENSION(3,1)         :: dxh      ! Estimated state matrix deviation from previous timestep
-        REAL(4), DIMENSION(3,3)         :: Q        ! Process noise covariance matrix
-        REAL(4), DIMENSION(1,1)         :: S        ! Innovation covariance 
-        REAL(4), DIMENSION(3,1), SAVE   :: K        ! Kalman gain matrix
-        REAL(4)                         :: R_m      ! Measurement noise covariance [(rad/s)^2]
+        REAL(8), DIMENSION(3,3)         :: F        ! First order system jacobian 
+        REAL(8), DIMENSION(3,3), SAVE   :: P        ! Covariance estiamte 
+        REAL(8), DIMENSION(1,3)         :: H        ! Output equation jacobian 
+        REAL(8), DIMENSION(3,1), SAVE   :: xh       ! Estimated state matrix
+        REAL(8), DIMENSION(3,1)         :: dxh      ! Estimated state matrix deviation from previous timestep
+        REAL(8), DIMENSION(3,3)         :: Q        ! Process noise covariance matrix
+        REAL(8), DIMENSION(1,1)         :: S        ! Innovation covariance 
+        REAL(8), DIMENSION(3,1), SAVE   :: K        ! Kalman gain matrix
+        REAL(8)                         :: R_m      ! Measurement noise covariance [(rad/s)^2]
         
+        REAL(8), DIMENSION(3,1), SAVE   :: B
         ! ---- Debug Inputs ------
         DebugVar%WE_b   = LocalVar%PC_PitComTF*R2D
         DebugVar%WE_w   = LocalVar%RotSpeedF
@@ -220,11 +221,14 @@ CONTAINS
                 v_h = v_t + v_m
                 LocalVar%WE_Vw = v_m + v_t
 
-                ! Debug Outputs
-                DebugVar%WE_Cp = Cp_op
-                DebugVar%WE_D = v_m
-
             ENDIF
+            ! Debug Outputs
+            DebugVar%WE_Cp = Cp_op
+            DebugVar%WE_Vm = v_m
+            DebugVar%WE_Vt = v_t
+            DebugVar%WE_lambda = lambda
+            DebugVar%WE_F12 = F(1,2)
+            DebugVar%WE_F13 = F(1,3)
 
         ELSE        
             ! Define Variables
@@ -248,7 +252,7 @@ CONTAINS
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables
-        Real(4)                      :: DelOmega                            ! Reference generator speed shift, rad/s.
+        REAL(8)                      :: DelOmega                            ! Reference generator speed shift, rad/s.
         
         ! ------ Setpoint Smoothing ------
         IF ( CntrPar%SS_Mode == 1) THEN
@@ -263,25 +267,20 @@ CONTAINS
 
     END SUBROUTINE SetpointSmoother
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION PitchSaturation(LocalVar, CntrPar, objInst) 
+    REAL FUNCTION PitchSaturation(LocalVar, CntrPar, objInst, DebugVar) 
     ! PitchSaturation defines a minimum blade pitch angle based on a lookup table provided by DISCON.IN
     !       SS_Mode = 0, No setpoint smoothing
     !       SS_Mode = 1, Implement pitch saturation
-        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances, DebugVariables
         IMPLICIT NONE
         ! Inputs
         TYPE(ControlParameters), INTENT(IN)     :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
-        ! Allocate Variables 
-        REAL(4)                     :: Vhat     ! Estimated wind speed without towertop motion [m/s]
-        REAL(4)                     :: Vhatf     ! 30 second low pass filtered Estimated wind speed without towertop motion [m/s]
+        TYPE(DebugVariables), INTENT(INOUT)     :: DebugVar
 
-        Vhat = LocalVar%WE_Vw_F
-        Vhatf = SecLPFilter(Vhat,LocalVar%DT,0.21,0.7,LocalVar%iStatus,.FALSE.,objInst%instSecLPF) ! 30 second time constant
-        
         ! Define minimum blade pitch angle as a function of estimated wind speed
-        PitchSaturation = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, Vhatf)
+        PitchSaturation = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, LocalVar%WE_Vw_F)
 
     END FUNCTION PitchSaturation
 !-------------------------------------------------------------------------------------------------------------------------------
@@ -296,7 +295,7 @@ CONTAINS
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables 
-        REAL(4)                      :: SD_BlPitchF
+        REAL(8)                      :: SD_BlPitchF
         ! Initialize Shutdown Varible
         IF (LocalVar%iStatus == 0) THEN
             LocalVar%SD = .FALSE.
