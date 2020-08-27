@@ -313,7 +313,9 @@ class Controller():
         else:
             self.Kp_float = 0.0
 
-
+        # --- Individual pitch control ---
+        self.Ki_ipc1p = 0.0
+        
         # Flap actuation 
         if self.Flp_Mode >= 1:
             self.flp_angle = 0.0
