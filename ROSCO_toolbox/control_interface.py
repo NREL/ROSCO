@@ -75,7 +75,8 @@ class ControllerInterface():
         # Initialize DISCON and related
         self.aviFAIL = c_int32() # 1
         self.accINFILE = self.param_name.encode('utf-8')
-        self.avcOUTNAME = create_string_buffer(1000) # 'DEMO'.encode('utf-8')
+        # self.avcOUTNAME = create_string_buffer(1000) # 'DEMO'.encode('utf-8')
+        self.avcOUTNAME = 'simDEBUG.dbg'.encode('utf-8')
         self.avcMSG = create_string_buffer(1000)
         self.discon.DISCON.argtypes = [POINTER(c_float), POINTER(c_int32), c_char_p, c_char_p, c_char_p] # (all defined by ctypes)
 
