@@ -187,16 +187,16 @@ CONTAINS
                 
                 ! Update Jacobian
                 F(1,1) = A_op
-                F(1,2) = 1.0/(2.0*CntrPar%WE_Jtot) * CntrPar%WE_RhoAir * PI *CntrPar%WE_BladeRadius**2.0 * Cp_op * 3.0 * v_h**2.0 * 1.0/om_r
-                F(1,3) = 1.0/(2.0*CntrPar%WE_Jtot) * CntrPar%WE_RhoAir * PI *CntrPar%WE_BladeRadius**2.0 * Cp_op * 3.0 * v_h**2.0 * 1.0/om_r
-                F(2,2) = PI * v_m/(2.0*L)
-                F(2,3) = PI * v_t/(2.0*L)
-
+                F(1,2) = 1.0/(2.0*CntrPar%WE_Jtot) * CntrPar%WE_RhoAir * PI *CntrPar%WE_BladeRadius**2.0 * 1/om_r * 3.0 * Cp_op * v_h**2.0
+                F(1,3) = 1.0/(2.0*CntrPar%WE_Jtot) * CntrPar%WE_RhoAir * PI *CntrPar%WE_BladeRadius**2.0 * 1/om_r * 3.0 * Cp_op * v_h**2.0
+                F(2,2) = - PI * v_m/(2.0*L)
+                F(2,3) = - PI * v_t/(2.0*L)
+                
                 ! Update process noise covariance
                 Q(1,1) = 0.00001
                 Q(2,2) =(PI * (v_m**3.0) * (Ti**2.0)) / L
                 Q(3,3) = (2.0**2.0)/600.0
-
+                
                 ! Prediction update
                 Tau_r = AeroDynTorque(LocalVar,CntrPar,PerfData)
                 a = PI * v_m/(2.0*L)
