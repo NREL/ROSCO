@@ -159,7 +159,7 @@ CONTAINS
         ! Extended Kalman Filter (EKF) implementation
         ELSEIF (CntrPar%WE_Mode == 2) THEN
             ! Define contant values
-            L = 6.0 * CntrPar%WE_BladeRadius
+            L = 2.0 * CntrPar%WE_BladeRadius
             Ti = 0.18
             R_m = 0.02
             H = RESHAPE((/1.0 , 0.0 , 0.0/),(/1,3/))
@@ -172,6 +172,7 @@ CONTAINS
                 v_t = 0.0
                 v_m = LocalVar%HorWindV
                 v_h = LocalVar%HorWindV
+                lambda = LocalVar%RotSpeed * CntrPar%WE_BladeRadius/v_h
                 xh = RESHAPE((/om_r, v_t, v_m/),(/3,1/))
                 P = RESHAPE((/0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 1.0/),(/3,3/))
                 K = RESHAPE((/0.0,0.0,0.0/),(/3,1/))
@@ -206,13 +207,13 @@ CONTAINS
                 
                 xh = xh + LocalVar%DT * dxh ! state update
                 P = P + LocalVar%DT*(MATMUL(F,P) + MATMUL(P,TRANSPOSE(F)) + Q - MATMUL(K * R_m, TRANSPOSE(K))) 
-
+                
                 ! Measurement update
                 S = MATMUL(H,MATMUL(P,TRANSPOSE(H))) + R_m        ! NJA: (H*T*H') \approx 0
                 K = MATMUL(P,TRANSPOSE(H))/S(1,1)
                 xh = xh + K*(LocalVar%RotSpeedF - om_r)
                 P = MATMUL(identity(3) - MATMUL(K,H),P)
-
+                
                 
                 ! Wind Speed Estimate
                 om_r = xh(1,1)
@@ -220,16 +221,12 @@ CONTAINS
                 v_m = xh(3,1)
                 v_h = v_t + v_m
                 LocalVar%WE_Vw = v_m + v_t
-
-            ENDIF
+                ENDIF
             ! Debug Outputs
             DebugVar%WE_Cp = Cp_op
             DebugVar%WE_Vm = v_m
             DebugVar%WE_Vt = v_t
             DebugVar%WE_lambda = lambda
-            DebugVar%WE_F12 = F(1,2)
-            DebugVar%WE_F13 = F(1,3)
-
         ELSE        
             ! Define Variables
             F_WECornerFreq = 0.20944  ! Fix to 30 second time constant for now    

@@ -216,16 +216,15 @@ TYPE, PUBLIC :: PerformanceData
     REAL(8), DIMENSION(:,:), ALLOCATABLE    :: Cq_mat
 END TYPE PerformanceData
 
-TYPE, PUBLIC :: DebugVariables
-    REAL(8)                             :: WE_Cp                        ! Cp that WSE uses to determine aerodynamic torque, for debug purposes [-]
-    REAL(8)                             :: WE_b                         ! Pitch that WSE uses to determine aerodynamic torque, for debug purposes [-]
-    REAL(8)                             :: WE_w                         ! Rotor Speed that WSE uses to determine aerodynamic torque, for debug purposes [-]
-    REAL(8)                             :: WE_t                         ! Torque that WSE uses, for debug purposes [-]
-    REAL(8)                             :: WE_Vm                         ! Torque that WSE uses, for debug purposes [-]
-    REAL(8)                             :: WE_Vt                         ! Torque that WSE uses, for debug purposes [-]
-    REAL(8)                             :: WE_lambda                         ! Torque that WSE uses, for debug purposes [-]
-    REAL(8)                             :: WE_F12                         ! Torque that WSE uses, for debug purposes [-]
-    REAL(8)                             :: WE_F13                         ! Torque that WSE uses, for debug purposes [-]
+TYPE, PUBLIC :: DebugVariables                                          
+! Variables used for debug purposes
+    REAL(8)                             :: WE_Cp                        ! Cp that WSE uses to determine aerodynamic torque[-]
+    REAL(8)                             :: WE_b                         ! Pitch that WSE uses to determine aerodynamic torque[-]
+    REAL(8)                             :: WE_w                         ! Rotor Speed that WSE uses to determine aerodynamic torque[-]
+    REAL(8)                             :: WE_t                         ! Torque that WSE uses[-]
+    REAL(8)                             :: WE_Vm                        ! Mean wind speed component in WSE [m/s]
+    REAL(8)                             :: WE_Vt                        ! Turbulent wind speed component in WSE [m/s]
+    REAL(8)                             :: WE_lambda                    ! TSR in WSE [rad]
 END TYPE DebugVariables
 
 END MODULE ROSCO_Types

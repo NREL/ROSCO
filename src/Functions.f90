@@ -473,7 +473,7 @@ CONTAINS
 
         ! Set up Debug Strings and Data
         ! Note that Debug strings have 10 character limit
-        nDebugOuts = 20
+        nDebugOuts = 18
         ALLOCATE(DebugOutData(nDebugOuts))
         !                 Header                            Unit                                Variable
         ! Filters
@@ -495,10 +495,8 @@ CONTAINS
         DebugOutStr14  = 'WE_w';         DebugOutUni14  = '(rad/s)';   DebugOutData(14)  = DebugVar%WE_w
         DebugOutStr15  = 'WE_Vm';        DebugOutUni15  = '(m/s)';     DebugOutData(15)  = DebugVar%WE_Vm
         DebugOutStr16  = 'WE_Vt';        DebugOutUni16  = '(m/s)';     DebugOutData(16)  = DebugVar%WE_Vt
-        DebugOutStr17  = 'WE_Cp';        DebugOutUni17  = '(-)';       DebugOutData(17)  = DebugVar%WE_Cp
-        DebugOutStr18  = 'WE_lambda';    DebugOutUni18  = '(rad/s)';   DebugOutData(18)  = DebugVar%WE_lambda
-        DebugOutStr19  = 'WE_F12';       DebugOutUni19  = '(-)';       DebugOutData(19)  = DebugVar%WE_F12
-        DebugOutStr20  = 'WE_F13';       DebugOutUni20  = '(-)';       DebugOutData(20)  = DebugVar%WE_F13
+        DebugOutStr17  = 'WE_lambda';    DebugOutUni17  = '(rad/s)';   DebugOutData(17)  = DebugVar%WE_lambda
+        DebugOutStr18  = 'WE_Cp';        DebugOutUni18  = '(-)';       DebugOutData(18)  = DebugVar%WE_Cp
 
         Allocate(DebugOutStrings(nDebugOuts))
         Allocate(DebugOutUnits(nDebugOuts))
@@ -506,12 +504,12 @@ CONTAINS
                                                 DebugOutStr5, DebugOutStr6, DebugOutStr7, DebugOutStr8, &
                                                 DebugOutStr9, DebugOutStr10, DebugOutStr11, DebugOutStr12, &
                                                 DebugOutStr13, DebugOutStr14, DebugOutStr15, DebugOutStr16, &
-                                                DebugOutStr17, DebugOutStr18, DebugOutStr19, DebugOutStr20]
+                                                DebugOutStr17, DebugOutStr18]
         DebugOutUnits =     [CHARACTER(10)  :: DebugOutUni1, DebugOutUni2, DebugOutUni3, DebugOutUni4, &
                                                 DebugOutUni5, DebugOutUni6, DebugOutUni7, DebugOutUni8, &
                                                 DebugOutUni9, DebugOutUni10, DebugOutUni11, DebugOutUni12, &
                                                 DebugOutUni13, DebugOutUni14, DebugOutUni15, DebugOutUni1, &
-                                                DebugOutUni17, DebugOutUni18, DebugOutUni19, DebugOutUni20]
+                                                DebugOutUni17, DebugOutUni18]
         
         ! Initialize debug file
         IF (LocalVar%iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
@@ -523,7 +521,7 @@ CONTAINS
                 WRITE (UnDb,'(99(a10,TR5:))') '(sec)',  DebugOutUnits
             END IF
             
-            IF (CntrPar%LoggingLevel > 1) THEN
+            IF (CntrPar%LoggingLevel > 1) THEN 
                 OPEN(unit=UnDb2, FILE='DEBUG2.dbg')
                 WRITE(UnDb2,'(/////)')
                 WRITE(UnDb2,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1,85)
