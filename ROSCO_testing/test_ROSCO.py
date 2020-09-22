@@ -9,17 +9,16 @@ Run ROSCO and test against baseline results:
 '''
 
 import numpy as np
-# from wisdem.aeroelasticse.CaseLibrary import ROSCO_Test
 import os
 
-from wisdem.aeroelasticse.FAST_reader import InputReader_Common, InputReader_OpenFAST, InputReader_FAST7
-from wisdem.aeroelasticse.FAST_writer import InputWriter_Common, InputWriter_OpenFAST, InputWriter_FAST7
-from wisdem.aeroelasticse.runFAST_pywrapper import runFAST_pywrapper_batch
-from wisdem.aeroelasticse.CaseGen_General import CaseGen_General
-from wisdem.aeroelasticse.CaseGen_IEC import CaseGen_IEC
+from weis.aeroelasticse.FAST_reader import InputReader_Common, InputReader_OpenFAST, InputReader_FAST7
+from weis.aeroelasticse.FAST_writer import InputWriter_Common, InputWriter_OpenFAST, InputWriter_FAST7
+from weis.aeroelasticse.runFAST_pywrapper import runFAST_pywrapper_batch
+from weis.aeroelasticse.CaseGen_General import CaseGen_General
+from weis.aeroelasticse.CaseGen_IEC import CaseGen_IEC
 from pCrunch import pdTools
 from pCrunch import Processing, Analysis
-from wisdem.aeroelasticse.Util import FileTools
+from weis.aeroelasticse.Util import FileTools
 import pandas as pd
 
 # Moved ROSCO_Test into toolbox so that it doesn't rely on my fork of aeroelasticse

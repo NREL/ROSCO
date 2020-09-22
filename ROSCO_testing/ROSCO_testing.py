@@ -17,11 +17,11 @@ import os
 import glob
 import multiprocessing as mp
 
-from wisdem.aeroelasticse.FAST_reader import InputReader_Common, InputReader_OpenFAST, InputReader_FAST7
-from wisdem.aeroelasticse.FAST_writer import InputWriter_Common, InputWriter_OpenFAST, InputWriter_FAST7
-from wisdem.aeroelasticse.runFAST_pywrapper import runFAST_pywrapper_batch
-from wisdem.aeroelasticse.CaseGen_General import CaseGen_General
-from wisdem.aeroelasticse.CaseGen_IEC import CaseGen_IEC
+from weis.aeroelasticse.FAST_reader import InputReader_Common, InputReader_OpenFAST, InputReader_FAST7
+from weis.aeroelasticse.FAST_writer import InputWriter_Common, InputWriter_OpenFAST, InputWriter_FAST7
+from weis.aeroelasticse.runFAST_pywrapper import runFAST_pywrapper_batch
+from weis.aeroelasticse.CaseGen_General import CaseGen_General
+from weis.aeroelasticse.CaseGen_IEC import CaseGen_IEC
 from pCrunch import pdTools
 from pCrunch import Processing, Analysis
 

@@ -160,7 +160,7 @@ class Turbine():
             txt_filename: str, optional
                           filename for *.txt, only used if rot_source='txt'
         """
-        from wisdem.aeroelasticse.FAST_reader import InputReader_OpenFAST
+        from weis.aeroelasticse.FAST_reader import InputReader_OpenFAST
 
         print('Loading FAST model: %s ' % FAST_InputFile)
         self.TurbineName = FAST_InputFile.strip('.fst')
@@ -355,9 +355,9 @@ class Turbine():
             'mpi' - run using mpi tools
         '''
 
-        # Load additional WISDEM tools
-        from wisdem.aeroelasticse import runFAST_pywrapper, CaseGen_General
-        from wisdem.aeroelasticse.Util import FileTools
+        # Load additional WEIS tools
+        from weis.aeroelasticse import runFAST_pywrapper, CaseGen_General
+        from weis.aeroelasticse.Util import FileTools
         # Load pCrunch tools
         from pCrunch import pdTools, Processing
 
@@ -537,7 +537,7 @@ class Turbine():
         -----------
             self - note: needs to contain fast input file info provided by load_from_fast.
         '''
-        from wisdem.aeroelasticse.FAST_reader import InputReader_OpenFAST
+        from weis.aeroelasticse.FAST_reader import InputReader_OpenFAST
 
         # Load Fast input deck
         # self.TurbineName = FAST_InputFile.strip('.fst')
