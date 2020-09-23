@@ -292,7 +292,7 @@ CONTAINS
         
         ! Filter Wind Speed Estimator Signal
         IF (CntrPar%F_LPFType == 1) THEN
-            LocalVar%We_Vw_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT, CntrPar%F_LPFCornerFreq, LocalVar%iStatus,.FALSE.,objInst%instSecLPF) ! 30 second time constant
+            LocalVar%We_Vw_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT, 0.2094D0, LocalVar%iStatus,.FALSE.,objInst%instSecLPF) ! 30 second time constant
         ELSE
             LocalVar%We_Vw_F = SecLPFilter(LocalVar%WE_Vw, LocalVar%DT, CntrPar%F_LPFCornerFreq, CntrPar%F_LPFDamping, LocalVar%iStatus,.FALSE.,objInst%instSecLPF) ! 30 second time constant
         ENDIF 
