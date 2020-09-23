@@ -276,11 +276,11 @@ CONTAINS
         IF (CntrPar%Fl_Mode == 1) THEN
             ! Force to start at 0
             IF (LocalVar%iStatus == 0) THEN
-                LocalVar%NacIMU_FA_AccF = SecLPFilter(0.D0, LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
+                LocalVar%NacIMU_FA_AccF = SecLPFilter(0., LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
             ELSE
                 LocalVar%NacIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
             ENDIF
-            LocalVar%NacIMU_FA_AccF = HPFilter(LocalVar%NacIMU_FA_AccF, LocalVar%DT, 0.0167D0, LocalVar%iStatus, .FALSE., objInst%instHPF) 
+            LocalVar%NacIMU_FA_AccF = HPFilter(LocalVar%NacIMU_FA_AccF, LocalVar%DT, 0.0167, LocalVar%iStatus, .FALSE., objInst%instHPF) 
             ! LocalVar%NacIMU_FA_AccF = NotchFilterSlopes(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .FALSE., objInst%instNotchSlopes) ! Fixed Damping
             
             IF (CntrPar%F_NotchType >= 2) THEN
@@ -292,13 +292,13 @@ CONTAINS
         
         ! Filter Wind Speed Estimator Signal
         IF (CntrPar%F_LPFType == 1) THEN
-            LocalVar%We_Vw_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT, 0.2094D0, LocalVar%iStatus,.FALSE.,objInst%instSecLPF) ! 30 second time constant
+            LocalVar%We_Vw_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT, 0.2094, LocalVar%iStatus,.FALSE.,objInst%instSecLPF) ! 30 second time constant
         ELSE
             LocalVar%We_Vw_F = SecLPFilter(LocalVar%WE_Vw, LocalVar%DT, CntrPar%F_LPFCornerFreq, CntrPar%F_LPFDamping, LocalVar%iStatus,.FALSE.,objInst%instSecLPF) ! 30 second time constant
         ENDIF 
 
         ! Control commands (used by WSE, mostly)
-        LocalVar%VS_LastGenTrqF = SecLPFilter(LocalVar%VS_LastGenTrq, LocalVar%dt, CntrPar%F_LPFCornerFreq, 0.7D0, LocalVar%iStatus, .FALSE., objInst%instSecLPF)
+        LocalVar%VS_LastGenTrqF = SecLPFilter(LocalVar%VS_LastGenTrq, LocalVar%dt, CntrPar%F_LPFCornerFreq, 0.7, LocalVar%iStatus, .FALSE., objInst%instSecLPF)
         LocalVar%PC_PitComTF = LPFilter(LocalVar%PC_PitComT, LocalVar%dt, CntrPar%F_LPFCornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
 
     END SUBROUTINE PreFilterMeasuredSignals
