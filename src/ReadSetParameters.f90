@@ -548,8 +548,6 @@ CONTAINS
                      'https://github.com/NREL/ROSCO                                                 '//NEW_LINE('A')// &
                      '------------------------------------------------------------------------------'
 
-                ! print *, 'Version 1.0.1: pretty debug'
-
             CALL ReadControlParameterFileSub(CntrPar, accINFILE, NINT(avrSWAP(50)))
 
             IF (CntrPar%WE_Mode > 0) THEN
@@ -559,16 +557,12 @@ CONTAINS
             LocalVar%TestType = 0
         
             ! Initialize the SAVED variables:
-
-            ! DO K = 1,LocalVar%NumBl
             LocalVar%PitCom = LocalVar%BlPitch ! This will ensure that the variable speed controller picks the correct control region and the pitch controller picks the correct gain on the first call
-            ! END DO
-            
             LocalVar%Y_AccErr = 0.0  ! This will ensure that the accumulated yaw error starts at zero
             LocalVar%Y_YawEndT = -1.0 ! This will ensure that the initial yaw end time is lower than the actual time to prevent initial yawing
             
-            ! Wind speed estimator initialization, we always assume an initial wind speed of 10 m/s
-            LocalVar%WE_Vw = 10
+            ! Wind speed estimator initialization
+            LocalVar%WE_Vw = LocalVar%HorWindV
             LocalVar%WE_VwI = LocalVar%WE_Vw - CntrPar%WE_Gamma*LocalVar%RotSpeed
             
             ! Setpoint Smoother initialization to zero
