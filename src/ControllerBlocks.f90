@@ -159,7 +159,7 @@ CONTAINS
         ! Extended Kalman Filter (EKF) implementation
         ELSEIF (CntrPar%WE_Mode == 2) THEN
             ! Define contant values
-            L = 2.0 * CntrPar%WE_BladeRadius
+            L = 6.0 * CntrPar%WE_BladeRadius
             Ti = 0.18
             R_m = 0.02
             H = RESHAPE((/1.0 , 0.0 , 0.0/),(/1,3/))
