@@ -105,7 +105,7 @@ class ROSCO_testing():
         if ('Fst','TMax') in more_case_inputs.keys():
             TMax = np.max(more_case_inputs[('Fst','TMax')]['vals'])
         else:
-            TMax = 10 #360
+            TMax = 330
         
         if len(U) > 0:
             WindSpeeds = U
