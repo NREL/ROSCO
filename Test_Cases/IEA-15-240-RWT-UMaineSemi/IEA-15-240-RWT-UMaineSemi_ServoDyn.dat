@@ -25,10 +25,10 @@ True                   GenTiStp    - Method to stop the generator {T: timed usin
 0.0                    TimGenOn    - Time to turn on the generator for a startup (s) [used only when GenTiStr=True]
 9999.9                 TimGenOf    - Time to turn off the generator (s) [used only when GenTiStp=True]
 ---------------------- SIMPLE VARIABLE-SPEED TORQUE CONTROL --------------------
-5.77                   VS_RtGnSp   - Rated generator speed for simple variable-speed generator control (HSS side) (rpm) [used only when VSContrl=1]
-19.62e6                VS_RtTq     - Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control (HSS side) (N-m) [used only when VSContrl=1]
-580e3                  VS_Rgn2K    - Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) (N-m/rpm^2) [used only when VSContrl=1]
-0.1                    VS_SlPc     - Rated generator slip percentage in Region 2 1/2 for simple variable-speed generator control (%) [used only when VSContrl=1]
+9999.9                 VS_RtGnSp   - Rated generator speed for simple variable-speed generator control (HSS side) (rpm) [used only when VSContrl=1]
+9999.9                 VS_RtTq     - Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control (HSS side) (N-m) [used only when VSContrl=1]
+9999.9                 VS_Rgn2K    - Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) (N-m/rpm^2) [used only when VSContrl=1]
+9999.9                 VS_SlPc     - Rated generator slip percentage in Region 2 1/2 for simple variable-speed generator control (%) [used only when VSContrl=1]
 ---------------------- SIMPLE INDUCTION GENERATOR ------------------------------
 9999.9                 SIG_SlPc    - Rated generator slip percentage (%) [used only when VSContrl=0 and GenModel=1]
 9999.9                 SIG_SySp    - Synchronous (zero-torque) generator speed (rpm) [used only when VSContrl=0 and GenModel=1]
@@ -63,7 +63,7 @@ False                  CompNTMD    - Compute nacelle tuned mass damper {true/fal
 False                  CompTTMD    - Compute tower tuned mass damper {true/false} (flag)
 "unused"               TTMDfile    - Name of the file for tower tuned mass damper (quoted string) [unused when CompTTMD is false]
 ---------------------- BLADED INTERFACE ---------------------------------------- [used only with Bladed Interface]
-"/Users/dzalkind/Tools/ROSCO_toolbox/ROSCO/build/libdiscon.dylib" DLL_FileName - Name/location of the dynamic library {.dll [Windows] or .so [Linux]} in the Bladed-DLL format (-) [used only with Bladed Interface]
+"../../ROSCO/libdiscon.dylib" DLL_FileName - Name/location of the dynamic library {.dll [Windows] or .so [Linux]} in the Bladed-DLL format (-) [used only with Bladed Interface]
 "ServoData/DISCON-UMaineSemi.IN"   DLL_InFile  - Name of input file sent to the DLL (-) [used only with Bladed Interface]
 "DISCON"               DLL_ProcName - Name of procedure in DLL to be called (-) [case sensitive; used only with DLL Interface]
 "default"              DLL_DT      - Communication interval for dynamic library (s) (or "default") [used only with Bladed Interface]
