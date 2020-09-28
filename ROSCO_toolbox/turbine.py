@@ -690,26 +690,28 @@ class RotorPerformance():
         grad = np.array([dCP_beta_interp(pitch,TSR), dCP_TSR_interp(pitch,TSR)])
         return np.ndarray.flatten(grad)
     
-    def plot_performance(self,performance_table, pitch_initial_rad, TSR_initial):
+    def plot_performance(self):
         '''
         Plot rotor performance data surface. 
         
         Parameters:
         -----------
-        performance_table : array_like (-)
-                            An [n x m] array containing a table of rotor performance data (Cp, Ct, Cq) to plot.
-        pitch_initial_rad : array_like (rad)
-                            An [m x 1] or [1 x m] array containing blade pitch angles corresponding to performance_table (x-axis). 
-        TSR_initial : array_like (rad)
-                      An [n x 1] or [1 x n] array containing tip-speed ratios corresponding to  performance_table (y-axis)
+        self
         '''
 
-        P = plt.contour(pitch_initial_rad * rad2deg, TSR_initial, performance_table, levels=[0.0, 0.3, 0.40, 0.42, 0.44, 0.45, 0.46, 0.47, 0.48,0.481,0.482,0.483,0.484,0.485,0.486,0.487,0.488,0.489, 0.49, 0.491,0.492,0.493,0.494,0.495,0.496,0.497,0.498,0.499, 0.50 ])
-        plt.clabel(P, inline=1, fontsize=12)
+        # Find maximum point
+        max_ind = np.unravel_index(np.argmax(self.performance_table, axis=None), self.performance_table.shape)
+        max_beta_id = self.pitch_initial_rad[max_ind[1]]
+        max_tsr_id = self.TSR_initial[max_ind[0]]
+
+        P = plt.contourf(self.pitch_initial_rad * rad2deg, self.TSR_initial, self.performance_table, 
+                        levels=np.linspace(0,np.max(self.performance_table),20))
+        plt.colorbar(format='%1.3f')
         plt.title('Power Coefficient', fontsize=14, fontweight='bold')
         plt.xlabel('Pitch Angle [deg]', fontsize=14, fontweight='bold')
         plt.ylabel('TSR [-]', fontsize=14, fontweight='bold')
+        plt.scatter(max_beta_id, max_tsr_id, color='red')
+        plt.annotate('max = {:<1.3f}'.format(np.max(self.performance_table)),
+                    (max_beta_id+0.1, max_tsr_id+0.1), color='red')
         plt.xticks(fontsize=12)
         plt.yticks(fontsize=12)
-        plt.grid(color=[0.8,0.8,0.8], linestyle='--')
-        plt.subplots_adjust(bottom = 0.15, left = 0.15)
