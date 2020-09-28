@@ -249,6 +249,7 @@ class Turbine():
         '''
         print('Loading rotor performance data from CC-Blade.')
 
+        # Load blade information
         self.load_blade_info()
         
         # Generate the look-up tables, mesh the grid and flatten the arrays for cc_rotor aerodynamic analysis
@@ -509,15 +510,16 @@ class Turbine():
         # Read OpenFAST Airfoil data, assumes AeroDyn > v15.03 and associated polars > v1.01
         af_dict = {}
         for i, section in enumerate(self.fast.fst_vt['AeroDyn15']['af_data']):
-            Re = [section[0]['Re']]
             Alpha = section[0]['Alpha']
             if section[0]['NumTabs'] > 1:  # sections with multiple airfoil tables
-                ref_tab = int(np.floor(section[0]['NumTabs']/2))
+                ref_tab = int(np.floor(section[0]['NumTabs']/2)) # get information from "center" table
+                Re = np.array([section[ref_tab]['Re']])*1e6 
                 Cl = section[ref_tab]['Cl']
                 Cd = section[ref_tab]['Cd']
                 Cm = section[ref_tab]['Cm']
                 af_dict[i] = CCAirfoil(Alpha, Re, Cl, Cd, Cm)
-            else:                           # sections without flaps
+            else:                           # sections without multiple airfoil tables
+                Re = np.array([section[0]['Re']])*1e6 
                 Cl = section[0]['Cl']
                 Cd = section[0]['Cd']
                 Cm = section[0]['Cm']
