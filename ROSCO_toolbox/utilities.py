@@ -71,10 +71,9 @@ class FAST_Plots():
             # channels to plot
             channels = cases[case]
             # instantiate plot and legend
-            fig, axes = plt.subplots(len(channels), 1, sharex=True, num=fignum)
-
+            fig, axes = plt.subplots(len(channels), 1, sharex=True, num=fignum, constrained_layout=True)
             myleg = []
-            for fast_out in fast_dict:
+            for fast_out in fast_dict:      # Multiple channels
                 # write legend
                 Time = fast_out['Time']
                 myleg.append(fast_out['meta']['name'])
@@ -85,19 +84,20 @@ class FAST_Plots():
                             axj.plot(Time, fast_out[channel])
                             # label
                             unit_idx = fast_out['meta']['channels'].index(channel)
-                            axj.set(ylabel='{:^} \n ({:^})'.format(
+                            axj.set_ylabel('{:^} \n ({:^})'.format(
                                 channel,
                                 fast_out['meta']['attribute_units'][unit_idx]))
                             axj.grid(True)
                         except:
                             print('{} is not available as an output channel.'.format(channel))
                     axes[0].set_title(case)
-                else:                   # Single channel
+                    
+                else:                       # Single channel
                     try:
                         # plot
                         axes.plot(Time, fast_out[channel])
                         # label
-                        axes.set(ylabel='{:^} \n ({:^})'.format(
+                        axes.set_ylabel('{:^} \n ({:^})'.format(
                             channel,
                             fast_out['meta']['attribute_units'][unit_idx]))
                         axes.grid(True)
