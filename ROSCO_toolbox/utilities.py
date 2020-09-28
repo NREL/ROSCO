@@ -286,7 +286,7 @@ class FAST_IO():
             print('OpenFAST simulation complete. ')
 
 
-    def load_FAST_out(self, filenames, tmin=None, tmax=None, verbose=False):
+    def load_fast_out(self, filenames, tmin=None, tmax=None, verbose=False):
         """Load a FAST binary or ascii output file
         
         Parameters
