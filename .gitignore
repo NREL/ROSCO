@@ -50,3 +50,5 @@ Examples/*.p
 Matlab_Toolbox/*.slxc
 *.mat
 
+# Exclude testing results
+ROSCO_testing/results/

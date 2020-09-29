@@ -192,24 +192,27 @@ def run_testing(turbine2test, testtype, rosco_binaries=[], discon_files=[], **kw
         
 if __name__ == "__main__":
 
+    # WEIS directory, for running openfast, etc.
+    weis_dir = os.environ.get('weis_dir')       # works if we do  `export weis_dir=$(pwd)` in WEIS directory in terminal
+
     # Setup ROSCO testing parameters
     rt_kwargs = {} 
-    rt_kwargs['runDir']     = 'comp_testing'        # directory for FAST simulations
+    rt_kwargs['runDir']     = 'results/lite_testing'        # directory for FAST simulations
     rt_kwargs['namebase']   = 'ROSCO_lite_test'     # Base name for FAST files 
-    rt_kwargs['FAST_exe']   = '/Users/nabbas/openfast/install/bin/openfast_sdev'       # OpenFAST executable path
-    rt_kwargs['Turbsim_exe']= '/Users/nabbas/openfast/install/bin/turbsim_sdev'        # Turbsim executable path
+    rt_kwargs['FAST_exe']   = os.path.join(weis_dir,'local','bin','openfast')       # OpenFAST executable path
+    rt_kwargs['Turbsim_exe']= os.path.join(weis_dir,'local','bin','turbsim')        # Turbsim executable path
     rt_kwargs['FAST_ver']   = 'OpenFAST'            # FAST version
     rt_kwargs['dev_branch'] = True                  # dev branch of Openfast?
     rt_kwargs['debug_level']= 2                     # debug level. 0 - no outputs, 1 - minimal outputs, 2 - all outputs
     rt_kwargs['overwrite']  = False                 # overwite fast sims?
-    rt_kwargs['cores']      = 4                     # number of cores if multiprocessing
+    rt_kwargs['cores']      = 1                     # number of cores if multiprocessing
     rt_kwargs['mpi_run']    = False                 # run using mpi
     rt_kwargs['mpi_comm_map_down'] = []             # core mapping for MPI
     rt_kwargs['outfile_fmt'] = 2                    # 1 = .txt, 2 = binary, 3 = both
 
     # ---- Define test type ----
     turbine2test = 'IEA-15MW'   # IEA-15MW or NREL-5MW
-    testtype     = 'binary-comp'       # lite, heavy, binary-comp, discon-comp
+    testtype     = 'lite'       # lite, heavy, binary-comp, discon-comp
 
     # Only fill one of these if comparing controllers
     rosco_binaries = [os.path.join(os.getcwd(), glob.glob('../ROSCO/build/libdiscon*')[0]),
