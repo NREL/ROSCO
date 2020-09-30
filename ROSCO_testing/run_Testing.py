@@ -97,7 +97,7 @@ def run_testing(turbine2test, testtype, rosco_binaries=[], discon_files=[], **kw
 
         # Set some processing parameters
         fp.OpenFAST_outfile_list = outFileNames
-        fp.t0 = 0
+        fp.t0 = 100
         if rt.cores > 1:
             fp.parallel_analysis = True
         fp.results_dir = os.path.join(rt.runDir, 'stats')
@@ -150,7 +150,7 @@ def run_testing(turbine2test, testtype, rosco_binaries=[], discon_files=[], **kw
 
             # Set some processing parameters
             fp.OpenFAST_outfile_list = outFileNames
-            fp.t0 = 0
+            fp.t0 = 100
             if rt.cores > 0:
                 fp.parallel_analysis = True
             fp.results_dir = os.path.join(outputDir, 'stats')
