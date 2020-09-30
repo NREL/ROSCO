@@ -63,7 +63,7 @@ class ROSCO_testing():
 
         # Desired output channesl
         self.var_out = [
-                        'BldPitch1', 'BldPitch2', 'BldPitch3', 'GenTq', 'GenPwr', 'RotSpeed',
+                        'BldPitch1', 'BldPitch2', 'BldPitch3', 'GenTq', 'GenPwr', 'RotSpeed', 'GenSpeed',
                         'TipDxc1', 'TipDyc1', 'TipDzc1', 'TipDxc2',
                         'TipDyc2', 'TipDzc2', 'TipDxc3', 'TipDyc3', 'TipDzc3',
                         'RootMxc1', 'RootMyc1', 'RootMzc1',

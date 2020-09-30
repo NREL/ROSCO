@@ -98,7 +98,7 @@ def run_testing(turbine2test, testtype, rosco_binaries=[], discon_files=[], **kw
         # Set some processing parameters
         fp.OpenFAST_outfile_list = outFileNames
         fp.t0 = 0
-        if rt.cores > 0:
+        if rt.cores > 1:
             fp.parallel_analysis = True
         fp.results_dir = os.path.join(rt.runDir, 'stats')
         fp.verbose = True
@@ -194,6 +194,7 @@ if __name__ == "__main__":
 
     # WEIS directory, for running openfast, etc.
     weis_dir = os.environ.get('weis_dir')       # works if we do  `export weis_dir=$(pwd)` in WEIS directory in terminal
+    weis_dir = '/Users/dzalkind/Tools/WEIS'
 
     # Setup ROSCO testing parameters
     rt_kwargs = {} 
