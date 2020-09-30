@@ -283,6 +283,14 @@ class ROSCO_testing():
         iec.init_cond[("ElastoDyn", "BlPitch1")]['val'] = np.ones([2]) * 0
         iec.init_cond[("ElastoDyn", "BlPitch2")] = iec.init_cond[("ElastoDyn", "BlPitch1")]
         iec.init_cond[("ElastoDyn", "BlPitch3")] = iec.init_cond[("ElastoDyn", "BlPitch1")]
+
+        # waves
+        if self.FAST_InputFile == 'IEA-15-240-RWT-UMaineSemi.fst':
+            iec.init_cond[('HydroDyn','WaveHs')] = {'U': [4., 6., 8., 10., 12., 14., 16., 18., 20., 22., 24.]}
+            iec.init_cond[('HydroDyn','WaveHs')]['val'] = [1.102,1.179,1.316,1.537,1.836,2.188,2.598,3.061,3.617,4.027,4.516]
+            iec.init_cond[('HydroDyn','WaveTp')] = {'U': [4., 6., 8., 10., 12., 14., 16., 18., 20., 22., 24.]}
+            iec.init_cond[('HydroDyn','WaveTp')]['val'] = [8.515,8.310,8.006,7.651,7.441,7.461,7.643,8.047,8.521,8.987,9.452]
+
         iec.Turbine_Class = self.Turbine_Class
         iec.Turbulence_Class = self.Turbulence_Class
         iec.D = fastRead.fst_vt['ElastoDyn']['TipRad']*2.
@@ -296,6 +304,8 @@ class ROSCO_testing():
         iec.dlc_inputs['Yaw'] = [[], []]
         iec.transient_dir_change = '-'  # '+','-','both': sign for transient events in EDC, EWS
         iec.transient_shear_orientation = 'v'  # 'v','h','both': vertical or horizontal shear for EWS
+        iec.uniqueSeeds = True
+        iec.uniqueWaveSeeds = True
 
         if self.windDir:
             iec.wind_dir = self.windDir
@@ -341,6 +351,9 @@ class ROSCO_testing():
         case_inputs[("AeroDyn15", "IndToler")] = {'vals': [1.e-5], 'group': 0}
         case_inputs[("AeroDyn15", "MaxIter")] = {'vals': [5000], 'group': 0}
         case_inputs[("AeroDyn15", "UseBlCm")] = {'vals': ['True'], 'group': 0}
+
+        if self.FAST_InputFile == 'IEA-15-240-RWT-UMaineSemi.fst':
+            case_inputs[("HydroDyn", "WaveMod")] = {'vals': [2], 'group': 0}
 
         if more_case_inputs:
             case_inputs.update(more_case_inputs)
