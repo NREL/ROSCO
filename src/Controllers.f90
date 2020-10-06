@@ -193,7 +193,7 @@ CONTAINS
         LocalVar%VS_LastGenTrq = LocalVar%GenTq
         
         ! Set the command generator torque (See Appendix A of Bladed User's Guide):
-        avrSWAP(47) = LocalVar%VS_LastGenTrq   ! Demanded generator torque
+        avrSWAP(47) = MAX(0.0, LocalVar%VS_LastGenTrq)  ! Demanded generator torque, prevent negatives.
     END SUBROUTINE VariableSpeedControl
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE YawRateControl(avrSWAP, CntrPar, LocalVar, objInst)

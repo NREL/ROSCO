@@ -291,11 +291,8 @@ CONTAINS
         LocalVar%FA_AccHPF = HPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%FA_HPFCornerFreq, LocalVar%iStatus, .FALSE., objInst%instHPF)
         
         ! Filter Wind Speed Estimator Signal
-        IF (CntrPar%F_LPFType == 1) THEN
-            LocalVar%We_Vw_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT, 0.2094, LocalVar%iStatus,.FALSE.,objInst%instSecLPF) ! 30 second time constant
-        ELSE
-            LocalVar%We_Vw_F = SecLPFilter(LocalVar%WE_Vw, LocalVar%DT, CntrPar%F_LPFCornerFreq, CntrPar%F_LPFDamping, LocalVar%iStatus,.FALSE.,objInst%instSecLPF) ! 30 second time constant
-        ENDIF 
+        LocalVar%We_Vw_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT, 0.209, LocalVar%iStatus,.FALSE.,objInst%instLPF) ! 30 second time constant
+
 
         ! Control commands (used by WSE, mostly)
         LocalVar%VS_LastGenTrqF = SecLPFilter(LocalVar%VS_LastGenTrq, LocalVar%dt, CntrPar%F_LPFCornerFreq, 0.7, LocalVar%iStatus, .FALSE., objInst%instSecLPF)
