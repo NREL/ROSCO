@@ -651,6 +651,6 @@ class RotorPerformance():
         plt.ylabel('TSR [-]', fontsize=14, fontweight='bold')
         plt.scatter(max_beta_id, max_tsr_id, color='red')
         plt.annotate('max = {:<1.3f}'.format(np.max(self.performance_table)),
-                    (max_beta_id+0.1, max_tsr_id+0.1), color='red')
+                    (max_beta_id+0.2, max_tsr_id+0.2), color='red')
         plt.xticks(fontsize=12)
         plt.yticks(fontsize=12)
