@@ -42,14 +42,14 @@ param_file = 'DISCON.IN'
 file_processing.write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
 
 # Plot gain schedule
-plt.figure(0)
-plt.plot(controller.v[len(controller.vs_gain_schedule.Kp):], controller.pc_gain_schedule.Kp)
-plt.xlabel('Wind Speed')
-plt.ylabel('Proportional Gain')
+fig, ax = plt.subplots(1,2,constrained_layout=True)
+ax[0].plot(controller.v[len(controller.vs_gain_schedule.Kp):], controller.pc_gain_schedule.Kp)
+ax[0].set_xlabel('Wind Speed')
+ax[0].set_ylabel('Proportional Gain')
 
-plt.figure(1)
-plt.plot(controller.v[len(controller.vs_gain_schedule.Ki):], controller.pc_gain_schedule.Ki)
-plt.xlabel('Wind Speed')
-plt.ylabel('Integral Gain')
+ax[1].plot(controller.v[len(controller.vs_gain_schedule.Ki):], controller.pc_gain_schedule.Ki)
+ax[1].set_xlabel('Wind Speed')
+ax[1].set_ylabel('Integral Gain')
 
+plt.suptitle('Pitch Controller Gains')
 plt.show()
