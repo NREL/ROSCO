@@ -201,6 +201,9 @@ class Turbine():
         self.rotor_radius = self.TipRad
         # self.omega_dt = np.sqrt(self.DTTorSpr/self.J)
 
+        # Load blade information
+        self.load_blade_info()
+
         # Load Cp, Ct, Cq tables
         if rot_source == 'cc-blade': # Use cc-blade
             self.load_from_ccblade()
@@ -249,8 +252,11 @@ class Turbine():
         '''
         print('Loading rotor performance data from CC-Blade.')
 
-        # Load blade information
-        self.load_blade_info()
+        # Load blade information if it isn't already
+        try:
+            isinstance(self.cc_rotor,object)
+        except(AttributeError):
+            self.load_blade_info()
         
         # Generate the look-up tables, mesh the grid and flatten the arrays for cc_rotor aerodynamic analysis
         TSR_initial = np.arange(3, 15,0.5)
