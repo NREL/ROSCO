@@ -170,9 +170,10 @@ class ROSCO_testing():
         case_inputs[("Fst", "TMax")] = {'vals': [TMax], 'group': 0}
         case_inputs[("Fst", "OutFileFmt")] = {'vals': [self.outfile_fmt], 'group': 0}
 
-        case_inputs[('ServoDyn', 'GenTiStr')] = {'vals': ['False'], 'group': 0}
+        case_inputs[('ServoDyn', 'GenTiStr')] = {'vals': ['True'], 'group': 0}
         case_inputs[('ServoDyn', 'GenTiStp')] = {'vals': ['True'], 'group': 0}
         case_inputs[('ServoDyn', 'SpdGenOn')] = {'vals': [0.], 'group': 0}
+        case_inputs[('ServoDyn', 'TimGenOn')] = {'vals': [0.], 'group': 0}
         case_inputs[('ServoDyn', 'DLL_FileName')] = {'vals': [self.rosco_path], 'group': 0}
         case_inputs[('ServoDyn', 'DLL_DT')] = {'vals': ['"default"'], 'group': 0}
 
