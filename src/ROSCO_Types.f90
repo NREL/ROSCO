@@ -61,7 +61,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(8)                             :: PC_FinePit                   ! Record 5: Below-rated pitch angle set-point (deg) [used only with Bladed Interface]
     REAL(8)                             :: PC_Switch                    ! Angle above lowest minimum pitch angle for switch [rad]
     
-    INTEGER(4)                          :: VS_ControlMode               ! Generator torque control mode in above rated conditions {0: constant torque, 1: constant power}
+    INTEGER(4)                          :: VS_ControlMode               ! Generator torque control mode in above rated conditions {0: constant torque, 1: constant power, 2: TSR Tracking, 3: TSR Tracking w/ const power}
     REAL(8)                             :: VS_GenEff                    ! Generator efficiency mechanical power -> electrical power [-]
     REAL(8)                             :: VS_ArSatTq                   ! Above rated generator torque PI control saturation, [Nm] -- 212900
     REAL(8)                             :: VS_MaxRat                    ! Maximum torque rate (in absolute value) in torque controller, [Nm/s].

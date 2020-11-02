@@ -253,7 +253,7 @@ CONTAINS
         
         ! ----- Torque controller reference errors -----
         ! Define VS reference generator speed [rad/s]
-        IF (CntrPar%VS_ControlMode == 2) THEN
+        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
             VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
             VS_RefSpd = saturate(VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
         ELSE
@@ -274,7 +274,7 @@ CONTAINS
         VS_RefSpd = max(VS_RefSpd, CntrPar%VS_MinOmSpd)
 
         ! TSR-tracking reference error
-        IF (CntrPar%VS_ControlMode == 2) THEN
+        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
             LocalVar%VS_SpdErr = VS_RefSpd - LocalVar%GenSpeedF
         ENDIF
 
