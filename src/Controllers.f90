@@ -154,7 +154,12 @@ CONTAINS
         ENDIF
 
         ! Optimal Tip-Speed-Ratio tracking controller
-        IF (CntrPar%VS_ControlMode == 2) THEN
+        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
+            ! Constant Power, update VS_MaxTq
+            IF (CntrPar%VS_ControlMode == 3) THEN
+                VS_MaxTq = min((CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF, CntrPar%VS_RtTq)
+            END IF
+
             ! PI controller
             LocalVar%GenTq = PIController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, VS_MaxTq, LocalVar%DT, LocalVar%VS_LastGenTrq, .FALSE., objInst%instPI)
             LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, VS_MaxTq)
