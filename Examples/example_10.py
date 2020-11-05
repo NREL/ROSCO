@@ -33,8 +33,6 @@ turbine = ROSCO_turbine.Turbine(turbine_params)
 turbine = ROSCO_turbine.Turbine(turbine_params)
 # turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source='txt',txt_filename=path_params['rotor_performance_filename'])
 turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True)
-# Load blade info
-turbine.load_blade_info()
 
 # Tune controller
 controller = ROSCO_controller.Controller(controller_params)
