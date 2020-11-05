@@ -434,7 +434,7 @@ class ROSCO_testing():
         self.runDir = run_dir_init
         self.windDir = wind_dir_init
     
-    def ROSCO_DISCON_Comp(self, DISCON_filenames, testtype='light'):
+    def ROSCO_DISCON_Comp(self, DISCON_filenames, testtype='light', more_case_inputs={}, U=[]):
         '''
         Heavy or light testing for n DISCON.IN files, n = len(DISCON_paths)
 
@@ -455,14 +455,13 @@ class ROSCO_testing():
             self.windDir = os.path.join(run_dir_init, 'wind')  # wind in base runDir
 
             # Point to different DISCON.IN files using more_case_inputs
-            more_case_inputs = {}
-            more_case_inputs[('ServoDyn', 'DLL_ProcName')] = {'vals': [discon], 'group': 0}
+            more_case_inputs[('ServoDyn', 'DLL_InFile')] = {'vals': [discon], 'group': 0}
             self.windDir = os.path.join(run_dir_init, 'wind')  # wind in base runDir
 
             if testtype.lower() == 'light':
-                self.ROSCO_Test_lite(more_case_inputs=more_case_inputs)
+                self.ROSCO_Test_lite(more_case_inputs=more_case_inputs, U=U)
             elif testtype.lower() == 'heavy':
-                self.ROSCO_Test_heavy(more_case_inputs=more_case_inputs)
+                self.ROSCO_Test_heavy(more_case_inputs=more_case_inputs, U=U)
             else:
                 raise ValueError('{} is an invalid testtype for DISCON comparison'.format(testtype))
 
