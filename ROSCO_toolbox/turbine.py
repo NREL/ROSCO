@@ -313,8 +313,6 @@ class Turbine():
             'serial' - run in serial, 'multi' - run using python multiprocessing tools, 
             'mpi' - run using mpi tools
         '''
-
-        # Load additional WEIS tools
         from ofTools.case_gen import runFAST_pywrapper, CaseGen_General
         from ofTools.util import FileTools
         # Load pCrunch tools
