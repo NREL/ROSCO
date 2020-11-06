@@ -20,8 +20,9 @@
 import io
 import os
 import sys
-from shutil import rmtree
-
+from shutil import rmtree, copy
+import glob 
+import platform
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
@@ -51,6 +52,7 @@ EXTRAS = {
         'sphinxcontrib-napoleon>=0.7'
     }
 }
+
 
 # The rest you shouldn't have to touch too much :)
 # ------------------------------------------------
@@ -134,3 +136,21 @@ setup(
         'upload': UploadCommand,
     },
 )
+
+
+## Move ROSCO
+conda_env = os.environ['CONDA_PREFIX']
+if platform.system() == 'Windows':
+    rosco_path = os.path.join(conda_env, 'Library','Lib')
+elif platform.system() == 'Darwin':
+    rosco_path = os.path.join(conda_env, 'lib')
+
+try:
+    os.makedirs(os.path.join(os.path.dirname(os.path.abspath(__file__)),'local'), exist_ok=True)
+    copy(glob.glob(os.path.join(rosco_path, 'libdiscon.*'))[0],
+            os.path.join(os.path.dirname(os.path.abspath(__file__)),'local'))
+except:
+    print('----------------------------------------------------------------------------- \n',
+          '             Unable to find a conda-forge distribution of ROSCO.              \n',
+          ' Standard install instructions can be found at https://github.com/NREL/ROSCO  \n',
+          '-----------------------------------------------------------------------------')
