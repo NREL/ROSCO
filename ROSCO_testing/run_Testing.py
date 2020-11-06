@@ -7,7 +7,7 @@ import glob
 import ROSCO_testing
 import importlib
 
-from weis.aeroelasticse.Util import FileTools
+from ofTools.util import FileTools
 from pCrunch import pdTools
 from pCrunch import Processing, Analysis
 
@@ -193,8 +193,8 @@ def run_testing(turbine2test, testtype, rosco_binaries=[], discon_files=[], **kw
 if __name__ == "__main__":
 
     # WEIS directory, for running openfast, etc.
-    weis_dir = os.environ.get('weis_dir')       # works if we do  `export weis_dir=$(pwd)` in WEIS directory in terminal
-    weis_dir = '/Users/dzalkind/Tools/WEIS'
+    # weis_dir = os.environ.get('weis_dir')       # works if we do  `export weis_dir=$(pwd)` in WEIS directory in terminal
+    weis_dir = '/Users/nabbas/Documents/WindEnergyToolbox/WEIS'
 
     # Setup ROSCO testing parameters
     rt_kwargs = {} 
@@ -216,8 +216,7 @@ if __name__ == "__main__":
     testtype     = 'lite'       # lite, heavy, binary-comp, discon-comp
 
     # Only fill one of these if comparing controllers
-    rosco_binaries = [os.path.join(os.getcwd(), glob.glob('../ROSCO/build/libdiscon*')[0]),
-                    os.path.join(os.getcwd(), glob.glob('../ROSCO/build/libdiscon*')[0])] # Differently named libdiscons to compare
+    rosco_binaries = [os.path.join(os.getcwd(), glob.glob('../ROSCO/build/libdiscon*')[0])] # Differently named libdiscons to compare
     discon_files = []   # Differently named DISCON.IN files to compare
 
 

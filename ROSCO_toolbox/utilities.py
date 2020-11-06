@@ -17,11 +17,7 @@ from matplotlib import transforms
 from itertools import takewhile, product
 import struct
 
-try:
-   from weis.aeroelasticse.Util import spectral
-except:
-    pass
-
+from ofTools.util import spectral
 # Some useful constants
 now = datetime.datetime.now()
 pi = np.pi

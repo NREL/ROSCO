@@ -160,7 +160,7 @@ class Turbine():
             txt_filename: str, optional
                           filename for *.txt, only used if rot_source='txt'
         """
-        from weis.aeroelasticse.FAST_reader import InputReader_OpenFAST
+        from ofTools.fast_io.FAST_reader import InputReader_OpenFAST
 
         print('Loading FAST model: %s ' % FAST_InputFile)
         self.TurbineName = FAST_InputFile.strip('.fst')
@@ -315,8 +315,8 @@ class Turbine():
         '''
 
         # Load additional WEIS tools
-        from weis.aeroelasticse import runFAST_pywrapper, CaseGen_General
-        from weis.aeroelasticse.Util import FileTools
+        from ofTools.case_gen import runFAST_pywrapper, CaseGen_General
+        from ofTools.util import FileTools
         # Load pCrunch tools
         from pCrunch import pdTools, Processing
 
@@ -498,7 +498,7 @@ class Turbine():
         -----------
             self - note: needs to contain fast input file info provided by load_from_fast.
         '''
-        from weis.aeroelasticse.FAST_reader import InputReader_OpenFAST
+        from ofTools.fast_io.FAST_reader import InputReader_OpenFAST
 
         # Create CC-Blade Rotor
         r0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlSpn']) 
@@ -608,7 +608,8 @@ class RotorPerformance():
         '''
         
         # Form the interpolant functions which can look up any arbitrary location on rotor performance surface
-        interp_fun = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.performance_table, kind='linear')
+        interp_fun = interpolate.interp2d(
+            self.pitch_initial_rad, self.TSR_initial, self.performance_table, kind='cubic')
         return interp_fun(pitch,TSR)
 
     def interp_gradient(self,pitch,TSR):
