@@ -19,27 +19,24 @@ from ROSCO_toolbox import utilities as ROSCO_utilities
 
 # Instantiate fast_IO
 fast_io = ROSCO_utilities.FAST_IO()
+fast_pl = ROSCO_utilities.FAST_Plots()
 
 # Define openfast output filenames
-# filenames = ["../Test_Cases/5MW_Land/5MW_Land.outb"]
+filenames = ["../Test_Cases/NREL-5MW/NREL-5MW.outb"]
 
 # ---- Note: Could plot multiple cases, textfiles, and binaries...
-filenames = ["../Test_Cases/5MW_Land_DLL_WTurb/5MW_Land_DLL_WTurb.out",
-            "../Test_Cases/5MW_Land_DLL_WTurb/5MW_Land_DLL_WTurb.outb"]
+# filenames = ["../Test_Cases/NREL-5MW/NREL-5MW.outb",
+#             "../Test_Cases/NREL-5MW/NREL-5MW_ex8.outb"]
 
 # Load output info and data
-allinfo, alldata = fast_io.load_output(filenames)
+fastout = fast_io.load_fast_out(filenames, tmin=10)
 
-# Trim time series
-for i,(info,data) in enumerate(zip(allinfo,alldata)):
-    alldata[i] = fast_io.trim_output(info, data, tmin=0, tmax=50)
 
 #  Define Plot cases 
 #  --- Comment,uncomment, create, and change these as desired...
 cases = {}
 cases['Baseline'] = ['Wind1VelX', 'BldPitch1', 'GenTq', 'RotSpeed']
 cases['Rotor'] = ['BldPitch1', 'GenTq', 'GenPwr']
-cases['Rotor Performance'] = ['RtVAvgxh', 'RtTSR', 'RtAeroCp']
 
 # Plot, woohoo!
-fast_io.plot_fast_out(cases, allinfo, alldata)
+fast_pl.plot_fast_out(cases, fastout, showplot=True)

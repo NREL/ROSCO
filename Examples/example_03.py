@@ -27,7 +27,7 @@ controller_params   = inps['controller_params']
 
 # Load turbine data from openfast model
 turbine = ROSCO_turbine.Turbine(turbine_params)
-turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source=None,txt_filename=None)
+turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source='cc-blade',txt_filename=None)
 
 # Write rotor performance text file
 txt_filename = 'Cp_Ct_Cq.Ex03.txt'

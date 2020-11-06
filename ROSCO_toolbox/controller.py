@@ -313,7 +313,9 @@ class Controller():
         else:
             self.Kp_float = 0.0
 
-
+        # --- Individual pitch control ---
+        self.Ki_ipc1p = 0.0
+        
         # Flap actuation 
         if self.Flp_Mode >= 1:
             self.flp_angle = 0.0
@@ -364,18 +366,19 @@ class Controller():
             phi_vec.append(self.pitch_op[i] + turbine.twist*deg2rad)
 
         # Lift and drag coefficients
-        Cl0 = np.zeros_like(turbine.af_data)
-        Cd0 = np.zeros_like(turbine.af_data)
-        Clp = np.zeros_like(turbine.af_data)
-        Cdp = np.zeros_like(turbine.af_data)
-        Clm = np.zeros_like(turbine.af_data)
-        Cdm = np.zeros_like(turbine.af_data)
+        num_af = len(turbine.af_data) # number of airfoils
+        Cl0 = np.zeros(num_af)
+        Cd0 = np.zeros(num_af)
+        Clp = np.zeros(num_af)
+        Cdp = np.zeros(num_af)
+        Clm = np.zeros(num_af)
+        Cdm = np.zeros(num_af)
         
         for i,section in enumerate(turbine.af_data):
             # assume airfoil section as AOA of zero for slope calculations - for now
             a0_ind = section[0]['Alpha'].index(np.min(np.abs(section[0]['Alpha'])))
             # Coefficients 
-            if section[0]['NumTabs'] == 3:  # sections with flaps
+            if section[0]['NumTabs'] == 3:  # sections with 3 flaps
                 Clm[i,] = section[0]['Cl'][a0_ind]
                 Cdm[i,] = section[0]['Cd'][a0_ind]
                 Cl0[i,] = section[1]['Cl'][a0_ind]
@@ -383,7 +386,7 @@ class Controller():
                 Clp[i,] = section[2]['Cl'][a0_ind]
                 Cdp[i,] = section[2]['Cd'][a0_ind]
                 Ctrl_flp = float(section[2]['Ctrl'])
-            else:                           # sections without flaps
+            else:                           # sections without 3 flaps
                 Cl0[i,] = Clp[i,] = Clm[i,] = section[0]['Cl'][a0_ind]
                 Cd0[i,] = Cdp[i,] = Cdm[i,] = section[0]['Cd'][a0_ind]
                 Ctrl = float(section[0]['Ctrl'])

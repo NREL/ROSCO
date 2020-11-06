@@ -22,5 +22,5 @@ turbine = turbine.load('NREL5MW_saved.p')
 
 # plot rotor performance 
 print('Plotting Cp data')
-turbine.Cp.plot_performance(turbine.Cp_table, turbine.pitch_initial_rad, turbine.TSR_initial)
+turbine.Cp.plot_performance()
 plt.show()

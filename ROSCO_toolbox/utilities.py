@@ -18,7 +18,7 @@ from itertools import takewhile, product
 import struct
 
 try:
-   from wisdem.aeroelasticse.Util import spectral
+   from weis.aeroelasticse.Util import spectral
 except:
     pass
 
@@ -71,10 +71,9 @@ class FAST_Plots():
             # channels to plot
             channels = cases[case]
             # instantiate plot and legend
-            fig, axes = plt.subplots(len(channels), 1, sharex=True, num=fignum)
-
+            fig, axes = plt.subplots(len(channels), 1, sharex=True, num=fignum, constrained_layout=True)
             myleg = []
-            for fast_out in fast_dict:
+            for fast_out in fast_dict:      # Multiple channels
                 # write legend
                 Time = fast_out['Time']
                 myleg.append(fast_out['meta']['name'])
@@ -85,19 +84,20 @@ class FAST_Plots():
                             axj.plot(Time, fast_out[channel])
                             # label
                             unit_idx = fast_out['meta']['channels'].index(channel)
-                            axj.set(ylabel='{:^} \n ({:^})'.format(
+                            axj.set_ylabel('{:^} \n ({:^})'.format(
                                 channel,
                                 fast_out['meta']['attribute_units'][unit_idx]))
                             axj.grid(True)
                         except:
                             print('{} is not available as an output channel.'.format(channel))
                     axes[0].set_title(case)
-                else:                   # Single channel
+                    
+                else:                       # Single channel
                     try:
                         # plot
                         axes.plot(Time, fast_out[channel])
                         # label
-                        axes.set(ylabel='{:^} \n ({:^})'.format(
+                        axes.set_ylabel('{:^} \n ({:^})'.format(
                             channel,
                             fast_out['meta']['attribute_units'][unit_idx]))
                         axes.grid(True)
@@ -286,7 +286,7 @@ class FAST_IO():
             print('OpenFAST simulation complete. ')
 
 
-    def load_FAST_out(self, filenames, tmin=None, tmax=None, verbose=False):
+    def load_fast_out(self, filenames, tmin=None, tmax=None, verbose=False):
         """Load a FAST binary or ascii output file
         
         Parameters
@@ -698,9 +698,9 @@ class FileProcessing():
         file.write('{:<014.5f}      ! PC_Switch			- Angle above lowest minimum pitch angle for switch, [rad]\n'.format(1 * deg2rad))
         file.write('\n')
         file.write('!------- INDIVIDUAL PITCH CONTROL -----------------------------------------\n')
-        file.write('{:<13.1f}       ! IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from IPC), [rad]\n'.format(0.0))
-        file.write('{:<6.1f}{:<13.1f} ! IPC_KI			- Integral gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions, [-]\n'.format(0.0,0.0))
-        file.write('{:<6.1f}{:<13.1f} ! IPC_aziOffset		- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. \n'.format(0.0,0.0))
+        file.write('{:<13.1f}       ! IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from IPC), [rad]\n'.format(0.087266)) # Hardcode to 5 degrees
+        file.write('{:<13.1e} {:<6.1f}! IPC_KI			- Integral gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions, [-]\n'.format(controller.Ki_ipc1p,0.0))
+        file.write('{:<13.1e} {:<6.1f}! IPC_aziOffset		- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. \n'.format(0.0,0.0))
         file.write('{:<13.1f}       ! IPC_CornerFreqAct - Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal {{0: Disable}}, [rad/s]\n'.format(0.0))
         file.write('\n')
         file.write('!------- VS TORQUE CONTROL ------------------------------------------------\n')

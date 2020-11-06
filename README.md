@@ -41,6 +41,16 @@ cd build
 cmake ..
 make
 ```
+#  -- Install WEIS ---
+Get clone weis from (weis link) and install using instructions there
+```
+conda activate weis-env
+```
+Navigate to weis directory and enter
+```
+export weis_dir=$(pwd)  # maybe?
+```
+
 #### WISDEM Dependencies
 The ROSCO toolbox uses two NREL tools that are distributed as a part of the WISDEM packages. AerolasticSE and CCBlade are currently used, with future dependencies or support possible. As such, it is necessary to install WISDEM. This can be done fairly easily by following the [WISDEM installation instructions](https://github.com/wisdem/wisdem). A brief overview of the _user_ steps is provided here, for more detail, especially if you would like to contribute to the development of WISDEM, see the [WISDEM github page](https://github.com/wisdem/wisdem).
 
