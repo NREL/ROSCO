@@ -24,6 +24,15 @@ from shutil import rmtree, copy
 import glob 
 import platform
 from setuptools import find_packages, setup, Command
+from numpy.distutils.command.build_ext import build_ext
+from numpy.distutils.core import setup, Extension
+
+import multiprocessing
+from distutils.core import run_setup
+from setuptools import find_packages
+from numpy.distutils.command.build_ext import build_ext
+from numpy.distutils.core import setup, Extension
+from io import open
 
 # Package meta-data.
 NAME = 'rosco-toolbox'
@@ -53,6 +62,48 @@ EXTRAS = {
     }
 }
 
+
+# For the CMake Extensions
+this_directory = os.path.abspath(os.path.dirname(__file__))
+
+class CMakeExtension(Extension):
+
+    def __init__(self, name, sourcedir='', **kwa):
+        Extension.__init__(self, name, sources=[], **kwa)
+        self.sourcedir = os.path.abspath(sourcedir)
+
+class CMakeBuildExt(build_ext):
+    
+    def copy_extensions_to_source(self):
+        newext = []
+        for ext in self.extensions:
+            if isinstance(ext, CMakeExtension): continue
+            newext.append( ext )
+        self.extensions = newext
+        super().copy_extensions_to_source()
+    
+    def build_extension(self, ext):
+        if isinstance(ext, CMakeExtension):
+            # Ensure that CMake is present and working
+            try:
+                self.spawn(['cmake', '--version'])
+            except OSError:
+                raise RuntimeError('Cannot find CMake executable')
+            
+            # Refresh build directory
+            localdir = os.path.join(this_directory, 'ROSCO','build')
+            os.makedirs(localdir, exist_ok=True)
+
+            # Build
+            self.spawn(['cmake', '-S', ext.sourcedir, '-B', localdir])
+            self.spawn(['cmake', '--build', localdir])
+
+        else:
+            super().build_extension(ext)
+
+
+# All of the extensions
+roscoExt   = CMakeExtension('rosco','ROSCO')
 
 # The rest you shouldn't have to touch too much :)
 # ------------------------------------------------
@@ -115,42 +166,25 @@ class UploadCommand(Command):
         sys.exit()
 
 
-# Where the magic happens:
-setup(
-    name=NAME,
-    version=about['__version__'],
-    description=DESCRIPTION,
-    long_description=long_description,
-    long_description_content_type='text/markdown',
-    author=AUTHOR,
-    author_email=EMAIL,
-    python_requires=REQUIRES_PYTHON,
-    url=URL,
-    packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
-    install_requires=REQUIRED,
-    extras_require=EXTRAS,
-    include_package_data=True,
-    license='Apache License, Version 2.0',
 
-    cmdclass={
-        'upload': UploadCommand,
-    },
+metadata = dict(
+    name                          = 'NAME',
+    version                       = about['__version__'],
+    description                   = DESCRIPTION,
+    long_description              = long_description,
+    long_description_content_type = 'text/markdown',
+    author                        = AUTHOR,
+    author_email                  = EMAIL,
+    url                           = URL,
+    install_requires              = REQUIRED,
+    python_requires               = REQUIRES_PYTHON,
+    extras_require                = EXTRAS,
+    include_package_date          = True,
+    packages                      = find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
+    license                       = 'Apache License, Version 2.0',
+    ext_modules                   = [roscoExt],
+    cmdclass                      = {'build_ext': CMakeBuildExt, 'upload': UploadCommand},
+    zip_safe                      = False,
 )
 
-
-## Move ROSCO
-conda_env = os.environ['CONDA_PREFIX']
-if platform.system() == 'Windows':
-    rosco_path = os.path.join(conda_env, 'Library','Lib')
-elif platform.system() == 'Darwin':
-    rosco_path = os.path.join(conda_env, 'lib')
-
-try:
-    os.makedirs(os.path.join(os.path.dirname(os.path.abspath(__file__)),'local'), exist_ok=True)
-    copy(glob.glob(os.path.join(rosco_path, 'libdiscon.*'))[0],
-            os.path.join(os.path.dirname(os.path.abspath(__file__)),'local'))
-except:
-    print('----------------------------------------------------------------------------- \n',
-          '             Unable to find a conda-forge distribution of ROSCO.              \n',
-          ' Standard install instructions can be found at https://github.com/NREL/ROSCO  \n',
-          '-----------------------------------------------------------------------------')
+setup(**metadata)
