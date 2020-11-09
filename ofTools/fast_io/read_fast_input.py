@@ -22,7 +22,7 @@ import numpy as np
 import re
 import pandas as pd
 
-from ROSCO_toolbox import utilities as ROSCO_utilities
+from ROSCO_toolbox.utilities import read_DISCON
 
 __all__  = ['FASTInputFile']
 
@@ -167,9 +167,8 @@ class FASTInputDeck():
         return self.IceDyn
 
     def load_DISCON(self): # (TODO - Move this out of the ROSCO toolbox and into ofTools)
-        file_processing = ROSCO_utilities.FileProcessing()
         DISCON_fullfile = os.path.join(self.path, self.ServoDyn['DLL_InFile'].strip('\'').strip('\"'))
-        self.DISCON_in = file_processing.read_DISCON(DISCON_fullfile)
+        self.DISCON_in = read_DISCON(DISCON_fullfile)
         return self.DISCON_in
 
 # --------------------------------------------------------------------------------}

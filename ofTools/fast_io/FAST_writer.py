@@ -7,7 +7,7 @@ from functools import reduce
 from ofTools.fast_io.FAST_reader import InputReader_Common, InputReader_OpenFAST, InputReader_FAST7
 from ofTools.fast_io.FAST_vars import FstModel
 
-from ROSCO_toolbox import utilities as ROSCO_utilities
+from ROSCO_toolbox.utilities import write_rotor_performance, write_DISCON
 ROSCO = True
 
 
@@ -1353,9 +1353,8 @@ class InputWriter_OpenFAST(InputWriter_Common):
         self.fst_vt['DISCON_in']['PerfFileName'] = self.FAST_namingOut + '_Cp_Ct_Cq.txt'
         
         # Write DISCON input files
-        file_processing = ROSCO_utilities.FileProcessing()
-        file_processing.write_rotor_performance(turbine, txt_filename=os.path.join(self.FAST_runDirectory, self.fst_vt['DISCON_in']['PerfFileName']))
-        file_processing.write_DISCON(turbine,controller,param_file=discon_in_file, txt_filename=self.fst_vt['DISCON_in']['PerfFileName'])
+        write_rotor_performance(turbine, txt_filename=os.path.join(self.FAST_runDirectory, self.fst_vt['DISCON_in']['PerfFileName']))
+        write_DISCON(turbine,controller,param_file=discon_in_file, txt_filename=self.fst_vt['DISCON_in']['PerfFileName'])
 
     def write_HydroDyn(self):
 
