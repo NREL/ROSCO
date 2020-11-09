@@ -18,7 +18,7 @@ import struct
 
 from ofTools.util import spectral
 
-class fast_out_processing():
+class output_processing():
     '''
     Some plotting utilities for OpenFAST data. 
 

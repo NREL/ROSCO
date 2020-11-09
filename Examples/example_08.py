@@ -16,10 +16,10 @@ import numpy as np
 import matplotlib.pyplot as plt 
 # ROSCO toolbox modules 
 from ROSCO_toolbox import utilities as ROSCO_utilities
-from ofTools.fast_io import load_fast_out
+from ofTools.fast_io import output_processing
 
 # Instantiate fast_IO
-fast_out = load_fast_out.fast_out_processing()
+fast_out = output_processing.output_processing()
 # fast_pl = ROSCO_utilities.FAST_Plots()
 
 # Define openfast output filenames

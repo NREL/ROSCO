@@ -8,5 +8,5 @@ The scripts found in the case_gen folder can be used to run large sets of openfa
 
 ### fast_io
 The scripts in the fast_io folder are generally used to read or write OpenFAST input files. Note that all files starting with "FAST_*" should generally be the same as those found in aeroelasticse (amongst a few other scripts). 
-- load_fast_out.py can be used to read OpenFAST output binary or text files, and then plot the output time series or power spectra.
+- output_processing.py can be used to read OpenFAST output binary or text files, and then plot the output time series or power spectra.
 - read_fast_input.py can be used to generically read OpenFAST input decks in a somewhat more flexible way than that in FAST_reader.py, so may be useful if the user's OpenFAST input files are out of date. 

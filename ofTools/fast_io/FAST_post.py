@@ -1,5 +1,5 @@
 from __future__ import print_function
-from ROSCO_toolbox.utilities import FAST_IO
+from ofTools.utilities import output_processing
 import ROSCO_toolbox
 
 def FAST_IO_timeseries(fname):
@@ -9,6 +9,6 @@ def FAST_IO_timeseries(fname):
     except:
         print('WARNING: ROSCO_toolbox required for wisdem.aeroelasticse.FAST_post.FAST_IO_timeseries')
     
-    fast_io = FAST_IO()
-    fast_data = fast_io.load_fast_out(fname, verbose=True)[0]
+    fast_out = output_processing.output_processing()
+    fast_data = fast_out.load_fast_out(fname, verbose=True)[0]
     return fast_data
