@@ -13,7 +13,7 @@ In this example:
 import yaml 
 # ROSCO toolbox modules 
 from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox import utilities as ROSCO_utilities
+from ROSCO_toolbox.utilities import write_rotor_performance
 # Initialize parameter dictionaries
 turbine_params = {}
 control_params = {}
@@ -31,5 +31,4 @@ turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory
 
 # Write rotor performance text file
 txt_filename = 'Cp_Ct_Cq.Ex03.txt'
-file_processing = ROSCO_utilities.FileProcessing()
-file_processing.write_rotor_performance(turbine,txt_filename=txt_filename)
+write_rotor_performance(turbine,txt_filename=txt_filename)

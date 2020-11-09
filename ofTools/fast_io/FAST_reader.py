@@ -5,7 +5,7 @@ from functools import reduce
 import operator
 
 from ofTools.fast_io.FAST_vars import FstModel
-from ROSCO_toolbox import utilities as ROSCO_utilities
+from ROSCO_toolbox.utilities import read_DISCON, load_from_txt
 from ROSCO_toolbox import turbine as ROSCO_turbine
 ROSCO = True
 
@@ -1424,15 +1424,14 @@ class InputReader_OpenFAST(InputReader_Common):
         if os.path.exists(discon_in_file):
 
             # Read DISCON infiles
-            file_processing = ROSCO_utilities.FileProcessing()
-            self.fst_vt['DISCON_in'] = file_processing.read_DISCON(discon_in_file)
+            self.fst_vt['DISCON_in'] = read_DISCON(discon_in_file)
 
             # Some additional filename parsing
             self.fst_vt['DISCON_in']['PerfFileName'] = os.path.abspath(os.path.join(self.FAST_directory, self.fst_vt['DISCON_in']['PerfFileName']))
 
             # Try to read rotor performance data if it is available
             try:
-                pitch_vector, tsr_vector, Cp_table, Ct_table, Cq_table = file_processing.load_from_txt(self.fst_vt['DISCON_in']['PerfFileName'])
+                pitch_vector, tsr_vector, Cp_table, Ct_table, Cq_table = load_from_txt(self.fst_vt['DISCON_in']['PerfFileName'])
 
                 RotorPerformance = ROSCO_turbine.RotorPerformance
                 Cp = RotorPerformance(Cp_table, pitch_vector, tsr_vector)

@@ -22,7 +22,6 @@ import yaml
 from ROSCO_toolbox import controller as ROSCO_controller
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox import sim as ROSCO_sim
-from ROSCO_toolbox import utilities as ROSCO_utilities
 from ROSCO_toolbox import control_interface as ROSCO_ci
 
 # Specify controller dynamic library path and name
