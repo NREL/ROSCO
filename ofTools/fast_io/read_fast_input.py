@@ -1,8 +1,8 @@
 '''
 Reads OpenFAST input files. 
 
-Copied from:
-https://github.com/dzalkind/python-toolbox/blob/dev/pyFAST/input_output/fast_input_file.py
+Most of this script is copied from:
+https://github.com/OpenFAST/python-toolbox/blob/dev/pyFAST/input_output/fast_input_file.py
 on 11/05/2020
 
 '''
