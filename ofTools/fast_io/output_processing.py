@@ -28,9 +28,16 @@ class output_processing():
     plot_spectral
     '''
 
-    def __init__(self):
+    def __init__(self, filenames=[], cases=None, tmin=None, tmax=None, verbose=False):
         
-        self.plot_cases = {'Baseline': ['Wind1VelX', 'GenPwr', 'RotSpeed', 'BldPitch1', 'GenTq']}
+        # Define generic plotting cases
+        if cases:
+            self.plot_cases=cases
+        else:
+            self.plot_cases = {'Baseline': ['Wind1VelX', 'GenPwr', 'RotSpeed', 'BldPitch1', 'GenTq']}
+
+        if len(filenames) > 0:
+            self.load_fast_out(filenames, tmin=tmin, tmax=tmax, verbose=verbose)
 
     def load_fast_out(self, filenames, tmin=None, tmax=None, verbose=False):
         """Load a FAST binary or ascii output file
@@ -85,7 +92,7 @@ class output_processing():
         # return fastout
         return self.fastout
 
-    def plot_fast_out(self, fastout=None, cases=None, showplot=False, fignum=None, xlim=None):
+    def plot_fast_out(self, fastout=None, cases=None, showplot=True, fignum=None, xlim=None):
         '''
         Plots OpenFAST outputs for desired channels
 
@@ -112,7 +119,7 @@ class output_processing():
             try:
                 fastout = self.fastout
             except:
-                Error('Cannot plot OpenFAST output data before it is loaded with load_fast_out.')
+                raise AttributeError('Cannot plot OpenFAST output data before it is loaded with load_fast_out.')
         if not cases:
             cases = self.plot_cases
 
