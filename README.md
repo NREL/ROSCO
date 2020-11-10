@@ -33,7 +33,6 @@ If you do not have WISDEM or the ROSCO toolbox installed and would like to insta
 
 2.	#### Clone and Install the ROSCO toolbox
 	```
-	#  -- Clone and install the ROSCO toolbox --
 	git clone https://github.com/NREL/ROSCO_toolbox.git
 	cd ROSCO_toolbox
 	git submodule init
