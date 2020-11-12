@@ -22,11 +22,11 @@ Here is a short (but _hopefully_ sweet) installation and run process for basic c
 ### Installing the complete ROSCO Toolbox
 In order to fully leverage the controller tuning capabilities, [WISDEM](https://github.com/WISDEM/WISDEM) is used. This is made available through installation via [Anaconda](https://www.anaconda.com/). If you do not already have Anaconda installed on your machine, it is recommended that you install it to install WISDEM. Alternatively, you can install wisdem following the ``for developer'' instructions on the WISDEM home page and skip to step 2 here.
 
-If you do not have WISDEM or the ROSCO toolbox installed and would like to install WISDEM, the ROSCO toolbox, and compile the controller on your unix machine please do the following: open your terminal, navigate to the folder of your choosing, and copy and paste the below text into the command line. This code block is broken up in a piece-wise description in the following sections.
+If you do not have WISDEM or the ROSCO toolbox installed and would like to install WISDEM, the ROSCO toolbox, and compile the controller please do the following: open your terminal or command prompt, navigate to the folder of your choosing, and enter the below text into the command line. This code block is broken up in a piece-wise description in the following sections.
 1.  #### Install WISDEM 
 	```
 	conda config --add channels conda-forge
-	conda create -y --name rosco-env python=3.7
+	conda create -y --name rosco-env python=3.8
 	conda activate rosco-env
 	conda install -y wisdem
 	```
@@ -41,14 +41,14 @@ If you do not have WISDEM or the ROSCO toolbox installed and would like to insta
 	```
 
 ### Alternatively...
-If you wish to write your own scripts to leaverage the ROSCO toolbox tools, but do not necessarily need the source code or to run any of the examples, the ROSCO toolbox is available via PyPi:
+If you wish to write your own scripts to leverage the ROSCO toolbox tools, but do not necessarily need the source code or to run any of the examples, the ROSCO toolbox is available via PyPi:
 ```
 pip install rosco_toolbox
 ```
 Note that if you do choose to install the ROSCO Toolbox this way, you will not have the source code. Additionally, you will need to download WISDEM and the ROSCO controller separately if you wish to use any of the ROSCO toolbox functionalities that need those software packages. 
 
 #### Compiling ROSCO
-The controller itself is installed as a submodule in the ROSCO toolbox. For further information on compiling and running ROSCO itself, especially if you are on a Windows machine, we point you to the [ROSCO github page](https://github.com/NREL/ROSCO_toolbox.git). If you wish to re-compile the ROSOCO toolbox, cmake provides easy to compiling on Unix based systems. In order to compile the controller, you should run the following commands from the ROSCO_toolbox folder.
+The controller itself is installed as a submodule in the ROSCO toolbox. For further information on compiling and running ROSCO itself, or to download the release binaries directly, we point you to the [ROSCO github page](https://github.com/NREL/ROSCO_toolbox.git). If you wish to re-compile the ROSOCO toolbox, cmake provides easy to compiling on Unix based systems. In order to compile the controller, you should run the following commands from the ROSCO_toolbox folder.
 ```
 cd ROSCO
 mkdir build
