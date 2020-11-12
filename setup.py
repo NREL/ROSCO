@@ -98,6 +98,23 @@ class CMakeBuildExt(build_ext):
             self.spawn(['cmake', '-S', ext.sourcedir, '-B', localdir])
             self.spawn(['cmake', '--build', localdir])
 
+
+            if platform.system() == 'Windows':
+                cmake_args += ['-DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE']
+                
+                if self.compiler.compiler_type == 'msvc':
+                    cmake_args += ['-DCMAKE_GENERATOR_PLATFORM=x64']
+                else:
+                    cmake_args += ['-G', 'MinGW Makefiles']
+
+            self.build_temp += '_'+ext.name
+            os.makedirs(localdir, exist_ok=True)
+            # Need fresh build directory for CMake
+            os.makedirs(self.build_temp, exist_ok=True)
+
+            self.spawn(['cmake', '-S', ext.sourcedir, '-B', self.build_temp] + cmake_args)
+            self.spawn(['cmake', '--build', self.build_temp, '-j', str(ncpus), '--target', 'install', '--config', 'Release'])
+
         else:
             super().build_extension(ext)
 
