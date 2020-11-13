@@ -12,7 +12,6 @@
 import os
 import numpy as np
 import datetime
-from wisdem.ccblade import CCAirfoil, CCBlade
 from scipy import interpolate
 from numpy import gradient
 import pickle
@@ -249,6 +248,8 @@ class Turbine():
                   Dictionary containing fast model details - defined using from InputReader_OpenFAST (distributed as a part of AeroelasticSE)
 
         '''
+        from wisdem.ccblade import CCAirfoil, CCBlade
+
         print('Loading rotor performance data from CC-Blade.')
 
         # Load blade information if it isn't already
@@ -499,6 +500,7 @@ class Turbine():
             self - note: needs to contain fast input file info provided by load_from_fast.
         '''
         from ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+        from wisdem.ccblade import CCAirfoil, CCBlade
 
         # Create CC-Blade Rotor
         r0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlSpn']) 
