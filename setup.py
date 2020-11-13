@@ -27,6 +27,7 @@ from setuptools import find_packages, setup, Command
 from numpy.distutils.command.build_ext import build_ext
 from numpy.distutils.core import setup, Extension
 
+import multiprocessing as mp
 from distutils.core import run_setup
 from setuptools import find_packages
 from numpy.distutils.command.build_ext import build_ext
@@ -64,6 +65,7 @@ EXTRAS = {
 
 # For the CMake Extensions
 this_directory = os.path.abspath(os.path.dirname(__file__))
+ncpus = mp.cpu_count()
 class CMakeExtension(Extension):
 
     def __init__(self, name, sourcedir='', **kwa):
