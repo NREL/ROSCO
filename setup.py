@@ -27,7 +27,6 @@ from setuptools import find_packages, setup, Command
 from numpy.distutils.command.build_ext import build_ext
 from numpy.distutils.core import setup, Extension
 
-import multiprocessing
 from distutils.core import run_setup
 from setuptools import find_packages
 from numpy.distutils.command.build_ext import build_ext
@@ -65,7 +64,6 @@ EXTRAS = {
 
 # For the CMake Extensions
 this_directory = os.path.abspath(os.path.dirname(__file__))
-
 class CMakeExtension(Extension):
 
     def __init__(self, name, sourcedir='', **kwa):
@@ -91,21 +89,19 @@ class CMakeBuildExt(build_ext):
                 raise RuntimeError('Cannot find CMake executable')
             
             # Refresh build directory
-            localdir = os.path.join(this_directory, 'ROSCO','build')
+            localdir = os.path.join(this_directory, 'ROSCO','install')
             os.makedirs(localdir, exist_ok=True)
 
-            # Build
-            self.spawn(['cmake', '-S', ext.sourcedir, '-B', localdir])
-            self.spawn(['cmake', '--build', localdir])
-
+            cmake_args = ['-DBUILD_SHARED_LIBS=OFF']
+            cmake_args += ['-DCMAKE_Fortran_FLAGS=-ffree-line-length-0']
 
             if platform.system() == 'Windows':
-                cmake_args += ['-DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE']
-                
+                cmake_args += ['-DCMAKE_INSTALL_PREFIX={}'.format(localdir)]
                 if self.compiler.compiler_type == 'msvc':
                     cmake_args += ['-DCMAKE_GENERATOR_PLATFORM=x64']
                 else:
                     cmake_args += ['-G', 'MinGW Makefiles']
+                    cmake_args += ['-D', 'CMAKE_Fortran_COMPILER=gfortran']
 
             self.build_temp += '_'+ext.name
             os.makedirs(localdir, exist_ok=True)
@@ -113,7 +109,7 @@ class CMakeBuildExt(build_ext):
             os.makedirs(self.build_temp, exist_ok=True)
 
             self.spawn(['cmake', '-S', ext.sourcedir, '-B', self.build_temp] + cmake_args)
-            self.spawn(['cmake', '--build', self.build_temp, '-j', str(ncpus), '--target', 'install', '--config', 'Release'])
+            self.spawn(['cmake', '--build', self.build_temp, '--target', 'install', '--config', 'Release'])
 
         else:
             super().build_extension(ext)
@@ -185,7 +181,7 @@ class UploadCommand(Command):
 
 
 metadata = dict(
-    name                          = 'NAME',
+    name                          = NAME,
     version                       = about['__version__'],
     description                   = DESCRIPTION,
     long_description              = long_description,
