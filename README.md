@@ -37,6 +37,8 @@ If you do not have WISDEM or the ROSCO toolbox installed and would like to insta
 	cd ROSCO_toolbox
 	git submodule init
 	git submodule update
+	conda install compilers 					# (Mac/Linux only)
+	conda install m2w64-toolchain libpython     # (Windows only)
 	python setup.py install
 	```
 
