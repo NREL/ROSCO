@@ -8,8 +8,7 @@ import ROSCO_testing
 import importlib
 
 from ofTools.util import FileTools
-from pCrunch import pdTools
-from pCrunch import Processing, Analysis
+# from pCrunch import Processing, Analysis
 
 
 def run_testing(turbine2test, testtype, rosco_binaries=[], discon_files=[], **kwargs):
@@ -79,127 +78,18 @@ def run_testing(turbine2test, testtype, rosco_binaries=[], discon_files=[], **kw
         raise ValueError('{} is an invalid test type!'.format(testtype))
 
 
-
-    # ----------- Post process ----------
-
-    # Set up pCrunch
-    # Initialize processing classes
-    fp = Processing.FAST_Processing()
-
-    if testtype.lower() in ['lite', 'heavy']:
-        # Load generated .yaml for outfile names
-        case_info = FileTools.load_yaml(os.path.join(rt.runDir,'case_matrix.yaml'), package=1)
-        casenames = case_info['Case_Name']
-        if rt.outfile_fmt >= 2:
-            outFileNames = [os.path.join(rt.runDir,fname+'.outb') for fname in casenames]
-        else:
-            outFileNames = [os.path.join(rt.runDir,fname+'.out') for fname in casenames]
-
-        # Set some processing parameters
-        fp.OpenFAST_outfile_list = outFileNames
-        fp.t0 = 100
-        if rt.cores > 1:
-            fp.parallel_analysis = True
-        fp.results_dir = os.path.join(rt.runDir, 'stats')
-        fp.verbose = True
-        fp.save_LoadRanking = True
-        fp.save_SummaryStats = True
-
-        # Define load ranking stats
-        fp.ranking_vars = [['RotSpeed'],
-                            ['RootMyb1', 'RootMyb2', 'RootMyb3'],
-                            ['TwrBsMyt']]
-        fp.ranking_stats = ['max',
-                            'max',
-                            'max']
-        if turbine2test == 'IEA-15MW':
-            fp.ranking_vars += [['PtfmPitch']]
-            fp.ranking_stats += ['max']
-
-        # Load and save statistics and load rankings
-        if not os.path.exists(os.path.join(fp.results_dir, 'dataset1_LoadRanking.yaml')) or reCrunch:
-            stats, load_rankings = fp.batch_processing()
-
-        # Print a summary
-        print('----------------------------------------')
-        print('\t\t{}'.format(turbine2test))
-        print('----------------------------------------')
-        print('\t\t{}'.format('Test Outputs'))
-        for meas in load_rankings[0].keys():
-            try:
-                print('Max {} \t{:1.3e}'.format(meas, load_rankings[0][meas]['max'][0]))
-            except:
-                print('{} is not in load rankings'.format(meas))
-        print('----------------------------------------')
-
-    else:
-        # Save each set of outputs in a list
-        allstats = []
-        allrankings = []
-        for i in range(max(len(discon_files), len(rosco_binaries))):
-            # Define output file folder
-            outputDir = os.path.join(os.getcwd(), rt.runDir,'controller_{}'.format(i)) # NJA - this is dependent on the hard-coded folder names in ROSCO_testing.py
-
-            # Load output file paths using case matrices
-            case_info = FileTools.load_yaml(os.path.join(outputDir, 'case_matrix.yaml'), package=1)
-            casenames = case_info['Case_Name']
-            if rt.outfile_fmt >= 2:
-                outFileNames = [os.path.join(outputDir, fname+'.outb') for fname in casenames]
-            else:
-                outFileNames = [os.path.join(outputDir, fname+'.out') for fname in casenames]
-
-            # Set some processing parameters
-            fp.OpenFAST_outfile_list = outFileNames
-            fp.t0 = 100
-            if rt.cores > 0:
-                fp.parallel_analysis = True
-            fp.results_dir = os.path.join(outputDir, 'stats')
-            fp.verbose = True
-            fp.save_LoadRanking = True
-            fp.save_SummaryStats = True
-
-            # Define load ranking stats
-            fp.ranking_vars = [['RotSpeed'],
-                            ['RootMyb1', 'RootMyb2', 'RootMyb3'],
-                            ['TwrBsMyt']]
-            fp.ranking_stats = ['max',
-                                'max',
-                                'max']
-            if turbine2test == 'IEA-15MW':
-                fp.ranking_vars += [['PtfmPitch']]
-                fp.ranking_stats += ['max']
-
-            # Load and save statistics and load rankings
-            if not os.path.exists(os.path.join(fp.results_dir, 'dataset1_LoadRanking.yaml')) or reCrunch:
-                stats, load_rankings = fp.batch_processing()
-            
-            # Save all outputs
-            allstats.append(stats)
-            allrankings.append(load_rankings[0])
-
-        # Print a summary
-        print('----------------------------------------')
-        print('\t\t{}'.format(turbine2test))
-        print('----------------------------------------')
-        print('\t\t{}\t{}'.format('Controller1', 'Controller2'))
-        for meas in allrankings[0].keys():
-            try:
-                print('Max {} \t{:1.3e}\t{:1.3e}'.format(
-                    meas, allrankings[0][meas]['max'][0], allrankings[1][meas]['max'][0]))
-            except:
-                print('{} is not in load rankings'.format(meas))
-        print('----------------------------------------')
         
 if __name__ == "__main__":
 
     # WEIS directory, for running openfast, etc.
     # weis_dir = os.environ.get('weis_dir')       # works if we do  `export weis_dir=$(pwd)` in WEIS directory in terminal
-    weis_dir = '/Users/nabbas/Documents/WindEnergyToolbox/WEIS'
+    weis_dir = '/Users/dzalkind/Tools/WEIS-3'
+    this_dir =  os.path.dirname(__file__)
 
     # Setup ROSCO testing parameters
     rt_kwargs = {} 
-    rt_kwargs['runDir']     = 'results/lite_testing'        # directory for FAST simulations
-    rt_kwargs['namebase']   = 'ROSCO_lite_test'     # Base name for FAST files 
+    rt_kwargs['runDir']     = 'results/const_pwr'        # directory for FAST simulations
+    rt_kwargs['namebase']   = 'lite_test'     # Base name for FAST files 
     rt_kwargs['FAST_exe']   = os.path.join(weis_dir,'local','bin','openfast')       # OpenFAST executable path
     rt_kwargs['Turbsim_exe']= os.path.join(weis_dir,'local','bin','turbsim')        # Turbsim executable path
     rt_kwargs['FAST_ver']   = 'OpenFAST'            # FAST version
