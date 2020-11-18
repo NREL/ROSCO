@@ -629,7 +629,7 @@ CONTAINS
         READ(UnPerfParameters, *) 
         ALLOCATE(PerfData%Cq_mat(CntrPar%PerfTableSize(1),CntrPar%PerfTableSize(2)))
         DO i = 1,CntrPar%PerfTableSize(2)
-            READ(UnPerfParameters, *) PerfData%Ct_mat(i,:) ! Read Cq table
+            READ(UnPerfParameters, *) PerfData%Cq_mat(i,:) ! Read Cq table
         END DO
     
     END SUBROUTINE ReadCpFile
