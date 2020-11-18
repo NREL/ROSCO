@@ -17,8 +17,9 @@ import matplotlib.pyplot as plt
 # ROSCO toolbox modules 
 from ROSCO_toolbox import utilities as ROSCO_utilities
 from ofTools.fast_io import output_processing
+import os
 
-
+this_dir = os.path.dirname(__file__)
 
 # Define openfast output filenames
 filenames = ["../Test_Cases/NREL-5MW/NREL-5MW.outb"]
@@ -26,6 +27,7 @@ filenames = ["../Test_Cases/NREL-5MW/NREL-5MW.outb"]
 # filenames = ["../Test_Cases/NREL-5MW/NREL-5MW.outb",
 #             "../Test_Cases/NREL-5MW/NREL-5MW_ex8.outb"]
 
+filenames = [os.path.join(this_dir,file) for file in filenames]
 
 #  Define Plot cases 
 #  --- Comment,uncomment, create, and change these as desired...
