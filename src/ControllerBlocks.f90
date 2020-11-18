@@ -228,11 +228,8 @@ CONTAINS
             DebugVar%WE_Vt = v_t
             DebugVar%WE_lambda = lambda
         ELSE        
-            ! Define Variables
-            F_WECornerFreq = 0.20944  ! Fix to 30 second time constant for now    
-
             ! Filter wind speed at hub height as directly passed from OpenFAST
-            LocalVar%WE_Vw = LPFilter(LocalVar%HorWindV, LocalVar%DT, F_WECornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
+            LocalVar%WE_Vw = LPFilter(LocalVar%HorWindV, LocalVar%DT, CntrPar%F_WECornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
         ENDIF 
 
     END SUBROUTINE WindSpeedEstimator

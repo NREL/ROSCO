@@ -30,9 +30,11 @@ TYPE, PUBLIC :: ControlParameters
     REAL(8)                             :: F_LPFDamping                 ! Damping coefficient [used only when F_FilterType = 2]
     REAL(8)                             :: F_NotchCornerFreq            ! Natural frequency of the notch filter, [rad/s]
     REAL(8), DIMENSION(:), ALLOCATABLE  :: F_NotchBetaNumDen            ! These two notch damping values (numerator and denominator) determines the width and depth of the notch
-    REAL(8)                             :: F_SSCornerFreq               ! Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
+    REAL(8)                             :: F_SSCornerFreq               ! Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother, [rad/s].
+    REAL(8)                             :: F_WECornerFreq               ! Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s]
     REAL(8)                             :: F_FlCornerFreq               ! Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s].
     REAL(8)                             :: F_FlDamping                  ! Damping constant in the first order low pass filter of the tower-top fore-aft motion for floating feedback control [-].
+    REAL(8)                             :: F_FlHighPassFreq             ! Natural frequency of first-roder high-pass filter for nacelle fore-aft motion [rad/s]
     REAL(8)                             :: F_FlpCornerFreq              ! Corner frequency (-3dB point) in the second order low pass filter of the blade root bending moment for flap control [rad/s].
     REAL(8)                             :: F_FlpDamping                 ! Damping constant in the first order low pass filter of the blade root bending moment for flap control[-].
 
