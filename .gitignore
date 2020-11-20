@@ -29,8 +29,10 @@ _build
 *.outb
 *.dbg
 
-# Fortran files
+# ROSCO files
 *.85
+*.i90
+*local*
 
 # Binaries
 *.dylib
