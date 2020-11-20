@@ -105,7 +105,7 @@ class CMakeBuildExt(build_ext):
                     cmake_args += ['-G', 'MinGW Makefiles']
                     cmake_args += ['-D', 'CMAKE_Fortran_COMPILER=gfortran']
 
-            self.build_temp += '_'+ext.name
+            self.build_temp = os.path.join( os.path.dirname( os.path.realpath(__file__) ), 'ROSCO', 'build')
             os.makedirs(localdir, exist_ok=True)
             # Need fresh build directory for CMake
             os.makedirs(self.build_temp, exist_ok=True)
