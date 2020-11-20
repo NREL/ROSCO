@@ -20,18 +20,25 @@ The NREL Reference OpenSource Controller (ROSCO) provides an open, modular and f
 Here is a short (but _hopefully_ sweet) installation and run process for basic controller tuning...
 
 ### Installing the complete ROSCO Toolbox
-In order to fully leverage the controller tuning capabilities, [WISDEM](https://github.com/WISDEM/WISDEM) is used. This is made available through installation via [Anaconda](https://www.anaconda.com/). If you do not already have Anaconda installed on your machine, it is recommended that you install it to install WISDEM. Alternatively, you can install wisdem following the ``for developer'' instructions on the WISDEM home page and skip to step 2 here.
+Installation of the complete ROSCO toolbox is made easy through [Anaconda](https://www.anaconda.com/). If you do not already have Anaconda installed on your machine, please install it. If you cannot install Anaconda, you can install the ROSCO toolbox without first initiating a conda environment (step 1), but will need to follow the detailed installatino instructions of [WISDEM](https://github.com/WISDEM/WISDEM) and [ROSCO](https://github.com/NREL/ROSCO.git) from their respective github pages. 
 
-If you do not have WISDEM or the ROSCO toolbox installed and would like to install WISDEM, the ROSCO toolbox, and compile the controller please do the following: open your terminal or command prompt, navigate to the folder of your choosing, and enter the below text into the command line. This code block is broken up in a piece-wise description in the following sections.
-1.  #### Install WISDEM 
+For users who have access to anaconda, please follow steps 1-3/4 below.
+
+1.  #### Create a conda environment for ROSCO
 	```
 	conda config --add channels conda-forge
 	conda create -y --name rosco-env python=3.8
 	conda activate rosco-env
+	```
+
+2. #### Install WISDEM
+	```
 	conda install -y wisdem
 	```
 
-2.	#### Clone and Install the ROSCO toolbox
+You should then do step three _OR_ four. If you do not want to compile the ROSCO controller within the installation of the ROSCO toolbox, please follow the instruction on the controller's [github page]((https://github.com/NREL/ROSCO.git)).
+
+3.	#### Clone and Install the ROSCO toolbox with ROSCO
 	```
 	git clone https://github.com/NREL/ROSCO_toolbox.git
 	cd ROSCO_toolbox
@@ -39,7 +46,14 @@ If you do not have WISDEM or the ROSCO toolbox installed and would like to insta
 	git submodule update
 	conda install compilers 					# (Mac/Linux only)
 	conda install m2w64-toolchain libpython     # (Windows only)
-	python setup.py install
+	python setup.py install --install-rosco
+	```
+
+4.	#### Clone and Install the ROSCO toolbox _without_ ROSCO
+	```
+	git clone https://github.com/NREL/ROSCO_toolbox.git
+	cd ROSCO_toolbox
+	python setup.py install 
 	```
 
 ### Alternatively...
