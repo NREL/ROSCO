@@ -200,8 +200,8 @@ metadata = dict(
     cmdclass                      = {'build_ext': CMakeBuildExt, 'upload': UploadCommand},
     zip_safe                      = False,
 )
-if "--install-rosco" in sys.argv:
+if "--compile-rosco" in sys.argv:
     metadata['ext_modules'] = [roscoExt]
-    sys.argv.remove("--install-rosco")
+    sys.argv.remove("--compile-rosco")
 
 setup(**metadata)

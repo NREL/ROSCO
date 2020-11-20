@@ -46,7 +46,7 @@ You should then do step three _OR_ four. If you do not want to compile the ROSCO
 	git submodule update
 	conda install compilers 					# (Mac/Linux only)
 	conda install m2w64-toolchain libpython     # (Windows only)
-	python setup.py install --install-rosco
+	python setup.py install --compile-rosco
 	```
 
 4.	#### Clone and Install the ROSCO toolbox _without_ ROSCO
