@@ -197,9 +197,11 @@ metadata = dict(
     include_package_date          = True,
     packages                      = find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
     license                       = 'Apache License, Version 2.0',
-    ext_modules                   = [roscoExt],
     cmdclass                      = {'build_ext': CMakeBuildExt, 'upload': UploadCommand},
     zip_safe                      = False,
 )
+if "--install-rosco" in sys.argv:
+    metadata['ext_modules'] = [roscoExt]
+    sys.argv.remove("--install-rosco")
 
 setup(**metadata)
