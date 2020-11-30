@@ -280,7 +280,7 @@ CONTAINS
             ELSE
                 LocalVar%NacIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
             ENDIF
-            LocalVar%NacIMU_FA_AccF = HPFilter(LocalVar%NacIMU_FA_AccF, LocalVar%DT, CntrPar%F_FlHighPassFreq, LocalVar%iStatus, .FALSE., objInst%instHPF) 
+            LocalVar%NacIMU_FA_AccF = HPFilter(LocalVar%NacIMU_FA_AccF, LocalVar%DT, 0.0167, LocalVar%iStatus, .FALSE., objInst%instHPF) 
             ! LocalVar%NacIMU_FA_AccF = NotchFilterSlopes(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping, LocalVar%iStatus, .FALSE., objInst%instNotchSlopes) ! Fixed Damping
             
             IF (CntrPar%F_NotchType >= 2) THEN
@@ -291,7 +291,7 @@ CONTAINS
         LocalVar%FA_AccHPF = HPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%FA_HPFCornerFreq, LocalVar%iStatus, .FALSE., objInst%instHPF)
         
         ! Filter Wind Speed Estimator Signal
-        LocalVar%We_Vw_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT, CntrPar%F_WECornerFreq, LocalVar%iStatus,.FALSE.,objInst%instLPF) ! 30 second time constant
+        LocalVar%We_Vw_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT, 0.209, LocalVar%iStatus,.FALSE.,objInst%instLPF) ! 30 second time constant
 
 
         ! Control commands (used by WSE, mostly)
