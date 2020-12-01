@@ -142,27 +142,26 @@ CONTAINS
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables
         REAL(C_FLOAT), INTENT(INOUT)            :: avrSWAP(*)    ! The swap array, used to pass data to, and receive data from, the DLL controller.
-        REAL(8)                                 :: VS_MaxTq      ! Locally allocated maximum torque saturation limits
         
         ! -------- Variable-Speed Torque Controller --------
         ! Define max torque
         IF (LocalVar%VS_State == 4) THEN
-            VS_MaxTq = CntrPar%VS_RtTq
+           LocalVar%VS_MaxTq = CntrPar%VS_RtTq
         ELSE
             ! VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
-            VS_MaxTq = CntrPar%VS_RtTq
+            LocalVar%VS_MaxTq = CntrPar%VS_RtTq
         ENDIF
 
         ! Optimal Tip-Speed-Ratio tracking controller
         IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
             ! Constant Power, update VS_MaxTq
             IF (CntrPar%VS_ControlMode == 3) THEN
-                VS_MaxTq = min((CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF, CntrPar%VS_MaxTq)
+                LocalVar%VS_MaxTq = min((CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF, CntrPar%VS_MaxTq)
             END IF
 
             ! PI controller
-            LocalVar%GenTq = PIController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, VS_MaxTq, LocalVar%DT, LocalVar%VS_LastGenTrq, .FALSE., objInst%instPI)
-            LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, VS_MaxTq)
+            LocalVar%GenTq = PIController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, LocalVar%VS_MaxTq, LocalVar%DT, LocalVar%VS_LastGenTrq, .FALSE., objInst%instPI)
+            LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, LocalVar%VS_MaxTq)
         
         ! K*Omega^2 control law with PI torque control in transition regions
         ELSE
@@ -184,7 +183,7 @@ CONTAINS
             END IF
             
             ! Saturate
-            LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, VS_MaxTq)
+            LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, CntrPar%VS_MaxTq)
         ENDIF
 
 
