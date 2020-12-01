@@ -277,7 +277,7 @@ CONTAINS
         TYPE(DebugVariables), INTENT(INOUT)     :: DebugVar
 
         ! Define minimum blade pitch angle as a function of estimated wind speed
-        PitchSaturation = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, LocalVar%WE_Vw_F)
+        PitchSaturation = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, LocalVar%WE_Vw)
 
     END FUNCTION PitchSaturation
 !-------------------------------------------------------------------------------------------------------------------------------
