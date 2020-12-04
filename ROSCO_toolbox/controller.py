@@ -193,7 +193,7 @@ class Controller():
             f_cp_pitch = interpolate.interp1d(Cp_TSR,pitch_initial_rad)         # interpolate function for Cp(tsr) values
             # expected operation blade pitch values
             if v[i] <= turbine.v_rated and isinstance(self.min_pitch, float): # Below rated & defined min_pitch
-                pitch_op[i] = min(self.min_pitch, f_cp_pitch(Cp_op[i]))
+                pitch_op[i] = max(self.min_pitch, f_cp_pitch(Cp_op[i]))
             elif isinstance(self.min_pitch, float):
                 pitch_op[i] = max(self.min_pitch, f_cp_pitch(Cp_op[i]))             
             else:
