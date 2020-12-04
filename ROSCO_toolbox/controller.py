@@ -160,7 +160,7 @@ class Controller():
 
         # separate wind speeds by operation regions
         v_below_rated = np.linspace(turbine.v_min,turbine.v_rated, num=30)             # below rated
-        v_above_rated = np.linspace(turbine.v_rated,turbine.v_max, num=30)[1:-1]             # above rated
+        v_above_rated = np.linspace(turbine.v_rated,turbine.v_max, num=30)[1:]             # above rated
         v = np.concatenate((v_below_rated, v_above_rated))
 
         # separate TSRs by operations regions
@@ -274,7 +274,7 @@ class Controller():
         self.v              = v                                  # Wind speed (m/s)
         self.v_below_rated  = v_below_rated
         self.pitch_op       = pitch_op
-        self.pitch_op_pc    = pitch_op[len(v_below_rated):len(v)]
+        self.pitch_op_pc    = pitch_op[len(v_below_rated):]
         self.TSR_op         = TSR_op
         self.A              = A 
         self.B_beta         = B_beta
@@ -495,9 +495,9 @@ class ControllerBlocks():
     def min_pitch_saturation(self, controller, turbine):
         
         # Find TSR associated with minimum rotor speed
-        TSR_at_minspeed = (controller.pc_minspd/turbine.Ng) * turbine.rotor_radius / controller.v_below_rated
+        TSR_at_minspeed = (controller.vs_minspd/turbine.Ng) * turbine.rotor_radius / controller.v_below_rated
         for i in range(len(TSR_at_minspeed)):
-            if TSR_at_minspeed[i] > controller.TSR_op[i]:
+            if TSR_at_minspeed[i] > turbine.Cp.TSR_opt:
                 controller.TSR_op[i] = TSR_at_minspeed[i]
         
                 # Initialize some arrays
