@@ -159,8 +159,8 @@ class Controller():
         TSR_rated = rated_rotor_speed*R/turbine.v_rated  # TSR at rated
 
         # separate wind speeds by operation regions
-        v_below_rated = np.arange(turbine.v_min,turbine.v_rated,0.5)             # below rated
-        v_above_rated = np.arange(turbine.v_rated+0.5,turbine.v_max,0.5)             # above rated
+        v_below_rated = np.linspace(turbine.v_min,turbine.v_rated, num=30)             # below rated
+        v_above_rated = np.linspace(turbine.v_rated,turbine.v_max, num=30)[1:-1]             # above rated
         v = np.concatenate((v_below_rated, v_above_rated))
 
         # separate TSRs by operations regions
