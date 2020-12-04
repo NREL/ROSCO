@@ -1,5 +1,5 @@
 from __future__ import print_function
-from ofTools.utilities import output_processing
+from ofTools.fast_io.output_processing import output_processing
 import ROSCO_toolbox
 
 def FAST_IO_timeseries(fname):

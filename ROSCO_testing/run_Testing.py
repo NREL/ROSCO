@@ -7,9 +7,6 @@ import glob
 import ROSCO_testing
 import importlib
 
-from ofTools.util import FileTools
-# from pCrunch import Processing, Analysis
-
 
 def run_testing(turbine2test, testtype, rosco_binaries=[], discon_files=[], **kwargs):
     '''
@@ -53,12 +50,12 @@ def run_testing(turbine2test, testtype, rosco_binaries=[], discon_files=[], **kw
     if turbine2test == 'NREL-5MW':
         rt.Turbine_Class = 'I'
         rt.Turbulence_Class = 'A'
-        rt.FAST_directory = os.path.join(os.getcwd(), '../Test_Cases/NREL-5MW')
+        rt.FAST_directory = os.path.join(os.path.dirname(__file__), '../Test_Cases/NREL-5MW')
         rt.FAST_InputFile = 'NREL-5MW.fst'
     elif turbine2test == 'IEA-15MW':
         rt.Turbine_Class = 'I'
         rt.Turbulence_Class = 'B'
-        rt.FAST_directory = os.path.join(os.getcwd(), '../Test_Cases/IEA-15-240-RWT-UMaineSemi')
+        rt.FAST_directory = os.path.join(os.path.dirname(__file__), '../Test_Cases/IEA-15-240-RWT-UMaineSemi')
         rt.FAST_InputFile = 'IEA-15-240-RWT-UMaineSemi.fst'
     else:
         raise ValueError('{} is not an available turbine to test!'.format(turbine2test))
@@ -88,7 +85,7 @@ if __name__ == "__main__":
 
     # Setup ROSCO testing parameters
     rt_kwargs = {} 
-    rt_kwargs['runDir']     = 'results/const_pwr'        # directory for FAST simulations
+    rt_kwargs['runDir']     = os.path.join(this_dir,'results/')        # directory for FAST simulations
     rt_kwargs['namebase']   = 'lite_test'     # Base name for FAST files 
     rt_kwargs['FAST_exe']   = os.path.join(weis_dir,'local','bin','openfast')       # OpenFAST executable path
     rt_kwargs['Turbsim_exe']= os.path.join(weis_dir,'local','bin','turbsim')        # Turbsim executable path
@@ -96,7 +93,7 @@ if __name__ == "__main__":
     rt_kwargs['dev_branch'] = True                  # dev branch of Openfast?
     rt_kwargs['debug_level']= 2                     # debug level. 0 - no outputs, 1 - minimal outputs, 2 - all outputs
     rt_kwargs['overwrite']  = False                 # overwite fast sims?
-    rt_kwargs['cores']      = 1                     # number of cores if multiprocessing
+    rt_kwargs['cores']      = 4                     # number of cores if multiprocessing
     rt_kwargs['mpi_run']    = False                 # run using mpi
     rt_kwargs['mpi_comm_map_down'] = []             # core mapping for MPI
     rt_kwargs['outfile_fmt'] = 2                    # 1 = .txt, 2 = binary, 3 = both
@@ -106,7 +103,7 @@ if __name__ == "__main__":
     testtype     = 'lite'       # lite, heavy, binary-comp, discon-comp
 
     # Only fill one of these if comparing controllers
-    rosco_binaries = [os.path.join(os.getcwd(), glob.glob('../ROSCO/build/libdiscon*')[0])] # Differently named libdiscons to compare
+    rosco_binaries = [glob.glob(os.path.join(this_dir,'../ROSCO/build/libdiscon*'))[0]] # Differently named libdiscons to compare
     discon_files = []   # Differently named DISCON.IN files to compare
 
 

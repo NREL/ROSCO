@@ -22,8 +22,6 @@ from ofTools.fast_io.FAST_reader import InputReader_OpenFAST
 from ofTools.case_gen.CaseGen_IEC import CaseGen_IEC
 from ofTools.case_gen.runFAST_pywrapper import runFAST_pywrapper_batch
 
-from pCrunch import pdTools
-from pCrunch import Processing, Analysis
 
 
 class ROSCO_testing():
