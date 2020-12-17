@@ -20,9 +20,19 @@
 import io
 import os
 import sys
-from shutil import rmtree
-
+from shutil import rmtree, copy
+import glob 
+import platform
 from setuptools import find_packages, setup, Command
+from numpy.distutils.command.build_ext import build_ext
+from numpy.distutils.core import setup, Extension
+
+import multiprocessing as mp
+from distutils.core import run_setup
+from setuptools import find_packages
+from numpy.distutils.command.build_ext import build_ext
+from numpy.distutils.core import setup, Extension
+from io import open
 
 # Package meta-data.
 NAME = 'rosco-toolbox'
@@ -31,7 +41,7 @@ URL = 'https://github.com/NREL/ROSCO_toolbox'
 EMAIL = 'nikhar.abbas@nrel.gov'
 AUTHOR = 'NREL National Wind Technology Center'
 REQUIRES_PYTHON = '>=3.4'
-VERSION = '2.1.4'
+VERSION = '3.0.0'
 
 # These packages are required for all of the code to be executed. 
 # - Maybe you can get away with older versions...
@@ -51,6 +61,64 @@ EXTRAS = {
         'sphinxcontrib-napoleon>=0.7'
     }
 }
+
+
+# For the CMake Extensions
+this_directory = os.path.abspath(os.path.dirname(__file__))
+ncpus = mp.cpu_count()
+class CMakeExtension(Extension):
+
+    def __init__(self, name, sourcedir='', **kwa):
+        Extension.__init__(self, name, sources=[], **kwa)
+        self.sourcedir = os.path.abspath(sourcedir)
+
+class CMakeBuildExt(build_ext):
+    
+    def copy_extensions_to_source(self):
+        newext = []
+        for ext in self.extensions:
+            if isinstance(ext, CMakeExtension): continue
+            newext.append( ext )
+        self.extensions = newext
+        super().copy_extensions_to_source()
+    
+    def build_extension(self, ext):
+        if isinstance(ext, CMakeExtension):
+            # Ensure that CMake is present and working
+            try:
+                self.spawn(['cmake', '--version'])
+            except OSError:
+                raise RuntimeError('Cannot find CMake executable')
+            
+            # Refresh build directory
+            localdir = os.path.join(this_directory, 'ROSCO','install')
+            os.makedirs(localdir, exist_ok=True)
+
+            cmake_args = ['-DBUILD_SHARED_LIBS=OFF']
+            cmake_args += ['-DCMAKE_Fortran_FLAGS=-ffree-line-length-0']
+
+            if platform.system() == 'Windows':
+                cmake_args += ['-DCMAKE_INSTALL_PREFIX={}'.format(localdir)]
+                if self.compiler.compiler_type == 'msvc':
+                    cmake_args += ['-DCMAKE_GENERATOR_PLATFORM=x64']
+                else:
+                    cmake_args += ['-G', 'MinGW Makefiles']
+                    cmake_args += ['-D', 'CMAKE_Fortran_COMPILER=gfortran']
+
+            self.build_temp += '_'+ext.name
+            os.makedirs(localdir, exist_ok=True)
+            # Need fresh build directory for CMake
+            os.makedirs(self.build_temp, exist_ok=True)
+
+            self.spawn(['cmake', '-S', ext.sourcedir, '-B', self.build_temp] + cmake_args)
+            self.spawn(['cmake', '--build', self.build_temp, '--target', 'install', '--config', 'Release'])
+
+        else:
+            super().build_extension(ext)
+
+
+# All of the extensions
+roscoExt   = CMakeExtension('rosco','ROSCO')
 
 # The rest you shouldn't have to touch too much :)
 # ------------------------------------------------
@@ -113,24 +181,25 @@ class UploadCommand(Command):
         sys.exit()
 
 
-# Where the magic happens:
-setup(
-    name=NAME,
-    version=about['__version__'],
-    description=DESCRIPTION,
-    long_description=long_description,
-    long_description_content_type='text/markdown',
-    author=AUTHOR,
-    author_email=EMAIL,
-    python_requires=REQUIRES_PYTHON,
-    url=URL,
-    packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
-    install_requires=REQUIRED,
-    extras_require=EXTRAS,
-    include_package_data=True,
-    license='Apache License, Version 2.0',
 
-    cmdclass={
-        'upload': UploadCommand,
-    },
+metadata = dict(
+    name                          = NAME,
+    version                       = about['__version__'],
+    description                   = DESCRIPTION,
+    long_description              = long_description,
+    long_description_content_type = 'text/markdown',
+    author                        = AUTHOR,
+    author_email                  = EMAIL,
+    url                           = URL,
+    install_requires              = REQUIRED,
+    python_requires               = REQUIRES_PYTHON,
+    extras_require                = EXTRAS,
+    include_package_date          = True,
+    packages                      = find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
+    license                       = 'Apache License, Version 2.0',
+    ext_modules                   = [roscoExt],
+    cmdclass                      = {'build_ext': CMakeBuildExt, 'upload': UploadCommand},
+    zip_safe                      = False,
 )
+
+setup(**metadata)

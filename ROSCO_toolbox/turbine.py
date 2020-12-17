@@ -12,14 +12,13 @@
 import os
 import numpy as np
 import datetime
-from wisdem.ccblade import CCAirfoil, CCBlade
 from scipy import interpolate
 from numpy import gradient
 import pickle
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from ROSCO_toolbox import utilities as ROSCO_utilities
+from ROSCO_toolbox.utilities import load_from_txt
 
 # Some useful constants
 now = datetime.datetime.now()
@@ -160,7 +159,7 @@ class Turbine():
             txt_filename: str, optional
                           filename for *.txt, only used if rot_source='txt'
         """
-        from weis.aeroelasticse.FAST_reader import InputReader_OpenFAST
+        from ofTools.fast_io.FAST_reader import InputReader_OpenFAST
 
         print('Loading FAST model: %s ' % FAST_InputFile)
         self.TurbineName = FAST_InputFile.strip('.fst')
@@ -208,8 +207,7 @@ class Turbine():
         if rot_source == 'cc-blade': # Use cc-blade
             self.load_from_ccblade()
         elif rot_source == 'txt':    # Use specified text file
-            file_processing = ROSCO_utilities.FileProcessing()
-            self.pitch_initial_rad, self.TSR_initial, self.Cp_table, self.Ct_table, self.Cq_table = file_processing.load_from_txt(
+            self.pitch_initial_rad, self.TSR_initial, self.Cp_table, self.Ct_table, self.Cq_table = load_from_txt(
                 txt_filename)
         else:   # Use text file from DISCON.in
             if os.path.exists(os.path.join(FAST_directory, fast.fst_vt['ServoDyn']['DLL_InFile'])):
@@ -250,6 +248,8 @@ class Turbine():
                   Dictionary containing fast model details - defined using from InputReader_OpenFAST (distributed as a part of AeroelasticSE)
 
         '''
+        from wisdem.ccblade.ccblade import CCAirfoil, CCBlade
+
         print('Loading rotor performance data from CC-Blade.')
 
         # Load blade information if it isn't already
@@ -274,10 +274,13 @@ class Turbine():
 
         # Get values from cc-blade
         print('Running CCBlade aerodynamic analysis, this may take a minute...')
-        outputs, derivs = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
-        CP = outputs['CP']
-        CT = outputs['CT']
-        CQ = outputs['CQ']
+        try: # wisde/master as of Nov 9, 2020
+            _, _, _, _, CP, CT, CQ, CM = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
+        except(ValueError): # wisdem/dev as of Nov 9, 2020
+            outputs, derivs = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
+            CP = outputs['CP']
+            CT = outputs['CT']
+            CQ = outputs['CQ']
         print('CCBlade aerodynamic analysis run successfully.')
 
         # Reshape Cp, Ct and Cq
@@ -313,10 +316,8 @@ class Turbine():
             'serial' - run in serial, 'multi' - run using python multiprocessing tools, 
             'mpi' - run using mpi tools
         '''
-
-        # Load additional WEIS tools
-        from weis.aeroelasticse import runFAST_pywrapper, CaseGen_General
-        from weis.aeroelasticse.Util import FileTools
+        from ofTools.case_gen import runFAST_pywrapper, CaseGen_General
+        from ofTools.util import FileTools
         # Load pCrunch tools
         from pCrunch import pdTools, Processing
 
@@ -498,7 +499,8 @@ class Turbine():
         -----------
             self - note: needs to contain fast input file info provided by load_from_fast.
         '''
-        from weis.aeroelasticse.FAST_reader import InputReader_OpenFAST
+        from ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+        from wisdem.ccblade.ccblade import CCAirfoil, CCBlade
 
         # Create CC-Blade Rotor
         r0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlSpn']) 
@@ -608,7 +610,8 @@ class RotorPerformance():
         '''
         
         # Form the interpolant functions which can look up any arbitrary location on rotor performance surface
-        interp_fun = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.performance_table, kind='linear')
+        interp_fun = interpolate.interp2d(
+            self.pitch_initial_rad, self.TSR_initial, self.performance_table, kind='cubic')
         return interp_fun(pitch,TSR)
 
     def interp_gradient(self,pitch,TSR):
@@ -655,7 +658,7 @@ class RotorPerformance():
         plt.title('Power Coefficient', fontsize=14, fontweight='bold')
         plt.xlabel('Pitch Angle [deg]', fontsize=14, fontweight='bold')
         plt.ylabel('TSR [-]', fontsize=14, fontweight='bold')
-        plt.scatter(max_beta_id, max_tsr_id, color='red')
+        plt.scatter(max_beta_id * rad2deg, max_tsr_id, color='red')
         plt.annotate('max = {:<1.3f}'.format(np.max(self.performance_table)),
                     (max_beta_id+0.2, max_tsr_id+0.2), color='red')
         plt.xticks(fontsize=12)

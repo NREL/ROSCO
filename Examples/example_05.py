@@ -17,21 +17,21 @@ Notes - You will need to have a compiled controller in ROSCO, and
 # Python modules
 import matplotlib.pyplot as plt 
 import numpy as np
-import yaml 
+import yaml, os
 # ROSCO toolbox modules 
 from ROSCO_toolbox import controller as ROSCO_controller
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox import sim as ROSCO_sim
-from ROSCO_toolbox import utilities as ROSCO_utilities
 from ROSCO_toolbox import control_interface as ROSCO_ci
 
 # Specify controller dynamic library path and name
-lib_name = '../ROSCO/build/libdiscon.dylib'
-param_filename = 'DISCON.IN'
+this_dir = os.path.dirname(__file__)
+lib_name = os.path.join(this_dir,'../ROSCO/build/libdiscon.dylib')
+param_filename = os.path.join(this_dir,'DISCON.IN')
 
 # Load turbine model from saved pickle
 turbine = ROSCO_turbine.Turbine
-turbine = turbine.load('NREL5MW_saved.p')
+turbine = turbine.load(os.path.join(this_dir,'NREL5MW_saved.p'))
 
 # Load controller library
 controller_int = ROSCO_ci.ControllerInterface(lib_name,param_filename=param_filename)

@@ -17,13 +17,11 @@ import os
 import glob
 import multiprocessing as mp
 
-from weis.aeroelasticse.FAST_reader import InputReader_Common, InputReader_OpenFAST, InputReader_FAST7
-from weis.aeroelasticse.FAST_writer import InputWriter_Common, InputWriter_OpenFAST, InputWriter_FAST7
-from weis.aeroelasticse.runFAST_pywrapper import runFAST_pywrapper_batch
-from weis.aeroelasticse.CaseGen_General import CaseGen_General
-from weis.aeroelasticse.CaseGen_IEC import CaseGen_IEC
-from pCrunch import pdTools
-from pCrunch import Processing, Analysis
+import ofTools.fast_io.read_fast_input as fast_io
+from ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+from ofTools.case_gen.CaseGen_IEC import CaseGen_IEC
+from ofTools.case_gen.runFAST_pywrapper import runFAST_pywrapper_batch
+
 
 
 class ROSCO_testing():
