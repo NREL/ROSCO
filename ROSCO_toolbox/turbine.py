@@ -248,7 +248,7 @@ class Turbine():
                   Dictionary containing fast model details - defined using from InputReader_OpenFAST (distributed as a part of AeroelasticSE)
 
         '''
-        from wisdem.ccblade import CCAirfoil, CCBlade
+        from wisdem.ccblade.ccblade import CCAirfoil, CCBlade
 
         print('Loading rotor performance data from CC-Blade.')
 
@@ -500,7 +500,7 @@ class Turbine():
             self - note: needs to contain fast input file info provided by load_from_fast.
         '''
         from ofTools.fast_io.FAST_reader import InputReader_OpenFAST
-        from wisdem.ccblade import CCAirfoil, CCBlade
+        from wisdem.ccblade.ccblade import CCAirfoil, CCBlade
 
         # Create CC-Blade Rotor
         r0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlSpn']) 
@@ -658,7 +658,7 @@ class RotorPerformance():
         plt.title('Power Coefficient', fontsize=14, fontweight='bold')
         plt.xlabel('Pitch Angle [deg]', fontsize=14, fontweight='bold')
         plt.ylabel('TSR [-]', fontsize=14, fontweight='bold')
-        plt.scatter(max_beta_id, max_tsr_id, color='red')
+        plt.scatter(max_beta_id * rad2deg, max_tsr_id, color='red')
         plt.annotate('max = {:<1.3f}'.format(np.max(self.performance_table)),
                     (max_beta_id+0.2, max_tsr_id+0.2), color='red')
         plt.xticks(fontsize=12)
