@@ -16,7 +16,7 @@ from matplotlib import transforms
 from itertools import takewhile
 import struct
 
-from ofTools.util import spectral
+from ROSCO_toolbox.ofTools.util import spectral
 
 class output_processing():
     '''
