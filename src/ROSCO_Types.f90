@@ -226,6 +226,9 @@ TYPE, PUBLIC :: DebugVariables
     REAL(8)                             :: WE_Vm                        ! Mean wind speed component in WSE [m/s]
     REAL(8)                             :: WE_Vt                        ! Turbulent wind speed component in WSE [m/s]
     REAL(8)                             :: WE_lambda                    ! TSR in WSE [rad]
+    !
+    REAL(8)                             :: PC_PICommand                 
+
 END TYPE DebugVariables
 
 END MODULE ROSCO_Types
