@@ -50,7 +50,6 @@ CONTAINS
         REAL(C_FLOAT), INTENT(INOUT)    :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from the DLL controller.
         INTEGER(4)                      :: K            ! Index used for looping through blades.
         REAL(8), Save                :: PitComT_Last 
-        REAL(8), Save                :: PC_PitComT_F
 
         ! ------- Blade Pitch Controller --------
         ! Load PC State
@@ -59,14 +58,12 @@ CONTAINS
         ELSE ! debug mode, fix at fine pitch
             LocalVar%PC_MaxPit = CntrPar%PC_FinePit
         END IF
-
-        PC_PitComT_F = LPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%F_LPFCornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
         
         ! Compute (interpolate) the gains based on previously commanded blade pitch angles and lookup table:
-        LocalVar%PC_KP = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KP, PC_PitComT_F) ! Proportional gain
-        LocalVar%PC_KI = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KI, PC_PitComT_F) ! Integral gain
-        LocalVar%PC_KD = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KD, PC_PitComT_F) ! Derivative gain
-        LocalVar%PC_TF = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_TF, PC_PitComT_F) ! TF gains (derivative filter) !NJA - need to clarify
+        LocalVar%PC_KP = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KP, LocalVar%PC_PitComTF) ! Proportional gain
+        LocalVar%PC_KI = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KI, LocalVar%PC_PitComTF) ! Integral gain
+        LocalVar%PC_KD = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KD, LocalVar%PC_PitComTF) ! Derivative gain
+        LocalVar%PC_TF = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_TF, LocalVar%PC_PitComTF) ! TF gains (derivative filter) !NJA - need to clarify
         
         ! Compute the collective pitch command associated with the proportional and integral gains:
         IF (LocalVar%iStatus == 0) THEN
@@ -74,7 +71,7 @@ CONTAINS
         ELSE
             LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, LocalVar%PC_MinPit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%BlPitch(1), .FALSE., objInst%instPI)
         END IF
-        
+        DebugVar%PC_PICommand = LocalVar%PC_PitComT
         ! Find individual pitch control contribution
         IF ((CntrPar%IPC_ControlMode >= 1) .OR. (CntrPar%Y_ControlMode == 2)) THEN
             CALL IPC(CntrPar, LocalVar, objInst)
@@ -109,8 +106,8 @@ CONTAINS
         ENDIF
 
         ! Saturate collective pitch commands:
-        LocalVar%PC_PitComT = saturate(LocalVar%PC_PitComT, LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
         LocalVar%PC_PitComT = ratelimit(LocalVar%PC_PitComT, PitComT_Last, CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
+        LocalVar%PC_PitComT = saturate(LocalVar%PC_PitComT, LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
         PitComT_Last = LocalVar%PC_PitComT
 
         ! Combine and saturate all individual pitch commands:
