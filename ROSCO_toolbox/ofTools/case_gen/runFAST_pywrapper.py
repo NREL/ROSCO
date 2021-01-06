@@ -9,10 +9,10 @@ import os, sys, time
 import multiprocessing as mp
 # sys.path.insert(0, os.path.abspath(".."))
 
-from ofTools.fast_io.FAST_reader import InputReader_Common, InputReader_OpenFAST, InputReader_FAST7
-from ofTools.fast_io.FAST_writer import InputWriter_Common, InputWriter_OpenFAST, InputWriter_FAST7
-from ofTools.fast_io.FAST_wrapper import FastWrapper
-from ofTools.fast_io.FAST_post   import FAST_IO_timeseries
+from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_Common, InputReader_OpenFAST, InputReader_FAST7
+from ROSCO_toolbox.ofTools.fast_io.FAST_writer import InputWriter_Common, InputWriter_OpenFAST, InputWriter_FAST7
+from ROSCO_toolbox.ofTools.fast_io.FAST_wrapper import FastWrapper
+from ROSCO_toolbox.ofTools.fast_io.FAST_post   import FAST_IO_timeseries
 
 import numpy as np
 

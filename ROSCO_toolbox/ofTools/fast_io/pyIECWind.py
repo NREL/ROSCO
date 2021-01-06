@@ -2,9 +2,9 @@ import numpy as np
 import os, sys
 # import matplotlib.pyplot as plt 
 
-from ofTools.fast_io.turbsim_io.turbsim_writer import TurbsimBuilder
-from ofTools.fast_io.turbsim_io.turbsim_wrapper import Turbsim_wrapper
-from ofTools.fast_io.turbsim_io.turbsim_vartrees import turbsiminputs
+from ROSCO_toolbox.ofTools.fast_io.turbsim_io.turbsim_writer import TurbsimBuilder
+from ROSCO_toolbox.ofTools.fast_io.turbsim_io.turbsim_wrapper import Turbsim_wrapper
+from ROSCO_toolbox.ofTools.fast_io.turbsim_io.turbsim_vartrees import turbsiminputs
 
 # from AeroelasticSE.Turbsim_mdao.pyturbsim_wrapper import pyTurbsim_wrapper
 
