@@ -52,3 +52,7 @@ Matlab_Toolbox/*.slxc
 
 # Exclude testing results
 ROSCO_testing/results/
+
+# Simulink/Matlab temp files
+*.slxc
+*.autosave
