@@ -16,7 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt 
 # ROSCO toolbox modules 
 from ROSCO_toolbox import utilities as ROSCO_utilities
-from ofTools.fast_io import output_processing
+from ROSCO_toolbox.ofTools.fast_io import output_processing
 import os
 
 this_dir = os.path.dirname(__file__)
