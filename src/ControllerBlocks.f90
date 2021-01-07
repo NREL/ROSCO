@@ -176,6 +176,7 @@ CONTAINS
                 xh = RESHAPE((/om_r, v_t, v_m/),(/3,1/))
                 P = RESHAPE((/0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 1.0/),(/3,3/))
                 K = RESHAPE((/0.0,0.0,0.0/),(/3,1/))
+                Cp_op   = 0.25  ! initialize so debug output doesn't give *****
                 
             ELSE
                 ! Find estimated operating Cp and system pole
