@@ -106,8 +106,8 @@ CONTAINS
         ENDIF
 
         ! Saturate collective pitch commands:
-        LocalVar%PC_PitComT = ratelimit(LocalVar%PC_PitComT, PitComT_Last, CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
         LocalVar%PC_PitComT = saturate(LocalVar%PC_PitComT, LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
+        LocalVar%PC_PitComT = ratelimit(LocalVar%PC_PitComT, PitComT_Last, CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
         PitComT_Last = LocalVar%PC_PitComT
 
         ! Combine and saturate all individual pitch commands:
