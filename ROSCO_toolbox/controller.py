@@ -158,8 +158,8 @@ class Controller():
         TSR_rated = rated_rotor_speed*R/turbine.v_rated  # TSR at rated
 
         # separate wind speeds by operation regions
-        v_below_rated = np.arange(turbine.v_min,turbine.v_rated,0.5)             # below rated
-        v_above_rated = np.arange(turbine.v_rated,turbine.v_max,0.5)             # above rated
+        v_below_rated = np.linspace(turbine.v_min,turbine.v_rated, num=30)             # below rated
+        v_above_rated = np.linspace(turbine.v_rated,turbine.v_max, num=30)[1:]             # above rated
         v = np.concatenate((v_below_rated, v_above_rated))
 
         # separate TSRs by operations regions
@@ -273,7 +273,7 @@ class Controller():
         self.v              = v                                  # Wind speed (m/s)
         self.v_below_rated  = v_below_rated
         self.pitch_op       = pitch_op
-        self.pitch_op_pc    = pitch_op[len(v_below_rated):len(v)]
+        self.pitch_op_pc    = pitch_op[len(v_below_rated):]
         self.TSR_op         = TSR_op
         self.A              = A 
         self.B_beta         = B_beta
@@ -397,13 +397,13 @@ class Controller():
         Kcd = (Cdp - Cd0)/( (Ctrl_flp-Ctrl)*deg2rad )
 
         # Find integrated constants
-        kappa = np.zeros(len(v_rel))
+        self.kappa = np.zeros(len(v_rel))
         C1 = np.zeros(len(v_rel))
         C2 = np.zeros(len(v_rel))
         for i, (v_sec,phi) in enumerate(zip(v_rel, phi_vec)):
             C1[i] = integrate.trapz(0.5 * turbine.rho * turbine.chord * v_sec[0]**2 * turbine.span * Kcl * np.cos(phi))
             C2[i] = integrate.trapz(0.5 * turbine.rho * turbine.chord * v_sec[0]**2 * turbine.span * Kcd * np.sin(phi))
-            kappa[i]=C1[i]+C2[i]
+            self.kappa[i]=C1[i]+C2[i]
 
         # ------ Controller tuning -------
         # Open loop blade response
@@ -418,8 +418,8 @@ class Controller():
         if (self.zeta_flp == 0 or self.omega_flp == 0) or (not self.zeta_flp or not self.omega_flp):
             sys.exit('ERROR! --- Zeta and Omega flap must be nonzero for Flp_Mode >= 1 ---')
 
-        self.Kp_flap = (2*self.zeta_flp*self.omega_flp - 2*zetaf*omegaf)/(kappa*omegaf**2)
-        self.Ki_flap = (self.omega_flp**2 - omegaf**2)/(kappa*omegaf**2)
+        self.Kp_flap = (2*self.zeta_flp*self.omega_flp - 2*zetaf*omegaf)/(self.kappa*omegaf**2)
+        self.Ki_flap = (self.omega_flp**2 - omegaf**2)/(self.kappa*omegaf**2)
         
 class ControllerBlocks():
     '''
@@ -495,9 +495,9 @@ class ControllerBlocks():
     def min_pitch_saturation(self, controller, turbine):
         
         # Find TSR associated with minimum rotor speed
-        TSR_at_minspeed = (controller.pc_minspd/turbine.Ng) * turbine.rotor_radius / controller.v_below_rated
+        TSR_at_minspeed = (controller.vs_minspd/turbine.Ng) * turbine.rotor_radius / controller.v_below_rated
         for i in range(len(TSR_at_minspeed)):
-            if TSR_at_minspeed[i] > controller.TSR_op[i]:
+            if TSR_at_minspeed[i] > turbine.Cp.TSR_opt:
                 controller.TSR_op[i] = TSR_at_minspeed[i]
         
                 # Initialize some arrays
