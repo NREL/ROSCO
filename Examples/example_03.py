@@ -10,16 +10,16 @@ In this example:
 - Write a text file with rotor performance properties
 '''
 # Python modules
-import yaml 
+import yaml, os 
 # ROSCO toolbox modules 
 from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox import utilities as ROSCO_utilities
+from ROSCO_toolbox.utilities import write_rotor_performance
 # Initialize parameter dictionaries
 turbine_params = {}
 control_params = {}
 
 # Load yaml file
-parameter_filename = '../Tune_Cases/NREL5MW.yaml'
+parameter_filename = os.path.join(os.path.dirname(__file__),'NREL5MW_example.yaml')
 inps = yaml.safe_load(open(parameter_filename))
 path_params         = inps['path_params']
 turbine_params      = inps['turbine_params']
@@ -27,9 +27,13 @@ controller_params   = inps['controller_params']
 
 # Load turbine data from openfast model
 turbine = ROSCO_turbine.Turbine(turbine_params)
-turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source='cc-blade',txt_filename=None)
+turbine.load_from_fast(
+    path_params['FAST_InputFile'],
+    os.path.join(os.path.dirname(__file__),path_params['FAST_directory']),
+    dev_branch=True,
+    rot_source='cc-blade',
+    txt_filename=None)
 
 # Write rotor performance text file
-txt_filename = 'Cp_Ct_Cq.Ex03.txt'
-file_processing = ROSCO_utilities.FileProcessing()
-file_processing.write_rotor_performance(turbine,txt_filename=txt_filename)
+txt_filename = os.path.join(os.path.dirname(__file__),'Cp_Ct_Cq.Ex03.txt')
+write_rotor_performance(turbine,txt_filename=txt_filename)

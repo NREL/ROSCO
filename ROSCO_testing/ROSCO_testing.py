@@ -17,13 +17,11 @@ import os
 import glob
 import multiprocessing as mp
 
-from weis.aeroelasticse.FAST_reader import InputReader_Common, InputReader_OpenFAST, InputReader_FAST7
-from weis.aeroelasticse.FAST_writer import InputWriter_Common, InputWriter_OpenFAST, InputWriter_FAST7
-from weis.aeroelasticse.runFAST_pywrapper import runFAST_pywrapper_batch
-from weis.aeroelasticse.CaseGen_General import CaseGen_General
-from weis.aeroelasticse.CaseGen_IEC import CaseGen_IEC
-from pCrunch import pdTools
-from pCrunch import Processing, Analysis
+import ROSCO_toolbox.ofTools.fast_io.read_fast_input as fast_io
+from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+from ROSCO_toolbox.ofTools.case_gen.CaseGen_IEC import CaseGen_IEC
+from ROSCO_toolbox.ofTools.case_gen.runFAST_pywrapper import runFAST_pywrapper_batch
+
 
 
 class ROSCO_testing():
@@ -435,7 +433,7 @@ class ROSCO_testing():
         self.runDir = run_dir_init
         self.windDir = wind_dir_init
     
-    def ROSCO_DISCON_Comp(self, DISCON_filenames, testtype='light'):
+    def ROSCO_DISCON_Comp(self, DISCON_filenames, testtype='light', more_case_inputs={}, U=[]):
         '''
         Heavy or light testing for n DISCON.IN files, n = len(DISCON_paths)
 
@@ -456,14 +454,13 @@ class ROSCO_testing():
             self.windDir = os.path.join(run_dir_init, 'wind')  # wind in base runDir
 
             # Point to different DISCON.IN files using more_case_inputs
-            more_case_inputs = {}
-            more_case_inputs[('ServoDyn', 'DLL_ProcName')] = {'vals': [discon], 'group': 0}
+            more_case_inputs[('ServoDyn', 'DLL_InFile')] = {'vals': [discon], 'group': 0}
             self.windDir = os.path.join(run_dir_init, 'wind')  # wind in base runDir
 
             if testtype.lower() == 'light':
-                self.ROSCO_Test_lite(more_case_inputs=more_case_inputs)
+                self.ROSCO_Test_lite(more_case_inputs=more_case_inputs, U=U)
             elif testtype.lower() == 'heavy':
-                self.ROSCO_Test_heavy(more_case_inputs=more_case_inputs)
+                self.ROSCO_Test_heavy(more_case_inputs=more_case_inputs, U=U)
             else:
                 raise ValueError('{} is an invalid testtype for DISCON comparison'.format(testtype))
 

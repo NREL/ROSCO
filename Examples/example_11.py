@@ -16,7 +16,6 @@ import os
 from ROSCO_toolbox import controller as ROSCO_controller
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox import sim as ROSCO_sim
-from ROSCO_toolbox import utilities as ROSCO_utilities
 
 import numpy as np
 
@@ -34,8 +33,6 @@ linmod_filename     = 'IEA15MW_LinMod.dat'
 # Instantiate turbine, controller, and file processing classes
 turbine         = ROSCO_turbine.Turbine(turbine_params)
 controller      = ROSCO_controller.Controller(controller_params)
-file_processing = ROSCO_utilities.FileProcessing()
-fast_io         = ROSCO_utilities.FAST_IO()
 
 # Load turbine data from OpenFAST and rotor performance text file
 turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source=None,txt_filename=path_params['rotor_performance_filename'])
@@ -70,16 +67,4 @@ with open(linmod_filename,'w') as f:
 
 print('Tower Height = {} m'.format(turbine.hubHt))
 print('Platform Freq. = {} rad/s'.format(turbine.ptfm_freq))
-
-
-# Write parameter input file
-# param_file = 'DISCON.IN'   # This must be named DISCON.IN to be seen by the compiled controller binary. 
-# file_processing.write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
-
-# Run OpenFAST
-# --- May need to change fastcall if you use a non-standard command to call openfast
-# fast_io.run_openfast(path_params['FAST_directory'], fastcall='openfast', fastfile=path_params['FAST_InputFile'],chdir=True)
-
-
-
 

@@ -12,14 +12,14 @@
 import os
 import numpy as np
 import datetime
-from wisdem.ccblade import CCAirfoil, CCBlade
+from wisdem.ccblade.ccblade import CCAirfoil, CCBlade
 from scipy import interpolate
 from numpy import gradient
 import pickle
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from ROSCO_toolbox import utilities as ROSCO_utilities
+from ROSCO_toolbox.utilities import load_from_txt
 
 # Some useful constants
 now = datetime.datetime.now()
@@ -208,8 +208,7 @@ class Turbine():
         if rot_source == 'cc-blade': # Use cc-blade
             self.load_from_ccblade()
         elif rot_source == 'txt':    # Use specified text file
-            file_processing = ROSCO_utilities.FileProcessing()
-            self.pitch_initial_rad, self.TSR_initial, self.Cp_table, self.Ct_table, self.Cq_table = file_processing.load_from_txt(
+            self.pitch_initial_rad, self.TSR_initial, self.Cp_table, self.Ct_table, self.Cq_table = load_from_txt(
                 txt_filename)
         else:   # Use text file from DISCON.in
             if os.path.exists(os.path.join(FAST_directory, fast.fst_vt['ServoDyn']['DLL_InFile'])):
@@ -608,7 +607,8 @@ class RotorPerformance():
         '''
         
         # Form the interpolant functions which can look up any arbitrary location on rotor performance surface
-        interp_fun = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.performance_table, kind='linear')
+        interp_fun = interpolate.interp2d(
+            self.pitch_initial_rad, self.TSR_initial, self.performance_table, kind='cubic')
         return interp_fun(pitch,TSR)
 
     def interp_gradient(self,pitch,TSR):
@@ -655,7 +655,7 @@ class RotorPerformance():
         plt.title('Power Coefficient', fontsize=14, fontweight='bold')
         plt.xlabel('Pitch Angle [deg]', fontsize=14, fontweight='bold')
         plt.ylabel('TSR [-]', fontsize=14, fontweight='bold')
-        plt.scatter(max_beta_id, max_tsr_id, color='red')
+        plt.scatter(max_beta_id * rad2deg, max_tsr_id, color='red')
         plt.annotate('max = {:<1.3f}'.format(np.max(self.performance_table)),
                     (max_beta_id+0.2, max_tsr_id+0.2), color='red')
         plt.xticks(fontsize=12)
