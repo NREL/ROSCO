@@ -433,7 +433,7 @@ CONTAINS
         RotorArea = PI*CntrPar%WE_BladeRadius**2
         Lambda = LocalVar%RotSpeedF*CntrPar%WE_BladeRadius/LocalVar%WE_Vw
         ! Cp = CPfunction(CntrPar%WE_CP, Lambda)
-        Cp = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%PC_PitComTF*R2D, Lambda)
+        Cp = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%PC_PitComT*R2D, Lambda)
         AeroDynTorque = 0.5*(CntrPar%WE_RhoAir*RotorArea)*(LocalVar%WE_Vw**3/LocalVar%RotSpeedF)*Cp
         AeroDynTorque = MAX(AeroDynTorque, 0.0)
         
