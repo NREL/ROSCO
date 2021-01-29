@@ -5,13 +5,22 @@ NREL's Reference OpenSource Controller (ROSCO) for wind turbine applications use
 The NREL Reference OpenSource Controller (ROSCO) provides an open, modular and fully adaptable baseline wind turbine controller to the scientific community. Because of the open character and modular set-up, scientists are able to collaborate and contribute in making continuous improvements to the code. New control implementations can be added to the existing baseline controller, and in this way, convenient assessments of the proposed algorithms is possible. ROSCO is being developed in Fortran and uses the Bladed-style DISCON controller interface. The compiled controller is configured by a single control settings parameter file, and can work with any wind turbine model and simulation software using the DISCON interface. Baseline parameter files are supplied for the NREL 5-MW and DTU 10-MW reference wind turbines.
 
 ## Compiling ROSCO
-Compiling ROSCO is made simple using [cmake](https://cmake.org/) on Unix based machines. Currently (November 2019), we recommend that you compile the code using a unix machine (or subsystem on Windows). Some compiled binaries are also provided via github.
+For simple download of the most recent release, compiled binaries for Mac (.dylib), Linux (.so), and Windows (.dll) are provided with the [tagged releases](https://github.com/NREL/ROSCO/tags). 
+
+For the interested user, the same releases can be installed using [anaconda](https://www.anaconda.com/) using:
+```
+conda install -c conda-forge rosco
+```
+Please note that if you do install using anaconda, the binary will be installed with all other package libraries in the anaconda "active environment path", which can be found by typing `conda info`.
+
+If you wish to compile ROSCO directly, this is made simple using [cmake](https://cmake.org/) on Unix based machines. Windows users can leverage [mingw](http://www.mingw.org/) to compile similarly. 
 
 ### Required Software to build ROSCO
 * Fortran compiler (GNU compiler version above 4.6.0 or Intel compiler version above 11)
 * C/C++ compiler
 * GNU Make (version 3.81 or later)
 * CMake (version 2.8.12 or later) - for unix
+* MinGW - for windows
 
 ### Steps to compile
 First, clone the git repository:
@@ -22,10 +31,13 @@ Second, you will need to compile the controller. From the ROSCO home directory:
 ```
 mkdir build
 cd build
-cmake ..
-make
+cmake ..                        # Mac/Linux
+cmake .. -G "MinGW Makefiles"   # Windows
+make install
 ```
-A dynamic link library will be compiled into the directory with the title `libdiscon.*`, where the file extension is `.so`, `.dll`, or `.dylib`, depending on the user's operating system.  
+A dynamic link library will be compiled into the the `/ROSCO/install/lib` directory with the title `libdiscon.*`, where the file extension is `.so`, `.dll`, or `.dylib`, depending on the user's operating system. 
+
+Note: when compiling with MinGW on Windows, modifying the cmake line in the above code to: `cmake .. -G "MinGW Makefiles" -DCMAKE_Fortran_COMPILER=gfortran` can solve compiler errors that may arrise, depending on your local configuration.
 
 ## Running ROSCO
 A few files are needed to run ROSCO. Of course, the compiled binary, named `libdiscon.*` by default, is needed. This should be appropriately pointed to by your ServoDyn input file (for OpenFAST). In addition to the binary, a controller input file title DISCON.IN is necessary. Two example input files are provided for the NREL 5MW and DTU 10MW wind turbine controllers in the [parameter_files](parameter_files) folder. Note that DISCON.IN (or similar) is pointed to by the `DLL_InFile` parameter in ServoDyn. For generic controller tuning methods, and an automated writing of this DISCON.IN file, we point you to the complete [ROSCO_toolbox](https://github.com/nrel/rosco_toolbox). 
