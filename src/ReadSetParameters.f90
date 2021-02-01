@@ -541,9 +541,9 @@ CONTAINS
                      'A wind turbine controller framework for public use in the scientific field    '//NEW_LINE('A')// &
                      'Developed in collaboration: National Renewable Energy Laboratory              '//NEW_LINE('A')// &
                      '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
-                     'Primary development by (listed alphabetically): Nikhar J. Abbas               '//NEW_LINE('A')// &
-                     '                                                Sebastiaan P. Mulders         '//NEW_LINE('A')// &
-                     '                                                Jan-Willem van Wingerden      '//NEW_LINE('A')// &
+                     '                                                                              '//NEW_LINE('A')// &
+                     '  ROSCO-v'//TRIM(Version)//'                                                        '//NEW_LINE('A')// &
+                     '                                                                              '//NEW_LINE('A')// &
                      'Visit our GitHub-page to contribute to this project:                          '//NEW_LINE('A')// &
                      'https://github.com/NREL/ROSCO                                                 '//NEW_LINE('A')// &
                      '------------------------------------------------------------------------------'

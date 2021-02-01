@@ -16,4 +16,5 @@ MODULE Constants
     REAL(8), PARAMETER          :: PI = 3.14159265359                   ! Mathematical constant pi
     INTEGER(4), PARAMETER       :: NP_1 = 1                             ! First rotational harmonic
     INTEGER(4), PARAMETER       :: NP_2 = 2                             ! Second rotational harmonic
+    CHARACTER(100), PARAMETER   :: Version = '2.1.1-develop'
 END MODULE Constants
