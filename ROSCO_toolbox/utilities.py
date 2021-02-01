@@ -28,6 +28,7 @@ import matplotlib.pyplot as plt
 from matplotlib import transforms
 from itertools import takewhile, product
 import struct
+import ROSCO_toolbox
 
 from ofTools.util import spectral
 # Some useful constants
@@ -57,7 +58,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     # Should be obvious what's going on here...
     file = open(param_file,'w')
     file.write('! Controller parameter input file for the %s wind turbine\n' % turbine.TurbineName)
-    file.write('!    - File written using ROSCO Controller tuning logic on %s\n' % now.strftime('%m/%d/%y'))
+    file.write('!    - File written using ROSCO version {} controller tuning logic on {}\n'.format(ROSCO_toolbox.__version__, now.strftime('%m/%d/%y')))
     file.write('\n')
     file.write('!------- DEBUG ------------------------------------------------------------\n')
     file.write('{0:<12d}        ! LoggingLevel		- {{0: write no debug files, 1: write standard output .dbg-file, 2: write standard output .dbg-file and complete avrSWAP-array .dbg2-file}}\n'.format(int(controller.LoggingLevel)))
