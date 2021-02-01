@@ -19,12 +19,12 @@ True          Echo            - Echo input data to <RootName>.ech (flag)
           0   CompMooring     - Compute mooring system (switch) {0=None; 1=MAP++; 2=FEAMooring; 3=MoorDyn; 4=OrcaFlex}
           0   CompIce         - Compute ice loads (switch) {0=None; 1=IceFloe; 2=IceDyn}
 ---------------------- INPUT FILES ---------------------------------------------
-"NRELOffshrBsline5MW_Onshore_ElastoDyn.dat"    EDFile          - Name of file containing ElastoDyn input parameters (quoted string)
-"../5MW_Baseline/NRELOffshrBsline5MW_BeamDyn.dat"    BDBldFile(1)    - Name of file containing BeamDyn input parameters for blade 1 (quoted string)
-"../5MW_Baseline/NRELOffshrBsline5MW_BeamDyn.dat"    BDBldFile(2)    - Name of file containing BeamDyn input parameters for blade 2 (quoted string)
-"../5MW_Baseline/NRELOffshrBsline5MW_BeamDyn.dat"    BDBldFile(3)    - Name of file containing BeamDyn input parameters for blade 3 (quoted string)
-"../5MW_Baseline/NRELOffshrBsline5MW_InflowWind_12mps.dat"    InflowFile      - Name of file containing inflow wind input parameters (quoted string)
-"NRELOffshrBsline5MW_Onshore_AeroDyn15.dat"    AeroFile        - Name of file containing aerodynamic input parameters (quoted string)
+"../NREL-5MW/NRELOffshrBsline5MW_Onshore_ElastoDyn.dat"    EDFile          - Name of file containing ElastoDyn input parameters (quoted string)
+"unused"    BDBldFile(1)    - Name of file containing BeamDyn input parameters for blade 1 (quoted string)
+"unused"    BDBldFile(2)    - Name of file containing BeamDyn input parameters for blade 2 (quoted string)
+"unused"    BDBldFile(3)    - Name of file containing BeamDyn input parameters for blade 3 (quoted string)
+"../NREL-5MW/NRELOffshrBsline5MW_InflowWind.dat"    InflowFile      - Name of file containing inflow wind input parameters (quoted string)
+"../NREL-5MW/NRELOffshrBsline5MW_Onshore_AeroDyn15.dat"    AeroFile        - Name of file containing aerodynamic input parameters (quoted string)
 "NRELOffshrBsline5MW_Onshore_ServoDyn.dat"    ServoFile       - Name of file containing control and electrical-drive input parameters (quoted string)
 "unused"      HydroFile       - Name of file containing hydrodynamic input parameters (quoted string)
 "unused"      SubFile         - Name of file containing sub-structural input parameters (quoted string)
@@ -41,6 +41,12 @@ True          TabDelim        - Use tab delimiters in text tabular output file? 
 "ES10.3E2"    OutFmt          - Format used for text tabular output, excluding the time channel.  Resulting field should be 10 characters. (quoted string)
 ---------------------- LINEARIZATION -------------------------------------------
 False         Linearize       - Linearization analysis (flag)
+False         CalcSteady      - Calculate a steady-state periodic operating point before linearization? [unused if Linearize=False] (flag)
+          3   TrimCase        - Controller parameter to be trimmed {1:yaw; 2:torque; 3:pitch} [used only if CalcSteady=True] (-)
+      0.001   TrimTol         - Tolerance for the rotational speed convergence [used only if CalcSteady=True] (-)
+       0.01   TrimGain        - Proportional gain for the rotational speed error (>0) [used only if CalcSteady=True] (rad/(rad/s) for yaw or pitch; Nm/(rad/s) for torque)
+          0   Twr_Kdmp        - Damping factor for the tower [used only if CalcSteady=True] (N/(m/s))
+          0   Bld_Kdmp        - Damping factor for the blades [used only if CalcSteady=True] (N/(m/s))
           2   NLinTimes       - Number of times to linearize (-) [>=1] [unused if Linearize=False]
          30,         60    LinTimes        - List of times at which to linearize (s) [1 to NLinTimes] [unused if Linearize=False]
           1   LinInputs       - Inputs included in linearization (switch) {0=none; 1=standard; 2=all module inputs (debug)} [unused if Linearize=False]
