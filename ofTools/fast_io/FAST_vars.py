@@ -288,12 +288,12 @@ InflowWind['RefHt']     = 0.0
 InflowWind['PLexp']     = 0.0           
 
 # Parameters for Uniform wind file [used only for WindType = 2]
-InflowWind['Filename'] = ''            
+InflowWind['UniformFilename'] = ''            
 InflowWind['RefHt']    = 0.0           
 InflowWind['RefLength'] = 0.0           
 
 # Parameters for Binary TurbSim Full-Field files [used only for WindType = 3]
-InflowWind['Filename'] = ''            
+InflowWind['TurbSimFilename'] = ''            
 
 # Parameters for Binary Bladed-style Full-Field files [used only for WindType = 4]
 InflowWind['FilenameRoot'] = ''            
@@ -321,6 +321,7 @@ InflowWind['URef']        = 0.0
 InflowWind['WindProfile'] = 0             
 InflowWind['PLExp']       = 0.0           
 InflowWind['Z0']          = 0.0           
+InflowWind['InitPosition(x)'] = 0.0           
 
 # Inflow Wind Output Parameters (actual OutList included in master OutList)
 InflowWind['SumPrint']   = False         
@@ -510,12 +511,12 @@ ServoDyn['TPitManS3']        = 0.0
 ServoDyn['TPitManE1']        = 0.0           #FAST7 only
 ServoDyn['TPitManE2']        = 0.0           #FAST7 only
 ServoDyn['TPitManE3']        = 0.0           #FAST7 only
-ServoDyn['PitManRat1']       = 0.0           
-ServoDyn['PitManRat2']       = 0.0           
-ServoDyn['PitManRat3']       = 0.0           
-ServoDyn['BlPitchF1']        = 0.0           
-ServoDyn['BlPitchF2']        = 0.0           
-ServoDyn['BlPitchF3']        = 0.0           
+ServoDyn['PitManRat(1)']     = 0.0           
+ServoDyn['PitManRat(2)']     = 0.0           
+ServoDyn['PitManRat(3)']     = 0.0           
+ServoDyn['BlPitchF(1)']      = 0.0           
+ServoDyn['BlPitchF(2)']      = 0.0           
+ServoDyn['BlPitchF(3)']      = 0.0           
 ServoDyn['BlPitch1']         = 0.0           #FAST7 only
 ServoDyn['BlPitch2']         = 0.0           #FAST7 only
 ServoDyn['BlPitch3']         = 0.0           #FAST7 only

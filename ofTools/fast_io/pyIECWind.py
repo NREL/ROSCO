@@ -106,6 +106,7 @@ class pyIECWind_extreme():
         shear_vert = np.zeros_like(t)+alpha
         shear_vert_lin = np.zeros_like(t)
         V_gust = np.zeros_like(t)
+        upflow = np.zeros_like(t)
 
         V_gust = min([ 1.35*(V_e1 - V_hub), 3.3*(sigma_1/(1+0.1*(self.D/self.Sigma_1))) ])
 
@@ -120,7 +121,7 @@ class pyIECWind_extreme():
         self.fname_out = []
         self.fname_type = []
         fname = self.case_name + '_EOG_U%2.1f.wnd'%V_hub_in
-        data = np.column_stack((t, V, V_dir, V_vert, shear_horz, shear_vert, shear_vert_lin, V_gust_t))
+        data = np.column_stack((t, V, V_dir, V_vert, shear_horz, shear_vert, shear_vert_lin, V_gust_t, upflow))
         hd = []
         hd.append('! Extreme operating guest\n')
         hd = self.heading_common(hd)
@@ -155,8 +156,9 @@ class pyIECWind_extreme():
         shear_vert = np.zeros_like(t)+alpha
         shear_vert_lin = np.zeros_like(t)
         V_gust = np.zeros_like(t)
+        upflow = np.zeros_like(t)
 
-        # Transcient
+        # Transient
         Theta_e = 4.*np.arctan(sigma_1/(V_hub*(1.+0.01*(self.D/self.Sigma_1))))*180./np.pi
         if Theta_e > 180.:
             Theta_e = 180.
@@ -177,7 +179,7 @@ class pyIECWind_extreme():
         if self.dir_change.lower() == 'both' or self.dir_change.lower() == '+':
             ## Vert
             fname = self.case_name + '_EDC_P_U%2.1f.wnd'%V_hub_in
-            data = np.column_stack((t, V, Theta_p, V_vert, shear_horz, shear_vert, shear_vert_lin, V_gust))
+            data = np.column_stack((t, V, Theta_p, V_vert, shear_horz, shear_vert, shear_vert_lin, V_gust, upflow))
             hd = []
             hd.append('! Exteme Vertical Wind Shear, positive\n')
             hd = self.heading_common(hd)
@@ -190,7 +192,7 @@ class pyIECWind_extreme():
         if self.dir_change.lower() == 'both' or self.dir_change.lower() == '-':
             ## Vert
             fname = self.case_name + '_EDC_N_U%2.1f.wnd'%V_hub_in
-            data = np.column_stack((t, V, Theta_n, V_vert, shear_horz, shear_vert, shear_vert_lin, V_gust))
+            data = np.column_stack((t, V, Theta_n, V_vert, shear_horz, shear_vert, shear_vert_lin, V_gust, upflow))
             hd = []
             hd.append('! Exteme Vertical Wind Shear, negative\n')
             hd = self.heading_common(hd)
@@ -224,8 +226,9 @@ class pyIECWind_extreme():
         shear_vert = np.zeros_like(t)+alpha
         shear_vert_lin = np.zeros_like(t)
         V_gust = np.zeros_like(t)
+        upflow = np.zeros_like(t)
 
-        # Transcient
+        # Transient
         if V_hub < 4:
             Theta_cg = 180
         else:
@@ -250,7 +253,7 @@ class pyIECWind_extreme():
         if self.dir_change.lower() == 'both' or self.dir_change.lower() == '+':
             ## Vert
             fname = self.case_name + '_ECD_P_U%2.1f.wnd'%V_hub_in
-            data = np.column_stack((t, V, Theta_p, V_vert, shear_horz, shear_vert, shear_vert_lin, V_gust))
+            data = np.column_stack((t, V, Theta_p, V_vert, shear_horz, shear_vert, shear_vert_lin, V_gust, upflow))
             hd = []
             hd.append('! Exteme coherent gust with direction change, positive\n')
             hd = self.heading_common(hd)
@@ -263,7 +266,7 @@ class pyIECWind_extreme():
         if self.dir_change.lower() == 'both' or self.dir_change.lower() == '-':
             ## Vert
             fname = self.case_name + '_ECD_N_U%2.1f.wnd'%V_hub_in
-            data = np.column_stack((t, V, Theta_n, V_vert, shear_horz, shear_vert, shear_vert_lin, V_gust))
+            data = np.column_stack((t, V, Theta_n, V_vert, shear_horz, shear_vert, shear_vert_lin, V_gust, upflow))
             hd = []
             hd.append('! Exteme coherent gust with direction change, negative\n')
             hd = self.heading_common(hd)
@@ -297,8 +300,9 @@ class pyIECWind_extreme():
         # shear_horz = np.zeros_like(t)
         shear_vert = np.zeros_like(t)+alpha
         V_gust = np.zeros_like(t)
+        upflow = np.zeros_like(t)
 
-        # Transcient
+        # Transient
         shear_lin_p = np.zeros_like(t)
         shear_lin_n = np.zeros_like(t)
 
@@ -313,7 +317,7 @@ class pyIECWind_extreme():
             if self.shear_orient.lower() == 'both' or self.shear_orient.lower() == 'v':
                 ## Vert
                 fname = self.case_name + '_EWS_V_P_U%2.1f.wnd'%V_hub_in
-                data = np.column_stack((t, V, V_dir, V_vert, np.zeros_like(t), shear_vert, shear_lin_p, V_gust))
+                data = np.column_stack((t, V, V_dir, V_vert, np.zeros_like(t), shear_vert, shear_lin_p, V_gust, upflow))
                 hd = []
                 hd.append('! Exteme Vertical Wind Shear, positive\n')
                 hd = self.heading_common(hd)
@@ -325,7 +329,7 @@ class pyIECWind_extreme():
             if self.shear_orient.lower() == 'both' or self.shear_orient.lower() == 'h':
                 # Horz
                 fname = self.case_name + '_EWS_H_P_U%2.1f.wnd'%V_hub_in
-                data = np.column_stack((t, V, V_dir, V_vert, shear_lin_p, shear_vert, np.zeros_like(t), V_gust))
+                data = np.column_stack((t, V, V_dir, V_vert, shear_lin_p, shear_vert, np.zeros_like(t), V_gust, upflow))
                 hd = []
                 hd.append('! Exteme Horizontal Wind Shear, positive\n')
                 hd = self.heading_common(hd)
@@ -338,7 +342,7 @@ class pyIECWind_extreme():
             if self.shear_orient.lower() == 'both' or self.shear_orient.lower() == 'v':
                 ## Vert
                 fname = self.case_name + '_EWS_V_N_U%2.1f.wnd'%V_hub_in
-                data = np.column_stack((t, V, V_dir, V_vert, np.zeros_like(t), shear_vert, shear_lin_n, V_gust))
+                data = np.column_stack((t, V, V_dir, V_vert, np.zeros_like(t), shear_vert, shear_lin_n, V_gust, upflow))
                 hd = []
                 hd.append('! Exteme Vertical Wind Shear, negative\n')
                 hd = self.heading_common(hd)
@@ -350,7 +354,7 @@ class pyIECWind_extreme():
             if self.shear_orient.lower() == 'both' or self.shear_orient.lower() == 'h':
                 # Horz
                 fname = self.case_name + '_EWS_H_N_U%2.1f.wnd'%V_hub_in
-                data = np.column_stack((t, V, V_dir, V_vert, shear_lin_n, shear_vert, np.zeros_like(t), V_gust))
+                data = np.column_stack((t, V, V_dir, V_vert, shear_lin_n, shear_vert, np.zeros_like(t), V_gust, upflow))
                 hd = []
                 hd.append('! Exteme Horizontal Wind Shear, negative\n')
                 hd = self.heading_common(hd)
@@ -380,16 +384,16 @@ class pyIECWind_extreme():
         if not os.path.isdir(self.outdir):
             os.makedirs(self.outdir)
 
-        # Move transcient event to user definted time
+        # Move transient event to user defined time
         data[:,0] += self.TStart
         data = np.vstack((data[0,:], data, data[-1,:]))
         data[0,0] = self.T0
         data[-1,0] = self.TF
 
         # Headers
-        hd1 = ['Time', 'Wind', 'Wind', 'Vertical', 'Horiz.', 'Pwr. Law', 'Lin. Vert.', 'Gust']
-        hd2 = ['', 'Speed', 'Dir', 'Speed', 'Shear', 'Vert. Shr', 'Shear', 'Speed']
-        hd3 = ['(s)', '(m/s)', '(deg)', '(m/s)', '(-)', '(-)', '(-)', '(m/s)', ]
+        hd1 = ['Time', 'Wind', 'Wind', 'Vertical', 'Horiz.', 'Pwr. Law', 'Lin. Vert.', 'Gust', 'Upflow']
+        hd2 = ['', 'Speed', 'Dir', 'Speed', 'Shear', 'Vert. Shr', 'Shear', 'Speed', 'Angle']
+        hd3 = ['(s)', '(m/s)', '(deg)', '(m/s)', '(-)', '(-)', '(-)', '(m/s)', '(deg)']
 
         self.fpath = os.path.join(self.outdir, fname)
         fid = open(self.fpath, 'w')
@@ -439,9 +443,9 @@ class pyIECWind_turb():
         turbsim_vt.runtime_options.RandSeed1  = self.seed
         turbsim_vt.runtime_options.WrADTWR    = False
         turbsim_vt.tmspecs.AnalysisTime       = self.AnalysisTime
-        turbsim_vt.tmspecs.HubHt              = self.z_hub
-        turbsim_vt.tmspecs.GridHeight         = np.ceil(self.z_hub*1.9)
-        turbsim_vt.tmspecs.GridWidth          = np.ceil(self.z_hub*1.9)
+        turbsim_vt.tmspecs.HubHt              = self.z_hub # wind grid centered at hub height
+        turbsim_vt.tmspecs.GridHeight         = (self.z_hub - 1.) * 2.0 # wind grid stops 1 meter above the ground
+        turbsim_vt.tmspecs.GridWidth          = (self.z_hub - 1.) * 2.0 # squared wind grid
         turbsim_vt.tmspecs.NumGrid_Z          = 25
         turbsim_vt.tmspecs.NumGrid_Y          = 25
         turbsim_vt.tmspecs.HFlowAng           = 0.0
