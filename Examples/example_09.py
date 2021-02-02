@@ -20,5 +20,5 @@ this_dir = os.path.dirname(__file__)
 wind_directory = os.path.join(this_dir,'../Test_Cases/Wind/')
 turbsim_infile = '90m_12mps_twr.inp'
 
-run_openfast(wind_directory, fastcall='turbsim_sdev', fastfile=turbsim_infile, chdir=False)
+run_openfast(wind_directory, fastcall='turbsim', fastfile=turbsim_infile, chdir=False)
 

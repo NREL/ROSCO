@@ -455,7 +455,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     return DISCON_dict
 
 
-def run_openfast(fast_dir,fastcall='OpenFAST',fastfile=None,chdir=False):
+def run_openfast(fast_dir,fastcall='openfast',fastfile=None,chdir=False):
     '''
     Runs a openfast openfast simulation.
     
