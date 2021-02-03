@@ -304,7 +304,7 @@ class Controller():
         if self.Fl_Mode == 1: # Floating feedback
             Kp_float = (dtau_dv/dtau_dbeta) * turbine.TowerHt * Ng 
             f_kp     = interpolate.interp1d(v,Kp_float)
-            self.Kp_float = f_kp(turbine.v_rated + 0.5)   # get Kp at v_rated + 0.5 m/s
+            self.Kp_float = f_kp(turbine.v_rated * (1.05))   # get Kp at v_rated + 0.5 m/s
             # Turn on the notch filter if floating
             self.F_NotchType = 2
             
