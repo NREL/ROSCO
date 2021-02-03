@@ -61,7 +61,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(8)                             :: PC_FinePit                   ! Record 5: Below-rated pitch angle set-point (deg) [used only with Bladed Interface]
     REAL(8)                             :: PC_Switch                    ! Angle above lowest minimum pitch angle for switch [rad]
     
-    INTEGER(4)                          :: VS_ControlMode               ! Generator torque control mode in above rated conditions {0: constant torque, 1: constant power}
+    INTEGER(4)                          :: VS_ControlMode               ! Generator torque control mode in above rated conditions {0: constant torque, 1: constant power, 2: TSR Tracking, 3: TSR Tracking w/ const power}
     REAL(8)                             :: VS_GenEff                    ! Generator efficiency mechanical power -> electrical power [-]
     REAL(8)                             :: VS_ArSatTq                   ! Above rated generator torque PI control saturation, [Nm] -- 212900
     REAL(8)                             :: VS_MaxRat                    ! Maximum torque rate (in absolute value) in torque controller, [Nm/s].
@@ -176,6 +176,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(8)                             :: PitCom(3)                    ! Commanded pitch of each blade the last time the controller was called [rad].
     REAL(8)                             :: SS_DelOmegaF                 ! Filtered setpoint shifting term defined in setpoint smoother [rad/s].
     REAL(8)                             :: TestType                     ! Test variable, no use
+    REAL(8)                             :: VS_MaxTq                     ! Maximum allowable generator torque [Nm].
     REAL(8)                             :: VS_LastGenTrq                ! Commanded electrical generator torque the last time the controller was called [Nm].
     REAL(8)                             :: VS_MechGenPwr                ! Mechanical power on the generator axis [W]
     REAL(8)                             :: VS_SpdErrAr                  ! Current speed error for region 2.5 PI controller (generator torque control) [rad/s].
@@ -225,6 +226,9 @@ TYPE, PUBLIC :: DebugVariables
     REAL(8)                             :: WE_Vm                        ! Mean wind speed component in WSE [m/s]
     REAL(8)                             :: WE_Vt                        ! Turbulent wind speed component in WSE [m/s]
     REAL(8)                             :: WE_lambda                    ! TSR in WSE [rad]
+    !
+    REAL(8)                             :: PC_PICommand                 
+
 END TYPE DebugVariables
 
 END MODULE ROSCO_Types
