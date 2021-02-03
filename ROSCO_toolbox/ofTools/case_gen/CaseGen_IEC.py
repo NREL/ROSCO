@@ -2,8 +2,8 @@ import numpy as np
 import os, sys, copy, itertools
 import multiprocessing as mp
 
-from ofTools.case_gen.CaseGen_General import CaseGen_General, save_case_matrix, save_case_matrix_yaml
-from ofTools.fast_io.pyIECWind import pyIECWind_extreme, pyIECWind_turb
+from ROSCO_toolbox.ofTools.case_gen.CaseGen_General import CaseGen_General, save_case_matrix, save_case_matrix_yaml
+from ROSCO_toolbox.ofTools.fast_io.pyIECWind import pyIECWind_extreme, pyIECWind_turb
 
 try:
     from mpi4py import MPI

@@ -1,6 +1,6 @@
 from numpy import zeros, array
 import numpy as np
-from ofTools.fast_io.FAST_vars_out import FstOutput, Fst7Output
+from ROSCO_toolbox.ofTools.fast_io.FAST_vars_out import FstOutput, Fst7Output
 
 # This variable tree contains all parameters required to create a FAST model
 # for FAST versions 7 and 8.

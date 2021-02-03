@@ -30,7 +30,7 @@ from itertools import takewhile, product
 import struct
 import ROSCO_toolbox
 
-from ofTools.util import spectral
+from ROSCO_toolbox.ofTools.util import spectral
 # Some useful constants
 now = datetime.datetime.now()
 pi = np.pi
