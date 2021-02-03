@@ -504,7 +504,7 @@ CONTAINS
         CHARACTER(KIND=C_CHAR), INTENT(IN)      :: accINFILE(NINT(avrSWAP(50)))     ! The name of the parameter input file
         CHARACTER(size_avcMSG-1), INTENT(OUT) :: ErrMsg     ! a Fortran version of the C string argument (not considered an array here) [subtract 1 for the C null-character]
         INTEGER(4) :: K    ! Index used for looping through blades.
-        
+        CHARACTER(200) :: git_version
         ! Set aviFAIL to 0 in each iteration:
         aviFAIL = 0
         
@@ -535,18 +535,26 @@ CONTAINS
             
             ! Inform users that we are using this user-defined routine:
             aviFAIL = 1
+            git_version = QueryGitVersion()
+            ! ErrMsg = '                                                                              '//NEW_LINE('A')// &
+            !          '------------------------------------------------------------------------------'//NEW_LINE('A')// &
+            !          'Running a controller implemented through NREL''s ROSCO Toolbox                    '//NEW_LINE('A')// &
+            !          'A wind turbine controller framework for public use in the scientific field    '//NEW_LINE('A')// &
+            !          'Developed in collaboration: National Renewable Energy Laboratory              '//NEW_LINE('A')// &
+            !          '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
+            !          'Primary development by (listed alphabetically): Nikhar J. Abbas               '//NEW_LINE('A')// &
+            !          '                                                Sebastiaan P. Mulders         '//NEW_LINE('A')// &
+            !          '                                                Jan-Willem van Wingerden      '//NEW_LINE('A')// &
+            !          'Visit our GitHub-page to contribute to this project:                          '//NEW_LINE('A')// &
+            !          'https://github.com/NREL/ROSCO                                                 '//NEW_LINE('A')// &
+            !          '------------------------------------------------------------------------------'
             ErrMsg = '                                                                              '//NEW_LINE('A')// &
-                     '------------------------------------------------------------------------------'//NEW_LINE('A')// &
-                     'Running a controller implemented through NREL''s ROSCO Toolbox                    '//NEW_LINE('A')// &
-                     'A wind turbine controller framework for public use in the scientific field    '//NEW_LINE('A')// &
-                     'Developed in collaboration: National Renewable Energy Laboratory              '//NEW_LINE('A')// &
-                     '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
-                     'Primary development by (listed alphabetically): Nikhar J. Abbas               '//NEW_LINE('A')// &
-                     '                                                Sebastiaan P. Mulders         '//NEW_LINE('A')// &
-                     '                                                Jan-Willem van Wingerden      '//NEW_LINE('A')// &
-                     'Visit our GitHub-page to contribute to this project:                          '//NEW_LINE('A')// &
-                     'https://github.com/NREL/ROSCO                                                 '//NEW_LINE('A')// &
-                     '------------------------------------------------------------------------------'
+                    '------------------------------------------------------------------------------'//NEW_LINE('A')// &
+                    'Running ROSCO-'//git_version//NEW_LINE('A')// &
+                    'A wind turbine controller framework for public use in the scientific field    '//NEW_LINE('A')// &
+                    'Developed in collaboration: National Renewable Energy Laboratory              '//NEW_LINE('A')// &
+                    '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
+                    '------------------------------------------------------------------------------'
 
             CALL ReadControlParameterFileSub(CntrPar, accINFILE, NINT(avrSWAP(50)))
 
