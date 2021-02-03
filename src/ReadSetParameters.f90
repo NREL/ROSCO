@@ -550,7 +550,7 @@ CONTAINS
             !          '------------------------------------------------------------------------------'
             ErrMsg = '                                                                              '//NEW_LINE('A')// &
                     '------------------------------------------------------------------------------'//NEW_LINE('A')// &
-                    'Running ROSCO-'//git_version//NEW_LINE('A')// &
+                    'Running ROSCO-'//TRIM(git_version)//NEW_LINE('A')// &
                     'A wind turbine controller framework for public use in the scientific field    '//NEW_LINE('A')// &
                     'Developed in collaboration: National Renewable Energy Laboratory              '//NEW_LINE('A')// &
                     '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
