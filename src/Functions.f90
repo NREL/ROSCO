@@ -546,4 +546,23 @@ CONTAINS
         END IF
 
     END SUBROUTINE Debug
+!-------------------------------------------------------------------------------------------------------------------------------
+FUNCTION QueryGitVersion()
+
+   CHARACTER(200) :: QueryGitVersion
+
+! The Visual Studio project sets the path for where to find the header file with version info
+#ifdef GIT_INCLUDE_FILE
+#include GIT_INCLUDE_FILE
+#endif
+
+#ifdef GIT_VERSION_INFO
+   QueryGitVersion = GIT_VERSION_INFO
+#else
+   QueryGitVersion = 'unversioned'
+#endif
+
+   RETURN
+END FUNCTION QueryGitVersion
+!-------------------------------------------------------------------------------------------------------------------------------
 END MODULE Functions
