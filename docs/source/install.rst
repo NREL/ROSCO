@@ -1,6 +1,7 @@
-.. _install::
 .. toctree::
     :max_depth: 3
+
+.. _install:
 
 Installing the ROSCO tools
 ===========================

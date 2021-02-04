@@ -32,7 +32,9 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
-    "sphinx_rtd_theme"
+    "sphinx_rtd_theme",
+    "sphinx.ext.graphviz",
+    "sphinx.ext.autosectionlabel",
     # "sphinxcontrib.bibtex",
 ]
 
@@ -43,6 +45,9 @@ autodoc_default_flags = [
 ]
 
 autosummary_generate = True
+
+# enable numref
+numfig = True
 
 # Napoleon settings
 napoleon_google_docstring = True
@@ -95,18 +100,18 @@ todo_include_todos = False
 
 html_theme = "sphinx_rtd_theme"
 # html_static_path = ["_static/custom.css"]
-html_theme_options = {
-    # "logo": "logo.png",
-    # "logo_name": True,
-    "badge_branch": "develop",
-    "codecov_button": True,
-    "fixed_sidebar": True,
-    "github_user": "NREL",
-    "github_repo": "ROSCO toolbox",
-    "sidebar_width": "375px",
-    "page_width": "75%",
-    "show_relbars": True,
-}
+# html_theme_options = {
+#     # "logo": "logo.png",
+#     # "logo_name": True,
+#     "badge_branch": "develop",
+#     "codecov_button": True,
+#     "fixed_sidebar": True,
+#     "github_user": "NREL",
+#     "github_repo": "ROSCO toolbox",
+#     "sidebar_width": "375px",
+#     "page_width": "75%",
+#     "show_relbars": True,
+# }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
