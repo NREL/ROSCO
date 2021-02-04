@@ -4,7 +4,6 @@ NREL's Reference OpenSource Controller (ROSCO) toolbox for wind turbine applicat
 * Simple 1-DOF turbine simulations for quick controller capability verifications
 * Parsing of OpenFAST input and output files
 
-Block diagrams of these capabilities can be seen in [architecture.png](architecture.png).
 
 ## Introduction
 The NREL Reference OpenSource Controller (ROSCO) provides an open, modular and fully adaptable baseline wind turbine controller to the scientific community. The ROSCO toolbox leverages this architecture and implementation to provide a generic tuning process for the controller. Because of the open character and modular set-up, scientists are able to collaborate and contribute in making continuous improvements to the code for the controller and the toolbox. The ROSCO toolbox is a mostly-python code base with a number of functionalities.
@@ -16,81 +15,9 @@ The NREL Reference OpenSource Controller (ROSCO) provides an open, modular and f
 * [Matlab_Toolbox](https://github.com/NREL/ROSCO_toolbox/tree/master/Matlab_Toolbox) - MATLAB scripts to parse and plot simulation output data.
 * [ofTools](https://github.com/NREL/ROSCO_toolbox/tree/master/ofTools) - A number of scripts to facilitate usage of OpenFAST and manage OpenFAST input and output files. 
 
-## Using the ROSCO Toolbox
-Here is a short (but _hopefully_ sweet) installation and run process for basic controller tuning...
 
-### Installing the complete ROSCO Toolbox
-Installation of the complete ROSCO toolbox is made easy through [Anaconda](https://www.anaconda.com/). If you do not already have Anaconda installed on your machine, please install it. If you cannot install Anaconda, you can install the ROSCO toolbox without first initiating a conda environment (step 1), but will need to follow the detailed installatino instructions of [WISDEM](https://github.com/WISDEM/WISDEM) and [ROSCO](https://github.com/NREL/ROSCO.git) from their respective github pages. 
-
-For users who have access to anaconda, please follow steps 1-3/4 below.
-
-1.  #### Create a conda environment for ROSCO
-	```
-	conda config --add channels conda-forge
-	conda create -y --name rosco-env python=3.8
-	conda activate rosco-env
-	```
-
-2. #### Install WISDEM
-	```
-	conda install -y wisdem
-	```
-
-You should then do step three _OR_ four. If you do not want to compile the ROSCO controller within the installation of the ROSCO toolbox, please follow the instruction on the controller's [github page]((https://github.com/NREL/ROSCO.git)).
-
-3.	#### Clone and Install the ROSCO toolbox with ROSCO
-	```
-	git clone https://github.com/NREL/ROSCO_toolbox.git
-	cd ROSCO_toolbox
-	git submodule init
-	git submodule update
-	conda install compilers 					# (Mac/Linux only)
-	conda install m2w64-toolchain libpython     # (Windows only)
-	python setup.py install --compile-rosco
-	```
-
-4.	#### Clone and Install the ROSCO toolbox _without_ ROSCO
-	```
-	git clone https://github.com/NREL/ROSCO_toolbox.git
-	cd ROSCO_toolbox
-	python setup.py install 
-	```
-
-### Alternatively...
-If you wish to write your own scripts to leverage the ROSCO toolbox tools, but do not necessarily need the source code or to run any of the examples, the ROSCO toolbox is available via PyPi:
-```
-pip install rosco_toolbox
-```
-Note that if you do choose to install the ROSCO Toolbox this way, you will not have the source code. Additionally, you will need to download WISDEM and the ROSCO controller separately if you wish to use any of the ROSCO toolbox functionalities that need those software packages. 
-
-#### Compiling ROSCO
-The controller itself is installed as a submodule in the ROSCO toolbox. For further information on compiling and running ROSCO itself, or to download the release binaries directly, we point you to the [ROSCO github page](https://github.com/NREL/ROSCO_toolbox.git). If you wish to re-compile the ROSOCO toolbox, cmake provides easy to compiling on Unix based systems. In order to compile the controller, you should run the following commands from the ROSCO_toolbox folder.
-```
-cd ROSCO
-mkdir build
-cd build
-cmake ..
-make
-```
-Those familiar with mingw on windows can also compile ROSCO similarly. 
-
-These commands will compile a binary titled `libdiscon.*` in the build folder, which is the binary necessary run the controller. This should only need to be compiled once. The extension should be `.dll`, `.so`, or `.dylib`, depending on the user operating system. 
-
-### Running ROSCO with Generic Tuning
-The [Tune_Cases](Tune_Cases) folder hosts examples on what needs to happen to write the input file to the ROSCO controller. See below on some details for compiling ROSCO:
-
-#### ROSCO Toolbox Generic Tuning
-IF you would like to run the generic tuning process for ROSCO, examples are shown in the [Tune_Cases](Tune_Cases) folder. When you run your own version of [tune_ROSCO.py](Tune_Cases/tune_ROSCO.py), you will have two files that are necessary to run the controller. 
-1. `DISCON.IN` (or similar) - the input file to `libdiscon.*`. When running the controller in OpenFAST, `DISCON.IN` must be appropriately pointed to by the `DLL_FileName` parameter in ServoDyn. 
-2. `Cp_Cq_Ct.txt` (or similar) - This file contains rotor performance tables that are necessary to run the wind speed estimators in ROSCO. This can live wherever you desire, just be sure to point to it properly with the `PerfFileName` parameter in `DISCON.IN`.
-
-### Updating ROSCO Toolbox
-Simple git commands should update the toolbox and controller as development continues:
-```
-git pull
-git submodule update 
-```
-and then recompile and reinstall as necessary...
+## Documentation
+All relevant documentation about the ROSCO toolbox and ROSCO controller can be found at through [ROSCO's readthedocs webpage](https://rosco-toolbox.readthedocs.io/en/latest/). Here, users can find the information on [installing the ROSCO toolbox](https://rosco-toolbox.readthedocs.io/en/latest/source/install.html#installing-the-rosco-toolbox) and [compiling ROSCO](https://rosco-toolbox.readthedocs.io/en/latest/source/install.html#compiling-rosco) for control purposes. Additionally, there is information on the standard workflow and uses cases for the ROSCO toolchain, and more. 
 
 ## Referencing
 If the ROSCO Toolbox played a role in your research, please cite it. This software can be
