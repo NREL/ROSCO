@@ -23,15 +23,15 @@ All relevant documentation about the ROSCO toolbox and ROSCO controller can be f
 If the ROSCO Toolbox played a role in your research, please cite it. This software can be
 cited as:
 
-   ROSCO. Version 1.0.0 (2020). Available at https://github.com/nrel/rosco_toolbox.
+   NREL: ROSCO Toolbox. Version 2.2.0, https://github.com/NREL/rosco_toolbox, 2021.
 
 For LaTeX users:
 
 ```
-@misc{ROSCO_toolbox_2019,
+@misc{ROSCO_toolbox_2021,
     author = {NREL},
-    title = {{ROSCO Toolbox. Version 0.1.0}},
-    year = {2019},
+    title = {{ROSCO Toolbox. Version 2.2.0}},
+    year = {2021},
     publisher = {GitHub},
     journal = {GitHub repository},
     url = {https://github.com/NREL/rosco_toolbox}
