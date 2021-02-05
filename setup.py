@@ -41,7 +41,7 @@ URL = 'https://github.com/NREL/ROSCO_toolbox'
 EMAIL = 'nikhar.abbas@nrel.gov'
 AUTHOR = 'NREL National Wind Technology Center'
 REQUIRES_PYTHON = '>=3.4'
-VERSION = '3.0.0'
+VERSION = '2.1.0'
 
 # These packages are required for all of the code to be executed. 
 # - Maybe you can get away with older versions...
@@ -105,7 +105,7 @@ class CMakeBuildExt(build_ext):
                     cmake_args += ['-G', 'MinGW Makefiles']
                     cmake_args += ['-D', 'CMAKE_Fortran_COMPILER=gfortran']
 
-            self.build_temp += '_'+ext.name
+            self.build_temp = os.path.join( os.path.dirname( os.path.realpath(__file__) ), 'ROSCO', 'build')
             os.makedirs(localdir, exist_ok=True)
             # Need fresh build directory for CMake
             os.makedirs(self.build_temp, exist_ok=True)
@@ -197,9 +197,11 @@ metadata = dict(
     include_package_date          = True,
     packages                      = find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
     license                       = 'Apache License, Version 2.0',
-    ext_modules                   = [roscoExt],
     cmdclass                      = {'build_ext': CMakeBuildExt, 'upload': UploadCommand},
     zip_safe                      = False,
 )
+if "--compile-rosco" in sys.argv:
+    metadata['ext_modules'] = [roscoExt]
+    sys.argv.remove("--compile-rosco")
 
 setup(**metadata)
