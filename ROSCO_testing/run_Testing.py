@@ -79,16 +79,14 @@ def run_testing(turbine2test, testtype, rosco_binaries=[], discon_files=[], **kw
 if __name__ == "__main__":
 
     # WEIS directory, for running openfast, etc.
-    # weis_dir = os.environ.get('weis_dir')       # works if we do  `export weis_dir=$(pwd)` in WEIS directory in terminal
-    weis_dir = '/Users/dzalkind/Tools/WEIS-3'
     this_dir =  os.path.dirname(__file__)
 
     # Setup ROSCO testing parameters
     rt_kwargs = {} 
     rt_kwargs['runDir']     = os.path.join(this_dir,'results/')        # directory for FAST simulations
     rt_kwargs['namebase']   = 'lite_test'     # Base name for FAST files 
-    rt_kwargs['FAST_exe']   = os.path.join(weis_dir,'local','bin','openfast')       # OpenFAST executable path
-    rt_kwargs['Turbsim_exe']= os.path.join(weis_dir,'local','bin','turbsim')        # Turbsim executable path
+    rt_kwargs['FAST_exe']   = 'openfast'       # OpenFAST executable path
+    rt_kwargs['Turbsim_exe']= 'turbsim'    # Turbsim executable path
     rt_kwargs['FAST_ver']   = 'OpenFAST'            # FAST version
     rt_kwargs['dev_branch'] = True                  # dev branch of Openfast?
     rt_kwargs['debug_level']= 2                     # debug level. 0 - no outputs, 1 - minimal outputs, 2 - all outputs
@@ -99,11 +97,11 @@ if __name__ == "__main__":
     rt_kwargs['outfile_fmt'] = 2                    # 1 = .txt, 2 = binary, 3 = both
 
     # ---- Define test type ----
-    turbine2test = 'IEA-15MW'   # IEA-15MW or NREL-5MW
+    turbine2test = 'NREL-5MW'   # IEA-15MW or NREL-5MW
     testtype     = 'lite'       # lite, heavy, binary-comp, discon-comp
 
     # Only fill one of these if comparing controllers
-    rosco_binaries = [glob.glob(os.path.join(this_dir,'../ROSCO/build/libdiscon*'))[0]] # Differently named libdiscons to compare
+    rosco_binaries = [glob.glob(os.path.join(this_dir,'../ROSCO/build/libdiscon.*'))[0]] # Differently named libdiscons to compare
     discon_files = []   # Differently named DISCON.IN files to compare
 
 

@@ -1,6 +1,11 @@
 # OpenFAST Tools
 A set of OpenFAST tools is provided to ease the use of the ROSCO toolbox in conjuction with [OpenFAST](https://github.com/openfast/openfast).
 
+OpenFAST can be installed using conda-forge using
+```
+conda install -c conda-forge openfast
+```
+
 Note that most of these scripts are copy and pasted from [weis's aeroleasticse](https://github.com/WISDEM/WEIS/tree/master/weis/aeroelasticse)
 
 ### case_gen
