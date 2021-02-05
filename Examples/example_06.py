@@ -19,10 +19,10 @@ from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox.utilities import write_DISCON, run_openfast
 from ROSCO_toolbox import sim as ROSCO_sim
 
-this_dir = os.path.dirname(__file__)
+this_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Load yaml file 
-parameter_filename = '/Users/dzalkind/Tools/ROSCO_toolbox/Tune_Cases/BAR.yaml' #os.path.join(this_dir,'NREL5MW_example.yaml') #
+parameter_filename = os.path.join(os.path.dirname(this_dir), 'Tune_Cases', 'IEA15MW.yaml') 
 inps = yaml.safe_load(open(parameter_filename))
 path_params         = inps['path_params']
 turbine_params      = inps['turbine_params']
@@ -47,7 +47,8 @@ write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params[
 
 # Run OpenFAST
 # --- May need to change fastcall if you use a non-standard command to call openfast
-run_openfast(path_params['FAST_directory'], fastcall='openfast', fastfile=path_params['FAST_InputFile'], chdir=True)
+fastcall = 'openfast'
+run_openfast(path_params['FAST_directory'], fastcall=fastcall, fastfile=path_params['FAST_InputFile'], chdir=True)
 
 
 

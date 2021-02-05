@@ -25,7 +25,7 @@ from ROSCO_toolbox import sim as ROSCO_sim
 from ROSCO_toolbox import control_interface as ROSCO_ci
 
 # Specify controller dynamic library path and name
-this_dir = os.path.dirname(__file__)
+this_dir = os.path.dirname(os.path.abspath(__file__))
 lib_name = os.path.join(this_dir,'../ROSCO/build/libdiscon.dylib')
 param_filename = os.path.join(this_dir,'DISCON.IN')
 
