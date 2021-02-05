@@ -459,7 +459,7 @@ CONTAINS
         INTEGER(4), PARAMETER                       :: UnDb2 = 86       ! I/O unit for the debugging information, avrSWAP
         REAL(C_FLOAT), INTENT(INOUT)                :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         CHARACTER(size_avcOUTNAME-1), INTENT(IN)    :: RootName     ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
-        
+        CHARACTER(200)                              :: Version      ! git version of ROSCO
         CHARACTER(10)                               :: DebugOutStr1,  DebugOutStr2, DebugOutStr3, DebugOutStr4, DebugOutStr5, &
                                                          DebugOutStr6, DebugOutStr7, DebugOutStr8, DebugOutStr9, DebugOutStr10, &
                                                          DebugOutStr11, DebugOutStr12, DebugOutStr13, DebugOutStr14, DebugOutStr15, & 
@@ -516,7 +516,9 @@ CONTAINS
         ! If we're debugging, open the debug file and write the header:
             ! Note that the headers will be Truncated to 10 characters!!
             IF (CntrPar%LoggingLevel > 0) THEN
+                Version = QueryGitVersion()
                 OPEN(unit=UnDb, FILE=RootName(1:size_avcOUTNAME-5)//'RO.dbg')
+                WRITE (UnDb,*)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(Version)
                 WRITE (UnDb,'(99(a10,TR5:))') 'Time',   DebugOutStrings
                 WRITE (UnDb,'(99(a10,TR5:))') '(sec)',  DebugOutUnits
             END IF
@@ -546,4 +548,111 @@ CONTAINS
         END IF
 
     END SUBROUTINE Debug
+!-------------------------------------------------------------------------------------------------------------------------------
+FUNCTION QueryGitVersion()
+
+   CHARACTER(200) :: QueryGitVersion
+
+! The Visual Studio project sets the path for where to find the header file with version info
+#ifdef GIT_INCLUDE_FILE
+#include GIT_INCLUDE_FILE
+#endif
+
+#ifdef GIT_VERSION_INFO
+   QueryGitVersion = GIT_VERSION_INFO
+#else
+   QueryGitVersion = 'unversioned'
+#endif
+
+   RETURN
+END FUNCTION QueryGitVersion
+!-------------------------------------------------------------------------------------------------------------------------------
+    ! Copied from NWTC_IO.f90
+!> This function returns a character string encoded with today's date in the form dd-mmm-ccyy.
+FUNCTION CurDate( )
+
+    ! Function declaration.
+
+    CHARACTER(11)                :: CurDate                                      !< 'dd-mmm-yyyy' string with the current date
+
+
+    ! Local declarations.
+
+    CHARACTER(8)                 :: CDate                                        ! String to hold the returned value from the DATE_AND_TIME subroutine call.
+
+
+
+    !  Call the system date function.
+
+    CALL DATE_AND_TIME ( CDate )
+
+
+    !  Parse out the day.
+
+    CurDate(1:3) = CDate(7:8)//'-'
+
+
+    !  Parse out the month.
+
+    SELECT CASE ( CDate(5:6) )
+    CASE ( '01' )
+        CurDate(4:6) = 'Jan'
+    CASE ( '02' )
+        CurDate(4:6) = 'Feb'
+    CASE ( '03' )
+        CurDate(4:6) = 'Mar'
+    CASE ( '04' )
+        CurDate(4:6) = 'Apr'
+    CASE ( '05' )
+        CurDate(4:6) = 'May'
+    CASE ( '06' )
+        CurDate(4:6) = 'Jun'
+    CASE ( '07' )
+        CurDate(4:6) = 'Jul'
+    CASE ( '08' )
+        CurDate(4:6) = 'Aug'
+    CASE ( '09' )
+        CurDate(4:6) = 'Sep'
+    CASE ( '10' )
+        CurDate(4:6) = 'Oct'
+    CASE ( '11' )
+        CurDate(4:6) = 'Nov'
+    CASE ( '12' )
+        CurDate(4:6) = 'Dec'
+    END SELECT
+
+
+    !  Parse out the year.
+
+    CurDate(7:11) = '-'//CDate(1:4)
+
+
+    RETURN
+    END FUNCTION CurDate
+!=======================================================================
+!> This function returns a character string encoded with the time in the form "hh:mm:ss".
+    FUNCTION CurTime( )
+
+    ! Function declaration.
+
+    CHARACTER(8)                 :: CurTime                                      !< The current time in the form "hh:mm:ss".
+
+
+    ! Local declarations.
+
+    CHARACTER(10)                :: CTime                                        ! String to hold the returned value from the DATE_AND_TIME subroutine call.
+
+
+
+    CALL DATE_AND_TIME ( TIME=CTime )
+
+    CurTime = CTime(1:2)//':'//CTime(3:4)//':'//CTime(5:6)
+
+
+    RETURN
+    END FUNCTION CurTime
+!=======================================================================
+
+
+
 END MODULE Functions
