@@ -242,12 +242,12 @@ class Controller():
 
         # separate and define below and above rated parameters
         A_vs = A[0:len(v_below_rated)]          # below rated
-        A_pc = A[len(v_below_rated):len(v)]     # above rated
+        A_pc = A[-len(v_above_rated)+1:]     # above rated
         B_tau = B_tau * np.ones(len(v))
 
         # -- Find gain schedule --
         self.pc_gain_schedule = ControllerTypes()
-        self.pc_gain_schedule.second_order_PI(self.zeta_pc, self.omega_pc,A_pc,B_beta[len(v_below_rated):len(v)],linearize=True,v=v_above_rated)
+        self.pc_gain_schedule.second_order_PI(self.zeta_pc, self.omega_pc,A_pc,B_beta[-len(v_above_rated)+1:],linearize=True,v=v_above_rated[1:])
         self.vs_gain_schedule = ControllerTypes()
         self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A_vs,B_tau[0:len(v_below_rated)],linearize=False,v=v_below_rated)
 
