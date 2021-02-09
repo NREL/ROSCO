@@ -19,7 +19,7 @@ from ROSCO_toolbox import utilities as ROSCO_utilities
 from ROSCO_toolbox.ofTools.fast_io import output_processing
 import os
 
-this_dir = os.path.dirname(__file__)
+this_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Define openfast output filenames
 filenames = ["../Test_Cases/NREL-5MW/NREL-5MW.outb"]

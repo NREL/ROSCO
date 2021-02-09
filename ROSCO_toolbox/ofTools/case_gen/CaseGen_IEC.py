@@ -2,8 +2,8 @@ import numpy as np
 import os, sys, copy, itertools
 import multiprocessing as mp
 
-from ofTools.case_gen.CaseGen_General import CaseGen_General, save_case_matrix, save_case_matrix_yaml
-from ofTools.fast_io.pyIECWind import pyIECWind_extreme, pyIECWind_turb
+from ROSCO_toolbox.ofTools.case_gen.CaseGen_General import CaseGen_General, save_case_matrix, save_case_matrix_yaml
+from ROSCO_toolbox.ofTools.fast_io.pyIECWind import pyIECWind_extreme, pyIECWind_turb
 
 try:
     from mpi4py import MPI
@@ -79,7 +79,10 @@ class CaseGen_IEC():
                 IEC_WindType = 'NTM'
                 alpha = 0.2
                 iecwind = pyIECWind_turb()
-                TMax = 630.
+                if self.TMax == 0:
+                    TMax = 720.
+                else:
+                    TMax = self.TMax
 
             elif dlc in [1.3, 6.1, 6.3]:
                 if self.Turbine_Class == 'I':
@@ -93,19 +96,28 @@ class CaseGen_IEC():
                 IEC_WindType = '%uETM'%x
                 alpha = 0.11
                 iecwind = pyIECWind_turb()
-                TMax = 630.
+                if self.TMax == 0:
+                    TMax = 720.
+                else:
+                    TMax = self.TMax
 
             elif dlc == 1.4:
                 IEC_WindType = 'ECD'
                 alpha = 0.2
                 iecwind = pyIECWind_extreme()
-                TMax = 90.
+                if self.TMax == 0:
+                    TMax = 120.
+                else:
+                    TMax = self.TMax
 
             elif dlc == 1.5:
                 IEC_WindType = 'EWS'
                 alpha = 0.2
                 iecwind = pyIECWind_extreme()
-                TMax = 90.
+                if self.TMax == 0:
+                    TMax = 120.
+                else:
+                    TMax = self.TMax
 
             # Windfile generation setup
             if self.TMax == 0.:
@@ -144,24 +156,24 @@ class CaseGen_IEC():
                 case_inputs_i[("ServoDyn","TPitManS1")]  = {'vals':[self.TStart], 'group':0}
                 case_inputs_i[("ServoDyn","TPitManS2")]  = {'vals':[self.TStart], 'group':0}
                 case_inputs_i[("ServoDyn","TPitManS3")]  = {'vals':[self.TStart], 'group':0}
-                case_inputs_i[("ServoDyn","PitManRat1")] = {'vals':[self.PC_MaxRat], 'group':0}
-                case_inputs_i[("ServoDyn","PitManRat2")] = {'vals':[self.PC_MaxRat], 'group':0}
-                case_inputs_i[("ServoDyn","PitManRat3")] = {'vals':[self.PC_MaxRat], 'group':0}
-                case_inputs_i[("ServoDyn","BlPitchF1")]  = {'vals':[90.], 'group':0}
-                case_inputs_i[("ServoDyn","BlPitchF2")]  = {'vals':[90.], 'group':0}
-                case_inputs_i[("ServoDyn","BlPitchF3")]  = {'vals':[90.], 'group':0}
+                case_inputs_i[("ServoDyn","PitManRat(1)")] = {'vals':[self.PC_MaxRat], 'group':0}
+                case_inputs_i[("ServoDyn","PitManRat(2)")] = {'vals':[self.PC_MaxRat], 'group':0}
+                case_inputs_i[("ServoDyn","PitManRat(3)")] = {'vals':[self.PC_MaxRat], 'group':0}
+                case_inputs_i[("ServoDyn","BlPitchF(1)")]  = {'vals':[90.], 'group':0}
+                case_inputs_i[("ServoDyn","BlPitchF(2)")]  = {'vals':[90.], 'group':0}
+                case_inputs_i[("ServoDyn","BlPitchF(3)")]  = {'vals':[90.], 'group':0}
                 case_inputs_i[("ServoDyn","GenTiStp")]   = {'vals':["True"], 'group':0}
                 case_inputs_i[("ServoDyn","TimGenOf")]   = {'vals':[self.TStart], 'group':0}
             else:
                 case_inputs_i[("ServoDyn","TPitManS1")]  = {'vals':[9999.9], 'group':0}
                 case_inputs_i[("ServoDyn","TPitManS2")]  = {'vals':[9999.9], 'group':0}
                 case_inputs_i[("ServoDyn","TPitManS3")]  = {'vals':[9999.9], 'group':0}
-                case_inputs_i[("ServoDyn","PitManRat1")] = {'vals':[2.], 'group':0}
-                case_inputs_i[("ServoDyn","PitManRat2")] = {'vals':[2.], 'group':0}
-                case_inputs_i[("ServoDyn","PitManRat3")] = {'vals':[2.], 'group':0}
-                case_inputs_i[("ServoDyn","BlPitchF1")]  = {'vals':[0.], 'group':0}
-                case_inputs_i[("ServoDyn","BlPitchF2")]  = {'vals':[0.], 'group':0}
-                case_inputs_i[("ServoDyn","BlPitchF3")]  = {'vals':[0.], 'group':0}
+                case_inputs_i[("ServoDyn","PitManRat(1)")] = {'vals':[2.], 'group':0}
+                case_inputs_i[("ServoDyn","PitManRat(2)")] = {'vals':[2.], 'group':0}
+                case_inputs_i[("ServoDyn","PitManRat(3)")] = {'vals':[2.], 'group':0}
+                case_inputs_i[("ServoDyn","BlPitchF(1)")]  = {'vals':[0.], 'group':0}
+                case_inputs_i[("ServoDyn","BlPitchF(2)")]  = {'vals':[0.], 'group':0}
+                case_inputs_i[("ServoDyn","BlPitchF(3)")]  = {'vals':[0.], 'group':0}
                 case_inputs_i[("ServoDyn","GenTiStp")]   = {'vals':["True"], 'group':0}
                 case_inputs_i[("ServoDyn","TimGenOf")]   = {'vals':[9999.9], 'group':0}
 
@@ -192,7 +204,6 @@ class CaseGen_IEC():
                 case_inputs_i[("ServoDyn","PCMode")]    = {'vals':[5], 'group':0}
                 case_inputs_i[("AeroDyn15","AFAeroMod")]= {'vals':[2], 'group':0}
                 case_inputs_i[("ElastoDyn","GenDOF")]   = {'vals':["True"], 'group':0}
-                case_inputs_i[("ElastoDyn","YawDOF")]   = {'vals':["True"], 'group':0}
 
 
             # Matrix combining N dlc variables that affect wind file generation
@@ -283,7 +294,9 @@ class CaseGen_IEC():
             if ("Fst","TMax") not in case_inputs_i:
                 case_inputs_i[("Fst","TMax")] = {'vals':[TMax], 'group':0}
             case_inputs_i[("InflowWind","WindType")] = {'vals':WindFile_type_out, 'group':1}
-            case_inputs_i[("InflowWind","Filename")] = {'vals':WindFile_out, 'group':1}
+            case_inputs_i[("InflowWind","Filename_Uni")] = {'vals':WindFile_out, 'group':1}
+            case_inputs_i[("InflowWind","FileName_BTS")] = {'vals':WindFile_out, 'group':1}
+            case_inputs_i[("InflowWind","RefLength")] = {'vals':[self.D], 'group':0}
 
             if len(self.dlc_inputs['Yaw'][i]) > 0:
                     case_inputs_i[("ElastoDyn","NacYaw")] = {'vals':self.dlc_inputs['Yaw'][i], 'group':2}
@@ -298,7 +311,7 @@ class CaseGen_IEC():
             # make unique wave seeds
             if self.uniqueWaveSeeds:
                 seed_base   = int(float(dlc) * 10000)   # set wave seed based on dlc so no repeats
-                num_in_dlc  = len(case_inputs_i[("InflowWind","Filename")]['vals'])  # sims in each DLC
+                num_in_dlc  = len(case_inputs_i[("InflowWind","FileName_BTS")]['vals'])  # sims in each DLC
                 wave_seeds  = (seed_base + np.arange(0,num_in_dlc)).tolist()
 
                 case_inputs_i[("HydroDyn","WaveSeed1")] = {'vals':wave_seeds, 'group':1}

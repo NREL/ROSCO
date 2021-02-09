@@ -20,7 +20,8 @@ from ROSCO_toolbox import sim as ROSCO_sim
 from ROSCO_toolbox.utilities import write_DISCON
 
 # Load yaml file 
-parameter_filename = os.path.join(os.path.dirname(__file__),'NREL5MW_example.yaml')
+this_dir = os.path.dirname(os.path.abspath(__file__))
+parameter_filename = os.path.join(this_dir,'NREL5MW_example.yaml')
 inps = yaml.safe_load(open(parameter_filename))
 path_params         = inps['path_params']
 turbine_params      = inps['turbine_params']
@@ -33,9 +34,9 @@ controller      = ROSCO_controller.Controller(controller_params)
 # Load turbine data from OpenFAST and rotor performance text file
 turbine.load_from_fast(
     path_params['FAST_InputFile'],
-    os.path.join(os.path.dirname(__file__),path_params['FAST_directory']),
+    os.path.join(this_dir,path_params['FAST_directory']),
     dev_branch=True,
-    rot_source='txt',txt_filename=os.path.join(os.path.dirname(__file__),path_params['rotor_performance_filename'])
+    rot_source='txt',txt_filename=os.path.join(this_dir,path_params['rotor_performance_filename'])
     )
 
 # Tune controller 
