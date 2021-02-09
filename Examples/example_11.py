@@ -28,7 +28,12 @@ turbine_params      = inps['turbine_params']
 controller_params   = inps['controller_params']
 
 # Linear file output
-linmod_filename     = 'IEA15MW_LinMod.dat'
+this_dir = os.path.dirname(os.path.abspath(__file__))
+example_out_dir = os.path.join(this_dir,'examples_out')
+if not os.path.isdir(example_out_dir):
+  os.makedirs(example_out_dir)
+
+linmod_filename     = os.path.join(example_out_dir,'11_IEA15MW_LinMod.dat')
 
 # Instantiate turbine, controller, and file processing classes
 turbine         = ROSCO_turbine.Turbine(turbine_params)
