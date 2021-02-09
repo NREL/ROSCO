@@ -18,8 +18,12 @@ from ROSCO_toolbox.utilities import write_rotor_performance
 turbine_params = {}
 control_params = {}
 
-# Load yaml file
 this_dir = os.path.dirname(os.path.abspath(__file__))
+example_out_dir = os.path.join(this_dir,'examples_out')
+if not os.path.isdir(example_out_dir):
+  os.makedirs(example_out_dir)
+
+# Load yaml file
 parameter_filename = os.path.join(this_dir,'NREL5MW_example.yaml')
 inps = yaml.safe_load(open(parameter_filename))
 path_params         = inps['path_params']
@@ -36,5 +40,5 @@ turbine.load_from_fast(
     txt_filename=None)
 
 # Write rotor performance text file
-txt_filename = os.path.join(this_dir,'Cp_Ct_Cq.Ex03.txt')
+txt_filename = os.path.join(example_out_dir,'03_Cp_Ct_Cq.Ex03.txt')
 write_rotor_performance(turbine,txt_filename=txt_filename)

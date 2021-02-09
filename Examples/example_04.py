@@ -48,13 +48,21 @@ write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params[
 
 # Plot gain schedule
 fig, ax = plt.subplots(1,2,constrained_layout=True)
-ax[0].plot(controller.v[len(controller.vs_gain_schedule.Kp):], controller.pc_gain_schedule.Kp)
+ax[0].plot(controller.v[len(controller.v_below_rated)+1:], controller.pc_gain_schedule.Kp)
 ax[0].set_xlabel('Wind Speed')
 ax[0].set_ylabel('Proportional Gain')
 
-ax[1].plot(controller.v[len(controller.vs_gain_schedule.Ki):], controller.pc_gain_schedule.Ki)
+ax[1].plot(controller.v[len(controller.v_below_rated)+1:], controller.pc_gain_schedule.Ki)
 ax[1].set_xlabel('Wind Speed')
 ax[1].set_ylabel('Integral Gain')
 
 plt.suptitle('Pitch Controller Gains')
-plt.show()
+
+example_out_dir = os.path.join(this_dir,'examples_out')
+if not os.path.isdir(example_out_dir):
+  os.makedirs(example_out_dir)
+
+if False:
+  plt.show()
+else:
+  plt.savefig(os.path.join(example_out_dir,'04_GainSched.png'))
