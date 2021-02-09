@@ -58,9 +58,38 @@ all_scripts = [
 
 class TestExamples(unittest.TestCase):
     
-    # I think we would break them up here, currently they are just one big test
-    def test_ROSCO_toolbox(self):
-        run_all_scripts("example", all_scripts)
+    def test_example_01(self):
+        run_all_scripts("example_01", all_scripts)
+
+    def test_example_02(self):
+        run_all_scripts("example_02", all_scripts)
+
+    def test_example_03(self):
+        run_all_scripts("example_03", all_scripts)
+
+    def test_example_04(self):
+        run_all_scripts("example_04", all_scripts)
+
+    def test_example_05(self):
+        run_all_scripts("example_05", all_scripts)
+
+    def test_example_06(self):
+        run_all_scripts("example_06", all_scripts)
+
+    def test_example_07(self):
+        run_all_scripts("example_07", all_scripts)
+
+    def test_example_08(self):
+        run_all_scripts("example_08", all_scripts)
+
+    def test_example_09(self):
+        run_all_scripts("example_09", all_scripts)
+
+    def test_example_10(self):
+        run_all_scripts("example_10", all_scripts)
+
+    def test_example_11(self):
+        run_all_scripts("example_11", all_scripts)
                     
 
 
