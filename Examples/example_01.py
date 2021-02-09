@@ -38,4 +38,8 @@ turbine.load_from_fast(
 print(turbine)
 
 # Save the turbine model
-turbine.save(os.path.join(this_dir,'NREL5MW_saved.p'))
+example_out_dir = os.path.join(this_dir,'examples_out')
+if not os.path.isdir(example_out_dir):
+  os.makedirs(example_out_dir)
+
+turbine.save(os.path.join(example_out_dir,'01_NREL5MW_saved.p'))
