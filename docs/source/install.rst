@@ -26,8 +26,8 @@ For users familiar with Anaconda_, ROSCO is available through the conda-forge ch
 ::
 
     conda config --add channels conda-forge
-    conda create -y --name ROSCO-env
-    conda activate ROSCO-env
+    conda create -y --name rosco-env python=3.8
+    conda activate rosco-env
 
 navigate to your desired folder to save the compiled binary using:
 ::
@@ -47,7 +47,7 @@ This will download a compiled ROSCO binary file into the default filepath for an
 
 CMake for developers:
 .....................
-CMake_ provides a straightforward option for many users, particularly those on a Mac or Linux. ROSCO can be compiled by first cloning the source code from git using:
+CMake_ provides a straightforward option for many users, particularly those on a Mac or Linux. For windows users, we recommend using MinGW_ to compile similarly. ROSCO can be compiled by first cloning the source code from git using:
 ::
 
     git clone https://github.com/NREL/ROSCO.git
@@ -132,3 +132,4 @@ and then recompile and reinstall as necessary...
 
 .. _Anaconda: https://www.anaconda.com/
 .. _CMake: https://cmake.org/
+.. _MinGW: https://mingw-w64.org/
