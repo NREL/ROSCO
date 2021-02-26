@@ -1,5 +1,5 @@
 .. toctree::
-    :max_depth: 2
+    :max_depth: 1
 
 .. _rosco_toolbox:
 
@@ -15,7 +15,8 @@ The primary tools of the ROSCO toolbox are separated into several folders. They 
 
 *ROSCO_toolbox*
 ...............
-The primary source code for the ROSCO toolbox generic tuning implementations lives here. 
+The source code for the ROSCO toolbox generic tuning implementations lives here. 
+
     * :code:`turbine.py` loads a wind turbine model from OpenFAST_ input files.
     * :code:`controller.py` contains the generic controller tuning scripts
     * :code:`utilities.py` has most of the input/output file management scripts
