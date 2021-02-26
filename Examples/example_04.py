@@ -20,7 +20,8 @@ from ROSCO_toolbox import sim as ROSCO_sim
 from ROSCO_toolbox.utilities import write_DISCON
 
 # Load yaml file 
-parameter_filename = os.path.join(os.path.dirname(__file__),'NREL5MW_example.yaml')
+this_dir = os.path.dirname(os.path.abspath(__file__))
+parameter_filename = os.path.join(this_dir,'NREL5MW_example.yaml')
 inps = yaml.safe_load(open(parameter_filename))
 path_params         = inps['path_params']
 turbine_params      = inps['turbine_params']
@@ -33,9 +34,9 @@ controller      = ROSCO_controller.Controller(controller_params)
 # Load turbine data from OpenFAST and rotor performance text file
 turbine.load_from_fast(
     path_params['FAST_InputFile'],
-    os.path.join(os.path.dirname(__file__),path_params['FAST_directory']),
+    os.path.join(this_dir,path_params['FAST_directory']),
     dev_branch=True,
-    rot_source='txt',txt_filename=os.path.join(os.path.dirname(__file__),path_params['rotor_performance_filename'])
+    rot_source='txt',txt_filename=os.path.join(this_dir,path_params['rotor_performance_filename'])
     )
 
 # Tune controller 
@@ -47,13 +48,21 @@ write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params[
 
 # Plot gain schedule
 fig, ax = plt.subplots(1,2,constrained_layout=True)
-ax[0].plot(controller.v[len(controller.vs_gain_schedule.Kp):], controller.pc_gain_schedule.Kp)
+ax[0].plot(controller.v[len(controller.v_below_rated)+1:], controller.pc_gain_schedule.Kp)
 ax[0].set_xlabel('Wind Speed')
 ax[0].set_ylabel('Proportional Gain')
 
-ax[1].plot(controller.v[len(controller.vs_gain_schedule.Ki):], controller.pc_gain_schedule.Ki)
+ax[1].plot(controller.v[len(controller.v_below_rated)+1:], controller.pc_gain_schedule.Ki)
 ax[1].set_xlabel('Wind Speed')
 ax[1].set_ylabel('Integral Gain')
 
 plt.suptitle('Pitch Controller Gains')
-plt.show()
+
+example_out_dir = os.path.join(this_dir,'examples_out')
+if not os.path.isdir(example_out_dir):
+  os.makedirs(example_out_dir)
+
+if False:
+  plt.show()
+else:
+  plt.savefig(os.path.join(example_out_dir,'04_GainSched.png'))

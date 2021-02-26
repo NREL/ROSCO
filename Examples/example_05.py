@@ -10,14 +10,13 @@ In this example:
 
 Notes - You will need to have a compiled controller in ROSCO, and 
         properly point to it in the `lib_name` variable.
-      - The complex nature of the wind speed estimators implemented in ROSCO
-        make using them for simulations is known to cause problems for 
-        the simple simulator. We suggesting using WE_Mode = 0 in DISCON.IN.
+      - Using wind speed estimators in this simple simulation is 
+        known to cause problems. We suggesting using WE_Mode = 0 in DISCON.IN.
 '''
 # Python modules
 import matplotlib.pyplot as plt 
 import numpy as np
-import yaml, os
+import yaml, os, platform
 # ROSCO toolbox modules 
 from ROSCO_toolbox import controller as ROSCO_controller
 from ROSCO_toolbox import turbine as ROSCO_turbine
@@ -25,13 +24,23 @@ from ROSCO_toolbox import sim as ROSCO_sim
 from ROSCO_toolbox import control_interface as ROSCO_ci
 
 # Specify controller dynamic library path and name
-this_dir = os.path.dirname(__file__)
-lib_name = os.path.join(this_dir,'../ROSCO/build/libdiscon.dylib')
+this_dir = os.path.dirname(os.path.abspath(__file__))
+example_out_dir = os.path.join(this_dir,'examples_out')
+if not os.path.isdir(example_out_dir):
+  os.makedirs(example_out_dir)
+
+if platform.system() == 'Windows':
+    lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.dll')
+elif platform.system() == 'Darwin':
+    lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.dylib')
+else:
+    lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.so')
+
 param_filename = os.path.join(this_dir,'DISCON.IN')
 
 # Load turbine model from saved pickle
 turbine = ROSCO_turbine.Turbine
-turbine = turbine.load(os.path.join(this_dir,'NREL5MW_saved.p'))
+turbine = turbine.load(os.path.join(example_out_dir,'01_NREL5MW_saved.p'))
 
 # Load controller library
 controller_int = ROSCO_ci.ControllerInterface(lib_name,param_filename=param_filename)
@@ -51,5 +60,9 @@ for i in range(len(t)):
 
 # Run simulator and plot results
 sim.sim_ws_series(t,ws,rotor_rpm_init=4)
-plt.show()
+
+if False:
+  plt.show()
+else:
+  plt.savefig(os.path.join(example_out_dir,'05_NREL5MW_SimpSim.png'))
 
