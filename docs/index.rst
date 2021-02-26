@@ -4,6 +4,7 @@
    source/standard_use.rst
    source/install.rst
    source/rosco_toolbox.rst
+   source/rosco.rst
 
 ROSCO toolbox documentation
 ===========================
