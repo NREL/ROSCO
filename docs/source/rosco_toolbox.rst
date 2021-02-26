@@ -3,7 +3,7 @@
 
 .. _rosco_toolbox:
 
-ROSCO toolbox Structure
+ROSCO Toolbox Structure
 ========================
 Here, we give an overview of the structure of the ROSCO toolbox and how the code is implemented. 
 
