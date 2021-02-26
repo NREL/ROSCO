@@ -29,7 +29,7 @@ A standard file structure is used as an input to the ROSCO controller. This is, 
 
 .. list-table:: DISCON.IN 
   :header-rows: 1
-  :widths: 15 15 10 60
+  :widths: 10 10 10 70
   :stub-columns: 1
 
   * - Primary Section
@@ -122,23 +122,23 @@ A standard file structure is used as an input to the ROSCO controller. This is, 
     - Number of gain-scheduling table entries
   * - 
     - :code:`PC_GS_angles`
-    - Float array with length = :code:`PC_GS_n`
+    - Float array, length = :code:`PC_GS_n`
     - Gain-schedule table: pitch angles [rad].
   * - 
     - :code:`PC_GS_KP`
-    - Float array with length = :code:`PC_GS_n`
+    - Float array, length = :code:`PC_GS_n`
     - Gain-schedule table: pitch controller proportional gains [s].
   * - 
     - :code:`PC_GS_KI`
-    - Float array with length = :code:`PC_GS_n`
+    - Float array, length = :code:`PC_GS_n`
     - Gain-schedule table: pitch controller integral gains [-]. 
   * - 
     - :code:`PC_GS_KD`
-    - Float array with length = :code:`PC_GS_n`
+    - Float array, length = :code:`PC_GS_n`
     - Gain-schedule table: pitch controller derivative gains [:math:`s^2`]. Currently unused!
   * - 
     - :code:`PC_GS_TF`
-    - Float array with length = :code:`PC_GS_n`
+    - Float array, length = :code:`PC_GS_n`
     - Gain-schedule table: transfer function gains [:math:`s^2`]. Currently unused!
   * - 
     - :code:`PC_MaxPit` 
