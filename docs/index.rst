@@ -1,8 +1,7 @@
 .. toctree::
-   :hidden:
 
-   source/standard_use.rst
    source/install.rst
+   source/standard_use.rst
    source/rosco_toolbox.rst
    source/rosco.rst
 

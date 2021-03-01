@@ -1,5 +1,4 @@
 .. toctree::
-    :max_depth: 1
 
 .. _rosco_toolbox:
 
@@ -37,7 +36,7 @@ A simulink implementation of the ROSCO controller is included in the Matlab Tool
 Testing scripts for the ROSCO toolbox are held here and showcased with :code:`run_testing.py`. These can be used to compare different controller tunings or different controllers all together.
 
 *Test_Cases*
-...........
+............
 Example OpenFAST models consistent with OpenFAST's master branch are provided here for simple testing and simulation cases.
 
 *Tune_Cases*

@@ -1,5 +1,4 @@
 .. toctree::
-    :max_depth: 1
 
 .. _rosco:
 
