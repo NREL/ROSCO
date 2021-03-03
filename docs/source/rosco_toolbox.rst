@@ -25,7 +25,7 @@ The source code for the ROSCO toolbox generic tuning implementations lives here.
 
 *Examples*
 ..........
-A number of examples are included to showcase the numerous capabilities of the ROSCO toolbox
+A number of examples are included to showcase the numerous capabilities of the ROSCO toolbox; they are described in the :ref:`standard_use`.
 
 *Matlab_Toolbox*
 ................
@@ -37,7 +37,7 @@ Testing scripts for the ROSCO toolbox are held here and showcased with :code:`ru
 
 *Test_Cases*
 ............
-Example OpenFAST models consistent with OpenFAST's master branch are provided here for simple testing and simulation cases.
+Example OpenFAST models consistent with the latest release of OpenFAST are provided here for simple testing and simulation cases.
 
 *Tune_Cases*
 ............
@@ -113,7 +113,7 @@ A yaml_ formatted input file is used for the standard ROSCO toolbox tuning proce
     - :code:`bld_edgewise_freq`
     - Yes
     - Float
-    - Blade edgewise first natural frequency [rad/s]. 
+    - Blade edgewise first natural frequency [rad/s].  Set this even if you are using stiff blades. It becomes the generator speed LPF bandwidth.
   * - 
     - :code:`TSR_operational`
     - No

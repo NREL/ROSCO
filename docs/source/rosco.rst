@@ -9,7 +9,7 @@ Here, we give an overview of the structure of the ROSCO controller and how the c
 -----
 
 File Structure
----------------
+--------------
 The primary functions of the ROSCO toolbox are separated into several files. They include the following:
 
     * :code:`DISCON.f90` is the primary driver function. 
@@ -19,12 +19,15 @@ The primary functions of the ROSCO toolbox are separated into several files. The
     * :code:`Controllers.f90` contains the primary controller algorithms (e.g. blade pitch control)
     * :code:`ControllerBlocks.f90` contains additional control features that are not necessarily primary controllers (e.g. wind speed estimator)
     * :code:`Filters.f90` contains the various filter implementations.
+    * :code:`Functions.f90` contains various functions used in the controller.
 
 .. _discon_in: 
 
 The DISCON.IN file
 ------------------------------
-A standard file structure is used as an input to the ROSCO controller. This is, generically, dubbed the DISCON.IN file, though it can be renamed (In OpenFAST_, this file is pointed to by :code:`DLL_InFile` in the ServoDyn file. Examples of the DISCON.IN file are found in each of the Test Cases in the ROSCO toolbox, and in the :code:`parameter_files` folder of ROSCO. 
+A standard file structure is used as an input to the ROSCO controller. 
+This is, generically, dubbed the DISCON.IN file, though it can be renamed (In OpenFAST_, this file is pointed to by :code:`DLL_InFile` in the ServoDyn file. 
+Examples of the DISCON.IN file are found in each of the Test Cases in the ROSCO toolbox, and in the :code:`parameter_files` folder of ROSCO. 
 
 .. list-table:: DISCON.IN 
   :header-rows: 1
@@ -74,7 +77,7 @@ A standard file structure is used as an input to the ROSCO controller. This is, 
   * -
     - :code:`PS_Mode`
     - Int
-    - Pitch saturation mode. 0: no pitch saturation, 1: implement pitch saturation}
+    - Pitch saturation mode. 0: no pitch saturation, 1: implement pitch saturation
   * -
     - :code:`SD_Mode`
     - Int 
