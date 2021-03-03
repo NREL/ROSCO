@@ -79,7 +79,6 @@ For example in `Test_Cases/NREL-5MW`:
 * :code:`DISCON.IN` has :code:`"Cp_Ct_Cq.NREL5MW.txt"` as the :code:`PerfFileName` input
 
 The ROSCO_toolbox has methods for running OpenFAST (and other) binary executables using system calls, as well as post-processing tools in `ofTools/ <https://github.com/NREL/ROSCO_toolbox/tree/develop/ROSCO_toolbox/ofTools>`_.
-For more extensive post-processing tools, please see pCrunch (link).
 
 Several example scripts are set up to quickly simulate ROSCO with OpenFAST:
 
