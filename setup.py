@@ -96,9 +96,9 @@ class CMakeBuildExt(build_ext):
 
             cmake_args = ['-DBUILD_SHARED_LIBS=OFF']
             cmake_args += ['-DCMAKE_Fortran_FLAGS=-ffree-line-length-0']
+            cmake_args += ['-DCMAKE_INSTALL_PREFIX={}'.format(localdir)]
 
             if platform.system() == 'Windows':
-                cmake_args += ['-DCMAKE_INSTALL_PREFIX={}'.format(localdir)]
                 if self.compiler.compiler_type == 'msvc':
                     cmake_args += ['-DCMAKE_GENERATOR_PLATFORM=x64']
                 else:
