@@ -50,12 +50,12 @@ def run_testing(turbine2test, testtype, rosco_binaries=[], discon_files=[], **kw
     if turbine2test == 'NREL-5MW':
         rt.Turbine_Class = 'I'
         rt.Turbulence_Class = 'A'
-        rt.FAST_directory = os.path.join(os.path.dirname(__file__), '../Test_Cases/NREL-5MW')
+        rt.FAST_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Test_Cases/NREL-5MW')
         rt.FAST_InputFile = 'NREL-5MW.fst'
     elif turbine2test == 'IEA-15MW':
         rt.Turbine_Class = 'I'
         rt.Turbulence_Class = 'B'
-        rt.FAST_directory = os.path.join(os.path.dirname(__file__), '../Test_Cases/IEA-15-240-RWT-UMaineSemi')
+        rt.FAST_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Test_Cases/IEA-15-240-RWT-UMaineSemi')
         rt.FAST_InputFile = 'IEA-15-240-RWT-UMaineSemi.fst'
     else:
         raise ValueError('{} is not an available turbine to test!'.format(turbine2test))
@@ -79,12 +79,12 @@ def run_testing(turbine2test, testtype, rosco_binaries=[], discon_files=[], **kw
 if __name__ == "__main__":
 
     # WEIS directory, for running openfast, etc.
-    this_dir =  os.path.dirname(__file__)
+    this_dir =  os.path.dirname(os.path.realpath(__file__))
 
     # Setup ROSCO testing parameters
     rt_kwargs = {} 
-    rt_kwargs['runDir']     = os.path.join(this_dir,'results/')        # directory for FAST simulations
-    rt_kwargs['namebase']   = 'lite_test'     # Base name for FAST files 
+    rt_kwargs['runDir']     = os.path.join(this_dir,'results/IEA-15MW')        # directory for FAST simulations
+    rt_kwargs['namebase']   = 'heavy_test'     # Base name for FAST files 
     rt_kwargs['FAST_exe']   = 'openfast'       # OpenFAST executable path
     rt_kwargs['Turbsim_exe']= 'turbsim'    # Turbsim executable path
     rt_kwargs['FAST_ver']   = 'OpenFAST'            # FAST version
@@ -97,13 +97,14 @@ if __name__ == "__main__":
     rt_kwargs['outfile_fmt'] = 2                    # 1 = .txt, 2 = binary, 3 = both
 
     # ---- Define test type ----
-    turbine2test = 'NREL-5MW'   # IEA-15MW or NREL-5MW
-    testtype     = 'lite'       # lite, heavy, binary-comp, discon-comp
+    turbine2test = 'IEA-15MW'   # IEA-15MW or NREL-5MW
+    testtype     = 'heavy'       # lite, heavy, binary-comp, discon-comp
 
     # Only fill one of these if comparing controllers
     rosco_binaries = [glob.glob(os.path.join(this_dir,'../ROSCO/build/libdiscon.*'))[0]] # Differently named libdiscons to compare
     discon_files = []   # Differently named DISCON.IN files to compare
-
+    print(rosco_binaries)
+    print(this_dir)
 
     # Run testing
     run_testing(turbine2test, testtype, rosco_binaries=rosco_binaries, discon_files=discon_files, **rt_kwargs)
