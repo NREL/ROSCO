@@ -476,7 +476,6 @@ class ROSCO_testing():
         self.windDir = wind_dir_init
 
     def print_results(self,outfiles):
-        print(outfiles)
 
         op = output_processing.output_processing()
         FAST_Output = op.load_fast_out(outfiles, tmin=0)

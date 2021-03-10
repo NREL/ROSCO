@@ -84,7 +84,7 @@ if __name__ == "__main__":
     # Setup ROSCO testing parameters
     rt_kwargs = {} 
     rt_kwargs['runDir']     = os.path.join(this_dir,'results/IEA-15MW')        # directory for FAST simulations
-    rt_kwargs['namebase']   = 'heavy_test'     # Base name for FAST files 
+    rt_kwargs['namebase']   = 'lite_test'     # Base name for FAST files 
     rt_kwargs['FAST_exe']   = 'openfast'       # OpenFAST executable path
     rt_kwargs['Turbsim_exe']= 'turbsim'    # Turbsim executable path
     rt_kwargs['FAST_ver']   = 'OpenFAST'            # FAST version
@@ -98,13 +98,11 @@ if __name__ == "__main__":
 
     # ---- Define test type ----
     turbine2test = 'IEA-15MW'   # IEA-15MW or NREL-5MW
-    testtype     = 'heavy'       # lite, heavy, binary-comp, discon-comp
+    testtype     = 'lite'       # lite, heavy, binary-comp, discon-comp
 
     # Only fill one of these if comparing controllers
     rosco_binaries = [glob.glob(os.path.join(this_dir,'../ROSCO/build/libdiscon.*'))[0]] # Differently named libdiscons to compare
     discon_files = []   # Differently named DISCON.IN files to compare
-    print(rosco_binaries)
-    print(this_dir)
 
     # Run testing
     run_testing(turbine2test, testtype, rosco_binaries=rosco_binaries, discon_files=discon_files, **rt_kwargs)
