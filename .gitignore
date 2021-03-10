@@ -10,7 +10,7 @@ Source/x64/
 Source/Release/
 *build*
 Makefile
-
+*install*
 
 # Archive
 Scripts/CompileDISCONHereCopyRun\.cmd
@@ -20,6 +20,8 @@ Scripts/CompileDISCONHereCopyRun\.cmd
 *~
 .DS_Store
 *.u2d
+*.i90
+*.swp
 
 # vs code
 .vscode

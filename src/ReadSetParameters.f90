@@ -253,7 +253,7 @@ CONTAINS
         
         ! ----- Torque controller reference errors -----
         ! Define VS reference generator speed [rad/s]
-        IF (CntrPar%VS_ControlMode == 2) THEN
+        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
             VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
             VS_RefSpd = saturate(VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
         ELSE
@@ -274,7 +274,7 @@ CONTAINS
         VS_RefSpd = max(VS_RefSpd, CntrPar%VS_MinOmSpd)
 
         ! TSR-tracking reference error
-        IF (CntrPar%VS_ControlMode == 2) THEN
+        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
             LocalVar%VS_SpdErr = VS_RefSpd - LocalVar%GenSpeedF
         ENDIF
 
@@ -504,7 +504,7 @@ CONTAINS
         CHARACTER(KIND=C_CHAR), INTENT(IN)      :: accINFILE(NINT(avrSWAP(50)))     ! The name of the parameter input file
         CHARACTER(size_avcMSG-1), INTENT(OUT) :: ErrMsg     ! a Fortran version of the C string argument (not considered an array here) [subtract 1 for the C null-character]
         INTEGER(4) :: K    ! Index used for looping through blades.
-        
+        CHARACTER(200) :: git_version
         ! Set aviFAIL to 0 in each iteration:
         aviFAIL = 0
         
@@ -535,18 +535,26 @@ CONTAINS
             
             ! Inform users that we are using this user-defined routine:
             aviFAIL = 1
+            git_version = QueryGitVersion()
+            ! ErrMsg = '                                                                              '//NEW_LINE('A')// &
+            !          '------------------------------------------------------------------------------'//NEW_LINE('A')// &
+            !          'Running a controller implemented through NREL''s ROSCO Toolbox                    '//NEW_LINE('A')// &
+            !          'A wind turbine controller framework for public use in the scientific field    '//NEW_LINE('A')// &
+            !          'Developed in collaboration: National Renewable Energy Laboratory              '//NEW_LINE('A')// &
+            !          '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
+            !          'Primary development by (listed alphabetically): Nikhar J. Abbas               '//NEW_LINE('A')// &
+            !          '                                                Sebastiaan P. Mulders         '//NEW_LINE('A')// &
+            !          '                                                Jan-Willem van Wingerden      '//NEW_LINE('A')// &
+            !          'Visit our GitHub-page to contribute to this project:                          '//NEW_LINE('A')// &
+            !          'https://github.com/NREL/ROSCO                                                 '//NEW_LINE('A')// &
+            !          '------------------------------------------------------------------------------'
             ErrMsg = '                                                                              '//NEW_LINE('A')// &
-                     '------------------------------------------------------------------------------'//NEW_LINE('A')// &
-                     'Running a controller implemented through NREL''s ROSCO Toolbox                    '//NEW_LINE('A')// &
-                     'A wind turbine controller framework for public use in the scientific field    '//NEW_LINE('A')// &
-                     'Developed in collaboration: National Renewable Energy Laboratory              '//NEW_LINE('A')// &
-                     '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
-                     'Primary development by (listed alphabetically): Nikhar J. Abbas               '//NEW_LINE('A')// &
-                     '                                                Sebastiaan P. Mulders         '//NEW_LINE('A')// &
-                     '                                                Jan-Willem van Wingerden      '//NEW_LINE('A')// &
-                     'Visit our GitHub-page to contribute to this project:                          '//NEW_LINE('A')// &
-                     'https://github.com/NREL/ROSCO                                                 '//NEW_LINE('A')// &
-                     '------------------------------------------------------------------------------'
+                    '------------------------------------------------------------------------------'//NEW_LINE('A')// &
+                    'Running ROSCO-'//TRIM(git_version)//NEW_LINE('A')// &
+                    'A wind turbine controller framework for public use in the scientific field    '//NEW_LINE('A')// &
+                    'Developed in collaboration: National Renewable Energy Laboratory              '//NEW_LINE('A')// &
+                    '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
+                    '------------------------------------------------------------------------------'
 
             CALL ReadControlParameterFileSub(CntrPar, accINFILE, NINT(avrSWAP(50)))
 
@@ -575,7 +583,7 @@ CONTAINS
                 LocalVar%GenTq = min(CntrPar%VS_RtTq, CntrPar%VS_Rgn2K*LocalVar%GenSpeed*LocalVar%GenSpeed)
             ENDIF            
             LocalVar%VS_LastGenTrq = LocalVar%GenTq       
-            
+            LocalVar%VS_MaxTq      = CntrPar%VS_MaxTq
             ! Check validity of input parameters:
             CALL Assert(LocalVar, CntrPar, avrSWAP, aviFAIL, ErrMsg, size_avcMSG)
             
@@ -629,7 +637,7 @@ CONTAINS
         READ(UnPerfParameters, *) 
         ALLOCATE(PerfData%Cq_mat(CntrPar%PerfTableSize(1),CntrPar%PerfTableSize(2)))
         DO i = 1,CntrPar%PerfTableSize(2)
-            READ(UnPerfParameters, *) PerfData%Ct_mat(i,:) ! Read Cq table
+            READ(UnPerfParameters, *) PerfData%Cq_mat(i,:) ! Read Cq table
         END DO
     
     END SUBROUTINE ReadCpFile

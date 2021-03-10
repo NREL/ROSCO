@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
-project(ROSCO VERSION 2.1.1 LANGUAGES Fortran)
+project(ROSCO VERSION 2.2.0 LANGUAGES Fortran)
 
 set(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/ftnmods")
 
@@ -12,14 +12,15 @@ message(STATUS "CMAKE_Fortran_COMPILER_ID = ${CMAKE_Fortran_COMPILER_ID}")
 if(APPLE OR UNIX)
   # Enable .dll export
   if (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -r8 -double_size 64")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -r8 -double_size 64 -cpp")
   else()
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -ffree-line-length-0 -fdefault-real-8 -fdefault-double-8")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -ffree-line-length-0 -fdefault-real-8 -fdefault-double-8 -cpp")
   endif()
 elseif(WIN32 AND MINGW)
   # Ensure static linking to avoid requiring Fortran runtime dependencies
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ffree-line-length-0 -static-libgcc -static-libgfortran -static  -fdefault-real-8 -fdefault-double-8")
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ffree-line-length-0 -static-libgcc -static-libgfortran -static  -fdefault-real-8 -fdefault-double-8 -cpp")
 endif()
+
 
 set(SOURCES
     src/Constants.f90
@@ -32,6 +33,18 @@ set(SOURCES
     src/ReadSetParameters.f90
 )
 
+# Git version
+if( DEFINED GIT_DESCRIBE )
+  message( WARNING
+    "Version information has been set as a CMake flag. This should only used when the git-version cannot be set automatically."
+  )
+else()
+  include(${CMAKE_SOURCE_DIR}/cmake/GetGitRevisionDescription.cmake)
+  git_describe(GIT_DESCRIBE)
+endif()
+add_definitions(-DGIT_VERSION_INFO="${GIT_DESCRIBE}")
+
+# Library
 add_library(discon SHARED ${SOURCES})
 
 install(TARGETS discon
@@ -40,3 +53,6 @@ install(TARGETS discon
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
 )
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/install")
+endif()
