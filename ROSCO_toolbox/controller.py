@@ -12,7 +12,6 @@
 import numpy as np
 import sys
 import datetime
-from wisdem.ccblade import CCAirfoil, CCBlade
 from scipy import interpolate, gradient, integrate
 
 # Some useful constants
@@ -159,13 +158,14 @@ class Controller():
         TSR_rated = rated_rotor_speed*R/turbine.v_rated  # TSR at rated
 
         # separate wind speeds by operation regions
-        v_below_rated = np.arange(turbine.v_min,turbine.v_rated,0.5)             # below rated
-        v_above_rated = np.arange(turbine.v_rated+0.5,turbine.v_max,0.5)             # above rated
+        v_below_rated = np.linspace(turbine.v_min,turbine.v_rated, num=30)             # below rated
+        v_above_rated = np.linspace(turbine.v_rated,turbine.v_max, num=30)             # above rated
         v = np.concatenate((v_below_rated, v_above_rated))
 
         # separate TSRs by operations regions
         TSR_below_rated = np.ones(len(v_below_rated))*turbine.TSR_operational # below rated     
-        TSR_above_rated = rated_rotor_speed*R/v_above_rated                     # above rated
+        TSR_above_rated = rated_rotor_speed*R/v_above_rated                   # above rated
+        # TSR_below_rated = np.minimum(np.max(TSR_above_rated), TSR_below_rated)
         TSR_op = np.concatenate((TSR_below_rated, TSR_above_rated))   # operational TSRs
 
         # Find expected operational Cp values
@@ -242,12 +242,12 @@ class Controller():
 
         # separate and define below and above rated parameters
         A_vs = A[0:len(v_below_rated)]          # below rated
-        A_pc = A[len(v_below_rated):len(v)]     # above rated
+        A_pc = A[-len(v_above_rated)+1:]     # above rated
         B_tau = B_tau * np.ones(len(v))
 
         # -- Find gain schedule --
         self.pc_gain_schedule = ControllerTypes()
-        self.pc_gain_schedule.second_order_PI(self.zeta_pc, self.omega_pc,A_pc,B_beta[len(v_below_rated):len(v)],linearize=True,v=v_above_rated)
+        self.pc_gain_schedule.second_order_PI(self.zeta_pc, self.omega_pc,A_pc,B_beta[-len(v_above_rated)+1:],linearize=True,v=v_above_rated[1:])
         self.vs_gain_schedule = ControllerTypes()
         self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A_vs,B_tau[0:len(v_below_rated)],linearize=False,v=v_below_rated)
 
@@ -273,14 +273,14 @@ class Controller():
         self.v              = v                                  # Wind speed (m/s)
         self.v_below_rated  = v_below_rated
         self.pitch_op       = pitch_op
-        self.pitch_op_pc    = pitch_op[len(v_below_rated):len(v)]
+        self.pitch_op_pc    = pitch_op[-len(v_above_rated)+1:]
         self.TSR_op         = TSR_op
         self.A              = A 
         self.B_beta         = B_beta
         self.B_tau          = B_tau
         self.B_wind         = B_wind
         self.TSR_op         = TSR_op
-        self.omega_op       = TSR_op*v/R
+        self.omega_op       = np.minimum(turbine.rated_rotor_speed, TSR_op*v/R)
         self.Pi_omega       = Pi_omega
         self.Pi_beta        = Pi_beta
         self.Pi_wind        = Pi_wind
@@ -303,7 +303,8 @@ class Controller():
         # --- Floating feedback term ---
         if self.Fl_Mode == 1: # Floating feedback
             Kp_float = (dtau_dv/dtau_dbeta) * turbine.TowerHt * Ng 
-            self.Kp_float = Kp_float[len(v_below_rated)]
+            f_kp     = interpolate.interp1d(v,Kp_float)
+            self.Kp_float = f_kp(turbine.v_rated * (1.05))   # get Kp at v_rated + 0.5 m/s
             # Turn on the notch filter if floating
             self.F_NotchType = 2
             
@@ -313,7 +314,9 @@ class Controller():
         else:
             self.Kp_float = 0.0
 
-
+        # --- Individual pitch control ---
+        self.Ki_ipc1p = 0.0
+        
         # Flap actuation 
         if self.Flp_Mode >= 1:
             self.flp_angle = 0.0
@@ -364,18 +367,19 @@ class Controller():
             phi_vec.append(self.pitch_op[i] + turbine.twist*deg2rad)
 
         # Lift and drag coefficients
-        Cl0 = np.zeros_like(turbine.af_data)
-        Cd0 = np.zeros_like(turbine.af_data)
-        Clp = np.zeros_like(turbine.af_data)
-        Cdp = np.zeros_like(turbine.af_data)
-        Clm = np.zeros_like(turbine.af_data)
-        Cdm = np.zeros_like(turbine.af_data)
+        num_af = len(turbine.af_data) # number of airfoils
+        Cl0 = np.zeros(num_af)
+        Cd0 = np.zeros(num_af)
+        Clp = np.zeros(num_af)
+        Cdp = np.zeros(num_af)
+        Clm = np.zeros(num_af)
+        Cdm = np.zeros(num_af)
         
         for i,section in enumerate(turbine.af_data):
             # assume airfoil section as AOA of zero for slope calculations - for now
             a0_ind = section[0]['Alpha'].index(np.min(np.abs(section[0]['Alpha'])))
             # Coefficients 
-            if section[0]['NumTabs'] == 3:  # sections with flaps
+            if section[0]['NumTabs'] == 3:  # sections with 3 flaps
                 Clm[i,] = section[0]['Cl'][a0_ind]
                 Cdm[i,] = section[0]['Cd'][a0_ind]
                 Cl0[i,] = section[1]['Cl'][a0_ind]
@@ -383,7 +387,7 @@ class Controller():
                 Clp[i,] = section[2]['Cl'][a0_ind]
                 Cdp[i,] = section[2]['Cd'][a0_ind]
                 Ctrl_flp = float(section[2]['Ctrl'])
-            else:                           # sections without flaps
+            else:                           # sections without 3 flaps
                 Cl0[i,] = Clp[i,] = Clm[i,] = section[0]['Cl'][a0_ind]
                 Cd0[i,] = Cdp[i,] = Cdm[i,] = section[0]['Cd'][a0_ind]
                 Ctrl = float(section[0]['Ctrl'])
@@ -393,13 +397,13 @@ class Controller():
         Kcd = (Cdp - Cd0)/( (Ctrl_flp-Ctrl)*deg2rad )
 
         # Find integrated constants
-        kappa = np.zeros(len(v_rel))
+        self.kappa = np.zeros(len(v_rel))
         C1 = np.zeros(len(v_rel))
         C2 = np.zeros(len(v_rel))
         for i, (v_sec,phi) in enumerate(zip(v_rel, phi_vec)):
             C1[i] = integrate.trapz(0.5 * turbine.rho * turbine.chord * v_sec[0]**2 * turbine.span * Kcl * np.cos(phi))
             C2[i] = integrate.trapz(0.5 * turbine.rho * turbine.chord * v_sec[0]**2 * turbine.span * Kcd * np.sin(phi))
-            kappa[i]=C1[i]+C2[i]
+            self.kappa[i]=C1[i]+C2[i]
 
         # ------ Controller tuning -------
         # Open loop blade response
@@ -414,8 +418,8 @@ class Controller():
         if (self.zeta_flp == 0 or self.omega_flp == 0) or (not self.zeta_flp or not self.omega_flp):
             sys.exit('ERROR! --- Zeta and Omega flap must be nonzero for Flp_Mode >= 1 ---')
 
-        self.Kp_flap = (2*self.zeta_flp*self.omega_flp - 2*zetaf*omegaf)/(kappa*omegaf**2)
-        self.Ki_flap = (self.omega_flp**2 - omegaf**2)/(kappa*omegaf**2)
+        self.Kp_flap = (2*self.zeta_flp*self.omega_flp - 2*zetaf*omegaf)/(self.kappa*omegaf**2)
+        self.Ki_flap = (self.omega_flp**2 - omegaf**2)/(self.kappa*omegaf**2)
         
 class ControllerBlocks():
     '''
@@ -475,7 +479,7 @@ class ControllerBlocks():
             else:
                 Ct_max[i] = np.minimum( np.max(Ct_tsr), Ct_max[i])
             # Define minimum pitch angle
-            f_pitch_min = interpolate.interp1d(Ct_tsr, turbine.pitch_initial_rad, bounds_error=False, fill_value=(turbine.pitch_initial_rad[0],turbine.pitch_initial_rad[-1]))
+            f_pitch_min = interpolate.interp1d(Ct_tsr, turbine.pitch_initial_rad, kind='cubic', bounds_error=False, fill_value=(turbine.pitch_initial_rad[0],turbine.pitch_initial_rad[-1]))
             pitch_min[i] = max(controller.min_pitch, f_pitch_min(Ct_max[i]))
 
         controller.ps_min_bld_pitch = pitch_min

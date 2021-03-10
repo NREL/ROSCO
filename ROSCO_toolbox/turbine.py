@@ -12,14 +12,13 @@
 import os
 import numpy as np
 import datetime
-from wisdem.ccblade import CCAirfoil, CCBlade
 from scipy import interpolate
 from numpy import gradient
 import pickle
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from ROSCO_toolbox import utilities as ROSCO_utilities
+from ROSCO_toolbox.utilities import load_from_txt
 
 # Some useful constants
 now = datetime.datetime.now()
@@ -160,7 +159,7 @@ class Turbine():
             txt_filename: str, optional
                           filename for *.txt, only used if rot_source='txt'
         """
-        from wisdem.aeroelasticse.FAST_reader import InputReader_OpenFAST
+        from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
 
         print('Loading FAST model: %s ' % FAST_InputFile)
         self.TurbineName = FAST_InputFile.strip('.fst')
@@ -201,12 +200,14 @@ class Turbine():
         self.rotor_radius = self.TipRad
         # self.omega_dt = np.sqrt(self.DTTorSpr/self.J)
 
+        # Load blade information
+        self.load_blade_info()
+
         # Load Cp, Ct, Cq tables
         if rot_source == 'cc-blade': # Use cc-blade
             self.load_from_ccblade()
         elif rot_source == 'txt':    # Use specified text file
-            file_processing = ROSCO_utilities.FileProcessing()
-            self.pitch_initial_rad, self.TSR_initial, self.Cp_table, self.Ct_table, self.Cq_table = file_processing.load_from_txt(
+            self.pitch_initial_rad, self.TSR_initial, self.Cp_table, self.Ct_table, self.Cq_table = load_from_txt(
                 txt_filename)
         else:   # Use text file from DISCON.in
             if os.path.exists(os.path.join(FAST_directory, fast.fst_vt['ServoDyn']['DLL_InFile'])):
@@ -247,50 +248,15 @@ class Turbine():
                   Dictionary containing fast model details - defined using from InputReader_OpenFAST (distributed as a part of AeroelasticSE)
 
         '''
+        from wisdem.ccblade.ccblade import CCAirfoil, CCBlade
+
         print('Loading rotor performance data from CC-Blade.')
-        
-        # Create CC-Blade Rotor
-        r0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlSpn']) 
-        chord0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlChord'])
-        theta0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlTwist'])
-        # -- Adjust for Aerodyn15
-        r = r0 + self.Rhub
-        chord_intfun = interpolate.interp1d(r0,chord0, bounds_error=None, fill_value='extrapolate', kind='zero')
-        chord = chord_intfun(r)
-        theta_intfun = interpolate.interp1d(r0,theta0, bounds_error=None, fill_value='extrapolate', kind='zero')
-        theta = theta_intfun(r)
-        af_idx = np.array(self.fast.fst_vt['AeroDynBlade']['BlAFID']).astype(int) - 1 #Reset to 0 index
-        AFNames = self.fast.fst_vt['AeroDyn15']['AFNames']   
 
-        # Use airfoil data from FAST file read, assumes AeroDyn 15, assumes 1 Re num per airfoil
-        af_dict = {}
+        # Load blade information if it isn't already
         try:
-            for i, _ in enumerate(self.fast.fst_vt['AeroDyn15']['af_data']):
-                Re    = [self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Re']]
-                Alpha = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Alpha']
-                Cl    = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cl']
-                Cd    = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cd']
-                Cm    = self.fast.fst_vt['AeroDyn15']['af_data'][i][0]['Cm']
-                af_dict[i] = CCAirfoil(Alpha, Re, Cl, Cd, Cm)
-        except: # Read airfoil tables without tab cabalities (will remove once wisdem master branch cleans up)
-            for i, _ in enumerate(self.fast.fst_vt['AeroDyn15']['af_data']):
-                Re    = [self.fast.fst_vt['AeroDyn15']['af_data'][i]['Re']]
-                Alpha = self.fast.fst_vt['AeroDyn15']['af_data'][i]['Alpha']
-                Cl    = self.fast.fst_vt['AeroDyn15']['af_data'][i]['Cl']
-                Cd    = self.fast.fst_vt['AeroDyn15']['af_data'][i]['Cd']
-                Cm    = self.fast.fst_vt['AeroDyn15']['af_data'][i]['Cm']
-                af_dict[i] = CCAirfoil(Alpha, Re, Cl, Cd, Cm)
-
-        # define airfoils for CCBlade
-        af = [0]*len(r)
-        for i in range(len(r)):
-            af[i] = af_dict[af_idx[i]]
-
-        # Now save the CC-Blade rotor
-        nSector = 8  # azimuthal discretizations
-        self.cc_rotor = CCBlade(r, chord, theta, af, self.Rhub, self.rotor_radius, self.NumBl, rho=self.rho, mu=self.mu,
-                        precone=-self.precone, tilt=-self.tilt, yaw=self.yaw, shearExp=self.shearExp, hubHt=self.hubHt, nSector=nSector)
-        print('CCBlade initiated successfully.')
+            isinstance(self.cc_rotor,object)
+        except(AttributeError):
+            self.load_blade_info()
         
         # Generate the look-up tables, mesh the grid and flatten the arrays for cc_rotor aerodynamic analysis
         TSR_initial = np.arange(3, 15,0.5)
@@ -308,9 +274,9 @@ class Turbine():
 
         # Get values from cc-blade
         print('Running CCBlade aerodynamic analysis, this may take a minute...')
-        try:
-            _, _, _, _, CP, CT, CQ, _ = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
-        except ValueError: # On IEAontology4all
+        try: # wisde/master as of Nov 9, 2020
+            _, _, _, _, CP, CT, CQ, CM = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
+        except(ValueError): # wisdem/dev as of Nov 9, 2020
             outputs, derivs = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
             CP = outputs['CP']
             CT = outputs['CT']
@@ -328,11 +294,7 @@ class Turbine():
         self.Cp_table = Cp
         self.Ct_table = Ct 
         self.Cq_table = Cq
-        
-        # Save some blade parameters
-        self.span = r
-        self.chord = chord
-        self.twist = theta
+
     
     def generate_rotperf_fast(self, openfast_path, FAST_runDirectory=None, run_BeamDyn=False,
                               debug_level=1, run_type='multi'):
@@ -354,10 +316,8 @@ class Turbine():
             'serial' - run in serial, 'multi' - run using python multiprocessing tools, 
             'mpi' - run using mpi tools
         '''
-
-        # Load additional WISDEM tools
-        from wisdem.aeroelasticse import runFAST_pywrapper, CaseGen_General
-        from wisdem.aeroelasticse.Util import FileTools
+        from ROSCO_toolbox.ofTools.case_gen import runFAST_pywrapper, CaseGen_General
+        from ROSCO_toolbox.ofTools.util import FileTools
         # Load pCrunch tools
         from pCrunch import pdTools, Processing
 
@@ -531,77 +491,64 @@ class Turbine():
     def load_blade_info(self):
         '''
         Loads wind turbine blade data from an OpenFAST model. 
-        Should be used if blade information is needed (i.e.) for flap controller tuning, but a rotor performance file is defined and and cc-blade is not run already. 
+
+        Should be used if blade information is needed (i.e. for flap controller tuning), 
+        but a rotor performance file is defined and and cc-blade does not need to be run. 
         
         Parameters:
         -----------
             self - note: needs to contain fast input file info provided by load_from_fast.
         '''
-        from wisdem.aeroelasticse.FAST_reader import InputReader_OpenFAST
+        from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+        from wisdem.ccblade.ccblade import CCAirfoil, CCBlade
 
-        # Load Fast input deck
-        # self.TurbineName = FAST_InputFile.strip('.fst')
-        # fast = InputReader_OpenFAST(FAST_ver=FAST_ver,dev_branch=dev_branch)
-        # self.fast.FAST_InputFile = FAST_InputFile
-        # self.fast.FAST_directory = FAST_directory
-        # self.fast.execute()
+        # Create CC-Blade Rotor
+        r0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlSpn']) 
+        chord0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlChord'])
+        theta0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlTwist'])
+        # -- Adjust for Aerodyn15
+        r = r0 + self.Rhub
+        chord_intfun = interpolate.interp1d(r0,chord0, bounds_error=None, fill_value='extrapolate', kind='zero')
+        chord = chord_intfun(r)
+        theta_intfun = interpolate.interp1d(r0,theta0, bounds_error=None, fill_value='extrapolate', kind='zero')
+        theta = theta_intfun(r)
+        af_idx = np.array(self.fast.fst_vt['AeroDynBlade']['BlAFID']).astype(int) - 1 #Reset to 0 index
+        AFNames = self.fast.fst_vt['AeroDyn15']['AFNames']   
 
-        # Make sure cc_rotor exists for DAC analysis
-        try:
-            if self.cc_rotor:
-                self.af_data = self.fast.fst_vt['AeroDyn15']['af_data']
-                self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade']['BldFlDmp1']/100 * 0.7
-        except AttributeError:
-            # Create CC-Blade Rotor
-            r0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlSpn']) 
-            chord0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlChord'])
-            theta0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlTwist'])
-            # -- Adjust for Aerodyn15
-            r = r0 + self.Rhub
-            chord_intfun = interpolate.interp1d(r0,chord0, bounds_error=None, fill_value='extrapolate', kind='zero')
-            chord = chord_intfun(r)
-            theta_intfun = interpolate.interp1d(r0,theta0, bounds_error=None, fill_value='extrapolate', kind='zero')
-            theta = theta_intfun(r)
-            af_idx = np.array(self.fast.fst_vt['AeroDynBlade']['BlAFID']).astype(int) - 1 #Reset to 0 index
-            AFNames = self.fast.fst_vt['AeroDyn15']['AFNames']   
+        # Read OpenFAST Airfoil data, assumes AeroDyn > v15.03 and associated polars > v1.01
+        af_dict = {}
+        for i, section in enumerate(self.fast.fst_vt['AeroDyn15']['af_data']):
+            Alpha = section[0]['Alpha']
+            if section[0]['NumTabs'] > 1:  # sections with multiple airfoil tables
+                ref_tab = int(np.floor(section[0]['NumTabs']/2)) # get information from "center" table
+                Re = np.array([section[ref_tab]['Re']])*1e6 
+                Cl = section[ref_tab]['Cl']
+                Cd = section[ref_tab]['Cd']
+                Cm = section[ref_tab]['Cm']
+                af_dict[i] = CCAirfoil(Alpha, Re, Cl, Cd, Cm)
+            else:                           # sections without multiple airfoil tables
+                Re = np.array([section[0]['Re']])*1e6 
+                Cl = section[0]['Cl']
+                Cd = section[0]['Cd']
+                Cm = section[0]['Cm']
+                af_dict[i] = CCAirfoil(Alpha, Re, Cl, Cd, Cm)
 
-            # Use airfoil data from FAST file read, assumes AeroDyn 15, assumes 1 Re num per airfoil
-            af_dict = {}
-            for i, section in enumerate(self.fast.fst_vt['AeroDyn15']['af_data']):
-                Re = [section[0]['Re']]
-                Alpha = section[0]['Alpha']
-                if section[0]['NumTabs'] > 1:  # sections with flaps
-                    ref_tab = int(np.floor(section[0]['NumTabs']/2))
-                    Cl = section[ref_tab]['Cl']
-                    Cd = section[ref_tab]['Cd']
-                    Cm = section[ref_tab]['Cm']
-                    af_dict[i] = CCAirfoil(Alpha, Re, Cl, Cd, Cm)
-                else:                           # sections without flaps
-                    Cl = section[0]['Cl']
-                    Cd = section[0]['Cd']
-                    Cm = section[0]['Cm']
-                    af_dict[i] = CCAirfoil(Alpha, Re, Cl, Cd, Cm)
+        # define airfoils for CCBlade
+        af = [0]*len(r)
+        for i in range(len(r)):
+            af[i] = af_dict[af_idx[i]]
 
+        # Now save the CC-Blade rotor
+        nSector = 8  # azimuthal discretizations
+        self.cc_rotor = CCBlade(r, chord, theta, af, self.Rhub, self.rotor_radius, self.NumBl, rho=self.rho, mu=self.mu,
+                        precone=-self.precone, tilt=-self.tilt, yaw=self.yaw, shearExp=self.shearExp, hubHt=self.hubHt, nSector=nSector)
 
-
-
-
-            # define airfoils for CCBlade
-            af = [0]*len(r)
-            for i in range(len(r)):
-                af[i] = af_dict[af_idx[i]]
-
-            # Now save the CC-Blade rotor
-            nSector = 8  # azimuthal discretizations
-            self.cc_rotor = CCBlade(r, chord, theta, af, self.Rhub, self.rotor_radius, self.NumBl, rho=self.rho, mu=self.mu,
-                            precone=-self.precone, tilt=-self.tilt, yaw=self.yaw, shearExp=self.shearExp, hubHt=self.hubHt, nSector=nSector)
-
-            # Save some blade  data 
-            self.af_data = self.fast.fst_vt['AeroDyn15']['af_data']
-            self.span = r 
-            self.chord = chord
-            self.twist = theta
-            self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade']['BldFlDmp1']/100 * 0.7
+        # Save some additional blade data 
+        self.af_data = self.fast.fst_vt['AeroDyn15']['af_data']
+        self.span = r 
+        self.chord = chord
+        self.twist = theta
+        self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade']['BldFlDmp1']/100
 
 class RotorPerformance():
     '''
@@ -663,7 +610,8 @@ class RotorPerformance():
         '''
         
         # Form the interpolant functions which can look up any arbitrary location on rotor performance surface
-        interp_fun = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.performance_table, kind='linear')
+        interp_fun = interpolate.interp2d(
+            self.pitch_initial_rad, self.TSR_initial, self.performance_table, kind='cubic')
         return interp_fun(pitch,TSR)
 
     def interp_gradient(self,pitch,TSR):
@@ -690,26 +638,28 @@ class RotorPerformance():
         grad = np.array([dCP_beta_interp(pitch,TSR), dCP_TSR_interp(pitch,TSR)])
         return np.ndarray.flatten(grad)
     
-    def plot_performance(self,performance_table, pitch_initial_rad, TSR_initial):
+    def plot_performance(self):
         '''
         Plot rotor performance data surface. 
         
         Parameters:
         -----------
-        performance_table : array_like (-)
-                            An [n x m] array containing a table of rotor performance data (Cp, Ct, Cq) to plot.
-        pitch_initial_rad : array_like (rad)
-                            An [m x 1] or [1 x m] array containing blade pitch angles corresponding to performance_table (x-axis). 
-        TSR_initial : array_like (rad)
-                      An [n x 1] or [1 x n] array containing tip-speed ratios corresponding to  performance_table (y-axis)
+        self
         '''
 
-        P = plt.contour(pitch_initial_rad * rad2deg, TSR_initial, performance_table, levels=[0.0, 0.3, 0.40, 0.42, 0.44, 0.45, 0.46, 0.47, 0.48,0.481,0.482,0.483,0.484,0.485,0.486,0.487,0.488,0.489, 0.49, 0.491,0.492,0.493,0.494,0.495,0.496,0.497,0.498,0.499, 0.50 ])
-        plt.clabel(P, inline=1, fontsize=12)
+        # Find maximum point
+        max_ind = np.unravel_index(np.argmax(self.performance_table, axis=None), self.performance_table.shape)
+        max_beta_id = self.pitch_initial_rad[max_ind[1]]
+        max_tsr_id = self.TSR_initial[max_ind[0]]
+
+        P = plt.contourf(self.pitch_initial_rad * rad2deg, self.TSR_initial, self.performance_table, 
+                        levels=np.linspace(0,np.max(self.performance_table),20))
+        plt.colorbar(format='%1.3f')
         plt.title('Power Coefficient', fontsize=14, fontweight='bold')
         plt.xlabel('Pitch Angle [deg]', fontsize=14, fontweight='bold')
         plt.ylabel('TSR [-]', fontsize=14, fontweight='bold')
+        plt.scatter(max_beta_id * rad2deg, max_tsr_id, color='red')
+        plt.annotate('max = {:<1.3f}'.format(np.max(self.performance_table)),
+                    (max_beta_id+0.2, max_tsr_id+0.2), color='red')
         plt.xticks(fontsize=12)
         plt.yticks(fontsize=12)
-        plt.grid(color=[0.8,0.8,0.8], linestyle='--')
-        plt.subplots_adjust(bottom = 0.15, left = 0.15)

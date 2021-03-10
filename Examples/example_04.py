@@ -12,15 +12,16 @@ In this example:
 '''
 # Python modules
 import matplotlib.pyplot as plt 
-import yaml 
+import yaml, os 
 # ROSCO toolbox modules 
 from ROSCO_toolbox import controller as ROSCO_controller
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox import sim as ROSCO_sim
-from ROSCO_toolbox import utilities as ROSCO_utilities
+from ROSCO_toolbox.utilities import write_DISCON
 
 # Load yaml file 
-parameter_filename = 'NREL5MW_example.yaml'
+this_dir = os.path.dirname(os.path.abspath(__file__))
+parameter_filename = os.path.join(this_dir,'NREL5MW_example.yaml')
 inps = yaml.safe_load(open(parameter_filename))
 path_params         = inps['path_params']
 turbine_params      = inps['turbine_params']
@@ -29,27 +30,39 @@ controller_params   = inps['controller_params']
 # Instantiate turbine, controller, and file processing classes
 turbine         = ROSCO_turbine.Turbine(turbine_params)
 controller      = ROSCO_controller.Controller(controller_params)
-file_processing = ROSCO_utilities.FileProcessing()
 
 # Load turbine data from OpenFAST and rotor performance text file
-turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source='txt',txt_filename=path_params['rotor_performance_filename'])
+turbine.load_from_fast(
+    path_params['FAST_InputFile'],
+    os.path.join(this_dir,path_params['FAST_directory']),
+    dev_branch=True,
+    rot_source='txt',txt_filename=os.path.join(this_dir,path_params['rotor_performance_filename'])
+    )
 
 # Tune controller 
 controller.tune_controller(turbine)
 
 # Write parameter input file
 param_file = 'DISCON.IN'   
-file_processing.write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
+write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
 
 # Plot gain schedule
-plt.figure(0)
-plt.plot(controller.v[len(controller.vs_gain_schedule.Kp):], controller.pc_gain_schedule.Kp)
-plt.xlabel('Wind Speed')
-plt.ylabel('Proportional Gain')
+fig, ax = plt.subplots(1,2,constrained_layout=True)
+ax[0].plot(controller.v[len(controller.v_below_rated)+1:], controller.pc_gain_schedule.Kp)
+ax[0].set_xlabel('Wind Speed')
+ax[0].set_ylabel('Proportional Gain')
 
-plt.figure(1)
-plt.plot(controller.v[len(controller.vs_gain_schedule.Ki):], controller.pc_gain_schedule.Ki)
-plt.xlabel('Wind Speed')
-plt.ylabel('Integral Gain')
+ax[1].plot(controller.v[len(controller.v_below_rated)+1:], controller.pc_gain_schedule.Ki)
+ax[1].set_xlabel('Wind Speed')
+ax[1].set_ylabel('Integral Gain')
 
-plt.show()
+plt.suptitle('Pitch Controller Gains')
+
+example_out_dir = os.path.join(this_dir,'examples_out')
+if not os.path.isdir(example_out_dir):
+  os.makedirs(example_out_dir)
+
+if False:
+  plt.show()
+else:
+  plt.savefig(os.path.join(example_out_dir,'04_GainSched.png'))

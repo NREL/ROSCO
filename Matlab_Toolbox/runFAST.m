@@ -21,7 +21,7 @@ simu.ParamScript        = '/Users/dzalkind/Tools/matlab-tools/Simulations/Simuli
 [ControlScriptPath,ControScript] = fileparts(simu.ParamScript);
 addpath(ControlScriptPath);
 addpath(fast.FAST_SFuncDir);
-
+addpath('Utilities')
 %% Read FAST Files & Load ROSCO Params from DISCON.IN
 
 [Param,Cx] = ReadWrite_FAST(fast);

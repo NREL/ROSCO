@@ -11,32 +11,36 @@ In this example:
 '''
 # Python Modules
 import yaml
+import os
 # ROSCO toolbox modules 
 from ROSCO_toolbox import controller as ROSCO_controller
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox import sim as ROSCO_sim
-from ROSCO_toolbox import utilities as ROSCO_utilities
 
 import numpy as np
 
 # Load yaml file 
-parameter_filename = '/Users/dzalkind/Tools/ROSCO_toolbox/Tune_Cases/IEA15MW.yaml'
+parameter_filename = os.path.join( os.path.dirname( os.path.dirname( os.path.realpath(__file__) )), 
+                                 'Tune_Cases', 'IEA15MW.yaml')
 inps = yaml.safe_load(open(parameter_filename))
 path_params         = inps['path_params']
 turbine_params      = inps['turbine_params']
 controller_params   = inps['controller_params']
 
 # Linear file output
-linmod_filename     = '/Users/dzalkind/Tools/matlab-toolbox/Play/IEA15MW_LinMod.dat'
+this_dir = os.path.dirname(os.path.abspath(__file__))
+example_out_dir = os.path.join(this_dir,'examples_out')
+if not os.path.isdir(example_out_dir):
+  os.makedirs(example_out_dir)
+
+linmod_filename     = os.path.join(example_out_dir,'11_IEA15MW_LinMod.dat')
 
 # Instantiate turbine, controller, and file processing classes
 turbine         = ROSCO_turbine.Turbine(turbine_params)
 controller      = ROSCO_controller.Controller(controller_params)
-file_processing = ROSCO_utilities.FileProcessing()
-fast_io         = ROSCO_utilities.FAST_IO()
 
 # Load turbine data from OpenFAST and rotor performance text file
-turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source='txt',txt_filename=path_params['rotor_performance_filename'])
+turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source=None,txt_filename=path_params['rotor_performance_filename'])
 
 # Tune controller 
 controller.tune_controller(turbine)
@@ -68,16 +72,4 @@ with open(linmod_filename,'w') as f:
 
 print('Tower Height = {} m'.format(turbine.hubHt))
 print('Platform Freq. = {} rad/s'.format(turbine.ptfm_freq))
-
-
-# Write parameter input file
-# param_file = 'DISCON.IN'   # This must be named DISCON.IN to be seen by the compiled controller binary. 
-# file_processing.write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
-
-# Run OpenFAST
-# --- May need to change fastcall if you use a non-standard command to call openfast
-# fast_io.run_openfast(path_params['FAST_directory'], fastcall='openfast', fastfile=path_params['FAST_InputFile'],chdir=True)
-
-
-
 

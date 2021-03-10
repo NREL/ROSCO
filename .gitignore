@@ -28,9 +28,12 @@ _build
 *.out
 *.outb
 *.dbg
+*.vtp
 
-# Fortran files
+# ROSCO files
 *.85
+*.i90
+*local*
 
 # Binaries
 *.dylib
@@ -46,7 +49,11 @@ examples/cp_ct_cq_lut.p
 Examples/DISCON.IN
 Examples/*.p
 
-# Matlab Stuff
-Matlab_Toolbox/*.slxc
+# Exclude testing results
+ROSCO_testing/results/
+
+# Simulink/Matlab temp files
+*.slxc
+*.autosave
 *.mat
 
