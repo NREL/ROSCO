@@ -19,6 +19,9 @@ from ROSCO_toolbox import sim as ROSCO_sim
 
 import numpy as np
 
+this_dir = os.path.dirname(os.path.abspath(__file__))
+rt_dir   = os.path.dirname(this_dir)
+
 # Load yaml file 
 parameter_filename = os.path.join( os.path.dirname( os.path.dirname( os.path.realpath(__file__) )), 
                                  'Tune_Cases', 'IEA15MW.yaml')
@@ -40,7 +43,10 @@ turbine         = ROSCO_turbine.Turbine(turbine_params)
 controller      = ROSCO_controller.Controller(controller_params)
 
 # Load turbine data from OpenFAST and rotor performance text file
-turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source=None,txt_filename=path_params['rotor_performance_filename'])
+turbine.load_from_fast(path_params['FAST_InputFile'], \
+  os.path.join(rt_dir,path_params['FAST_directory']), \
+    dev_branch=True,rot_source='txt',\
+      txt_filename=os.path.join(rt_dir,path_params['FAST_directory'],path_params['rotor_performance_filename']))
 
 # Tune controller 
 controller.tune_controller(turbine)

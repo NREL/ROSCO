@@ -6,7 +6,7 @@ False                  Echo        - Echo the input to "<rootname>.AD.ech"?  (fl
 1                      WakeMod     - Type of wake/induction model (switch) {0=none, 1=BEMT}
 2                      AFAeroMod   - Type of blade airfoil aerodynamics model (switch) {1=steady model, 2=Beddoes-Leishman unsteady model} [must be 1 when linearizing]
 1                      TwrPotent   - Type tower influence on wind based on potential flow around the tower (switch) {0=none, 1=baseline potential flow, 2=potential flow with Bak correction}
-True                   TwrShadow   - Calculate tower influence on wind based on downstream tower shadow? (flag)
+0                      TwrShadow   - Calculate tower influence on wind based on downstream tower shadow? (flag)
 True                   TwrAero     - Calculate tower aerodynamic loads? (flag)
 False                  FrozenWake  - Assume frozen wake during linearization? (flag) [used only when WakeMod=1 and when linearizing]
 False                  CavitCheck  - Perform cavitation check? (flag) TRUE will turn off unsteady aerodynamics
@@ -84,15 +84,15 @@ True                   UseBlCm     - Include aerodynamic pitching moment in calc
 9                      NumTwrNds   - Number of tower nodes used in the analysis  (-) [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
 TwrElev        TwrDiam        TwrCd
 (m)              (m)           (-)
- 2.740000000000000e+01  6.000000000000000e+00  1.000000000000000e+00 
- 4.110000000000000e+01  6.000000000000000e+00  1.000000000000000e+00 
- 5.480000000000000e+01  6.000000000000000e+00  1.000000000000000e+00 
- 6.850000000000000e+01  6.000000000000000e+00  1.000000000000000e+00 
- 8.220000000000000e+01  6.000000000000000e+00  1.000000000000000e+00 
- 9.590000000000001e+01  6.000000000000000e+00  1.000000000000000e+00 
- 1.096000000000000e+02  6.000000000000000e+00  1.000000000000000e+00 
- 1.233000000000000e+02  5.890792130000000e+00  1.000000000000000e+00 
- 1.370000000000000e+02  5.530325920000000e+00  1.000000000000000e+00 
+ 2.740000000000000e+01  6.000000000000000e+00  1.000000000000000e+00            0        
+ 4.110000000000000e+01  6.000000000000000e+00  1.000000000000000e+00            0 
+ 5.480000000000000e+01  6.000000000000000e+00  1.000000000000000e+00            0 
+ 6.850000000000000e+01  6.000000000000000e+00  1.000000000000000e+00            0 
+ 8.220000000000000e+01  6.000000000000000e+00  1.000000000000000e+00            0 
+ 9.590000000000001e+01  6.000000000000000e+00  1.000000000000000e+00            0 
+ 1.096000000000000e+02  6.000000000000000e+00  1.000000000000000e+00            0 
+ 1.233000000000000e+02  5.890792130000000e+00  1.000000000000000e+00            0 
+ 1.370000000000000e+02  5.530325920000000e+00  1.000000000000000e+00            0 
 ======  Tower Influence and Aerodynamics ============================================================= [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
 True                   SumPrint    - Generate a summary file listing input options and interpolated properties to "<rootname>.AD.sum"?  (flag)
 9                      NBlOuts     - Number of blade node outputs [0 - 9] (-)
