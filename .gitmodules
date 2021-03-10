@@ -1,4 +1,4 @@
 [submodule "ROSCO"]
 	path = ROSCO
 	url = https://github.com/NREL/ROSCO
-	branch = develop
+	branch = main

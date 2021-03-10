@@ -21,6 +21,9 @@ import ROSCO_toolbox.ofTools.fast_io.read_fast_input as fast_io
 from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
 from ROSCO_toolbox.ofTools.case_gen.CaseGen_IEC import CaseGen_IEC
 from ROSCO_toolbox.ofTools.case_gen.runFAST_pywrapper import runFAST_pywrapper_batch
+from matplotlib.backends.backend_pdf import FigureCanvasPdf, PdfPages
+from ROSCO_toolbox.ofTools.fast_io import output_processing
+import matplotlib.pyplot as plt
 
 
 
@@ -238,6 +241,8 @@ class ROSCO_testing():
             else:
                 fastBatch.run_serial()
 
+        self.print_results(outFileNames)
+
 
     def ROSCO_Test_heavy(self, more_case_inputs={}, U=[]):
         '''
@@ -401,6 +406,8 @@ class ROSCO_testing():
             else:
                 fastBatch.run_serial()
 
+        self.print_results(outFileNames)
+
     def ROSCO_Controller_Comp(self, controller_paths, testtype='light', more_case_inputs={}, U=[]):
         '''
         Heavy or light testing for n controllers, n = len(controller_paths)
@@ -467,6 +474,47 @@ class ROSCO_testing():
         # reset self
         self.runDir = run_dir_init
         self.windDir = wind_dir_init
+
+    def print_results(self,outfiles):
+
+        op = output_processing.output_processing()
+        FAST_Output = op.load_fast_out(outfiles, tmin=0)
+
+        figs_fname = 'test_outputs.pdf'        
+        with PdfPages(os.path.join(self.runDir,figs_fname)) as pdf:
+            for fast_out in FAST_Output:
+                if self.FAST_InputFile == 'NREL-5MW.fst':
+                    plots2make = {'Baseline': ['Wind1VelX', 'GenPwr', 'RotSpeed', 'BldPitch1', 'GenTq']}
+                else:
+                    plots2make = {'Baseline': ['Wind1VelX', 'GenPwr', 'RotSpeed', 'BldPitch1', 'GenTq','PtfmPitch']}
+
+                numplots    = len(plots2make)
+                maxchannels = np.max([len(plots2make[key]) for key in plots2make.keys()])
+                fig = plt.figure(figsize=(8,6), constrained_layout=True)
+                gs_all = fig.add_gridspec(1, numplots)
+                for pnum, (gs, pname) in enumerate(zip(gs_all, plots2make.keys())):
+                    gs0 = gs.subgridspec(len(plots2make[pname]),1)
+                    for cid, channel in enumerate(plots2make[pname]):
+                        subplt = fig.add_subplot(gs0[cid])
+                        try:
+                            subplt.plot(fast_out['Time'], fast_out[channel])
+                            unit_idx = fast_out['meta']['channels'].index(channel)
+                            subplt.set_ylabel('{:^} \n ({:^})'.format(
+                                                channel,
+                                                fast_out['meta']['attribute_units'][unit_idx]))
+                            subplt.grid(True)
+                            subplt.set_xlabel('Time (s)')
+                        except:
+                            print('Cannot plot {}'.format(channel))
+                        if cid == 0:
+                            subplt.set_title(pname)
+                        if cid != len(plots2make[pname])-1:
+                            subplt.axes.get_xaxis().set_visible(False)
+
+                    plt.suptitle(fast_out['meta']['name'])
+                pdf.savefig(fig)
+                plt.close()
+
 
 if __name__=='__main__':
     rt = ROSCO_testing()
