@@ -45,11 +45,12 @@ turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory
 controller.tune_controller(turbine)
 
 # Plot minimum pitch schedule
-plt.plot(controller.v, controller.pitch_op,label='Steady State Operation')
-plt.plot(controller.v, controller.ps_min_bld_pitch, label='Minimum Pitch Schedule')
-plt.legend()
-plt.xlabel('Wind speed (m/s)')
-plt.ylabel('Blade pitch (rad)')
+fig, ax = plt.subplots(1,1)
+ax.plot(controller.v, controller.pitch_op,label='Steady State Operation')
+ax.plot(controller.v, controller.ps_min_bld_pitch, label='Minimum Pitch Schedule')
+ax.legend()
+ax.set_xlabel('Wind speed (m/s)')
+ax.set_ylabel('Blade pitch (rad)')
 
 if False:
   plt.show()
