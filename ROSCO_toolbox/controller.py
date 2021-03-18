@@ -189,7 +189,8 @@ class Controller():
             # Find pitch angle as a function of expected operating CP for each TSR
             Cp_TSR = np.ndarray.flatten(turbine.Cp.interp_surface(turbine.pitch_initial_rad, TSR_op[i]))     # all Cp values for a given tsr
             Cp_op[i] = np.clip(Cp_op[i], np.min(Cp_TSR), np.max(Cp_TSR))        # saturate Cp values to be on Cp surface
-            f_cp_pitch = interpolate.interp1d(Cp_TSR,pitch_initial_rad)         # interpolate function for Cp(tsr) values
+            Cp_maxidx = Cp_TSR.argmax()                                                                 # Find maximum Cp value for this TSR
+            f_cp_pitch = interpolate.interp1d(Cp_TSR[Cp_maxidx:],pitch_initial_rad[Cp_maxidx:])         # interpolate function for Cp(tsr) values
             # expected operation blade pitch values
             if v[i] <= turbine.v_rated and isinstance(self.min_pitch, float): # Below rated & defined min_pitch
                 pitch_op[i] = min(self.min_pitch, f_cp_pitch(Cp_op[i]))
