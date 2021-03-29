@@ -18,20 +18,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Setup environment
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniconda-version: "latest"
+          channels: conda-forge, general
+          auto-update-conda: true
+          python-version: 3.8
+          environment-file: environment.yml
+
       # Install compilers
       - name: Add dependencies ubuntu specific
         if: false == contains( matrix.os, 'windows')
         run: |
           conda install -y compilers
 
-      # Install compilers
       - name: Add dependencies ubuntu specific
         if: true == contains( matrix.os, 'windows')
         shell: bash -l {0}
         run: |
           conda install -y m2w64-toolchain
 
-      # Install ROSCO toolbox
+      # Install ROSCO
       - name: Compile ROSCO
         shell: pwsh
         run: |
