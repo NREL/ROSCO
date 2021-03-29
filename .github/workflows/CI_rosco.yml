@@ -1,0 +1,33 @@
+name: CI_rosco-toolbox
+
+# We run CI on push commits on all branches
+on: [push, pull_request]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: ["ubuntu-latest", "macOS-latest", "windows-latest"]
+        python-version: ["3.8"]
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      # Install ROSCO toolbox
+      - name: Compile ROSCO
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          make install
+          
