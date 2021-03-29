@@ -15,16 +15,30 @@ jobs:
         python-version: ["3.8"]
     defaults:
       run:
+        if: true == contains( matrix.os, 'windows')
+        shell: pwsh
+        if: false == contains( matrix.os, 'windows')
         shell: bash -l {0}
 
     steps:
-      - name: Checkout repository and submodules
+      - name: Checkout repository
         uses: actions/checkout@v2
-        with:
-          submodules: recursive
+
+      # Install compilers
+      - name: Add dependencies ubuntu specific
+        if: false == contains( matrix.os, 'windows')
+        run: |
+          conda install -y compilers
+
+      # Install compilers
+      - name: Add dependencies ubuntu specific
+        if: true == contains( matrix.os, 'windows')
+        run: |
+          conda install -y m2w64-toolchain
 
       # Install ROSCO toolbox
       - name: Compile ROSCO
+        shell: pwsh
         run: |
           mkdir build
           cd build
