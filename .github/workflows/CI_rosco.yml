@@ -28,23 +28,35 @@ jobs:
           environment-file: environment.yml
 
       # Install compilers
-      - name: Add dependencies ubuntu specific
+      - name: Add dependencies linux
         if: false == contains( matrix.os, 'windows')
+        shell: pwsh
         run: |
           conda install -y compilers
 
-      - name: Add dependencies ubuntu specific
+      - name: Add dependencies windows 
         if: true == contains( matrix.os, 'windows')
         shell: bash -l {0}
         run: |
           conda install -y m2w64-toolchain
 
-      # Install ROSCO
-      - name: Compile ROSCO
+      # Install ROSCO linux
+      - name: Compile ROSCO linux
+        if: false == contains( matrix.os, 'windows')
         shell: pwsh
         run: |
           mkdir build
           cd build
           cmake ..
+          make install
+
+      # Install ROSCO windows
+      - name: Compile ROSCO windows
+        if: true == contains( matrix.os, 'windows')
+        shell: pwsh
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G "MinGW Makefiles" 
           make install
           
