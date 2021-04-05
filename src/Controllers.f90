@@ -31,7 +31,7 @@ MODULE Controllers
 
 CONTAINS
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar)
+    SUBROUTINE PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
     ! Blade pitch controller, generally maximizes rotor speed below rated (region 2) and regulates rotor speed above rated (region 3)
     !       PC_State = 0, fix blade pitch to fine pitch angle (PC_FinePit)
     !       PC_State = 1, is gain scheduled PI controller 
@@ -39,13 +39,15 @@ CONTAINS
     !       Individual pitch control
     !       Tower fore-aft damping 
     !       Sine excitation on pitch    
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
         
         ! Inputs
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
-        TYPE(DebugVariables), INTENT(INOUT)      :: DebugVar
+        TYPE(DebugVariables), INTENT(INOUT)     :: DebugVar
+        TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
+
         ! Allocate Variables:
         REAL(C_FLOAT), INTENT(INOUT)    :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from the DLL controller.
         INTEGER(4)                      :: K            ! Index used for looping through blades.
@@ -60,10 +62,10 @@ CONTAINS
         END IF
         
         ! Compute (interpolate) the gains based on previously commanded blade pitch angles and lookup table:
-        LocalVar%PC_KP = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KP, LocalVar%PC_PitComTF) ! Proportional gain
-        LocalVar%PC_KI = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KI, LocalVar%PC_PitComTF) ! Integral gain
-        LocalVar%PC_KD = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KD, LocalVar%PC_PitComTF) ! Derivative gain
-        LocalVar%PC_TF = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_TF, LocalVar%PC_PitComTF) ! TF gains (derivative filter) !NJA - need to clarify
+        LocalVar%PC_KP = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KP, LocalVar%PC_PitComTF, ErrVar) ! Proportional gain
+        LocalVar%PC_KI = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KI, LocalVar%PC_PitComTF, ErrVar) ! Integral gain
+        LocalVar%PC_KD = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KD, LocalVar%PC_PitComTF, ErrVar) ! Derivative gain
+        LocalVar%PC_TF = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_TF, LocalVar%PC_PitComTF, ErrVar) ! TF gains (derivative filter) !NJA - need to clarify
         
         ! Compute the collective pitch command associated with the proportional and integral gains:
         IF (LocalVar%iStatus == 0) THEN
@@ -88,7 +90,7 @@ CONTAINS
         
         ! Pitch Saturation
         IF (CntrPar%PS_Mode == 1) THEN
-            LocalVar%PC_MinPit = PitchSaturation(LocalVar,CntrPar,objInst,DebugVar)
+            LocalVar%PC_MinPit = PitchSaturation(LocalVar,CntrPar,objInst,DebugVar, ErrVar)
             LocalVar%PC_MinPit = max(LocalVar%PC_MinPit, CntrPar%PC_FinePit)
         ELSE
             LocalVar%PC_MinPit = CntrPar%PC_FinePit
@@ -124,6 +126,12 @@ CONTAINS
         avrSWAP(43) = LocalVar%PitCom(2)    ! "
         avrSWAP(44) = LocalVar%PitCom(3)    ! "
         avrSWAP(45) = LocalVar%PitCom(1)    ! Use the command angle of blade 1 if using collective pitch
+
+        ! Error Catching
+        IF (ErrVar%aviFAIL == -1) THEN
+            ErrVar%ErrMsg = 'PitchControl:'//TRIM(ErrVar%ErrMsg)
+        END IF
+
     END SUBROUTINE PitchControl
 !-------------------------------------------------------------------------------------------------------------------------------  
     SUBROUTINE VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst)

@@ -54,6 +54,7 @@ TYPE(LocalVariables), SAVE            :: LocalVar
 TYPE(ObjectInstances), SAVE           :: objInst
 TYPE(PerformanceData), SAVE           :: PerfData
 TYPE(DebugVariables), SAVE            :: DebugVar
+TYPE(ErrorVariables), SAVE            :: ErrVar
 
 RootName = TRANSFER(avcOUTNAME, RootName)
 !------------------------------------------------------------------------------------------------------------------------------
@@ -61,22 +62,30 @@ RootName = TRANSFER(avcOUTNAME, RootName)
 !------------------------------------------------------------------------------------------------------------------------------
 ! Read avrSWAP array into derived types/variables
 CALL ReadAvrSWAP(avrSWAP, LocalVar)
-CALL SetParameters(avrSWAP, aviFAIL, accINFILE, ErrMsg, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData)
+CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, ErrVar)
 CALL PreFilterMeasuredSignals(CntrPar, LocalVar, objInst)
 
 IF ((LocalVar%iStatus >= 0) .AND. (aviFAIL >= 0))  THEN  ! Only compute control calculations if no error has occurred and we are not on the last time step
-    CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar)
+    CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
     CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
     CALL StateMachine(CntrPar, LocalVar)
     CALL SetpointSmoother(LocalVar, CntrPar, objInst)
     CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
     CALL VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst)
-    CALL PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar)
+    CALL PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
     CALL YawRateControl(avrSWAP, CntrPar, LocalVar, objInst)
     CALL FlapControl(avrSWAP, CntrPar, LocalVar, objInst)
     CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, SIZE(avcOUTNAME))
 END IF
 
-avcMSG = TRANSFER(TRIM(ErrMsg)//C_NULL_CHAR, avcMSG, SIZE(avcMSG))
+! Error Catching
+IF (ErrVar%aviFAIL == -1) THEN
+    ErrVar%ErrMsg = 'ROSCO:'//TRIM(ErrVar%ErrMsg)
+    print * , TRIM(ErrVar%ErrMsg)
+END IF
+ErrMsg = ErrVar%ErrMsg
+avcMSG = TRANSFER(TRIM(ErrVar%ErrMsg)//C_NULL_CHAR, avcMSG, SIZE(avcMSG))
+aviFAIL = ErrVar%aviFAIL
+
 RETURN
 END SUBROUTINE DISCON

@@ -156,15 +156,40 @@ CONTAINS
         
     END FUNCTION PIIController
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION interp1d(xData, yData, xq)
-    ! interp1d 1-D interpolation (table lookup), xData should be monotonically increasing
-
+    REAL FUNCTION interp1d(xData, yData, xq, ErrVar)
+    ! interp1d 1-D interpolation (table lookup), xData should be strictly increasing
+        
+        USE ROSCO_Types, ONLY : ErrorVariables
         IMPLICIT NONE
+
         ! Inputs
         REAL(8), DIMENSION(:), INTENT(IN)       :: xData        ! Provided x data (vector), to be interpolated
         REAL(8), DIMENSION(:), INTENT(IN)       :: yData        ! Provided y data (vector), to be interpolated
         REAL(8), INTENT(IN)                     :: xq           ! x-value for which the y value has to be interpolated
         INTEGER(4)                              :: I            ! Iteration index
+
+        ! Error Catching
+        TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
+        INTEGER(4)                              :: I_DIFF
+
+        
+        ! Catch Errors
+        ! Are xData and yData the same size?
+        IF (SIZE(xData) .NE. SIZE(yData)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'interp1d: xData and yData are not the same size'
+            WRITE(ErrVar%ErrMsg,"(A,I2,A,I2,A)") "interp1d: SIZE(xData) =", SIZE(xData), & 
+            ' and SIZE(yData) =', SIZE(yData),' are not the same'
+        END IF
+
+        ! Is xData non decreasing
+        DO I_DIFF = 1, size(xData) - 1
+            IF (xData(I_DIFF + 1) - xData(I_DIFF) <= 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'interp1d: xData is not strictly increasing'
+                EXIT 
+            END IF
+        END DO
         
         ! Interpolate
         IF (xq <= MINVAL(xData)) THEN
@@ -184,7 +209,7 @@ CONTAINS
         
     END FUNCTION interp1d
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION interp2d(xData, yData, zData, xq, yq)
+    REAL FUNCTION interp2d(xData, yData, zData, xq, yq, ErrVar)
     ! interp2d 2-D interpolation (table lookup). Query done using bilinear interpolation. 
     ! Note that the interpolated matrix with associated query vectors may be different than "standard", - zData should be formatted accordingly
     ! - xData follows the matrix from left to right
@@ -196,13 +221,17 @@ CONTAINS
     !       5| d    e   f
     !       6| g    H   i
 
+        USE ROSCO_Types, ONLY : ErrorVariables
+
         IMPLICIT NONE
+    
         ! Inputs
-        REAL(8), DIMENSION(:),   INTENT(IN)     :: xData        ! Provided x data (vector), to find query point (should be monotonically increasing)
-        REAL(8), DIMENSION(:),   INTENT(IN)     :: yData        ! Provided y data (vector), to find query point (should be monotonically increasing)
+        REAL(8), DIMENSION(:),   INTENT(IN)     :: xData        ! Provided x data (vector), to find query point (should be strictly increasing)
+        REAL(8), DIMENSION(:),   INTENT(IN)     :: yData        ! Provided y data (vector), to find query point (should be strictly increasing)
         REAL(8), DIMENSION(:,:), INTENT(IN)     :: zData        ! Provided z data (vector), to be interpolated
         REAL(8),                 INTENT(IN)     :: xq           ! x-value for which the z value has to be interpolated
         REAL(8),                 INTENT(IN)     :: yq           ! y-value for which the z value has to be interpolated
+
         ! Allocate variables
         INTEGER(4)                              :: i            ! Iteration index & query index, x-direction
         INTEGER(4)                              :: ii           ! Iteration index & second que .  ry index, x-direction
@@ -210,26 +239,64 @@ CONTAINS
         INTEGER(4)                              :: jj           ! Iteration index & second query index, y-direction
         REAL(8), DIMENSION(2,2)                 :: fQ           ! zData value at query points for bilinear interpolation            
         REAL(8), DIMENSION(1)                   :: fxy           ! Interpolated z-data point to be returned
-        REAL(8)                                 :: fxy1          ! zData value at query point for bilinear interpolation            
-        REAL(8)                                 :: fxy2          ! zData value at query point for bilinear interpolation            
+        REAL(8)                                 :: fxy1          ! zData value at query point for bilinear interpolation
+        REAL(8)                                 :: fxy2          ! zData value at query point for bilinear interpolation       
+        LOGICAL                                 :: edge     
+
+        ! Error Catching
+        TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
+        INTEGER(4)                              :: I_DIFF
         
+        ! Error catching
+        ! Are xData and zData(:,1) the same size?
+        IF (SIZE(xData) .NE. SIZE(zData,2)) THEN
+            ErrVar%aviFAIL = -1
+            WRITE(ErrVar%ErrMsg,"(A,I4,A,I4,A)") "interp2d: SIZE(xData) =", SIZE(xData), & 
+            ' and SIZE(zData,1) =', SIZE(zData,2),' are not the same'
+        END IF
+
+        ! Are yData and zData(1,:) the same size?
+        IF (SIZE(yData) .NE. SIZE(zData,1)) THEN
+            ErrVar%aviFAIL = -1
+            WRITE(ErrVar%ErrMsg,"(A,I4,A,I4,A)") "interp2d: SIZE(yData) =", SIZE(yData), & 
+            ' and SIZE(zData,2) =', SIZE(zData,1),' are not the same'
+        END IF
+
+        ! Is xData non decreasing
+        DO I_DIFF = 1, size(xData) - 1
+            IF (xData(I_DIFF + 1) - xData(I_DIFF) <= 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'interp2d: xData is not strictly increasing'
+                EXIT 
+            END IF
+        END DO
+
+        ! Is yData non decreasing
+        DO I_DIFF = 1, size(yData) - 1
+            IF (yData(I_DIFF + 1) - yData(I_DIFF) <= 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'interp2d: yData is not strictly increasing'
+                EXIT 
+            END IF
+        END DO
+
         ! ---- Find corner indices surrounding desired interpolation point -----
             ! x-direction
         IF (xq <= MINVAL(xData)) THEN       ! On lower x-bound, just need to find zData(yq)
             j = 1
             jj = 1
-            interp2d = interp1d(yData,zData(:,j),yq)
+            interp2d = interp1d(yData,zData(:,j),yq,ErrVar)     
             RETURN
         ELSEIF (xq >= MAXVAL(xData)) THEN   ! On upper x-bound, just need to find zData(yq)
             j = size(xData)
             jj = size(xData)
-            interp2d = interp1d(yData,zData(:,j),yq)
+            interp2d = interp1d(yData,zData(:,j),yq,ErrVar)
             RETURN
         ELSE
             DO j = 1,size(xData)            
                 IF (xq == xData(j)) THEN ! On axis, just need 1d interpolation
                     jj = j
-                    interp2d = interp1d(yData,zData(:,j),yq)
+                    interp2d = interp1d(yData,zData(:,j),yq,ErrVar)  
                     RETURN
                 ELSEIF (xq < xData(j)) THEN
                     jj = j
@@ -244,18 +311,18 @@ CONTAINS
         IF (yq <= MINVAL(yData)) THEN       ! On lower y-bound, just need to find zData(xq)
             i = 1
             ii = 1
-            interp2d = interp1d(xData,zData(i,:),xq)
+            interp2d = interp1d(xData,zData(i,:),xq,ErrVar)     
             RETURN
         ELSEIF (yq >= MAXVAL(yData)) THEN   ! On upper y-bound, just need to find zData(xq)
             i = size(yData)
             ii = size(yData)
-            interp2d = interp1d(xData,zData(i,:),xq)
+            interp2d = interp1d(xData,zData(i,:),xq,ErrVar)      
             RETURN
         ELSE
             DO i = 1,size(yData)
                 IF (yq == yData(i)) THEN    ! On axis, just need 1d interpolation
                     ii = i
-                    interp2d = interp1d(xData,zData(i,:),xq)
+                    interp2d = interp1d(xData,zData(i,:),xq,ErrVar)        
                     RETURN
                 ELSEIF (yq < yData(i)) THEN
                     ii = i
@@ -279,6 +346,11 @@ CONTAINS
         fxy = (yData(ii) - yq)/(yData(ii) - yData(i))*fxy1 + (yq - yData(i))/(yData(ii) - yData(i))*fxy2
 
         interp2d = fxy(1)
+
+        ! Error catching
+        IF (ErrVar%aviFAIL == -1) THEN
+            ErrVar%ErrMsg = 'interp2:'//TRIM(ErrVar%ErrMsg)
+        END IF
 
     END FUNCTION interp2d
 !-------------------------------------------------------------------------------------------------------------------------------
@@ -413,29 +485,37 @@ CONTAINS
         
     END FUNCTION CPfunction
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION AeroDynTorque(LocalVar, CntrPar, PerfData)
+    REAL FUNCTION AeroDynTorque(LocalVar, CntrPar, PerfData, ErrVar)
     ! Function for computing the aerodynamic torque, divided by the effective rotor torque of the turbine, for use in wind speed estimation
         
-        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, PerformanceData
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, PerformanceData, ErrorVariables
         IMPLICIT NONE
     
         ! Inputs
         TYPE(ControlParameters), INTENT(IN) :: CntrPar
         TYPE(LocalVariables), INTENT(IN) :: LocalVar
         TYPE(PerformanceData), INTENT(IN) :: PerfData
+        TYPE(ErrorVariables), INTENT(INOUT) :: ErrVar
             
         ! Local
         REAL(8) :: RotorArea
         REAL(8) :: Cp
         REAL(8) :: Lambda
-        
+
         ! Find Torque
         RotorArea = PI*CntrPar%WE_BladeRadius**2
         Lambda = LocalVar%RotSpeedF*CntrPar%WE_BladeRadius/LocalVar%WE_Vw
-        ! Cp = CPfunction(CntrPar%WE_CP, Lambda)
-        Cp = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%PC_PitComT*R2D, Lambda)
+
+        ! Compute Cp
+        Cp = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%PC_PitComT*R2D, Lambda, ErrVar)
+        
         AeroDynTorque = 0.5*(CntrPar%WE_RhoAir*RotorArea)*(LocalVar%WE_Vw**3/LocalVar%RotSpeedF)*Cp
         AeroDynTorque = MAX(AeroDynTorque, 0.0)
+
+        ! Error Catching
+        IF (ErrVar%aviFAIL == -1) THEN
+            ErrVar%ErrMsg = 'AeroDynTorque:'//TRIM(ErrVar%ErrMsg)
+        END IF
         
     END FUNCTION AeroDynTorque
 !-------------------------------------------------------------------------------------------------------------------------------

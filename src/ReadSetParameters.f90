@@ -490,23 +490,28 @@ CONTAINS
     END SUBROUTINE Assert
     ! -----------------------------------------------------------------------------------
     ! Define parameters for control actions
-    SUBROUTINE SetParameters(avrSWAP, aviFAIL, accINFILE, ErrMsg, size_avcMSG, CntrPar, LocalVar, objInst, PerfData)
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData
+    SUBROUTINE SetParameters(avrSWAP, accINFILE, size_avcMSG, CntrPar, LocalVar, objInst, PerfData, ErrVar)
+               
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData, ErrorVariables
         
         INTEGER(4), INTENT(IN) :: size_avcMSG
-        TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
-        TYPE(ObjectInstances), INTENT(INOUT) :: objInst
-        TYPE(PerformanceData), INTENT(INOUT) :: PerfData
+        TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
+        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+        TYPE(PerformanceData), INTENT(INOUT)    :: PerfData
+        TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
 
-        REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
-        INTEGER(C_INT), INTENT(OUT) :: aviFAIL              ! A flag used to indicate the success of this DLL call set as follows: 0 if the DLL call was successful, >0 if the DLL call was successful but cMessage should be issued as a warning messsage, <0 if the DLL call was unsuccessful or for any other reason the simulation is to be stopped at this point with cMessage as the error message.
+        REAL(C_FLOAT), INTENT(INOUT)            :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
         CHARACTER(KIND=C_CHAR), INTENT(IN)      :: accINFILE(NINT(avrSWAP(50)))     ! The name of the parameter input file
-        CHARACTER(size_avcMSG-1), INTENT(OUT) :: ErrMsg     ! a Fortran version of the C string argument (not considered an array here) [subtract 1 for the C null-character]
-        INTEGER(4) :: K    ! Index used for looping through blades.
-        CHARACTER(200) :: git_version
+        
+        INTEGER(4)                              :: K    ! Index used for looping through blades.
+        CHARACTER(200)                          :: git_version
+        
+        ! Error Catching Variables
         ! Set aviFAIL to 0 in each iteration:
-        aviFAIL = 0
+        ErrVar%aviFAIL = 0
+        ! ALLOCATE(ErrVar%ErrMsg(size_avcMSG-1))
+        ErrVar%size_avcMSG  = size_avcMSG
         
         ! Initialize all filter instance counters at 1
         objInst%instLPF = 1
@@ -534,7 +539,7 @@ CONTAINS
         IF (LocalVar%iStatus == 0) THEN ! .TRUE. if we're on the first call to the DLL
             
             ! Inform users that we are using this user-defined routine:
-            aviFAIL = 1
+            ErrVar%aviFAIL = 1
             git_version = QueryGitVersion()
             ! ErrMsg = '                                                                              '//NEW_LINE('A')// &
             !          '------------------------------------------------------------------------------'//NEW_LINE('A')// &
@@ -548,7 +553,7 @@ CONTAINS
             !          'Visit our GitHub-page to contribute to this project:                          '//NEW_LINE('A')// &
             !          'https://github.com/NREL/ROSCO                                                 '//NEW_LINE('A')// &
             !          '------------------------------------------------------------------------------'
-            ErrMsg = '                                                                              '//NEW_LINE('A')// &
+            ErrVar%ErrMsg = '                                                                              '//NEW_LINE('A')// &
                     '------------------------------------------------------------------------------'//NEW_LINE('A')// &
                     'Running ROSCO-'//TRIM(git_version)//NEW_LINE('A')// &
                     'A wind turbine controller framework for public use in the scientific field    '//NEW_LINE('A')// &
@@ -585,7 +590,7 @@ CONTAINS
             LocalVar%VS_LastGenTrq = LocalVar%GenTq       
             LocalVar%VS_MaxTq      = CntrPar%VS_MaxTq
             ! Check validity of input parameters:
-            CALL Assert(LocalVar, CntrPar, avrSWAP, aviFAIL, ErrMsg, size_avcMSG)
+            CALL Assert(LocalVar, CntrPar, avrSWAP, ErrVar%aviFAIL, ErrVar%ErrMsg, size_avcMSG)
             
 
         ENDIF
