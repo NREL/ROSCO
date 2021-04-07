@@ -22,30 +22,23 @@ class LinearTurbineModel(object):
 
     def __init__(self, lin_file, reduceStates=False, fromMat=False):
         '''
-            inputs: lin_file - directory of linear file outputs from OpenFAST
-                             - if fromMat = True, lin_file is .mat from matlab version of mbc3
+            inputs:    
+                lin_file_dir (string) - directory of linear file outputs from OpenFAST
+                lin_file_names (list of strings) - name of output file from OpenFAST, without extension
+                nlin (integer) - number of linearization points
+                
+                - if fromMat = True, lin_file is .mat from matlab version of mbc3
         '''
         if not fromMat:
-            # figure out number of linear cases
-            out_prefix = 'lin'
-            out_suffix = '.outb'
-            out_files = glob.glob(os.path.join(lin_file, out_prefix+'*'+out_suffix))
 
-            n_lin_cases = len(out_files)
-
-            if not n_lin_cases:
-                print('No linear outputs found in ' + lin_file)
-                quit()
-
-            if n_lin_cases <= 10:
-                num_string = '%01d'
-            else:
-                num_string = '%02d'
+            # Number of linearization cases or OpenFAST sims, different from nlin/NLinTimes in OpenFAST
+            n_lin_cases = len(lin_file_names)
 
             u_ops = np.array([], [])
             for iCase in range(0, n_lin_cases):
-                lin_files_i = glob.glob(os.path.join(lin_file, out_prefix +
-                                        '_' + num_string % (iCase) + '.*.lin'))
+                # nlin array of linearization outputs for iCase
+                lin_files_i = [os.path.realpath(os.path.join(
+                    lin_file_dir, lin_file_names[iCase] + '.{}.lin'.format(i_lin+1))) for i_lin in range(0, nlin)]
 
                 MBC, matData, FAST_linData = mbc.fx_mbc3(lin_files_i)
 
@@ -54,6 +47,7 @@ class LinearTurbineModel(object):
                     u_ops = np.zeros((matData['NumInputs'], n_lin_cases))
                     y_ops = np.zeros((matData['NumOutputs'], n_lin_cases))
                     x_ops = np.zeros((matData['NumStates'], n_lin_cases))
+                    omega = np.zeros((nlin, n_lin_cases))
 
                 # operating points
                 # u_ops \in real(n_inps,n_ops)
@@ -65,29 +59,17 @@ class LinearTurbineModel(object):
                 # x_ops \in real(n_states,n_ops), note this is un-reduced state space model states, with all hydro states
                 x_ops[:, iCase] = np.mean(matData['xop'], 1)
 
-                # Matrices, TODO: automate index selection here
+                # store rotor speed in rpm of each linearization, omega \in real(n_linear,n_cases)
+                omega[:, iCase] = matData['Omega'] * 60 / (2 * np.pi)
 
-                PitchDesc = 'ED Extended input: collective blade-pitch command, rad'
-                WindDesc = 'IfW Extended input: horizontal wind speed (steady/uniform wind), m/s'
-                GenDesc = 'ED GenSpeed, (rpm)'
-                TwrDesc = 'ED TwrBsMyt, (kN-m)'
-                AzDesc = 'ED Variable speed generator DOF (internal DOF index = DOF_GeAz), rad'
-                PltPitchDesc = 'ED PtfmPitch, (deg)'
-                NacIMUFADesc = 'ED NcIMURAxs, (deg/s^2)'
-
-                indPitch = matData['DescCntrlInpt'].index(PitchDesc)
-                indWind = matData['DescCntrlInpt'].index(WindDesc)
-                indGen = matData['DescOutput'].index(GenDesc)
-                indTwr = matData['DescOutput'].index(TwrDesc)
-                indAz = matData['DescStates'].index(AzDesc)
-                indPltPitch = matData['DescOutput'].index(PltPitchDesc)
-                indNacIMU = matData['DescOutput'].index(NacIMUFADesc)
-
-                indOuts = np.array([indGen, indTwr, indPltPitch, indNacIMU]).reshape(-1, 1)
-                indInps = np.array([indWind, indPitch]).reshape(-1, 1)
-                # TODO: add torque
+                # keep all inputs and outputs
+                indInps = np.arange(0, matData['NumInputs']).reshape(-1, 1)
+                indOuts = np.arange(0, matData['NumOutputs']).reshape(-1, 1)
 
                 # remove azimuth state
+                AzDesc = 'ED Variable speed generator DOF (internal DOF index = DOF_GeAz), rad'
+                indAz = matData['DescStates'].index(AzDesc)
+
                 indStates = np.arange(0, matData['NumStates'])
                 indStates = np.delete(indStates, indAz)
                 indStates = indStates.reshape(-1, 1)
@@ -97,6 +79,7 @@ class LinearTurbineModel(object):
                     B_ops = np.zeros((len(indStates), len(indInps), n_lin_cases))
                     C_ops = np.zeros((len(indOuts), len(indStates), n_lin_cases))
                     D_ops = np.zeros((len(indOuts), len(indInps), n_lin_cases))
+                    WindSpeeds = np.zeros(n_lin_cases)
 
                 # A \in real(n_states,n_states,n_ops)
                 A_ops[:, :, iCase] = MBC['AvgA'][indStates, indStates.T]
@@ -145,9 +128,8 @@ class LinearTurbineModel(object):
                 self.B_ops = B_ops
                 self.C_ops = C_ops
                 self.D_ops = D_ops
-
+            
             # Save wind speed as own array since that's what we'll schedule over to start
-
             self.u_ops = u_ops
             self.u_h = self.u_ops[0]
             self.y_ops = y_ops
@@ -156,6 +138,20 @@ class LinearTurbineModel(object):
             # Input/Output Indices
             self.ind_fast_inps = indInps.squeeze()
             self.ind_fast_outs = indOuts.squeeze()
+
+            # Input, Output, State Descriptions
+            self.DescCntrlInpt  = matData['DescCntrlInpt']
+            self.DescStates     = matData['DescStates']
+            self.DescOutput     = matData['DescOutput']
+            self.StateDerivOrder = matData['StateDerivOrder']
+            self.omega_rpm      = omega
+
+            # Other important things
+            self.n_lin_cases = n_lin_cases
+
+            # Trim the system
+            self.trim_system(rm_azimuth=True, rm_hydro=rm_hydro)
+
 
         else:  # from matlab .mat file m
             matDict = loadmat(lin_file)
@@ -228,15 +224,16 @@ class LinearTurbineModel(object):
             self.ind_fast_outs = matDict['indOuts'][0] - 1
             # self.ind_fast_outs       = matDict['indOuts'][0][0] - 1
 
-    def get_plant_op(self, u_h, reduce_states):
+
+    def get_plant_op(self, u_rot, reduce_states):
         '''
-        Interpolate system matrices using wind speed operating point uh_op = mean(u_h)
+        Interpolate system matrices using wind speed operating point wind_speed_op = mean(u_rot)
 
-        inputs: u_h timeseries of wind speeds
+        inputs: u_rot timeseries of wind speeds
 
         '''
 
-        uh_op = np.mean(u_h)
+        wind_speed_op = np.mean(u_rot)
 
         if len(self.u_h) > 1:
             f_A = sp.interpolate.interp1d(self.u_h, self.A_ops)
@@ -248,17 +245,30 @@ class LinearTurbineModel(object):
             f_y = sp.interpolate.interp1d(self.u_h, self.y_ops)
             f_x = sp.interpolate.interp1d(self.u_h, self.x_ops)
 
-            A = f_A(uh_op)
-            B = f_B(uh_op)
-            C = f_C(uh_op)
-            D = f_D(uh_op)
+            if wind_speed_op < self.u_h.min() or wind_speed_op > self.u_h.max():
+                print('WARNING: Requested linearization operating point outside of range')
+                print('Simulation operating point is ' + str(wind_speed_op) + ' m/s')
+                print('Linearization operating points from ' +
+                      str(self.u_h.min()) + ' to ' + str(self.u_h.max()) + ' m/s')
+                print('Results may not be as expected')
 
-            u_op = f_u(uh_op)
-            x_op = f_x(uh_op)
-            y_op = f_y(uh_op)
+            if wind_speed_op < self.u_h.min():
+                wind_speed_op = self.u_h.min()
+
+            elif wind_speed_op > self.u_h.max():
+                wind_speed_op = self.u_h.max()
+
+            A = f_A(wind_speed_op)
+            B = f_B(wind_speed_op)
+            C = f_C(wind_speed_op)
+            D = f_D(wind_speed_op)
+
+            u_op = f_u(wind_speed_op)
+            x_op = f_x(wind_speed_op)
+            y_op = f_y(wind_speed_op)
         else:
             print('WARNING: Only one linearization, at ' + str(self.u_h[0]) + ' m/s')
-            print('Simulation operating point is ' + str(uh_op) + 'm/s')
+            print('Simulation operating point is ' + str(wind_speed_op) + 'm/s')
             print('Results may not be as expected')
 
             # Set linear system to only linearization
@@ -275,13 +285,13 @@ class LinearTurbineModel(object):
         P_op = co.StateSpace(A, B, C, D)
         if reduce_states:
             P_op = co.minreal(P_op, tol=1e-7, verbose=False)
-        P_op.InputName = ['RtVAvgxh', 'BldPitch']
-        P_op.OutputName = ['GenSpeed', 'TwrBsMyt', 'PtfmPitch', 'NcIMUTAzs']
+        P_op.InputName = self.DescCntrlInpt
+        P_op.OutputName = self.DescOutput
 
         # operating points dict
         ops = {}
         ops['u'] = u_op[self.ind_fast_inps]
-        ops['uh'] = uh_op
+        ops['uh'] = wind_speed_op
         ops['y'] = y_op[self.ind_fast_outs]
         ops['x'] = x_op
 
