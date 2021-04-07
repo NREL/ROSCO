@@ -93,35 +93,35 @@ class LinearTurbineModel(object):
                 # D \in real(n_outs,n_inputs,n_ops)
                 D_ops[:, :, iCase] = MBC['AvgD'][indOuts, indInps.T]
 
-                if reduceStates:
-                    if not iCase:
-                        n_states = np.zeros((n_lin_cases, 1), dtype=int)
-                    P = co.StateSpace(A_ops[:, :, iCase], B_ops[:, :, iCase],
-                                      C_ops[:, :, iCase], D_ops[:, :, iCase], remove_useless=False)
+                # if reduceStates:
+                #     if not iCase:
+                #         n_states = np.zeros((n_lin_cases, 1), dtype=int)
+                #     P = co.StateSpace(A_ops[:, :, iCase], B_ops[:, :, iCase],
+                #                       C_ops[:, :, iCase], D_ops[:, :, iCase], remove_useless=False)
 
-                    # figure out minimum number of states for the systems at each operating point
-                    P_min = co.minreal(P, tol=1e-7, verbose=False)
-                    n_states[iCase] = P_min.states
+                #     # figure out minimum number of states for the systems at each operating point
+                #     P_min = co.minreal(P, tol=1e-7, verbose=False)
+                #     n_states[iCase] = P_min.states
 
-            # Now loop through and reduce number of states to maximum of n_states
-            # This is broken!!  Works fine if reduceStates = False and isn't problematic to have all the extra states...yet
-            if reduceStates:
-                for iCase in range(0, n_lin_cases):
-                    if not iCase:
-                        self.A_ops = np.zeros((max(n_states)[0], max(n_states)[0], n_lin_cases))
-                        self.B_ops = np.zeros((max(n_states)[0], len(indInps), n_lin_cases))
-                        self.C_ops = np.zeros((len(indOuts), max(n_states)[0], n_lin_cases))
-                        self.D_ops = np.zeros((len(indOuts), len(indInps), n_lin_cases))
+            # # Now loop through and reduce number of states to maximum of n_states
+            # # This is broken!!  Works fine if reduceStates = False and isn't problematic to have all the extra states...yet
+            # if reduceStates:
+            #     for iCase in range(0, n_lin_cases):
+            #         if not iCase:
+            #             self.A_ops = np.zeros((max(n_states)[0], max(n_states)[0], n_lin_cases))
+            #             self.B_ops = np.zeros((max(n_states)[0], len(indInps), n_lin_cases))
+            #             self.C_ops = np.zeros((len(indOuts), max(n_states)[0], n_lin_cases))
+            #             self.D_ops = np.zeros((len(indOuts), len(indInps), n_lin_cases))
 
-                    P = co.StateSpace(A_ops[:, :, iCase], B_ops[:, :, iCase],
-                                      C_ops[:, :, iCase], D_ops[:, :, iCase], remove_useless=False)
-                    # I don't know why it's not reducing to max(n_states), must add 2
-                    P_red = co.balred(P, max(n_states)[0], method='matchdc')
-                    # P_red = co.minreal(P,tol=1e-7,verbose=False)         # I don't know why it's not reducing to max(n_states), must add 2
-                    self.A_ops[:, :, iCase] = P_red.A
-                    self.B_ops[:, :, iCase] = P_red.B
-                    self.C_ops[:, :, iCase] = P_red.C
-                    self.D_ops[:, :, iCase] = P_red.D
+            #         P = co.StateSpace(A_ops[:, :, iCase], B_ops[:, :, iCase],
+            #                           C_ops[:, :, iCase], D_ops[:, :, iCase], remove_useless=False)
+            #         # I don't know why it's not reducing to max(n_states), must add 2
+            #         P_red = co.balred(P, max(n_states)[0], method='matchdc')
+            #         # P_red = co.minreal(P,tol=1e-7,verbose=False)         # I don't know why it's not reducing to max(n_states), must add 2
+            #         self.A_ops[:, :, iCase] = P_red.A
+            #         self.B_ops[:, :, iCase] = P_red.B
+            #         self.C_ops[:, :, iCase] = P_red.C
+            #         self.D_ops[:, :, iCase] = P_red.D
 
             else:
                 self.A_ops = A_ops
