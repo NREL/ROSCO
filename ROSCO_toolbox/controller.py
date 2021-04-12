@@ -158,8 +158,8 @@ class Controller():
         TSR_rated = rated_rotor_speed*R/turbine.v_rated  # TSR at rated
 
         # separate wind speeds by operation regions
-        v_below_rated = np.linspace(turbine.v_min,turbine.v_rated, num=30)             # below rated
-        v_above_rated = np.linspace(turbine.v_rated,turbine.v_max, num=30)[1:]             # above rated
+        v_below_rated = np.linspace(turbine.v_min,turbine.v_rated, num=30)[:-1]             # below rated
+        v_above_rated = np.linspace(turbine.v_rated,turbine.v_max, num=30)             # above rated
         v = np.concatenate((v_below_rated, v_above_rated))
 
         # separate TSRs by operations regions
@@ -189,7 +189,8 @@ class Controller():
             # Find pitch angle as a function of expected operating CP for each TSR
             Cp_TSR = np.ndarray.flatten(turbine.Cp.interp_surface(turbine.pitch_initial_rad, TSR_op[i]))     # all Cp values for a given tsr
             Cp_op[i] = np.clip(Cp_op[i], np.min(Cp_TSR), np.max(Cp_TSR))        # saturate Cp values to be on Cp surface
-            f_cp_pitch = interpolate.interp1d(Cp_TSR,pitch_initial_rad)         # interpolate function for Cp(tsr) values
+            Cp_maxidx = Cp_TSR.argmax()                                                                 # Find maximum Cp value for this TSR
+            f_cp_pitch = interpolate.interp1d(Cp_TSR[Cp_maxidx:],pitch_initial_rad[Cp_maxidx:])         # interpolate function for Cp(tsr) values
             # expected operation blade pitch values
             if v[i] <= turbine.v_rated and isinstance(self.min_pitch, float): # Below rated & defined min_pitch
                 pitch_op[i] = min(self.min_pitch, f_cp_pitch(Cp_op[i]))
@@ -479,7 +480,7 @@ class ControllerBlocks():
             else:
                 Ct_max[i] = np.minimum( np.max(Ct_tsr), Ct_max[i])
             # Define minimum pitch angle
-            f_pitch_min = interpolate.interp1d(Ct_tsr, turbine.pitch_initial_rad, kind='cubic', bounds_error=False, fill_value=(turbine.pitch_initial_rad[0],turbine.pitch_initial_rad[-1]))
+            f_pitch_min = interpolate.interp1d(Ct_tsr, turbine.pitch_initial_rad, kind='linear', bounds_error=False, fill_value=(turbine.pitch_initial_rad[0],turbine.pitch_initial_rad[-1]))
             pitch_min[i] = max(controller.min_pitch, f_pitch_min(Ct_max[i]))
 
         controller.ps_min_bld_pitch = pitch_min
