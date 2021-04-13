@@ -732,7 +732,24 @@ FUNCTION CurDate( )
     RETURN
     END FUNCTION CurTime
 !=======================================================================
+! This function checks whether an array is non-decreasing
+    LOGICAL Function NonDecreasing(Array)
 
+    IMPLICIT NONE
 
+    REAL(8), DIMENSION(:)            :: Array
+    INTEGER(4)         :: I_DIFF
+
+    NonDecreasing = .TRUE.
+    ! Is Array non decreasing
+    DO I_DIFF = 1, size(Array) - 1
+        IF (Array(I_DIFF + 1) - Array(I_DIFF) <= 0) THEN
+            NonDecreasing = .FALSE.
+            RETURN
+        END IF
+    END DO
+
+    RETURN
+    END FUNCTION NonDecreasing
 
 END MODULE Functions

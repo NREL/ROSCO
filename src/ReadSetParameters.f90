@@ -12,7 +12,7 @@
 ! Read and set the parameters used by the controller
 
 ! Submodules:
-!           Assert: Initial condition and input check
+!           CheckInputs: Initial condition and input check
 !           ComputeVariablesSetpoints: Compute setpoints used by controllers
 !           ReadAvrSWAP: Read AvrSWAP array
 !           ReadControlParameterFileSub: Read DISCON.IN input file
@@ -327,7 +327,7 @@ CONTAINS
     END SUBROUTINE ReadAvrSWAP
     ! -----------------------------------------------------------------------------------
     ! Check for errors before any execution
-    SUBROUTINE Assert(LocalVar, CntrPar, avrSWAP, aviFAIL, ErrMsg, size_avcMSG)
+    SUBROUTINE CheckInputs(LocalVar, CntrPar, avrSWAP, aviFAIL, ErrMsg, size_avcMSG)
         USE, INTRINSIC :: ISO_C_Binding
         USE ROSCO_Types, ONLY : LocalVariables, ControlParameters
     
@@ -348,82 +348,211 @@ CONTAINS
         !..............................................................................................................................
         ! Check validity of input parameters:
         !..............................................................................................................................
-        
+
+        !------- DEBUG ------------------------------------------------------------
+
+        ! LoggingLevel
+        IF ((CntrPar%LoggingLevel >= 0) .OR. (CntrPar%LoggingLevel <= 2)) THEN
+            aviFAIL = -1
+            ErrMsg  = 'LoggingLevel must be 0, 1, or 2.'
+        ENDIF
+
+        !------- CONTROLLER FLAGS -------------------------------------------------
+
+        ! F_LPFType
         IF ((CntrPar%F_LPFType > 2.0) .OR. (CntrPar%F_LPFType < 1.0)) THEN
             aviFAIL = -1
             ErrMsg  = 'F_LPFType must be 1 or 2.'
         ENDIF
-        
-        IF ((CntrPar%F_LPFDamping > 1.0) .OR. (CntrPar%F_LPFDamping < 0.0)) THEN
+
+        ! F_NotchType
+        IF ((CntrPar%F_NotchType >= 0) .OR. (CntrPar%F_NotchType <= 3)) THEN
             aviFAIL = -1
-            ErrMsg  = 'Filter damping coefficient must be between [0, 1]'
+            ErrMsg  = 'F_NotchType must be 0, 1, 2, or 3.'
         ENDIF
-        
-        IF (CntrPar%IPC_CornerFreqAct < 0.0) THEN
+
+        ! F_NotchType
+        IF ((CntrPar%F_NotchType >= 0) .OR. (CntrPar%F_NotchType <= 2)) THEN
             aviFAIL = -1
-            ErrMsg  = 'Corner frequency of IPC actuator model must be positive, or set to 0 to disable.'
+            ErrMsg  = 'F_NotchType must be 0, 1, or 2.'
         ENDIF
-        
-        IF (CntrPar%F_LPFCornerFreq <= 0.0) THEN
+
+        ! IPC_ControlMode
+        IF ((CntrPar%IPC_ControlMode >= 0) .OR. (CntrPar%IPC_ControlMode <= 2)) THEN
             aviFAIL = -1
-            ErrMsg  = 'CornerFreq must be greater than zero.'
+            ErrMsg  = 'IPC_ControlMode must be 0, 1, or 2.'
         ENDIF
-        
+
+        ! VS_ControlMode
+        IF ((CntrPar%VS_ControlMode >= 0) .OR. (CntrPar%VS_ControlMode <= 3)) THEN
+            aviFAIL = -1
+            ErrMsg  = 'VS_ControlMode must be 0, 1, 2, or 3.'
+        ENDIF
+
+        ! PC_ControlMode
+        IF ((CntrPar%PC_ControlMode >= 0) .OR. (CntrPar%PC_ControlMode <= 1)) THEN
+            aviFAIL = -1
+            ErrMsg  = 'PC_ControlMode must be 0 or 1.'
+        ENDIF
+
+        ! Y_ControlMode
+        IF ((CntrPar%Y_ControlMode >= 0) .OR. (CntrPar%Y_ControlMode <= 2)) THEN
+            aviFAIL = -1
+            ErrMsg  = 'Y_ControlMode must be 0, 1 or 2.'
+        ENDIF
+
         IF ((CntrPar%IPC_ControlMode > 0) .AND. (CntrPar%Y_ControlMode > 1)) THEN
             aviFAIL = -1
             ErrMsg  = 'IPC control for load reductions and yaw-by-IPC cannot be activated simultaneously'
         ENDIF
-        
-        IF (LocalVar%DT <= 0.0) THEN
+
+        ! SS_Mode
+        IF ((CntrPar%SS_Mode >= 0) .OR. (CntrPar%SS_Mode <= 1)) THEN
             aviFAIL = -1
-            ErrMsg  = 'DT must be greater than zero.'
+            ErrMsg  = 'SS_Mode must be 0 or 1.'
         ENDIF
-        
-        IF (CntrPar%VS_MaxRat <= 0.0) THEN
-            aviFAIL =  -1
-            ErrMsg  = 'VS_MaxRat must be greater than zero.'
-        ENDIF
-        
-        IF (CntrPar%VS_RtTq < 0.0) THEN
+
+        ! WE_Mode
+        IF ((CntrPar%WE_Mode >= 0) .OR. (CntrPar%WE_Mode <= 2)) THEN
             aviFAIL = -1
-            ErrMsg  = 'VS_RtTq must not be negative.'
+            ErrMsg  = 'WE_Mode must be 0, 1, or 2.'
         ENDIF
-        
-        IF (CntrPar%VS_Rgn2K < 0.0) THEN
+
+        ! PS_Mode
+        IF ((CntrPar%PS_Mode >= 0) .OR. (CntrPar%PS_Mode <= 1)) THEN
             aviFAIL = -1
-            ErrMsg  = 'VS_Rgn2K must not be negative.'
+            ErrMsg  = 'PS_Mode must be 0 or 1.'
         ENDIF
-        
-        IF (CntrPar%VS_MaxTq < CntrPar%VS_RtTq) THEN
+
+        ! SD_Mode
+        IF ((CntrPar%SD_Mode >= 0) .OR. (CntrPar%SD_Mode <= 1)) THEN
             aviFAIL = -1
-            ErrMsg  = 'VS_RtTq must not be greater than VS_MaxTq.'
+            ErrMsg  = 'SD_Mode must be 0 or 1.'
         ENDIF
-        
-        IF (CntrPar%VS_KP(1) > 0.0) THEN
+
+        ! Fl_Mode
+        IF ((CntrPar%Fl_Mode >= 0) .OR. (CntrPar%Fl_Mode <= 1)) THEN
             aviFAIL = -1
-            ErrMsg  = 'VS_KP must be less than zero.'
+            ErrMsg  = 'Fl_Mode must be 0 or 1.'
         ENDIF
-        
-        IF (CntrPar%VS_KI(1) > 0.0) THEN
+
+        ! Flp_Mode
+        IF ((CntrPar%Flp_Mode >= 0) .OR. (CntrPar%Flp_Mode <= 2)) THEN
             aviFAIL = -1
-            ErrMsg  = 'VS_KI must be less than zero.'
+            ErrMsg  = 'Flp_Mode must be 0, 1, or 2.'
         ENDIF
+
+        !------- FILTERS ----------------------------------------------------------
         
+        ! F_LPFCornerFreq
+        IF (CntrPar%F_LPFCornerFreq <= 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'F_LPFCornerFreq must be greater than zero.'
+        ENDIF
+
+        ! F_LPFDamping
+        IF (CntrPar%F_LPFDamping <= 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'F_LPFDamping must be greater than zero.'
+        ENDIF
+
+        ! F_NotchCornerFreq
+        IF (CntrPar%F_NotchCornerFreq <= 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'F_NotchCornerFreq must be greater than zero.'
+        ENDIF
+
+        ! F_NotchBetaNumDen(1)
+        IF (CntrPar%F_NotchBetaNumDen(1) <= 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'F_NotchBetaNumDen(1) must be greater than zero.'
+        ENDIF
+
+        ! F_NotchBetaNumDen(2)
+        IF (CntrPar%F_NotchBetaNumDen(2) <= 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'F_NotchBetaNumDen(2) must be greater than zero.'
+        ENDIF
+
+        ! F_SSCornerFreq
+        IF (CntrPar%F_SSCornerFreq <= 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'F_SSCornerFreq must be greater than zero.'
+        ENDIF
+
+        ! F_FlCornerFreq(1)  (frequency)
+        IF (CntrPar%F_FlCornerFreq <= 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'F_FlCornerFreq(1) must be greater than zero.'
+        ENDIF
+
+        ! F_FlCornerFreq(2)  (damping)
+        IF (CntrPar%F_FlDamping <= 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'F_FlCornerFreq(2) must be greater than zero.'
+        ENDIF
+
+        ! F_FlpCornerFreq(1)  (frequency)
+        IF (CntrPar%F_FlCornerFreq <= 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'F_FlpCornerFreq(1) must be greater than zero.'
+        ENDIF
+
+        ! F_FlpCornerFreq(2)  (damping)
+        IF (CntrPar%F_FlDamping <= 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'F_FlpCornerFreq(2) must be greater than zero.'
+        ENDIF
+                     
+        
+        !------- BLADE PITCH CONTROL ----------------------------------------------
+
+        ! PC_GS_n
+        IF (CntrPar%PC_GS_n <= 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'PC_GS_n must be greater than 0'
+        ENDIF
+
+        ! PC_GS_angles
+        IF (.NOT. NonDecreasing(CntrPar%PC_GS_angles)) THEN
+            aviFAIL = -1
+            ErrMsg  = 'PC_GS_angles must be non-decreasing'
+        ENDIF
+
+        ! PC_GS_KP and PC_GS_KI
+        ! I'd like to throw warnings if these are positive
+
+        ! PC_MinPit and PC_MaxPit
+        IF (CntrPar%PC_MinPit >= CntrPar%PC_MaxPit)  THEN
+            aviFAIL = -1
+            ErrMsg  = 'PC_MinPit must be less than PC_MaxPit.'
+        ENDIF
+
+        ! PC_RefSpd
         IF (CntrPar%PC_RefSpd <= 0.0) THEN
             aviFAIL = -1
             ErrMsg  = 'PC_RefSpd must be greater than zero.'
         ENDIF
         
+        ! PC_MaxRat
         IF (CntrPar%PC_MaxRat <= 0.0) THEN
             aviFAIL = -1
             ErrMsg  = 'PC_MaxRat must be greater than zero.'
         ENDIF
-        
-        IF (CntrPar%PC_MinPit >= CntrPar%PC_MaxPit)  THEN
+
+        ! PC_MinRat
+        IF (CntrPar%PC_MinRat <= 0.0) THEN
             aviFAIL = -1
-            ErrMsg  = 'PC_MinPit must be less than PC_MaxPit.'
+            ErrMsg  = 'PC_MinRat must be greater than zero.'
         ENDIF
-        
+
+        !------- INDIVIDUAL PITCH CONTROL -----------------------------------------
+
+        IF (CntrPar%IPC_CornerFreqAct < 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'Corner frequency of IPC actuator model must be positive, or set to 0 to disable.'
+        ENDIF
+
         IF (CntrPar%IPC_KI(1) < 0.0)  THEN
             aviFAIL = -1
             ErrMsg  = 'IPC_KI(1) must be zero or greater than zero.'
@@ -433,7 +562,124 @@ CONTAINS
             aviFAIL = -1
             ErrMsg  = 'IPC_KI(2) must be zero or greater than zero.'
         ENDIF
+
+        !------- VS TORQUE CONTROL ------------------------------------------------
+       
+        IF (CntrPar%VS_MaxRat <= 0.0) THEN
+            aviFAIL =  -1
+            ErrMsg  = 'VS_MaxRat must be greater than zero.'
+        ENDIF
         
+        
+        
+        ! VS_Rgn2K
+        IF (CntrPar%VS_Rgn2K < 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'VS_Rgn2K must not be negative.'
+        ENDIF
+        
+        ! VS_RtTq
+        IF (CntrPar%VS_MaxTq < CntrPar%VS_RtTq) THEN
+            aviFAIL = -1
+            ErrMsg  = 'VS_RtTq must not be greater than VS_MaxTq.'
+        ENDIF
+
+        ! VS_RtPwr
+        IF (CntrPar%VS_RtPwr < 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'VS_RtPwr must not be negative.'
+        ENDIF
+
+        ! VS_RtTq
+        IF (CntrPar%VS_RtTq < 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'VS_RtTq must not be negative.'
+        ENDIF
+
+        ! VS_KP
+        IF (CntrPar%VS_KP(1) > 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'VS_KP must be less than zero.'
+        ENDIF
+        
+        ! VS_KI
+        IF (CntrPar%VS_KI(1) > 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'VS_KI must be less than zero.'
+        ENDIF
+
+        ! VS_TSRopt
+        IF (CntrPar%VS_TSRopt < 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'VS_TSRopt must be greater than zero.'
+        ENDIF
+        
+        !------- SETPOINT SMOOTHER ---------------------------------------------
+
+        ! SS_VSGain
+        IF (CntrPar%SS_VSGain < 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'SS_VSGain must be greater than zero.'
+        ENDIF
+
+        ! SS_PCGain
+        IF (CntrPar%SS_PCGain < 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'SS_PCGain must be greater than zero.'
+        ENDIF
+        
+        !------- WIND SPEED ESTIMATOR ---------------------------------------------
+
+        ! WE_BladeRadius
+        IF (CntrPar%WE_BladeRadius < 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'WE_BladeRadius must be greater than zero.'
+        ENDIF
+
+        ! WE_GearboxRatio
+        IF (CntrPar%WE_GearboxRatio < 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'WE_GearboxRatio must be greater than zero.'
+        ENDIF
+
+        ! WE_Jtot
+        IF (CntrPar%WE_Jtot < 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'WE_Jtot must be greater than zero.'
+        ENDIF
+
+        ! WE_RhoAir
+        IF (CntrPar%WE_RhoAir < 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'WE_RhoAir must be greater than zero.'
+        ENDIF
+
+        ! PerfTableSize(1)
+        IF (CntrPar%PerfTableSize(1) < 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'PerfTableSize(1) must be greater than zero.'
+        ENDIF
+
+        ! PerfTableSize(2)
+        IF (CntrPar%PerfTableSize(2) < 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'PerfTableSize(2) must be greater than zero.'
+        ENDIF
+
+        ! WE_FOPoles_N
+        IF (CntrPar%WE_FOPoles_N < 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'WE_FOPoles_N must be greater than zero.'
+        ENDIF
+
+        ! WE_FOPoles_v
+        IF (.NOT. NonDecreasing(CntrPar%WE_FOPoles_v)) THEN
+            aviFAIL = -1
+            ErrMsg  = 'WE_FOPoles_v must be non-decreasing.'
+        ENDIF
+
+
+
         ! ---- Yaw Control ----
         IF (CntrPar%Y_ControlMode > 0) THEN
             IF (CntrPar%Y_IPC_omegaLP <= 0.0)  THEN
@@ -467,6 +713,24 @@ CONTAINS
             ENDIF
         ENDIF
 
+        !------- MINIMUM PITCH SATURATION -------------------------------------------
+        IF (CntrPar%PS_Mode > 0) THEN
+
+            ! PS_BldPitchMin_N
+            IF (CntrPar%PS_BldPitchMin_N < 0.0) THEN
+                aviFAIL = -1
+                ErrMsg  = 'PS_BldPitchMin_N must be greater than zero.'
+            ENDIF
+
+            ! PS_WindSpeeds
+            IF (.NOT. NonDecreasing(CntrPar%PS_WindSpeeds)) THEN
+                aviFAIL = -1
+                ErrMsg  = 'PS_WindSpeeds must be non-decreasing.'
+            ENDIF
+
+
+        ENDIF
+
         ! --- Floating Control ---
         IF (CntrPar%Fl_Mode > 0) THEN
             IF (CntrPar%F_NotchType <= 1 .OR. CntrPar%F_NotchCornerFreq == 0.0) THEN
@@ -487,7 +751,17 @@ CONTAINS
             ErrMsg  = 'IPC enabled, but Ptch_Cntrl in ServoDyn has a value of 0. Set it to 1.'
         ENDIF
 
-    END SUBROUTINE Assert
+        ! DT
+        IF (LocalVar%DT <= 0.0) THEN
+            aviFAIL = -1
+            ErrMsg  = 'DT must be greater than zero.'
+        ENDIF
+
+        IF (aviFAIL < 0) THEN
+            ErrMsg  = 'CheckInputs:'//TRIM(ErrMsg)
+        ENDIF
+
+    END SUBROUTINE CheckInputs
     ! -----------------------------------------------------------------------------------
     ! Define parameters for control actions
     SUBROUTINE SetParameters(avrSWAP, accINFILE, size_avcMSG, CntrPar, LocalVar, objInst, PerfData, ErrVar)
@@ -590,7 +864,7 @@ CONTAINS
             LocalVar%VS_LastGenTrq = LocalVar%GenTq       
             LocalVar%VS_MaxTq      = CntrPar%VS_MaxTq
             ! Check validity of input parameters:
-            CALL Assert(LocalVar, CntrPar, avrSWAP, ErrVar%aviFAIL, ErrVar%ErrMsg, size_avcMSG)
+            CALL CheckInputs(LocalVar, CntrPar, avrSWAP, ErrVar%aviFAIL, ErrVar%ErrMsg, size_avcMSG)
             
 
         ENDIF
