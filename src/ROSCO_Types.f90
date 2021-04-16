@@ -235,10 +235,10 @@ END TYPE DebugVariables
 
 TYPE, PUBLIC :: ErrorVariables
     ! Error Catching
-    INTEGER(4)                 :: size_avcMSG
-    INTEGER(C_INT)             :: aviFAIL             ! A flag used to indicate the success of this DLL call set as follows: 0 if the DLL call was successful, >0 if the DLL call was successful but cMessage should be issued as a warning messsage, <0 if the DLL call was unsuccessful or for any other reason the simulation is to be stopped at this point with cMessage as the error message.
+    INTEGER(4)                      :: size_avcMSG
+    INTEGER(C_INT)                  :: aviFAIL             ! A flag used to indicate the success of this DLL call set as follows: 0 if the DLL call was successful, >0 if the DLL call was successful but cMessage should be issued as a warning messsage, <0 if the DLL call was unsuccessful or for any other reason the simulation is to be stopped at this point with cMessage as the error message.
     ! CHARACTER(:), ALLOCATABLE  :: ErrMsg              ! a Fortran version of the C string argument (not considered an array here) [subtract 1 for the C null-character]
-    CHARACTER(999), ALLOCATABLE  :: ErrMsg              ! a Fortran version of the C string argument (not considered an array here) [subtract 1 for the C null-character]
+    CHARACTER(:), ALLOCATABLE       :: ErrMsg              ! a Fortran version of the C string argument (not considered an array here) [subtract 1 for the C null-character]
 END TYPE ErrorVariables
 
 END MODULE ROSCO_Types

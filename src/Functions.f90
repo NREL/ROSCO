@@ -47,6 +47,7 @@ CONTAINS
         saturate = MIN(MAX(inputValue,minValue), maxValue)
 
     END FUNCTION saturate
+    
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION ratelimit(inputSignal, inputSignalPrev, minRate, maxRate, DT)
     ! Saturates inputValue. Makes sure it is not smaller than minValue and not larger than maxValue
@@ -65,6 +66,7 @@ CONTAINS
         ratelimit = inputSignalPrev + rate*DT                       ! Saturate the overall command using the rate limit
 
     END FUNCTION ratelimit
+
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, reset, inst)
     ! PI controller, with output saturation
@@ -105,6 +107,7 @@ CONTAINS
         inst = inst + 1
         
     END FUNCTION PIController
+
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL(8) FUNCTION PIIController(error, error2, kp, ki, ki2, minValue, maxValue, DT, I0, reset, inst)
     ! PI controller, with output saturation. 
@@ -155,6 +158,7 @@ CONTAINS
         inst = inst + 1
         
     END FUNCTION PIIController
+
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION interp1d(xData, yData, xq, ErrVar)
     ! interp1d 1-D interpolation (table lookup), xData should be strictly increasing
@@ -208,6 +212,7 @@ CONTAINS
         END IF
         
     END FUNCTION interp1d
+
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION interp2d(xData, yData, zData, xq, yq, ErrVar)
     ! interp2d 2-D interpolation (table lookup). Query done using bilinear interpolation. 
@@ -353,6 +358,7 @@ CONTAINS
         END IF
 
     END FUNCTION interp2d
+
 !-------------------------------------------------------------------------------------------------------------------------------
     FUNCTION matinv3(A) RESULT(B)
     ! Performs a direct calculation of the inverse of a 3×3 matrix.
@@ -377,6 +383,7 @@ CONTAINS
         B(2,3) = -detinv * (A(1,1)*A(2,3) - A(1,3)*A(2,1))
         B(3,3) = +detinv * (A(1,1)*A(2,2) - A(1,2)*A(2,1))
     END FUNCTION matinv3
+
 !-------------------------------------------------------------------------------------------------------------------------------
     FUNCTION identity(n) RESULT(A)
     ! Produces an identity matrix of size n x n
@@ -398,6 +405,7 @@ CONTAINS
         ENDDO
     
     END FUNCTION identity
+
 !-------------------------------------------------------------------------------------------------------------------------------  
     REAL FUNCTION DFController(error, Kd, Tf, DT, inst)
     ! DF controller, with output saturation
@@ -427,6 +435,7 @@ CONTAINS
         errorLast(inst) = error
         DFControllerLast(inst) = DFController
     END FUNCTION DFController
+
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE ColemanTransform(rootMOOP, aziAngle, nHarmonic, axTOut, axYOut)
     ! The Coleman or d-q axis transformation transforms the root out of plane bending moments of each turbine blade
@@ -448,6 +457,7 @@ CONTAINS
         axYOut  = 2.0/3.0 * (sin(nHarmonic*(aziAngle))*rootMOOP(1) + sin(nHarmonic*(aziAngle+phi2))*rootMOOP(2) + sin(nHarmonic*(aziAngle+phi3))*rootMOOP(3))
         
     END SUBROUTINE ColemanTransform
+
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE ColemanTransformInverse(axTIn, axYIn, aziAngle, nHarmonic, aziOffset, PitComIPC)
     ! The inverse Coleman or d-q axis transformation transforms the direct axis and quadrature axis
@@ -470,6 +480,7 @@ CONTAINS
         PitComIPC(3) = cos(nHarmonic*(aziAngle+aziOffset+phi3))*axTIn + sin(nHarmonic*(aziAngle+aziOffset+phi3))*axYIn
 
     END SUBROUTINE ColemanTransformInverse
+
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION CPfunction(CP, lambda)
     ! Paremeterized Cp(lambda) function for a fixed pitch angle. Circumvents the need of importing a look-up table
@@ -484,6 +495,7 @@ CONTAINS
         CPfunction = saturate(CPfunction, 0.001D0, 1.0D0)
         
     END FUNCTION CPfunction
+
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION AeroDynTorque(LocalVar, CntrPar, PerfData, ErrVar)
     ! Function for computing the aerodynamic torque, divided by the effective rotor torque of the turbine, for use in wind speed estimation
@@ -518,6 +530,7 @@ CONTAINS
         END IF
         
     END FUNCTION AeroDynTorque
+
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME)
     ! Debug routine, defines what gets printed to DEBUG.dbg if LoggingLevel = 1
@@ -628,6 +641,7 @@ CONTAINS
         END IF
 
     END SUBROUTINE Debug
+
 !-------------------------------------------------------------------------------------------------------------------------------
 FUNCTION QueryGitVersion()
 
@@ -646,6 +660,7 @@ FUNCTION QueryGitVersion()
 
    RETURN
 END FUNCTION QueryGitVersion
+
 !-------------------------------------------------------------------------------------------------------------------------------
     ! Copied from NWTC_IO.f90
 !> This function returns a character string encoded with today's date in the form dd-mmm-ccyy.
@@ -709,6 +724,7 @@ FUNCTION CurDate( )
 
     RETURN
     END FUNCTION CurDate
+
 !=======================================================================
 !> This function returns a character string encoded with the time in the form "hh:mm:ss".
     FUNCTION CurTime( )
@@ -731,6 +747,7 @@ FUNCTION CurDate( )
 
     RETURN
     END FUNCTION CurTime
+
 !=======================================================================
 ! This function checks whether an array is non-decreasing
     LOGICAL Function NonDecreasing(Array)
@@ -751,5 +768,55 @@ FUNCTION CurDate( )
 
     RETURN
     END FUNCTION NonDecreasing
+
+!=======================================================================
+!> This routine converts all the text in a string to upper case.
+    SUBROUTINE Conv2UC ( Str )
+
+        ! Argument declarations.
+  
+     CHARACTER(*), INTENT(INOUT)  :: Str                                          !< The string to be converted to UC (upper case).
+  
+  
+        ! Local declarations.
+  
+     INTEGER                      :: IC                                           ! Character index
+  
+  
+  
+     DO IC=1,LEN_TRIM( Str )
+  
+        IF ( ( Str(IC:IC) >= 'a' ).AND.( Str(IC:IC) <= 'z' ) )  THEN
+           Str(IC:IC) = CHAR( ICHAR( Str(IC:IC) ) - 32 )
+        END IF
+  
+     END DO ! IC
+  
+  
+     RETURN
+     END SUBROUTINE Conv2UC
+
+!=======================================================================
+     !> This function returns a left-adjusted string representing the passed numeric value. 
+    !! It eliminates trailing zeroes and even the decimal point if it is not a fraction. \n
+    !! Use Num2LStr (nwtc_io::num2lstr) instead of directly calling a specific routine in the generic interface.   
+    FUNCTION Int2LStr ( Num )
+
+        CHARACTER(11)                :: Int2LStr                                     !< string representing input number.
+    
+    
+        ! Argument declarations.
+    
+        INTEGER, INTENT(IN)          :: Num                                          !< The number to convert to a left-justified string.
+    
+    
+    
+        WRITE (Int2LStr,'(I11)')  Num
+    
+        Int2Lstr = ADJUSTL( Int2LStr )
+    
+    
+        RETURN
+        END FUNCTION Int2LStr
 
 END MODULE Functions
