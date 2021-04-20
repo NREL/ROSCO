@@ -28,6 +28,13 @@ USE Functions
 
     IMPLICIT NONE
 
+INTERFACE ParseInput                                                         ! Parses a character variable name and value from a string.
+    MODULE PROCEDURE ParseInput_Str                                             ! Parses a character string from a string.
+    MODULE PROCEDURE ParseInput_Dbl                                             ! Parses a double-precision REAL from a string.
+    MODULE PROCEDURE ParseInput_Int                                             ! Parses an INTEGER from a string.
+    ! MODULE PROCEDURE ParseInput_Log                                             ! Parses an LOGICAL from a string.
+END INTERFACE
+
 CONTAINS
     ! -----------------------------------------------------------------------------------
     ! Read all constant control parameters from DISCON.IN parameter file
@@ -56,174 +63,177 @@ CONTAINS
         !----------------------- DEBUG --------------------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
-        CALL ParseInput_Int(UnControllerParameters,CurLine,'LoggingLevel',accINFILE(1),CntrPar%LoggingLevel,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'LoggingLevel',accINFILE(1),CntrPar%LoggingLevel,ErrVar)
 
         ! READ(UnControllerParameters, *) CntrPar%LoggingLevel
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !----------------- CONTROLLER FLAGS ---------------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ParseInput_Int(UnControllerParameters,CurLine,'F_LPFType',accINFILE(1),CntrPar%F_LPFType,ErrVar)
-        CALL ParseInput_Int(UnControllerParameters,CurLine,'F_NotchType',accINFILE(1),CntrPar%F_NotchType,ErrVar)
-        CALL ParseInput_Int(UnControllerParameters,CurLine,'IPC_ControlMode',accINFILE(1),CntrPar%IPC_ControlMode,ErrVar)
-        CALL ParseInput_Int(UnControllerParameters,CurLine,'VS_ControlMode',accINFILE(1),CntrPar%VS_ControlMode,ErrVar)
-        CALL ParseInput_Int(UnControllerParameters,CurLine,'PC_ControlMode',accINFILE(1),CntrPar%PC_ControlMode,ErrVar)
-        CALL ParseInput_Int(UnControllerParameters,CurLine,'Y_ControlMode',accINFILE(1),CntrPar%Y_ControlMode,ErrVar)
-        CALL ParseInput_Int(UnControllerParameters,CurLine,'SS_Mode',accINFILE(1),CntrPar%SS_Mode,ErrVar)
-        CALL ParseInput_Int(UnControllerParameters,CurLine,'WE_Mode',accINFILE(1),CntrPar%WE_Mode,ErrVar)
-        CALL ParseInput_Int(UnControllerParameters,CurLine,'PS_Mode',accINFILE(1),CntrPar%PS_Mode,ErrVar)
-        CALL ParseInput_Int(UnControllerParameters,CurLine,'SD_Mode',accINFILE(1),CntrPar%SD_Mode,ErrVar)
-        CALL ParseInput_Int(UnControllerParameters,CurLine,'FL_Mode',accINFILE(1),CntrPar%FL_Mode,ErrVar)
-        CALL ParseInput_Int(UnControllerParameters,CurLine,'Flp_Mode',accINFILE(1),CntrPar%Flp_Mode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'F_LPFType',accINFILE(1),CntrPar%F_LPFType,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'F_NotchType',accINFILE(1),CntrPar%F_NotchType,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'IPC_ControlMode',accINFILE(1),CntrPar%IPC_ControlMode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'VS_ControlMode',accINFILE(1),CntrPar%VS_ControlMode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PC_ControlMode',accINFILE(1),CntrPar%PC_ControlMode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_ControlMode',accINFILE(1),CntrPar%Y_ControlMode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'SS_Mode',accINFILE(1),CntrPar%SS_Mode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'WE_Mode',accINFILE(1),CntrPar%WE_Mode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PS_Mode',accINFILE(1),CntrPar%PS_Mode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'SD_Mode',accINFILE(1),CntrPar%SD_Mode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'FL_Mode',accINFILE(1),CntrPar%FL_Mode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Flp_Mode',accINFILE(1),CntrPar%Flp_Mode,ErrVar)
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !----------------- FILTER CONSTANTS ---------------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        READ(UnControllerParameters, *) CntrPar%F_LPFCornerFreq
-        READ(UnControllerParameters, *) CntrPar%F_LPFDamping
-        READ(UnControllerParameters, *) CntrPar%F_NotchCornerFreq
+        CALL ParseInput(UnControllerParameters,CurLine,'F_LPFCornerFreq',accINFILE(1),CntrPar%F_LPFCornerFreq,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'F_LPFDamping',accINFILE(1),CntrPar%F_LPFDamping,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'F_NotchCornerFreq',accINFILE(1),CntrPar%F_NotchCornerFreq,ErrVar)
         ALLOCATE(CntrPar%F_NotchBetaNumDen(2))
-        READ(UnControllerParameters,*) CntrPar%F_NotchBetaNumDen
-        READ(UnControllerParameters,*) CntrPar%F_SSCornerFreq
-        READ(UnControllerParameters,*) CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping
-        READ(UnControllerParameters,*) CntrPar%F_FlpCornerFreq, CntrPar%F_FlpDamping
-        READ(UnControllerParameters, *)
+        READ(UnControllerParameters,*) CntrPar%F_NotchBetaNumDen ; CurLine=CurLine+1
+        CALL ParseInput(UnControllerParameters,CurLine,'F_SSCornerFreq',accINFILE(1),CntrPar%F_SSCornerFreq,ErrVar)
+        READ(UnControllerParameters,*) CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping ; CurLine=CurLine+1
+        READ(UnControllerParameters,*) CntrPar%F_FlpCornerFreq, CntrPar%F_FlpDamping ; CurLine=CurLine+1
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !----------- BLADE PITCH CONTROLLER CONSTANTS -----------
-        READ(UnControllerParameters, *)
-        READ(UnControllerParameters, *) CntrPar%PC_GS_n
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseInput(UnControllerParameters,CurLine,'PC_GS_n',accINFILE(1),CntrPar%PC_GS_n,ErrVar)
         ALLOCATE(CntrPar%PC_GS_angles(CntrPar%PC_GS_n))
-        READ(UnControllerParameters,*) CntrPar%PC_GS_angles
+        READ(UnControllerParameters,*) CntrPar%PC_GS_angles ; CurLine=CurLine+1
         ALLOCATE(CntrPar%PC_GS_KP(CntrPar%PC_GS_n))
-        READ(UnControllerParameters,*) CntrPar%PC_GS_KP
+        READ(UnControllerParameters,*) CntrPar%PC_GS_KP ; CurLine=CurLine+1
         ALLOCATE(CntrPar%PC_GS_KI(CntrPar%PC_GS_n))
-        READ(UnControllerParameters,*) CntrPar%PC_GS_KI
+        READ(UnControllerParameters,*) CntrPar%PC_GS_KI ; CurLine=CurLine+1
         ALLOCATE(CntrPar%PC_GS_KD(CntrPar%PC_GS_n))
-        READ(UnControllerParameters,*) CntrPar%PC_GS_KD
+        READ(UnControllerParameters,*) CntrPar%PC_GS_KD ; CurLine=CurLine+1
         ALLOCATE(CntrPar%PC_GS_TF(CntrPar%PC_GS_n))
-        READ(UnControllerParameters,*) CntrPar%PC_GS_TF
-        READ(UnControllerParameters, *) CntrPar%PC_MaxPit
-        READ(UnControllerParameters, *) CntrPar%PC_MinPit
-        READ(UnControllerParameters, *) CntrPar%PC_MaxRat
-        READ(UnControllerParameters, *) CntrPar%PC_MinRat
-        READ(UnControllerParameters, *) CntrPar%PC_RefSpd
-        READ(UnControllerParameters, *) CntrPar%PC_FinePit
-        READ(UnControllerParameters, *) CntrPar%PC_Switch
-        READ(UnControllerParameters, *)
+        READ(UnControllerParameters,*) CntrPar%PC_GS_TF ; CurLine=CurLine+1
+        CALL ParseInput(UnControllerParameters,CurLine,'PC_MaxPit',accINFILE(1),CntrPar%PC_MaxPit,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PC_MinPit',accINFILE(1),CntrPar%PC_MinPit,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PC_MaxRat',accINFILE(1),CntrPar%PC_MaxRat,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PC_MinRat',accINFILE(1),CntrPar%PC_MinRat,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PC_RefSpd',accINFILE(1),CntrPar%PC_RefSpd,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PC_FinePit',accINFILE(1),CntrPar%PC_FinePit,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PC_Switch',accINFILE(1),CntrPar%PC_Switch,ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !------------------- IPC CONSTANTS -----------------------
-        READ(UnControllerParameters, *) 
-        READ(UnControllerParameters, *) CntrPar%IPC_IntSat
+        CALL ReadEmptyLine(UnControllerParameters,CurLine) 
+        CALL ParseInput(UnControllerParameters,CurLine,'IPC_IntSat',accINFILE(1),CntrPar%IPC_IntSat,ErrVar)
         ALLOCATE(CntrPar%IPC_KI(2))
-        READ(UnControllerParameters,*) CntrPar%IPC_KI
+        READ(UnControllerParameters,*) CntrPar%IPC_KI ; CurLine=CurLine+1
         ALLOCATE(CntrPar%IPC_aziOffset(2))
-        READ(UnControllerParameters,*) CntrPar%IPC_aziOffset
-        READ(UnControllerParameters, *) CntrPar%IPC_CornerFreqAct
-        READ(UnControllerParameters, *)
+        READ(UnControllerParameters,*) CntrPar%IPC_aziOffset ; CurLine=CurLine+1
+        CALL ParseInput(UnControllerParameters,CurLine,'IPC_CornerFreqAct',accINFILE(1),CntrPar%IPC_CornerFreqAct,ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !------------ VS TORQUE CONTROL CONSTANTS ----------------
-        READ(UnControllerParameters, *)
-        READ(UnControllerParameters, *) CntrPar%VS_GenEff
-        READ(UnControllerParameters, *) CntrPar%VS_ArSatTq
-        READ(UnControllerParameters, *) CntrPar%VS_MaxRat
-        READ(UnControllerParameters, *) CntrPar%VS_MaxTq
-        READ(UnControllerParameters, *) CntrPar%VS_MinTq
-        READ(UnControllerParameters, *) CntrPar%VS_MinOMSpd
-        READ(UnControllerParameters, *) CntrPar%VS_Rgn2K
-        READ(UnControllerParameters, *) CntrPar%VS_RtPwr
-        READ(UnControllerParameters, *) CntrPar%VS_RtTq
-        READ(UnControllerParameters, *) CntrPar%VS_RefSpd
-        READ(UnControllerParameters, *) CntrPar%VS_n
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseInput(UnControllerParameters,CurLine,'VS_GenEff',accINFILE(1),CntrPar%VS_GenEff,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'VS_ArSatTq',accINFILE(1),CntrPar%VS_ArSatTq,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'VS_MaxRat',accINFILE(1),CntrPar%VS_MaxRat,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'VS_MaxTq',accINFILE(1),CntrPar%VS_MaxTq,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'VS_MinTq',accINFILE(1),CntrPar%VS_MinTq,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'VS_MinOMSpd',accINFILE(1),CntrPar%VS_MinOMSpd,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'VS_Rgn2K',accINFILE(1),CntrPar%VS_Rgn2K,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'VS_RtPwr',accINFILE(1),CntrPar%VS_RtPwr,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'VS_RtTq',accINFILE(1),CntrPar%VS_RtTq,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'VS_RefSpd',accINFILE(1),CntrPar%VS_RefSpd,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'VS_n',accINFILE(1),CntrPar%VS_n,ErrVar)
         ALLOCATE(CntrPar%VS_KP(CntrPar%VS_n))
-        READ(UnControllerParameters,*) CntrPar%VS_KP
+        READ(UnControllerParameters,*) CntrPar%VS_KP ; CurLine=CurLine+1
         ALLOCATE(CntrPar%VS_KI(CntrPar%VS_n))
-        READ(UnControllerParameters,*) CntrPar%VS_KI
-        READ(UnControllerParameters,*) CntrPar%VS_TSRopt
-        READ(UnControllerParameters, *)
+        READ(UnControllerParameters,*) CntrPar%VS_KI ; CurLine=CurLine+1
+        CALL ParseInput(UnControllerParameters,CurLine,'VS_TSRopt',accINFILE(1),CntrPar%VS_TSRopt,ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !------- Setpoint Smoother --------------------------------
-        READ(UnControllerParameters, *)
-        READ(UnControllerParameters, *) CntrPar%SS_VSGain
-        READ(UnControllerParameters, *) CntrPar%SS_PCGain
-        READ(UnControllerParameters, *) 
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseInput(UnControllerParameters,CurLine,'SS_VSGain',accINFILE(1),CntrPar%SS_VSGain,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'SS_PCGain',accINFILE(1),CntrPar%SS_PCGain,ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine) 
 
         !------------ WIND SPEED ESTIMATOR CONTANTS --------------
-        READ(UnControllerParameters, *)
-        READ(UnControllerParameters, *) CntrPar%WE_BladeRadius
-        READ(UnControllerParameters, *) CntrPar%WE_CP_n
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseInput(UnControllerParameters,CurLine,'WE_BladeRadius',accINFILE(1),CntrPar%WE_BladeRadius,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'WE_CP_n',accINFILE(1),CntrPar%WE_CP_n,ErrVar)
         ALLOCATE(CntrPar%WE_CP(CntrPar%WE_CP_n))
-        READ(UnControllerParameters, *) CntrPar%WE_CP
-        READ(UnControllerParameters, *) CntrPar%WE_Gamma
-        READ(UnControllerParameters, *) CntrPar%WE_GearboxRatio
-        READ(UnControllerParameters, *) CntrPar%WE_Jtot
-        READ(UnControllerParameters, *) CntrPar%WE_RhoAir
-        READ(UnControllerParameters, *) CntrPar%PerfFileName
+        READ(UnControllerParameters, *) CntrPar%WE_CP ; CurLine=CurLine+1
+        CALL ParseInput(UnControllerParameters,CurLine,'WE_Gamma',accINFILE(1),CntrPar%WE_Gamma,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'WE_GearboxRatio',accINFILE(1),CntrPar%WE_GearboxRatio,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'WE_Jtot',accINFILE(1),CntrPar%WE_Jtot,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'WE_RhoAir',accINFILE(1),CntrPar%WE_RhoAir,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PerfFileName',accINFILE(1),CntrPar%PerfFileName,ErrVar)
         ALLOCATE(CntrPar%PerfTableSize(2))
-        READ(UnControllerParameters, *) CntrPar%PerfTableSize
-        READ(UnControllerParameters, *) CntrPar%WE_FOPoles_N
+        READ(UnControllerParameters, *) CntrPar%PerfTableSize ; CurLine=CurLine+1
+        CALL ParseInput(UnControllerParameters,CurLine,'WE_FOPoles_N',accINFILE(1),CntrPar%WE_FOPoles_N,ErrVar)
         ALLOCATE(CntrPar%WE_FOPoles_v(CntrPar%WE_FOPoles_n))
-        READ(UnControllerParameters, *) CntrPar%WE_FOPoles_v
+        READ(UnControllerParameters, *) CntrPar%WE_FOPoles_v ; CurLine=CurLine+1
         ALLOCATE(CntrPar%WE_FOPoles(CntrPar%WE_FOPoles_n))
-        READ(UnControllerParameters, *) CntrPar%WE_FOPoles
-        READ(UnControllerParameters, *)
+        READ(UnControllerParameters, *) CntrPar%WE_FOPoles ; CurLine=CurLine+1
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !-------------- YAW CONTROLLER CONSTANTS -----------------
-        READ(UnControllerParameters, *)
-        READ(UnControllerParameters, *) CntrPar%Y_ErrThresh
-        READ(UnControllerParameters, *) CntrPar%Y_IPC_IntSat
-        READ(UnControllerParameters, *) CntrPar%Y_IPC_n
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_ErrThresh',accINFILE(1),CntrPar%Y_ErrThresh,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_IntSat',accINFILE(1),CntrPar%Y_IPC_IntSat,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_n',accINFILE(1),CntrPar%Y_IPC_n,ErrVar)
         ALLOCATE(CntrPar%Y_IPC_KP(CntrPar%Y_IPC_n))
-        READ(UnControllerParameters,*) CntrPar%Y_IPC_KP
+        READ(UnControllerParameters,*) CntrPar%Y_IPC_KP ; CurLine=CurLine+1
         ALLOCATE(CntrPar%Y_IPC_KI(CntrPar%Y_IPC_n))
-        READ(UnControllerParameters,*) CntrPar%Y_IPC_KI
-        READ(UnControllerParameters, *) CntrPar%Y_IPC_omegaLP
-        READ(UnControllerParameters, *) CntrPar%Y_IPC_zetaLP
-        READ(UnControllerParameters, *) CntrPar%Y_MErrSet
-        READ(UnControllerParameters, *) CntrPar%Y_omegaLPFast
-        READ(UnControllerParameters, *) CntrPar%Y_omegaLPSlow
-        READ(UnControllerParameters, *) CntrPar%Y_Rate
-        READ(UnControllerParameters, *)
+        READ(UnControllerParameters,*) CntrPar%Y_IPC_KI ; CurLine=CurLine+1
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_omegaLP',accINFILE(1),CntrPar%Y_IPC_omegaLP,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_zetaLP',accINFILE(1),CntrPar%Y_IPC_zetaLP,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_MErrSet',accINFILE(1),CntrPar%Y_MErrSet,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_omegaLPFast',accINFILE(1),CntrPar%Y_omegaLPFast,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_omegaLPSlow',accINFILE(1),CntrPar%Y_omegaLPSlow,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_Rate',accINFILE(1),CntrPar%Y_Rate,ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !------------ FORE-AFT TOWER DAMPER CONSTANTS ------------
-        READ(UnControllerParameters, *)      
-        READ(UnControllerParameters, *) CntrPar%FA_KI  
-        READ(UnControllerParameters, *) CntrPar%FA_HPFCornerFreq
-        READ(UnControllerParameters, *) CntrPar%FA_IntSat
-        READ(UnControllerParameters, *)      
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(UnControllerParameters,CurLine,'FA_KI',accINFILE(1),CntrPar%FA_KI,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'FA_HPFCornerFreq',accINFILE(1),CntrPar%FA_HPFCornerFreq,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'FA_IntSat',accINFILE(1),CntrPar%FA_IntSat,ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)      
 
         !------------ PEAK SHAVING ------------
-        READ(UnControllerParameters, *)      
-        READ(UnControllerParameters, *) CntrPar%PS_BldPitchMin_N  
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(UnControllerParameters,CurLine,'PS_BldPitchMin_N',accINFILE(1),CntrPar%PS_BldPitchMin_N,ErrVar)
         ALLOCATE(CntrPar%PS_WindSpeeds(CntrPar%PS_BldPitchMin_N))
-        READ(UnControllerParameters, *) CntrPar%PS_WindSpeeds
+        READ(UnControllerParameters, *) CntrPar%PS_WindSpeeds ; CurLine=CurLine+1
         ALLOCATE(CntrPar%PS_BldPitchMin(CntrPar%PS_BldPitchMin_N))
-        READ(UnControllerParameters, *) CntrPar%PS_BldPitchMin
-        READ(UnControllerParameters, *) 
+        READ(UnControllerParameters, *) CntrPar%PS_BldPitchMin ; CurLine=CurLine+1
+        CALL ReadEmptyLine(UnControllerParameters,CurLine) 
 
         !------------ SHUTDOWN ------------
-        READ(UnControllerParameters, *)      
-        READ(UnControllerParameters, *) CntrPar%SD_MaxPit  
-        READ(UnControllerParameters, *) CntrPar%SD_CornerFreq
-        READ(UnControllerParameters, *)      
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(UnControllerParameters,CurLine,'SD_MaxPit',accINFILE(1),CntrPar%SD_MaxPit,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'SD_CornerFreq',accINFILE(1),CntrPar%SD_CornerFreq,ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)      
 
         !------------ FLOATING ------------
-        READ(UnControllerParameters, *)
-        READ(UnControllerParameters, *) CntrPar%Fl_Kp  
-        READ(UnControllerParameters, *) 
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseInput(UnControllerParameters,CurLine,'Fl_Kp',accINFILE(1),CntrPar%Fl_Kp,ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine) 
 
         !------------ Flaps ------------
-        READ(UnControllerParameters, *)      
-        READ(UnControllerParameters, *) CntrPar%Flp_Angle  
-        READ(UnControllerParameters, *) CntrPar%Flp_Kp  
-        READ(UnControllerParameters, *) CntrPar%Flp_Ki  
-        READ(UnControllerParameters, *) CntrPar%Flp_MaxPit  
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(UnControllerParameters,CurLine,'Flp_Angle',accINFILE(1),CntrPar%Flp_Angle,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Flp_Kp',accINFILE(1),CntrPar%Fl_Kp,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Flp_Ki',accINFILE(1),CntrPar%Flp_Ki,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Flp_MaxPit',accINFILE(1),CntrPar%Flp_MaxPit,ErrVar)
         ! END OF INPUT FILE    
+
+        ! Close Input File
+        CLOSE(UnControllerParameters)
+
         
         !------------------- CALCULATED CONSTANTS -----------------------
         CntrPar%PC_RtTq99 = CntrPar%VS_RtTq*0.99
         CntrPar%VS_MinOMTq = CntrPar%VS_Rgn2K*CntrPar%VS_MinOMSpd**2
         CntrPar%VS_MaxOMTq = CntrPar%VS_Rgn2K*CntrPar%VS_RefSpd**2
-        CLOSE(UnControllerParameters)
         
         !------------------- HOUSEKEEPING -----------------------
         CntrPar%PerfFileName = TRIM(CntrPar%PerfFileName)
@@ -232,201 +242,6 @@ CONTAINS
             ErrVar%ErrMsg = 'ReadControlParameterFileSub:'//TRIM(ErrVar%ErrMsg)
         ENDIF
 
-
-        CONTAINS
-
-        subroutine ParseInput_Int(Un,CurLine,VarName, FileName, Variable,ErrVar)
-            USE ROSCO_Types, ONLY : ErrorVariables
-
-            CHARACTER(1024)                         :: Line
-            INTEGER(4),             INTENT(IN   )   :: Un   ! Input file unit
-            CHARACTER(*),           INTENT(IN   )   :: VarName   ! Input file unit
-            CHARACTER(*),           INTENT(IN   )   :: FileName   ! Input file unit
-            INTEGER(4),             INTENT(INOUT)   :: CurLine   ! Current line of input
-            TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
-            CHARACTER(20)                           :: Words       (2)               ! The two "words" parsed from the line
-
-            INTEGER(4),             INTENT(INOUT)   :: Variable   ! Variable
-            INTEGER(4)                              :: ErrStatLcl                    ! Error status local to this routine.
-
-            ! Read the whole line as a string
-            READ(UnControllerParameters, '(A)') Line
-
-            ! Separate line string into 2 words
-            CALL GetWords ( Line, Words, 2 )  
-
-            ! Debugging: show what's being read
-            ! print *, 'Read: '//TRIM(Words(1))//' and '//Words(2),' on line ', CurLine
-
-            ! Check that Variable Name is in Words
-            CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
-
-            ! IF We haven't failed already
-            IF (ErrVar%aviFAIL >= 0) THEN        
-
-                ! Read the variable
-                READ (Words(1),*,IOSTAT=ErrStatLcl)  Variable
-                IF ( ErrStatLcl /= 0 )  THEN
-                    ErrVar%aviFAIL  = -1
-                    ErrVar%ErrMsg   =  NewLine//' >> A fatal error occurred when parsing data from "' &
-                        //TRIM( FileName )//'".'//NewLine//  &
-                        ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid INTEGER value on line #' &
-                        //TRIM( Int2LStr( CurLine ) )//'.'//NewLine//&
-                        ' >> The text being parsed was :'//NewLine//'    "'//TRIM( Line )//'"'
-                ENDIF
-
-            ENDIF   
-
-            ! Increment line counter
-            CurLine = CurLine + 1
-
-        END subroutine ParseInput_Int
-
-        subroutine ReadEmptyLine(Un,CurLine)
-            INTEGER(4),         INTENT(IN   )          :: Un   ! Input file unit
-            INTEGER(4),         INTENT(INOUT)          :: CurLine   ! Current line of input
-
-            CHARACTER(1024)                            :: Line
-
-            READ(UnControllerParameters, '(A)') Line
-            CurLine = CurLine + 1
-
-        END subroutine ReadEmptyLine
-
-        !=======================================================================
-        !> This subroutine is used to get the NumWords "words" from a line of text.
-        !! It uses spaces, tabs, commas, semicolons, single quotes, and double quotes ("whitespace")
-        !! as word separators. If there aren't NumWords in the line, the remaining array elements will remain empty.
-        !! Use CountWords (nwtc_io::countwords) to count the number of words in a line.
-        SUBROUTINE GetWords ( Line, Words, NumWords )
-
-            ! Argument declarations.
-
-            INTEGER, INTENT(IN)          :: NumWords                                     !< The number of words to look for.
-
-            CHARACTER(*), INTENT(IN)     :: Line                                         !< The string to search.
-            CHARACTER(*), INTENT(OUT)    :: Words(NumWords)                              !< The array of found words.
-
-
-                ! Local declarations.
-
-            INTEGER                      :: Ch                                           ! Character position within the string.
-            INTEGER                      :: IW                                           ! Word index.
-            INTEGER                      :: NextWhite                                    ! The location of the next whitespace in the string.
-            CHARACTER(1), PARAMETER       :: Tab      = CHAR( 9 ) 
-
-
-
-                ! Let's prefill the array with blanks.
-
-            DO IW=1,NumWords
-                Words(IW) = ' '
-            END DO ! IW
-
-
-                ! Let's make sure we have text on this line.
-
-            IF ( LEN_TRIM( Line ) == 0 )  RETURN
-
-
-                ! Parse words separated by any combination of spaces, tabs, commas,
-                ! semicolons, single quotes, and double quotes ("whitespace").
-
-            Ch = 0
-            IW = 0
-
-            DO
-
-                NextWhite = SCAN( Line(Ch+1:) , ' ,!;''"'//Tab )
-
-                IF ( NextWhite > 1 )  THEN
-
-                IW        = IW + 1
-                Words(IW) = Line(Ch+1:Ch+NextWhite-1)
-
-                IF ( IW == NumWords )  EXIT
-
-                Ch = Ch + NextWhite
-
-                ELSE IF ( NextWhite == 1 )  THEN
-
-                Ch = Ch + 1
-
-                CYCLE
-
-                ELSE
-
-                EXIT
-
-                END IF
-
-            END DO
-
-
-            RETURN
-        END SUBROUTINE GetWords
-        !=======================================================================
-
-        !> This subroutine checks the data to be parsed to make sure it finds
-        !! the expected variable name and an associated value.
-        SUBROUTINE ChkParseData ( Words, ExpVarName, FileName, FileLineNum, ErrVar )
-
-            USE ROSCO_Types, ONLY : ErrorVariables
-
-
-                ! Arguments declarations.
-            TYPE(ErrorVariables),         INTENT(INOUT)          :: ErrVar   ! Current line of input
-
-            INTEGER(4), INTENT(IN)             :: FileLineNum                   !< The number of the line in the file being parsed.
-            INTEGER(4)                        :: NameIndx                      !< The index into the Words array that points to the variable name.
-
-            CHARACTER(*),   INTENT(IN)             :: ExpVarName                    !< The expected variable name.
-            CHARACTER(*),   INTENT(IN)             :: Words       (2)               !< The two words to be parsed from the line.
-
-            CHARACTER(*),   INTENT(IN)             :: FileName                      !< The name of the file being parsed.
-
-
-                ! Local declarations.
-
-            CHARACTER(20)                          :: ExpUCVarName                  ! The uppercase version of ExpVarName.
-            CHARACTER(20)                          :: FndUCVarName                  ! The uppercase version of the word being tested.
-
-
-
-
-                ! Convert the found and expected names to uppercase.
-
-            FndUCVarName = Words(1)
-            ExpUCVarName = ExpVarName
-
-            CALL Conv2UC ( FndUCVarName )
-            CALL Conv2UC ( ExpUCVarName )
-
-            ! See which word is the variable name.  Generate an error if it is the first
-                
-            IF ( TRIM( FndUCVarName ) == TRIM( ExpUCVarName ) )  THEN
-                NameIndx = 1
-                    ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg = ' >> A fatal error occurred when parsing data from "'//TRIM( FileName ) &
-                                    //'".'//NewLine//' >> The variable "'//TRIM( Words(1) )//'" was not assigned a value on line #' &
-                                    //TRIM( Int2LStr( FileLineNum ) )//'.' 
-                RETURN
-            ELSE
-                FndUCVarName = Words(2)
-                CALL Conv2UC ( FndUCVarName )
-                IF ( TRIM( FndUCVarName ) == TRIM( ExpUCVarName ) )  THEN
-                NameIndx = 2
-                ELSE
-                    ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg = ' >> A fatal error occurred when parsing data from "'//TRIM( FileName ) &
-                                    //'".'//NewLine//' >> The variable "'//TRIM( ExpVarName )//'" was not assigned a value on line #' &
-                                    //TRIM( Int2LStr( FileLineNum ) )//'.' 
-                RETURN
-                ENDIF
-            ENDIF
-
-
-        END SUBROUTINE ChkParseData 
 
     END SUBROUTINE ReadControlParameterFileSub
     ! -----------------------------------------------------------------------------------
@@ -1139,4 +954,295 @@ CONTAINS
         END DO
     
     END SUBROUTINE ReadCpFile
+    ! Parse integer input: read line, check that variable name is in line, handle errors
+    subroutine ParseInput_Int(Un,CurLine,VarName, FileName, Variable,ErrVar)
+        USE ROSCO_Types, ONLY : ErrorVariables
+
+        CHARACTER(1024)                         :: Line
+        INTEGER(4),             INTENT(IN   )   :: Un   ! Input file unit
+        CHARACTER(*),           INTENT(IN   )   :: VarName   ! Input file unit
+        CHARACTER(*),           INTENT(IN   )   :: FileName   ! Input file unit
+        INTEGER(4),             INTENT(INOUT)   :: CurLine   ! Current line of input
+        TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
+        CHARACTER(20)                           :: Words       (2)               ! The two "words" parsed from the line
+
+        INTEGER(4),             INTENT(INOUT)   :: Variable   ! Variable
+        INTEGER(4)                              :: ErrStatLcl                    ! Error status local to this routine.
+
+        ! Read the whole line as a string
+        READ(Un, '(A)') Line
+
+        ! Separate line string into 2 words
+        CALL GetWords ( Line, Words, 2 )  
+
+        ! Debugging: show what's being read, turn into Echo later
+        ! print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
+
+        ! Check that Variable Name is in Words
+        CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
+
+        ! IF We haven't failed already
+        IF (ErrVar%aviFAIL >= 0) THEN        
+
+            ! Read the variable
+            READ (Words(1),*,IOSTAT=ErrStatLcl)  Variable
+            IF ( ErrStatLcl /= 0 )  THEN
+                ErrVar%aviFAIL  = -1
+                ErrVar%ErrMsg   =  NewLine//' >> A fatal error occurred when parsing data from "' &
+                    //TRIM( FileName )//'".'//NewLine//  &
+                    ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid INTEGER value on line #' &
+                    //TRIM( Int2LStr( CurLine ) )//'.'//NewLine//&
+                    ' >> The text being parsed was :'//NewLine//'    "'//TRIM( Line )//'"'
+            ENDIF
+
+        ENDIF   
+
+        ! Increment line counter
+        CurLine = CurLine + 1
+
+    END subroutine ParseInput_Int
+
+    ! Parse double input, this is a copy of ParseInput_Int and a change in the variable definitions
+    subroutine ParseInput_Dbl(Un,CurLine,VarName, FileName, Variable,ErrVar)
+        USE ROSCO_Types, ONLY : ErrorVariables
+
+        CHARACTER(1024)                         :: Line
+        INTEGER(4),             INTENT(IN   )   :: Un   ! Input file unit
+        CHARACTER(*),           INTENT(IN   )   :: VarName   ! Input file unit
+        CHARACTER(*),           INTENT(IN   )   :: FileName   ! Input file unit
+        INTEGER(4),             INTENT(INOUT)   :: CurLine   ! Current line of input
+        TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
+        CHARACTER(20)                           :: Words       (2)               ! The two "words" parsed from the line
+
+        REAL(8),             INTENT(INOUT)      :: Variable   ! Variable
+        INTEGER(4)                              :: ErrStatLcl                    ! Error status local to this routine.
+
+        ! Read the whole line as a string
+        READ(Un, '(A)') Line
+
+        ! Separate line string into 2 words
+        CALL GetWords ( Line, Words, 2 )  
+
+        ! Debugging: show what's being read, turn into Echo later
+        ! print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
+
+        ! Check that Variable Name is in Words
+        CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
+
+        ! IF We haven't failed already
+        IF (ErrVar%aviFAIL >= 0) THEN        
+
+            ! Read the variable
+            READ (Words(1),*,IOSTAT=ErrStatLcl)  Variable
+            IF ( ErrStatLcl /= 0 )  THEN
+                ErrVar%aviFAIL  = -1
+                ErrVar%ErrMsg   =  NewLine//' >> A fatal error occurred when parsing data from "' &
+                    //TRIM( FileName )//'".'//NewLine//  &
+                    ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid INTEGER value on line #' &
+                    //TRIM( Int2LStr( CurLine ) )//'.'//NewLine//&
+                    ' >> The text being parsed was :'//NewLine//'    "'//TRIM( Line )//'"'
+            ENDIF
+
+        ENDIF   
+
+        ! Increment line counter
+        CurLine = CurLine + 1
+
+    END subroutine ParseInput_Dbl
+
+    ! Parse string input, this is a copy of ParseInput_Int and a change in the variable definitions
+    subroutine ParseInput_Str(Un,CurLine,VarName, FileName, Variable,ErrVar)
+        USE ROSCO_Types, ONLY : ErrorVariables
+
+        CHARACTER(1024)                         :: Line
+        INTEGER(4),             INTENT(IN   )   :: Un   ! Input file unit
+        CHARACTER(*),           INTENT(IN   )   :: VarName   ! Input file unit
+        CHARACTER(*),           INTENT(IN   )   :: FileName   ! Input file unit
+        INTEGER(4),             INTENT(INOUT)   :: CurLine   ! Current line of input
+        TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
+        CHARACTER(200)                          :: Words       (2)               ! The two "words" parsed from the line
+
+        CHARACTER(*),           INTENT(INOUT)   :: Variable   ! Variable
+        INTEGER(4)                              :: ErrStatLcl                    ! Error status local to this routine.
+
+        ! Read the whole line as a string
+        READ(Un, '(A)') Line
+
+        ! Separate line string into 2 words
+        CALL GetWords ( Line, Words, 2 )  
+
+        ! Debugging: show what's being read, turn into Echo later
+        ! print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
+
+        ! Check that Variable Name is in Words
+        CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
+
+        ! IF We haven't failed already
+        IF (ErrVar%aviFAIL >= 0) THEN        
+
+            ! Read the variable
+            READ (Words(1),*,IOSTAT=ErrStatLcl)  Variable
+            IF ( ErrStatLcl /= 0 )  THEN
+                ErrVar%aviFAIL  = -1
+                ErrVar%ErrMsg   =  NewLine//' >> A fatal error occurred when parsing data from "' &
+                    //TRIM( FileName )//'".'//NewLine//  &
+                    ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid INTEGER value on line #' &
+                    //TRIM( Int2LStr( CurLine ) )//'.'//NewLine//&
+                    ' >> The text being parsed was :'//NewLine//'    "'//TRIM( Line )//'"'
+            ENDIF
+
+        ENDIF   
+
+        ! Increment line counter
+        CurLine = CurLine + 1
+
+    END subroutine ParseInput_Str
+
+    subroutine ReadEmptyLine(Un,CurLine)
+        INTEGER(4),         INTENT(IN   )          :: Un   ! Input file unit
+        INTEGER(4),         INTENT(INOUT)          :: CurLine   ! Current line of input
+
+        CHARACTER(1024)                            :: Line
+
+        READ(Un, '(A)') Line
+        CurLine = CurLine + 1
+
+    END subroutine ReadEmptyLine
+
+    !=======================================================================
+    !> This subroutine is used to get the NumWords "words" from a line of text.
+    !! It uses spaces, tabs, commas, semicolons, single quotes, and double quotes ("whitespace")
+    !! as word separators. If there aren't NumWords in the line, the remaining array elements will remain empty.
+    !! Use CountWords (nwtc_io::countwords) to count the number of words in a line.
+    SUBROUTINE GetWords ( Line, Words, NumWords )
+
+        ! Argument declarations.
+
+        INTEGER, INTENT(IN)          :: NumWords                                     !< The number of words to look for.
+
+        CHARACTER(*), INTENT(IN)     :: Line                                         !< The string to search.
+        CHARACTER(*), INTENT(OUT)    :: Words(NumWords)                              !< The array of found words.
+
+
+            ! Local declarations.
+
+        INTEGER                      :: Ch                                           ! Character position within the string.
+        INTEGER                      :: IW                                           ! Word index.
+        INTEGER                      :: NextWhite                                    ! The location of the next whitespace in the string.
+        CHARACTER(1), PARAMETER       :: Tab      = CHAR( 9 ) 
+
+
+
+            ! Let's prefill the array with blanks.
+
+        DO IW=1,NumWords
+            Words(IW) = ' '
+        END DO ! IW
+
+
+            ! Let's make sure we have text on this line.
+
+        IF ( LEN_TRIM( Line ) == 0 )  RETURN
+
+
+            ! Parse words separated by any combination of spaces, tabs, commas,
+            ! semicolons, single quotes, and double quotes ("whitespace").
+
+        Ch = 0
+        IW = 0
+
+        DO
+
+            NextWhite = SCAN( Line(Ch+1:) , ' ,!;''"'//Tab )
+
+            IF ( NextWhite > 1 )  THEN
+
+            IW        = IW + 1
+            Words(IW) = Line(Ch+1:Ch+NextWhite-1)
+
+            IF ( IW == NumWords )  EXIT
+
+            Ch = Ch + NextWhite
+
+            ELSE IF ( NextWhite == 1 )  THEN
+
+            Ch = Ch + 1
+
+            CYCLE
+
+            ELSE
+
+            EXIT
+
+            END IF
+
+        END DO
+
+
+        RETURN
+    END SUBROUTINE GetWords
+    !=======================================================================
+
+    !> This subroutine checks the data to be parsed to make sure it finds
+    !! the expected variable name and an associated value.
+    SUBROUTINE ChkParseData ( Words, ExpVarName, FileName, FileLineNum, ErrVar )
+
+        USE ROSCO_Types, ONLY : ErrorVariables
+
+
+            ! Arguments declarations.
+        TYPE(ErrorVariables),         INTENT(INOUT)          :: ErrVar   ! Current line of input
+
+        INTEGER(4), INTENT(IN)             :: FileLineNum                   !< The number of the line in the file being parsed.
+        INTEGER(4)                        :: NameIndx                      !< The index into the Words array that points to the variable name.
+
+        CHARACTER(*),   INTENT(IN)             :: ExpVarName                    !< The expected variable name.
+        CHARACTER(*),   INTENT(IN)             :: Words       (2)               !< The two words to be parsed from the line.
+
+        CHARACTER(*),   INTENT(IN)             :: FileName                      !< The name of the file being parsed.
+
+
+            ! Local declarations.
+
+        CHARACTER(20)                          :: ExpUCVarName                  ! The uppercase version of ExpVarName.
+        CHARACTER(20)                          :: FndUCVarName                  ! The uppercase version of the word being tested.
+
+
+
+
+            ! Convert the found and expected names to uppercase.
+
+        FndUCVarName = Words(1)
+        ExpUCVarName = ExpVarName
+
+        CALL Conv2UC ( FndUCVarName )
+        CALL Conv2UC ( ExpUCVarName )
+
+        ! See which word is the variable name.  Generate an error if it is the first
+            
+        IF ( TRIM( FndUCVarName ) == TRIM( ExpUCVarName ) )  THEN
+            NameIndx = 1
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = ' >> A fatal error occurred when parsing data from "'//TRIM( FileName ) &
+                                //'".'//NewLine//' >> The variable "'//TRIM( Words(1) )//'" was not assigned a value on line #' &
+                                //TRIM( Int2LStr( FileLineNum ) )//'.' 
+            RETURN
+        ELSE
+            FndUCVarName = Words(2)
+            CALL Conv2UC ( FndUCVarName )
+            IF ( TRIM( FndUCVarName ) == TRIM( ExpUCVarName ) )  THEN
+            NameIndx = 2
+            ELSE
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = ' >> A fatal error occurred when parsing data from "'//TRIM( FileName ) &
+                                //'".'//NewLine//' >> The variable "'//TRIM( ExpVarName )//'" was not assigned a value on line #' &
+                                //TRIM( Int2LStr( FileLineNum ) )//'.' 
+            RETURN
+            ENDIF
+        ENDIF
+
+
+    END SUBROUTINE ChkParseData 
+
+
 END MODULE ReadSetParameters
