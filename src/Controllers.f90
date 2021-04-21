@@ -195,6 +195,7 @@ CONTAINS
         
         ! Reset the value of LocalVar%VS_LastGenTrq to the current values:
         LocalVar%VS_LastGenTrq = LocalVar%GenTq
+        LocalVar%VS_LastGenPwr = LocalVar%VS_GenPwr
         
         ! Set the command generator torque (See Appendix A of Bladed User's Guide):
         avrSWAP(47) = MAX(0.0, LocalVar%VS_LastGenTrq)  ! Demanded generator torque, prevent negatives.
@@ -407,9 +408,11 @@ CONTAINS
             
             ! Steady flap angle
             ELSEIF (CntrPar%Flp_Mode == 1) THEN
-                LocalVar%Flp_Angle(1) = LocalVar%Flp_Angle(1) 
-                LocalVar%Flp_Angle(2) = LocalVar%Flp_Angle(2) 
-                LocalVar%Flp_Angle(3) = LocalVar%Flp_Angle(3) 
+                IF (MOD(LocalVar%Time,10.0) == 0) THEN
+                    LocalVar%Flp_Angle(1) = LocalVar%Flp_Angle(1) + 1.0 * D2R
+                    LocalVar%Flp_Angle(2) = LocalVar%Flp_Angle(2) + 1.0 * D2R
+                    LocalVar%Flp_Angle(3) = LocalVar%Flp_Angle(3) + 1.0 * D2R
+                ENDIF
                 ! IF (MOD(LocalVar%Time,10.0) == 0) THEN
                 !     LocalVar%Flp_Angle(1) = LocalVar%Flp_Angle(1) + 1*D2R
                 !     LocalVar%Flp_Angle(2) = LocalVar%Flp_Angle(2) + 1*D2R
