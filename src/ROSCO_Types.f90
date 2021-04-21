@@ -178,6 +178,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(8)                             :: TestType                     ! Test variable, no use
     REAL(8)                             :: VS_MaxTq                     ! Maximum allowable generator torque [Nm].
     REAL(8)                             :: VS_LastGenTrq                ! Commanded electrical generator torque the last time the controller was called [Nm].
+    REAL(8)                             :: VS_LastGenPwr                ! Commanded electrical generator torque the last time the controller was called [Nm].
     REAL(8)                             :: VS_MechGenPwr                ! Mechanical power on the generator axis [W]
     REAL(8)                             :: VS_SpdErrAr                  ! Current speed error for region 2.5 PI controller (generator torque control) [rad/s].
     REAL(8)                             :: VS_SpdErrBr                  ! Current speed error for region 1.5 PI controller (generator torque control) [rad/s].
