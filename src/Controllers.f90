@@ -408,11 +408,9 @@ CONTAINS
             
             ! Steady flap angle
             ELSEIF (CntrPar%Flp_Mode == 1) THEN
-                IF (MOD(LocalVar%Time,10.0) == 0) THEN
-                    LocalVar%Flp_Angle(1) = LocalVar%Flp_Angle(1) + 1.0 * D2R
-                    LocalVar%Flp_Angle(2) = LocalVar%Flp_Angle(2) + 1.0 * D2R
-                    LocalVar%Flp_Angle(3) = LocalVar%Flp_Angle(3) + 1.0 * D2R
-                ENDIF
+                LocalVar%Flp_Angle(1) = LocalVar%Flp_Angle(1) 
+                LocalVar%Flp_Angle(2) = LocalVar%Flp_Angle(2) 
+                LocalVar%Flp_Angle(3) = LocalVar%Flp_Angle(3) 
                 ! IF (MOD(LocalVar%Time,10.0) == 0) THEN
                 !     LocalVar%Flp_Angle(1) = LocalVar%Flp_Angle(1) + 1*D2R
                 !     LocalVar%Flp_Angle(2) = LocalVar%Flp_Angle(2) + 1*D2R
