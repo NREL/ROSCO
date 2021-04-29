@@ -64,11 +64,6 @@ class LinearTurbineModel(object):
                 # keep all inputs and outputs
                 indInps = np.arange(0, matData['NumInputs']).reshape(-1, 1)
                 indOuts = np.arange(0, matData['NumOutputs']).reshape(-1, 1)
-
-                # remove azimuth state
-                AzDesc = 'ED Variable speed generator DOF (internal DOF index = DOF_GeAz), rad'
-                indAz = matData['DescStates'].index(AzDesc)
-
                 indStates = np.arange(0, matData['NumStates'])
 
                 if not iCase:
@@ -99,7 +94,8 @@ class LinearTurbineModel(object):
 
             # # Now loop through and reduce number of states to maximum of n_states
             # # This is broken!!  Works fine if reduceStates = False and isn't problematic to have all the extra states...yet
-            # if reduceStates:
+            if reduceStates:
+                raise RuntimeError('reduceStates=True is not currently supported.')
             #     for iCase in range(0, n_lin_cases):
             #         if not iCase:
             #             self.A_ops = np.zeros((max(n_states)[0], max(n_states)[0], n_lin_cases))
@@ -123,6 +119,16 @@ class LinearTurbineModel(object):
                 self.C_ops = C_ops
                 self.D_ops = D_ops
             
+            # Convert output RPM to rad/s
+            rpm_idx = np.flatnonzero(np.core.defchararray.find(matData['DescOutput'], 'rpm') > -1).tolist()
+            self.C_ops[rpm_idx, :, :] = rpm2radps(self.C_ops[rpm_idx, :, :])
+            matData['DescOutput'] = [desc.replace('rpm', 'rad/s') for desc in matData['DescOutput']]
+            # Convert output deg to rad
+            deg_idx = np.flatnonzero(np.core.defchararray.find(matData['DescOutput'], 'deg') > -1).tolist()
+            self.C_ops[deg_idx, :, :] = deg2rad(self.C_ops[deg_idx, :, :])
+            matData['DescOutput'] = [desc.replace('deg', 'rad') for desc in matData['DescOutput']]
+
+
             # Save wind speed as own array since that's what we'll schedule over to start
             self.u_ops = u_ops
             self.u_h = self.u_ops[0]
@@ -472,7 +478,7 @@ class LinearControlModel(object):
     
     '''
 
-    def __init__(self, controller, fromDISCON_IN=False, DISCON_file=[]):
+    def __init__(self, controller, fromDISCON_IN=False, DISCON_file=[], floating=True):
         # Set parameters here for now
         '''
         controller is object from ROSCO Toolbox
