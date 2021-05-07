@@ -23,17 +23,27 @@ MODULE ReadSetParameters
 
     USE, INTRINSIC :: ISO_C_Binding
 
-USE Constants
-USE Functions
+    USE Constants
+    USE Functions
 
     IMPLICIT NONE
 
+    ! Global Variables
+    LOGICAL, PARAMETER     :: DEBUG_PARSING = .FALSE.      ! debug flag to output parsing information, set up Echo file later
+    
 INTERFACE ParseInput                                                         ! Parses a character variable name and value from a string.
     MODULE PROCEDURE ParseInput_Str                                             ! Parses a character string from a string.
     MODULE PROCEDURE ParseInput_Dbl                                             ! Parses a double-precision REAL from a string.
     MODULE PROCEDURE ParseInput_Int                                             ! Parses an INTEGER from a string.
     ! MODULE PROCEDURE ParseInput_Log                                             ! Parses an LOGICAL from a string.
 END INTERFACE
+
+INTERFACE ParseAry                                                         ! Parse an array of numbers from a string.
+    MODULE PROCEDURE ParseDbAry                                             ! Parse an array of double-precision REAL values.
+    ! MODULE PROCEDURE ParseInAry                                             ! Parse an array of whole numbers.
+END INTERFACE
+
+
 
 CONTAINS
     ! -----------------------------------------------------------------------------------
@@ -65,7 +75,6 @@ CONTAINS
 
         CALL ParseInput(UnControllerParameters,CurLine,'LoggingLevel',accINFILE(1),CntrPar%LoggingLevel,ErrVar)
 
-        ! READ(UnControllerParameters, *) CntrPar%LoggingLevel
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !----------------- CONTROLLER FLAGS ---------------------
@@ -89,8 +98,10 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'F_LPFCornerFreq',accINFILE(1),CntrPar%F_LPFCornerFreq,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'F_LPFDamping',accINFILE(1),CntrPar%F_LPFDamping,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'F_NotchCornerFreq',accINFILE(1),CntrPar%F_NotchCornerFreq,ErrVar)
-        ALLOCATE(CntrPar%F_NotchBetaNumDen(2))
-        READ(UnControllerParameters,*) CntrPar%F_NotchBetaNumDen ; CurLine=CurLine+1
+        ! ALLOCATE(CntrPar%F_NotchBetaNumDen(2))
+        ! READ(UnControllerParameters,*) CntrPar%F_NotchBetaNumDen ; CurLine=CurLine+1
+        CALL ParseAry(UnControllerParameters, CurLine, 'F_NotchBetaNumDen', CntrPar%F_NotchBetaNumDen, 2, accINFILE(1), ErrVar )
+        ! Print *, 'CntrPar%F_NotchBetaNumDen:', CntrPar%F_NotchBetaNumDen
         CALL ParseInput(UnControllerParameters,CurLine,'F_SSCornerFreq',accINFILE(1),CntrPar%F_SSCornerFreq,ErrVar)
         READ(UnControllerParameters,*) CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping ; CurLine=CurLine+1
         READ(UnControllerParameters,*) CntrPar%F_FlpCornerFreq, CntrPar%F_FlpDamping ; CurLine=CurLine+1
@@ -865,6 +876,10 @@ CONTAINS
                     '------------------------------------------------------------------------------'
 
             CALL ReadControlParameterFileSub(CntrPar, accINFILE, NINT(avrSWAP(50)),ErrVar)
+            ! If there's been an file reading error, don't continue
+            IF (ErrVar%aviFAIL < 0) THEN
+                RETURN
+            ENDIF
 
             IF (CntrPar%WE_Mode > 0) THEN
                 CALL READCpFile(CntrPar,PerfData)
@@ -976,7 +991,9 @@ CONTAINS
         CALL GetWords ( Line, Words, 2 )  
 
         ! Debugging: show what's being read, turn into Echo later
-        ! print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
+        IF (DEBUG_PARSING) THEN
+            print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
+        END IF
 
         ! Check that Variable Name is in Words
         CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
@@ -1024,7 +1041,9 @@ CONTAINS
         CALL GetWords ( Line, Words, 2 )  
 
         ! Debugging: show what's being read, turn into Echo later
-        ! print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
+        IF (DEBUG_PARSING) THEN
+        print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
+        END IF
 
         ! Check that Variable Name is in Words
         CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
@@ -1072,7 +1091,9 @@ CONTAINS
         CALL GetWords ( Line, Words, 2 )  
 
         ! Debugging: show what's being read, turn into Echo later
-        ! print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
+        if (DEBUG_PARSING) THEN
+            print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
+        END IF
 
         ! Check that Variable Name is in Words
         CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
@@ -1081,12 +1102,12 @@ CONTAINS
         IF (ErrVar%aviFAIL >= 0) THEN        
 
             ! Read the variable
-            READ (Words(1),*,IOSTAT=ErrStatLcl)  Variable
+            READ (Words(1),'(A)',IOSTAT=ErrStatLcl)  Variable
             IF ( ErrStatLcl /= 0 )  THEN
                 ErrVar%aviFAIL  = -1
                 ErrVar%ErrMsg   =  NewLine//' >> A fatal error occurred when parsing data from "' &
                     //TRIM( FileName )//'".'//NewLine//  &
-                    ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid INTEGER value on line #' &
+                    ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid STRING value on line #' &
                     //TRIM( Int2LStr( CurLine ) )//'.'//NewLine//&
                     ' >> The text being parsed was :'//NewLine//'    "'//TRIM( Line )//'"'
             ENDIF
@@ -1224,7 +1245,7 @@ CONTAINS
             NameIndx = 1
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg = ' >> A fatal error occurred when parsing data from "'//TRIM( FileName ) &
-                                //'".'//NewLine//' >> The variable "'//TRIM( Words(1) )//'" was not assigned a value on line #' &
+                                //'".'//NewLine//' >> The variable "'//TRIM( Words(1) )//'" was not assigned a valid value on line #' &
                                 //TRIM( Int2LStr( FileLineNum ) )//'.' 
             RETURN
         ELSE
@@ -1235,7 +1256,7 @@ CONTAINS
             ELSE
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg = ' >> A fatal error occurred when parsing data from "'//TRIM( FileName ) &
-                                //'".'//NewLine//' >> The variable "'//TRIM( ExpVarName )//'" was not assigned a value on line #' &
+                                //'".'//NewLine//' >> The variable "'//TRIM( ExpVarName )//'" was not assigned a valid value on line #' &
                                 //TRIM( Int2LStr( FileLineNum ) )//'.' 
             RETURN
             ENDIF
@@ -1243,6 +1264,115 @@ CONTAINS
 
 
     END SUBROUTINE ChkParseData 
+
+!=======================================================================
+!> This subroutine parses the specified line of text for AryLen REAL values.
+!! Generate an error message if the value is the wrong type.
+!! Use ParseAry (nwtc_io::parseary) instead of directly calling a specific routine in the generic interface.   
+    SUBROUTINE ParseDbAry ( Un, LineNum, AryName, Ary, AryLen, FileName, ErrVar )
+
+        USE ROSCO_Types, ONLY : ErrorVariables
+
+        ! Arguments declarations.
+        INTEGER(4),             INTENT(IN   )   :: Un   ! Input file unit
+        INTEGER,                INTENT(IN   )   :: AryLen                        !< The length of the array to parse.
+
+        REAL(8), ALLOCATABLE,            INTENT(INOUT)     :: Ary(:)            !< The array to receive the input values.
+
+        INTEGER(4),         INTENT(INOUT)   :: LineNum                       !< The number of the line to parse.
+        CHARACTER(*),   INTENT(IN)             :: FileName                      !< The name of the file being parsed.
+
+
+        CHARACTER(*),           INTENT(In)      :: AryName                       !< The array name we are trying to fill.
+
+        TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
+
+
+        ! Local declarations.
+
+        CHARACTER(512)                         :: Line
+        INTEGER(4)                         :: ErrStatLcl                    ! Error status local to this routine.
+
+        CHARACTER(200), ALLOCATABLE             :: Words_Ary       (:)               ! The array "words" parsed from the line.
+        CHARACTER(*), PARAMETER                :: RoutineName = 'ParseDbAry'
+
+        ! Read the whole line as a string
+        READ(Un, '(A)') Line
+     
+        Print *, Line
+
+        ! Allocate array and handle errors
+        ALLOCATE ( Ary(AryLen) , STAT=ErrStatLcl )
+        IF ( ErrStatLcl /= 0 ) THEN
+            IF ( ALLOCATED(Ary) ) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = RoutineName//':Error allocating memory for the '//TRIM( AryName )//' array; array was already allocated.'
+            ELSE
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = RoutineName//':Error allocating memory for '//TRIM(Int2LStr( AryLen ))//' characters in the '//TRIM( AryName )//' array.'
+            END IF
+         END IF
+     
+        
+
+        ALLOCATE ( Words_Ary( AryLen + 1 ) , STAT=ErrStatLcl )
+        IF ( ErrStatLcl /= 0 )  THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg = RoutineName//':Fatal error allocating memory for the Words array.'
+            CALL Cleanup()
+            RETURN
+        ENDIF
+
+        ! Separate line string into AryLen + 1 words, should include variable name
+        CALL GetWords ( Line, Words_Ary, AryLen + 1 )  
+
+        IF (DEBUG_PARSING) THEN
+            print *, 'Read: '//Words_Ary(AryLen:AryLen+1)//' on line ', LineNum
+        END IF
+
+        ! Check that Variable Name is at the end of Words, will also check length of array
+        CALL ChkParseData ( Words_Ary(AryLen:AryLen+1), AryName, FileName, LineNum, ErrVar )
+     
+
+        READ (Line,*,IOSTAT=ErrStatLcl)  Ary
+        IF ( ErrStatLcl /= 0 )  THEN
+            PRINT *, 'HERE'
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg = 'A fatal error occurred when parsing data from "' &
+                            //TRIM( FileName )//'".'//NewLine//  &
+                            ' >> The "'//TRIM( AryName )//'" array was not assigned valid REAL values on line #' &
+                            //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
+                            //'    "'//TRIM( Line )//'"' 
+            RETURN
+            CALL Cleanup()         
+        ENDIF
+
+    !  IF ( PRESENT(UnEc) )  THEN
+    !     IF ( UnEc > 0 )  WRITE (UnEc,'(A)')  TRIM( FileInfo%Lines(LineNum) )
+    !  END IF
+
+        LineNum = LineNum + 1
+        CALL Cleanup()
+
+        RETURN
+
+        !=======================================================================
+        CONTAINS
+        !=======================================================================
+            SUBROUTINE Cleanup ( )
+
+                ! This subroutine cleans up the parent routine before exiting.
+
+                ! Deallocate the Words array if it had been allocated.
+
+                IF ( ALLOCATED( Words_Ary ) ) DEALLOCATE( Words_Ary )
+
+
+                RETURN
+
+            END SUBROUTINE Cleanup
+
+  END SUBROUTINE ParseDbAry
 
 
 END MODULE ReadSetParameters
