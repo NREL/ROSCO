@@ -251,13 +251,11 @@ CONTAINS
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables
         REAL(8)                      :: DelOmega                            ! Reference generator speed shift, rad/s.
-        REAL(8)                      :: PitCom_UnSat                        ! Unsaturated pitch command
-
+        
         ! ------ Setpoint Smoothing ------
         IF ( CntrPar%SS_Mode == 1) THEN
             ! Find setpoint shift amount
-            PitCom_UnSat = LocalVar%PC_PitComT - LocalVar%PC_MinPit
-            DelOmega = ((PitCom_UnSat - CntrPar%PC_MinPit)/0.524) * CntrPar%SS_VSGain - ((CntrPar%VS_RtPwr - LocalVar%VS_LastGenPwr))/CntrPar%VS_RtPwr * CntrPar%SS_PCGain ! Normalize to 30 degrees for now
+            DelOmega = ((LocalVar%PC_PitComT - CntrPar%PC_MinPit)/0.524) * CntrPar%SS_VSGain - ((CntrPar%VS_RtPwr - LocalVar%VS_LastGenPwr))/CntrPar%VS_RtPwr * CntrPar%SS_PCGain ! Normalize to 30 degrees for now
             DelOmega = DelOmega * CntrPar%PC_RefSpd
             ! Filter
             LocalVar%SS_DelOmegaF = LPFilter(DelOmega, LocalVar%DT, CntrPar%F_SSCornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF) 
