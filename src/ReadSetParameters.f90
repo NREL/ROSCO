@@ -31,17 +31,17 @@ MODULE ReadSetParameters
     ! Global Variables
     LOGICAL, PARAMETER     :: DEBUG_PARSING = .FALSE.      ! debug flag to output parsing information, set up Echo file later
     
-INTERFACE ParseInput                                                         ! Parses a character variable name and value from a string.
-    MODULE PROCEDURE ParseInput_Str                                             ! Parses a character string from a string.
-    MODULE PROCEDURE ParseInput_Dbl                                             ! Parses a double-precision REAL from a string.
-    MODULE PROCEDURE ParseInput_Int                                             ! Parses an INTEGER from a string.
-    ! MODULE PROCEDURE ParseInput_Log                                             ! Parses an LOGICAL from a string.
-END INTERFACE
+    INTERFACE ParseInput                                                         ! Parses a character variable name and value from a string.
+        MODULE PROCEDURE ParseInput_Str                                             ! Parses a character string from a string.
+        MODULE PROCEDURE ParseInput_Dbl                                             ! Parses a double-precision REAL from a string.
+        MODULE PROCEDURE ParseInput_Int                                             ! Parses an INTEGER from a string.
+        ! MODULE PROCEDURE ParseInput_Log                                             ! Parses an LOGICAL from a string.
+    END INTERFACE
 
-INTERFACE ParseAry                                                         ! Parse an array of numbers from a string.
-    MODULE PROCEDURE ParseDbAry                                             ! Parse an array of double-precision REAL values.
-    ! MODULE PROCEDURE ParseInAry                                             ! Parse an array of whole numbers.
-END INTERFACE
+    INTERFACE ParseAry                                                         ! Parse an array of numbers from a string.
+        MODULE PROCEDURE ParseDbAry                                             ! Parse an array of double-precision REAL values.
+        ! MODULE PROCEDURE ParseInAry                                             ! Parse an array of whole numbers.
+    END INTERFACE
 
 
 
@@ -1277,29 +1277,27 @@ CONTAINS
         INTEGER(4),             INTENT(IN   )   :: Un   ! Input file unit
         INTEGER,                INTENT(IN   )   :: AryLen                        !< The length of the array to parse.
 
-        REAL(8), ALLOCATABLE,            INTENT(INOUT)     :: Ary(:)            !< The array to receive the input values.
+        REAL(8), ALLOCATABLE,   INTENT(INOUT)   :: Ary(:)            !< The array to receive the input values.
 
-        INTEGER(4),         INTENT(INOUT)   :: LineNum                       !< The number of the line to parse.
-        CHARACTER(*),   INTENT(IN)             :: FileName                      !< The name of the file being parsed.
+        INTEGER(4),             INTENT(INOUT)   :: LineNum                       !< The number of the line to parse.
+        CHARACTER(*),           INTENT(IN)      :: FileName                      !< The name of the file being parsed.
 
 
-        CHARACTER(*),           INTENT(In)      :: AryName                       !< The array name we are trying to fill.
+        CHARACTER(*),           INTENT(IN   )   :: AryName                       !< The array name we are trying to fill.
 
         TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
 
 
         ! Local declarations.
 
-        CHARACTER(512)                         :: Line
-        INTEGER(4)                         :: ErrStatLcl                    ! Error status local to this routine.
+        CHARACTER(512)                          :: Line
+        INTEGER(4)                              :: ErrStatLcl                    ! Error status local to this routine.
 
         CHARACTER(200), ALLOCATABLE             :: Words_Ary       (:)               ! The array "words" parsed from the line.
-        CHARACTER(*), PARAMETER                :: RoutineName = 'ParseDbAry'
+        CHARACTER(*), PARAMETER                 :: RoutineName = 'ParseDbAry'
 
         ! Read the whole line as a string
         READ(Un, '(A)') Line
-     
-        Print *, Line
 
         ! Allocate array and handle errors
         ALLOCATE ( Ary(AryLen) , STAT=ErrStatLcl )
@@ -1313,8 +1311,7 @@ CONTAINS
             END IF
          END IF
      
-        
-
+         ! Allocate words array
         ALLOCATE ( Words_Ary( AryLen + 1 ) , STAT=ErrStatLcl )
         IF ( ErrStatLcl /= 0 )  THEN
             ErrVar%aviFAIL = -1
@@ -1333,10 +1330,9 @@ CONTAINS
         ! Check that Variable Name is at the end of Words, will also check length of array
         CALL ChkParseData ( Words_Ary(AryLen:AryLen+1), AryName, FileName, LineNum, ErrVar )
      
-
+        ! Read array
         READ (Line,*,IOSTAT=ErrStatLcl)  Ary
         IF ( ErrStatLcl /= 0 )  THEN
-            PRINT *, 'HERE'
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg = 'A fatal error occurred when parsing data from "' &
                             //TRIM( FileName )//'".'//NewLine//  &
