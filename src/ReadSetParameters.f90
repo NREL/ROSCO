@@ -40,7 +40,7 @@ MODULE ReadSetParameters
 
     INTERFACE ParseAry                                                         ! Parse an array of numbers from a string.
         MODULE PROCEDURE ParseDbAry                                             ! Parse an array of double-precision REAL values.
-        ! MODULE PROCEDURE ParseInAry                                             ! Parse an array of whole numbers.
+        MODULE PROCEDURE ParseInAry                                             ! Parse an array of whole numbers.
     END INTERFACE
 
 
@@ -163,8 +163,7 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'WE_Jtot',accINFILE(1),CntrPar%WE_Jtot,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'WE_RhoAir',accINFILE(1),CntrPar%WE_RhoAir,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PerfFileName',accINFILE(1),CntrPar%PerfFileName,ErrVar)
-        ALLOCATE(CntrPar%PerfTableSize(2))
-        READ(UnControllerParameters, *) CntrPar%PerfTableSize ; CurLine=CurLine+1
+        CALL ParseAry(UnControllerParameters, CurLine, 'PerfTableSize', CntrPar%PerfTableSize, 2, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'WE_FOPoles_N',accINFILE(1),CntrPar%WE_FOPoles_N,ErrVar)
         CALL ParseAry(UnControllerParameters, CurLine, 'WE_FOPoles_v', CntrPar%WE_FOPoles_v, CntrPar%WE_FOPoles_N, accINFILE(1), ErrVar )
         CALL ParseAry(UnControllerParameters, CurLine, 'WE_FOPoles', CntrPar%WE_FOPoles, CntrPar%WE_FOPoles_N, accINFILE(1), ErrVar )
@@ -1339,7 +1338,7 @@ CONTAINS
             READ (Line,*,IOSTAT=ErrStatLcl)  Ary
             IF ( ErrStatLcl /= 0 )  THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = 'A fatal error occurred when parsing data from "' &
+                ErrVar%ErrMsg = RoutineName//'A fatal error occurred when parsing data from "' &
                                 //TRIM( FileName )//'".'//NewLine//  &
                                 ' >> The "'//TRIM( AryName )//'" array was not assigned valid REAL values on line #' &
                                 //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
@@ -1375,6 +1374,124 @@ CONTAINS
             END SUBROUTINE Cleanup
 
   END SUBROUTINE ParseDbAry
+
+  !=======================================================================
+!> This subroutine parses the specified line of text for AryLen INTEGER values.
+!! Generate an error message if the value is the wrong type.
+!! Use ParseAry (nwtc_io::parseary) instead of directly calling a specific routine in the generic interface.   
+  SUBROUTINE ParseInAry ( Un, LineNum, AryName, Ary, AryLen, FileName, ErrVar )
+
+    USE ROSCO_Types, ONLY : ErrorVariables
+
+    ! Arguments declarations.
+    INTEGER(4),             INTENT(IN   )   :: Un   ! Input file unit
+    INTEGER,                INTENT(IN   )   :: AryLen                        !< The length of the array to parse.
+
+    INTEGER(4), ALLOCATABLE,   INTENT(INOUT)   :: Ary(:)            !< The array to receive the input values.
+
+    INTEGER(4),             INTENT(INOUT)   :: LineNum                       !< The number of the line to parse.
+    CHARACTER(*),           INTENT(IN)      :: FileName                      !< The name of the file being parsed.
+
+
+    CHARACTER(*),           INTENT(IN   )   :: AryName                       !< The array name we are trying to fill.
+
+    TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
+
+
+    ! Local declarations.
+
+    CHARACTER(1024)                         :: Line
+    INTEGER(4)                              :: ErrStatLcl                    ! Error status local to this routine.
+    INTEGER(4)                              :: i
+
+    CHARACTER(200), ALLOCATABLE             :: Words_Ary       (:)               ! The array "words" parsed from the line.
+    CHARACTER(1024)                         :: Debug_String 
+    CHARACTER(*), PARAMETER                 :: RoutineName = 'ParseInAry'
+
+    ! If we've already failed, don't read anything
+    IF (ErrVar%aviFAIL >= 0) THEN
+        ! Read the whole line as a string
+        READ(Un, '(A)') Line
+
+        ! Allocate array and handle errors
+        ALLOCATE ( Ary(AryLen) , STAT=ErrStatLcl )
+        IF ( ErrStatLcl /= 0 ) THEN
+            IF ( ALLOCATED(Ary) ) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = RoutineName//':Error allocating memory for the '//TRIM( AryName )//' array; array was already allocated.'
+            ELSE
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = RoutineName//':Error allocating memory for '//TRIM(Int2LStr( AryLen ))//' characters in the '//TRIM( AryName )//' array.'
+            END IF
+        END IF
+    
+        ! Allocate words array
+        ALLOCATE ( Words_Ary( AryLen + 1 ) , STAT=ErrStatLcl )
+        IF ( ErrStatLcl /= 0 )  THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg = RoutineName//':Fatal error allocating memory for the Words array.'
+            CALL Cleanup()
+            RETURN
+        ENDIF
+
+        ! Separate line string into AryLen + 1 words, should include variable name
+        CALL GetWords ( Line, Words_Ary, AryLen + 1 )  
+
+        ! Debug Output
+        IF (DEBUG_PARSING) THEN
+            Debug_String = ''
+            DO i = 1,AryLen+1
+                Debug_String = TRIM(Debug_String)//TRIM(Words_Ary(i))
+                IF (i < AryLen + 1) THEN
+                    Debug_String = TRIM(Debug_String)//','
+                END IF
+            END DO
+            print *, 'Read: '//TRIM(Debug_String)//' on line ', LineNum
+        END IF
+
+        ! Check that Variable Name is at the end of Words, will also check length of array
+        CALL ChkParseData ( Words_Ary(AryLen:AryLen+1), AryName, FileName, LineNum, ErrVar )
+    
+        ! Read array
+        READ (Line,*,IOSTAT=ErrStatLcl)  Ary
+        IF ( ErrStatLcl /= 0 )  THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg = RoutineName//'A fatal error occurred when parsing data from "' &
+                            //TRIM( FileName )//'".'//NewLine//  &
+                            ' >> The "'//TRIM( AryName )//'" array was not assigned valid REAL values on line #' &
+                            //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
+                            //'    "'//TRIM( Line )//'"' 
+            RETURN
+            CALL Cleanup()         
+        ENDIF
+
+    !  IF ( PRESENT(UnEc) )  THEN
+    !     IF ( UnEc > 0 )  WRITE (UnEc,'(A)')  TRIM( FileInfo%Lines(LineNum) )
+    !  END IF
+
+        LineNum = LineNum + 1
+        CALL Cleanup()
+    ENDIF
+
+    RETURN
+
+    !=======================================================================
+    CONTAINS
+    !=======================================================================
+        SUBROUTINE Cleanup ( )
+
+            ! This subroutine cleans up the parent routine before exiting.
+
+            ! Deallocate the Words array if it had been allocated.
+
+            IF ( ALLOCATED( Words_Ary ) ) DEALLOCATE( Words_Ary )
+
+
+            RETURN
+
+        END SUBROUTINE Cleanup
+
+END SUBROUTINE ParseInAry
 
 
 END MODULE ReadSetParameters
