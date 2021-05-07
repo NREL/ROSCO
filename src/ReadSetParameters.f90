@@ -107,16 +107,11 @@ CONTAINS
         !----------- BLADE PITCH CONTROLLER CONSTANTS -----------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
         CALL ParseInput(UnControllerParameters,CurLine,'PC_GS_n',accINFILE(1),CntrPar%PC_GS_n,ErrVar)
-        ALLOCATE(CntrPar%PC_GS_angles(CntrPar%PC_GS_n))
-        READ(UnControllerParameters,*) CntrPar%PC_GS_angles ; CurLine=CurLine+1
-        ALLOCATE(CntrPar%PC_GS_KP(CntrPar%PC_GS_n))
-        READ(UnControllerParameters,*) CntrPar%PC_GS_KP ; CurLine=CurLine+1
-        ALLOCATE(CntrPar%PC_GS_KI(CntrPar%PC_GS_n))
-        READ(UnControllerParameters,*) CntrPar%PC_GS_KI ; CurLine=CurLine+1
-        ALLOCATE(CntrPar%PC_GS_KD(CntrPar%PC_GS_n))
-        READ(UnControllerParameters,*) CntrPar%PC_GS_KD ; CurLine=CurLine+1
-        ALLOCATE(CntrPar%PC_GS_TF(CntrPar%PC_GS_n))
-        READ(UnControllerParameters,*) CntrPar%PC_GS_TF ; CurLine=CurLine+1
+        CALL ParseAry(UnControllerParameters, CurLine, 'PC_GS_angles', CntrPar%PC_GS_angles, CntrPar%PC_GS_n, accINFILE(1), ErrVar )
+        CALL ParseAry(UnControllerParameters, CurLine, 'PC_GS_KP', CntrPar%PC_GS_KP, CntrPar%PC_GS_n, accINFILE(1), ErrVar )
+        CALL ParseAry(UnControllerParameters, CurLine, 'PC_GS_KI', CntrPar%PC_GS_KI, CntrPar%PC_GS_n, accINFILE(1), ErrVar )
+        CALL ParseAry(UnControllerParameters, CurLine, 'PC_GS_KD', CntrPar%PC_GS_KD, CntrPar%PC_GS_n, accINFILE(1), ErrVar )
+        CALL ParseAry(UnControllerParameters, CurLine, 'PC_GS_TF', CntrPar%PC_GS_TF, CntrPar%PC_GS_n, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'PC_MaxPit',accINFILE(1),CntrPar%PC_MaxPit,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PC_MinPit',accINFILE(1),CntrPar%PC_MinPit,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PC_MaxRat',accINFILE(1),CntrPar%PC_MaxRat,ErrVar)
@@ -129,10 +124,8 @@ CONTAINS
         !------------------- IPC CONSTANTS -----------------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine) 
         CALL ParseInput(UnControllerParameters,CurLine,'IPC_IntSat',accINFILE(1),CntrPar%IPC_IntSat,ErrVar)
-        ALLOCATE(CntrPar%IPC_KI(2))
-        READ(UnControllerParameters,*) CntrPar%IPC_KI ; CurLine=CurLine+1
-        ALLOCATE(CntrPar%IPC_aziOffset(2))
-        READ(UnControllerParameters,*) CntrPar%IPC_aziOffset ; CurLine=CurLine+1
+        CALL ParseAry(UnControllerParameters, CurLine, 'IPC_KI', CntrPar%IPC_KI, 2, accINFILE(1), ErrVar )
+        CALL ParseAry(UnControllerParameters, CurLine, 'IPC_aziOffset', CntrPar%IPC_aziOffset, 2, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'IPC_CornerFreqAct',accINFILE(1),CntrPar%IPC_CornerFreqAct,ErrVar)
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
@@ -149,10 +142,8 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'VS_RtTq',accINFILE(1),CntrPar%VS_RtTq,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'VS_RefSpd',accINFILE(1),CntrPar%VS_RefSpd,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'VS_n',accINFILE(1),CntrPar%VS_n,ErrVar)
-        ALLOCATE(CntrPar%VS_KP(CntrPar%VS_n))
-        READ(UnControllerParameters,*) CntrPar%VS_KP ; CurLine=CurLine+1
-        ALLOCATE(CntrPar%VS_KI(CntrPar%VS_n))
-        READ(UnControllerParameters,*) CntrPar%VS_KI ; CurLine=CurLine+1
+        CALL ParseAry(UnControllerParameters, CurLine, 'VS_KP', CntrPar%VS_KP, CntrPar%VS_n, accINFILE(1), ErrVar )
+        CALL ParseAry(UnControllerParameters, CurLine, 'VS_KI', CntrPar%VS_KI, CntrPar%VS_n, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'VS_TSRopt',accINFILE(1),CntrPar%VS_TSRopt,ErrVar)
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
@@ -166,8 +157,7 @@ CONTAINS
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
         CALL ParseInput(UnControllerParameters,CurLine,'WE_BladeRadius',accINFILE(1),CntrPar%WE_BladeRadius,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'WE_CP_n',accINFILE(1),CntrPar%WE_CP_n,ErrVar)
-        ALLOCATE(CntrPar%WE_CP(CntrPar%WE_CP_n))
-        READ(UnControllerParameters, *) CntrPar%WE_CP ; CurLine=CurLine+1
+        CALL ParseAry(UnControllerParameters, CurLine, 'WE_CP', CntrPar%WE_CP, CntrPar%WE_CP_n, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'WE_Gamma',accINFILE(1),CntrPar%WE_Gamma,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'WE_GearboxRatio',accINFILE(1),CntrPar%WE_GearboxRatio,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'WE_Jtot',accINFILE(1),CntrPar%WE_Jtot,ErrVar)
@@ -176,10 +166,8 @@ CONTAINS
         ALLOCATE(CntrPar%PerfTableSize(2))
         READ(UnControllerParameters, *) CntrPar%PerfTableSize ; CurLine=CurLine+1
         CALL ParseInput(UnControllerParameters,CurLine,'WE_FOPoles_N',accINFILE(1),CntrPar%WE_FOPoles_N,ErrVar)
-        ALLOCATE(CntrPar%WE_FOPoles_v(CntrPar%WE_FOPoles_n))
-        READ(UnControllerParameters, *) CntrPar%WE_FOPoles_v ; CurLine=CurLine+1
-        ALLOCATE(CntrPar%WE_FOPoles(CntrPar%WE_FOPoles_n))
-        READ(UnControllerParameters, *) CntrPar%WE_FOPoles ; CurLine=CurLine+1
+        CALL ParseAry(UnControllerParameters, CurLine, 'WE_FOPoles_v', CntrPar%WE_FOPoles_v, CntrPar%WE_FOPoles_N, accINFILE(1), ErrVar )
+        CALL ParseAry(UnControllerParameters, CurLine, 'WE_FOPoles', CntrPar%WE_FOPoles, CntrPar%WE_FOPoles_N, accINFILE(1), ErrVar )
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !-------------- YAW CONTROLLER CONSTANTS -----------------
@@ -187,10 +175,8 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'Y_ErrThresh',accINFILE(1),CntrPar%Y_ErrThresh,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_IntSat',accINFILE(1),CntrPar%Y_IPC_IntSat,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_n',accINFILE(1),CntrPar%Y_IPC_n,ErrVar)
-        ALLOCATE(CntrPar%Y_IPC_KP(CntrPar%Y_IPC_n))
-        READ(UnControllerParameters,*) CntrPar%Y_IPC_KP ; CurLine=CurLine+1
-        ALLOCATE(CntrPar%Y_IPC_KI(CntrPar%Y_IPC_n))
-        READ(UnControllerParameters,*) CntrPar%Y_IPC_KI ; CurLine=CurLine+1
+        CALL ParseAry(UnControllerParameters, CurLine, 'Y_IPC_KP', CntrPar%Y_IPC_KP, CntrPar%Y_IPC_n, accINFILE(1), ErrVar )
+        CALL ParseAry(UnControllerParameters, CurLine, 'Y_IPC_KI', CntrPar%Y_IPC_KI, CntrPar%Y_IPC_n, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_omegaLP',accINFILE(1),CntrPar%Y_IPC_omegaLP,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_zetaLP',accINFILE(1),CntrPar%Y_IPC_zetaLP,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Y_MErrSet',accINFILE(1),CntrPar%Y_MErrSet,ErrVar)
@@ -209,10 +195,8 @@ CONTAINS
         !------------ PEAK SHAVING ------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
         CALL ParseInput(UnControllerParameters,CurLine,'PS_BldPitchMin_N',accINFILE(1),CntrPar%PS_BldPitchMin_N,ErrVar)
-        ALLOCATE(CntrPar%PS_WindSpeeds(CntrPar%PS_BldPitchMin_N))
-        READ(UnControllerParameters, *) CntrPar%PS_WindSpeeds ; CurLine=CurLine+1
-        ALLOCATE(CntrPar%PS_BldPitchMin(CntrPar%PS_BldPitchMin_N))
-        READ(UnControllerParameters, *) CntrPar%PS_BldPitchMin ; CurLine=CurLine+1
+        CALL ParseAry(UnControllerParameters, CurLine, 'PS_WindSpeeds', CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin_N, accINFILE(1), ErrVar )
+        CALL ParseAry(UnControllerParameters, CurLine, 'PS_BldPitchMin', CntrPar%PS_BldPitchMin, CntrPar%PS_BldPitchMin_N, accINFILE(1), ErrVar )
         CALL ReadEmptyLine(UnControllerParameters,CurLine) 
 
         !------------ SHUTDOWN ------------
@@ -981,38 +965,42 @@ CONTAINS
         INTEGER(4),             INTENT(INOUT)   :: Variable   ! Variable
         INTEGER(4)                              :: ErrStatLcl                    ! Error status local to this routine.
 
-        ! Read the whole line as a string
-        READ(Un, '(A)') Line
+        ! If we've already failed, don't read anything
+        IF (ErrVar%aviFAIL >= 0) THEN
 
-        ! Separate line string into 2 words
-        CALL GetWords ( Line, Words, 2 )  
+            ! Read the whole line as a string
+            READ(Un, '(A)') Line
 
-        ! Debugging: show what's being read, turn into Echo later
-        IF (DEBUG_PARSING) THEN
-            print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
+            ! Separate line string into 2 words
+            CALL GetWords ( Line, Words, 2 )  
+
+            ! Debugging: show what's being read, turn into Echo later
+            IF (DEBUG_PARSING) THEN
+                print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
+            END IF
+
+            ! Check that Variable Name is in Words
+            CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
+
+            ! IF We haven't failed already
+            IF (ErrVar%aviFAIL >= 0) THEN        
+
+                ! Read the variable
+                READ (Words(1),*,IOSTAT=ErrStatLcl)  Variable
+                IF ( ErrStatLcl /= 0 )  THEN
+                    ErrVar%aviFAIL  = -1
+                    ErrVar%ErrMsg   =  NewLine//' >> A fatal error occurred when parsing data from "' &
+                        //TRIM( FileName )//'".'//NewLine//  &
+                        ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid INTEGER value on line #' &
+                        //TRIM( Int2LStr( CurLine ) )//'.'//NewLine//&
+                        ' >> The text being parsed was :'//NewLine//'    "'//TRIM( Line )//'"'
+                ENDIF
+
+            ENDIF   
+
+            ! Increment line counter
+            CurLine = CurLine + 1
         END IF
-
-        ! Check that Variable Name is in Words
-        CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
-
-        ! IF We haven't failed already
-        IF (ErrVar%aviFAIL >= 0) THEN        
-
-            ! Read the variable
-            READ (Words(1),*,IOSTAT=ErrStatLcl)  Variable
-            IF ( ErrStatLcl /= 0 )  THEN
-                ErrVar%aviFAIL  = -1
-                ErrVar%ErrMsg   =  NewLine//' >> A fatal error occurred when parsing data from "' &
-                    //TRIM( FileName )//'".'//NewLine//  &
-                    ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid INTEGER value on line #' &
-                    //TRIM( Int2LStr( CurLine ) )//'.'//NewLine//&
-                    ' >> The text being parsed was :'//NewLine//'    "'//TRIM( Line )//'"'
-            ENDIF
-
-        ENDIF   
-
-        ! Increment line counter
-        CurLine = CurLine + 1
 
     END subroutine ParseInput_Int
 
@@ -1031,38 +1019,42 @@ CONTAINS
         REAL(8),             INTENT(INOUT)      :: Variable   ! Variable
         INTEGER(4)                              :: ErrStatLcl                    ! Error status local to this routine.
 
-        ! Read the whole line as a string
-        READ(Un, '(A)') Line
+        ! If we've already failed, don't read anything
+        IF (ErrVar%aviFAIL >= 0) THEN
 
-        ! Separate line string into 2 words
-        CALL GetWords ( Line, Words, 2 )  
+            ! Read the whole line as a string
+            READ(Un, '(A)') Line
 
-        ! Debugging: show what's being read, turn into Echo later
-        IF (DEBUG_PARSING) THEN
-        print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
+            ! Separate line string into 2 words
+            CALL GetWords ( Line, Words, 2 )  
+
+            ! Debugging: show what's being read, turn into Echo later
+            IF (DEBUG_PARSING) THEN
+            print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
+            END IF
+
+            ! Check that Variable Name is in Words
+            CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
+
+            ! IF We haven't failed already
+            IF (ErrVar%aviFAIL >= 0) THEN        
+
+                ! Read the variable
+                READ (Words(1),*,IOSTAT=ErrStatLcl)  Variable
+                IF ( ErrStatLcl /= 0 )  THEN
+                    ErrVar%aviFAIL  = -1
+                    ErrVar%ErrMsg   =  NewLine//' >> A fatal error occurred when parsing data from "' &
+                        //TRIM( FileName )//'".'//NewLine//  &
+                        ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid INTEGER value on line #' &
+                        //TRIM( Int2LStr( CurLine ) )//'.'//NewLine//&
+                        ' >> The text being parsed was :'//NewLine//'    "'//TRIM( Line )//'"'
+                ENDIF
+
+            ENDIF   
+
+            ! Increment line counter
+            CurLine = CurLine + 1
         END IF
-
-        ! Check that Variable Name is in Words
-        CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
-
-        ! IF We haven't failed already
-        IF (ErrVar%aviFAIL >= 0) THEN        
-
-            ! Read the variable
-            READ (Words(1),*,IOSTAT=ErrStatLcl)  Variable
-            IF ( ErrStatLcl /= 0 )  THEN
-                ErrVar%aviFAIL  = -1
-                ErrVar%ErrMsg   =  NewLine//' >> A fatal error occurred when parsing data from "' &
-                    //TRIM( FileName )//'".'//NewLine//  &
-                    ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid INTEGER value on line #' &
-                    //TRIM( Int2LStr( CurLine ) )//'.'//NewLine//&
-                    ' >> The text being parsed was :'//NewLine//'    "'//TRIM( Line )//'"'
-            ENDIF
-
-        ENDIF   
-
-        ! Increment line counter
-        CurLine = CurLine + 1
 
     END subroutine ParseInput_Dbl
 
@@ -1081,38 +1073,42 @@ CONTAINS
         CHARACTER(*),           INTENT(INOUT)   :: Variable   ! Variable
         INTEGER(4)                              :: ErrStatLcl                    ! Error status local to this routine.
 
-        ! Read the whole line as a string
-        READ(Un, '(A)') Line
+        ! If we've already failed, don't read anything
+        IF (ErrVar%aviFAIL >= 0) THEN
 
-        ! Separate line string into 2 words
-        CALL GetWords ( Line, Words, 2 )  
+            ! Read the whole line as a string
+            READ(Un, '(A)') Line
 
-        ! Debugging: show what's being read, turn into Echo later
-        if (DEBUG_PARSING) THEN
-            print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
+            ! Separate line string into 2 words
+            CALL GetWords ( Line, Words, 2 )  
+
+            ! Debugging: show what's being read, turn into Echo later
+            if (DEBUG_PARSING) THEN
+                print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
+            END IF
+
+            ! Check that Variable Name is in Words
+            CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
+
+            ! IF We haven't failed already
+            IF (ErrVar%aviFAIL >= 0) THEN        
+
+                ! Read the variable
+                READ (Words(1),'(A)',IOSTAT=ErrStatLcl)  Variable
+                IF ( ErrStatLcl /= 0 )  THEN
+                    ErrVar%aviFAIL  = -1
+                    ErrVar%ErrMsg   =  NewLine//' >> A fatal error occurred when parsing data from "' &
+                        //TRIM( FileName )//'".'//NewLine//  &
+                        ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid STRING value on line #' &
+                        //TRIM( Int2LStr( CurLine ) )//'.'//NewLine//&
+                        ' >> The text being parsed was :'//NewLine//'    "'//TRIM( Line )//'"'
+                ENDIF
+
+            ENDIF   
+
+            ! Increment line counter
+            CurLine = CurLine + 1
         END IF
-
-        ! Check that Variable Name is in Words
-        CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
-
-        ! IF We haven't failed already
-        IF (ErrVar%aviFAIL >= 0) THEN        
-
-            ! Read the variable
-            READ (Words(1),'(A)',IOSTAT=ErrStatLcl)  Variable
-            IF ( ErrStatLcl /= 0 )  THEN
-                ErrVar%aviFAIL  = -1
-                ErrVar%ErrMsg   =  NewLine//' >> A fatal error occurred when parsing data from "' &
-                    //TRIM( FileName )//'".'//NewLine//  &
-                    ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid STRING value on line #' &
-                    //TRIM( Int2LStr( CurLine ) )//'.'//NewLine//&
-                    ' >> The text being parsed was :'//NewLine//'    "'//TRIM( Line )//'"'
-            ENDIF
-
-        ENDIF   
-
-        ! Increment line counter
-        CurLine = CurLine + 1
 
     END subroutine ParseInput_Str
 
@@ -1287,7 +1283,7 @@ CONTAINS
 
         ! Local declarations.
 
-        CHARACTER(512)                          :: Line
+        CHARACTER(1024)                         :: Line
         INTEGER(4)                              :: ErrStatLcl                    ! Error status local to this routine.
         INTEGER(4)                              :: i
 
@@ -1295,67 +1291,70 @@ CONTAINS
         CHARACTER(1024)                         :: Debug_String 
         CHARACTER(*), PARAMETER                 :: RoutineName = 'ParseDbAry'
 
-        ! Read the whole line as a string
-        READ(Un, '(A)') Line
+        ! If we've already failed, don't read anything
+        IF (ErrVar%aviFAIL >= 0) THEN
+            ! Read the whole line as a string
+            READ(Un, '(A)') Line
 
-        ! Allocate array and handle errors
-        ALLOCATE ( Ary(AryLen) , STAT=ErrStatLcl )
-        IF ( ErrStatLcl /= 0 ) THEN
-            IF ( ALLOCATED(Ary) ) THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = RoutineName//':Error allocating memory for the '//TRIM( AryName )//' array; array was already allocated.'
-            ELSE
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = RoutineName//':Error allocating memory for '//TRIM(Int2LStr( AryLen ))//' characters in the '//TRIM( AryName )//' array.'
-            END IF
-         END IF
-     
-         ! Allocate words array
-        ALLOCATE ( Words_Ary( AryLen + 1 ) , STAT=ErrStatLcl )
-        IF ( ErrStatLcl /= 0 )  THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg = RoutineName//':Fatal error allocating memory for the Words array.'
-            CALL Cleanup()
-            RETURN
-        ENDIF
-
-        ! Separate line string into AryLen + 1 words, should include variable name
-        CALL GetWords ( Line, Words_Ary, AryLen + 1 )  
-
-        ! Debug Output
-        IF (DEBUG_PARSING) THEN
-            Debug_String = ''
-            DO i = 1,AryLen+1
-                Debug_String = TRIM(Debug_String)//TRIM(Words_Ary(i))
-                IF (i < AryLen + 1) THEN
-                    Debug_String = TRIM(Debug_String)//','
+            ! Allocate array and handle errors
+            ALLOCATE ( Ary(AryLen) , STAT=ErrStatLcl )
+            IF ( ErrStatLcl /= 0 ) THEN
+                IF ( ALLOCATED(Ary) ) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = RoutineName//':Error allocating memory for the '//TRIM( AryName )//' array; array was already allocated.'
+                ELSE
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = RoutineName//':Error allocating memory for '//TRIM(Int2LStr( AryLen ))//' characters in the '//TRIM( AryName )//' array.'
                 END IF
-            END DO
-            print *, 'Read: '//TRIM(Debug_String)//' on line ', LineNum
-        END IF
+            END IF
+        
+            ! Allocate words array
+            ALLOCATE ( Words_Ary( AryLen + 1 ) , STAT=ErrStatLcl )
+            IF ( ErrStatLcl /= 0 )  THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = RoutineName//':Fatal error allocating memory for the Words array.'
+                CALL Cleanup()
+                RETURN
+            ENDIF
 
-        ! Check that Variable Name is at the end of Words, will also check length of array
-        CALL ChkParseData ( Words_Ary(AryLen:AryLen+1), AryName, FileName, LineNum, ErrVar )
-     
-        ! Read array
-        READ (Line,*,IOSTAT=ErrStatLcl)  Ary
-        IF ( ErrStatLcl /= 0 )  THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg = 'A fatal error occurred when parsing data from "' &
-                            //TRIM( FileName )//'".'//NewLine//  &
-                            ' >> The "'//TRIM( AryName )//'" array was not assigned valid REAL values on line #' &
-                            //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
-                            //'    "'//TRIM( Line )//'"' 
-            RETURN
-            CALL Cleanup()         
+            ! Separate line string into AryLen + 1 words, should include variable name
+            CALL GetWords ( Line, Words_Ary, AryLen + 1 )  
+
+            ! Debug Output
+            IF (DEBUG_PARSING) THEN
+                Debug_String = ''
+                DO i = 1,AryLen+1
+                    Debug_String = TRIM(Debug_String)//TRIM(Words_Ary(i))
+                    IF (i < AryLen + 1) THEN
+                        Debug_String = TRIM(Debug_String)//','
+                    END IF
+                END DO
+                print *, 'Read: '//TRIM(Debug_String)//' on line ', LineNum
+            END IF
+
+            ! Check that Variable Name is at the end of Words, will also check length of array
+            CALL ChkParseData ( Words_Ary(AryLen:AryLen+1), AryName, FileName, LineNum, ErrVar )
+        
+            ! Read array
+            READ (Line,*,IOSTAT=ErrStatLcl)  Ary
+            IF ( ErrStatLcl /= 0 )  THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'A fatal error occurred when parsing data from "' &
+                                //TRIM( FileName )//'".'//NewLine//  &
+                                ' >> The "'//TRIM( AryName )//'" array was not assigned valid REAL values on line #' &
+                                //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
+                                //'    "'//TRIM( Line )//'"' 
+                RETURN
+                CALL Cleanup()         
+            ENDIF
+
+        !  IF ( PRESENT(UnEc) )  THEN
+        !     IF ( UnEc > 0 )  WRITE (UnEc,'(A)')  TRIM( FileInfo%Lines(LineNum) )
+        !  END IF
+
+            LineNum = LineNum + 1
+            CALL Cleanup()
         ENDIF
-
-    !  IF ( PRESENT(UnEc) )  THEN
-    !     IF ( UnEc > 0 )  WRITE (UnEc,'(A)')  TRIM( FileInfo%Lines(LineNum) )
-    !  END IF
-
-        LineNum = LineNum + 1
-        CALL Cleanup()
 
         RETURN
 
