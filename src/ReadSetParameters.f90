@@ -29,7 +29,7 @@ MODULE ReadSetParameters
     IMPLICIT NONE
 
     ! Global Variables
-    LOGICAL, PARAMETER     :: DEBUG_PARSING = .FALSE.      ! debug flag to output parsing information, set up Echo file later
+    LOGICAL, PARAMETER     :: DEBUG_PARSING = .TRUE.      ! debug flag to output parsing information, set up Echo file later
     
     INTERFACE ParseInput                                                         ! Parses a character variable name and value from a string.
         MODULE PROCEDURE ParseInput_Str                                             ! Parses a character string from a string.
@@ -98,13 +98,10 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'F_LPFCornerFreq',accINFILE(1),CntrPar%F_LPFCornerFreq,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'F_LPFDamping',accINFILE(1),CntrPar%F_LPFDamping,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'F_NotchCornerFreq',accINFILE(1),CntrPar%F_NotchCornerFreq,ErrVar)
-        ! ALLOCATE(CntrPar%F_NotchBetaNumDen(2))
-        ! READ(UnControllerParameters,*) CntrPar%F_NotchBetaNumDen ; CurLine=CurLine+1
         CALL ParseAry(UnControllerParameters, CurLine, 'F_NotchBetaNumDen', CntrPar%F_NotchBetaNumDen, 2, accINFILE(1), ErrVar )
-        ! Print *, 'CntrPar%F_NotchBetaNumDen:', CntrPar%F_NotchBetaNumDen
         CALL ParseInput(UnControllerParameters,CurLine,'F_SSCornerFreq',accINFILE(1),CntrPar%F_SSCornerFreq,ErrVar)
-        READ(UnControllerParameters,*) CntrPar%F_FlCornerFreq, CntrPar%F_FlDamping ; CurLine=CurLine+1
-        READ(UnControllerParameters,*) CntrPar%F_FlpCornerFreq, CntrPar%F_FlpDamping ; CurLine=CurLine+1
+        CALL ParseAry(UnControllerParameters, CurLine, 'F_FlCornerFreq', CntrPar%F_FlCornerFreq, 2, accINFILE(1), ErrVar )
+        CALL ParseAry(UnControllerParameters, CurLine, 'F_FlpCornerFreq', CntrPar%F_FlpCornerFreq, 2, accINFILE(1), ErrVar )
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !----------- BLADE PITCH CONTROLLER CONSTANTS -----------
@@ -520,25 +517,25 @@ CONTAINS
         ENDIF
 
         ! F_FlCornerFreq(1)  (frequency)
-        IF (CntrPar%F_FlCornerFreq <= 0.0) THEN
+        IF (CntrPar%F_FlCornerFreq(1) <= 0.0) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'F_FlCornerFreq(1) must be greater than zero.'
         ENDIF
 
         ! F_FlCornerFreq(2)  (damping)
-        IF (CntrPar%F_FlDamping <= 0.0) THEN
+        IF (CntrPar%F_FlCornerFreq(2) <= 0.0) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'F_FlCornerFreq(2) must be greater than zero.'
         ENDIF
 
         ! F_FlpCornerFreq(1)  (frequency)
-        IF (CntrPar%F_FlCornerFreq <= 0.0) THEN
+        IF (CntrPar%F_FlpCornerFreq(1) <= 0.0) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'F_FlpCornerFreq(1) must be greater than zero.'
         ENDIF
 
         ! F_FlpCornerFreq(2)  (damping)
-        IF (CntrPar%F_FlDamping <= 0.0) THEN
+        IF (CntrPar%F_FlpCornerFreq(2) <= 0.0) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'F_FlpCornerFreq(2) must be greater than zero.'
         ENDIF
@@ -1292,8 +1289,10 @@ CONTAINS
 
         CHARACTER(512)                          :: Line
         INTEGER(4)                              :: ErrStatLcl                    ! Error status local to this routine.
+        INTEGER(4)                              :: i
 
         CHARACTER(200), ALLOCATABLE             :: Words_Ary       (:)               ! The array "words" parsed from the line.
+        CHARACTER(1024)                         :: Debug_String 
         CHARACTER(*), PARAMETER                 :: RoutineName = 'ParseDbAry'
 
         ! Read the whole line as a string
@@ -1323,8 +1322,16 @@ CONTAINS
         ! Separate line string into AryLen + 1 words, should include variable name
         CALL GetWords ( Line, Words_Ary, AryLen + 1 )  
 
+        ! Debug Output
         IF (DEBUG_PARSING) THEN
-            print *, 'Read: '//Words_Ary(AryLen:AryLen+1)//' on line ', LineNum
+            Debug_String = ''
+            DO i = 1,AryLen+1
+                Debug_String = TRIM(Debug_String)//TRIM(Words_Ary(i))
+                IF (i < AryLen + 1) THEN
+                    Debug_String = TRIM(Debug_String)//','
+                END IF
+            END DO
+            print *, 'Read: '//TRIM(Debug_String)//' on line ', LineNum
         END IF
 
         ! Check that Variable Name is at the end of Words, will also check length of array
