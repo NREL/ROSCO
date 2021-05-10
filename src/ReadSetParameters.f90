@@ -29,7 +29,7 @@ MODULE ReadSetParameters
     IMPLICIT NONE
 
     ! Global Variables
-    LOGICAL, PARAMETER     :: DEBUG_PARSING = .TRUE.      ! debug flag to output parsing information, set up Echo file later
+    LOGICAL, PARAMETER     :: DEBUG_PARSING = .FALSE.      ! debug flag to output parsing information, set up Echo file later
     
     INTERFACE ParseInput                                                         ! Parses a character variable name and value from a string.
         MODULE PROCEDURE ParseInput_Str                                             ! Parses a character string from a string.
@@ -858,11 +858,12 @@ CONTAINS
             CALL ReadControlParameterFileSub(CntrPar, accINFILE, NINT(avrSWAP(50)),ErrVar)
             ! If there's been an file reading error, don't continue
             IF (ErrVar%aviFAIL < 0) THEN
+                ErrVar%ErrMsg = 'SetParameters:'//TRIM(ErrVar%ErrMsg)
                 RETURN
             ENDIF
 
             IF (CntrPar%WE_Mode > 0) THEN
-                CALL READCpFile(CntrPar,PerfData)
+                CALL READCpFile(CntrPar,PerfData,ErrVar)
             ENDIF
             ! Initialize testValue (debugging variable)
             LocalVar%TestType = 0
@@ -900,53 +901,65 @@ CONTAINS
     END SUBROUTINE SetParameters
     ! -----------------------------------------------------------------------------------
     ! Read all constant control parameters from DISCON.IN parameter file
-    SUBROUTINE ReadCpFile(CntrPar,PerfData)
-        USE ROSCO_Types, ONLY : PerformanceData, ControlParameters
+    SUBROUTINE ReadCpFile(CntrPar,PerfData, ErrVar)
+        USE ROSCO_Types, ONLY : PerformanceData, ControlParameters, ErrorVariables
 
-        INTEGER(4), PARAMETER :: UnPerfParameters = 89
-        TYPE(PerformanceData), INTENT(INOUT) :: PerfData
-        TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
+        TYPE(PerformanceData),      INTENT(INOUT)   :: PerfData
+        TYPE(ControlParameters),    INTENT(INOUT)   :: CntrPar
+        TYPE(ErrorVariables),       INTENT(INOUT)   :: ErrVar
+        
         ! Local variables
-        INTEGER(4)                  :: i ! iteration index
+        INTEGER(4), PARAMETER                       :: UnPerfParameters = 89
+        INTEGER(4)                                  :: i ! iteration index
+
+        INTEGER(4)                                  :: CurLine 
+        CHARACTER(*), PARAMETER                     :: RoutineName = 'ReadCpFile'
+        REAL(8), DIMENSION(:), ALLOCATABLE          :: TmpPerf
+
+        CurLine = 1
+
         OPEN(unit=UnPerfParameters, file=TRIM(CntrPar%PerfFileName), status='old', action='read') ! Should put input file into DISCON.IN
         
         ! ----------------------- Axis Definitions ------------------------
-        READ(UnPerfParameters, *)
-        READ(UnPerfParameters, *)
-        READ(UnPerfParameters, *)
-        READ(UnPerfParameters, *)
-        ALLOCATE(PerfData%Beta_vec(CntrPar%PerfTableSize(1)))
-        READ(UnPerfParameters, *) PerfData%Beta_vec
-        READ(UnPerfParameters, *) 
-        ALLOCATE(PerfData%TSR_vec(CntrPar%PerfTableSize(2)))
-        READ(UnPerfParameters, *) PerfData%TSR_vec
+        CALL ReadEmptyLine(UnPerfParameters,CurLine)
+        CALL ReadEmptyLine(UnPerfParameters,CurLine)
+        CALL ReadEmptyLine(UnPerfParameters,CurLine)
+        CALL ReadEmptyLine(UnPerfParameters,CurLine)
+        CALL ParseAry(UnPerfParameters, CurLine, 'Pitch angle vector', PerfData%Beta_vec, CntrPar%PerfTableSize(1), TRIM(CntrPar%PerfFileName), ErrVar, .FALSE.)
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        CALL ParseAry(UnPerfParameters, CurLine, 'TSR vector', PerfData%TSR_vec, CntrPar%PerfTableSize(2), TRIM(CntrPar%PerfFileName), ErrVar, .FALSE.)
 
         ! ----------------------- Read Cp, Ct, Cq, Tables ------------------------
-        READ(UnPerfParameters, *) 
-        READ(UnPerfParameters, *) ! Input file should contains wind speed information here - unneeded for now
-        READ(UnPerfParameters, *) 
-        READ(UnPerfParameters, *) 
-        READ(UnPerfParameters, *) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) ! Input file should contains wind speed information here - unneeded for now
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
         ALLOCATE(PerfData%Cp_mat(CntrPar%PerfTableSize(2),CntrPar%PerfTableSize(1)))
         DO i = 1,CntrPar%PerfTableSize(2)
             READ(UnPerfParameters, *) PerfData%Cp_mat(i,:) ! Read Cp table
         END DO
-        READ(UnPerfParameters, *) 
-        READ(UnPerfParameters, *) 
-        READ(UnPerfParameters, *) 
-        READ(UnPerfParameters, *) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
         ALLOCATE(PerfData%Ct_mat(CntrPar%PerfTableSize(1),CntrPar%PerfTableSize(2)))
         DO i = 1,CntrPar%PerfTableSize(2)
             READ(UnPerfParameters, *) PerfData%Ct_mat(i,:) ! Read Ct table
         END DO
-        READ(UnPerfParameters, *) 
-        READ(UnPerfParameters, *) 
-        READ(UnPerfParameters, *) 
-        READ(UnPerfParameters, *) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
         ALLOCATE(PerfData%Cq_mat(CntrPar%PerfTableSize(1),CntrPar%PerfTableSize(2)))
         DO i = 1,CntrPar%PerfTableSize(2)
             READ(UnPerfParameters, *) PerfData%Cq_mat(i,:) ! Read Cq table
         END DO
+
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
     
     END SUBROUTINE ReadCpFile
     ! Parse integer input: read line, check that variable name is in line, handle errors
@@ -1261,7 +1274,7 @@ CONTAINS
 !> This subroutine parses the specified line of text for AryLen REAL values.
 !! Generate an error message if the value is the wrong type.
 !! Use ParseAry (nwtc_io::parseary) instead of directly calling a specific routine in the generic interface.   
-    SUBROUTINE ParseDbAry ( Un, LineNum, AryName, Ary, AryLen, FileName, ErrVar )
+    SUBROUTINE ParseDbAry ( Un, LineNum, AryName, Ary, AryLen, FileName, ErrVar, CheckName )
 
         USE ROSCO_Types, ONLY : ErrorVariables
 
@@ -1279,6 +1292,8 @@ CONTAINS
 
         TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
 
+        LOGICAL, OPTIONAL,      INTENT(IN   )   :: CheckName
+
 
         ! Local declarations.
 
@@ -1289,6 +1304,11 @@ CONTAINS
         CHARACTER(200), ALLOCATABLE             :: Words_Ary       (:)               ! The array "words" parsed from the line.
         CHARACTER(1024)                         :: Debug_String 
         CHARACTER(*), PARAMETER                 :: RoutineName = 'ParseDbAry'
+        LOGICAL                                 :: CheckName_
+
+        ! Figure out if we're checking the name, default to .TRUE.
+        CheckName_ = .TRUE.
+        if (PRESENT(CheckName)) CheckName_ = CheckName 
 
         ! If we've already failed, don't read anything
         IF (ErrVar%aviFAIL >= 0) THEN
@@ -1332,7 +1352,9 @@ CONTAINS
             END IF
 
             ! Check that Variable Name is at the end of Words, will also check length of array
-            CALL ChkParseData ( Words_Ary(AryLen:AryLen+1), AryName, FileName, LineNum, ErrVar )
+            IF (CheckName_) THEN
+                CALL ChkParseData ( Words_Ary(AryLen:AryLen+1), AryName, FileName, LineNum, ErrVar )
+            END IF
         
             ! Read array
             READ (Line,*,IOSTAT=ErrStatLcl)  Ary
@@ -1379,7 +1401,7 @@ CONTAINS
 !> This subroutine parses the specified line of text for AryLen INTEGER values.
 !! Generate an error message if the value is the wrong type.
 !! Use ParseAry (nwtc_io::parseary) instead of directly calling a specific routine in the generic interface.   
-  SUBROUTINE ParseInAry ( Un, LineNum, AryName, Ary, AryLen, FileName, ErrVar )
+  SUBROUTINE ParseInAry ( Un, LineNum, AryName, Ary, AryLen, FileName, ErrVar, CheckName )
 
     USE ROSCO_Types, ONLY : ErrorVariables
 
@@ -1397,6 +1419,7 @@ CONTAINS
 
     TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
 
+    LOGICAL, OPTIONAL,      INTENT(IN   )   :: CheckName
 
     ! Local declarations.
 
@@ -1407,6 +1430,12 @@ CONTAINS
     CHARACTER(200), ALLOCATABLE             :: Words_Ary       (:)               ! The array "words" parsed from the line.
     CHARACTER(1024)                         :: Debug_String 
     CHARACTER(*), PARAMETER                 :: RoutineName = 'ParseInAry'
+
+    LOGICAL                                 :: CheckName_
+
+    ! Figure out if we're checking the name, default to .TRUE.
+    CheckName_ = .TRUE.
+    if (PRESENT(CheckName)) CheckName_ = CheckName    
 
     ! If we've already failed, don't read anything
     IF (ErrVar%aviFAIL >= 0) THEN
@@ -1450,7 +1479,9 @@ CONTAINS
         END IF
 
         ! Check that Variable Name is at the end of Words, will also check length of array
-        CALL ChkParseData ( Words_Ary(AryLen:AryLen+1), AryName, FileName, LineNum, ErrVar )
+        IF (CheckName_) THEN
+            CALL ChkParseData ( Words_Ary(AryLen:AryLen+1), AryName, FileName, LineNum, ErrVar )
+        END IF
     
         ! Read array
         READ (Line,*,IOSTAT=ErrStatLcl)  Ary
