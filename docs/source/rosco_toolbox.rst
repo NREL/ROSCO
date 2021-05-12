@@ -173,7 +173,7 @@ A yaml_ formatted input file is used for the standard ROSCO toolbox tuning proce
     - :code:`WE_Mode`
     - Yes
     - Int 
-    - Wind speed estimator mode. 0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator (Ortega et al.)
+    - Wind speed estimator mode. 0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator (Ortega et al.), 2: Extended Kalman filter
   * - 
     - :code:`PS_Mode`
     - Yes
