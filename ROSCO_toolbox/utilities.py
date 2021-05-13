@@ -28,9 +28,9 @@ import matplotlib.pyplot as plt
 from matplotlib import transforms
 from itertools import takewhile, product
 import struct
+import subprocess
 import ROSCO_toolbox
 
-from ROSCO_toolbox.ofTools.util import spectral
 # Some useful constants
 now = datetime.datetime.now()
 pi = np.pi
@@ -455,7 +455,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     return DISCON_dict
 
 
-def run_openfast(fast_dir,fastcall='openfast',fastfile=None,chdir=False):
+def run_openfast(fast_dir, fastcall='openfast', fastfile=None, chdir=True):
     '''
     Runs a openfast openfast simulation.
     
@@ -483,18 +483,11 @@ def run_openfast(fast_dir,fastcall='openfast',fastfile=None,chdir=False):
     print('Using {} to run OpenFAST simulation'.format(fastfile))
 
     if chdir: # Change cwd before calling OpenFAST -- note: This is an artifact of needing to call OpenFAST from the same directory as DISCON.IN
-        # save starting file path 
-        original_path = os.getcwd()
-        # change path, run OpenFAST
-        os.chdir(fast_dir)
-        print('Running OpenFAST simulation for {} through the ROSCO toolbox...'.format(fastfile))
-        os.system('{} {}'.format(fastcall, os.path.join(fastfile)))
-        print('OpenFAST simulation complete. ')
-        # return to original path
-        os.chdir(original_path)
+        cwd = fast_dir
     else:
-        # Run OpenFAST
-        print('Running OpenFAST simulation for {} through the ROSCO toolbox...'.format(fastfile))
-        os.system('{} {}'.format(fastcall, os.path.join(fast_dir,fastfile)))
-        print('OpenFAST simulation complete. ')
+        cwd = None
 
+    print('Running OpenFAST simulation for {} through the ROSCO toolbox...'.format(fastfile))
+        # os.system('{} {}'.format(fastcall, os.path.join(fastfile)))
+    subprocess.run([fastcall, os.path.join(fastfile)], check=True, cwd=cwd)
+    print('OpenFAST simulation complete.')
