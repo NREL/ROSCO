@@ -44,6 +44,9 @@ For the standard use case in OpenFAST, ROSCO will need to be compiled. This is m
 
 Additionally, an additional input file is needed for the ROSCO controller. Though the controller only needs to be compiled once, each individual turbine/controller tuning requires an input file. This input file is generically dubbed "DISCON.IN''. In OpenFAST, the :code:`DLL_InFile` parameter should be set to point to the desired input file. The ROSCO toolbox is used to automatically generate the input file. These instructions are provided in the instructions for :ref:`standard_use`.
 
+**Technical Documentation**
+A publication highlighting much of the theory behind the controller tuning and implementation methods can be found at:
+https://wes.copernicus.org/preprints/wes-2021-19/
 
 **License**
 Copyright 2020 NREL
