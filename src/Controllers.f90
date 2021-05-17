@@ -129,10 +129,10 @@ CONTAINS
         avrSWAP(44) = LocalVar%PitCom(3)    ! "
         avrSWAP(45) = LocalVar%PitCom(1)    ! Use the command angle of blade 1 if using collective pitch
 
-        ! Error Catching
-        IF (ErrVar%aviFAIL == -1) THEN
-            ErrVar%ErrMsg = 'PitchControl:'//TRIM(ErrVar%ErrMsg)
-        END IF
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
 
     END SUBROUTINE PitchControl
 !-------------------------------------------------------------------------------------------------------------------------------  
