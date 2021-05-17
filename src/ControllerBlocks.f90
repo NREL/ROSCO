@@ -210,6 +210,9 @@ CONTAINS
         REAL(8)                         :: R_m      ! Measurement noise covariance [(rad/s)^2]
         
         REAL(8), DIMENSION(3,1), SAVE   :: B
+
+        CHARACTER(*), PARAMETER                 :: RoutineName = 'WindSpeedEstimator'
+
         ! ---- Debug Inputs ------
         DebugVar%WE_b   = LocalVar%PC_PitComTF*R2D
         DebugVar%WE_w   = LocalVar%RotSpeedF
@@ -308,10 +311,10 @@ CONTAINS
             LocalVar%WE_Vw = LPFilter(LocalVar%HorWindV, LocalVar%DT, F_WECornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
         ENDIF 
 
-        ! Error Catching
-        IF (ErrVar%aviFAIL == -1) THEN
-            ErrVar%ErrMsg = 'WindSpeedEstimator:'//TRIM(ErrVar%ErrMsg)
-        END IF
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
 
     END SUBROUTINE WindSpeedEstimator
 !-------------------------------------------------------------------------------------------------------------------------------
@@ -355,13 +358,15 @@ CONTAINS
         TYPE(DebugVariables), INTENT(INOUT)     :: DebugVar
         TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
 
+        CHARACTER(*), PARAMETER                 :: RoutineName = 'PitchSaturation'
+
         ! Define minimum blade pitch angle as a function of estimated wind speed
         PitchSaturation = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, LocalVar%WE_Vw_F, ErrVar)
 
-        ! Error Catching
-        IF (ErrVar%aviFAIL == -1) THEN
-            ErrVar%ErrMsg = 'PitchSaturation:'//TRIM(ErrVar%ErrMsg)
-        END IF
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
 
     END FUNCTION PitchSaturation
 !-------------------------------------------------------------------------------------------------------------------------------

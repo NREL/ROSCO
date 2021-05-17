@@ -49,9 +49,11 @@ CONTAINS
         TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
 
         ! Allocate Variables:
-        REAL(C_FLOAT), INTENT(INOUT)    :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from the DLL controller.
-        INTEGER(4)                      :: K            ! Index used for looping through blades.
-        REAL(8), Save                :: PitComT_Last 
+        REAL(C_FLOAT), INTENT(INOUT)            :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from the DLL controller.
+        INTEGER(4)                              :: K            ! Index used for looping through blades.
+        REAL(8), Save                           :: PitComT_Last 
+
+        CHARACTER(*), PARAMETER                 :: RoutineName = 'PitchControl'
 
         ! ------- Blade Pitch Controller --------
         ! Load PC State

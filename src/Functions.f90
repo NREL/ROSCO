@@ -176,13 +176,15 @@ CONTAINS
         TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
         INTEGER(4)                              :: I_DIFF
 
+        CHARACTER(*), PARAMETER                 :: RoutineName = 'interp1d'
+
         
         ! Catch Errors
         ! Are xData and yData the same size?
         IF (SIZE(xData) .NE. SIZE(yData)) THEN
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'interp1d: xData and yData are not the same size'
-            WRITE(ErrVar%ErrMsg,"(A,I2,A,I2,A)") "interp1d: SIZE(xData) =", SIZE(xData), & 
+            ErrVar%ErrMsg  = ' xData and yData are not the same size'
+            WRITE(ErrVar%ErrMsg,"(A,I2,A,I2,A)") " SIZE(xData) =", SIZE(xData), & 
             ' and SIZE(yData) =', SIZE(yData),' are not the same'
         END IF
 
@@ -190,7 +192,7 @@ CONTAINS
         DO I_DIFF = 1, size(xData) - 1
             IF (xData(I_DIFF + 1) - xData(I_DIFF) <= 0) THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'interp1d: xData is not strictly increasing'
+                ErrVar%ErrMsg  = ' xData is not strictly increasing'
                 EXIT 
             END IF
         END DO
@@ -210,6 +212,11 @@ CONTAINS
                 END IF
             END DO
         END IF
+
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
         
     END FUNCTION interp1d
 
@@ -251,19 +258,21 @@ CONTAINS
         ! Error Catching
         TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
         INTEGER(4)                              :: I_DIFF
+
+        CHARACTER(*), PARAMETER                 :: RoutineName = 'interp2d'
         
         ! Error catching
         ! Are xData and zData(:,1) the same size?
         IF (SIZE(xData) .NE. SIZE(zData,2)) THEN
             ErrVar%aviFAIL = -1
-            WRITE(ErrVar%ErrMsg,"(A,I4,A,I4,A)") "interp2d: SIZE(xData) =", SIZE(xData), & 
+            WRITE(ErrVar%ErrMsg,"(A,I4,A,I4,A)") " SIZE(xData) =", SIZE(xData), & 
             ' and SIZE(zData,1) =', SIZE(zData,2),' are not the same'
         END IF
 
         ! Are yData and zData(1,:) the same size?
         IF (SIZE(yData) .NE. SIZE(zData,1)) THEN
             ErrVar%aviFAIL = -1
-            WRITE(ErrVar%ErrMsg,"(A,I4,A,I4,A)") "interp2d: SIZE(yData) =", SIZE(yData), & 
+            WRITE(ErrVar%ErrMsg,"(A,I4,A,I4,A)") " SIZE(yData) =", SIZE(yData), & 
             ' and SIZE(zData,2) =', SIZE(zData,1),' are not the same'
         END IF
 
@@ -271,7 +280,7 @@ CONTAINS
         DO I_DIFF = 1, size(xData) - 1
             IF (xData(I_DIFF + 1) - xData(I_DIFF) <= 0) THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'interp2d: xData is not strictly increasing'
+                ErrVar%ErrMsg  = ' xData is not strictly increasing'
                 EXIT 
             END IF
         END DO
@@ -280,7 +289,7 @@ CONTAINS
         DO I_DIFF = 1, size(yData) - 1
             IF (yData(I_DIFF + 1) - yData(I_DIFF) <= 0) THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'interp2d: yData is not strictly increasing'
+                ErrVar%ErrMsg  = ' yData is not strictly increasing'
                 EXIT 
             END IF
         END DO
@@ -352,10 +361,10 @@ CONTAINS
 
         interp2d = fxy(1)
 
-        ! Error catching
-        IF (ErrVar%aviFAIL == -1) THEN
-            ErrVar%ErrMsg = 'interp2:'//TRIM(ErrVar%ErrMsg)
-        END IF
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
 
     END FUNCTION interp2d
 
@@ -514,6 +523,8 @@ CONTAINS
         REAL(8) :: Cp
         REAL(8) :: Lambda
 
+        CHARACTER(*), PARAMETER                 :: RoutineName = 'AeroDynTorque'
+
         ! Find Torque
         RotorArea = PI*CntrPar%WE_BladeRadius**2
         Lambda = LocalVar%RotSpeedF*CntrPar%WE_BladeRadius/LocalVar%WE_Vw
@@ -524,10 +535,10 @@ CONTAINS
         AeroDynTorque = 0.5*(CntrPar%WE_RhoAir*RotorArea)*(LocalVar%WE_Vw**3/LocalVar%RotSpeedF)*Cp
         AeroDynTorque = MAX(AeroDynTorque, 0.0)
 
-        ! Error Catching
-        IF (ErrVar%aviFAIL == -1) THEN
-            ErrVar%ErrMsg = 'AeroDynTorque:'//TRIM(ErrVar%ErrMsg)
-        END IF
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
         
     END FUNCTION AeroDynTorque
 

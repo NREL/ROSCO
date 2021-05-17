@@ -56,6 +56,8 @@ TYPE(PerformanceData), SAVE           :: PerfData
 TYPE(DebugVariables), SAVE            :: DebugVar
 TYPE(ErrorVariables), SAVE            :: ErrVar
 
+CHARACTER(*), PARAMETER               :: RoutineName = 'ROSCO'
+
 RootName = TRANSFER(avcOUTNAME, RootName)
 !------------------------------------------------------------------------------------------------------------------------------
 ! Main control calculations
@@ -78,11 +80,11 @@ IF ((LocalVar%iStatus >= 0) .AND. (ErrVar%aviFAIL >= 0))  THEN  ! Only compute c
     CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, SIZE(avcOUTNAME))
 END IF
 
-! Error Catching
-IF (ErrVar%aviFAIL == -1) THEN
-    ErrVar%ErrMsg = 'ROSCO:'//TRIM(ErrVar%ErrMsg)
+! Add RoutineName to error message
+IF (ErrVar%aviFAIL < 0) THEN
+    ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
     print * , TRIM(ErrVar%ErrMsg)
-END IF
+ENDIF
 ErrMsg = ErrVar%ErrMsg
 avcMSG = TRANSFER(TRIM(ErrVar%ErrMsg)//C_NULL_CHAR, avcMSG, SIZE(avcMSG))
 aviFAIL = ErrVar%aviFAIL

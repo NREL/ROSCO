@@ -103,6 +103,10 @@ CONTAINS
         
         INTEGER(4)                              :: K    ! Index used for looping through blades.
         CHARACTER(200)                          :: git_version
+
+        CHARACTER(*), PARAMETER                 :: RoutineName = 'SetParameters'
+
+        
         
         ! Error Catching Variables
         ! Set ErrVar%aviFAIL to 0 in each iteration:
@@ -148,8 +152,9 @@ CONTAINS
 
             CALL ReadControlParameterFileSub(CntrPar, accINFILE, NINT(avrSWAP(50)),ErrVar)
             ! If there's been an file reading error, don't continue
+            ! Add RoutineName to error message
             IF (ErrVar%aviFAIL < 0) THEN
-                ErrVar%ErrMsg = 'SetParameters:'//TRIM(ErrVar%ErrMsg)
+                ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
                 RETURN
             ENDIF
 
@@ -183,8 +188,9 @@ CONTAINS
             ! Check validity of input parameters:
             CALL CheckInputs(LocalVar, CntrPar, avrSWAP, ErrVar, size_avcMSG)
 
+            ! Add RoutineName to error message
             IF (ErrVar%aviFAIL < 0) THEN
-                ErrVar%ErrMsg = 'SetParameters:'//TRIM(ErrVar%ErrMsg)
+                ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
             ENDIF
             
 
@@ -203,6 +209,8 @@ CONTAINS
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar                      ! Control parameter type
 
         INTEGER(4)                                      :: CurLine 
+
+        CHARACTER(*), PARAMETER                         :: RoutineName = 'ReadControlParameterFileSub'
 
         CurLine = 1
        
@@ -373,8 +381,9 @@ CONTAINS
         !------------------- HOUSEKEEPING -----------------------
         CntrPar%PerfFileName = TRIM(CntrPar%PerfFileName)
 
+        ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN
-            ErrVar%ErrMsg = 'ReadControlParameterFileSub:'//TRIM(ErrVar%ErrMsg)
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
         ENDIF
 
 
@@ -394,7 +403,7 @@ CONTAINS
         INTEGER(4),                 INTENT(IN   )       :: size_avcMSG
         REAL(C_FLOAT),              INTENT(IN   )       :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
         
-        
+        CHARACTER(*), PARAMETER                         :: RoutineName = 'CheckInputs'
         ! Local
         
         !..............................................................................................................................
@@ -818,7 +827,7 @@ CONTAINS
         ENDIF
 
         IF (ErrVar%aviFAIL < 0) THEN
-            ErrVar%ErrMsg  = 'CheckInputs:'//TRIM(ErrVar%ErrMsg)
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
         ENDIF
 
     END SUBROUTINE CheckInputs
@@ -1222,7 +1231,7 @@ CONTAINS
             READ (Line,*,IOSTAT=ErrStatLcl)  Ary
             IF ( ErrStatLcl /= 0 )  THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = RoutineName//'A fatal error occurred when parsing data from "' &
+                ErrVar%ErrMsg = RoutineName//':A fatal error occurred when parsing data from "' &
                                 //TRIM( FileName )//'".'//NewLine//  &
                                 ' >> The "'//TRIM( AryName )//'" array was not assigned valid REAL values on line #' &
                                 //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
@@ -1349,7 +1358,7 @@ CONTAINS
         READ (Line,*,IOSTAT=ErrStatLcl)  Ary
         IF ( ErrStatLcl /= 0 )  THEN
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg = RoutineName//'A fatal error occurred when parsing data from "' &
+            ErrVar%ErrMsg = RoutineName//':A fatal error occurred when parsing data from "' &
                             //TRIM( FileName )//'".'//NewLine//  &
                             ' >> The "'//TRIM( AryName )//'" array was not assigned valid REAL values on line #' &
                             //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
