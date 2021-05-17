@@ -31,6 +31,71 @@ USE Functions
 IMPLICIT NONE
 
 CONTAINS
+! -----------------------------------------------------------------------------------
+    ! Calculate setpoints for primary control actions    
+    SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+        USE Constants
+        ! Allocate variables
+        TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
+        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+
+        REAL(8)                                 :: VS_RefSpd        ! Referece speed for variable speed torque controller, [rad/s] 
+        REAL(8)                                 :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
+        REAL(8)                                 :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
+        ! temp
+        ! REAL(8)                                 :: VS_TSRop = 7.5
+
+        ! ----- Calculate yaw misalignment error -----
+        LocalVar%Y_MErr = LocalVar%Y_M + CntrPar%Y_MErrSet ! Yaw-alignment error
+        
+        ! ----- Pitch controller speed and power error -----
+        ! Implement setpoint smoothing
+        IF (LocalVar%SS_DelOmegaF < 0) THEN
+            PC_RefSpd = CntrPar%PC_RefSpd - LocalVar%SS_DelOmegaF
+        ELSE
+            PC_RefSpd = CntrPar%PC_RefSpd
+        ENDIF
+
+        LocalVar%PC_SpdErr = PC_RefSpd - LocalVar%GenSpeedF            ! Speed error
+        LocalVar%PC_PwrErr = CntrPar%VS_RtPwr - LocalVar%VS_GenPwr             ! Power error
+        
+        ! ----- Torque controller reference errors -----
+        ! Define VS reference generator speed [rad/s]
+        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
+            VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
+            VS_RefSpd = saturate(VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
+        ELSE
+            VS_RefSpd = CntrPar%VS_RefSpd
+        ENDIF 
+        
+        ! Implement setpoint smoothing
+        IF (LocalVar%SS_DelOmegaF > 0) THEN
+            VS_RefSpd = VS_RefSpd - LocalVar%SS_DelOmegaF
+        ENDIF
+
+        ! Force zero torque in shutdown mode
+        IF (LocalVar%SD) THEN
+            VS_RefSpd = CntrPar%VS_MinOMSpd
+        ENDIF
+
+        ! Force minimum rotor speed
+        VS_RefSpd = max(VS_RefSpd, CntrPar%VS_MinOmSpd)
+
+        ! TSR-tracking reference error
+        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
+            LocalVar%VS_SpdErr = VS_RefSpd - LocalVar%GenSpeedF
+        ENDIF
+
+        ! Define transition region setpoint errors
+        LocalVar%VS_SpdErrAr = VS_RefSpd - LocalVar%GenSpeedF               ! Current speed error - Region 2.5 PI-control (Above Rated)
+        LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd - LocalVar%GenSpeedF     ! Current speed error - Region 1.5 PI-control (Below Rated)
+        
+        ! Region 3 minimum pitch angle for state machine
+        LocalVar%VS_Rgn3Pitch = LocalVar%PC_MinPit + CntrPar%PC_Switch
+
+    END SUBROUTINE ComputeVariablesSetpoints
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE StateMachine(CntrPar, LocalVar)
     ! State machine, determines the state of the wind turbine to specify the corresponding control actions

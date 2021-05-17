@@ -46,6 +46,150 @@ MODULE ReadSetParameters
 
 
 CONTAINS
+ ! -----------------------------------------------------------------------------------
+    ! Read avrSWAP array passed from ServoDyn    
+    SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar)
+        USE ROSCO_Types, ONLY : LocalVariables
+
+        REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
+        TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
+        
+        ! Load variables from calling program (See Appendix A of Bladed User's Guide):
+        LocalVar%iStatus = NINT(avrSWAP(1))
+        LocalVar%Time = avrSWAP(2)
+        LocalVar%DT = avrSWAP(3)
+        LocalVar%VS_MechGenPwr = avrSWAP(14)
+        LocalVar%VS_GenPwr = avrSWAP(15)
+        LocalVar%GenSpeed = avrSWAP(20)
+        LocalVar%RotSpeed = avrSWAP(21)
+        LocalVar%GenTqMeas = avrSWAP(23)
+        LocalVar%Y_M = avrSWAP(24)
+        LocalVar%HorWindV = avrSWAP(27)
+        LocalVar%rootMOOP(1) = avrSWAP(30)
+        LocalVar%rootMOOP(2) = avrSWAP(31)
+        LocalVar%rootMOOP(3) = avrSWAP(32)
+        LocalVar%FA_Acc = avrSWAP(53)
+        LocalVar%NacIMU_FA_Acc = avrSWAP(83)
+        LocalVar%Azimuth = avrSWAP(60)
+        LocalVar%NumBl = NINT(avrSWAP(61))
+
+        ! --- NJA: usually feedback back the previous pitch command helps for numerical stability, sometimes it does not...
+        IF (LocalVar%iStatus == 0) THEN
+            LocalVar%BlPitch(1) = avrSWAP(4)
+            LocalVar%BlPitch(2) = avrSWAP(33)
+            LocalVar%BlPitch(3) = avrSWAP(34)
+        ELSE
+            LocalVar%BlPitch(1) = LocalVar%PitCom(1)
+            LocalVar%BlPitch(2) = LocalVar%PitCom(2)
+            LocalVar%BlPitch(3) = LocalVar%PitCom(3)      
+        ENDIF
+
+    END SUBROUTINE ReadAvrSWAP    
+! -----------------------------------------------------------------------------------
+    ! Define parameters for control actions
+    SUBROUTINE SetParameters(avrSWAP, accINFILE, size_avcMSG, CntrPar, LocalVar, objInst, PerfData, ErrVar)
+                
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData, ErrorVariables
+        
+        INTEGER(4), INTENT(IN) :: size_avcMSG
+        TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
+        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+        TYPE(PerformanceData), INTENT(INOUT)    :: PerfData
+        TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
+
+        REAL(C_FLOAT), INTENT(INOUT)            :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
+        CHARACTER(KIND=C_CHAR), INTENT(IN)      :: accINFILE(NINT(avrSWAP(50)))     ! The name of the parameter input file
+        
+        INTEGER(4)                              :: K    ! Index used for looping through blades.
+        CHARACTER(200)                          :: git_version
+        
+        ! Error Catching Variables
+        ! Set ErrVar%aviFAIL to 0 in each iteration:
+        ErrVar%aviFAIL = 0
+        ! ALLOCATE(ErrVar%ErrMsg(size_avcMSG-1))
+        ErrVar%size_avcMSG  = size_avcMSG
+        
+        ! Initialize all filter instance counters at 1
+        objInst%instLPF = 1
+        objInst%instSecLPF = 1
+        objInst%instHPF = 1
+        objInst%instNotchSlopes = 1
+        objInst%instNotch = 1
+        objInst%instPI = 1
+        
+        ! Set unused outputs to zero (See Appendix A of Bladed User's Guide):
+        avrSWAP(35) = 1.0 ! Generator contactor status: 1=main (high speed) variable-speed generator
+        avrSWAP(36) = 0.0 ! Shaft brake status: 0=off
+        avrSWAP(41) = 0.0 ! Demanded yaw actuator torque
+        avrSWAP(46) = 0.0 ! Demanded pitch rate (Collective pitch)
+        avrSWAP(55) = 0.0 ! Pitch override: 0=yes
+        avrSWAP(56) = 0.0 ! Torque override: 0=yes
+        avrSWAP(65) = 0.0 ! Number of variables returned for logging
+        avrSWAP(72) = 0.0 ! Generator start-up resistance
+        avrSWAP(79) = 0.0 ! Request for loads: 0=none
+        avrSWAP(80) = 0.0 ! Variable slip current status
+        avrSWAP(81) = 0.0 ! Variable slip current demand
+        
+        ! Read any External Controller Parameters specified in the User Interface
+        !   and initialize variables:
+        IF (LocalVar%iStatus == 0) THEN ! .TRUE. if we're on the first call to the DLL
+            
+            ! Inform users that we are using this user-defined routine:
+            ! ErrVar%aviFAIL = 1
+            git_version = QueryGitVersion()
+            PRINT *,'                                                                              '//NEW_LINE('A')// &
+                    '------------------------------------------------------------------------------'//NEW_LINE('A')// &
+                    'Running ROSCO-'//TRIM(git_version)//NEW_LINE('A')// &
+                    'A wind turbine controller framework for public use in the scientific field    '//NEW_LINE('A')// &
+                    'Developed in collaboration: National Renewable Energy Laboratory              '//NEW_LINE('A')// &
+                    '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
+                    '------------------------------------------------------------------------------'
+
+            CALL ReadControlParameterFileSub(CntrPar, accINFILE, NINT(avrSWAP(50)),ErrVar)
+            ! If there's been an file reading error, don't continue
+            IF (ErrVar%aviFAIL < 0) THEN
+                ErrVar%ErrMsg = 'SetParameters:'//TRIM(ErrVar%ErrMsg)
+                RETURN
+            ENDIF
+
+            IF (CntrPar%WE_Mode > 0) THEN
+                CALL READCpFile(CntrPar,PerfData,ErrVar)
+            ENDIF
+            ! Initialize testValue (debugging variable)
+            LocalVar%TestType = 0
+        
+            ! Initialize the SAVED variables:
+            LocalVar%PitCom = LocalVar%BlPitch ! This will ensure that the variable speed controller picks the correct control region and the pitch controller picks the correct gain on the first call
+            LocalVar%Y_AccErr = 0.0  ! This will ensure that the accumulated yaw error starts at zero
+            LocalVar%Y_YawEndT = -1.0 ! This will ensure that the initial yaw end time is lower than the actual time to prevent initial yawing
+            
+            ! Wind speed estimator initialization
+            LocalVar%WE_Vw = LocalVar%HorWindV
+            LocalVar%WE_VwI = LocalVar%WE_Vw - CntrPar%WE_Gamma*LocalVar%RotSpeed
+            
+            ! Setpoint Smoother initialization to zero
+            LocalVar%SS_DelOmegaF = 0
+
+            ! Generator Torque at K omega^2 or rated
+            IF (LocalVar%GenSpeed > 0.98 * CntrPar%PC_RefSpd) THEN
+                LocalVar%GenTq = CntrPar%VS_RtTq
+            ELSE
+                LocalVar%GenTq = min(CntrPar%VS_RtTq, CntrPar%VS_Rgn2K*LocalVar%GenSpeed*LocalVar%GenSpeed)
+            ENDIF            
+            LocalVar%VS_LastGenTrq = LocalVar%GenTq       
+            LocalVar%VS_MaxTq      = CntrPar%VS_MaxTq
+            
+            ! Check validity of input parameters:
+            CALL CheckInputs(LocalVar, CntrPar, avrSWAP, ErrVar, size_avcMSG)
+
+            IF (ErrVar%aviFAIL < 0) THEN
+                ErrVar%ErrMsg = 'SetParameters:'//TRIM(ErrVar%ErrMsg)
+            ENDIF
+            
+
+        ENDIF
+    END SUBROUTINE SetParameters
     ! -----------------------------------------------------------------------------------
     ! Read all constant control parameters from DISCON.IN parameter file
     SUBROUTINE ReadControlParameterFileSub(CntrPar, accINFILE, accINFILE_size,ErrVar)!, accINFILE_size)
@@ -235,110 +379,6 @@ CONTAINS
 
 
     END SUBROUTINE ReadControlParameterFileSub
-    ! -----------------------------------------------------------------------------------
-    ! Calculate setpoints for primary control actions    
-    SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
-        USE Constants
-        ! Allocate variables
-        TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
-        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
-
-        REAL(8)                                 :: VS_RefSpd        ! Referece speed for variable speed torque controller, [rad/s] 
-        REAL(8)                                 :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
-        REAL(8)                                 :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
-        ! temp
-        ! REAL(8)                                 :: VS_TSRop = 7.5
-
-        ! ----- Calculate yaw misalignment error -----
-        LocalVar%Y_MErr = LocalVar%Y_M + CntrPar%Y_MErrSet ! Yaw-alignment error
-        
-        ! ----- Pitch controller speed and power error -----
-        ! Implement setpoint smoothing
-        IF (LocalVar%SS_DelOmegaF < 0) THEN
-            PC_RefSpd = CntrPar%PC_RefSpd - LocalVar%SS_DelOmegaF
-        ELSE
-            PC_RefSpd = CntrPar%PC_RefSpd
-        ENDIF
-
-        LocalVar%PC_SpdErr = PC_RefSpd - LocalVar%GenSpeedF            ! Speed error
-        LocalVar%PC_PwrErr = CntrPar%VS_RtPwr - LocalVar%VS_GenPwr             ! Power error
-        
-        ! ----- Torque controller reference errors -----
-        ! Define VS reference generator speed [rad/s]
-        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
-            VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
-            VS_RefSpd = saturate(VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
-        ELSE
-            VS_RefSpd = CntrPar%VS_RefSpd
-        ENDIF 
-        
-        ! Implement setpoint smoothing
-        IF (LocalVar%SS_DelOmegaF > 0) THEN
-            VS_RefSpd = VS_RefSpd - LocalVar%SS_DelOmegaF
-        ENDIF
-
-        ! Force zero torque in shutdown mode
-        IF (LocalVar%SD) THEN
-            VS_RefSpd = CntrPar%VS_MinOMSpd
-        ENDIF
-
-        ! Force minimum rotor speed
-        VS_RefSpd = max(VS_RefSpd, CntrPar%VS_MinOmSpd)
-
-        ! TSR-tracking reference error
-        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
-            LocalVar%VS_SpdErr = VS_RefSpd - LocalVar%GenSpeedF
-        ENDIF
-
-        ! Define transition region setpoint errors
-        LocalVar%VS_SpdErrAr = VS_RefSpd - LocalVar%GenSpeedF               ! Current speed error - Region 2.5 PI-control (Above Rated)
-        LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd - LocalVar%GenSpeedF     ! Current speed error - Region 1.5 PI-control (Below Rated)
-        
-        ! Region 3 minimum pitch angle for state machine
-        LocalVar%VS_Rgn3Pitch = LocalVar%PC_MinPit + CntrPar%PC_Switch
-
-    END SUBROUTINE ComputeVariablesSetpoints
-    ! -----------------------------------------------------------------------------------
-    ! Read avrSWAP array passed from ServoDyn    
-    SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar)
-        USE ROSCO_Types, ONLY : LocalVariables
-    
-        REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
-        TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
-        
-        ! Load variables from calling program (See Appendix A of Bladed User's Guide):
-        LocalVar%iStatus = NINT(avrSWAP(1))
-        LocalVar%Time = avrSWAP(2)
-        LocalVar%DT = avrSWAP(3)
-        LocalVar%VS_MechGenPwr = avrSWAP(14)
-        LocalVar%VS_GenPwr = avrSWAP(15)
-        LocalVar%GenSpeed = avrSWAP(20)
-        LocalVar%RotSpeed = avrSWAP(21)
-        LocalVar%GenTqMeas = avrSWAP(23)
-        LocalVar%Y_M = avrSWAP(24)
-        LocalVar%HorWindV = avrSWAP(27)
-        LocalVar%rootMOOP(1) = avrSWAP(30)
-        LocalVar%rootMOOP(2) = avrSWAP(31)
-        LocalVar%rootMOOP(3) = avrSWAP(32)
-        LocalVar%FA_Acc = avrSWAP(53)
-        LocalVar%NacIMU_FA_Acc = avrSWAP(83)
-        LocalVar%Azimuth = avrSWAP(60)
-        LocalVar%NumBl = NINT(avrSWAP(61))
-
-          ! --- NJA: usually feedback back the previous pitch command helps for numerical stability, sometimes it does not...
-        IF (LocalVar%iStatus == 0) THEN
-            LocalVar%BlPitch(1) = avrSWAP(4)
-            LocalVar%BlPitch(2) = avrSWAP(33)
-            LocalVar%BlPitch(3) = avrSWAP(34)
-        ELSE
-            LocalVar%BlPitch(1) = LocalVar%PitCom(1)
-            LocalVar%BlPitch(2) = LocalVar%PitCom(2)
-            LocalVar%BlPitch(3) = LocalVar%PitCom(3)      
-        ENDIF
-
-    END SUBROUTINE ReadAvrSWAP
     ! -----------------------------------------------------------------------------------
     ! Check for errors before any execution
     SUBROUTINE CheckInputs(LocalVar, CntrPar, avrSWAP, ErrVar, size_avcMSG)
@@ -782,123 +822,7 @@ CONTAINS
         ENDIF
 
     END SUBROUTINE CheckInputs
-    ! -----------------------------------------------------------------------------------
-    ! Define parameters for control actions
-    SUBROUTINE SetParameters(avrSWAP, accINFILE, size_avcMSG, CntrPar, LocalVar, objInst, PerfData, ErrVar)
-               
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData, ErrorVariables
-        
-        INTEGER(4), INTENT(IN) :: size_avcMSG
-        TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
-        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
-        TYPE(PerformanceData), INTENT(INOUT)    :: PerfData
-        TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
 
-        REAL(C_FLOAT), INTENT(INOUT)            :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
-        CHARACTER(KIND=C_CHAR), INTENT(IN)      :: accINFILE(NINT(avrSWAP(50)))     ! The name of the parameter input file
-        
-        INTEGER(4)                              :: K    ! Index used for looping through blades.
-        CHARACTER(200)                          :: git_version
-        
-        ! Error Catching Variables
-        ! Set ErrVar%aviFAIL to 0 in each iteration:
-        ErrVar%aviFAIL = 0
-        ! ALLOCATE(ErrVar%ErrMsg(size_avcMSG-1))
-        ErrVar%size_avcMSG  = size_avcMSG
-        
-        ! Initialize all filter instance counters at 1
-        objInst%instLPF = 1
-        objInst%instSecLPF = 1
-        objInst%instHPF = 1
-        objInst%instNotchSlopes = 1
-        objInst%instNotch = 1
-        objInst%instPI = 1
-        
-        ! Set unused outputs to zero (See Appendix A of Bladed User's Guide):
-        avrSWAP(35) = 1.0 ! Generator contactor status: 1=main (high speed) variable-speed generator
-        avrSWAP(36) = 0.0 ! Shaft brake status: 0=off
-        avrSWAP(41) = 0.0 ! Demanded yaw actuator torque
-        avrSWAP(46) = 0.0 ! Demanded pitch rate (Collective pitch)
-        avrSWAP(55) = 0.0 ! Pitch override: 0=yes
-        avrSWAP(56) = 0.0 ! Torque override: 0=yes
-        avrSWAP(65) = 0.0 ! Number of variables returned for logging
-        avrSWAP(72) = 0.0 ! Generator start-up resistance
-        avrSWAP(79) = 0.0 ! Request for loads: 0=none
-        avrSWAP(80) = 0.0 ! Variable slip current status
-        avrSWAP(81) = 0.0 ! Variable slip current demand
-        
-        ! Read any External Controller Parameters specified in the User Interface
-        !   and initialize variables:
-        IF (LocalVar%iStatus == 0) THEN ! .TRUE. if we're on the first call to the DLL
-            
-            ! Inform users that we are using this user-defined routine:
-            ! ErrVar%aviFAIL = 1
-            git_version = QueryGitVersion()
-            ! ErrMsg = '                                                                              '//NEW_LINE('A')// &
-            !          '------------------------------------------------------------------------------'//NEW_LINE('A')// &
-            !          'Running a controller implemented through NREL''s ROSCO Toolbox                    '//NEW_LINE('A')// &
-            !          'A wind turbine controller framework for public use in the scientific field    '//NEW_LINE('A')// &
-            !          'Developed in collaboration: National Renewable Energy Laboratory              '//NEW_LINE('A')// &
-            !          '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
-            !          'Primary development by (listed alphabetically): Nikhar J. Abbas               '//NEW_LINE('A')// &
-            !          '                                                Sebastiaan P. Mulders         '//NEW_LINE('A')// &
-            !          '                                                Jan-Willem van Wingerden      '//NEW_LINE('A')// &
-            !          'Visit our GitHub-page to contribute to this project:                          '//NEW_LINE('A')// &
-            !          'https://github.com/NREL/ROSCO                                                 '//NEW_LINE('A')// &
-            !          '------------------------------------------------------------------------------'
-            PRINT *,'                                                                              '//NEW_LINE('A')// &
-                    '------------------------------------------------------------------------------'//NEW_LINE('A')// &
-                    'Running ROSCO-'//TRIM(git_version)//NEW_LINE('A')// &
-                    'A wind turbine controller framework for public use in the scientific field    '//NEW_LINE('A')// &
-                    'Developed in collaboration: National Renewable Energy Laboratory              '//NEW_LINE('A')// &
-                    '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
-                    '------------------------------------------------------------------------------'
-
-            CALL ReadControlParameterFileSub(CntrPar, accINFILE, NINT(avrSWAP(50)),ErrVar)
-            ! If there's been an file reading error, don't continue
-            IF (ErrVar%aviFAIL < 0) THEN
-                ErrVar%ErrMsg = 'SetParameters:'//TRIM(ErrVar%ErrMsg)
-                RETURN
-            ENDIF
-
-            IF (CntrPar%WE_Mode > 0) THEN
-                CALL READCpFile(CntrPar,PerfData,ErrVar)
-            ENDIF
-            ! Initialize testValue (debugging variable)
-            LocalVar%TestType = 0
-        
-            ! Initialize the SAVED variables:
-            LocalVar%PitCom = LocalVar%BlPitch ! This will ensure that the variable speed controller picks the correct control region and the pitch controller picks the correct gain on the first call
-            LocalVar%Y_AccErr = 0.0  ! This will ensure that the accumulated yaw error starts at zero
-            LocalVar%Y_YawEndT = -1.0 ! This will ensure that the initial yaw end time is lower than the actual time to prevent initial yawing
-            
-            ! Wind speed estimator initialization
-            LocalVar%WE_Vw = LocalVar%HorWindV
-            LocalVar%WE_VwI = LocalVar%WE_Vw - CntrPar%WE_Gamma*LocalVar%RotSpeed
-            
-            ! Setpoint Smoother initialization to zero
-            LocalVar%SS_DelOmegaF = 0
-
-            ! Generator Torque at K omega^2 or rated
-            IF (LocalVar%GenSpeed > 0.98 * CntrPar%PC_RefSpd) THEN
-                LocalVar%GenTq = CntrPar%VS_RtTq
-            ELSE
-                LocalVar%GenTq = min(CntrPar%VS_RtTq, CntrPar%VS_Rgn2K*LocalVar%GenSpeed*LocalVar%GenSpeed)
-            ENDIF            
-            LocalVar%VS_LastGenTrq = LocalVar%GenTq       
-            LocalVar%VS_MaxTq      = CntrPar%VS_MaxTq
-            
-            ! Check validity of input parameters:
-            CALL CheckInputs(LocalVar, CntrPar, avrSWAP, ErrVar, size_avcMSG)
-
-            IF (ErrVar%aviFAIL < 0) THEN
-                ErrVar%ErrMsg = 'SetParameters:'//TRIM(ErrVar%ErrMsg)
-            ENDIF
-            
-
-        ENDIF
-    END SUBROUTINE SetParameters
     ! -----------------------------------------------------------------------------------
     ! Read all constant control parameters from DISCON.IN parameter file
     SUBROUTINE ReadCpFile(CntrPar,PerfData, ErrVar)
@@ -1209,68 +1133,6 @@ CONTAINS
     END SUBROUTINE GetWords
     !=======================================================================
 
-    !> This subroutine checks the data to be parsed to make sure it finds
-    !! the expected variable name and an associated value.
-    SUBROUTINE ChkParseData ( Words, ExpVarName, FileName, FileLineNum, ErrVar )
-
-        USE ROSCO_Types, ONLY : ErrorVariables
-
-
-            ! Arguments declarations.
-        TYPE(ErrorVariables),         INTENT(INOUT)          :: ErrVar   ! Current line of input
-
-        INTEGER(4), INTENT(IN)             :: FileLineNum                   !< The number of the line in the file being parsed.
-        INTEGER(4)                        :: NameIndx                      !< The index into the Words array that points to the variable name.
-
-        CHARACTER(*),   INTENT(IN)             :: ExpVarName                    !< The expected variable name.
-        CHARACTER(*),   INTENT(IN)             :: Words       (2)               !< The two words to be parsed from the line.
-
-        CHARACTER(*),   INTENT(IN)             :: FileName                      !< The name of the file being parsed.
-
-
-            ! Local declarations.
-
-        CHARACTER(20)                          :: ExpUCVarName                  ! The uppercase version of ExpVarName.
-        CHARACTER(20)                          :: FndUCVarName                  ! The uppercase version of the word being tested.
-
-
-
-
-            ! Convert the found and expected names to uppercase.
-
-        FndUCVarName = Words(1)
-        ExpUCVarName = ExpVarName
-
-        CALL Conv2UC ( FndUCVarName )
-        CALL Conv2UC ( ExpUCVarName )
-
-        ! See which word is the variable name.  Generate an error if it is the first
-            
-        IF ( TRIM( FndUCVarName ) == TRIM( ExpUCVarName ) )  THEN
-            NameIndx = 1
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = ' >> A fatal error occurred when parsing data from "'//TRIM( FileName ) &
-                                //'".'//NewLine//' >> The variable "'//TRIM( Words(1) )//'" was not assigned a valid value on line #' &
-                                //TRIM( Int2LStr( FileLineNum ) )//'.' 
-            RETURN
-        ELSE
-            FndUCVarName = Words(2)
-            CALL Conv2UC ( FndUCVarName )
-            IF ( TRIM( FndUCVarName ) == TRIM( ExpUCVarName ) )  THEN
-            NameIndx = 2
-            ELSE
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = ' >> A fatal error occurred when parsing data from "'//TRIM( FileName ) &
-                                //'".'//NewLine//' >> The variable "'//TRIM( ExpVarName )//'" was not assigned a valid value on line #' &
-                                //TRIM( Int2LStr( FileLineNum ) )//'.' 
-            RETURN
-            ENDIF
-        ENDIF
-
-
-    END SUBROUTINE ChkParseData 
-
-!=======================================================================
 !> This subroutine parses the specified line of text for AryLen REAL values.
 !! Generate an error message if the value is the wrong type.
 !! Use ParseAry (nwtc_io::parseary) instead of directly calling a specific routine in the generic interface.   
@@ -1523,6 +1385,69 @@ CONTAINS
         END SUBROUTINE Cleanup
 
 END SUBROUTINE ParseInAry
+
+ !> This subroutine checks the data to be parsed to make sure it finds
+    !! the expected variable name and an associated value.
+SUBROUTINE ChkParseData ( Words, ExpVarName, FileName, FileLineNum, ErrVar )
+
+    USE ROSCO_Types, ONLY : ErrorVariables
+
+
+        ! Arguments declarations.
+    TYPE(ErrorVariables),         INTENT(INOUT)          :: ErrVar   ! Current line of input
+
+    INTEGER(4), INTENT(IN)             :: FileLineNum                   !< The number of the line in the file being parsed.
+    INTEGER(4)                        :: NameIndx                      !< The index into the Words array that points to the variable name.
+
+    CHARACTER(*),   INTENT(IN)             :: ExpVarName                    !< The expected variable name.
+    CHARACTER(*),   INTENT(IN)             :: Words       (2)               !< The two words to be parsed from the line.
+
+    CHARACTER(*),   INTENT(IN)             :: FileName                      !< The name of the file being parsed.
+
+
+        ! Local declarations.
+
+    CHARACTER(20)                          :: ExpUCVarName                  ! The uppercase version of ExpVarName.
+    CHARACTER(20)                          :: FndUCVarName                  ! The uppercase version of the word being tested.
+
+
+
+
+        ! Convert the found and expected names to uppercase.
+
+    FndUCVarName = Words(1)
+    ExpUCVarName = ExpVarName
+
+    CALL Conv2UC ( FndUCVarName )
+    CALL Conv2UC ( ExpUCVarName )
+
+    ! See which word is the variable name.  Generate an error if it is the first
+        
+    IF ( TRIM( FndUCVarName ) == TRIM( ExpUCVarName ) )  THEN
+        NameIndx = 1
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg = ' >> A fatal error occurred when parsing data from "'//TRIM( FileName ) &
+                            //'".'//NewLine//' >> The variable "'//TRIM( Words(1) )//'" was not assigned a valid value on line #' &
+                            //TRIM( Int2LStr( FileLineNum ) )//'.' 
+        RETURN
+    ELSE
+        FndUCVarName = Words(2)
+        CALL Conv2UC ( FndUCVarName )
+        IF ( TRIM( FndUCVarName ) == TRIM( ExpUCVarName ) )  THEN
+        NameIndx = 2
+        ELSE
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg = ' >> A fatal error occurred when parsing data from "'//TRIM( FileName ) &
+                            //'".'//NewLine//' >> The variable "'//TRIM( ExpVarName )//'" was not assigned a valid value on line #' &
+                            //TRIM( Int2LStr( FileLineNum ) )//'.' 
+        RETURN
+        ENDIF
+    ENDIF
+
+
+END SUBROUTINE ChkParseData 
+
+!=======================================================================
 
 
 END MODULE ReadSetParameters
