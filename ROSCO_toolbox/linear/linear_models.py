@@ -626,22 +626,6 @@ class LinearControlModel(object):
 
 
 # helper functions
-def deg2rad(d):
-    return d * np.pi / 180
-
-
-def rad2deg(r):
-    return r * 180 / np.pi
-
-
-def rpm2radps(r):
-    return r * 2 * np.pi / 60
-
-
-def radps2rpm(r):
-    return r * 60 / 2 / np.pi
-
-
 def connect_ml(mods, inputs, outputs):
     ''' 
     Connects models like the matlab function does
@@ -719,3 +703,186 @@ def connect_ml(mods, inputs, outputs):
     sys.OutputName = outputs
 
     return sys
+
+
+def pc_openloop(linturb, controller, u):
+    '''
+    This function creates a set of openloop transfer function for the wind turbine with a pitch controller
+    
+    Inputs
+    ------
+    linturb: object
+        LinearTurbineModel object
+    controller: object
+        ROSCO toolbox controller object
+    u: float
+        wind speed to evaluate system at
+    '''
+    if linturb.B_ops.shape[1] > 1:
+        raise InputError(
+            'OpenLoop system calculations are only supported for single input systems, please run LinearTurbine.trim_system with len(desInputs) = 1')
+    if linturb.C_ops.shape[0] > 1:
+        raise InputError(
+            'OpenLoop system calculations are only supported for single output systems, please run LinearTurbine.trim_system with len(desOutputs) = 1')
+
+    # Interpolate plant and controller
+    P = interp_plant(linturb, u)
+    Cs = interp_controller(controller, u)
+
+    # Combine controller and plant
+    sys_ol = Cs*P
+
+    return sys_ol
+
+
+def sensitivity(linturb, controller, u):
+    '''
+    This function finds the sensitivity function for the wind turbine with a pitch controller
+    
+    Inputs
+    ------
+    linturb: object
+        LinearTurbineModel object
+    controller: object
+        ROSCO toolbox controller object
+    u: float
+        wind speed to evaluate system at
+    '''
+
+    if linturb.B_ops.shape[1] > 1:
+        raise InputError(
+            'OpenLoop system calculations are only supported for single input systems, please run LinearTurbine.trim_system with len(desInputs) = 1')
+    if linturb.C_ops.shape[0] > 1:
+        raise InputError(
+            'OpenLoop system calculations are only supported for single output systems, please run LinearTurbine.trim_system with len(desOutputs) = 1')
+
+    # Interpolate plant and controller
+    P = interp_plant(linturb, u)
+    Cs = interp_controller(controller, u)
+
+    # Calculate sensitivity function
+    sens = feedback(1, Cs*P)
+
+    return sens
+
+
+def pc_closedloop(linturb, controller, u):
+    '''
+    This function creates a set of closed loop transfer function for the wind turbine with a pitch controller
+    
+    Inputs
+    ------
+    linturb: object
+        LinearTurbineModel object
+    controller: object
+        ROSCO toolbox controller object
+    u: float
+        wind speed to evaluate closed loop system at
+    Returns
+    -------
+    sys_cl: scipy StateSpaceContinuous 
+        closed loop system
+    '''
+    if linturb.B_ops.shape[1] > 1:
+        raise InputError(
+            'OpenLoop system calculations are only supported for single input systems, please run LinearTurbine.trim_system with len(desInputs) = 1')
+    if linturb.C_ops.shape[0] > 1:
+        raise InputError(
+            'OpenLoop system calculations are only supported for single output systems, please run LinearTurbine.trim_system with len(desOutputs) = 1')
+
+    # Interpolate plant and controller
+    P = interp_plant(linturb, u)
+    Cs = interp_controller(controller, u)
+
+    # Combine controller and plant
+    sys_cl = feedback(1, Cs*P)
+
+    return sys_cl
+
+
+def interp_plant(linturb, v, return_scipy=True):
+    '''
+    Interpolate linear turbine plant 
+
+    Inputs
+    ------
+    linturb: object
+        LinearTurbineModel object
+    v: float
+        wind speed to interpolate linturb at
+    return_scipy: bool, optional
+        True:  return type is scipy's StateSpaceContinuous
+        False: return type is python control toolbox's StateSpace
+
+    Returns
+    -------
+    P: StateSpaceContinous or StateSpace
+    '''
+
+    # Find interpolated plant on v
+    Ap = interp_matrix(linturb.u_h, linturb.A_ops, v)
+    Bp = interp_matrix(linturb.u_h, linturb.B_ops, v)
+    Cp = interp_matrix(linturb.u_h, linturb.C_ops, v)
+    Dp = interp_matrix(linturb.u_h, linturb.D_ops, v)
+
+    if return_scipy:
+        P = sp.signal.StateSpace(Ap, Bp, Cp, Dp)
+    else:
+        P = co.StateSpace(Ap, Bp, Cp, Dp)
+
+    return P
+
+
+def interp_controller(controller, v, return_scipy=True):
+    '''
+    Interpolate ROSCO toolbox pitch controller and return linear model
+
+    Inputs
+    ------
+    controller: object
+        ROSCO toolbox controller object
+    v: float
+        wind speed to interpolate linturb at
+    return_scipy: bool, optional
+        True:  return type is scipy's StateSpaceContinuous
+        False: return type is python control toolbox's StateSpace
+
+    Returns
+    -------
+    P: StateSpaceContinous or StateSpace
+    '''
+
+    # interpolate controller on v
+    pitch = interp_matrix(controller.v, controller.pitch_op, v)
+    kp = float(interp_matrix(controller.pitch_op_pc, controller.pc_gain_schedule.Kp, pitch))
+    ki = float(interp_matrix(controller.pitch_op_pc, controller.pc_gain_schedule.Ki, pitch))
+    if return_scipy:
+        A, B, C, D = sp.signal.tf2ss([kp, ki], [1, 0])
+        Cs = sp.signal.StateSpace(A, B, C, D)
+    else:
+        Cs = co.tf2ss(co.TransferFunction([kp, ki], [1, 0]))
+
+    return Cs
+
+
+def interp_matrix(x, matrix_3D, q):
+    q = np.clip(q, x.min(), x.max())
+    f_m = sp.interpolate.interp1d(x, matrix_3D)
+
+    return f_m(q)
+
+
+def deg2rad(d):
+    return d * np.pi / 180
+
+
+def rad2deg(r):
+    return r * 180 / np.pi
+
+
+def rpm2radps(r):
+    return r * 2 * np.pi / 60
+
+
+def radps2rpm(r):
+    return r * 60 / 2 / np.pi
