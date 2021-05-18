@@ -435,17 +435,15 @@ class LinearTurbineModel(object):
         # Remove states
         for case_idx in range(self.n_lin_cases):
             A_nohd[:,:,case_idx] = self.A_ops[:,:,case_idx][indStates, indStates.T].squeeze()
-            # if len(indInputs) == 1:
-            #     B_nohd[:,:,case_idx] = self.B_ops[:,:,case_idx][indStates, indInputs.T]
-            # else:
-            B_nohd[:,:,case_idx] = self.B_ops[:,:,case_idx][indStates, indInputs.T].squeeze()
-
+            if len(indInputs) == 1:
+                B_nohd[:,:,case_idx] = self.B_ops[:,:,case_idx][indStates, indInputs.T]
+            else:
+                B_nohd[:,:,case_idx] = self.B_ops[:,:,case_idx][indStates, indInputs.T].squeeze()
             C_nohd[:,:,case_idx] = self.C_ops[:,:,case_idx][indOutputs, indStates.T].squeeze()
-
-            # if len(indInputs) == 1:
-            #     D_nohd[:,:,case_idx] = self.D_ops[:,:,case_idx][:,indInputs.T].squeeze(axis=1)
-            # else:
-            D_nohd[:, :, case_idx] = self.D_ops[:, :, case_idx][indOutputs, indInputs.T].squeeze()
+            if len(indInputs) == 1:
+                D_nohd[:, :, case_idx] = self.D_ops[:, :, case_idx][indOutputs, indInputs.T]
+            else:
+                D_nohd[:, :, case_idx] = self.D_ops[:, :, case_idx][indOutputs, indInputs.T].squeeze()
 
         # Replace old state matrices
         self.A_ops = A_nohd
