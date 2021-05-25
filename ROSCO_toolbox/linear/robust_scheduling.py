@@ -10,6 +10,7 @@ import yaml
 import openmdao.api as om
 import warnings
 import matplotlib.pyplot as plt
+import pandas as pd
 from ROSCO_toolbox import controller as ROSCO_controller
 from ROSCO_toolbox import turbine as ROSCO_turbine
 # from ROSCO_toolbox.linear import pc_closedloop, pc_openloop, pc_sensitivity, interp_plant, interp_pitch_controller, add_pcomp, feedback
@@ -117,6 +118,20 @@ class RobustScheduling(om.ExplicitComponent):
 
         return sm
 
+def load_OMsql(log):
+    print('loading {}'.format(log))
+    cr = om.CaseReader(log)
+    rec_data = {}
+    driver_cases = cr.list_cases('driver')
+    cases = cr.get_cases('driver')
+    for case in cases:
+        for key in case.outputs.keys():
+            if key not in rec_data:
+                rec_data[key] = []
+            rec_data[key].append(case[key])
+
+    return rec_data
+
 def tune():
     # Linear turbine options
     linfile_root = '/Users/nabbas/Documents/Projects/RobustControl/linearizations/case_outputs/case_4'
@@ -183,5 +198,88 @@ def tune():
     ax[1].plot(u_vec, k_floats)
     plt.show()
 
+
+def design_of_experiments():
+    # Linear turbine options
+    linfile_root = '/Users/nabbas/Documents/Projects/RobustControl/linearizations/case_outputs/case_4'
+    linturb_options = {'linfile_root': linfile_root}
+
+    # ROSCO options
+    parameter_filename = '/Users/nabbas/Documents/WindEnergyToolbox/ROSCO_toolbox/Tune_Cases/IEA15MW.yaml'
+    inps = yaml.safe_load(open(parameter_filename))
+    path_params = inps['path_params']
+    turbine_params = inps['turbine_params']
+    controller_params = inps['controller_params']
+    path_params['FAST_directory'] = '/Users/nabbas/Documents/WindEnergyToolbox/ROSCO_toolbox/Test_Cases/IEA-15-240-RWT-UMaineSemi'
+    ROSCO_options = {
+        'path_params': path_params,
+        'turbine_params': turbine_params,
+        'controller_params': controller_params
+    }
+
+    # Output options
+    output_dir = os.path.join( os.path.dirname(os.path.abspath(__file__)), 'doe_out' )
+    output_name = 'doe_kfloat'
+    opt_options = {'u_eval': 12.0}
+    rtune = om.Problem()
+    rtune.model.add_subsystem('r_sched', RobustScheduling(linturb_options=linturb_options,
+                                                          ROSCO_options=ROSCO_options,
+                                                          opt_options=opt_options))
+
+    # Setup optimizer
+    rtune.driver = om.DOEDriver(om.UniformGenerator(num_samples=100))
+    os.makedirs(output_dir, exist_ok=True)
+    rtune.driver.add_recorder(om.SqliteRecorder(os.path.join(output_dir, output_name + ".sql")))
+
+    # Add design variables
+    rtune.model.add_design_var('r_sched.omega', lower=0.01, upper=0.25)
+    rtune.model.add_design_var('r_sched.k_float', lower=0.0, upper=20.0)
+
+    # Add constraints
+    rtune.model.add_constraint('r_sched.sm', lower=0.1)
+
+    # Define objective
+    rtune.model.add_objective('r_sched.omega_opt', scaler=-1)
+
+    # # Setup OM Problem
+    # rtune.setup()
+
+    # # Set Wind Speed
+    # u = 12
+    # rtune.set_val('r_sched.u_eval', u)
+
+    # # Run and cleanuip
+    # rtune.run_driver()
+    # rtune.cleanup()
+
+    # Post process doe
+    doe_logs = glob.glob(os.path.join(output_dir, output_name + '.sql*'))
+    outdata = [load_OMsql(log) for log in doe_logs]
+
+    collected_data = {}
+    for data in outdata:
+        for key in data.keys():
+            if key not in collected_data.keys():
+                collected_data[key] = []
+
+            for key_idx, _ in enumerate(data[key]):
+                if isinstance(data[key][key_idx], int):
+                    collected_data[key].append(np.array(data[key][key_idx]))
+                elif len(data[key][key_idx]) == 1:
+                    try:
+                        collected_data[key].append(np.array(data[key][key_idx][0]))
+                    except:
+                        collected_data[key].append(np.array(data[key][key_idx]))
+                else:
+                    collected_data[key].append(np.array(data[key][key_idx]))
+
+    df = pd.DataFrame.from_dict(collected_data)
+
+    # write to file
+    outdata_fpath = os.path.join(output_dir, output_name)
+    df.to_csv(outdata_fpath + '.csv', index=False)
+    print('Saved {}'.format(outdata_fpath + '.csv'))
+
 if __name__ == '__main__':
     tune()
+    # design_of_experiments()
