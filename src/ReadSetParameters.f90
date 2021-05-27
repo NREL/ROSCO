@@ -530,12 +530,6 @@ CONTAINS
                 ErrVar%ErrMsg  = 'F_NotchCornerFreq must be greater than zero.'
             ENDIF
 
-            ! F_NotchBetaNumDen(1)
-            IF (CntrPar%F_NotchBetaNumDen(1) <= 0.0) THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'F_NotchBetaNumDen(1) must be greater than zero.'
-            ENDIF
-
             ! F_NotchBetaNumDen(2)
             IF (CntrPar%F_NotchBetaNumDen(2) <= 0.0) THEN
                 ErrVar%aviFAIL = -1
