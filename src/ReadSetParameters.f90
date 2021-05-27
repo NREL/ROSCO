@@ -390,6 +390,69 @@ CONTAINS
 
     END SUBROUTINE ReadControlParameterFileSub
     ! -----------------------------------------------------------------------------------
+    ! Read all constant control parameters from DISCON.IN parameter file
+    SUBROUTINE ReadCpFile(CntrPar,PerfData, ErrVar)
+        USE ROSCO_Types, ONLY : PerformanceData, ControlParameters, ErrorVariables
+
+        TYPE(PerformanceData),      INTENT(INOUT)   :: PerfData
+        TYPE(ControlParameters),    INTENT(INOUT)   :: CntrPar
+        TYPE(ErrorVariables),       INTENT(INOUT)   :: ErrVar
+        
+        ! Local variables
+        INTEGER(4), PARAMETER                       :: UnPerfParameters = 89
+        INTEGER(4)                                  :: i ! iteration index
+
+        INTEGER(4)                                  :: CurLine 
+        CHARACTER(*), PARAMETER                     :: RoutineName = 'ReadCpFile'
+        REAL(8), DIMENSION(:), ALLOCATABLE          :: TmpPerf
+
+        CurLine = 1
+
+        OPEN(unit=UnPerfParameters, file=TRIM(CntrPar%PerfFileName), status='old', action='read') ! Should put input file into DISCON.IN
+        
+        ! ----------------------- Axis Definitions ------------------------
+        CALL ReadEmptyLine(UnPerfParameters,CurLine)
+        CALL ReadEmptyLine(UnPerfParameters,CurLine)
+        CALL ReadEmptyLine(UnPerfParameters,CurLine)
+        CALL ReadEmptyLine(UnPerfParameters,CurLine)
+        CALL ParseAry(UnPerfParameters, CurLine, 'Pitch angle vector', PerfData%Beta_vec, CntrPar%PerfTableSize(1), TRIM(CntrPar%PerfFileName), ErrVar, .FALSE.)
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        CALL ParseAry(UnPerfParameters, CurLine, 'TSR vector', PerfData%TSR_vec, CntrPar%PerfTableSize(2), TRIM(CntrPar%PerfFileName), ErrVar, .FALSE.)
+
+        ! ----------------------- Read Cp, Ct, Cq, Tables ------------------------
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) ! Input file should contains wind speed information here - unneeded for now
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        ALLOCATE(PerfData%Cp_mat(CntrPar%PerfTableSize(2),CntrPar%PerfTableSize(1)))
+        DO i = 1,CntrPar%PerfTableSize(2)
+            READ(UnPerfParameters, *) PerfData%Cp_mat(i,:) ! Read Cp table
+        END DO
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        ALLOCATE(PerfData%Ct_mat(CntrPar%PerfTableSize(1),CntrPar%PerfTableSize(2)))
+        DO i = 1,CntrPar%PerfTableSize(2)
+            READ(UnPerfParameters, *) PerfData%Ct_mat(i,:) ! Read Ct table
+        END DO
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
+        ALLOCATE(PerfData%Cq_mat(CntrPar%PerfTableSize(1),CntrPar%PerfTableSize(2)))
+        DO i = 1,CntrPar%PerfTableSize(2)
+            READ(UnPerfParameters, *) PerfData%Cq_mat(i,:) ! Read Cq table
+        END DO
+
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
+    
+    END SUBROUTINE ReadCpFile
+    ! -----------------------------------------------------------------------------------
     ! Check for errors before any execution
     SUBROUTINE CheckInputs(LocalVar, CntrPar, avrSWAP, ErrVar, size_avcMSG)
         USE, INTRINSIC :: ISO_C_Binding
@@ -826,70 +889,8 @@ CONTAINS
         ENDIF
 
     END SUBROUTINE CheckInputs
-
-    ! -----------------------------------------------------------------------------------
-    ! Read all constant control parameters from DISCON.IN parameter file
-    SUBROUTINE ReadCpFile(CntrPar,PerfData, ErrVar)
-        USE ROSCO_Types, ONLY : PerformanceData, ControlParameters, ErrorVariables
-
-        TYPE(PerformanceData),      INTENT(INOUT)   :: PerfData
-        TYPE(ControlParameters),    INTENT(INOUT)   :: CntrPar
-        TYPE(ErrorVariables),       INTENT(INOUT)   :: ErrVar
-        
-        ! Local variables
-        INTEGER(4), PARAMETER                       :: UnPerfParameters = 89
-        INTEGER(4)                                  :: i ! iteration index
-
-        INTEGER(4)                                  :: CurLine 
-        CHARACTER(*), PARAMETER                     :: RoutineName = 'ReadCpFile'
-        REAL(8), DIMENSION(:), ALLOCATABLE          :: TmpPerf
-
-        CurLine = 1
-
-        OPEN(unit=UnPerfParameters, file=TRIM(CntrPar%PerfFileName), status='old', action='read') ! Should put input file into DISCON.IN
-        
-        ! ----------------------- Axis Definitions ------------------------
-        CALL ReadEmptyLine(UnPerfParameters,CurLine)
-        CALL ReadEmptyLine(UnPerfParameters,CurLine)
-        CALL ReadEmptyLine(UnPerfParameters,CurLine)
-        CALL ReadEmptyLine(UnPerfParameters,CurLine)
-        CALL ParseAry(UnPerfParameters, CurLine, 'Pitch angle vector', PerfData%Beta_vec, CntrPar%PerfTableSize(1), TRIM(CntrPar%PerfFileName), ErrVar, .FALSE.)
-        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
-        CALL ParseAry(UnPerfParameters, CurLine, 'TSR vector', PerfData%TSR_vec, CntrPar%PerfTableSize(2), TRIM(CntrPar%PerfFileName), ErrVar, .FALSE.)
-
-        ! ----------------------- Read Cp, Ct, Cq, Tables ------------------------
-        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
-        CALL ReadEmptyLine(UnPerfParameters,CurLine) ! Input file should contains wind speed information here - unneeded for now
-        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
-        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
-        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
-        ALLOCATE(PerfData%Cp_mat(CntrPar%PerfTableSize(2),CntrPar%PerfTableSize(1)))
-        DO i = 1,CntrPar%PerfTableSize(2)
-            READ(UnPerfParameters, *) PerfData%Cp_mat(i,:) ! Read Cp table
-        END DO
-        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
-        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
-        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
-        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
-        ALLOCATE(PerfData%Ct_mat(CntrPar%PerfTableSize(1),CntrPar%PerfTableSize(2)))
-        DO i = 1,CntrPar%PerfTableSize(2)
-            READ(UnPerfParameters, *) PerfData%Ct_mat(i,:) ! Read Ct table
-        END DO
-        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
-        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
-        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
-        CALL ReadEmptyLine(UnPerfParameters,CurLine) 
-        ALLOCATE(PerfData%Cq_mat(CntrPar%PerfTableSize(1),CntrPar%PerfTableSize(2)))
-        DO i = 1,CntrPar%PerfTableSize(2)
-            READ(UnPerfParameters, *) PerfData%Cq_mat(i,:) ! Read Cq table
-        END DO
-
-        ! Add RoutineName to error message
-        IF (ErrVar%aviFAIL < 0) THEN
-            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
-        ENDIF
     
-    END SUBROUTINE ReadCpFile
+    !=======================================================================
     ! Parse integer input: read line, check that variable name is in line, handle errors
     subroutine ParseInput_Int(Un, CurLine, VarName, FileName, Variable, ErrVar, CheckName)
         USE ROSCO_Types, ONLY : ErrorVariables
@@ -953,6 +954,7 @@ CONTAINS
 
     END subroutine ParseInput_Int
 
+    !=======================================================================
     ! Parse double input, this is a copy of ParseInput_Int and a change in the variable definitions
     subroutine ParseInput_Dbl(Un, CurLine, VarName, FileName, Variable, ErrVar, CheckName)
         USE ROSCO_Types, ONLY : ErrorVariables
@@ -1016,6 +1018,7 @@ CONTAINS
 
     END subroutine ParseInput_Dbl
 
+    !=======================================================================
     ! Parse string input, this is a copy of ParseInput_Int and a change in the variable definitions
     subroutine ParseInput_Str(Un, CurLine, VarName, FileName, Variable, ErrVar, CheckName)
         USE ROSCO_Types, ONLY : ErrorVariables
@@ -1079,91 +1082,7 @@ CONTAINS
 
     END subroutine ParseInput_Str
 
-    subroutine ReadEmptyLine(Un,CurLine)
-        INTEGER(4),         INTENT(IN   )          :: Un   ! Input file unit
-        INTEGER(4),         INTENT(INOUT)          :: CurLine   ! Current line of input
-
-        CHARACTER(1024)                            :: Line
-
-        READ(Un, '(A)') Line
-        CurLine = CurLine + 1
-
-    END subroutine ReadEmptyLine
-
-    !=======================================================================
-    !> This subroutine is used to get the NumWords "words" from a line of text.
-    !! It uses spaces, tabs, commas, semicolons, single quotes, and double quotes ("whitespace")
-    !! as word separators. If there aren't NumWords in the line, the remaining array elements will remain empty.
-    !! Use CountWords (nwtc_io::countwords) to count the number of words in a line.
-    SUBROUTINE GetWords ( Line, Words, NumWords )
-
-        ! Argument declarations.
-
-        INTEGER, INTENT(IN)          :: NumWords                                     !< The number of words to look for.
-
-        CHARACTER(*), INTENT(IN)     :: Line                                         !< The string to search.
-        CHARACTER(*), INTENT(OUT)    :: Words(NumWords)                              !< The array of found words.
-
-
-            ! Local declarations.
-
-        INTEGER                      :: Ch                                           ! Character position within the string.
-        INTEGER                      :: IW                                           ! Word index.
-        INTEGER                      :: NextWhite                                    ! The location of the next whitespace in the string.
-        CHARACTER(1), PARAMETER       :: Tab      = CHAR( 9 ) 
-
-
-
-            ! Let's prefill the array with blanks.
-
-        DO IW=1,NumWords
-            Words(IW) = ' '
-        END DO ! IW
-
-
-            ! Let's make sure we have text on this line.
-
-        IF ( LEN_TRIM( Line ) == 0 )  RETURN
-
-
-            ! Parse words separated by any combination of spaces, tabs, commas,
-            ! semicolons, single quotes, and double quotes ("whitespace").
-
-        Ch = 0
-        IW = 0
-
-        DO
-
-            NextWhite = SCAN( Line(Ch+1:) , ' ,!;''"'//Tab )
-
-            IF ( NextWhite > 1 )  THEN
-
-            IW        = IW + 1
-            Words(IW) = Line(Ch+1:Ch+NextWhite-1)
-
-            IF ( IW == NumWords )  EXIT
-
-            Ch = Ch + NextWhite
-
-            ELSE IF ( NextWhite == 1 )  THEN
-
-            Ch = Ch + 1
-
-            CYCLE
-
-            ELSE
-
-            EXIT
-
-            END IF
-
-        END DO
-
-
-        RETURN
-    END SUBROUTINE GetWords
-    !=======================================================================
-
+!=======================================================================
 !> This subroutine parses the specified line of text for AryLen REAL values.
 !! Generate an error message if the value is the wrong type.
 !! Use ParseAry (nwtc_io::parseary) instead of directly calling a specific routine in the generic interface.   
@@ -1417,6 +1336,7 @@ CONTAINS
 
 END SUBROUTINE ParseInAry
 
+!=======================================================================
  !> This subroutine checks the data to be parsed to make sure it finds
     !! the expected variable name and an associated value.
 SUBROUTINE ChkParseData ( Words, ExpVarName, FileName, FileLineNum, ErrVar )
@@ -1479,6 +1399,88 @@ SUBROUTINE ChkParseData ( Words, ExpVarName, FileName, FileLineNum, ErrVar )
 END SUBROUTINE ChkParseData 
 
 !=======================================================================
+subroutine ReadEmptyLine(Un,CurLine)
+    INTEGER(4),         INTENT(IN   )          :: Un   ! Input file unit
+    INTEGER(4),         INTENT(INOUT)          :: CurLine   ! Current line of input
 
+    CHARACTER(1024)                            :: Line
+
+    READ(Un, '(A)') Line
+    CurLine = CurLine + 1
+
+END subroutine ReadEmptyLine
+
+!=======================================================================
+!> This subroutine is used to get the NumWords "words" from a line of text.
+!! It uses spaces, tabs, commas, semicolons, single quotes, and double quotes ("whitespace")
+!! as word separators. If there aren't NumWords in the line, the remaining array elements will remain empty.
+!! Use CountWords (nwtc_io::countwords) to count the number of words in a line.
+SUBROUTINE GetWords ( Line, Words, NumWords )
+
+    ! Argument declarations.
+
+    INTEGER, INTENT(IN)          :: NumWords                                     !< The number of words to look for.
+
+    CHARACTER(*), INTENT(IN)     :: Line                                         !< The string to search.
+    CHARACTER(*), INTENT(OUT)    :: Words(NumWords)                              !< The array of found words.
+
+
+        ! Local declarations.
+
+    INTEGER                      :: Ch                                           ! Character position within the string.
+    INTEGER                      :: IW                                           ! Word index.
+    INTEGER                      :: NextWhite                                    ! The location of the next whitespace in the string.
+    CHARACTER(1), PARAMETER       :: Tab      = CHAR( 9 ) 
+
+
+
+        ! Let's prefill the array with blanks.
+
+    DO IW=1,NumWords
+        Words(IW) = ' '
+    END DO ! IW
+
+
+        ! Let's make sure we have text on this line.
+
+    IF ( LEN_TRIM( Line ) == 0 )  RETURN
+
+
+        ! Parse words separated by any combination of spaces, tabs, commas,
+        ! semicolons, single quotes, and double quotes ("whitespace").
+
+    Ch = 0
+    IW = 0
+
+    DO
+
+        NextWhite = SCAN( Line(Ch+1:) , ' ,!;''"'//Tab )
+
+        IF ( NextWhite > 1 )  THEN
+
+        IW        = IW + 1
+        Words(IW) = Line(Ch+1:Ch+NextWhite-1)
+
+        IF ( IW == NumWords )  EXIT
+
+        Ch = Ch + NextWhite
+
+        ELSE IF ( NextWhite == 1 )  THEN
+
+        Ch = Ch + 1
+
+        CYCLE
+
+        ELSE
+
+        EXIT
+
+        END IF
+
+    END DO
+
+
+    RETURN
+END SUBROUTINE GetWords
 
 END MODULE ReadSetParameters
