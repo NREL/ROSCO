@@ -309,7 +309,7 @@ CONTAINS
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
         CALL ParseInput(UnControllerParameters,CurLine,'WE_BladeRadius',accINFILE(1),CntrPar%WE_BladeRadius,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'WE_CP_n',accINFILE(1),CntrPar%WE_CP_n,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'WE_CP', CntrPar%WE_CP, CntrPar%WE_CP_n, accINFILE(1), ErrVar )
+        CALL ParseAry(UnControllerParameters, CurLine, 'WE_CP', CntrPar%WE_CP, CntrPar%WE_CP_n, accINFILE(1), ErrVar, .FALSE. )
         CALL ParseInput(UnControllerParameters,CurLine,'WE_Gamma',accINFILE(1),CntrPar%WE_Gamma,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'WE_GearboxRatio',accINFILE(1),CntrPar%WE_GearboxRatio,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'WE_Jtot',accINFILE(1),CntrPar%WE_Jtot,ErrVar)
@@ -339,7 +339,8 @@ CONTAINS
         !------------ FORE-AFT TOWER DAMPER CONSTANTS ------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
         CALL ParseInput(UnControllerParameters,CurLine,'FA_KI',accINFILE(1),CntrPar%FA_KI,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'FA_HPFCornerFreq',accINFILE(1),CntrPar%FA_HPFCornerFreq,ErrVar)
+        ! Don't check this name until we make an API change
+        CALL ParseInput(UnControllerParameters,CurLine,'FA_HPFCornerFreq',accINFILE(1),CntrPar%FA_HPFCornerFreq,ErrVar,.FALSE.)
         CALL ParseInput(UnControllerParameters,CurLine,'FA_IntSat',accINFILE(1),CntrPar%FA_IntSat,ErrVar)
         CALL ReadEmptyLine(UnControllerParameters,CurLine)      
 
@@ -896,7 +897,7 @@ CONTAINS
     
     END SUBROUTINE ReadCpFile
     ! Parse integer input: read line, check that variable name is in line, handle errors
-    subroutine ParseInput_Int(Un,CurLine,VarName, FileName, Variable,ErrVar)
+    subroutine ParseInput_Int(Un, CurLine, VarName, FileName, Variable, ErrVar, CheckName)
         USE ROSCO_Types, ONLY : ErrorVariables
 
         CHARACTER(1024)                         :: Line
@@ -909,6 +910,13 @@ CONTAINS
 
         INTEGER(4),             INTENT(INOUT)   :: Variable   ! Variable
         INTEGER(4)                              :: ErrStatLcl                    ! Error status local to this routine.
+        LOGICAL, OPTIONAL,      INTENT(IN   )   :: CheckName
+
+        LOGICAL                                 :: CheckName_
+
+        ! Figure out if we're checking the name, default to .TRUE.
+        CheckName_ = .TRUE.
+        if (PRESENT(CheckName)) CheckName_ = CheckName 
 
         ! If we've already failed, don't read anything
         IF (ErrVar%aviFAIL >= 0) THEN
@@ -925,7 +933,9 @@ CONTAINS
             END IF
 
             ! Check that Variable Name is in Words
-            CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
+            IF (CheckName_) THEN
+                CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
+            END IF
 
             ! IF We haven't failed already
             IF (ErrVar%aviFAIL >= 0) THEN        
@@ -950,7 +960,7 @@ CONTAINS
     END subroutine ParseInput_Int
 
     ! Parse double input, this is a copy of ParseInput_Int and a change in the variable definitions
-    subroutine ParseInput_Dbl(Un,CurLine,VarName, FileName, Variable,ErrVar)
+    subroutine ParseInput_Dbl(Un, CurLine, VarName, FileName, Variable, ErrVar, CheckName)
         USE ROSCO_Types, ONLY : ErrorVariables
 
         CHARACTER(1024)                         :: Line
@@ -960,9 +970,16 @@ CONTAINS
         INTEGER(4),             INTENT(INOUT)   :: CurLine   ! Current line of input
         TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
         CHARACTER(20)                           :: Words       (2)               ! The two "words" parsed from the line
+        LOGICAL, OPTIONAL,      INTENT(IN   )   :: CheckName
 
         REAL(8),             INTENT(INOUT)      :: Variable   ! Variable
         INTEGER(4)                              :: ErrStatLcl                    ! Error status local to this routine.
+
+        LOGICAL                                 :: CheckName_
+
+        ! Figure out if we're checking the name, default to .TRUE.
+        CheckName_ = .TRUE.
+        if (PRESENT(CheckName)) CheckName_ = CheckName 
 
         ! If we've already failed, don't read anything
         IF (ErrVar%aviFAIL >= 0) THEN
@@ -979,7 +996,9 @@ CONTAINS
             END IF
 
             ! Check that Variable Name is in Words
-            CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
+            IF (CheckName_) THEN
+                CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
+            END IF
 
             ! IF We haven't failed already
             IF (ErrVar%aviFAIL >= 0) THEN        
@@ -1004,7 +1023,7 @@ CONTAINS
     END subroutine ParseInput_Dbl
 
     ! Parse string input, this is a copy of ParseInput_Int and a change in the variable definitions
-    subroutine ParseInput_Str(Un,CurLine,VarName, FileName, Variable,ErrVar)
+    subroutine ParseInput_Str(Un, CurLine, VarName, FileName, Variable, ErrVar, CheckName)
         USE ROSCO_Types, ONLY : ErrorVariables
 
         CHARACTER(1024)                         :: Line
@@ -1014,9 +1033,16 @@ CONTAINS
         INTEGER(4),             INTENT(INOUT)   :: CurLine   ! Current line of input
         TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
         CHARACTER(200)                          :: Words       (2)               ! The two "words" parsed from the line
+        LOGICAL, OPTIONAL,      INTENT(IN   )   :: CheckName
 
         CHARACTER(*),           INTENT(INOUT)   :: Variable   ! Variable
         INTEGER(4)                              :: ErrStatLcl                    ! Error status local to this routine.
+
+        LOGICAL                                 :: CheckName_
+
+        ! Figure out if we're checking the name, default to .TRUE.
+        CheckName_ = .TRUE.
+        if (PRESENT(CheckName)) CheckName_ = CheckName 
 
         ! If we've already failed, don't read anything
         IF (ErrVar%aviFAIL >= 0) THEN
@@ -1033,7 +1059,9 @@ CONTAINS
             END IF
 
             ! Check that Variable Name is in Words
-            CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
+            IF (CheckName_) THEN
+                CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
+            END IF
 
             ! IF We haven't failed already
             IF (ErrVar%aviFAIL >= 0) THEN        
