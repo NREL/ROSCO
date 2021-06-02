@@ -96,7 +96,7 @@ jobs:
       # Install OpenFAST
       - name: Install OpenFAST
         run: |
-          conda install openfast
+          conda install openfast==2.5.0
           
       # Run examples
       - name: Run examples

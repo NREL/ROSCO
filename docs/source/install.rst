@@ -4,33 +4,32 @@
 
 Installing the ROSCO tools
 ===========================
-Both the ROSCO controller and ROSCO toolbox should be installed if one wishes to leverage the full ROSCO toolchain. 
-Of course, some users may only wish to download and install only the controller or the toolbox. 
+Depending on what is needed, a user can choose to use just the ROSCO controller or to use both the ROSCO controller and the toolbox.
+Both the controller and the toolbox should be installed if one wishes to leverage the full ROSCO toolchain.
 
-For users wishing to use just the ROSCO toolbox or the ROSCO toolbox and controller, please skip to the section on section :ref:`installing_rt`. 
-Here we will provide the necessary steps to install the ROSCO toolbox and the ROSCO controller simultaneously. 
-For users planning to only download and compile the ROSCO controller, please follow the instructions on :ref:`compiling_rosco`. 
+For users who wish to use the ROSCO toolbox (with or without the controller), please skip to the section on section :ref:`rosco_toolbox`. 
+For users planning to only download and compile the ROSCO controller, please follow the instructions on :ref:`rosco_controller`. 
 For information on best practices to update to the most recent version of the ROSCO toolbox, see :ref:`updating_rt`.
 
 
-.. _compiling_rosco:
+.. _rosco_controller:
 
-Compiling ROSCO
+ROSCO controller
 ----------------
 The standard ROSCO controller is based in Fortran and must be compiled; this code can be found at: https://github.com/NREL/ROSCO. 
 Of course, the advanced user can compile the downloaded code using their own desired methods (e.g. Visual Studio). 
 Otherwise, a few of the more common compiling methods are detailed on this page. 
 Additionally, the most recent tagged version releases are `available for download <https://github.com/NREL/ROSCO/tags>`_. 
 
-If one wishes to download the code via the command line, we provide two supported options. 
-For non-developers (those not interested in modifying the source code), the controller can be downloaded via Anaconda. 
-For developers, CMake can be used to compile the Fortran code. 
+If one wishes to download the code via the command line, we provide two supported options in the subsections below. 
+For non-developers (those not interested in modifying the source code), the a 64-bit version of the compiled controller can be downloaded via Anaconda. 
+For users needing a 32-bit version on Windows and/or developers, CMake can be used to compile the Fortran code. 
 
 
-Anaconda for non-developers:
-.............................
+Anaconda download for non-developers
+.....................................
 
-For users familiar with Anaconda_, ROSCO is available through the conda-forge channel. 
+For users familiar with Anaconda_, a 64-bit version of ROSCO is available through the conda-forge channel. 
 In order to download the most recently compiled version release, from an anaconda powershell (Windows) or terminal (Mac/Linux) window, create a new anaconda virtual environment: 
 ::
 
@@ -54,12 +53,19 @@ The ROSCO binary file can be copied to your desired folder using:
 
     cp $CONDA_PREFIX/lib/libdiscon.* .
 
+on linux or:
+::
 
-CMake for developers:
-.....................
-CMake_ provides a straightforward option for many users, particularly those on a Mac or Linux. 
-For windows users, we recommend using MinGW_ to compile similarly. 
-ROSCO can be compiled by first cloning the source code from git using:
+    copy %CONDA_PREFIX%/lib/libdiscon.* .
+
+
+on Windows.
+
+
+CMake for developers (Mac/linux)
+.................................
+CMake_ provides a straightforward option for many users, particularly those on a Mac or Linux.
+On Mac/Linux, ROSCO can be compiled by first cloning the source code from git using:
 ::
 
     git clone https://github.com/NREL/ROSCO.git
@@ -70,18 +76,46 @@ And then compiling using CMake:
     cd ROSCO
     mkdir build
     cd build
-    cmake ..                        # Mac/Linus
-    cmake .. -G "MinGW Makefiles"   # Windows
+    cmake ..
     make install
 
-This will generate a file called :code:`libdiscon.*` in the :code:`/ROSCO/install/lib` directory. 
+This will generate a file called :code:`libdiscon.so` (Linux) or :code:`libdiscon.dylib` (Mac) in the :code:`/ROSCO/install/lib` directory. 
 
-Note: when compiling with MinGW on Windows, modifying the cmake line (4th command) in the above code block to :code:`cmake .. -G "MinGWMakefiles" -DCMake_Fortran_COMPILER=gfortran` may solve compiler errors that may arise, depending on your local configuration.
 
-.. _installing_rt:
 
-Installing the ROSCO toolbox
+CMake for developers/32-bit (Windows)
+......................................
+
+To compile ROSCO on Windows, you first need a Fortran compiler. If you need a 32-bit DLL, then we recommend `installing MinGW <http://capsis.cirad.fr/capsis/documentation/mingw-installation>`_ (Section 2).
+If you require a 64-bit version, you can install the MSYS2 toolchain through conda::
+
+    conda install m2w64-toolchain libpython
+
+Note that if you have the 64-bit toolchain installed in your environment, you might have conflicts with the 32-bit compiler. We recommend therefore keeping separate environments if you want to compile 32- or 64-bit.
+
+Once you have your Fortran compiler successfully installed and configured, the build process is similar to on Mac and linux:
+::
+
+    cd ROSCO
+    mkdir build
+    cd build
+    cmake .. -G "MinGW Makefiles"
+    mingw32-make
+
+Note that the :code:`mingw32-make` command is (confusingly) valid for both 64-bit and 32-bit MinGW.
+
+This will generate a file called :code:`libdiscon.dll` in the :code:`/ROSCO/install/lib` directory. 
+
+
+.. _rosco_toolbox:
+
+Full ROSCO toolbox
 ----------------------------
+
+We recommend using the full ROSCO toolbox so that you can leverage the entire toolchain.
+
+Installing
+..............
 Installation of the complete ROSCO toolbox is made easy through `Anaconda <https://www.anaconda.com/>`_. 
 If you do not already have Anaconda installed on your machine, please install it. 
 
@@ -136,7 +170,7 @@ Note that if you do choose to install the ROSCO Toolbox this way, you will not h
 .. _updating_rt:
 
 Updating the ROSCO Toolbox
---------------------------
+...........................
 Simple git commands should update the toolbox and controller as development continues:
 ```
 git pull
@@ -149,6 +183,6 @@ and then recompile and reinstall as necessary...
 .. _MinGW: https://mingw-w64.org/
 
 
-Getting Started with the ROSCO Toolbox
---------------------------------------
+Getting Started
+...................
 Please see a the :ref:`standard_use` for several example scripts using ROSCO and the ROSCO_toolbox.

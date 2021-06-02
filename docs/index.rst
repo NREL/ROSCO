@@ -1,10 +1,3 @@
-.. toctree::
-
-   source/install.rst
-   source/standard_use.rst
-   source/rosco_toolbox.rst
-   source/rosco.rst
-
 ROSCO toolbox documentation
 ===========================
 .. only:: html
@@ -38,12 +31,26 @@ Figure :numref:`fig-RT` shows the general workflow for the ROSCO toolchain.
 - Follows Bladed-style control interface
 - Modular
 
-**Standard Use** 
+*Standard Use*
 
 For the standard use case in OpenFAST, ROSCO will need to be compiled. This is made possible via the instructions found in :ref:`install`. Once the controller is compiled, the turbine model needs to point to the compiled binary. In OpenFAST, this is ensured by changing the :code:`DLL_FileName` parameter in the ServoDyn input file. 
 
 Additionally, an additional input file is needed for the ROSCO controller. Though the controller only needs to be compiled once, each individual turbine/controller tuning requires an input file. This input file is generically dubbed "DISCON.IN''. In OpenFAST, the :code:`DLL_InFile` parameter should be set to point to the desired input file. The ROSCO toolbox is used to automatically generate the input file. These instructions are provided in the instructions for :ref:`standard_use`.
 
+**Technical Documentation**
+A publication highlighting much of the theory behind the controller tuning and implementation methods can be found at:
+https://wes.copernicus.org/preprints/wes-2021-19/
+
+Directory
+---------
+
+.. toctree::
+   :numbered:
+   
+   source/install.rst
+   source/standard_use.rst
+   source/rosco_toolbox.rst
+   source/rosco.rst
 
 **License**
 Copyright 2020 NREL
@@ -59,3 +66,4 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
