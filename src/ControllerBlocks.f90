@@ -31,6 +31,71 @@ USE Functions
 IMPLICIT NONE
 
 CONTAINS
+! -----------------------------------------------------------------------------------
+    ! Calculate setpoints for primary control actions    
+    SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+        USE Constants
+        ! Allocate variables
+        TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
+        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+
+        REAL(8)                                 :: VS_RefSpd        ! Referece speed for variable speed torque controller, [rad/s] 
+        REAL(8)                                 :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
+        REAL(8)                                 :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
+        ! temp
+        ! REAL(8)                                 :: VS_TSRop = 7.5
+
+        ! ----- Calculate yaw misalignment error -----
+        LocalVar%Y_MErr = LocalVar%Y_M + CntrPar%Y_MErrSet ! Yaw-alignment error
+        
+        ! ----- Pitch controller speed and power error -----
+        ! Implement setpoint smoothing
+        IF (LocalVar%SS_DelOmegaF < 0) THEN
+            PC_RefSpd = CntrPar%PC_RefSpd - LocalVar%SS_DelOmegaF
+        ELSE
+            PC_RefSpd = CntrPar%PC_RefSpd
+        ENDIF
+
+        LocalVar%PC_SpdErr = PC_RefSpd - LocalVar%GenSpeedF            ! Speed error
+        LocalVar%PC_PwrErr = CntrPar%VS_RtPwr - LocalVar%VS_GenPwr             ! Power error
+        
+        ! ----- Torque controller reference errors -----
+        ! Define VS reference generator speed [rad/s]
+        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
+            VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
+            VS_RefSpd = saturate(VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
+        ELSE
+            VS_RefSpd = CntrPar%VS_RefSpd
+        ENDIF 
+        
+        ! Implement setpoint smoothing
+        IF (LocalVar%SS_DelOmegaF > 0) THEN
+            VS_RefSpd = VS_RefSpd - LocalVar%SS_DelOmegaF
+        ENDIF
+
+        ! Force zero torque in shutdown mode
+        IF (LocalVar%SD) THEN
+            VS_RefSpd = CntrPar%VS_MinOMSpd
+        ENDIF
+
+        ! Force minimum rotor speed
+        VS_RefSpd = max(VS_RefSpd, CntrPar%VS_MinOmSpd)
+
+        ! TSR-tracking reference error
+        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
+            LocalVar%VS_SpdErr = VS_RefSpd - LocalVar%GenSpeedF
+        ENDIF
+
+        ! Define transition region setpoint errors
+        LocalVar%VS_SpdErrAr = VS_RefSpd - LocalVar%GenSpeedF               ! Current speed error - Region 2.5 PI-control (Above Rated)
+        LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd - LocalVar%GenSpeedF     ! Current speed error - Region 1.5 PI-control (Below Rated)
+        
+        ! Region 3 minimum pitch angle for state machine
+        LocalVar%VS_Rgn3Pitch = LocalVar%PC_MinPit + CntrPar%PC_Switch
+
+    END SUBROUTINE ComputeVariablesSetpoints
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE StateMachine(CntrPar, LocalVar)
     ! State machine, determines the state of the wind turbine to specify the corresponding control actions
@@ -101,11 +166,11 @@ CONTAINS
         END IF
     END SUBROUTINE StateMachine
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar)
+    SUBROUTINE WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
     ! Wind Speed Estimator estimates wind speed at hub height. Currently implements two types of estimators
     !       WE_Mode = 0, Filter hub height wind speed as passed from servodyn using first order low pass filter with 1Hz cornering frequency
     !       WE_Mode = 1, Use Inversion and Inveriance filter as defined by Ortege et. al. 
-        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances, PerformanceData, DebugVariables
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances, PerformanceData, DebugVariables, ErrorVariables
         IMPLICIT NONE
     
         ! Inputs
@@ -114,6 +179,8 @@ CONTAINS
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
         TYPE(PerformanceData),      INTENT(INOUT)       :: PerfData
         TYPE(DebugVariables),       INTENT(INOUT)       :: DebugVar
+        TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
+
         ! Allocate Variables
         REAL(8)                 :: F_WECornerFreq   ! Corner frequency (-3dB point) for first order low pass filter for measured hub height wind speed [Hz]
 
@@ -143,6 +210,9 @@ CONTAINS
         REAL(8)                         :: R_m      ! Measurement noise covariance [(rad/s)^2]
         
         REAL(8), DIMENSION(3,1), SAVE   :: B
+
+        CHARACTER(*), PARAMETER                 :: RoutineName = 'WindSpeedEstimator'
+
         ! ---- Debug Inputs ------
         DebugVar%WE_b   = LocalVar%PC_PitComTF*R2D
         DebugVar%WE_w   = LocalVar%RotSpeedF
@@ -152,7 +222,10 @@ CONTAINS
         
         ! Inversion and Invariance Filter implementation
         IF (CntrPar%WE_Mode == 1) THEN      
-            LocalVar%WE_VwIdot = CntrPar%WE_Gamma/CntrPar%WE_Jtot*(LocalVar%VS_LastGenTrq*CntrPar%WE_GearboxRatio - AeroDynTorque(LocalVar, CntrPar, PerfData))
+            ! Compute AeroDynTorque
+            Tau_r = AeroDynTorque(LocalVar, CntrPar, PerfData, ErrVar)
+
+            LocalVar%WE_VwIdot = CntrPar%WE_Gamma/CntrPar%WE_Jtot*(LocalVar%VS_LastGenTrq*CntrPar%WE_GearboxRatio - Tau_r)
             LocalVar%WE_VwI = LocalVar%WE_VwI + LocalVar%WE_VwIdot*LocalVar%DT
             LocalVar%WE_Vw = LocalVar%WE_VwI + CntrPar%WE_Gamma*LocalVar%RotSpeedF
 
@@ -180,11 +253,13 @@ CONTAINS
                 
             ELSE
                 ! Find estimated operating Cp and system pole
-                A_op = interp1d(CntrPar%WE_FOPoles_v,CntrPar%WE_FOPoles,v_h)
+                A_op = interp1d(CntrPar%WE_FOPoles_v,CntrPar%WE_FOPoles,v_h,ErrVar)
 
                 ! TEST INTERP2D
                 lambda = LocalVar%RotSpeed * CntrPar%WE_BladeRadius/v_h
-                Cp_op = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%BlPitch(1)*R2D, lambda )
+
+                Cp_op = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%BlPitch(1)*R2D, lambda, ErrVar)
+
                 Cp_op = max(0.0,Cp_op)
                 
                 ! Update Jacobian
@@ -200,7 +275,7 @@ CONTAINS
                 Q(3,3) = (2.0**2.0)/600.0
                 
                 ! Prediction update
-                Tau_r = AeroDynTorque(LocalVar,CntrPar,PerfData)
+                Tau_r = AeroDynTorque(LocalVar, CntrPar, PerfData, ErrVar)
                 a = PI * v_m/(2.0*L)
                 dxh(1,1) = 1.0/CntrPar%WE_Jtot * (Tau_r - CntrPar%WE_GearboxRatio * LocalVar%VS_LastGenTrqF)
                 dxh(2,1) = -a*v_t
@@ -236,6 +311,11 @@ CONTAINS
             LocalVar%WE_Vw = LPFilter(LocalVar%HorWindV, LocalVar%DT, F_WECornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
         ENDIF 
 
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
+
     END SUBROUTINE WindSpeedEstimator
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE SetpointSmoother(LocalVar, CntrPar, objInst)
@@ -255,7 +335,7 @@ CONTAINS
         ! ------ Setpoint Smoothing ------
         IF ( CntrPar%SS_Mode == 1) THEN
             ! Find setpoint shift amount
-            DelOmega = ((LocalVar%PC_PitComT - CntrPar%PC_MinPit)/0.524) * CntrPar%SS_VSGain - ((LocalVar%VS_GenPwr - LocalVar%VS_LastGenTrq))/CntrPar%VS_RtPwr * CntrPar%SS_PCGain ! Normalize to 30 degrees for now
+            DelOmega = ((LocalVar%PC_PitComT - LocalVar%PC_MinPit)/0.524) * CntrPar%SS_VSGain - ((CntrPar%VS_RtPwr - LocalVar%VS_LastGenPwr))/CntrPar%VS_RtPwr * CntrPar%SS_PCGain ! Normalize to 30 degrees for now
             DelOmega = DelOmega * CntrPar%PC_RefSpd
             ! Filter
             LocalVar%SS_DelOmegaF = LPFilter(DelOmega, LocalVar%DT, CntrPar%F_SSCornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF) 
@@ -265,20 +345,28 @@ CONTAINS
 
     END SUBROUTINE SetpointSmoother
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION PitchSaturation(LocalVar, CntrPar, objInst, DebugVar) 
+    REAL FUNCTION PitchSaturation(LocalVar, CntrPar, objInst, DebugVar, ErrVar) 
     ! PitchSaturation defines a minimum blade pitch angle based on a lookup table provided by DISCON.IN
     !       SS_Mode = 0, No setpoint smoothing
     !       SS_Mode = 1, Implement pitch saturation
-        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances, DebugVariables
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances, DebugVariables, ErrorVariables
         IMPLICIT NONE
         ! Inputs
         TYPE(ControlParameters), INTENT(IN)     :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         TYPE(DebugVariables), INTENT(INOUT)     :: DebugVar
+        TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
+
+        CHARACTER(*), PARAMETER                 :: RoutineName = 'PitchSaturation'
 
         ! Define minimum blade pitch angle as a function of estimated wind speed
-        PitchSaturation = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, LocalVar%WE_Vw_F)
+        PitchSaturation = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, LocalVar%WE_Vw_F, ErrVar)
+
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
 
     END FUNCTION PitchSaturation
 !-------------------------------------------------------------------------------------------------------------------------------

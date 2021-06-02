@@ -19,7 +19,9 @@
 
 MODULE ROSCO_Types
 ! Define Types
+USE, INTRINSIC  :: ISO_C_Binding
 IMPLICIT NONE
+
 
 TYPE, PUBLIC :: ControlParameters
     INTEGER(4)                          :: LoggingLevel                 ! 0 = write no debug files, 1 = write standard output .dbg-file, 2 = write standard output .dbg-file and complete avrSWAP-array .dbg2-file
@@ -31,10 +33,8 @@ TYPE, PUBLIC :: ControlParameters
     REAL(8)                             :: F_NotchCornerFreq            ! Natural frequency of the notch filter, [rad/s]
     REAL(8), DIMENSION(:), ALLOCATABLE  :: F_NotchBetaNumDen            ! These two notch damping values (numerator and denominator) determines the width and depth of the notch
     REAL(8)                             :: F_SSCornerFreq               ! Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
-    REAL(8)                             :: F_FlCornerFreq               ! Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s].
-    REAL(8)                             :: F_FlDamping                  ! Damping constant in the first order low pass filter of the tower-top fore-aft motion for floating feedback control [-].
-    REAL(8)                             :: F_FlpCornerFreq              ! Corner frequency (-3dB point) in the second order low pass filter of the blade root bending moment for flap control [rad/s].
-    REAL(8)                             :: F_FlpDamping                 ! Damping constant in the first order low pass filter of the blade root bending moment for flap control[-].
+    REAL(8), DIMENSION(:), ALLOCATABLE  :: F_FlCornerFreq               ! Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s].
+    REAL(8), DIMENSION(:), ALLOCATABLE  :: F_FlpCornerFreq              ! Corner frequency (-3dB point) in the second order low pass filter of the blade root bending moment for flap control [rad/s].
 
     REAL(8)                             :: FA_HPFCornerFreq             ! Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]
     REAL(8)                             :: FA_IntSat                    ! Integrator saturation (maximum signal amplitude contrbution to pitch from FA damper), [rad]
@@ -178,6 +178,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(8)                             :: TestType                     ! Test variable, no use
     REAL(8)                             :: VS_MaxTq                     ! Maximum allowable generator torque [Nm].
     REAL(8)                             :: VS_LastGenTrq                ! Commanded electrical generator torque the last time the controller was called [Nm].
+    REAL(8)                             :: VS_LastGenPwr                ! Commanded electrical generator torque the last time the controller was called [Nm].
     REAL(8)                             :: VS_MechGenPwr                ! Mechanical power on the generator axis [W]
     REAL(8)                             :: VS_SpdErrAr                  ! Current speed error for region 2.5 PI controller (generator torque control) [rad/s].
     REAL(8)                             :: VS_SpdErrBr                  ! Current speed error for region 1.5 PI controller (generator torque control) [rad/s].
@@ -230,5 +231,13 @@ TYPE, PUBLIC :: DebugVariables
     REAL(8)                             :: PC_PICommand                 
 
 END TYPE DebugVariables
+
+TYPE, PUBLIC :: ErrorVariables
+    ! Error Catching
+    INTEGER(4)                      :: size_avcMSG
+    INTEGER(C_INT)                  :: aviFAIL             ! A flag used to indicate the success of this DLL call set as follows: 0 if the DLL call was successful, >0 if the DLL call was successful but cMessage should be issued as a warning messsage, <0 if the DLL call was unsuccessful or for any other reason the simulation is to be stopped at this point with cMessage as the error message.
+    ! CHARACTER(:), ALLOCATABLE  :: ErrMsg              ! a Fortran version of the C string argument (not considered an array here) [subtract 1 for the C null-character]
+    CHARACTER(:), ALLOCATABLE       :: ErrMsg              ! a Fortran version of the C string argument (not considered an array here) [subtract 1 for the C null-character]
+END TYPE ErrorVariables
 
 END MODULE ROSCO_Types
