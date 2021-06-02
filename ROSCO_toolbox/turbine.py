@@ -12,7 +12,6 @@
 import os
 import numpy as np
 import datetime
-from wisdem.ccblade.ccblade import CCAirfoil, CCBlade
 from scipy import interpolate
 from numpy import gradient
 import pickle
@@ -20,6 +19,16 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from ROSCO_toolbox.utilities import load_from_txt
+
+# Load OpenFAST readers
+try:
+    import weis.aeroelasticse
+    use_weis = True
+    print('Using weis.aeroelasticse in ROSCO_toolbox...')
+except:
+    use_weis = False
+    print('ofTools in ROSCO_toolbox...')
+
 
 # Some useful constants
 now = datetime.datetime.now()
@@ -160,7 +169,10 @@ class Turbine():
             txt_filename: str, optional
                           filename for *.txt, only used if rot_source='txt'
         """
-        from weis.aeroelasticse.FAST_reader import InputReader_OpenFAST
+        if use_weis:
+            from weis.aeroelasticse.FAST_reader import InputReader_OpenFAST
+        else:
+            from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
 
         print('Loading FAST model: %s ' % FAST_InputFile)
         self.TurbineName = FAST_InputFile.strip('.fst')
@@ -249,6 +261,8 @@ class Turbine():
                   Dictionary containing fast model details - defined using from InputReader_OpenFAST (distributed as a part of AeroelasticSE)
 
         '''
+        from wisdem.ccblade.ccblade import CCAirfoil, CCBlade
+
         print('Loading rotor performance data from CC-Blade.')
 
         # Load blade information if it isn't already
@@ -273,10 +287,13 @@ class Turbine():
 
         # Get values from cc-blade
         print('Running CCBlade aerodynamic analysis, this may take a minute...')
-        outputs, derivs = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
-        CP = outputs['CP']
-        CT = outputs['CT']
-        CQ = outputs['CQ']
+        try: # wisde/master as of Nov 9, 2020
+            _, _, _, _, CP, CT, CQ, CM = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
+        except(ValueError): # wisdem/dev as of Nov 9, 2020
+            outputs, derivs = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
+            CP = outputs['CP']
+            CT = outputs['CT']
+            CQ = outputs['CQ']
         print('CCBlade aerodynamic analysis run successfully.')
 
         # Reshape Cp, Ct and Cq
@@ -312,10 +329,12 @@ class Turbine():
             'serial' - run in serial, 'multi' - run using python multiprocessing tools, 
             'mpi' - run using mpi tools
         '''
-
-        # Load additional WEIS tools
-        from weis.aeroelasticse import runFAST_pywrapper, CaseGen_General
-        from weis.aeroelasticse.Util import FileTools
+        if use_weis:
+            from weis.aeroelasticse import runFAST_pywrapper, CaseGen_General
+            from weis.aeroelasticse.Util import FileTools
+        else:
+            from ROSCO_toolbox.ofTools.case_gen import runFAST_pywrapper, CaseGen_General
+            from ROSCO_toolbox.ofTools.util import FileTools
         # Load pCrunch tools
         from pCrunch import pdTools, Processing
 
@@ -497,7 +516,11 @@ class Turbine():
         -----------
             self - note: needs to contain fast input file info provided by load_from_fast.
         '''
-        from weis.aeroelasticse.FAST_reader import InputReader_OpenFAST
+        if use_weis:
+            from weis.aeroelasticse.FAST_reader import InputReader_OpenFAST
+        else:
+            from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+        from wisdem.ccblade.ccblade import CCAirfoil, CCBlade
 
         # Create CC-Blade Rotor
         r0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlSpn']) 
