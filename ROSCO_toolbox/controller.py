@@ -515,9 +515,9 @@ class ControllerBlocks():
     def min_pitch_saturation(self, controller, turbine):
         
         # Find TSR associated with minimum rotor speed
-        TSR_at_minspeed = (controller.vs_minspd/turbine.Ng) * turbine.rotor_radius / controller.v_below_rated
+        TSR_at_minspeed = (controller.pc_minspd/turbine.Ng) * turbine.rotor_radius / controller.v_below_rated
         for i in range(len(TSR_at_minspeed)):
-            if TSR_at_minspeed[i] > turbine.Cp.TSR_opt:
+            if TSR_at_minspeed[i] > controller.TSR_op[i]:
                 controller.TSR_op[i] = TSR_at_minspeed[i]
         
                 # Initialize some arrays
