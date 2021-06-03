@@ -8,13 +8,13 @@ import glob
 import os
 import yaml
 import openmdao.api as om
-import warnings
 import matplotlib.pyplot as plt
 import pandas as pd
 from ROSCO_toolbox import controller as ROSCO_controller
 from ROSCO_toolbox import turbine as ROSCO_turbine
-# from ROSCO_toolbox.linear import pc_closedloop, pc_openloop, pc_sensitivity, interp_plant, interp_pitch_controller, add_pcomp, feedback
-from ROSCO_toolbox.linear.linear_models import LinearTurbineModel, pc_closedloop, pc_openloop, pc_sensitivity, interp_plant, interp_pitch_controller, add_pcomp
+from ROSCO_toolbox.linear.linear_models import LinearTurbineModel
+from ROSCO_toolbox.linear.lin_util import add_pcomp, smargin
+
 
 class RobustScheduling(om.ExplicitComponent):
     'Finding Robust gain schedules for pitch controllers in FOWTs'
@@ -40,13 +40,13 @@ class RobustScheduling(om.ExplicitComponent):
         self.add_output('omega_opt', val=0.01,      units='rad/s', desc='Maximized controller bandwidth')
 
         # Load linear turbine models and trim them
-        self.load_linturb(linturb_options['linfile_root'])
+        self.linturb = load_linturb(linturb_options['linfile_root'])
         self.linturb.trim_system(desInputs=['collective'], desOutputs=['RtSpeed'])
 
         # Load Controller
-        self.load_ROSCO(ROSCO_options['path_params'],
-                        ROSCO_options['turbine_params'], 
-                        ROSCO_options['controller_params'])
+        self.controller, self.turbine  = load_ROSCO(ROSCO_options['path_params'],
+                                                        ROSCO_options['turbine_params'], 
+                                                        ROSCO_options['controller_params'])
 
     def compute(self, inputs, outputs):
         
@@ -54,69 +54,38 @@ class RobustScheduling(om.ExplicitComponent):
         if k_float:
             self.linturb = add_pcomp(self.linturb, k_float)
 
-        sm = self.sensitivity_const(inputs['u_eval'], inputs['omega'])
+        self.controller.omega_pc = inputs['omega']
+        self.controller.tune_controller(self.turbine)
+        sm = smargin(self.linturb, self.controller, inputs['u_eval'])
+
         omega = inputs['omega']
 
         # Outputs
         outputs['sm']        = sm
         outputs['omega_opt'] = omega
 
-    def load_linturb(self, linfile_root):
-        # Parse openfast linearization filenames
-        filenames = glob.glob(os.path.join(linfile_root, '*.lin'))
-        linfiles = [os.path.split(file)[1] for file in filenames]
-        linroots = np.sort(np.unique([file.split('.')[0] for file in linfiles])).tolist()
-        linfile_numbers = set([int(file.split('.')[1]) for file in linfiles])
-        # Load linturb
-        self.linturb = LinearTurbineModel(linfile_root, linroots,
-                                     nlin=max(linfile_numbers), rm_hydro=True)
+def load_linturb(linfile_root):
+    # Parse openfast linearization filenames
+    filenames = glob.glob(os.path.join(linfile_root, '*.lin'))
+    linfiles = [os.path.split(file)[1] for file in filenames]
+    linroots = np.sort(np.unique([file.split('.')[0] for file in linfiles])).tolist()
+    linfile_numbers = set([int(file.split('.')[1]) for file in linfiles])
+    # Load linturb
+    linturb = LinearTurbineModel(linfile_root, linroots,
+                                    nlin=max(linfile_numbers), rm_hydro=True)
 
-    def load_ROSCO(self, path_params, turbine_params, controller_params):
-        self.turbine = ROSCO_turbine.Turbine(turbine_params)
-        self.controller = ROSCO_controller.Controller(controller_params)
+    return linturb
 
-        # Load turbine, tune controller
-        self.turbine.load_from_fast(path_params['FAST_InputFile'], path_params['FAST_directory'])
-        self.controller.tune_controller(self.turbine)
+def load_ROSCO(path_params, turbine_params, controller_params):
+    turbine = ROSCO_turbine.Turbine(turbine_params)
+    controller = ROSCO_controller.Controller(controller_params)
 
+    # Load turbine, tune controller
+    turbine.load_from_fast(path_params['FAST_InputFile'], path_params['FAST_directory'])
+    controller.tune_controller(turbine)
 
-    def sensitivity_const(self, u_eval, omega):
-        # try:
-        #     k_float = inputs[1]
-        # except:
-        k_float = False
+    return controller, turbine
 
-        self.controller.omega_pc = omega
-        self.controller.tune_controller(self.turbine)
-        if k_float:
-            linturb = self.add_pcomp(self.linturb, k_float)
-        else:
-            linturb = self.linturb
-        sens_sys = pc_sensitivity(linturb, self.controller, u_eval)
-        ol_sys = pc_openloop(linturb, self.controller, u_eval)
-        sm = self.sens_margin(ol_sys, sens_sys)
-
-        return sm
-
-    @staticmethod
-    def sens_margin(ol_sys, sens_sys):
-        sp_plant = sp.signal.StateSpace(ol_sys.A, ol_sys.B, ol_sys.C, ol_sys.D)
-        sp_sens = sp.signal.StateSpace(sens_sys.A, sens_sys.B, sens_sys.C, sens_sys.D)
-
-        def nyquist_min(om): return np.abs(sp.signal.freqresp(sp_plant, w=om)[1] + 1.)
-        def sens_max(om): return -np.abs(sp.signal.freqresp(sp_sens, w=om)[1])
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            ws, Hs = sp.signal.freqresp(sp_sens)
-            # , 0.05, method='COBYLA', tol=1e-5) #, bounds=[0.0,100.0], method='Bounded')
-            res = sp.optimize.minimize(nyquist_min, ws[np.argmax(Hs)])
-
-        if any(sp_sens.poles > 0):
-            sm = -res.fun
-        else:
-            sm = res.fun
-
-        return sm
 
 def load_OMsql(log):
     print('loading {}'.format(log))
@@ -219,8 +188,8 @@ def design_of_experiments():
 
     # Output options
     output_dir = os.path.join( os.path.dirname(os.path.abspath(__file__)), 'doe_out' )
-    output_name = 'doe_kfloat'
-    opt_options = {'u_eval': 12.0}
+    output_name = 'doe_kfloat0'
+    opt_options = {'u_eval': 14.0}
     rtune = om.Problem()
     rtune.model.add_subsystem('r_sched', RobustScheduling(linturb_options=linturb_options,
                                                           ROSCO_options=ROSCO_options,
@@ -233,7 +202,7 @@ def design_of_experiments():
 
     # Add design variables
     rtune.model.add_design_var('r_sched.omega', lower=0.01, upper=0.25)
-    rtune.model.add_design_var('r_sched.k_float', lower=0.0, upper=20.0)
+    # rtune.model.add_design_var('r_sched.k_float', lower=0.0, upper=20.0)
 
     # Add constraints
     rtune.model.add_constraint('r_sched.sm', lower=0.1)
@@ -242,14 +211,15 @@ def design_of_experiments():
     rtune.model.add_objective('r_sched.omega_opt', scaler=-1)
 
     # # Setup OM Problem
-    # rtune.setup()
+    rtune.setup()
 
     # # Set Wind Speed
-    # u = 12
-    # rtune.set_val('r_sched.u_eval', u)
+    u = 14
+    rtune.set_val('r_sched.u_eval', u)
+    rtune.set_val('r_sched.k_float', 0.0)
 
     # # Run and cleanuip
-    # rtune.run_driver()
+    rtune.run_driver()
     # rtune.cleanup()
 
     # Post process doe
@@ -282,4 +252,4 @@ def design_of_experiments():
 
 if __name__ == '__main__':
     tune()
-    # design_of_experiments()
+    design_of_experiments()
