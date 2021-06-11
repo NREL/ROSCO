@@ -45,7 +45,7 @@ https://wes.copernicus.org/preprints/wes-2021-19/
 
 Survey
 ------
-Please help us better understand the ROSCO user-base and how we can improve rosco through this brief survey:
+Please help us better understand the ROSCO user-base and how we can improve ROSCO through this brief survey:
 
 .. raw:: html
    
