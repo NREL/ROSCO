@@ -20,16 +20,16 @@ Figure :numref:`fig-RT` shows the general workflow for the ROSCO toolchain.
 
 **ROSCO Toolbox**
 
-- Generic tuning of NREL's ROSCO controller
-- Simple 1-DOF turbine simulations for quick controller capability verifications
-- Parsing of OpenFAST input and output files
-- Block diagrams of these capabilities can be seen in architecture.png.
+* Generic tuning of NREL's ROSCO controller
+* Simple 1-DOF turbine simulations for quick controller capability verifications
+* Parsing of OpenFAST input and output files
+* Block diagrams of these capabilities can be seen in architecture.png.
 
 **ROSCO Controller**
 
-- Fortran based
-- Follows Bladed-style control interface
-- Modular
+* Fortran based
+* Follows Bladed-style control interface
+* Modular
 
 Standard Use
 ------------
