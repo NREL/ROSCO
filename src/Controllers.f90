@@ -94,17 +94,18 @@ CONTAINS
             LocalVar%PC_MinPit = CntrPar%PC_FinePit
         ENDIF
 
-        ! Shutdown
-        IF (CntrPar%SD_Mode == 1) THEN
-            LocalVar%PC_PitComT = Shutdown(LocalVar, CntrPar, objInst)
-        ENDIF
-
+        
         ! FloatingFeedback
         IF (CntrPar%Fl_Mode == 1) THEN
             LocalVar%Fl_PitCom = FloatingFeedback(LocalVar, CntrPar, objInst)
             LocalVar%PC_PitComT = LocalVar%PC_PitComT + LocalVar%Fl_PitCom
         ENDIF
-
+        
+        ! Shutdown
+        IF (CntrPar%SD_Mode == 1) THEN
+            LocalVar%PC_PitComT = Shutdown(LocalVar, CntrPar, objInst)
+        ENDIF
+        
         ! Saturate collective pitch commands:
         LocalVar%PC_PitComT = saturate(LocalVar%PC_PitComT, LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
         LocalVar%PC_PitComT = ratelimit(LocalVar%PC_PitComT, PitComT_Last, CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
