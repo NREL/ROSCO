@@ -131,6 +131,8 @@ CONTAINS
         REAL(8)                 :: Tau_r            ! Estimated rotor torque [Nm]
         REAL(8)                 :: a                ! wind variance
         REAL(8)                 :: lambda           ! tip-speed-ratio [rad]
+        REAL(8)                 :: RotSpeed         ! Rotor Speed [rad], locally
+
         !           - Covariance matrices
         REAL(8), DIMENSION(3,3)         :: F        ! First order system jacobian 
         REAL(8), DIMENSION(3,3), SAVE   :: P        ! Covariance estiamte 
@@ -168,11 +170,11 @@ CONTAINS
             Q = RESHAPE((/0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0/),(/3,3/))
             IF (LocalVar%iStatus == 0) THEN
                 ! Initialize recurring values
-                om_r = LocalVar%RotSpeedF
+                om_r = max(LocalVar%RotSpeedF, CntrPar%VS_MinOMSpd)
                 v_t = 0.0
                 v_m = LocalVar%HorWindV
                 v_h = LocalVar%HorWindV
-                lambda = LocalVar%RotSpeed * CntrPar%WE_BladeRadius/v_h
+                lambda = max(LocalVar%RotSpeed, CntrPar%VS_MinOMSpd) * CntrPar%WE_BladeRadius/v_h
                 xh = RESHAPE((/om_r, v_t, v_m/),(/3,1/))
                 P = RESHAPE((/0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 1.0/),(/3,3/))
                 K = RESHAPE((/0.0,0.0,0.0/),(/3,1/))
@@ -183,7 +185,7 @@ CONTAINS
                 A_op = interp1d(CntrPar%WE_FOPoles_v,CntrPar%WE_FOPoles,v_h)
 
                 ! TEST INTERP2D
-                lambda = LocalVar%RotSpeed * CntrPar%WE_BladeRadius/v_h
+                lambda = max(LocalVar%RotSpeed, CntrPar%VS_MinOMSpd) * CntrPar%WE_BladeRadius/v_h
                 Cp_op = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%BlPitch(1)*R2D, lambda )
                 Cp_op = max(0.0,Cp_op)
                 
