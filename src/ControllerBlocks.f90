@@ -259,7 +259,7 @@ CONTAINS
 
                 ! TEST INTERP2D
                 lambda = max(LocalVar%RotSpeed, CntrPar%VS_MinOMSpd) * CntrPar%WE_BladeRadius/v_h
-                Cp_op = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%BlPitch(1)*R2D, lambda )
+                Cp_op = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%BlPitch(1)*R2D, lambda , ErrVar)
                 Cp_op = max(0.0,Cp_op)
                 
                 ! Update Jacobian
