@@ -47,6 +47,7 @@ CONTAINS
         saturate = MIN(MAX(inputValue,minValue), maxValue)
 
     END FUNCTION saturate
+    
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION ratelimit(inputSignal, inputSignalPrev, minRate, maxRate, DT)
     ! Saturates inputValue. Makes sure it is not smaller than minValue and not larger than maxValue
@@ -65,6 +66,7 @@ CONTAINS
         ratelimit = inputSignalPrev + rate*DT                       ! Saturate the overall command using the rate limit
 
     END FUNCTION ratelimit
+
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, reset, inst)
     ! PI controller, with output saturation
@@ -105,6 +107,7 @@ CONTAINS
         inst = inst + 1
         
     END FUNCTION PIController
+
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL(8) FUNCTION PIIController(error, error2, kp, ki, ki2, minValue, maxValue, DT, I0, reset, inst)
     ! PI controller, with output saturation. 
@@ -155,16 +158,44 @@ CONTAINS
         inst = inst + 1
         
     END FUNCTION PIIController
-!-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION interp1d(xData, yData, xq)
-    ! interp1d 1-D interpolation (table lookup), xData should be monotonically increasing
 
+!-------------------------------------------------------------------------------------------------------------------------------
+    REAL FUNCTION interp1d(xData, yData, xq, ErrVar)
+    ! interp1d 1-D interpolation (table lookup), xData should be strictly increasing
+        
+        USE ROSCO_Types, ONLY : ErrorVariables
         IMPLICIT NONE
+
         ! Inputs
         REAL(8), DIMENSION(:), INTENT(IN)       :: xData        ! Provided x data (vector), to be interpolated
         REAL(8), DIMENSION(:), INTENT(IN)       :: yData        ! Provided y data (vector), to be interpolated
         REAL(8), INTENT(IN)                     :: xq           ! x-value for which the y value has to be interpolated
         INTEGER(4)                              :: I            ! Iteration index
+
+        ! Error Catching
+        TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
+        INTEGER(4)                              :: I_DIFF
+
+        CHARACTER(*), PARAMETER                 :: RoutineName = 'interp1d'
+
+        
+        ! Catch Errors
+        ! Are xData and yData the same size?
+        IF (SIZE(xData) .NE. SIZE(yData)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = ' xData and yData are not the same size'
+            WRITE(ErrVar%ErrMsg,"(A,I2,A,I2,A)") " SIZE(xData) =", SIZE(xData), & 
+            ' and SIZE(yData) =', SIZE(yData),' are not the same'
+        END IF
+
+        ! Is xData non decreasing
+        DO I_DIFF = 1, size(xData) - 1
+            IF (xData(I_DIFF + 1) - xData(I_DIFF) <= 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = ' xData is not strictly increasing'
+                EXIT 
+            END IF
+        END DO
         
         ! Interpolate
         IF (xq <= MINVAL(xData)) THEN
@@ -181,10 +212,16 @@ CONTAINS
                 END IF
             END DO
         END IF
+
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
         
     END FUNCTION interp1d
+
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION interp2d(xData, yData, zData, xq, yq)
+    REAL FUNCTION interp2d(xData, yData, zData, xq, yq, ErrVar)
     ! interp2d 2-D interpolation (table lookup). Query done using bilinear interpolation. 
     ! Note that the interpolated matrix with associated query vectors may be different than "standard", - zData should be formatted accordingly
     ! - xData follows the matrix from left to right
@@ -195,14 +232,19 @@ CONTAINS
     !       4| a    b   c
     !       5| d    e   f
     !       6| g    H   i
+
+        USE ROSCO_Types, ONLY : ErrorVariables
         USE ieee_arithmetic
+        
         IMPLICIT NONE
+    
         ! Inputs
-        REAL(8), DIMENSION(:),   INTENT(IN)     :: xData        ! Provided x data (vector), to find query point (should be monotonically increasing)
-        REAL(8), DIMENSION(:),   INTENT(IN)     :: yData        ! Provided y data (vector), to find query point (should be monotonically increasing)
+        REAL(8), DIMENSION(:),   INTENT(IN)     :: xData        ! Provided x data (vector), to find query point (should be strictly increasing)
+        REAL(8), DIMENSION(:),   INTENT(IN)     :: yData        ! Provided y data (vector), to find query point (should be strictly increasing)
         REAL(8), DIMENSION(:,:), INTENT(IN)     :: zData        ! Provided z data (vector), to be interpolated
         REAL(8),                 INTENT(IN)     :: xq           ! x-value for which the z value has to be interpolated
         REAL(8),                 INTENT(IN)     :: yq           ! y-value for which the z value has to be interpolated
+
         ! Allocate variables
         INTEGER(4)                              :: i            ! Iteration index & query index, x-direction
         INTEGER(4)                              :: ii           ! Iteration index & second que .  ry index, x-direction
@@ -210,26 +252,66 @@ CONTAINS
         INTEGER(4)                              :: jj           ! Iteration index & second query index, y-direction
         REAL(8), DIMENSION(2,2)                 :: fQ           ! zData value at query points for bilinear interpolation            
         REAL(8), DIMENSION(1)                   :: fxy           ! Interpolated z-data point to be returned
-        REAL(8)                                 :: fxy1          ! zData value at query point for bilinear interpolation            
-        REAL(8)                                 :: fxy2          ! zData value at query point for bilinear interpolation            
+        REAL(8)                                 :: fxy1          ! zData value at query point for bilinear interpolation
+        REAL(8)                                 :: fxy2          ! zData value at query point for bilinear interpolation       
+        LOGICAL                                 :: edge     
+
+        ! Error Catching
+        TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
+        INTEGER(4)                              :: I_DIFF
+
+        CHARACTER(*), PARAMETER                 :: RoutineName = 'interp2d'
         
+        ! Error catching
+        ! Are xData and zData(:,1) the same size?
+        IF (SIZE(xData) .NE. SIZE(zData,2)) THEN
+            ErrVar%aviFAIL = -1
+            WRITE(ErrVar%ErrMsg,"(A,I4,A,I4,A)") " SIZE(xData) =", SIZE(xData), & 
+            ' and SIZE(zData,1) =', SIZE(zData,2),' are not the same'
+        END IF
+
+        ! Are yData and zData(1,:) the same size?
+        IF (SIZE(yData) .NE. SIZE(zData,1)) THEN
+            ErrVar%aviFAIL = -1
+            WRITE(ErrVar%ErrMsg,"(A,I4,A,I4,A)") " SIZE(yData) =", SIZE(yData), & 
+            ' and SIZE(zData,2) =', SIZE(zData,1),' are not the same'
+        END IF
+
+        ! Is xData non decreasing
+        DO I_DIFF = 1, size(xData) - 1
+            IF (xData(I_DIFF + 1) - xData(I_DIFF) <= 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = ' xData is not strictly increasing'
+                EXIT 
+            END IF
+        END DO
+
+        ! Is yData non decreasing
+        DO I_DIFF = 1, size(yData) - 1
+            IF (yData(I_DIFF + 1) - yData(I_DIFF) <= 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = ' yData is not strictly increasing'
+                EXIT 
+            END IF
+        END DO
+
         ! ---- Find corner indices surrounding desired interpolation point -----
             ! x-direction
         IF (xq <= MINVAL(xData) .OR. (ieee_is_nan(xq))) THEN       ! On lower x-bound, just need to find zData(yq)
             j = 1
             jj = 1
-            interp2d = interp1d(yData,zData(:,j),yq)
+            interp2d = interp1d(yData,zData(:,j),yq,ErrVar)     
             RETURN
         ELSEIF (xq >= MAXVAL(xData)) THEN   ! On upper x-bound, just need to find zData(yq)
             j = size(xData)
             jj = size(xData)
-            interp2d = interp1d(yData,zData(:,j),yq)
+            interp2d = interp1d(yData,zData(:,j),yq,ErrVar)
             RETURN
         ELSE
             DO j = 1,size(xData)            
                 IF (xq == xData(j)) THEN ! On axis, just need 1d interpolation
                     jj = j
-                    interp2d = interp1d(yData,zData(:,j),yq)
+                    interp2d = interp1d(yData,zData(:,j),yq,ErrVar)  
                     RETURN
                 ELSEIF (xq < xData(j)) THEN
                     jj = j
@@ -244,18 +326,18 @@ CONTAINS
         IF (yq <= MINVAL(yData) .OR. (ieee_is_nan(yq))) THEN       ! On lower y-bound, just need to find zData(xq)
             i = 1
             ii = 1
-            interp2d = interp1d(xData,zData(i,:),xq)
+            interp2d = interp1d(xData,zData(i,:),xq,ErrVar)     
             RETURN
         ELSEIF (yq >= MAXVAL(yData)) THEN   ! On upper y-bound, just need to find zData(xq)
             i = size(yData)
             ii = size(yData)
-            interp2d = interp1d(xData,zData(i,:),xq)
+            interp2d = interp1d(xData,zData(i,:),xq,ErrVar)      
             RETURN
         ELSE
             DO i = 1,size(yData)
                 IF (yq == yData(i)) THEN    ! On axis, just need 1d interpolation
                     ii = i
-                    interp2d = interp1d(xData,zData(i,:),xq)
+                    interp2d = interp1d(xData,zData(i,:),xq,ErrVar)        
                     RETURN
                 ELSEIF (yq < yData(i)) THEN
                     ii = i
@@ -280,7 +362,13 @@ CONTAINS
 
         interp2d = fxy(1)
 
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
+
     END FUNCTION interp2d
+
 !-------------------------------------------------------------------------------------------------------------------------------
     FUNCTION matinv3(A) RESULT(B)
     ! Performs a direct calculation of the inverse of a 3×3 matrix.
@@ -305,6 +393,7 @@ CONTAINS
         B(2,3) = -detinv * (A(1,1)*A(2,3) - A(1,3)*A(2,1))
         B(3,3) = +detinv * (A(1,1)*A(2,2) - A(1,2)*A(2,1))
     END FUNCTION matinv3
+
 !-------------------------------------------------------------------------------------------------------------------------------
     FUNCTION identity(n) RESULT(A)
     ! Produces an identity matrix of size n x n
@@ -326,6 +415,7 @@ CONTAINS
         ENDDO
     
     END FUNCTION identity
+
 !-------------------------------------------------------------------------------------------------------------------------------  
     REAL FUNCTION DFController(error, Kd, Tf, DT, inst)
     ! DF controller, with output saturation
@@ -355,6 +445,7 @@ CONTAINS
         errorLast(inst) = error
         DFControllerLast(inst) = DFController
     END FUNCTION DFController
+
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE ColemanTransform(rootMOOP, aziAngle, nHarmonic, axTOut, axYOut)
     ! The Coleman or d-q axis transformation transforms the root out of plane bending moments of each turbine blade
@@ -376,6 +467,7 @@ CONTAINS
         axYOut  = 2.0/3.0 * (sin(nHarmonic*(aziAngle))*rootMOOP(1) + sin(nHarmonic*(aziAngle+phi2))*rootMOOP(2) + sin(nHarmonic*(aziAngle+phi3))*rootMOOP(3))
         
     END SUBROUTINE ColemanTransform
+
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE ColemanTransformInverse(axTIn, axYIn, aziAngle, nHarmonic, aziOffset, PitComIPC)
     ! The inverse Coleman or d-q axis transformation transforms the direct axis and quadrature axis
@@ -398,6 +490,7 @@ CONTAINS
         PitComIPC(3) = cos(nHarmonic*(aziAngle+aziOffset+phi3))*axTIn + sin(nHarmonic*(aziAngle+aziOffset+phi3))*axYIn
 
     END SUBROUTINE ColemanTransformInverse
+
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION CPfunction(CP, lambda)
     ! Paremeterized Cp(lambda) function for a fixed pitch angle. Circumvents the need of importing a look-up table
@@ -412,32 +505,44 @@ CONTAINS
         CPfunction = saturate(CPfunction, 0.001D0, 1.0D0)
         
     END FUNCTION CPfunction
+
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION AeroDynTorque(LocalVar, CntrPar, PerfData)
+    REAL FUNCTION AeroDynTorque(LocalVar, CntrPar, PerfData, ErrVar)
     ! Function for computing the aerodynamic torque, divided by the effective rotor torque of the turbine, for use in wind speed estimation
         
-        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, PerformanceData
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, PerformanceData, ErrorVariables
         IMPLICIT NONE
     
         ! Inputs
         TYPE(ControlParameters), INTENT(IN) :: CntrPar
         TYPE(LocalVariables), INTENT(IN) :: LocalVar
         TYPE(PerformanceData), INTENT(IN) :: PerfData
+        TYPE(ErrorVariables), INTENT(INOUT) :: ErrVar
             
         ! Local
         REAL(8) :: RotorArea
         REAL(8) :: Cp
         REAL(8) :: Lambda
-        
+
+        CHARACTER(*), PARAMETER                 :: RoutineName = 'AeroDynTorque'
+
         ! Find Torque
         RotorArea = PI*CntrPar%WE_BladeRadius**2
         Lambda = LocalVar%RotSpeedF*CntrPar%WE_BladeRadius/LocalVar%WE_Vw
-        ! Cp = CPfunction(CntrPar%WE_CP, Lambda)
-        Cp = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%PC_PitComT*R2D, Lambda)
+
+        ! Compute Cp
+        Cp = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%PC_PitComT*R2D, Lambda, ErrVar)
+        
         AeroDynTorque = 0.5*(CntrPar%WE_RhoAir*RotorArea)*(LocalVar%WE_Vw**3/LocalVar%RotSpeedF)*Cp
         AeroDynTorque = MAX(AeroDynTorque, 0.0)
+
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
         
     END FUNCTION AeroDynTorque
+
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME)
     ! Debug routine, defines what gets printed to DEBUG.dbg if LoggingLevel = 1
@@ -548,6 +653,7 @@ CONTAINS
         END IF
 
     END SUBROUTINE Debug
+
 !-------------------------------------------------------------------------------------------------------------------------------
 FUNCTION QueryGitVersion()
 
@@ -566,6 +672,7 @@ FUNCTION QueryGitVersion()
 
    RETURN
 END FUNCTION QueryGitVersion
+
 !-------------------------------------------------------------------------------------------------------------------------------
     ! Copied from NWTC_IO.f90
 !> This function returns a character string encoded with today's date in the form dd-mmm-ccyy.
@@ -629,6 +736,7 @@ FUNCTION CurDate( )
 
     RETURN
     END FUNCTION CurDate
+
 !=======================================================================
 !> This function returns a character string encoded with the time in the form "hh:mm:ss".
     FUNCTION CurTime( )
@@ -651,8 +759,76 @@ FUNCTION CurDate( )
 
     RETURN
     END FUNCTION CurTime
+
 !=======================================================================
+! This function checks whether an array is non-decreasing
+    LOGICAL Function NonDecreasing(Array)
 
+    IMPLICIT NONE
 
+    REAL(8), DIMENSION(:)            :: Array
+    INTEGER(4)         :: I_DIFF
+
+    NonDecreasing = .TRUE.
+    ! Is Array non decreasing
+    DO I_DIFF = 1, size(Array) - 1
+        IF (Array(I_DIFF + 1) - Array(I_DIFF) <= 0) THEN
+            NonDecreasing = .FALSE.
+            RETURN
+        END IF
+    END DO
+
+    RETURN
+    END FUNCTION NonDecreasing
+
+!=======================================================================
+!> This routine converts all the text in a string to upper case.
+    SUBROUTINE Conv2UC ( Str )
+
+        ! Argument declarations.
+  
+     CHARACTER(*), INTENT(INOUT)  :: Str                                          !< The string to be converted to UC (upper case).
+  
+  
+        ! Local declarations.
+  
+     INTEGER                      :: IC                                           ! Character index
+  
+  
+  
+     DO IC=1,LEN_TRIM( Str )
+  
+        IF ( ( Str(IC:IC) >= 'a' ).AND.( Str(IC:IC) <= 'z' ) )  THEN
+           Str(IC:IC) = CHAR( ICHAR( Str(IC:IC) ) - 32 )
+        END IF
+  
+     END DO ! IC
+  
+  
+     RETURN
+     END SUBROUTINE Conv2UC
+
+!=======================================================================
+     !> This function returns a left-adjusted string representing the passed numeric value. 
+    !! It eliminates trailing zeroes and even the decimal point if it is not a fraction. \n
+    !! Use Num2LStr (nwtc_io::num2lstr) instead of directly calling a specific routine in the generic interface.   
+    FUNCTION Int2LStr ( Num )
+
+        CHARACTER(11)                :: Int2LStr                                     !< string representing input number.
+    
+    
+        ! Argument declarations.
+    
+        INTEGER, INTENT(IN)          :: Num                                          !< The number to convert to a left-justified string.
+    
+    
+    
+        WRITE (Int2LStr,'(I11)')  Num
+    
+        Int2Lstr = ADJUSTL( Int2LStr )
+    
+    
+        RETURN
+        END FUNCTION Int2LStr
 
 END MODULE Functions
