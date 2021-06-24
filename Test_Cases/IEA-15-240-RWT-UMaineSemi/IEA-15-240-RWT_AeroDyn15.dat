@@ -6,7 +6,7 @@ False                  Echo        - Echo the input to "<rootname>.AD.ech"?  (fl
 1                      WakeMod      - Type of wake/induction model (switch) {0=none, 1=BEMT, 2=DBEMT, 3=OLAF} [WakeMod cannot be 2 or 3 when linearizing]
 2                      AFAeroMod    - Type of blade airfoil aerodynamics model (switch) {1=steady model, 2=Beddoes-Leishman unsteady model} [AFAeroMod must be 1 when linearizing]
 1                      TwrPotent   - Type tower influence on wind based on potential flow around the tower (switch) {0=none, 1=baseline potential flow, 2=potential flow with Bak correction}
-False                  TwrShadow    - Calculate tower influence on wind based on downstream tower shadow (switch) {0=none, 1=Powles model, 2=Eames model}
+0                      TwrShadow    - Calculate tower influence on wind based on downstream tower shadow (switch) {0=none, 1=Powles model, 2=Eames model}
 True                   TwrAero     - Calculate tower aerodynamic loads? (flag)
 False                  FrozenWake  - Assume frozen wake during linearization? (flag) [used only when WakeMod=1 and when linearizing]
 False                  CavitCheck   - Perform cavitation check? (flag) [AFAeroMod must be 1 when CavitCheck=true]
@@ -102,19 +102,19 @@ True                   UseBlCm     - Include aerodynamic pitching moment in calc
 "IEA-15-240-RWT_AeroDyn15_blade.dat" ADBlFile(3) - Name of file containing distributed aerodynamic properties for Blade #3 (-) [unused if NumBl < 3]
 ======  Tower Influence and Aerodynamics ============================================================= [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
 11                     NumTwrNds   - Number of tower nodes used in the analysis  (-) [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
-TwrElev        TwrDiam        TwrCd
-(m)              (m)           (-)
-  15.           10.             1.
-  28.           10.             1.
-  41.            9.926          1.
-  54.            9.443          1.
-  67.            8.833          1.
-  80.            8.151          1.
-  93.            7.39           1.
- 106.            6.909          1.
- 119.            6.748          1.
- 132.            6.572          1.
- 144.495         6.5            1.
+TwrElev        TwrDiam        TwrCd     TwrTI (used only with TwrShadow=2)
+(m)              (m)           (-)      (-)
+  15.           10.             1.      1.0e-1
+  28.           10.             1.      1.0e-1
+  41.            9.926          1.      1.0e-1
+  54.            9.443          1.      1.0e-1
+  67.            8.833          1.      1.0e-1
+  80.            8.151          1.      1.0e-1
+  93.            7.39           1.      1.0e-1
+ 106.            6.909          1.      1.0e-1
+ 119.            6.748          1.      1.0e-1
+ 132.            6.572          1.      1.0e-1
+ 144.495         6.5            1.      1.0e-1
 ======  Tower Influence and Aerodynamics ============================================================= [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
 True                   SumPrint    - Generate a summary file listing input options and interpolated properties to "<rootname>.AD.sum"?  (flag)
 9                      NBlOuts     - Number of blade node outputs [0 - 9] (-)
