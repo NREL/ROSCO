@@ -19,12 +19,13 @@ from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox import sim as ROSCO_sim
 
 this_dir = os.path.dirname(__file__)
+tune_dir =  os.path.join(this_dir,'../Tune_Cases')
 example_out_dir = os.path.join(this_dir,'examples_out')
 if not os.path.isdir(example_out_dir):
   os.makedirs(example_out_dir)
 
 # Load yaml file 
-parameter_filename = os.path.join(this_dir,'NREL5MW_example.yaml')
+parameter_filename = os.path.join(tune_dir,'NREL5MW.yaml')
 inps = yaml.safe_load(open(parameter_filename))
 path_params         = inps['path_params']
 turbine_params      = inps['turbine_params']
@@ -39,8 +40,12 @@ turbine         = ROSCO_turbine.Turbine(turbine_params)
 controller      = ROSCO_controller.Controller(controller_params)
 
 # Load turbine data from OpenFAST and rotor performance text file
-turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source='txt',txt_filename=path_params['rotor_performance_filename'])
-
+turbine.load_from_fast(
+    path_params['FAST_InputFile'],
+    os.path.join(tune_dir,path_params['FAST_directory']),
+    dev_branch=True,
+    rot_source='txt',txt_filename=os.path.join(tune_dir,path_params['rotor_performance_filename'])
+    )
 # Tune controller 
 controller.tune_controller(turbine)
 
