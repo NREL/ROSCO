@@ -48,7 +48,12 @@ write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params[
 # Run OpenFAST
 # --- May need to change fastcall if you use a non-standard command to call openfast
 fastcall = 'openfast'
-run_openfast(path_params['FAST_directory'], fastcall=fastcall, fastfile=path_params['FAST_InputFile'], chdir=True)
+run_openfast(
+  os.path.join(this_dir,path_params['FAST_directory']),
+  fastcall=fastcall, 
+  fastfile=path_params['FAST_InputFile'], 
+  chdir=True
+  )
 
 
 
