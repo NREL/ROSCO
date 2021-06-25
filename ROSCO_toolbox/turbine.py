@@ -27,7 +27,7 @@ try:
     print('Using weis.aeroelasticse in ROSCO_toolbox...')
 except:
     use_weis = False
-    print('ofTools in ROSCO_toolbox...')
+    print('Using ofTools in ROSCO_toolbox...')
 
 
 # Some useful constants
