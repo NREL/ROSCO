@@ -78,7 +78,7 @@ controller_int = ROSCO_ci.ControllerInterface(lib_name,param_filename=param_file
 sim = ROSCO_sim.Sim(turbine,controller_int)
 
 # Define a wind speed history
-dt = 0.1
+dt = 0.025
 tlen = 1000      # length of time to simulate (s)
 ws0 = 7         # initial wind speed (m/s)
 t= np.arange(0,tlen,dt) 

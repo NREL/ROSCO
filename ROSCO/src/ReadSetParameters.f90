@@ -606,16 +606,18 @@ CONTAINS
             ErrVar%ErrMsg  = 'F_SSCornerFreq must be greater than zero.'
         ENDIF
 
-        ! F_FlCornerFreq(1)  (frequency)
-        IF (CntrPar%F_FlCornerFreq(1) <= 0.0) THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'F_FlCornerFreq(1) must be greater than zero.'
-        ENDIF
+        IF (CntrPar%Fl_Mode > 0) THEN
+            ! F_FlCornerFreq(1)  (frequency)
+            IF (CntrPar%F_FlCornerFreq(1) <= 0.0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'F_FlCornerFreq(1) must be greater than zero.'
+            ENDIF
 
-        ! F_FlCornerFreq(2)  (damping)
-        IF (CntrPar%F_FlCornerFreq(2) <= 0.0) THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'F_FlCornerFreq(2) must be greater than zero.'
+            ! F_FlCornerFreq(2)  (damping)
+            IF (CntrPar%F_FlCornerFreq(2) <= 0.0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'F_FlCornerFreq(2) must be greater than zero.'
+            ENDIF
         ENDIF
 
         IF (CntrPar%Flp_Mode > 0) THEN
