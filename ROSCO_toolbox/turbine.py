@@ -84,26 +84,8 @@ class Turbine():
         self.max_torque_rate = turbine_params['max_torque_rate']             
         self.rated_power = turbine_params['rated_power']           
         self.bld_edgewise_freq = turbine_params['bld_edgewise_freq']     
-
-        if turbine_params['twr_freq']:
-            self.twr_freq = turbine_params['twr_freq']
-        else:
-            self.twr_freq = 0.0
-
-        if turbine_params['ptfm_freq']:
-            self.ptfm_freq = turbine_params['ptfm_freq']
-        else:
-            self.ptfm_freq = 0.0
-
-        if turbine_params['TSR_operational']:
-            self.TSR_operational = turbine_params['TSR_operational']
-        else:
-            self.TSR_operational = None
-
-        if turbine_params['bld_flapwise_freq']:
-            self.bld_flapwise_freq = turbine_params['bld_flapwise_freq']
-        else:
-            self.bld_flapwise_freq = 0.0
+        self.TSR_operational = turbine_params['TSR_operational']
+        self.bld_flapwise_freq = turbine_params['bld_flapwise_freq']
 
 
     # Allow print out of class

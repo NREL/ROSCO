@@ -14,6 +14,7 @@ import yaml, os
 # ROSCO toolbox modules 
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox.utilities import write_rotor_performance
+from ROSCO_toolbox.inputs.validation import load_rosco_yaml
 # Initialize parameter dictionaries
 turbine_params = {}
 control_params = {}
@@ -24,8 +25,10 @@ if not os.path.isdir(example_out_dir):
   os.makedirs(example_out_dir)
 
 # Load yaml file
-parameter_filename = os.path.join(this_dir,'NREL5MW_example.yaml')
-inps = yaml.safe_load(open(parameter_filename))
+this_dir = os.path.dirname(os.path.abspath(__file__))
+tune_dir =  os.path.join(this_dir,'../Tune_Cases')
+parameter_filename = os.path.join(tune_dir,'NREL5MW.yaml')
+inps = load_rosco_yaml(parameter_filename)
 path_params         = inps['path_params']
 turbine_params      = inps['turbine_params']
 controller_params   = inps['controller_params']

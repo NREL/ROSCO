@@ -16,13 +16,15 @@ import os
 from ROSCO_toolbox import controller as ROSCO_controller
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox import sim as ROSCO_sim
+from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+
 
 import numpy as np
 
 # Load yaml file 
 parameter_filename = os.path.join( os.path.dirname( os.path.dirname( os.path.realpath(__file__) )), 
                                  'Tune_Cases', 'IEA15MW.yaml')
-inps = yaml.safe_load(open(parameter_filename))
+inps = load_rosco_yaml(parameter_filename)
 path_params         = inps['path_params']
 turbine_params      = inps['turbine_params']
 controller_params   = inps['controller_params']
@@ -40,7 +42,10 @@ turbine         = ROSCO_turbine.Turbine(turbine_params)
 controller      = ROSCO_controller.Controller(controller_params)
 
 # Load turbine data from OpenFAST and rotor performance text file
-turbine.load_from_fast(path_params['FAST_InputFile'],path_params['FAST_directory'],dev_branch=True,rot_source=None,txt_filename=path_params['rotor_performance_filename'])
+turbine.load_from_fast(path_params['FAST_InputFile'], \
+  os.path.join(this_dir,path_params['FAST_directory']), \
+    dev_branch=True,rot_source='txt',\
+      txt_filename=os.path.join(this_dir,path_params['FAST_directory'],path_params['rotor_performance_filename']))
 
 # Tune controller 
 controller.tune_controller(turbine)
@@ -71,5 +76,5 @@ with open(linmod_filename,'w') as f:
             .format(v,A,B_beta,B_tau,B_wind,pc_Kp,pc_Ki,vs_Kp,vs_Ki,Pi_omega,Pi_beta,Pi_wind))
 
 print('Tower Height = {} m'.format(turbine.hubHt))
-print('Platform Freq. = {} rad/s'.format(turbine.ptfm_freq))
+print('Platform Freq. = {} rad/s'.format(controller.ptfm_freq))
 

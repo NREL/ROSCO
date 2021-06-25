@@ -17,6 +17,8 @@ import yaml, os
 from ROSCO_toolbox import controller as ROSCO_controller
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox import sim as ROSCO_sim
+from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+
 
 this_dir = os.path.dirname(__file__)
 tune_dir =  os.path.join(this_dir,'../Tune_Cases')
@@ -26,7 +28,7 @@ if not os.path.isdir(example_out_dir):
 
 # Load yaml file 
 parameter_filename = os.path.join(tune_dir,'NREL5MW.yaml')
-inps = yaml.safe_load(open(parameter_filename))
+inps = load_rosco_yaml(parameter_filename)
 path_params         = inps['path_params']
 turbine_params      = inps['turbine_params']
 controller_params   = inps['controller_params']

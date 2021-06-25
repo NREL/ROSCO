@@ -16,12 +16,14 @@ Note: Uses the NREL 5MW included in the Test Cases and is a part of the OpenFAST
 import yaml, os
 # ROSCO Modules
 from ROSCO_toolbox import turbine as ROSCO_turbine
+from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+
 
 # Load yaml file
 this_dir = os.path.dirname(os.path.abspath(__file__))
 tune_dir =  os.path.join(this_dir,'../Tune_Cases')
 parameter_filename = os.path.join(tune_dir,'NREL5MW.yaml')
-inps = yaml.safe_load(open(parameter_filename))
+inps = load_rosco_yaml(parameter_filename)
 path_params         = inps['path_params']
 turbine_params      = inps['turbine_params']
 

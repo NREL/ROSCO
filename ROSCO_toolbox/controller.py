@@ -48,106 +48,66 @@ class Controller():
         print('-----------------------------------------------------------------------------')
 
         # Controller Flags
-        self.LoggingLevel = controller_params['LoggingLevel']
-        self.F_LPFType = controller_params['F_LPFType']
-        self.F_NotchType = controller_params['F_NotchType']
-        self.IPC_ControlMode = controller_params['IPC_ControlMode']
-        self.VS_ControlMode = controller_params['VS_ControlMode']
-        self.PC_ControlMode = controller_params['PC_ControlMode']
-        self.Y_ControlMode = controller_params['Y_ControlMode']
-        self.SS_Mode = controller_params['SS_Mode']
-        self.WE_Mode = controller_params['WE_Mode']
-        self.PS_Mode = controller_params['PS_Mode']
-        self.SD_Mode = controller_params['SD_Mode']
-        self.Fl_Mode = controller_params['Fl_Mode']
-        self.Flp_Mode = controller_params['Flp_Mode']
+        self.LoggingLevel       = controller_params['LoggingLevel']
+        self.F_LPFType          = controller_params['F_LPFType']
+        self.F_NotchType        = controller_params['F_NotchType']
+        self.IPC_ControlMode    = controller_params['IPC_ControlMode']
+        self.VS_ControlMode     = controller_params['VS_ControlMode']
+        self.PC_ControlMode     = controller_params['PC_ControlMode']
+        self.Y_ControlMode      = controller_params['Y_ControlMode']
+        self.SS_Mode            = controller_params['SS_Mode']
+        self.WE_Mode            = controller_params['WE_Mode']
+        self.PS_Mode            = controller_params['PS_Mode']
+        self.SD_Mode            = controller_params['SD_Mode']
+        self.Fl_Mode            = controller_params['Fl_Mode']
+        self.Flp_Mode           = controller_params['Flp_Mode']
 
         # Necessary parameters
-        self.zeta_pc = controller_params['zeta_pc']
-        self.omega_pc = controller_params['omega_pc']
-        self.zeta_vs = controller_params['zeta_vs']
-        self.omega_vs = controller_params['omega_vs']
+        self.zeta_pc            = controller_params['zeta_pc']
+        self.omega_pc           = controller_params['omega_pc']
+        self.zeta_vs            = controller_params['zeta_vs']
+        self.omega_vs           = controller_params['omega_vs']
+
+        # Optional parameters with defaults
+        self.min_pitch          = controller_params['min_pitch']
+        self.max_pitch          = controller_params['max_pitch']
+        self.vs_minspd          = controller_params['vs_minspd']
+        self.ss_vsgain          = controller_params['ss_vsgain']
+        self.ss_pcgain          = controller_params['ss_pcgain']
+        self.ss_cornerfreq      = controller_params['f_ss_cornerfreq']
+        self.ps_percent         = controller_params['ps_percent']
+        self.sd_cornerfreq      = controller_params['sd_cornerfreq']
+        self.sd_maxpit          = controller_params['sd_maxpit']
+        self.WS_GS_n            = controller_params['WS_GS_n']
+        self.PC_GS_n            = controller_params['PC_GS_n']
+        self.flp_maxpit         = controller_params['flp_maxpit']
+        
+        #  Optional parameters without defaults
         if self.Flp_Mode > 0:
-            self.zeta_flp = controller_params['zeta_flp']
-            self.omega_flp = controller_params['omega_flp']
+            try:
+                self.zeta_flp   = controller_params['zeta_flp']
+                self.omega_flp  = controller_params['omega_flp']
+            except:
+                raise Exception('ROSCO_toolbox:controller: zeta_flp and omega_flp must be set if Flp_Mode > 0')
 
-        # Optional parameters, default to standard if not defined
-        if isinstance(controller_params['min_pitch'], float):
-            self.min_pitch = controller_params['min_pitch']
+        if self.Fl_Mode > 0:
+            try:
+                self.twr_freq   = controller_params['twr_freq']
+                self.ptfm_freq  = controller_params['ptfm_freq']
+            except:
+                raise Exception('ROSCO_toolbox:controller: twr_freq and ptfm_freq must be set if Fl_Mode > 0')
         else:
-            self.min_pitch = None
-        
-        if controller_params['max_pitch']:
-            self.max_pitch = controller_params['max_pitch']
-        else:
-            self.max_pitch = 90*deg2rad      # Default to 90 degrees max pitch
-        
-        if controller_params['vs_minspd']:
-            self.vs_minspd = controller_params['vs_minspd']
-        else:
-            self.vs_minspd = None 
+            self.twr_freq   = 0
+            self.ptfm_freq  = 0
 
-        if controller_params['ss_vsgain']:
-            self.ss_vsgain = controller_params['ss_vsgain']
-        else:
-            self.ss_vsgain = 1.      # Default to 100% setpoint shift
-        
-        if controller_params['ss_pcgain']:
-            self.ss_pcgain = controller_params['ss_pcgain']
-        else:
-            self.ss_pcgain = 0.001      # Default to 0.1% setpoint shift
-        
-        if controller_params['ss_cornerfreq']:
-            self.ss_cornerfreq = controller_params['ss_cornerfreq']
-        else:
-            self.ss_cornerfreq = .62831850001     # Default to 10 second time constant 
-        
-        if controller_params['ps_percent']:
-            self.ps_percent = controller_params['ps_percent']
-        else:
-            self.ps_percent = 0.75      # Default to 75% peak shaving
 
-        # critical damping if LPFType = 2
-        if controller_params['F_LPFType']:
-            if controller_params['F_LPFType'] == 2:
-                self.F_LPFDamping = 0.7
-            else:
-                self.F_LPFDamping = 0.0
+        # Use critical damping if LPFType = 2
+        if controller_params['F_LPFType'] == 2:
+            self.F_LPFDamping = 0.7
         else:
             self.F_LPFDamping = 0.0
 
-        # Shutdown filter default cornering freq at 15s time constant
-        if controller_params['sd_cornerfreq']:
-            self.sd_cornerfreq = controller_params['sd_cornerfreq']
-        else:
-            self.sd_cornerfreq = 0.41888
-        
-        if controller_params['sd_maxpit']:
-            self.sd_maxpit = controller_params['sd_maxpit']
-        else:
-            self.sd_maxpit = None
-
-        if controller_params['flp_maxpit']:
-            self.flp_maxpit = controller_params['flp_maxpit']
-        else:
-            if controller_params['Flp_Mode'] > 0:
-                self.flp_maxpit = 10.0 * deg2rad
-            else:
-                self.flp_maxpit = 0.0
-
-        # Gain scheduling/indexing
-        # Number of wind speed breakpoints, default = 60
-        if 'WS_GS_n' in controller_params:
-            self.WS_GS_n = controller_params['WS_GS_n']
-        else:
-            self.WS_GS_n = 60
-
-        # Number of pitch control breakpoints, default = 30
-        if 'PC_GS_n' in controller_params:
-            self.PC_GS_n = controller_params['PC_GS_n']
-        else:
-            self.PC_GS_n = 30
-
+        # Error checking: number of breakpoints
         if self.WS_GS_n <= self.PC_GS_n:
             raise Exception('Number of WS breakpoints is not greater than pitch control breakpoints')
 
@@ -329,7 +289,7 @@ class Controller():
             self.F_NotchType = 2
             
             # And check for .yaml input inconsistencies
-            if turbine.twr_freq == 0.0 or turbine.ptfm_freq == 0.0:
+            if self.twr_freq == 0.0 or self.ptfm_freq == 0.0:
                 print('WARNING: twr_freq and ptfm_freq should be defined for floating turbine control!!')
         else:
             self.Kp_float = 0.0
