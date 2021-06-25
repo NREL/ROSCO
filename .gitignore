@@ -68,14 +68,14 @@ _build
 
 # Other
 .pytest_cache
-ROSCO_toolbox/examples/cp_ct_cq_lut.p
+examples/cp_ct_cq_lut.p
 
 # Files Generated in Examples
-ROSCO_toolbox/Examples/DISCON.IN
-ROSCO_toolbox/Examples/*.p
+Examples/DISCON.IN
+Examples/*.p
 
 # Exclude testing results
-ROSCO_toolbox/ROSCO_testing/results/
+ROSCO_testing/results/
 
 # Simulink/Matlab temp files
 *.slxc
