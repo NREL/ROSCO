@@ -44,8 +44,8 @@ turbine.load_from_fast(
 controller.tune_controller(turbine)
 
 # Write parameter input file
-param_file = 'DISCON.IN'   
-write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
+param_file = os.path.join(this_dir,'DISCON.IN')
+write_DISCON(turbine,controller,param_file=param_file, txt_filename=os.path.join(tune_dir,path_params['rotor_performance_filename']))
 
 # Plot gain schedule
 fig, ax = plt.subplots(1,2,constrained_layout=True)
