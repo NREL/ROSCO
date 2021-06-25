@@ -234,7 +234,8 @@ CONTAINS
     !       6| g    H   i
 
         USE ROSCO_Types, ONLY : ErrorVariables
-
+        USE ieee_arithmetic
+        
         IMPLICIT NONE
     
         ! Inputs
@@ -296,7 +297,7 @@ CONTAINS
 
         ! ---- Find corner indices surrounding desired interpolation point -----
             ! x-direction
-        IF (xq <= MINVAL(xData)) THEN       ! On lower x-bound, just need to find zData(yq)
+        IF (xq <= MINVAL(xData) .OR. (ieee_is_nan(xq))) THEN       ! On lower x-bound, just need to find zData(yq)
             j = 1
             jj = 1
             interp2d = interp1d(yData,zData(:,j),yq,ErrVar)     
@@ -322,7 +323,7 @@ CONTAINS
         ENDIF
         j = j-1 ! Move j back one
             ! y-direction
-        IF (yq <= MINVAL(yData)) THEN       ! On lower y-bound, just need to find zData(xq)
+        IF (yq <= MINVAL(yData) .OR. (ieee_is_nan(yq))) THEN       ! On lower y-bound, just need to find zData(xq)
             i = 1
             ii = 1
             interp2d = interp1d(xData,zData(i,:),xq,ErrVar)     

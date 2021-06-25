@@ -27,14 +27,14 @@ If you want to use the controller with DNV GL Bladed v4.5 or earlier (which stil
 If ROSCO played a role in your research, please cite it. This software can be
 cited as:
 
-   ROSCO. Version 2.2.0 (2021). Available at https://github.com/nrel/rosco.
+   ROSCO. Version 2.3.0 (2021). Available at https://github.com/nrel/rosco.
 
 For LaTeX users:
 
 ```
     @misc{ROSCO_2021,
     author = {NREL},
-    title = {{ROSCO. Version 2.2.0}},
+    title = {{ROSCO. Version 2.3.0}},
     year = {2021},
     publisher = {GitHub},
     journal = {GitHub repository},
