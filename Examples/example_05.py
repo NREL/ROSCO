@@ -11,7 +11,8 @@ In this example:
 Notes - You will need to have a compiled controller in ROSCO, and 
         properly point to it in the `lib_name` variable.
       - Using wind speed estimators in this simple simulation is 
-        known to cause problems. We suggesting using WE_Mode = 0 in DISCON.IN.
+        known to cause problems. We suggesting using WE_Mode = 0 in DISCON.IN 
+        or increasing sampling rate of simulation
 '''
 # Python modules
 import matplotlib.pyplot as plt 
