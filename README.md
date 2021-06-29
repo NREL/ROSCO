@@ -1,55 +1,63 @@
-# NREL's Reference OpenSource Controller (ROSCO) for wind turbine applications
-NREL's Reference OpenSource Controller (ROSCO) for wind turbine applications uses the Bladed-style DISCON interface used by OpenFAST, Bladed (versions 4.5 or earlier), HAWC2, and more.
+# NREL's Reference OpenSource Controller (ROSCO) toolbox for wind turbine applications
+NREL's Reference OpenSource Controller (ROSCO) toolbox for wind turbine applications is a toolbox designed to ease controller implementation for the wind turbine researcher. Some primary capabilities include:
+* Generic tuning of NREL's ROSCO controller
+* Simple 1-DOF turbine simulations for quick controller capability verifications
+* Parsing of OpenFAST input and output files
+
 
 ## Introduction
-The NREL Reference OpenSource Controller (ROSCO) provides an open, modular and fully adaptable baseline wind turbine controller to the scientific community. Because of the open character and modular set-up, scientists are able to collaborate and contribute in making continuous improvements to the code. New control implementations can be added to the existing baseline controller, and in this way, convenient assessments of the proposed algorithms is possible. ROSCO is being developed in Fortran and uses the Bladed-style DISCON controller interface. The compiled controller is configured by a single control settings parameter file, and can work with any wind turbine model and simulation software using the DISCON interface. Baseline parameter files are supplied for the NREL 5-MW, DTU 10-MW, and IEA15MW reference wind turbines.
+The NREL Reference OpenSource Controller (ROSCO) provides an open, modular and fully adaptable baseline wind turbine controller to the scientific community. The ROSCO toolbox leverages this architecture and implementation to provide a generic tuning process for the controller. Because of the open character and modular set-up, scientists are able to collaborate and contribute in making continuous improvements to the code for the controller and the toolbox. The ROSCO toolbox is a mostly-python code base with a number of functionalities.
+
+* [ROSCO](https://github.com/NREL/ROSCO) - the fortran source code for the ROSCO controller. 
+* [Examples](https://github.com/NREL/ROSCO_toolbox/tree/master/examples) - short working examples of the capabilities of the ROSCO toolbox. 
+* [Tune_Cases](https://github.com/NREL/ROSCO_toolbox/tree/master/Tune_Cases) - example generic tuning scripts for a number of open-source reference turbines.
+* [Test_Cases](https://github.com/NREL/ROSCO_toolbox/tree/master/Test_Cases) - numerous NREL 5MW bases cases to run for controller updates and comparisons. A "test-suite", if you will...
+* [Matlab_Toolbox](https://github.com/NREL/ROSCO_toolbox/tree/master/Matlab_Toolbox) - MATLAB scripts to parse and plot simulation output data.
+* [ofTools](https://github.com/NREL/ROSCO_toolbox/tree/master/ofTools) - A number of scripts to facilitate usage of OpenFAST and manage OpenFAST input and output files. 
+
 
 ## Documentation
-Relevant documentation about the ROSCO controller and corresponding ROSCO toolbox can all be found at https://rosco-toolbox.readthedocs.io/. 
+All relevant documentation about the ROSCO toolbox and ROSCO controller can be found at through [ROSCO's readthedocs webpage](https://rosco-toolbox.readthedocs.io/en/latest/). Here, users can find the information on [installing the ROSCO toolbox](https://rosco-toolbox.readthedocs.io/en/latest/source/install.html#installing-the-rosco-toolbox) and [compiling ROSCO](https://rosco-toolbox.readthedocs.io/en/latest/source/install.html#compiling-rosco) for control purposes. Additionally, there is information on the standard workflow and uses cases for the ROSCO toolchain, and more. 
 
-## Downloading/Compiling ROSCO
-The easiest way to get the most recent version release of ROSCO is to download it from the [tagged releases](https://github.com/NREL/ROSCO/tags) page. If you wish to download ROSCO using [Anaconda](https://www.anaconda.com/) or compile ROSCO yourself, please follow the instruction [here](https://rosco-toolbox.readthedocs.io/en/latest/source/install.html#compiling-rosco). Compiling ROSCO will be necessary if you wish to use any version of ROSCO that is not a tagged release.
-
-## Running ROSCO
-A few files are needed to run ROSCO. Of course, the compiled binary, named `libdiscon.*` by default, is needed. This should be appropriately pointed to by your ServoDyn input file (for OpenFAST). In addition to the binary, a controller input file title DISCON.IN is necessary. Three example input files are provided for the NREL 5MW, DTU 10MW, and IEA 15MW wind turbine controllers in the [parameter_files](parameter_files) folder. Note that DISCON.IN (or similar) is pointed to by the `DLL_InFile` parameter in ServoDyn. For generic controller tuning methods, and an automated writing of this DISCON.IN file, we point you to the complete [ROSCO_toolbox](https://github.com/nrel/rosco_toolbox). 
-
-In addition to DISCON.IN, if you wish to use either of the wind speed estimators (`WE_Mode > 0`) or pitch saturation routines (`PS_Mode > 0`) offered by ROSCO , you will need a rotor performance input file. This is, again, provided for the sample wind turbines, and can be easily made for other turbines using the [ROSCO_toolbox](https://github.com/nrel/rosco_toolbox). The input `PerfFileName` in DISCON.IN points to this file. 
-
-## Using ROSCO for Bladed
-If you want to use the controller with DNV GL Bladed v4.5 or earlier (which still has support for the DISCON external controller interface), do the following:
-1. Be sure to use and place the 32-bit DLL in the same folder as where you put your project .$PJ-file
-2. Copy in that same folder the DISCON.IN controller configuration file
-3. Set-up the 32-bit DLL as an external controller (Control -> Discrete External Controller -> Define...)
-3. Open the DISCON.IN file with a text editor and copy its entire contents in the "External controller data:" section (Control -> Discrete External Controller -> Define...)
-4. Run a "Power Production" simulation
+## Survey
+Please help us better understand the ROSCO user-base and how we can improve rosco through this brief survey:
+[ROSCO toolchain survey](https://forms.office.com/Pages/ResponsePage.aspx?id=fp3yoM0oVE-EQniFrufAgGWnC45k8q5Kl90RBkHijqBUN0JTNzBJT1QwMjIzNDhCWDlDTUZPWDdMWC4u)
 
 ## Referencing
-If ROSCO played a role in your research, please cite it. This software can be
+If the ROSCO Toolbox played a role in your research, please cite it. This software can be
 cited as:
 
-   ROSCO. Version 2.3.0 (2021). Available at https://github.com/nrel/rosco.
+   NREL: ROSCO Toolbox. Version 2.3.0, https://github.com/NREL/rosco_toolbox, 2021.
 
 For LaTeX users:
 
 ```
-    @misc{ROSCO_2021,
+@misc{ROSCO_toolbox_2021,
     author = {NREL},
-    title = {{ROSCO. Version 2.3.0}},
+    title = {{ROSCO Toolbox. Version 2.3.0}},
     year = {2021},
     publisher = {GitHub},
     journal = {GitHub repository},
-    url = {https://github.com/NREL/rosco}
+    url = {https://github.com/NREL/rosco_toolbox}
     }
 ```
-If you have been using the entirety of the [ROSCO toolbox](https://github.com/nrel/rosco_toolbox), please see the ROSCO toolbox README for information on how to cite it.
+If the ROSCO generic tuning theory and implementation played a roll in your research, please cite the following paper
+```
+@Article{wes-2021-19,
+AUTHOR = {Abbas, N. and Zalkind, D. and Pao, L. and Wright, A.},
+TITLE = {A Reference Open-Source Controller for Fixed and Floating Offshore Wind Turbines},
+JOURNAL = {Wind Energy Science Discussions},
+VOLUME = {2021},
+YEAR = {2021},
+PAGES = {1--33},
+URL = {https://wes.copernicus.org/preprints/wes-2021-19/},
+DOI = {10.5194/wes-2021-19}
+}
+```
+Additionally, if you have extensively used the [ROSCO](https://github.com/NREL/ROSCO) controller or [WISDEM](https://github.com/wisdem/wisdem), please cite them accordingly. 
 
 
-## Acknowledgments 
-The initial release of this controller was the Delft Research Controller. This work should be cited as
-* Mulders, S.P. and van Wingerden, J.W. "Delft Research Controller: an open-source and community-driven wind turbine baseline controller." Journal of Physics: Conference Series. Vol. 1037. No. 3. IOP Publishing, 2018. [Link to the paper](https://iopscience.iop.org/article/10.1088/1742-6596/1037/3/032009/meta)
-The Delft Research Controller was the initial version of this work. It has since been grown significantly and become NREL's ROSCO. 
+## Additional Contributors and Acknowledgments
+Primary contributions to the ROSCO Toolbox have been provided by researchers the National Renewable Energy Laboratory (Nikhar J. Abbas, Daniel Zalkind, Alan Wright, and Paul Fleming) and the University of Colorado Boulder (Lucy Pao). Much of the intellect behind these contributions has been inspired or derived from an extensive amount of work in the literature. The bulk of this has been cited through the primary publications about this work. 
 
-Primary contributions to ROSCO have been provided by researchers the National Renewable Energy Laboratory (Nikhar J. Abbas, Daniel Zalkind, Alan Wright, and Paul Fleming), Delft University of Technology (Sebastiaan Mulders and Jan-Willem van Wingerden), and the University of Colorado Boulder (Lucy Pao). Much of the intellect behind these contributions has been inspired or derived from an extensive amount of work in the literature. The bulk of this has been cited through the primary publications about this work. 
-
-There are also some specific acknowledgements we would like to communicate:
-* The setpoint smoothing regime implemented through the ROSCO controller was contributed by sowento GmbH. 
+There have been a number of contributors to the logic of the ROSCO controller itself. Please see the [ROSCO github page](https://github.com/NREL/ROSCO) for more information on who these contributors have been. 
