@@ -573,7 +573,7 @@ def pwelch(x, window='hamming', noverlap=None, nfft=None, fs=1.0, nperseg=None,
         if nperseg is None:
             if noverlap is None:
                 overlap_frac=0.5
-            elif noverlap is 0:
+            elif noverlap == 0:
                 overlap_frac=0
             else:
                 raise NotImplementedError('TODO noverlap set but not nperseg')

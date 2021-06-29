@@ -19,6 +19,10 @@ The NREL Reference OpenSource Controller (ROSCO) provides an open, modular and f
 ## Documentation
 All relevant documentation about the ROSCO toolbox and ROSCO controller can be found at through [ROSCO's readthedocs webpage](https://rosco-toolbox.readthedocs.io/en/latest/). Here, users can find the information on [installing the ROSCO toolbox](https://rosco-toolbox.readthedocs.io/en/latest/source/install.html#installing-the-rosco-toolbox) and [compiling ROSCO](https://rosco-toolbox.readthedocs.io/en/latest/source/install.html#compiling-rosco) for control purposes. Additionally, there is information on the standard workflow and uses cases for the ROSCO toolchain, and more. 
 
+## Survey
+Please help us better understand the ROSCO user-base and how we can improve rosco through this brief survey:
+[ROSCO toolchain survey](https://forms.office.com/Pages/ResponsePage.aspx?id=fp3yoM0oVE-EQniFrufAgGWnC45k8q5Kl90RBkHijqBUN0JTNzBJT1QwMjIzNDhCWDlDTUZPWDdMWC4u)
+
 ## Referencing
 If the ROSCO Toolbox played a role in your research, please cite it. This software can be
 cited as:
