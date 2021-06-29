@@ -20,6 +20,16 @@ import pandas as pd
 
 from ROSCO_toolbox.utilities import load_from_txt
 
+# Load OpenFAST readers
+try:
+    import weis.aeroelasticse
+    use_weis = True
+    print('Using weis.aeroelasticse in ROSCO_toolbox...')
+except:
+    use_weis = False
+    print('ofTools in ROSCO_toolbox...')
+
+
 # Some useful constants
 now = datetime.datetime.now()
 pi = np.pi
@@ -159,7 +169,10 @@ class Turbine():
             txt_filename: str, optional
                           filename for *.txt, only used if rot_source='txt'
         """
-        from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+        if use_weis:
+            from weis.aeroelasticse.FAST_reader import InputReader_OpenFAST
+        else:
+            from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
 
         print('Loading FAST model: %s ' % FAST_InputFile)
         self.TurbineName = FAST_InputFile.strip('.fst')
@@ -316,8 +329,12 @@ class Turbine():
             'serial' - run in serial, 'multi' - run using python multiprocessing tools, 
             'mpi' - run using mpi tools
         '''
-        from ROSCO_toolbox.ofTools.case_gen import runFAST_pywrapper, CaseGen_General
-        from ROSCO_toolbox.ofTools.util import FileTools
+        if use_weis:
+            from weis.aeroelasticse import runFAST_pywrapper, CaseGen_General
+            from weis.aeroelasticse.Util import FileTools
+        else:
+            from ROSCO_toolbox.ofTools.case_gen import runFAST_pywrapper, CaseGen_General
+            from ROSCO_toolbox.ofTools.util import FileTools
         # Load pCrunch tools
         from pCrunch import pdTools, Processing
 
@@ -499,7 +516,10 @@ class Turbine():
         -----------
             self - note: needs to contain fast input file info provided by load_from_fast.
         '''
-        from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+        if use_weis:
+            from weis.aeroelasticse.FAST_reader import InputReader_OpenFAST
+        else:
+            from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
         from wisdem.ccblade.ccblade import CCAirfoil, CCBlade
 
         # Create CC-Blade Rotor
@@ -587,7 +607,14 @@ class RotorPerformance():
         # --- Find TSR ---
         # Make finer mesh for Tip speed ratios at "optimal" blade pitch angle, do a simple lookup. 
         #       -- nja: this seems to work a little better than interpolating
-        performance_beta_max = np.ndarray.flatten(performance_table[:,self.max_ind[1]]) # performance metric at maximizing pitch angle
+
+        # Find the 1D performance table when pitch is at the maximum part of the Cx surface:
+        performance_beta_max = np.ndarray.flatten(performance_table[:,self.max_ind[1][-1]]) # performance metric at the last maximizing pitch angle
+        
+        # If there is more than one max pitch angle:
+        if len(self.max_ind[1]) > 1:
+            print('ROSCO_toolbox Warning: repeated maximum values in a performance table and the last one @ pitch = {} rad. was taken...'.format(self.pitch_opt[-1]))
+
         TSR_ind = np.arange(0,len(TSR_initial))
         TSR_fine_ind = np.linspace(TSR_initial[0],TSR_initial[-1],int(TSR_initial[-1] - TSR_initial[0])*100)
         f_TSR = interpolate.interp1d(TSR_initial,TSR_initial,bounds_error='False',kind='quadratic')    # interpolate function for Cp(tsr) values

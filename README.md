@@ -19,18 +19,22 @@ The NREL Reference OpenSource Controller (ROSCO) provides an open, modular and f
 ## Documentation
 All relevant documentation about the ROSCO toolbox and ROSCO controller can be found at through [ROSCO's readthedocs webpage](https://rosco-toolbox.readthedocs.io/en/latest/). Here, users can find the information on [installing the ROSCO toolbox](https://rosco-toolbox.readthedocs.io/en/latest/source/install.html#installing-the-rosco-toolbox) and [compiling ROSCO](https://rosco-toolbox.readthedocs.io/en/latest/source/install.html#compiling-rosco) for control purposes. Additionally, there is information on the standard workflow and uses cases for the ROSCO toolchain, and more. 
 
+## Survey
+Please help us better understand the ROSCO user-base and how we can improve rosco through this brief survey:
+[ROSCO toolchain survey](https://forms.office.com/Pages/ResponsePage.aspx?id=fp3yoM0oVE-EQniFrufAgGWnC45k8q5Kl90RBkHijqBUN0JTNzBJT1QwMjIzNDhCWDlDTUZPWDdMWC4u)
+
 ## Referencing
 If the ROSCO Toolbox played a role in your research, please cite it. This software can be
 cited as:
 
-   NREL: ROSCO Toolbox. Version 2.2.0, https://github.com/NREL/rosco_toolbox, 2021.
+   NREL: ROSCO Toolbox. Version 2.3.0, https://github.com/NREL/rosco_toolbox, 2021.
 
 For LaTeX users:
 
 ```
 @misc{ROSCO_toolbox_2021,
     author = {NREL},
-    title = {{ROSCO Toolbox. Version 2.2.0}},
+    title = {{ROSCO Toolbox. Version 2.3.0}},
     year = {2021},
     publisher = {GitHub},
     journal = {GitHub repository},
@@ -39,17 +43,15 @@ For LaTeX users:
 ```
 If the ROSCO generic tuning theory and implementation played a roll in your research, please cite the following paper
 ```
-@inproceedings{Abbas_WindTech2019,
-	doi = {10.1088/1742-6596/1452/1/012002},
-	url = {https://doi.org/10.1088%2F1742-6596%2F1452%2F1%2F012002},
-	year = 2020,
-	month = {jan},
-	publisher = {{IOP} Publishing},
-	volume = {1452},
-	pages = {012002},
-	author = {Nikhar J. Abbas and Alan Wright and Lucy Pao},
-	title = {An Update to the National Renewable Energy Laboratory Baseline Wind Turbine Controller},
-	journal = {Journal of Physics: Conference Series}
+@Article{wes-2021-19,
+AUTHOR = {Abbas, N. and Zalkind, D. and Pao, L. and Wright, A.},
+TITLE = {A Reference Open-Source Controller for Fixed and Floating Offshore Wind Turbines},
+JOURNAL = {Wind Energy Science Discussions},
+VOLUME = {2021},
+YEAR = {2021},
+PAGES = {1--33},
+URL = {https://wes.copernicus.org/preprints/wes-2021-19/},
+DOI = {10.5194/wes-2021-19}
 }
 ```
 Additionally, if you have extensively used the [ROSCO](https://github.com/NREL/ROSCO) controller or [WISDEM](https://github.com/wisdem/wisdem), please cite them accordingly. 

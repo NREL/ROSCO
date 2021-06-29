@@ -13,7 +13,7 @@ Run ROSCO and test against baseline results:
 '''
 
 import numpy as np
-import os
+import os, platform
 import glob
 import multiprocessing as mp
 
@@ -37,7 +37,7 @@ class ROSCO_testing():
 
         # Setup simulation parameters
         self.runDir = os.path.join(os.path.dirname( os.path.realpath(__file__) ), 'testing' )   # directory to run simulations in
-        self.windDir = None
+        self.wind_dir = None
         self.namebase = 'ROtest'    # root name for output simulations
         self.FAST_exe = 'openfast_single'       # name of openfast executable (may need full path)
         self.Turbsim_exe = 'turbsim_single'     # name of turbsim executable
@@ -54,6 +54,7 @@ class ROSCO_testing():
         self.mpi_run = False
         self.mpi_comm_map_down = []
         self.outfile_fmt = 2 # 1 = .txt, 2 = binary, 3 = both
+        self.comp_dir = None
 
         # Setup turbine parameters 
         #  - Default to NREL 5MW 
@@ -104,9 +105,9 @@ class ROSCO_testing():
 
         # Check for time and wind inputs
         if ('Fst','TMax') in more_case_inputs.keys():
-            TMax = np.max(more_case_inputs[('Fst','TMax')]['vals'])
+            self.TMax = np.max(more_case_inputs[('Fst','TMax')]['vals'])
         else:
-            TMax = 330
+            self.TMax = 330
         
         if len(U) > 0:
             WindSpeeds = U
@@ -135,7 +136,7 @@ class ROSCO_testing():
         iec.Turbulence_Class = self.Turbulence_Class
         iec.D = fastRead.fst_vt['ElastoDyn']['TipRad']*2.
         iec.z_hub = fastRead.fst_vt['InflowWind']['RefHt']
-        iec.TMax = TMax
+        iec.TMax = self.TMax
 
         iec.dlc_inputs = {}
         iec.dlc_inputs['DLC'] = [1.1]  # ,6.1,6.3]
@@ -145,8 +146,8 @@ class ROSCO_testing():
         iec.transient_dir_change = '-'  # '+','-','both': sign for transient events in EDC, EWS
         iec.transient_shear_orientation = 'v'  # 'v','h','both': vertical or horizontal shear for EWS
 
-        if self.windDir:
-            iec.wind_dir = self.windDir
+        if self.wind_dir:
+            iec.wind_dir = self.wind_dir
         else:
             iec.wind_dir = os.path.join(self.runDir, 'wind')
             
@@ -168,7 +169,7 @@ class ROSCO_testing():
             iec.comm_map_down = mpi_comm_map_down
 
         case_inputs = {}
-        case_inputs[("Fst", "TMax")] = {'vals': [TMax], 'group': 0}
+        case_inputs[("Fst", "TMax")] = {'vals': [self.TMax], 'group': 0}
         case_inputs[("Fst", "OutFileFmt")] = {'vals': [self.outfile_fmt], 'group': 0}
 
         case_inputs[('ServoDyn', 'GenTiStr')] = {'vals': ['True'], 'group': 0}
@@ -258,9 +259,9 @@ class ROSCO_testing():
 
         # Check for time and wind inputs
         if ('Fst','TMax') in more_case_inputs.keys():
-            TMax = np.max(more_case_inputs[('Fst','TMax')]['vals'])
+            self.TMax = np.max(more_case_inputs[('Fst','TMax')]['vals'])
         else:
-            TMax = 630
+            self.TMax = 630
         
         if len(U) > 0:
             WindSpeeds = U
@@ -299,7 +300,7 @@ class ROSCO_testing():
         iec.Turbulence_Class = self.Turbulence_Class
         iec.D = fastRead.fst_vt['ElastoDyn']['TipRad']*2.
         iec.z_hub = fastRead.fst_vt['InflowWind']['RefHt']
-        iec.TMax = TMax
+        iec.TMax = self.TMax
 
         iec.dlc_inputs = {}
         iec.dlc_inputs['DLC'] = [1.3, 1.4] 
@@ -311,8 +312,8 @@ class ROSCO_testing():
         iec.uniqueSeeds = True
         iec.uniqueWaveSeeds = True
 
-        if self.windDir:
-            iec.wind_dir = self.windDir
+        if self.wind_dir:
+            iec.wind_dir = self.wind_dir
         else:
             iec.wind_dir = os.path.join(self.runDir, 'wind')
         iec.case_name_base = self.namebase
@@ -333,7 +334,7 @@ class ROSCO_testing():
             iec.comm_map_down = mpi_comm_map_down
 
         case_inputs = {}
-        case_inputs[("Fst", "TMax")] = {'vals': [TMax], 'group': 0}
+        case_inputs[("Fst", "TMax")] = {'vals': [self.TMax], 'group': 0}
         case_inputs[("Fst", "OutFileFmt")] = {'vals': [self.outfile_fmt], 'group': 0}
 
         case_inputs[('ServoDyn', 'GenTiStr')] = {'vals': ['False'], 'group': 0}
@@ -421,13 +422,13 @@ class ROSCO_testing():
         '''
         # Save initial run directory
         run_dir_init = self.runDir
-        wind_dir_init = self.windDir
+        wind_dir_init = self.wind_dir
         for ci, path in enumerate(controller_paths):
             # specify rosco path
             self.rosco_path = path
             # temporarily change run directories
             self.runDir = os.path.join(run_dir_init,'controller_{}'.format(ci)) # specific directory for each controller
-            self.windDir = os.path.join(run_dir_init, 'wind')  # wind in base runDir
+            self.wind_dir = os.path.join(run_dir_init, 'wind')  # wind in base runDir
 
             if testtype.lower() == 'light':
                 self.ROSCO_Test_lite(more_case_inputs=more_case_inputs, U=U)
@@ -438,7 +439,7 @@ class ROSCO_testing():
 
         # reset self
         self.runDir = run_dir_init
-        self.windDir = wind_dir_init
+        self.wind_dir = wind_dir_init
     
     def ROSCO_DISCON_Comp(self, DISCON_filenames, testtype='light', more_case_inputs={}, U=[]):
         '''
@@ -454,15 +455,15 @@ class ROSCO_testing():
 
         # Save initial run directory
         run_dir_init = self.runDir
-        wind_dir_init = self.windDir
+        wind_dir_init = self.wind_dir
         for ci, discon in enumerate(DISCON_filenames):
             # temporarily change run directories
             self.runDir = os.path.join(run_dir_init, 'controller_{}'.format(ci))
-            self.windDir = os.path.join(run_dir_init, 'wind')  # wind in base runDir
+            self.wind_dir = os.path.join(run_dir_init, 'wind')  # wind in base runDir
 
             # Point to different DISCON.IN files using more_case_inputs
             more_case_inputs[('ServoDyn', 'DLL_InFile')] = {'vals': [discon], 'group': 0}
-            self.windDir = os.path.join(run_dir_init, 'wind')  # wind in base runDir
+            self.wind_dir = os.path.join(run_dir_init, 'wind')  # wind in base runDir
 
             if testtype.lower() == 'light':
                 self.ROSCO_Test_lite(more_case_inputs=more_case_inputs, U=U)
@@ -473,20 +474,42 @@ class ROSCO_testing():
 
         # reset self
         self.runDir = run_dir_init
-        self.windDir = wind_dir_init
+        self.wind_dir = wind_dir_init
 
     def print_results(self,outfiles):
 
-        op = output_processing.output_processing()
-        FAST_Output = op.load_fast_out(outfiles, tmin=0)
+        figs_fname = 'test_outputs.pdf'
 
-        figs_fname = 'test_outputs.pdf'        
+        # remove initial transients if more than two minutes if simulation time
+        if self.TMax > 120:
+            tmin = 60
+        else:
+            tmin = 0
+
+        # Comparison plot
+        if self.comp_dir:
+            tmin = 100      # if comparing, I'd like to start the comparison at 100 seconds
+            op_comp = output_processing.output_processing()
+            outfiles_comp = [os.path.join(self.comp_dir,os.path.split(of)[1]) for of in outfiles]
+            try:
+                FAST_Comp = op_comp.load_fast_out(outfiles_comp, tmin=tmin)
+                figs_fname = 'comp_outputs.pdf'
+            except:
+                print('Could not load openfast outputs for comparison, only plotting current test')
+                tmin = 0
+                figs_fname = 'test_outputs.pdf'
+
+
+        op = output_processing.output_processing()
+        FAST_Output = op.load_fast_out(outfiles, tmin=tmin)
+
+                
         with PdfPages(os.path.join(self.runDir,figs_fname)) as pdf:
-            for fast_out in FAST_Output:
+            for i_out, fast_out in enumerate(FAST_Output):
                 if self.FAST_InputFile == 'NREL-5MW.fst':
                     plots2make = {'Baseline': ['Wind1VelX', 'GenPwr', 'RotSpeed', 'BldPitch1', 'GenTq']}
                 else:
-                    plots2make = {'Baseline': ['Wind1VelX', 'GenPwr', 'RotSpeed', 'BldPitch1', 'GenTq','PtfmPitch']}
+                    plots2make = {'Baseline': ['Wind1VelX', 'GenPwr', 'RotSpeed', 'BldPitch1', 'GenTq','PtfmPitch','TwrBsMyt']}
 
                 numplots    = len(plots2make)
                 maxchannels = np.max([len(plots2make[key]) for key in plots2make.keys()])
@@ -498,6 +521,9 @@ class ROSCO_testing():
                         subplt = fig.add_subplot(gs0[cid])
                         try:
                             subplt.plot(fast_out['Time'], fast_out[channel])
+                            if self.comp_dir:
+                                subplt.plot(FAST_Comp[i_out]['Time'], FAST_Comp[i_out][channel])
+
                             unit_idx = fast_out['meta']['channels'].index(channel)
                             subplt.set_ylabel('{:^} \n ({:^})'.format(
                                                 channel,
@@ -522,35 +548,36 @@ if __name__=='__main__':
 
     ## =================== INITIALIZATION ===================
     # Setup simulation parameters
-    rt.runDir = '/Users/nabbas/Documents/Projects/ROSCO_dev/WSE_updates/WSE_Testing'              # directory for FAST simulations
     rt.namebase = 'IEA-15MW'     # Base name for FAST files 
-    rt.FAST_exe = '/Users/nabbas/Documents/WindEnergyToolbox/WEIS/local/bin/openfast'     # OpenFAST executable path
-    rt.Turbsim_exe = '/Users/nabbas/openfast/install/bin/turbsim_single'   # Turbsim executable path
-    rt.FAST_ver = 'OpenFAST'            # FAST version
-    rt.rosco_path = ['/Users/nabbas/Documents/WindEnergyToolbox/ROSCO/build-master/libdiscon.dylib',
-                    '/Users/nabbas/Documents/WindEnergyToolbox/ROSCO/build-wse/libdiscon.dylib',
-                    ]                   # path to compiled ROSCO controller
-    rt.dev_branch = True                # dev branch of Openfast?
-    rt.debug_level = 2                  # debug level. 0 - no outputs, 1 - minimal outputs, 2 - all outputs
-    rt.overwrite = True                 # overwite fast sims?
-    rt.cores = 4                        # number of cores if multiprocessings
-    rt.mpi_run = False                  # run using mpi
-    rt.mpi_comm_map_down = []           # core mapping for MPI
-    rt.outfile_fmt = 2                  # 1 = .txt, 2 = binary, 3 = both
+    rt.FAST_exe = 'openfast'     # OpenFAST executable path
+    rt.Turbsim_exe = 'turbsim'   # Turbsim executable path
+    rt.FAST_ver = 'OpenFAST'     # FAST version
+    # path to compiled ROSCO controller
+    if platform.system() == 'Windows':
+        rt.rosco_path = os.path.join(os.getcwd(), '../ROSCO/build/libdiscon.dll')
+    elif platform.system() == 'Darwin':
+        rt.rosco_path = os.path.join(os.getcwd(), '../ROSCO/build/libdiscon.dylib')
+    else:
+        rt.rosco_path = os.path.join(os.getcwd(), '../ROSCO/build/libdiscon.so')
+    rt.dev_branch = True         # dev branch of Openfast?
+    rt.debug_level = 2           # debug level. 0 - no outputs, 1 - minimal outputs, 2 - all outputs
+    rt.overwrite = True          # overwite fast sims?
+    rt.cores = 4                 # number of cores if multiprocessings
+    rt.mpi_run = False           # run using mpi
+    rt.mpi_comm_map_down = []    # core mapping for MPI
+    rt.outfile_fmt = 2           # 1 = .txt, 2 = binary, 3 = both
     rt.dev_branch= 'True'
-    # Post Processing Parameters
-    reCrunch = True                     # re-run pCrunch?
 
     # Setup turbine
     rt.Turbine_Class = 'I'
     rt.Turbulence_Class = 'B'
-    rt.FAST_directory = '/Users/nabbas/Documents/WindEnergyToolbox/WEIS/examples/OpenFAST_models/IEA-15-240-RWT/IEA-15-240-RWT-Monopile'
-    rt.FAST_InputFile = 'IEA-15-240-RWT-Monopile.fst'
+    rt.FAST_directory = os.path.join(os.getcwd(), '../Test_Cases/IEA-15-240-RWT-UMaineSemi')
+    rt.FAST_InputFile = 'IEA-15-240-RWT-UMaineSemi.fst'
 
     # Additional inputs 
     # ---- DT for this test! ----
     case_inputs={}
-    case_inputs[('Fst', 'TMax')] = {'vals': [330], 'group': 0}
+    case_inputs[('Fst', 'TMax')] = {'vals': [60], 'group': 0}
     case_inputs[('Fst', 'DT')] = {'vals': [0.01], 'group': 0}
     case_inputs[('Fst', 'CompElast')] = {'vals': [1], 'group': 0}
 
@@ -563,5 +590,5 @@ if __name__=='__main__':
     U = [5, 9, 12, 15]
 
     # Run test
-    rt.ROSCO_Controller_Comp(rt.rosco_path, testtype='light', more_case_inputs=case_inputs, U=U)
+    rt.ROSCO_Test_lite(more_case_inputs=case_inputs, U=U)
 

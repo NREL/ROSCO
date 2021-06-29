@@ -9,7 +9,7 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
-from ctypes import byref, cdll, c_int, POINTER, c_float, c_char_p, c_double, create_string_buffer, c_int32
+from ctypes import byref, cdll, c_int, POINTER, c_float, c_char_p, c_double, create_string_buffer, c_int32, c_void_p
 import numpy as np
 from numpy.ctypeslib import ndpointer
 
@@ -35,19 +35,31 @@ class ControllerInterface():
 
     """
 
-    def __init__(self, lib_name, param_filename='DISCON.IN'):
+    def __init__(self, lib_name, param_filename='DISCON.IN', **kwargs):
         """
         Setup the interface
         """
         self.lib_name = lib_name
         self.param_name = param_filename
 
-        # Temp fixed parameters
+        # Set default parameters
         # PARAMETERS
         self.DT = 0.1
         self.num_blade = 3
         self.char_buffer = 500
         self.avr_size = 500
+        self.sim_name = 'simDEBUG'
+
+        # Set kwargs, like DT
+        for (k, w) in kwargs.items():
+            try:
+                setattr(self, k, w)
+            except:
+                pass
+
+        self.init_discon()
+
+    def init_discon(self):
 
         # Initialize
         self.pitch = 0
@@ -56,10 +68,12 @@ class ControllerInterface():
         self.discon = cdll.LoadLibrary(self.lib_name)
         self.avrSWAP = np.zeros(self.avr_size)
 
-        # Define some avrSWAP parameters
+        # Define some avrSWAP parameters, NOTE: avrSWAP indices are offset by -1 from Fortran
         self.avrSWAP[2] = self.DT
         self.avrSWAP[60] = self.num_blade
-        self.avrSWAP[20] = 1 # HARD CODE initial rot speed = 1 rad/s
+        self.avrSWAP[19] = 1.0 # HARD CODE initial gen speed = 1 rad/s
+        self.avrSWAP[20] = 1.0 # HARD CODE initial rot speed = 1 rad/s
+        self.avrSWAP[82] = 0 # HARD CODE initial nacIMU = 0
         self.avrSWAP[26] = 10 # HARD CODE initial wind speed = 10 m/s
 
 
@@ -76,7 +90,7 @@ class ControllerInterface():
         self.aviFAIL = c_int32() # 1
         self.accINFILE = self.param_name.encode('utf-8')
         # self.avcOUTNAME = create_string_buffer(1000) # 'DEMO'.encode('utf-8')
-        self.avcOUTNAME = 'simDEBUG.dbg'.encode('utf-8')
+        self.avcOUTNAME = (self.sim_name + '.RO.dbg').encode('utf-8')
         self.avcMSG = create_string_buffer(1000)
         self.discon.DISCON.argtypes = [POINTER(c_float), POINTER(c_int32), c_char_p, c_char_p, c_char_p] # (all defined by ctypes)
 
@@ -103,7 +117,7 @@ class ControllerInterface():
         self.avrSWAP = data
 
 
-    def call_controller(self,t,dt,pitch,torque,genspeed,geneff,rotspeed,ws):
+    def call_controller(self,t,dt,pitch,torque,genspeed,geneff,rotspeed,ws,NacIMU_FA_Acc=0):
         '''
         Runs the controller. Passes current turbine state to the controller, and returns control inputs back
         
@@ -123,6 +137,9 @@ class ControllerInterface():
                   rotor speed, (rad/s)
         ws: float
             wind speed, (m/s)
+        NacIMU_FA_Acc : float
+            nacelle IMU accel. in the nodding dir. , (m/s**2)
+            default to 0 (fixed-bottom, simple 1-DOF sim does not include it, but OpenFAST linearizations do)
         '''
 
         # Add states to avr
@@ -136,6 +153,7 @@ class ControllerInterface():
         self.avrSWAP[19] = genspeed
         self.avrSWAP[20] = rotspeed
         self.avrSWAP[26] = ws
+        self.avrSWAP[82] = NacIMU_FA_Acc
 
         # call controller
         self.call_discon()
@@ -152,3 +170,17 @@ class ControllerInterface():
         '''
         print('Pitch',self.pitch)
         print('Torque',self.torque)
+
+    def kill_discon(self):
+        '''
+        Unload the dylib from memory: https://stackoverflow.com/questions/359498/how-can-i-unload-a-dll-using-ctypes-in-python
+        This is unix-specific, but there seems to be a windows solution as well
+        '''
+
+        print('Shutting down {}'.format(self.lib_name))
+        handle = self.discon._handle
+        dlclose_func = self.discon.dlclose
+        dlclose_func.argtypes = [c_void_p]
+
+        del self.discon
+        dlclose_func(handle)

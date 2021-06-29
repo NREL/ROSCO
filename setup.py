@@ -41,7 +41,7 @@ URL = 'https://github.com/NREL/ROSCO_toolbox'
 EMAIL = 'nikhar.abbas@nrel.gov'
 AUTHOR = 'NREL National Wind Technology Center'
 REQUIRES_PYTHON = '>=3.4'
-VERSION = '2.2.0'
+VERSION = '2.3.0'
 
 # These packages are required for all of the code to be executed. 
 # - Maybe you can get away with older versions...
@@ -51,6 +51,8 @@ REQUIRED = [
     'pytest',
     'scipy',
     'pyYAML',
+    'future',
+    'pandas'
 ]
 
 # Read the docs, one day, so we'll throw it in here!
@@ -174,7 +176,7 @@ class UploadCommand(Command):
         self.status('Uploading the package to PyPI via Twine...')
         os.system('twine upload dist/*')
 
-        self.status('Pushing git tags…')
+        self.status('Pushing git tags...')
         os.system('git tag v{0}'.format(about['__version__']))
         os.system('git push --tags')
         

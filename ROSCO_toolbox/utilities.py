@@ -28,9 +28,9 @@ import matplotlib.pyplot as plt
 from matplotlib import transforms
 from itertools import takewhile, product
 import struct
+import subprocess
 import ROSCO_toolbox
 
-from ROSCO_toolbox.ofTools.util import spectral
 # Some useful constants
 now = datetime.datetime.now()
 pi = np.pi
@@ -131,7 +131,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('!------- WIND SPEED ESTIMATOR ---------------------------------------------\n')
     file.write('{:<13.3f}       ! WE_BladeRadius	- Blade length (distance from hub center to blade tip), [m]\n'.format(turbine.rotor_radius))
     file.write('{:<11d}         ! WE_CP_n			- Amount of parameters in the Cp array\n'.format(1))
-    file.write(          '{}    ! WE_CP - Parameters that define the parameterized CP(lambda) function\n'.format(''.join('{:<2.1f} '.format(0.0) for i in range(4))))
+    file.write('{}              ! WE_CP - Parameters that define the parameterized CP(lambda) function\n'.format(''.join('{:<2.1f} '.format(0.0) for i in range(1))))
     file.write('{:<13.1f}		! WE_Gamma			- Adaption gain of the wind speed estimator algorithm [m/rad]\n'.format(0.0))
     file.write('{:<13.1f}       ! WE_GearboxRatio	- Gearbox ratio [>=1],  [-]\n'.format(turbine.Ng))
     file.write('{:<014.5f}      ! WE_Jtot			- Total drivetrain inertia, including blades, hub and casted generator inertia to LSS, [kg m^2]\n'.format(turbine.J))
@@ -157,7 +157,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('\n')
     file.write('!------- TOWER FORE-AFT DAMPING -------------------------------------------\n')
     file.write('{:<11d}         ! FA_KI				- Integral gain for the fore-aft tower damper controller, -1 = off / >0 = on [rad s/m] - !NJA - Make this a flag\n'.format(-1))
-    file.write('{:<13.1f}       ! FA_HPF_CornerFreq	- Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]\n'.format(0.0))
+    file.write('{:<13.1f}       ! FA_HPFCornerFreq	- Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]\n'.format(0.0))
     file.write('{:<13.1f}       ! FA_IntSat			- Integrator saturation (maximum signal amplitude contribution to pitch from FA damper), [rad]\n'.format(0.0))
     file.write('\n')
     file.write('!------- MINIMUM PITCH SATURATION -------------------------------------------\n')
@@ -455,7 +455,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     return DISCON_dict
 
 
-def run_openfast(fast_dir,fastcall='openfast',fastfile=None,chdir=False):
+def run_openfast(fast_dir, fastcall='openfast', fastfile=None, chdir=True):
     '''
     Runs a openfast openfast simulation.
     
@@ -483,18 +483,11 @@ def run_openfast(fast_dir,fastcall='openfast',fastfile=None,chdir=False):
     print('Using {} to run OpenFAST simulation'.format(fastfile))
 
     if chdir: # Change cwd before calling OpenFAST -- note: This is an artifact of needing to call OpenFAST from the same directory as DISCON.IN
-        # save starting file path 
-        original_path = os.getcwd()
-        # change path, run OpenFAST
-        os.chdir(fast_dir)
-        print('Running OpenFAST simulation for {} through the ROSCO toolbox...'.format(fastfile))
-        os.system('{} {}'.format(fastcall, os.path.join(fastfile)))
-        print('OpenFAST simulation complete. ')
-        # return to original path
-        os.chdir(original_path)
+        cwd = fast_dir
     else:
-        # Run OpenFAST
-        print('Running OpenFAST simulation for {} through the ROSCO toolbox...'.format(fastfile))
-        os.system('{} {}'.format(fastcall, os.path.join(fast_dir,fastfile)))
-        print('OpenFAST simulation complete. ')
+        cwd = None
 
+    print('Running OpenFAST simulation for {} through the ROSCO toolbox...'.format(fastfile))
+        # os.system('{} {}'.format(fastcall, os.path.join(fastfile)))
+    subprocess.run([fastcall, os.path.join(fastfile)], check=True, cwd=cwd)
+    print('OpenFAST simulation complete.')
