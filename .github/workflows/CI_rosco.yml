@@ -1,4 +1,4 @@
-name: CI_rosco-toolbox
+name: CI_rosco
 
 # We run CI on push commits on all branches
 on: [push, pull_request]
