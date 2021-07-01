@@ -23,6 +23,7 @@ from ROSCO_toolbox.inputs.validation import load_rosco_yaml
 
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
+example_out_dir = os.path.join(this_dir,'examples_out')
 
 # Load yaml file 
 parameter_filename = os.path.join(os.path.dirname(this_dir), 'Tune_Cases', 'IEA15MW.yaml') 
