@@ -11,8 +11,7 @@
 #
 import os
 import sys
-import subprocess
-
+# import sphinx_rtd_theme
 
 cwd = os.getcwd()
 roscopath = os.path.dirname(cwd)
@@ -28,11 +27,11 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.githubpages",
     "sphinx.ext.autodoc",
-    "readthedocs_ext.readthedocs",
+    # "readthedocs_ext.readthedocs",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
-    "sphinx_rtd_theme",
+    # "sphinx_rtd_theme",
     "sphinx.ext.graphviz",
     "sphinx.ext.autosectionlabel",
     # "sphinxcontrib.bibtex",
