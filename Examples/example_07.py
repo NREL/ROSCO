@@ -34,7 +34,7 @@ turbine_params      = inps['turbine_params']
 controller_params   = inps['controller_params']
 
 # Ensure minimum generator speed at 50 rpm (for example's sake), turn on peak shaving and cp-maximizing min pitch
-controller_params['vs_minspd'] = 50
+controller_params['vs_minspd'] = 50/97
 controller_params['PS_Mode'] = 3
 
 # Instantiate turbine, controller, and file processing classes
