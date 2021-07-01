@@ -1,4 +1,4 @@
-name: CI_rosco
+name: CI_rosco-compile
 
 # We run CI on push commits on all branches
 on: [push, pull_request]
