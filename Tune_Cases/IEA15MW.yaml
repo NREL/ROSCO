@@ -39,8 +39,9 @@ controller_params:
   Fl_Mode:            1                     # Floating specific feedback mode {0: no nacelle velocity feedback, 1: nacelle velocity feedback}
   Flp_Mode:           0                     # Flap control mode {0: no flap control, 1: steady state flap angle, 2: Proportional flap control}
   # Controller parameters       
-  zeta_pc:            1.0                   # Pitch controller desired damping ratio [-]
-  omega_pc:           0.25                  # Pitch controller desired natural frequency [rad/s]
+  U_pc:               [14,20]
+  zeta_pc:            [2.0,1.0]                  # Pitch controller desired damping ratio [-]
+  omega_pc:           [0.15,0.3]                  # Pitch controller desired natural frequency [rad/s]
   zeta_vs:            0.85                   # Torque controller desired damping ratio [-]
   omega_vs:           0.12                 # Torque controller desired natural frequency [rad/s]
   # Optional - these can be defined, but do not need to be
