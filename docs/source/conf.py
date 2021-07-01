@@ -31,6 +31,17 @@ release = '3.0'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "sphinx.ext.mathjax",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.githubpages",
+    "sphinx.ext.autodoc",
+    # "readthedocs_ext.readthedocs",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.graphviz",
+    "sphinx.ext.autosectionlabel",
+    # "sphinxcontrib.bibtex",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -38,9 +49,17 @@ templates_path = ['_templates']
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-# This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+# This patterns also effect to html_static_path and html_extra_path
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "_templates"]
 
+# The name of the Pygments (syntax highlighting) style to use.
+pygments_style = "sphinx"
+
+# If true, `todo` and `todoList` produce output, else they produce nothing.
+todo_include_todos = False
+
+# enable numref
+numfig = True
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -48,6 +67,8 @@ exclude_patterns = []
 # a list of builtin themes.
 #
 html_theme = 'alabaster'
+# html_theme_path = ["/Users/nabbas/.conda/envs/rosco-env/lib/python3.8/site-packages/furo/theme"]
+
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

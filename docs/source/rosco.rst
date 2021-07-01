@@ -3,7 +3,7 @@
 .. _rosco:
 
 ROSCO Controller Structure
-========================
+==========================
 Here, we give an overview of the structure of the ROSCO controller and how the code is implemented. 
 
 -----
