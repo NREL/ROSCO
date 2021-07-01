@@ -582,7 +582,7 @@ CONTAINS
         ALLOCATE(DebugOutData(nDebugOuts))
         !                 Header                            Unit                                Variable
         ! Filters
-        DebugOutStr1   = 'FA_AccF';     DebugOutUni1   = '(m/s)';      DebugOutData(1)   = LocalVar%NacIMU_FA_AccF
+        DebugOutStr1   = 'FA_AccF';     DebugOutUni1   = '(rad/s^2)';      DebugOutData(1)   = LocalVar%NacIMU_FA_AccF
         DebugOutStr2   = 'FA_AccR';     DebugOutUni2   = '(rad/s^2)';  DebugOutData(2)   = LocalVar%NacIMU_FA_Acc
         DebugOutStr3  = 'RotSpeed';     DebugOutUni3  = '(rad/s)';     DebugOutData(3)  = LocalVar%RotSpeed
         DebugOutStr4  = 'RotSpeedF';    DebugOutUni4  = '(rad/s)';     DebugOutData(4)  = LocalVar%RotSpeedF
