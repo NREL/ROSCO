@@ -175,6 +175,7 @@ class ControllerInterface():
         '''
         Unload the dylib from memory: https://stackoverflow.com/questions/359498/how-can-i-unload-a-dll-using-ctypes-in-python
         This is unix-specific, but there seems to be a windows solution as well
+        Update: this does not seem to work on Ubuntu and ROSCO will deallocate itself on the first timestep if necessary
         '''
 
         print('Shutting down {}'.format(self.lib_name))

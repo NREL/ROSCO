@@ -64,7 +64,16 @@ RootName = TRANSFER(avcOUTNAME, RootName)
 !------------------------------------------------------------------------------------------------------------------------------
 ! Read avrSWAP array into derived types/variables
 CALL ReadAvrSWAP(avrSWAP, LocalVar)
+
+! On first step, deallocate previous ROSCO and point all variables to RoscoVar for later deallocation
+IF (LocalVar%iStatus == 0) THEN
+    CALL DEALLOCATE_ROSCO(CntrPar,PerfData)
+END IF
+
+! Set Control Parameters
 CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, ErrVar)
+
+! Filter signals
 CALL PreFilterMeasuredSignals(CntrPar, LocalVar, objInst)
 
 IF ((LocalVar%iStatus >= 0) .AND. (ErrVar%aviFAIL >= 0))  THEN  ! Only compute control calculations if no error has occurred and we are not on the last time step

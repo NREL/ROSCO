@@ -90,6 +90,9 @@ for i in range(len(t)):
 # Run simulator and plot results
 sim.sim_ws_series(t,ws,rotor_rpm_init=4)
 
+# Load controller library again to see if we deallocated properly
+controller_int = ROSCO_ci.ControllerInterface(lib_name,param_filename=param_filename)
+
 if False:
   plt.show()
 else:
