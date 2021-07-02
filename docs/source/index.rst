@@ -1,4 +1,4 @@
-ROSCO toolbox documentation
+ROSCO Documentation
 ===========================
 .. only:: html
 
@@ -53,20 +53,9 @@ Please help us better understand the ROSCO user-base and how we can improve ROSC
    
 |
 
-Directory
----------
 
-.. toctree::
-   :hidden:
-   :maxdepth: 3
-   :numbered:
-   
-   install.rst
-   standard_use.rst
-   rosco_toolbox.rst
-   rosco.rst
-
-**License**
+License
+-------
 Copyright 2020 NREL
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,3 +69,13 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+.. toctree::
+   :hidden:
+   :maxdepth: 3
+   :numbered:
+   
+   install.rst
+   standard_use.rst
+   rosco_toolbox.rst
+   rosco.rst
