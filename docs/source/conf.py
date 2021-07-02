@@ -23,8 +23,8 @@ copyright = '2021, NREL'
 author = 'Nikhar J. Abbas, Daniel S. Zalkind'
 
 # The full version, including alpha/beta/rc tags
-import ROSCO
-version = ROSCO.__version__
+import ROSCO_toolbox
+version = ROSCO_toolbox.__version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -42,7 +42,6 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.graphviz",
     "sphinx.ext.autosectionlabel",
-    "furo"
     # "sphinxcontrib.bibtex",
 ]
 
