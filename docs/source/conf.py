@@ -53,13 +53,17 @@ templates_path = ['_templates']
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "_templates"]
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = "sphinx"
+pygments_style = "friendly"
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
 # enable numref
 numfig = True
+
+# General information about the project.
+project = "ROSCO"
+copyright = f"{date.today().year}, National Renewable Energy Laboratory"
 
 # -- Options for HTML output -------------------------------------------------
 
