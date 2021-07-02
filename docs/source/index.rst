@@ -61,10 +61,10 @@ Directory
    :maxdepth: 3
    :numbered:
    
-   ./source/install.rst
-   ./source/standard_use.rst
-   ./source/rosco_toolbox.rst
-   ./source/rosco.rst
+   install.rst
+   standard_use.rst
+   rosco_toolbox.rst
+   rosco.rst
 
 **License**
 Copyright 2020 NREL

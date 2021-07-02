@@ -1,6 +1,6 @@
 .. toctree::
 
-.. _rosco_toolbox:
+.. _rosco_toolbox_2:
 
 ROSCO Toolbox Structure
 ========================
@@ -8,7 +8,7 @@ Here, we give an overview of the structure of the ROSCO toolbox and how the code
 
 -----
 
-File Structure
+File Structure2
 ---------------
 The primary tools of the ROSCO toolbox are separated into several folders. They include the following:
 
@@ -63,12 +63,12 @@ A yaml_ formatted input file is used for the standard ROSCO toolbox tuning proce
     - :code:`FAST_InputFile`
     - Yes
     - String
-    - Name of the primary (*.fst) OpenFAST input file
+    - Name of the primary (\*.fst) OpenFAST input file
   * - 
     - :code:`FAST_directory`
     - Yes
     - String
-    - Main OpenFAST model directory, where the *.fst lives
+    - Main OpenFAST model directory, where the \*.fst lives
   * - 
     - :code:`rotor_performance_filename`
     - No

@@ -13,8 +13,8 @@
 import os
 import sys
 from datetime import date
-sys.path.insert(0, os.path.abspath('.'))
-
+root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, root_path)
 
 # -- Project information -----------------------------------------------------
 
@@ -70,7 +70,7 @@ pygments_style = "friendly"
 # todo_include_todos = False
 
 # enable numref
-# numfig = True
+numfig = True
 
 # General information about the project.
 project = "ROSCO"
