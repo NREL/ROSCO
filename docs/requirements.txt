@@ -1,0 +1,4 @@
+# File: docs/requirements.txt
+
+sphinx==4.0.2
+furo=2021.6.24b37
