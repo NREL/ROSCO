@@ -18,13 +18,13 @@ sys.path.insert(0, os.path.abspath('.'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'rosco'
+project = 'ROSCO'
 copyright = '2021, NREL'
-author = 'Nikhar J. Abbas'
+author = 'Nikhar J. Abbas, Daniel S. Zalkind'
 
 # The full version, including alpha/beta/rc tags
 import ROSCO
-release = ROSCO.__version__
+version = ROSCO.__version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -52,7 +52,7 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "_templates"]
+exclude_patterns = ["_build", ".DS_Store", "_templates"]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "friendly"
@@ -61,7 +61,7 @@ pygments_style = "friendly"
 # todo_include_todos = False
 
 # enable numref
-numfig = True
+# numfig = True
 
 # General information about the project.
 project = "ROSCO"
