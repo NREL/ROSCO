@@ -35,7 +35,6 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.githubpages",
     "sphinx.ext.autodoc",
-    # "readthedocs_ext.readthedocs",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
@@ -66,8 +65,7 @@ numfig = True
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
-# html_theme_path = ["/Users/nabbas/.conda/envs/rosco-env/lib/python3.8/site-packages/furo/theme"]
+html_theme = 'furo'
 
 
 # Add any paths that contain custom static files (such as style sheets) here,
