@@ -1,4 +1,0 @@
-# File: docs/requirements.txt
-
-sphinx>4.0.0
-furo
