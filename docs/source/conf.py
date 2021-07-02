@@ -10,15 +10,16 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+import furo
+sys.path.insert(0, os.path.abspath('.'))
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'rosco'
-copyright = '2021, Nikhar J. Abbas'
+copyright = '2021, NREL'
 author = 'Nikhar J. Abbas'
 
 # The full version, including alpha/beta/rc tags
@@ -40,6 +41,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.graphviz",
     "sphinx.ext.autosectionlabel",
+    "furo"
     # "sphinxcontrib.bibtex",
 ]
 
