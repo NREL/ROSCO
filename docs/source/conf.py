@@ -23,8 +23,8 @@ copyright = '2021, NREL'
 author = 'Nikhar J. Abbas, Daniel S. Zalkind'
 
 # The full version, including alpha/beta/rc tags
-# import ROSCO_toolbox
-# version = ROSCO_toolbox.__version__
+import ROSCO_toolbox
+release = ROSCO_toolbox.__version__
 
 from unittest import mock
 class MockModule(mock.Mock):
@@ -65,6 +65,9 @@ exclude_patterns = ["_build", ".DS_Store", "_templates"]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "friendly"
+
+# # The master toctree document.
+# master_doc = "index"
 
 # # If true, `todo` and `todoList` produce output, else they produce nothing.
 # todo_include_todos = False
