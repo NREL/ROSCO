@@ -35,11 +35,11 @@ from numpy.distutils.core import setup, Extension
 from io import open
 
 # Package meta-data.
-NAME = 'rosco-toolbox'
-DESCRIPTION = 'A toolbox for development of wind turbine controllers.'
-URL = 'https://github.com/NREL/ROSCO_toolbox'
+NAME = 'rosco'
+DESCRIPTION = 'A reference open source controller toolset for wind turbine applications.'
+URL = 'https://github.com/NREL/ROSCO
 EMAIL = 'nikhar.abbas@nrel.gov'
-AUTHOR = 'NREL National Wind Technology Center'
+AUTHOR = 'NREL, National Wind Technology Center'
 REQUIRES_PYTHON = '>=3.4'
 VERSION = '2.3.0'
 
@@ -54,15 +54,6 @@ REQUIRED = [
     'future',
     'pandas'
 ]
-
-# Read the docs, one day, so we'll throw it in here!
-EXTRAS = {
-    'docs': {
-        'readthedocs-sphinx-ext>=0.5.15',
-        'Sphinx>=2.0',
-        'sphinxcontrib-napoleon>=0.7'
-    }
-}
 
 
 # For the CMake Extensions
