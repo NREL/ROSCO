@@ -37,7 +37,7 @@ from io import open
 # Package meta-data.
 NAME = 'rosco'
 DESCRIPTION = 'A reference open source controller toolset for wind turbine applications.'
-URL = 'https://github.com/NREL/ROSCO
+URL = 'https://github.com/NREL/ROSCO'
 EMAIL = 'nikhar.abbas@nrel.gov'
 AUTHOR = 'NREL, National Wind Technology Center'
 REQUIRES_PYTHON = '>=3.4'
@@ -186,7 +186,6 @@ metadata = dict(
     url                           = URL,
     install_requires              = REQUIRED,
     python_requires               = REQUIRES_PYTHON,
-    extras_require                = EXTRAS,
     include_package_date          = True,
     packages                      = find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
     license                       = 'Apache License, Version 2.0',
