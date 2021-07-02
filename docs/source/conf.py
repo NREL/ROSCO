@@ -23,9 +23,19 @@ copyright = '2021, NREL'
 author = 'Nikhar J. Abbas, Daniel S. Zalkind'
 
 # The full version, including alpha/beta/rc tags
-import ROSCO_toolbox
-version = ROSCO_toolbox.__version__
+# import ROSCO_toolbox
+# version = ROSCO_toolbox.__version__
 
+from unittest import mock
+class MockModule(mock.Mock):
+    @classmethod
+    def __getattr__(cls, name):
+        return MockModule()
+
+
+MOCK_MODULES = ("ntlm",)
+
+sys.modules.update((mod_name, MockModule()) for mod_name in MOCK_MODULES)
 
 # -- General configuration ---------------------------------------------------
 
@@ -71,8 +81,7 @@ copyright = f"{date.today().year}, National Renewable Energy Laboratory"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'furo'
-
+html_theme = "furo"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
