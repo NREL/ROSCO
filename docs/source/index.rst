@@ -57,6 +57,8 @@ Directory
 ---------
 
 .. toctree::
+   :hidden:
+   :maxdepth: 3
    :numbered:
    
    ./source/install.rst
