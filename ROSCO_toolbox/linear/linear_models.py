@@ -11,6 +11,7 @@ import control as co
 import pyFAST.linearization.mbc.mbc3 as mbc
 import matplotlib.pyplot as plt
 import re
+import multiprocessing as mp
 from itertools import chain
 from scipy.io import loadmat
 
@@ -19,7 +20,7 @@ import os
 
 class LinearTurbineModel(object):
 
-    def __init__(self, lin_file_dir, lin_file_names, nlin=12, reduceStates=False, fromMat=False, rm_hydro=False):
+    def __init__(self, lin_file_dir, lin_file_names, nlin=12, reduceStates=False, fromMat=False, rm_hydro=False, load_parallel=True):
         '''
             inputs:    
                 lin_file_dir (string) - directory of linear file outputs from OpenFAST
@@ -34,12 +35,40 @@ class LinearTurbineModel(object):
             n_lin_cases = len(lin_file_names)
 
             u_ops = np.array([], [])
+            all_MBC = []
+            all_matData = []
+            all_FAST_linData = []
+
+            if load_parallel:
+                import time
+                t1 = time.time()
+                all_linfiles = [[os.path.realpath(os.path.join(
+                    lin_file_dir, lin_file_names[iCase] + '.{}.lin'.format(i_lin+1))) for i_lin in range(0, nlin)] for iCase in range(0,n_lin_cases)]
+                cores = mp.cpu_count()
+                pool = mp.Pool(cores)
+                all_MBC, all_matData, all_FAST_linData = zip(*pool.map(run_mbc3, all_linfiles))
+                pool.close()
+                pool.join()
+                print('loaded in parallel in {} seconds'.format(time.time()-t1))
+            else:
+                import time
+                t1 = time.time()
+                for iCase in range(0, n_lin_cases):
+                    lin_files_i = [os.path.realpath(os.path.join(
+                        lin_file_dir, lin_file_names[iCase] + '.{}.lin'.format(i_lin+1))) for i_lin in range(0, nlin)]
+                    MBC, matData, FAST_linData = run_mbc3(lin_files_i)
+                    all_MBC.append(MBC)
+                    all_matData.append(matData)
+                    all_FAST_linData.append(FAST_linData)
+                print('loaded in serial in {} seconds'.format(time.time()-t1))
+
+
             for iCase in range(0, n_lin_cases):
                 # nlin array of linearization outputs for iCase
-                lin_files_i = [os.path.realpath(os.path.join(
-                    lin_file_dir, lin_file_names[iCase] + '.{}.lin'.format(i_lin+1))) for i_lin in range(0, nlin)]
 
-                MBC, matData, FAST_linData = mbc.fx_mbc3(lin_files_i)
+                MBC = all_MBC[iCase]
+                matData = all_matData[iCase]
+                FAST_linData = all_FAST_linData[iCase]
 
                 if not iCase:   # first time through
                     # Initialize operating points, matrices
@@ -626,6 +655,14 @@ class LinearControlModel(object):
 
 
 # helper functions
+def run_mbc3(fnames):
+    '''
+    Helper function to run mbc3
+    '''
+    MBC, matData, FAST_linData = mbc.fx_mbc3(fnames)
+
+    return MBC, matData, FAST_linData
+
 def connect_ml(mods, inputs, outputs):
     ''' 
     Connects models like the matlab function does
