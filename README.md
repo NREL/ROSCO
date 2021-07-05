@@ -27,14 +27,14 @@ Please help us better understand the ROSCO user-base and how we can improve rosc
 If the ROSCO Toolbox played a role in your research, please cite it. This software can be
 cited as:
 
-   NREL: ROSCO Toolbox. Version 2.2.0, https://github.com/NREL/rosco_toolbox, 2021.
+   NREL: ROSCO Toolbox. Version 2.3.0, https://github.com/NREL/rosco_toolbox, 2021.
 
 For LaTeX users:
 
 ```
 @misc{ROSCO_toolbox_2021,
     author = {NREL},
-    title = {{ROSCO Toolbox. Version 2.2.0}},
+    title = {{ROSCO Toolbox. Version 2.3.0}},
     year = {2021},
     publisher = {GitHub},
     journal = {GitHub repository},
