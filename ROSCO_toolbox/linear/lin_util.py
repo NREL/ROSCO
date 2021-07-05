@@ -116,9 +116,10 @@ def smargin(linturb, controller, u_eval):
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        ws, Hs = sp.signal.freqresp(sp_sens)
+        ws, Hs = sp.signal.freqresp(sp_sens, n=1000000)
         # , 0.05, method='COBYLA', tol=1e-5) #, bounds=[0.0,100.0], method='Bounded')
-        res = sp.optimize.minimize(nyquist_min, ws[np.argmax(Hs)])
+        res = sp.optimize.minimize(nyquist_min, ws[np.argmin(nyquist_min(ws))], method='SLSQP', options={
+                                   'finite_diff_rel_step': 1e-1})
 
     if any(sp_sens.poles > 0):
         sm = -res.fun
