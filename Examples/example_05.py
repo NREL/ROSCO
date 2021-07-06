@@ -72,10 +72,10 @@ write_DISCON(turbine,controller,param_file=param_filename, txt_filename=os.path.
 
 
 # Load controller library
-controller_int = ROSCO_ci.ControllerInterface(lib_name,param_filename=param_filename)
+controller_int = ROSCO_ci.ControllerInterface(lib_name,param_filename=param_filename,sim_name='sim1')
 
 # Load the simulator
-sim = ROSCO_sim.Sim(turbine,controller_int)
+sim_1 = ROSCO_sim.Sim(turbine,controller_int)
 
 # Define a wind speed history
 dt = 0.025
@@ -88,10 +88,18 @@ for i in range(len(t)):
     ws[i] = ws[i] + t[i]//100
 
 # Run simulator and plot results
-sim.sim_ws_series(t,ws,rotor_rpm_init=4)
+sim_1.sim_ws_series(t,ws,rotor_rpm_init=4)
+controller_int.kill_discon()
 
 # Load controller library again to see if we deallocated properly
-controller_int = ROSCO_ci.ControllerInterface(lib_name,param_filename=param_filename)
+controller_int = ROSCO_ci.ControllerInterface(lib_name,param_filename=param_filename,sim_name='sim_2')
+
+# Run simulator again and plot results
+sim_2 = ROSCO_sim.Sim(turbine,controller_int)
+sim_2.sim_ws_series(t,ws,rotor_rpm_init=4)
+
+# Check if simulations are equal
+np.testing.assert_almost_equal(sim_1.gen_speed,sim_2.gen_speed)
 
 if False:
   plt.show()
