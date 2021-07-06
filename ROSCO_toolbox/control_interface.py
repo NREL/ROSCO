@@ -12,6 +12,7 @@
 from ctypes import byref, cdll, c_int, POINTER, c_float, c_char_p, c_double, create_string_buffer, c_int32, c_void_p
 import numpy as np
 from numpy.ctypeslib import ndpointer
+import platform, ctypes
 
 # Some useful constants
 deg2rad = np.deg2rad(1)
@@ -75,6 +76,14 @@ class ControllerInterface():
         self.avrSWAP[20] = 1.0 # HARD CODE initial rot speed = 1 rad/s
         self.avrSWAP[82] = 0 # HARD CODE initial nacIMU = 0
         self.avrSWAP[26] = 10 # HARD CODE initial wind speed = 10 m/s
+        
+        # Blade pitch initial conditions
+        self.avrSWAP[3]     = 0 * np.deg2rad(1)
+        self.avrSWAP[32]    = 0 * np.deg2rad(1)
+        self.avrSWAP[33]    = 0 * np.deg2rad(1)
+
+        # Torque initial condition
+        self.avrSWAP[22]    = 0
 
 
         # Code this as first casll
@@ -173,15 +182,75 @@ class ControllerInterface():
 
     def kill_discon(self):
         '''
-        Unload the dylib from memory: https://stackoverflow.com/questions/359498/how-can-i-unload-a-dll-using-ctypes-in-python
-        This is unix-specific, but there seems to be a windows solution as well
-        Update: this does not seem to work on Ubuntu and ROSCO will deallocate itself on the first timestep if necessary
+        Unload the dylib from memory: https://github.com/bwoodsend/cslug/blob/master/cslug/_stdlib.py
         '''
 
         print('Shutting down {}'.format(self.lib_name))
         handle = self.discon._handle
-        dlclose_func = self.discon.dlclose
-        dlclose_func.argtypes = [c_void_p]
+
+        # Start copy here
+        OS = platform.system()
+
+        def null_free_dll(*spam):  # pragma: no cover
+            pass
+
+        # Try to find a good runtime library which is always available and contains
+        # the standard library C functions such as malloc() or printf().
+        # XXX: Keep chosen library names in sync with the table in `cslug/stdlib.py`.
+
+        extra_libs = []
+
+        if OS == "Windows":  # pragma: Windows
+            _dlclose = ctypes.windll.kernel32.FreeLibrary
+            dlclose = lambda handle: 0 if _dlclose(handle) else 1
+            # There's some controversy as to whether this DLL is guaranteed to exist.
+            # It always has so far but isn't documented. However, MinGW assumes that it
+            # is so, should this DLL be removed, then we have much bigger problems than
+            # just this line. There is also vcruntime140.dll which isn't a standard part
+            # of the OS but is always shipped with Python so we can guarantee its
+            # presence. But vcruntime140 contains only a tiny strict-subset of msvcrt.
+            stdlib = ctypes.CDLL("msvcrt")
+
+        elif OS == "Darwin":  # pragma: Darwin
+            try:
+                try:
+                    # macOS 11 (Big Sur). Possibly also later macOS 10s.
+                    stdlib = ctypes.CDLL("libc.dylib")
+                except OSError:  # pragma: no cover
+                    stdlib = ctypes.CDLL("libSystem")
+            except OSError:  # pragma: no cover
+                # Older macOSs. Not only is the name inconsistent but it's
+                # not even in PATH.
+                _stdlib = "/usr/lib/system/libsystem_c.dylib"
+                if os.path.exists(_stdlib):
+                    stdlib = ctypes.CDLL(_stdlib)
+                else:
+                    stdlib = None
+            if stdlib is not None:  # pragma: no branch
+                dlclose = stdlib.dlclose
+            else:  # pragma: no cover
+                # I hope this never happens.
+                dlclose = null_free_dll
+
+        elif OS == "Linux":  # pragma: Linux
+            try:
+                stdlib = ctypes.CDLL("")
+            except OSError:  # pragma: no cover
+                # Either Alpine Linux or Android.
+                # Unfortunately, there doesn't seem to be any practical way
+                # to tell them apart.
+                stdlib = ctypes.CDLL("libc.so")
+
+                # Android, like FreeBSD puts its math functions
+                # in a dedicated `libm.so`.
+                # The only way to know that this is not Alpine is to check if the math
+                # functions are already available in `libc.so`.
+                if not hasattr(stdlib, "sin"):
+                    extra_libs.append(ctypes.CDLL("libm.so"))
+            dlclose = stdlib.dlclose
+
+        # End copy here
+        dlclose.argtypes = [c_void_p]
+        dlclose(handle)
 
         del self.discon
-        dlclose_func(handle)
