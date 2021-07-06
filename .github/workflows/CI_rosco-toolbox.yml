@@ -110,7 +110,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: ["ubuntu-latest"] #, "macOS-latest"]
+        os: ["ubuntu-latest", "macOS-latest", "windows-latest"]
         python-version: ["3.8"]
     defaults:
       run:
@@ -137,6 +137,11 @@ jobs:
         if: false == contains( matrix.os, 'windows')
         run: |
           conda install -y compilers
+          conda install -y wisdem
+      - name: Add dependencies windows specific
+        if: true == contains( matrix.os, 'windows')
+        run: |
+          conda install -y m2w64-toolchain libpython 
           conda install -y wisdem
         
 
