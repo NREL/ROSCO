@@ -16,7 +16,7 @@ from ROSCO_toolbox import controller as ROSCO_controller
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox.linear.linear_models import LinearTurbineModel
 from ROSCO_toolbox.linear.lin_util import add_pcomp, smargin
-
+from ROSCO_toolbox.inputs.validation import load_rosco_yaml
 
 class RobustScheduling(om.ExplicitComponent):
     'Finding Robust gain schedules for pitch controllers in FOWTs'
@@ -482,12 +482,12 @@ if __name__ == '__main__':
     linturb_options = {'linfile_root': linfile_root}
 
     # ROSCO options
-    parameter_filename = '/Users/nabbas/Documents/WindEnergyToolbox/ROSCO_toolbox/Tune_Cases/IEA15MW.yaml'
-    inps = yaml.safe_load(open(parameter_filename))
+    parameter_filename = '/Users/nabbas/Documents/WindEnergyToolbox/ROSCO/Tune_Cases/IEA15MW.yaml'
+    inps = load_rosco_yaml(parameter_filename)
     path_params = inps['path_params']
     turbine_params = inps['turbine_params']
     controller_params = inps['controller_params']
-    path_params['FAST_directory'] = '/Users/nabbas/Documents/WindEnergyToolbox/ROSCO_toolbox/Test_Cases/IEA-15-240-RWT-UMaineSemi'
+    path_params['FAST_directory'] = '/Users/nabbas/Documents/WindEnergyToolbox/ROSCO/Test_Cases/IEA-15-240-RWT-UMaineSemi'
     ROSCO_options = {
         'path_params': path_params,
         'turbine_params': turbine_params,
