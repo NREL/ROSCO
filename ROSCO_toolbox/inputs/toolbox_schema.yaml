@@ -195,6 +195,7 @@ properties:
                     type: number
                     minimum: 0
                     uniqueItems: True
+                default: [0]
             zeta_pc:                       
                 type: array
                 description: List of pitch controller desired damping ratio at U_pc [-]
