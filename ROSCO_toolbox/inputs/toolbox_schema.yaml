@@ -197,14 +197,14 @@ properties:
                     uniqueItems: True
                 default: [0]
             zeta_pc:                       
-                type: array
+                type: [array, number]
                 description: List of pitch controller desired damping ratio at U_pc [-]
                 unit: none
                 items:
                     type: number
                     minimum: 0
             omega_pc:                     
-                type: array
+                type: [array, number]
                 description: List of pitch controller desired natural frequency at U_pc [rad/s]
                 unit: rad/s
                 items:
