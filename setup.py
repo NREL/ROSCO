@@ -35,7 +35,7 @@ from numpy.distutils.core import setup, Extension
 from io import open
 
 # Package meta-data.
-NAME = 'rosco-toolbox'
+NAME = 'rosco'
 DESCRIPTION = 'A toolbox for development of wind turbine controllers.'
 URL = 'https://github.com/NREL/ROSCO_toolbox'
 EMAIL = 'nikhar.abbas@nrel.gov'
