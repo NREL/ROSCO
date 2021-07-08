@@ -594,7 +594,7 @@ CONTAINS
         DebugOutStr9  = 'PC_MinPit';     DebugOutUni9  = '(rad)';      DebugOutData(9)  = LocalVar%PC_MinPit
         DebugOutStr10  = 'SS_dOmF';      DebugOutUni10  = '(rad/s)';   DebugOutData(10)  = LocalVar%SS_DelOmegaF
         ! WSE
-        DebugOutStr11  = 'WE_Vw';        DebugOutUni11  = '(rad)';     DebugOutData(11)  = LocalVar%WE_Vw
+        DebugOutStr11  = 'WE_Vw';        DebugOutUni11  = '(m/s)';     DebugOutData(11)  = LocalVar%WE_Vw
         DebugOutStr12  = 'WE_b';         DebugOutUni12  = '(deg)';     DebugOutData(12)  = DebugVar%WE_b
         DebugOutStr13  = 'WE_t';         DebugOutUni13  = '(Nm)';      DebugOutData(13)  = DebugVar%WE_t
         DebugOutStr14  = 'WE_w';         DebugOutUni14  = '(rad/s)';   DebugOutData(14)  = DebugVar%WE_w
