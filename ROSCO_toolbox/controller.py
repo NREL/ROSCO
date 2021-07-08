@@ -63,6 +63,7 @@ class Controller():
         self.Flp_Mode           = controller_params['Flp_Mode']
 
         # Necessary parameters
+        self.U_pc               = controller_params['U_pc']
         self.zeta_pc            = controller_params['zeta_pc']
         self.omega_pc           = controller_params['omega_pc']
         self.zeta_vs            = controller_params['zeta_vs']
@@ -225,9 +226,16 @@ class Controller():
         A_pc = A[-len(v_above_rated)+1:]     # above rated
         B_tau = B_tau * np.ones(len(v))
 
+        # Resample omega_ and zeta_pc at above rated wind speeds
+        if len(self.U_pc) == len(self.omega_pc) == len(self.zeta_pc):
+            self.omega_pc_U = multi_sigma(v_above_rated[1:],self.U_pc,self.omega_pc)
+            self.zeta_pc_U  = multi_sigma(v_above_rated[1:],self.U_pc,self.zeta_pc)
+        else:
+            raise Exception('ROSCO_toolbox: The lengths of U_pc, omega_pc, and zeta_pc must be equal')
+
         # -- Find gain schedule --
         self.pc_gain_schedule = ControllerTypes()
-        self.pc_gain_schedule.second_order_PI(self.zeta_pc, self.omega_pc,A_pc,B_beta[-len(v_above_rated)+1:],linearize=True,v=v_above_rated[1:])        
+        self.pc_gain_schedule.second_order_PI(self.zeta_pc_U, self.omega_pc_U,A_pc,B_beta[-len(v_above_rated)+1:],linearize=True,v=v_above_rated[1:])        
         self.vs_gain_schedule = ControllerTypes()
         self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A_vs,B_tau[0:len(v_below_rated)],linearize=False,v=v_below_rated)
 
@@ -517,10 +525,10 @@ class ControllerTypes():
 
         Parameters:
         -----------
-        zeta : int (-)
-               Desired damping ratio 
-        om_n : int (rad/s)
-               Desired natural frequency 
+        zeta : list of floats (-)
+               Desired damping ratio with breakpoints at v
+        om_n : list of floats (rad/s)
+               Desired natural frequency with breakpoints at v
         A : array_like (1/s)
             Plant poles (state transition matrix)
         B : array_like (varies)
@@ -540,3 +548,69 @@ class ControllerTypes():
         # Calculate gain schedule
         self.Kp = 1/B * (2*zeta*om_n + A)
         self.Ki = om_n**2/B           
+
+
+# helper functions
+
+def sigma(tt,t0,t1,y0=0,y1=1):
+    ''' 
+    generates timeseries for a smooth transition from y0 to y1 from x0 to x1
+
+    inputs: tt - time indices
+            t0 - start time
+            t1 - end time
+            y0 - start output
+            y1 - end output
+
+    outputs: yy - output timeseries corresponding to tt
+    '''
+
+    a3 = 2/(t0-t1)**3
+    a2 = -3*(t0+t1)/(t0-t1)**3
+    a1 = 6*t1*t0/(t0-t1)**3
+    a0 = (t0-3*t1)*t0**2/(t0-t1)**3
+
+    a = np.array([a3,a2,a1,a0])  
+
+    T = np.vander(tt,N=4)       # vandermonde matrix
+
+    ss = T @ a.T                # base sigma
+
+    yy = (y1-y0) * ss + y0      # scale and offset
+
+    return yy
+
+
+def multi_sigma(xx,x_bp,y_bp):
+    '''
+    Make a sigma interpolation with multiple breakpoints
+
+    Parameters:
+    -----------
+    xx : list of floats (-)
+            new sample points
+    x_bp : list of floats (-)
+            breakpoints
+    y_bp : list of floats (-)
+            function value at breakpoints
+
+    '''
+    yy = np.zeros_like(xx)
+
+    # interpolate sigma functions between all breakpoints
+    for i_sigma in range(0,len(x_bp)-1):
+        ind_i       = (xx >= x_bp[i_sigma]) & (xx < x_bp[i_sigma+1])
+        xx_i        = xx[ind_i]
+        yy_i        = sigma(xx_i,x_bp[i_sigma],x_bp[i_sigma+1],y0=y_bp[i_sigma],y1=y_bp[i_sigma+1])
+        yy[ind_i]   = yy_i
+
+    # add first and last values to beginning and end
+    yy[xx<x_bp[0]]      = y_bp[0]
+    yy[xx>x_bp[-1]]     = y_bp[-1]
+
+    if False:  # debug plot
+        import matplotlib.pyplot as plt
+        plt.plot(xx,yy)
+        plt.show()
+
+    return yy

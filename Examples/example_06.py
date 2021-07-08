@@ -13,6 +13,7 @@ Note - you will need to have a compiled controller in ROSCO/build/
 # Python Modules
 import yaml
 import os
+import matplotlib.pyplot as plt
 # ROSCO toolbox modules 
 from ROSCO_toolbox import controller as ROSCO_controller
 from ROSCO_toolbox import turbine as ROSCO_turbine
@@ -22,6 +23,7 @@ from ROSCO_toolbox.inputs.validation import load_rosco_yaml
 
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
+example_out_dir = os.path.join(this_dir,'examples_out')
 
 # Load yaml file 
 parameter_filename = os.path.join(os.path.dirname(this_dir), 'Tune_Cases', 'IEA15MW.yaml') 
@@ -46,6 +48,30 @@ controller.tune_controller(turbine)
 # Write parameter input file
 param_file = os.path.join(this_dir,'DISCON.IN')   # This must be named DISCON.IN to be seen by the compiled controller binary. 
 write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
+
+# Plot gain schedule
+fig, ax = plt.subplots(2,2,constrained_layout=True,sharex=True)
+ax = ax.flatten()
+ax[0].plot(controller.v[len(controller.v_below_rated)+1:], controller.omega_pc_U)
+ax[0].set_ylabel('omega_pc')
+
+ax[1].plot(controller.v[len(controller.v_below_rated)+1:], controller.zeta_pc_U)
+ax[1].set_ylabel('zeta_pc')
+
+ax[2].plot(controller.v[len(controller.v_below_rated)+1:], controller.pc_gain_schedule.Kp)
+ax[2].set_xlabel('Wind Speed')
+ax[2].set_ylabel('Proportional Gain')
+
+ax[3].plot(controller.v[len(controller.v_below_rated)+1:], controller.pc_gain_schedule.Ki)
+ax[3].set_xlabel('Wind Speed')
+ax[3].set_ylabel('Integral Gain')
+
+plt.suptitle('Pitch Controller Gains')
+
+if False:
+  plt.show()
+else:
+  plt.savefig(os.path.join(example_out_dir,'06_GainSched.png'))
 
 # Run OpenFAST
 # --- May need to change fastcall if you use a non-standard command to call openfast
