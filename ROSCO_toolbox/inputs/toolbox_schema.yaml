@@ -291,6 +291,10 @@ properties:
                 description: Number of pitch angle gain scheduling breakpoints
                 minimum: 0
                 default: 30
+            Kp_float:
+                type: number
+                description: Gain of floating feedback control
+                unit: s
             
     filter_params:
         type: object

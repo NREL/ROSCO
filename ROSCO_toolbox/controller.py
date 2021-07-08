@@ -97,6 +97,13 @@ class Controller():
                 self.ptfm_freq  = controller_params['ptfm_freq']
             except:
                 raise Exception('ROSCO_toolbox:controller: twr_freq and ptfm_freq must be set if Fl_Mode > 0')
+
+            # Kp_float direct setting
+            if 'Kp_float' in controller_params:
+                self.Kp_float = controller_params['Kp_float']
+            else:
+                # Set to 0 to compute based on sensitivities later
+                self.Kp_float = 0
         else:
             self.twr_freq   = 0
             self.ptfm_freq  = 0
@@ -290,15 +297,17 @@ class Controller():
 
         # --- Floating feedback term ---
         if self.Fl_Mode == 1: # Floating feedback
-            Kp_float = (dtau_dv/dtau_dbeta) * turbine.TowerHt * Ng 
-            f_kp     = interpolate.interp1d(v,Kp_float)
-            self.Kp_float = f_kp(turbine.v_rated * (1.05))   # get Kp at v_rated + 0.5 m/s
-            # Turn on the notch filter if floating
-            self.F_NotchType = 2
-            
-            # And check for .yaml input inconsistencies
-            if self.twr_freq == 0.0 or self.ptfm_freq == 0.0:
-                print('WARNING: twr_freq and ptfm_freq should be defined for floating turbine control!!')
+            # If we haven't set Kp_float as a control parameter
+            if self.Kp_float == 0:
+                Kp_float = (dtau_dv/dtau_dbeta) * turbine.TowerHt * Ng 
+                f_kp     = interpolate.interp1d(v,Kp_float)
+                self.Kp_float = f_kp(turbine.v_rated * (1.05))   # get Kp at v_rated + 0.5 m/s
+                # Turn on the notch filter if floating
+                self.F_NotchType = 2
+                
+                # And check for .yaml input inconsistencies
+                if self.twr_freq == 0.0 or self.ptfm_freq == 0.0:
+                    print('WARNING: twr_freq and ptfm_freq should be defined for floating turbine control!!')
         else:
             self.Kp_float = 0.0
 
