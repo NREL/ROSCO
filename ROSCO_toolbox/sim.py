@@ -116,6 +116,9 @@ class Sim():
         self.t_array = t_array
         self.ws_array = ws_array
 
+        # Close shared library when finished
+        self.controller_int.kill_discon()
+
         if make_plots:
             fig, axarr = plt.subplots(4,1,sharex=True,figsize=(6,10))
 

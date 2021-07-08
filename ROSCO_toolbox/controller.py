@@ -246,9 +246,9 @@ class Controller():
         # -- Define some setpoints --
         # minimum rotor speed saturation limits
         if self.vs_minspd:
-            self.vs_minspd = np.maximum(self.vs_minspd, (turbine.TSR_operational * turbine.v_min / turbine.rotor_radius) * Ng)
+            self.vs_minspd = np.maximum(self.vs_minspd, (turbine.TSR_operational * turbine.v_min / turbine.rotor_radius))
         else: 
-            self.vs_minspd = (turbine.TSR_operational * turbine.v_min / turbine.rotor_radius) * Ng
+            self.vs_minspd = (turbine.TSR_operational * turbine.v_min / turbine.rotor_radius)
         self.pc_minspd = self.vs_minspd
 
         # max pitch angle for shutdown
@@ -483,7 +483,7 @@ class ControllerBlocks():
     def min_pitch_saturation(self, controller, turbine):
         
         # Find TSR associated with minimum rotor speed
-        TSR_at_minspeed = (controller.pc_minspd/turbine.Ng) * turbine.rotor_radius / controller.v_below_rated
+        TSR_at_minspeed = (controller.pc_minspd) * turbine.rotor_radius / controller.v_below_rated
         for i in range(len(TSR_at_minspeed)):
             if TSR_at_minspeed[i] > controller.TSR_op[i]:
                 controller.TSR_op[i] = TSR_at_minspeed[i]
