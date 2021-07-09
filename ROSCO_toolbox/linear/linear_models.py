@@ -5,18 +5,21 @@ u_op, y_op, and x_op
 
 '''
 
+import os
 import numpy as np
 import scipy as sp
 import control as co
-import pyFAST.linearization.mbc.mbc3 as mbc
 import matplotlib.pyplot as plt
-import re
 import multiprocessing as mp
 from itertools import chain
 from scipy.io import loadmat
 
-import os
-
+try:
+    import pyFAST.linearization.mbc.mbc3 as mbc
+except ImportError:
+    import WEIS.control.mbc.mbc3 as mbc
+except ImportError:
+    raise ImportError('Unable to load mbc3 from pyFAST or WEIS')
 
 class LinearTurbineModel(object):
 
