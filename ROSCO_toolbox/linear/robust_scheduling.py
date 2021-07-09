@@ -148,9 +148,9 @@ class rsched_driver():
             self.om_doe.run_driver()
 
         elif self.opt_options['driver'] == 'optimization':
-            omegas = []
-            k_floats = []
-            sms = []
+            self.omegas = []
+            self.k_floats = []
+            self.sms = []
             for u in self.opt_options['windspeed']:
                 # Run initial doe
                 self.om_doe.set_val('r_sched.u_eval', u)
@@ -191,22 +191,23 @@ class rsched_driver():
                 self.om_opt.driver.cleanup()
 
                 # save values
-                omegas.append(self.om_opt.get_val('r_sched.omega')[0])
-                k_floats.append(self.om_opt.get_val('r_sched.k_float')[0])
-                sms.append(self.om_opt.get_val('r_sched.sm')[0])
+                self.omegas.append(self.om_opt.get_val('r_sched.omega')[0])
+                self.k_floats.append(self.om_opt.get_val('r_sched.k_float')[0])
+                self.sms.append(self.om_opt.get_val('r_sched.sm')[0])
 
-            fig, ax = plt.subplots(3, 1, constrained_layout=True, sharex=True)
-            ax[0].plot(opt_options['windspeed'], omegas)
-            ax[0].set_ylabel('omega_pc')
-            ax[0].grid()
-            ax[1].plot(opt_options['windspeed'], k_floats)
-            ax[1].set_ylabel('k_float')
-            ax[1].grid()
-            ax[2].plot(opt_options['windspeed'], sms)
-            ax[2].set_ylabel('stability margin')
-            ax[2].set_xlabel('Wind Speed')
-            ax[2].grid()
-            plt.show()
+    def plot_schedule(self):
+        fig, ax = plt.subplots(3, 1, constrained_layout=True, sharex=True)
+        ax[0].plot(self.opt_options['windspeed'], self.omegas)
+        ax[0].set_ylabel('omega_pc')
+        ax[0].grid()
+        ax[1].plot(self.opt_options['windspeed'], self.k_floats)
+        ax[1].set_ylabel('k_float')
+        ax[1].grid()
+        ax[2].plot(self.opt_options['windspeed'], self.sms)
+        ax[2].set_ylabel('stability margin')
+        ax[2].set_xlabel('Wind Speed')
+        ax[2].grid()
+        plt.show()
 
 
     def add_dv(self, om_problem):
@@ -348,6 +349,8 @@ if __name__ == '__main__':
     path_params = inps['path_params']
     turbine_params = inps['turbine_params']
     controller_params = inps['controller_params']
+    path_params['FAST_directory'] = os.path.join(os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'Test_Cases', 'IEA-15-240-RWT-UMaineSemi')
     ROSCO_options = {
         'path_params': path_params,
         'turbine_params': turbine_params,
@@ -379,3 +382,6 @@ if __name__ == '__main__':
     sd.execute()
     if opt_options['driver'] == 'design_of_experiments':
         sd.post_doe(save_csv=True)
+    else:
+        sd.plot_schedule()
+
