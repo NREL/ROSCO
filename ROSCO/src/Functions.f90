@@ -600,7 +600,7 @@ CONTAINS
         DebugOutStr14  = 'WE_w';         DebugOutUni14  = '(rad/s)';   DebugOutData(14)  = DebugVar%WE_w
         DebugOutStr15  = 'WE_Vm';        DebugOutUni15  = '(m/s)';     DebugOutData(15)  = DebugVar%WE_Vm
         DebugOutStr16  = 'WE_Vt';        DebugOutUni16  = '(m/s)';     DebugOutData(16)  = DebugVar%WE_Vt
-        DebugOutStr17  = 'WE_lambda';    DebugOutUni17  = '(rad/s)';   DebugOutData(17)  = DebugVar%WE_lambda
+        DebugOutStr17  = 'WE_lambda';    DebugOutUni17  = '(-)';   DebugOutData(17)  = DebugVar%WE_lambda
         DebugOutStr18  = 'WE_Cp';        DebugOutUni18  = '(-)';       DebugOutData(18)  = DebugVar%WE_Cp
 
         Allocate(DebugOutStrings(nDebugOuts))
