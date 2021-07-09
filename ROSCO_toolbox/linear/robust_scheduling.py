@@ -158,6 +158,7 @@ class rsched_driver():
                     self.output_dir, self.output_name + '.' + str(u) + ".doe.sql")
                 self.om_doe = self.setup_recorder(self.om_doe, self.doe_logfile)
                 self.om_doe.run_driver()
+                self.om_doe.cleanup()
             
                 # Load doe
                 doe_df = self.post_doe(save_csv=True)
@@ -165,7 +166,7 @@ class rsched_driver():
 
                 try:
                     # Find initial omega
-                    om0 = doe_df['r_sched.omega_opt'][np.argmin(np.abs(doe_df['r_sched.sm'][np.argmax(doe_df['r_sched.sm']):np.argmin(doe_df['r_sched.sm'])]))]
+                    om0 = np.mean(doe_df['r_sched.omega_opt'][doe_df['r_sched.sm'] > 0.0])
                     print('FOUND AN INITIAL CONDITION', om0)
 
                 except:
@@ -180,6 +181,7 @@ class rsched_driver():
                 opt_logfile = os.path.join(self.output_dir, self.output_name + '.' + str(u) + ".opt.sql")
                 self.om_opt = self.setup_recorder(self.om_opt, opt_logfile)
                 self.om_opt.run_driver()
+                self.om_opt.cleanup()
 
                 # save values
                 self.omegas.append(self.om_opt.get_val('r_sched.omega')[0])
