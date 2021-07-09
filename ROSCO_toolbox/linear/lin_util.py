@@ -112,14 +112,12 @@ def smargin(linturb, controller, u_eval):
     sp_sens = sp.signal.StateSpace(sens_sys.A, sens_sys.B, sens_sys.C, sens_sys.D)
 
     def nyquist_min(om): return np.abs(sp.signal.freqresp(sp_plant, w=om)[1] + 1.)
-    def sens_max(om): return -np.abs(sp.signal.freqresp(sp_sens, w=om)[1])
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        ws, Hs = sp.signal.freqresp(sp_sens, n=1000000)
-        # , 0.05, method='COBYLA', tol=1e-5) #, bounds=[0.0,100.0], method='Bounded')
+        ws, _ = sp.signal.freqresp(sp_sens, n=1000000)
         res = sp.optimize.minimize(nyquist_min, ws[np.argmin(nyquist_min(ws))], method='SLSQP', options={
-                                   'finite_diff_rel_step': 1e-1})
+                                   'finite_diff_rel_step': 1e-2})
 
     if any(sp_sens.poles > 0):
         sm = -res.fun
