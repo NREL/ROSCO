@@ -1,0 +1,162 @@
+name: CI_rosco-toolbox
+
+# We run CI on push commits on all branches
+on: [push, pull_request]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: ["ubuntu-latest", "macOS-latest", "windows-latest"]
+        python-version: ["3.8"]
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      
+      - name: Setup environment
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniconda-version: "latest"
+          channels: conda-forge, general
+          auto-update-conda: true
+          python-version: 3.8
+          environment-file: environment.yml
+
+
+      # Install dependencies of ROSCO toolbox
+      - name: Add dependencies ubuntu specific
+        if: false == contains( matrix.os, 'windows')
+        run: |
+          conda install -y compilers
+          conda install -y wisdem
+      - name: Add dependencies windows specific
+        if: true == contains( matrix.os, 'windows')
+        run: |
+          conda install -y m2w64-toolchain libpython 
+          conda install -y wisdem
+        
+
+      # Install ROSCO toolbox
+      - name: Install ROSCO toolbox
+        run: |
+          python setup.py develop --compile-rosco
+          
+
+  run_examples:
+    name: Run Examples
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: ["ubuntu-latest"] #, "macOS-latest"]
+        python-version: ["3.8"]
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      
+      - name: Setup environment
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniconda-version: "latest"
+          channels: conda-forge, general
+          auto-update-conda: true
+          python-version: 3.8
+          environment-file: environment.yml
+
+
+      # Install dependencies of ROSCO toolbox
+      - name: Add dependencies ubuntu specific
+        if: false == contains( matrix.os, 'windows')
+        run: |
+          conda install -y compilers
+          conda install -y wisdem
+      - name: Add dependencies windows specific
+        if: true == contains( matrix.os, 'windows')
+        run: |
+          conda install -y m2w64-toolchain libpython 
+          conda install -y wisdem
+        
+
+      # Install ROSCO toolbox
+      - name: Install ROSCO toolbox
+        run: |
+          python setup.py develop --compile-rosco
+          
+      # Install OpenFAST
+      - name: Install OpenFAST
+        run: |
+          conda install openfast==3.0.0
+          
+      # Run examples
+      - name: Run examples
+        run: |
+          cd Examples
+          python run_examples.py
+
+  run_testing:
+    name: Run Testing
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: ["ubuntu-latest"] #, "macOS-latest"]
+        python-version: ["3.8"]
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      
+      - name: Setup environment
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniconda-version: "latest"
+          channels: conda-forge, general
+          auto-update-conda: true
+          python-version: 3.8
+          environment-file: environment.yml
+
+
+      # Install dependencies of ROSCO toolbox
+      - name: Add dependencies ubuntu specific
+        if: false == contains( matrix.os, 'windows')
+        run: |
+          conda install -y compilers
+          conda install -y wisdem
+        
+
+      # Install ROSCO toolbox
+      - name: Install ROSCO toolbox
+        run: |
+          python setup.py develop --compile-rosco
+          
+      # Install OpenFAST
+      - name: Install OpenFAST
+        run: |
+          conda install openfast==3.0.0
+
+      # Run Testing
+      - name: Run testing
+        run: |
+          cd ROSCO_testing
+          python ROSCO_testing.py

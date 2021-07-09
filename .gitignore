@@ -23,5 +23,62 @@ Scripts/CompileDISCONHereCopyRun\.cmd
 *.i90
 *.swp
 
-# vs code
+
+# python compiled files
+__pycache__/
+.cache
+*.pyc
+*.egg-info
+dist
+build
+_build
+*.ipynb_checkpoints*
+*.html
+
+# macOS files
+.DS_Store
+
+# MATLAB files
+*.m~
+*slprj*
+
+# ide settings and files
+.idea
 .vscode
+
+# OpenFAST generated files
+*.sum
+*.ech
+*.dbg
+*.out
+*.outb
+*.dbg
+*.vtp
+
+# ROSCO files
+*.85
+*.i90
+*local*
+
+# Binaries
+*.dylib
+*.so
+*.dll
+*.bts
+
+# Other
+.pytest_cache
+examples/cp_ct_cq_lut.p
+
+# Files Generated in Examples
+Examples/DISCON.IN
+Examples/*.p
+
+# Exclude testing results
+ROSCO_testing/results/
+
+# Simulink/Matlab temp files
+*.slxc
+*.autosave
+*.mat
+
