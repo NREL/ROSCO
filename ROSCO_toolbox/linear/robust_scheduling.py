@@ -40,7 +40,7 @@ class RobustScheduling(om.ExplicitComponent):
         self.add_output('omega_opt', val=0.01,      units='rad/s', desc='Maximized controller bandwidth')
 
         # Load linear turbine models and trim them
-        self.linturb = load_linturb(linturb_options['linfile_root'])
+        self.linturb = load_linturb(linturb_options['linfile_root'], load_parallel=linturb_options['load_parallel'])
         self.linturb.trim_system(desInputs=['collective'], desOutputs=['RtSpeed'])
 
         # Load Controller
@@ -309,7 +309,7 @@ def load_OMsql(log):
 
     return rec_data
 
-def load_linturb(linfile_root):
+def load_linturb(linfile_root, load_parallel=False):
     # Parse openfast linearization filenames
     filenames = glob.glob(os.path.join(linfile_root, '*.lin'))
     linfiles = [os.path.split(file)[1] for file in filenames]
@@ -317,7 +317,7 @@ def load_linturb(linfile_root):
     linfile_numbers = set([int(file.split('.')[1]) for file in linfiles])
     # Load linturb
     linturb = LinearTurbineModel(linfile_root, linroots,
-                                 nlin=max(linfile_numbers), rm_hydro=True)
+                                 nlin=max(linfile_numbers), rm_hydro=True, load_parallel=load_parallel)
 
     return linturb
 
@@ -336,7 +336,9 @@ if __name__ == '__main__':
 
     # Setup linear turbine paths
     linfile_root = '/Users/nabbas/Documents/Projects/RobustControl/linearizations/case_outputs/case_4'
-    linturb_options = {'linfile_root': linfile_root}
+    load_parallel = True
+    linturb_options = {'linfile_root': linfile_root,
+                       'load_parallel': load_parallel}
 
     # ROSCO options
     parameter_filename = '/Users/nabbas/Documents/WindEnergyToolbox/ROSCO/Tune_Cases/IEA15MW.yaml'
