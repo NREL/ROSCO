@@ -26,8 +26,11 @@ class LinearTurbineModel(object):
                 lin_file_dir (string) - directory of linear file outputs from OpenFAST
                 lin_file_names (list of strings) - name of output file from OpenFAST, without extension
                 nlin (integer) - number of linearization points
-                
-                - if fromMat = True, lin_file is .mat from matlab version of mbc3
+                reduceStates (bool) - State space reduction currently unsupported N/A
+                fromMat (bool) - load from .mat file
+                lin_file (string) -  name of .mat file from matlab version of mbc3, only used if fromMat=True
+                rm_hydro (bool) - remove hydrodynamic states
+                load_parallel (bool) - run mbc3 usying multiprocessing
         '''
         if not fromMat:
 
