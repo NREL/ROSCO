@@ -26,7 +26,7 @@ this_dir = os.path.dirname(os.path.abspath(__file__))
 example_out_dir = os.path.join(this_dir,'examples_out')
 
 # Load yaml file 
-parameter_filename = os.path.join(os.path.dirname(this_dir), 'Tune_Cases', 'IEA15MW.yaml') 
+parameter_filename = os.path.join(os.path.dirname(this_dir), 'Tune_Cases', 'IEA15MW_MultiOmega.yaml') 
 inps = load_rosco_yaml(parameter_filename)
 path_params         = inps['path_params']
 turbine_params      = inps['turbine_params']
