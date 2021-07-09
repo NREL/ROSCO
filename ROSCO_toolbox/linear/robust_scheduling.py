@@ -154,17 +154,10 @@ class rsched_driver():
             for u in self.opt_options['windspeed']:
                 # Run initial doe
                 self.om_doe.set_val('r_sched.u_eval', u)
-                # self.doe_logfile = os.path.join(self.output_dir, self.output_name + '.' + str(u) + ".doe.sql")
-                self.doe_logfile = os.path.join(self.output_dir, self.output_name + ".doe.sql") # TODO: NJA - the recorder is not re-initializing property for different filenames and needs to be figured out 
-                recorder = om.SqliteRecorder(self.doe_logfile)
-                if len(self.om_doe.driver._recorders) == 0:
-                    self.om_doe.driver.add_recorder(recorder)
-                else:
-                    self.om_doe.driver._recorders.pop()
-                    self.om_doe.driver.add_recorder(recorder)
-
+                self.doe_logfile = os.path.join(
+                    self.output_dir, self.output_name + '.' + str(u) + ".doe.sql")
+                self.om_doe = self.setup_recorder(self.om_doe, self.doe_logfile)
                 self.om_doe.run_driver()
-                self.om_doe.cleanup() # TODO: NJA - cleanup isn't working as expected for some reason?
             
                 # Load doe
                 doe_df = self.post_doe(save_csv=True)
@@ -184,11 +177,9 @@ class rsched_driver():
                 self.om_opt.set_val('r_sched.omega', om0)
 
                 # Run optimization
-                self.om_opt.driver.add_recorder(om.SqliteRecorder(
-                    os.path.join(self.output_dir, self.output_name + '.' + str(u) + ".sql")))
-
+                opt_logfile = os.path.join(self.output_dir, self.output_name + '.' + str(u) + ".sql")
+                self.om_opt = self.setup_recorder(self.om_opt, opt_logfile)
                 self.om_opt.run_driver()
-                self.om_opt.driver.cleanup()
 
                 # save values
                 self.omegas.append(self.om_opt.get_val('r_sched.omega')[0])
@@ -241,6 +232,22 @@ class rsched_driver():
         # om_problem.driver.options['procs_per_model'] = 1
     
         return om_problem
+
+    @staticmethod
+    def setup_recorder(problem, sql_filename):
+        # self.doe_logfile = os.path.join(self.output_dir, self.output_name + ".doe.sql") # TODO: NJA - the recorder is not re-initializing property for different filenames and needs to be figured out 
+        recorder = om.SqliteRecorder(sql_filename)
+        
+        try: # Try to re-name recorder
+            problem.driver._recorders.pop()
+            problem.driver.add_recorder(recorder)
+
+            problem._setup_recording()
+            problem.driver._setup_recording()
+        except: # Must be first pass, add a recorder
+            problem.driver.add_recorder(recorder)
+
+        return problem
 
     def post_doe(self, save_csv=False):
         '''Post process doe'''
@@ -366,7 +373,7 @@ if __name__ == '__main__':
 
     # Scheduling options
     opt_options = { 'driver': 'optimization', #'design_of_experiments',
-                    'windspeed': [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25],
+                    'windspeed': [12, 13, 14], #, 17, 18, 19, 20, 21, 22, 23, 24, 25],
                    'stability_margin': 0.1,
                    'omega':[0.05, 0.2],
                    'k_float': [0.0]}
