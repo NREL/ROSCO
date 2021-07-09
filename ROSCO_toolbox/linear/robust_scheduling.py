@@ -50,18 +50,18 @@ class RobustScheduling(om.ExplicitComponent):
 
     def compute(self, inputs, outputs):
         # print('THIS IS RUNNING FOR', inputs['u_eval'])
-        # print('Omega =',inputs['omega'])
+        print('Omega =',inputs['omega'][0])
         k_float = inputs['k_float'][0]
-        print('k_float', k_float)
+        # print('k_float', k_float)
         if k_float:
             linturb = add_pcomp(self.linturb, k_float)
         else:
             linturb = self.linturb
 
-        self.controller.omega_pc = inputs['omega']
+        self.controller.omega_pc = inputs['omega'][0]
         self.controller.tune_controller(self.turbine)
-        sm = smargin(linturb, self.controller, inputs['u_eval'])
-        # print('sm =',sm)
+        sm = smargin(linturb, self.controller, inputs['u_eval'][0])
+        print('sm =',sm)
 
         omega = inputs['omega']
 
@@ -91,320 +91,168 @@ class rsched_driver():
         Setup the OpenMDAO problem
         '''
         # Initialize problem
-        self.rsched = om.Problem()
+        self.om_problem = om.Problem()
 
         # Add subsystem
-        self.rsched.model.add_subsystem('r_sched', RobustScheduling(linturb_options=linturb_options,
+        self.om_problem.model.add_subsystem('r_sched', RobustScheduling(linturb_options=linturb_options,
                                                                     ROSCO_options=ROSCO_options))
 
         if self.opt_options['driver'] == 'design_of_experiments':
-            self.init_doe()
-
-        # Set inputs and design variables 
-        self.rsched.set_val('r_sched.u_eval', self.opt_options['windspeed'])
-
-        if len(self.opt_options['omega']) == 1:
-            self.rsched.set_val('r_sched.omega', self.opt_options['omega'][0])
-        elif len(self.opt_options['omega']) == 2:
-            self.rsched.model.add_design_var(
-                'r_sched.omega', lower=self.opt_options['omega'][0], upper=self.opt_options['omega'][1])
+            self.om_problem = self.init_doe(self.om_problem, levels=20)
+            if isinstance(self.opt_options['windspeed'], list):
+                if len(self.opt_options['windspeed'] == 1):
+                    self.opt_options['windspeed'] = self.opt_options['windspeed'][0]
+                else:
+                    ValueError('Can only run design of experiments for a single opt_options["windspeed"]')
+        elif self.opt_options['driver'] == 'optimization':
+            self.om_problem = self.init_doe(self.om_problem, levels=10)
         else:
-            raise ValueError('Length of opt_options["omega"] cannot be greater than 2.')
-
-        if len(self.opt_options['k_float']) == 1:
-            self.rsched.set_val('r_sched.k_float', self.opt_options['k_float'][0])
-        elif len(self.opt_options['k_float']) == 2:
-            self.rsched.model.add_design_var(
-                'r_sched.k_float', lower=self.opt_options['k_float'][0], upper=self.opt_options['k_float'][1])
-        else:
-            raise ValueError('Length of opt_options["k_float"] cannot be greater than 2.')
+            ValueError("self.opt_options['driver'] must be either 'design_of_experiments' or 'optimization'.")
+            
+        # Add design variables
+        self.om_problem = self.add_dv(self.om_problem)
 
         # Add stability margin constraints
-        self.rsched.model.add_constraint('r_sched.sm', lower=self.opt_options['stability_margin'])
+        self.om_problem.model.add_constraint('r_sched.sm', lower=self.opt_options['stability_margin'])
 
         # Define objective
-        self.rsched.model.add_objective('r_sched.omega_opt', scaler=-1)
+        self.om_problem.model.add_objective('r_sched.omega_opt', scaler=-1)
 
+        # Setup OM Problem
+        self.om_problem.setup()
+
+        # Set constant values
+        if len(self.opt_options['omega']) == 1:
+            self.om_problem.set_val('r_sched.omega', self.opt_options['omega'][0])
+        if len(self.opt_options['k_float']) == 1:
+            self.om_problem.set_val('r_sched.k_float', self.opt_options['k_float'][0])
+        
+        if self.opt_options['driver'] == 'design_of_experiments':
+            self.om_doe = self.om_problem
+        if self.opt_options['driver'] == 'optimization':
+            self.om_doe = self.om_problem
+            self.om_opt = copy.deepcopy(self.om_problem)
+            self.om_opt = self.init_optimization(self.om_opt)
+        
+    
     def execute(self):
         '''
         Execute OpenMDAO
         '''
-        self.rsched.run_driver()
-        
+        if self.opt_options['driver'] == 'design_of_experiments':
+            u = self.opt_options['windspeed']
+            self.om_doe.set_val('r_sched.u_eval', u)
+            self.doe_logfile = os.path.join(
+                self.output_dir, self.output_name + '.' + str(u) + ".doe.sql")
+            self.om_doe.driver.add_recorder(om.SqliteRecorder(self.doe_logfile))
+            self.om_doe.run_driver()
 
-    def init_doe(self):
-        'Initialize DOE driver'
-        # self.rsched.driver = om.DOEDriver(om.FullFactorialGenerator(levels=10))
-        self.rsched.driver = om.DOEDriver(om.UniformGenerator(num_samples=20))
+        elif self.opt_options['driver'] == 'optimization':
+            omegas = []
+            k_floats = []
+            sms = []
+            for u in self.opt_options['windspeed']:
+                # Run initial doe
+                self.om_doe.set_val('r_sched.u_eval', u)
+                # self.doe_logfile = os.path.join(self.output_dir, self.output_name + '.' + str(u) + ".doe.sql")
+                self.doe_logfile = os.path.join(self.output_dir, self.output_name + ".doe.sql") # TODO: NJA - the recorder is not re-initializing property for different filenames and needs to be figured out 
+                recorder = om.SqliteRecorder(self.doe_logfile)
+                if len(self.om_doe.driver._recorders) == 0:
+                    self.om_doe.driver.add_recorder(recorder)
+                else:
+                    self.om_doe.driver._recorders.pop()
+                    self.om_doe.driver.add_recorder(recorder)
+
+                self.om_doe.run_driver()
+                self.om_doe.cleanup() # TODO: NJA - cleanup isn't working as expected for some reason?
+            
+                # Load doe
+                doe_df = self.post_doe(save_csv=True)
+                doe_df.sort_values('r_sched.omega', inplace=True, ignore_index=True)
+
+                try:
+                    # Find initial omega
+                    om0 = doe_df['r_sched.omega_opt'][np.argmin(np.abs(doe_df['r_sched.sm'][np.argmax(doe_df['r_sched.sm']):np.argmin(doe_df['r_sched.sm'])]))]
+                    print('FOUND AN INITIAL CONDITION', om0)
+
+                except:
+                    print('Unable to initialize om0 properly')
+                    om0 = 0.05
+
+                # Setup optimization
+                self.om_opt.set_val('r_sched.u_eval', u)
+                self.om_opt.set_val('r_sched.omega', om0)
+
+                # Run optimization
+                self.om_opt.driver.add_recorder(om.SqliteRecorder(
+                    os.path.join(output_dir, output_name + '.' + str(u) + ".sql")))
+
+                self.om_opt.run_driver()
+                self.om_opt.driver.cleanup()
+
+                # save values
+                omegas.append(self.om_opt.get_val('r_sched.omega')[0])
+                k_floats.append(self.om_opt.get_val('r_sched.k_float')[0])
+                sms.append(self.om_opt.get_val('r_sched.sm')[0])
+
+            fig, ax = plt.subplots(3, 1, constrained_layout=True, sharex=True)
+            ax[0].plot(opt_options['windspeed'], omegas)
+            ax[0].set_ylabel('omega_pc')
+            ax[0].grid()
+            ax[1].plot(opt_options['windspeed'], k_floats)
+            ax[1].set_ylabel('k_float')
+            ax[1].grid()
+            ax[2].plot(opt_options['windspeed'], sms)
+            ax[2].set_ylabel('stability margin')
+            ax[2].set_xlabel('Wind Speed')
+            ax[2].grid()
+            plt.show()
+
+
+    def add_dv(self, om_problem):
+        # add design variables
+        if len(self.opt_options['omega']) == 2:
+            om_problem.model.add_design_var(
+                    'r_sched.omega', lower=self.opt_options['omega'][0], upper=self.opt_options['omega'][1])
+        if len(self.opt_options['k_float']) == 2:
+            om_problem.model.add_design_var(
+                'r_sched.k_float', lower=self.opt_options['k_float'][0], upper=self.opt_options['k_float'][1])
+
+        return om_problem
+
+    def init_optimization(self, om_problem):
+        'Initialize optimizer'
+        om_problem.driver = om.ScipyOptimizeDriver()
+        om_problem.driver.options['optimizer'] = 'SLSQP'
+        om_problem.driver.options['tol'] = 1e-3
+        om_problem.driver.options['maxiter'] = 20
+        om_problem.driver.options['debug_print'] = ['desvars', 'nl_cons']
+        om_problem.model.approx_totals(method="fd", step=1e-3, form='central', step_calc='rel')
+
+        return om_problem
+
+    def init_doe(self, om_problem, levels=20):
+        '''Initialize DOE driver'''
+        om_problem.driver = om.DOEDriver(om.FullFactorialGenerator(levels=levels))
+        # om_problem.driver = om.DOEDriver(om.UniformGenerator(num_samples=20))
         os.makedirs(self.output_dir, exist_ok=True)
-        self.rsched.driver.add_recorder(om.SqliteRecorder(
-            os.path.join(self.output_dir, self.output_name + ".sql")))
-        # self.rsched.driver.options['run_parallel'] = True
-        # self.rsched.driver.options['procs_per_model'] = 1
-        
-        # Setup OM Problem
-        self.rsched.setup()
+        # om_problem.driver.options['run_parallel'] = True
+        # om_problem.driver.options['procs_per_model'] = 1
+    
+        return om_problem
 
     def post_doe(self, save_csv=False):
-        # Post process doe
-        doe_logs = glob.glob(os.path.join(self.output_dir, self.output_name + '.sql*'))
-        
+        '''Post process doe'''
         # write to file
         if save_csv:
-            doe_outfile_path = os.path.join(self.output_dir, self.output_name)
+            doe_outfile = '.'.join(self.doe_logfile.split('.')[:-1]) + '.csv'
+        else:
+            doe_outfile = None
         
-        df = load_DOE(doe_logs, outfile_path=doe_outfile_path)
+        df = load_DOE(self.doe_logfile, outfile_name=doe_outfile)
 
         return df
 
-def load_DOE(doe_logs, outfile_path=None):
-    outdata = [load_OMsql(log) for log in doe_logs]
-
-    if False:
-        cores = mp.cpu_count()
-        pool = mp.Pool(min(len(doe_logs), cores))
-
-        # load sql file
-        outdata = pool.map(load_OMsql, doe_logs)
-        pool.close()
-        pool.join()
-    # no multiprocessing
-    else:
-        outdata = [load_OMsql(log) for log in doe_logs]
-
-    collected_data = {}
-    for data in outdata:
-        for key in data.keys():
-            if key not in collected_data.keys():
-                collected_data[key] = []
-
-            for key_idx, _ in enumerate(data[key]):
-                if isinstance(data[key][key_idx], int):
-                    collected_data[key].append(np.array(data[key][key_idx]))
-                elif len(data[key][key_idx]) == 1:
-                    try:
-                        collected_data[key].append(np.array(data[key][key_idx][0]))
-                    except:
-                        collected_data[key].append(np.array(data[key][key_idx]))
-                else:
-                    collected_data[key].append(np.array(data[key][key_idx]))
-
-    df = pd.DataFrame.from_dict(collected_data)
-
-    if outfile_path:
-        df.to_csv(outdata_fpath + '.csv', index=False)
-        print('Saved {}'.format(outdata_fpath + '.csv'))
-
-def load_OMsql(log):
-    print('loading {}'.format(log))
-    cr = om.CaseReader(log)
-    rec_data = {}
-    driver_cases = cr.list_cases('driver')
-    cases = cr.get_cases('driver')
-    for case in cases:
-        for key in case.outputs.keys():
-            if key not in rec_data:
-                rec_data[key] = []
-            rec_data[key].append(case[key])
-
-    return rec_data
-
-def tune(options):
-    linturb_options = options['linturb_options']
-    ROSCO_options = options['ROSCO_options']
-    output_dir = options['path_options']['output_dir']
-    output_name = options['path_options']['output_name']
-    opt_options = options['opt_options']
-
-    os.makedirs(output_dir, exist_ok=True)
-
-    lintune = om.Problem()
-    lintune.model.add_subsystem('r_sched', RobustScheduling(linturb_options=linturb_options, 
-                                                          ROSCO_options=ROSCO_options
-                                                          ))
-
-    # Add initial design variables
-    lintune.model.add_design_var('r_sched.omega', lower=0.001, upper=0.2)
-
-    # Add constraints
-    lintune.model.add_constraint('r_sched.sm', lower=opt_options['stability_margin'], upper=1.0)
-
-    # Define objective
-    lintune.model.add_objective('r_sched.omega_opt', scaler=-1)
-
-    # Setup optimizer
-    lintune.driver = om.ScipyOptimizeDriver()
-    lintune.driver.options['optimizer'] = 'trust-constr'
-    lintune.driver.options['tol'] = 1e-3
-    lintune.driver.options['maxiter'] = 20
-    lintune.driver.options['debug_print'] = ['desvars', 'nl_cons']
-    lintune.model.approx_totals(method="fd", step=1e-2, form='central', step_calc='rel')
-
-    # Setup DOE
-    lindoe = copy.deepcopy(lintune)
-    lindoe.driver = om.DOEDriver(om.FullFactorialGenerator(levels=10))
-    lindoe.driver.add_recorder(om.SqliteRecorder(os.path.join(output_dir, output_name + ".sql")))
-    lindoe.setup()
-
-    # add k_float
-    lintune.model.add_design_var('r_sched.k_float', lower=0.0, upper=50) #, ref=10)
-    lintune.setup()
-
-    omegas = []
-    k_floats = []
-    sms = []
-    for u in opt_options['windspeed']:
-        
-        # Windspeed
-        lindoe.set_val('r_sched.u_eval', u)
-        lintune.set_val('r_sched.u_eval', u)
-
-        # Run DOE driveer
-        lindoe.run_driver()
-
-        # Post process doe
-        doe_logs = glob.glob(os.path.join(output_dir, output_name + '.sql*'))
-        outdata = [load_OMsql(log) for log in doe_logs]
-
-        collected_data = {}
-        for data in outdata:
-            for key in data.keys():
-                if key not in collected_data.keys():
-                    collected_data[key] = []
-
-                for key_idx, _ in enumerate(data[key]):
-                    if isinstance(data[key][key_idx], int):
-                        collected_data[key].append(np.array(data[key][key_idx]))
-                    elif len(data[key][key_idx]) == 1:
-                        try:
-                            collected_data[key].append(data[key][key_idx][0])
-                        except:
-                            collected_data[key].append(data[key][key_idx])
-                    else:
-                        collected_data[key].append(np.array(data[key][key_idx]))
-
-        # Find initial omega for optimization
-        doe_df = pd.DataFrame(collected_data)
-        doe_df.sort_values('r_sched.omega', inplace=True, ignore_index=True)
-        try:
-            # om0 = doe_df['r_sched.omega_opt'][np.argwhere(np.isclose(doe_df['r_sched.sm'], opt_options['min_sm'], atol=0.1))[0][0]]
-            # om0 = doe_df['r_sched.omega_opt'][np.argwhere(np.isclose(doe_df['r_sched.sm'], 0.0, atol=0.1))[0][0]]
-
-            # Fit DOE
-            p = np.polyfit(doe_df['r_sched.omega_opt'],doe_df['r_sched.sm'], deg=7)
-            omega_fine = np.arange(min(doe_df['r_sched.omega_opt']),max(doe_df['r_sched.omega_opt']),0.0001)
-            sm_fine = np.polyval(p, omega_fine)
-
-            # omc1 = np.argwhere(np.isclose(np.diff(sm_fine), 0, atol=0.0001))[0]
-            # omc2 = np.argwhere(np.isclose(np.diff(sm_fine), 0, atol=0.0001))[-1]
-
-            # om0 = omega_fine[omc2] - omega_fine[omc1]
-
-            om0 = doe_df['r_sched.omega_opt'][np.argmin(np.diff(doe_df['r_sched.sm']))]
-            print('FOUND AN INITIAL CONDITION', om0)
-
-
-        except: 
-            print('Unable to initialize om0 properly')
-            om0 = 0.05
-        # try:
-        #     omc1 = doe_df['r_sched.omega_opt'][np.argwhere(np.isclose(np.diff(doe_df['r_sched.sm']), 0, atol=0.005))[0][0]]
-        # except: 
-        #     print('Unable to initialize omc1 properly')
-        #     omc1 = 0.001
-        # try:
-        #     omc2 = doe_df['r_sched.omega_opt'][np.argwhere(np.isclose(np.diff(doe_df['r_sched.sm']), 0, atol=0.005))[1][0]]
-        # except: 
-        #     print('Unable to initialize properly')
-        #     omc2 = 0.2
-
-
-        # Add design variables
-        # lintune.model.add_design_var('r_sched.omega', lower=0.001, upper=0.2)
-        # lintune.model.add_design_var('r_sched.omega', lower=omc1, upper=min(omc2,0.2))
-        # lintune.model.add_design_var('r_sched.k_float', lower=0.0, upper=20.0)
-
-        # Setup optimization
-        lintune.set_val('r_sched.omega', om0)
-        lintune.set_val('r_sched.k_float', 11.0)
-
-        # Run optimization
-        lintune.driver.add_recorder(om.SqliteRecorder(os.path.join(output_dir, output_name + '.' + str(u) + ".sql")))
-
-        lintune.run_driver()
-
-        # save values
-        omegas.append(lintune.get_val('r_sched.omega')[0])
-        k_floats.append(lintune.get_val('r_sched.k_float')[0])
-        sms.append(lintune.get_val('r_sched.sm')[0])
-
-    fig, ax = plt.subplots(3,1,constrained_layout=True, sharex=True)
-    ax[0].plot(opt_options['windspeed'], omegas)
-    ax[0].set_ylabel('omega_pc')
-    ax[1].plot(opt_options['windspeed'], k_floats)
-    ax[1].set_ylabel('k_float')
-    ax[2].plot(opt_options['windspeed'], sms)
-    ax[2].set_ylabel('stability margin')
-    ax[2].set_xlabel('Wind Speed')
-
-
-    plt.show()
-
-
-def design_of_experiments(options, save_csv=False):
-    # load options
-    linturb_options = options['linturb_options']
-    ROSCO_options   = options['ROSCO_options']
-    opt_options     = options['opt_options']
-
-    # Output options
-    output_dir  = path_options['output_dir']
-    output_name = path_options['output_name']
-    tuning_doe = om.Problem()
-    tuning_doe.model.add_subsystem('r_sched', RobustScheduling(linturb_options=linturb_options,
-                                                          ROSCO_options=ROSCO_options))
-
-    # Setup optimizer
-    tuning_doe.driver = om.DOEDriver(om.FullFactorialGenerator(levels=25))
-    os.makedirs(output_dir, exist_ok=True)
-    tuning_doe.driver.add_recorder(om.SqliteRecorder(os.path.join(output_dir, output_name + ".sql")))
-    # tuning_doe.driver.options['run_parallel'] = True
-    # tuning_doe.driver.options['procs_per_model'] = 1
-
-    # # Setup OM Problem
-    tuning_doe.setup()
-
-
-    # -- Set inputs and design variables --
-    if len(opt_options['omega']) == 1:
-        tuning_doe.set_val('r_sched.u_eval', opt_options['omega'])
-    elif len(opt_options['omega']) == 2:
-        tuning_doe.model.add_design_var(
-            'r_sched.omega', lower=opt_options['omega'][0], upper=opt_options['omega'][1])
-    else:
-        raise ValueError('Length of opt_options["omega"] cannot be greater than 2.')
-
-    if len(opt_options['k_float']) == 1:
-        tuning_doe.set_val('r_sched.k_float', opt_options['k_float'])
-    elif len(opt_options['k_float']) == 2:
-        tuning_doe.model.add_design_var(
-            'r_sched.k_float', lower=opt_options['k_float'][0], upper=opt_options['k_float'][1])
-    else:
-        raise ValueError('Length of opt_options["k_float"] cannot be greater than 2.')
-
-
-    # Add constraints
-    tuning_doe.model.add_constraint('r_sched.sm', lower=opt_options['stability_margin'])
-
-    # Define objective
-    tuning_doe.model.add_objective('r_sched.omega_opt', scaler=-1)
-
-    # # Set Wind Speed
-    tuning_doe.set_val('r_sched.u_eval', opt_options['windspeed'])
-
-    # # Run and cleanuip
-    tuning_doe.run_driver()
-    # tuning_doe.cleanup()
 
 def load_DOE(doe_logs, outfile_name=None):
     if isinstance(doe_logs, str):
@@ -421,7 +269,7 @@ def load_DOE(doe_logs, outfile_name=None):
     # no multiprocessing
     else:
         outdata = [load_OMsql(log) for log in doe_logs]
-        
+
     collected_data = {}
     for data in outdata:
         for key in data.keys():
@@ -441,12 +289,25 @@ def load_DOE(doe_logs, outfile_name=None):
 
     df = pd.DataFrame.from_dict(collected_data)
 
-    # write to file
-    if save_csv:
-        outdata_fpath = os.path.join(output_dir, output_name)
-        df.to_csv(outdata_fpath + '.csv', index=False)
-        print('Saved {}'.format(outdata_fpath + '.csv'))
+    if outfile_name:
+        df.to_csv(outfile_name, index=False)
+        print('Saved {}'.format(outfile_name))
+    
+    return df
 
+def load_OMsql(log):
+    print('loading {}'.format(log))
+    cr = om.CaseReader(log)
+    rec_data = {}
+    driver_cases = cr.list_cases('driver')
+    cases = cr.get_cases('driver')
+    for case in cases:
+        for key in case.outputs.keys():
+            if key not in rec_data:
+                rec_data[key] = []
+            rec_data[key].append(case[key])
+
+    return rec_data
 
 def load_linturb(linfile_root):
     # Parse openfast linearization filenames
@@ -460,7 +321,6 @@ def load_linturb(linfile_root):
 
     return linturb
 
-
 def load_ROSCO(path_params, turbine_params, controller_params):
     turbine = ROSCO_turbine.Turbine(turbine_params)
     controller = ROSCO_controller.Controller(controller_params)
@@ -470,9 +330,6 @@ def load_ROSCO(path_params, turbine_params, controller_params):
     controller.tune_controller(turbine)
 
     return controller, turbine
-
-
-
 
 
 if __name__ == '__main__':
@@ -496,14 +353,14 @@ if __name__ == '__main__':
 
     # Path options
     output_dir = os.path.join( os.path.dirname(os.path.abspath(__file__)), 'test_out' )
-    output_name = 'test_doe'
+    output_name = 'test'
     path_options = {'output_dir': output_dir,
                     'output_name': output_name
                     }
 
     # Scheduling options
-    opt_options = { 'driver': 'design_of_experiments',
-                    'windspeed': 12, #np.arange(12, 18),
+    opt_options = { 'driver': 'optimization', #'design_of_experiments',
+                    'windspeed': [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25],
                    'stability_margin': 0.1,
                    'omega':[0.05, 0.2],
                    'k_float': [0.0]}
@@ -514,11 +371,8 @@ if __name__ == '__main__':
     options['path_options']    = path_options
     options['opt_options']      = opt_options
 
-    tune(options)
-    # design_of_experiments(options)
-
-
-    # sd = rsched_driver(options)
-    # sd.setup()
-    # sd.execute()
-    # sd.post_doe(save_csv=True)
+    sd = rsched_driver(options)
+    sd.setup()
+    sd.execute()
+    if opt_options['driver'] == 'design_of_experiments':
+        sd.post_doe(save_csv=True)
