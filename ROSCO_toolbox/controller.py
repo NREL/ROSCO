@@ -228,8 +228,8 @@ class Controller():
 
         # Resample omega_ and zeta_pc at above rated wind speeds
         if self.U_pc \
-            and isinstance(self.omega_pc, list) \
-            and isinstance(self.zeta_pc, list) \
+            and isinstance(self.omega_pc, (list,np.ndarray)) \
+            and isinstance(self.zeta_pc, (list,np.ndarray)) \
             and len(self.U_pc) == len(self.omega_pc) == len(self.zeta_pc):
             self.omega_pc_U = multi_sigma(v_above_rated[1:],self.U_pc,self.omega_pc)
             self.zeta_pc_U  = multi_sigma(v_above_rated[1:],self.U_pc,self.zeta_pc)
