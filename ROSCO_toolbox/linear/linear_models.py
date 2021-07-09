@@ -659,7 +659,8 @@ def run_mbc3(fnames):
     '''
     Helper function to run mbc3
     '''
-    MBC, matData, FAST_linData = mbc.fx_mbc3(fnames)
+    print('Loading linearizations from:', ''.join(fnames[0].split('.')[:-2]))
+    MBC, matData, FAST_linData = mbc.fx_mbc3(fnames, verbose=False)
 
     return MBC, matData, FAST_linData
 
