@@ -94,8 +94,8 @@ class rsched_driver():
         self.om_problem = om.Problem()
 
         # Add subsystem
-        self.om_problem.model.add_subsystem('r_sched', RobustScheduling(linturb_options=linturb_options,
-                                                                    ROSCO_options=ROSCO_options))
+        self.om_problem.model.add_subsystem('r_sched', RobustScheduling(linturb_options=self.linturb_options,
+                                                                    ROSCO_options=self.ROSCO_options))
 
         if self.opt_options['driver'] == 'design_of_experiments':
             self.om_problem = self.init_doe(self.om_problem, levels=20)
@@ -185,7 +185,7 @@ class rsched_driver():
 
                 # Run optimization
                 self.om_opt.driver.add_recorder(om.SqliteRecorder(
-                    os.path.join(output_dir, output_name + '.' + str(u) + ".sql")))
+                    os.path.join(self.output_dir, self.output_name + '.' + str(u) + ".sql")))
 
                 self.om_opt.run_driver()
                 self.om_opt.driver.cleanup()
