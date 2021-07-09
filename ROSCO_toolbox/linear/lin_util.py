@@ -21,10 +21,10 @@ def pc_openloop(linturb, controller, u):
         wind speed to evaluate system at
     '''
     if linturb.B_ops.shape[1] > 1:
-        raise InputError(
+        raise TypeError(
             'OpenLoop system calculations are only supported for single input systems, please run LinearTurbine.trim_system with len(desInputs) = 1')
     if linturb.C_ops.shape[0] > 1:
-        raise InputError(
+        raise TypeError(
             'OpenLoop system calculations are only supported for single output systems, please run LinearTurbine.trim_system with len(desOutputs) = 1')
 
     # Interpolate plant and controller
@@ -55,10 +55,10 @@ def pc_closedloop(linturb, controller, u):
         closed loop system
     '''
     if linturb.B_ops.shape[1] > 1:
-        raise InputError(
+        raise TypeError(
             'OpenLoop system calculations are only supported for single input systems, please run LinearTurbine.trim_system with len(desInputs) = 1')
     if linturb.C_ops.shape[0] > 1:
-        raise InputError(
+        raise TypeError(
             'OpenLoop system calculations are only supported for single output systems, please run LinearTurbine.trim_system with len(desOutputs) = 1')
 
     # Interpolate plant and controller
@@ -86,10 +86,10 @@ def pc_sensitivity(linturb, controller, u):
     '''
 
     if linturb.B_ops.shape[1] > 1:
-        raise InputError(
+        raise TypeError(
             'OpenLoop system calculations are only supported for single input systems, please run LinearTurbine.trim_system with len(desInputs) = 1')
     if linturb.C_ops.shape[0] > 1:
-        raise InputError(
+        raise TypeError(
             'OpenLoop system calculations are only supported for single output systems, please run LinearTurbine.trim_system with len(desOutputs) = 1')
 
     # Interpolate plant and controller
