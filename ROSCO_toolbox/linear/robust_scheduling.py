@@ -406,9 +406,9 @@ def design_of_experiments(options, save_csv=False):
     tuning_doe.run_driver()
     # tuning_doe.cleanup()
 
-    # Post process doe
-    doe_logs = glob.glob(os.path.join(output_dir, output_name + '.sql*'))
-    outdata = [load_OMsql(log) for log in doe_logs]
+def load_DOE(doe_logs, outfile_name=None):
+    if isinstance(doe_logs, str):
+        doe_logs = [doe_logs]
 
     if False:
         cores = mp.cpu_count()
