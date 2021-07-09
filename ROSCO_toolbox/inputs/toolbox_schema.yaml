@@ -195,6 +195,7 @@ properties:
                     type: number
                     minimum: 0
                     uniqueItems: True
+                default: [12]
             zeta_pc:                       
                 type: array
                 description: List of pitch controller desired damping ratio at U_pc [-]
@@ -295,6 +296,10 @@ properties:
                 type: number
                 description: Gain of floating feedback control
                 unit: s
+            tune_Fl:
+                type: boolean
+                description: Whether to automatically tune Kp_float
+                default: True
             
     filter_params:
         type: object

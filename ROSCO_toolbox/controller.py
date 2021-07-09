@@ -102,8 +102,11 @@ class Controller():
             if 'Kp_float' in controller_params:
                 self.Kp_float = controller_params['Kp_float']
             else:
-                # Set to 0 to compute based on sensitivities later
                 self.Kp_float = 0
+
+            self.tune_Fl = controller_params['tune_Fl']
+
+
         else:
             self.twr_freq   = 0
             self.ptfm_freq  = 0
@@ -298,7 +301,7 @@ class Controller():
         # --- Floating feedback term ---
         if self.Fl_Mode == 1: # Floating feedback
             # If we haven't set Kp_float as a control parameter
-            if self.Kp_float == 0:
+            if self.tune_Fl:
                 Kp_float = (dtau_dv/dtau_dbeta) * turbine.TowerHt * Ng 
                 f_kp     = interpolate.interp1d(v,Kp_float)
                 self.Kp_float = f_kp(turbine.v_rated * (1.05))   # get Kp at v_rated + 0.5 m/s
