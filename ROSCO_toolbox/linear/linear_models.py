@@ -20,7 +20,7 @@ import os
 
 class LinearTurbineModel(object):
 
-    def __init__(self, lin_file_dir, lin_file_names, nlin=12, reduceStates=False, fromMat=False, rm_hydro=False, load_parallel=True):
+    def __init__(self, lin_file_dir, lin_file_names, nlin=12, reduceStates=False, fromMat=False, rm_hydro=False, load_parallel=False):
         '''
             inputs:    
                 lin_file_dir (string) - directory of linear file outputs from OpenFAST
