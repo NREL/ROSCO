@@ -335,18 +335,19 @@ def load_ROSCO(path_params, turbine_params, controller_params):
 if __name__ == '__main__':
 
     # Setup linear turbine paths
-    linfile_root = '/Users/nabbas/Documents/Projects/RobustControl/linearizations/case_outputs/case_4'
+    linfile_root = os.path.join(os.path.dirname(os.path.dirname(
+        os.path.dirname(os.path.abspath(__file__)))), 'Test_Cases', 'IEA-15-240-RWT-UMaineSemi', 'linearizations')
     load_parallel = True
     linturb_options = {'linfile_root': linfile_root,
                        'load_parallel': load_parallel}
 
     # ROSCO options
-    parameter_filename = '/Users/nabbas/Documents/WindEnergyToolbox/ROSCO/Tune_Cases/IEA15MW.yaml'
+    parameter_filename = os.path.join(os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'Tune_Cases', 'IEA15MW.yaml')
     inps = load_rosco_yaml(parameter_filename)
     path_params = inps['path_params']
     turbine_params = inps['turbine_params']
     controller_params = inps['controller_params']
-    path_params['FAST_directory'] = '/Users/nabbas/Documents/WindEnergyToolbox/ROSCO/Test_Cases/IEA-15-240-RWT-UMaineSemi'
     ROSCO_options = {
         'path_params': path_params,
         'turbine_params': turbine_params,
