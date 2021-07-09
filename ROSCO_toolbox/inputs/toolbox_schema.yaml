@@ -118,9 +118,9 @@ properties:
             F_NotchType:        
                 type: number
                 minimum: 0
-                maximum: 1
+                maximum: 3
                 default: 0
-                description: Notch on the measured generator speed (0- disable, 1- enabled)
+                description: Notch on the measured generator speed and/or tower fore-aft motion (for floating) {0- disable, 1- generator speed, 2- tower-top fore-aft motion, 3- generator speed and tower-top fore-aft motion}
             IPC_ControlMode:    
                 type: number
                 minimum: 0
@@ -291,6 +291,10 @@ properties:
                 description: Number of pitch angle gain scheduling breakpoints
                 minimum: 0
                 default: 30
+            Kp_float:
+                type: number
+                description: Gain of floating feedback control
+                unit: s
             
     filter_params:
         type: object
