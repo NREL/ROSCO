@@ -216,7 +216,7 @@ def add_pcomp(linturb, k_float):
         linturb.DescCntrlInpt, input_str) > -1).tolist()
 
     K = np.zeros((linturb.B_ops.shape[1], linturb.A_ops.shape[1], linturb.A_ops.shape[2]))
-    K[input_idx, state_idx, :] = k_float
+    K[input_idx, state_idx, :] = -k_float # NJA: negative to account of OF linearization sign conventions
 
     linturb2 = copy.copy(linturb)
     linturb2.A_ops = linturb.A_ops + linturb.B_ops * K
