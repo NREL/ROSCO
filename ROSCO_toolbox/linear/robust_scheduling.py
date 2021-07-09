@@ -49,10 +49,7 @@ class RobustScheduling(om.ExplicitComponent):
                                                         ROSCO_options['controller_params'])
 
     def compute(self, inputs, outputs):
-        # print('THIS IS RUNNING FOR', inputs['u_eval'])
-        print('Omega =',inputs['omega'][0])
         k_float = inputs['k_float'][0]
-        # print('k_float', k_float)
         if k_float:
             linturb = add_pcomp(self.linturb, k_float)
         else:
@@ -61,7 +58,6 @@ class RobustScheduling(om.ExplicitComponent):
         self.controller.omega_pc = inputs['omega'][0]
         self.controller.tune_controller(self.turbine)
         sm = smargin(linturb, self.controller, inputs['u_eval'][0])
-        print('sm =',sm)
 
         omega = inputs['omega']
 
