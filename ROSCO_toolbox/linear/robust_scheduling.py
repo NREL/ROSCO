@@ -86,6 +86,13 @@ class rsched_driver():
         self.output_dir = self.path_options['output_dir']
         self.output_name = self.path_options['output_name']
 
+        if 'levels' in self.opt_options.keys():
+            self.opt_options['levels'] = self.opt_options['levels']
+        else:
+            if self.opt_options['driver'] == 'design_of_experiments':
+                self.opt_options['levels'] = 20
+            elif self.opt_options['driver'] == 'optimization':
+                self.opt_options['levels'] = 10
     def setup(self):
         '''
         Setup the OpenMDAO problem
@@ -98,14 +105,14 @@ class rsched_driver():
                                                                     ROSCO_options=self.ROSCO_options))
 
         if self.opt_options['driver'] == 'design_of_experiments':
-            self.om_problem = self.init_doe(self.om_problem, levels=20)
+            self.om_problem = self.init_doe(self.om_problem, levels=self.opt_options['levels'])
             if isinstance(self.opt_options['windspeed'], list):
                 if len(self.opt_options['windspeed'] == 1):
                     self.opt_options['windspeed'] = self.opt_options['windspeed'][0]
                 else:
                     ValueError('Can only run design of experiments for a single opt_options["windspeed"]')
         elif self.opt_options['driver'] == 'optimization':
-            self.om_problem = self.init_doe(self.om_problem, levels=10)
+            self.om_problem = self.init_doe(self.om_problem, levels=self.opt_options['levels'])
         else:
             ValueError("self.opt_options['driver'] must be either 'design_of_experiments' or 'optimization'.")
             
