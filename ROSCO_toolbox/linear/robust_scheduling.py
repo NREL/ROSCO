@@ -177,7 +177,7 @@ class rsched_driver():
                 self.om_opt.set_val('r_sched.omega', om0)
 
                 # Run optimization
-                opt_logfile = os.path.join(self.output_dir, self.output_name + '.' + str(u) + ".sql")
+                opt_logfile = os.path.join(self.output_dir, self.output_name + '.' + str(u) + ".opt.sql")
                 self.om_opt = self.setup_recorder(self.om_opt, opt_logfile)
                 self.om_opt.run_driver()
 
@@ -235,17 +235,21 @@ class rsched_driver():
 
     @staticmethod
     def setup_recorder(problem, sql_filename):
-        # self.doe_logfile = os.path.join(self.output_dir, self.output_name + ".doe.sql") # TODO: NJA - the recorder is not re-initializing property for different filenames and needs to be figured out 
+        ''' Used to prevent memory issues with OM sqlite recorder'''
         recorder = om.SqliteRecorder(sql_filename)
         
-        try: # Try to re-name recorder
+        try: # Try to remove previous recorder
             problem.driver._recorders.pop()
-            problem.driver.add_recorder(recorder)
+        except: # Must be first pass or optimization run
+            pass
 
+        problem.driver.add_recorder(recorder)
+        
+        try: # try to re-run recorder setup 
             problem._setup_recording()
             problem.driver._setup_recording()
-        except: # Must be first pass, add a recorder
-            problem.driver.add_recorder(recorder)
+        except: # Must be first pass
+            pass
 
         return problem
 
