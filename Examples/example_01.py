@@ -13,7 +13,7 @@ Note: Uses the NREL 5MW included in the Test Cases and is a part of the OpenFAST
 '''
 
 # Python Modules
-import yaml, os
+import os
 # ROSCO Modules
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox.inputs.validation import load_rosco_yaml

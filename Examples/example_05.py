@@ -17,7 +17,7 @@ Notes - You will need to have a compiled controller in ROSCO, and
 # Python modules
 import matplotlib.pyplot as plt 
 import numpy as np
-import yaml, os, platform
+import os, platform
 # ROSCO toolbox modules 
 from ROSCO_toolbox import controller as ROSCO_controller
 from ROSCO_toolbox import turbine as ROSCO_turbine
