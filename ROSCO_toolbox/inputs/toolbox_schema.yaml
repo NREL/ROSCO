@@ -300,6 +300,16 @@ properties:
                 type: boolean
                 description: Whether to automatically tune Kp_float
                 default: True
+            zeta_flp:                        
+                type: number
+                minimum: 0
+                description: Flap controller desired damping ratio [-]
+                unit: none
+            omega_flp:                     
+                type: number
+                minimum: 0
+                description: Flap controller desired natural frequency [rad/s]
+                unit: rad/s
             
     filter_params:
         type: object
