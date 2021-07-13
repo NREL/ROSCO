@@ -173,7 +173,7 @@ properties:
                 type: number
                 minimum: 0
                 maximum: 1
-                default: 1
+                default: 0
                 description: Floating specific feedback mode (0- no nacelle velocity feedback, 1- nacelle velocity feedback)
             Flp_Mode:           
                 type: number
