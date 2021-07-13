@@ -46,9 +46,9 @@ def run_example():
     }
 
     # Path options
-    output_dir = os.path.join( os.path.dirname(os.path.abspath(__file__)), 'examples_out' )
+    example_out_dir = os.path.join( os.path.dirname(os.path.abspath(__file__)), 'examples_out' )
     output_name = '12_robust_scheduling'
-    path_options = {'output_dir': output_dir,
+    path_options = {'output_dir': example_out_dir,
                     'output_name': output_name
                     }
 
@@ -62,7 +62,7 @@ def run_example():
         rot_source='txt', txt_filename=os.path.join(tune_dir, path_params['rotor_performance_filename'])
     )
     controller.tune_controller(turbine)
-    k_float = 0.0 #controller.Kp_float
+    k_float = controller.Kp_float
 
     # Scheduling options
     opt_options = { 'driver': 'optimization', #'design_of_experiments',
@@ -99,22 +99,27 @@ def run_example():
     ax[0].plot(opt_options['windspeed'], sd.omegas, linestyle='--', marker='x', label='Robust Tuning Values')
     ax[0].set_ylabel('omega_pc')
     ax[0].legend()
+    ax[0].grid()
 
     ax[1].plot(controller.v[len(controller.v_below_rated)+1:], controller.zeta_pc_U)
     ax[1].set_ylabel('zeta_pc')
+    ax[1].grid()
 
     ax[2].plot(opt_options['windspeed'], sd.sms)
     ax[2].set_ylabel('stability margins')
+    ax[2].grid()
 
     ax[3].plot(controller.v[len(controller.v_below_rated)+1:], controller.pc_gain_schedule.Kp)
     ax[3].set_ylabel('Proportional Gain')
+    ax[3].grid()
 
     ax[4].plot(controller.v[len(controller.v_below_rated)+1:], controller.pc_gain_schedule.Ki)
     ax[4].set_xlabel('Wind Speed')
     ax[4].set_ylabel('Integral Gain')
+    ax[4].grid()
 
 
-    if True:
+    if False:
         plt.show()
     else:
         plt.savefig(os.path.join(example_out_dir, '12_RobustSched.png'))
