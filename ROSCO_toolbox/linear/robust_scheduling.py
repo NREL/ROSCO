@@ -47,15 +47,6 @@ class RobustScheduling(om.ExplicitComponent):
         self.add_output('sm',        val=0.0,                       desc='Stability Margin')
         self.add_output('omega_opt', val=0.01,      units='rad/s', desc='Maximized controller bandwidth')
 
-        # Load linear turbine models and trim them
-        self.linturb = load_linturb(linturb_options['linfile_root'], load_parallel=linturb_options['load_parallel'])
-        self.linturb.trim_system(desInputs=['collective'], desOutputs=['RtSpeed'])
-
-        # Load Controller
-        self.controller, self.turbine  = load_ROSCO(ROSCO_options['path_params'],
-                                                        ROSCO_options['turbine_params'], 
-                                                        ROSCO_options['controller_params'])
-
     def compute(self, inputs, outputs):
         k_float = inputs['k_float'][0]
         if k_float:
