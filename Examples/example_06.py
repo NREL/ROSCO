@@ -49,6 +49,7 @@ controller.tune_controller(turbine)
 # Now double Kp_float and check that it's passed through
 Kp_float = -18
 controller_params['Kp_float'] = Kp_float
+controller_params['tune_Fl'] = False
 controller      = ROSCO_controller.Controller(controller_params)
 controller.tune_controller(turbine)
 np.testing.assert_almost_equal(Kp_float,controller.Kp_float)
