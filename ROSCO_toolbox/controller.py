@@ -237,9 +237,15 @@ class Controller():
         B_tau = B_tau * np.ones(len(v))
 
         # Resample omega_ and zeta_pc at above rated wind speeds
-        if len(self.U_pc) == len(self.omega_pc) == len(self.zeta_pc):
+        if self.U_pc \
+            and isinstance(self.omega_pc, (list,np.ndarray)) \
+            and isinstance(self.zeta_pc, (list,np.ndarray)) \
+            and len(self.U_pc) == len(self.omega_pc) == len(self.zeta_pc):
             self.omega_pc_U = multi_sigma(v_above_rated[1:],self.U_pc,self.omega_pc)
             self.zeta_pc_U  = multi_sigma(v_above_rated[1:],self.U_pc,self.zeta_pc)
+        elif isinstance(self.omega_pc, float) and isinstance(self.zeta_pc, float):
+            self.omega_pc_U = self.omega_pc * np.ones(len(v_above_rated[1:]))
+            self.zeta_pc_U = self.zeta_pc * np.ones(len(v_above_rated[1:]))
         else:
             raise Exception('ROSCO_toolbox: The lengths of U_pc, omega_pc, and zeta_pc must be equal')
 
