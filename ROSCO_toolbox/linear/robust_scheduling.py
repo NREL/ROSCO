@@ -30,6 +30,14 @@ class RobustScheduling(om.ExplicitComponent):
         linturb_options = self.options['linturb_options']
         ROSCO_options = self.options['ROSCO_options']
 
+        # Load ROSCO Controller
+        self.controller, self.turbine  = load_ROSCO(ROSCO_options['path_params'],
+                                                        ROSCO_options['turbine_params'], 
+                                                        ROSCO_options['controller_params'])
+        # Load linear turbine models and trim them
+        self.linturb = load_linturb(linturb_options['linfile_root'], load_parallel=linturb_options['load_parallel'])
+        self.linturb.trim_system(desInputs=['collective'], desOutputs=['RtSpeed'])
+
         # Inputs
         self.add_input('u_eval',    val=11.,  units='m/s',     desc='Wind speeds to evaluate gain schedule')
         self.add_input('omega',     val=0.1,  units='rad/s',   desc='Controller bandwidth')
