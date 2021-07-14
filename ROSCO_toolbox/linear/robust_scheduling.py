@@ -33,7 +33,7 @@ class RobustScheduling(om.ExplicitComponent):
         # Inputs
         self.add_input('u_eval',    val=11.,  units='m/s',     desc='Wind speeds to evaluate gain schedule')
         self.add_input('omega',     val=0.1,  units='rad/s',   desc='Controller bandwidth')
-        self.add_input('k_float',   val=0.0,  units='s',       desc='Floating feedback gain')
+        self.add_input('k_float',   val=self.controller.Kp_float,  units='s',       desc='Floating feedback gain')
 
         # Outputs
         self.add_output('sm',        val=0.0,                       desc='Stability Margin')
