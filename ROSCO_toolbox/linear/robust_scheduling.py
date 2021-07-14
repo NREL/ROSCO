@@ -120,9 +120,6 @@ class rsched_driver():
         else:
             ValueError("self.opt_options['driver'] must be either 'design_of_experiments' or 'optimization'.")
             
-        # Add design variables
-        self.om_problem = self.add_dv(self.om_problem)
-
         # Add stability margin constraints
         self.om_problem.model.add_constraint('r_sched.sm', lower=self.opt_options['stability_margin'])
 
@@ -138,11 +135,16 @@ class rsched_driver():
         if len(self.opt_options['k_float']) == 1:
             self.om_problem.set_val('r_sched.k_float', self.opt_options['k_float'][0])
         
+        # Designate specific problem objects, add design variables
         if self.opt_options['driver'] == 'design_of_experiments':
             self.om_doe = self.om_problem
+            self.om_doe = self.add_dv(self.om_doe, ['omega', 'k_float'])
         if self.opt_options['driver'] == 'optimization':
-            self.om_doe = self.om_problem
+            self.om_doe = copy.deepcopy(self.om_problem)
+            self.om_doe = self.add_dv(self.om_doe, ['omega'])
+
             self.om_opt = copy.deepcopy(self.om_problem)
+            self.om_opt = self.add_dv(self.om_opt, ['omega', 'k_float'])
             self.om_opt = self.init_optimization(self.om_opt)
         
     
