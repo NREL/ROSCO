@@ -239,7 +239,7 @@ class rsched_driver():
         om_problem.driver.options['tol'] = 1e-3
         om_problem.driver.options['maxiter'] = 20
         om_problem.driver.options['debug_print'] = ['desvars', 'nl_cons']
-        om_problem.model.approx_totals(method="fd", step=1e-3, form='central', step_calc='rel')
+        om_problem.model.approx_totals(method="fd", step=1e-2, form='central', step_calc='rel')
 
         return om_problem
 
