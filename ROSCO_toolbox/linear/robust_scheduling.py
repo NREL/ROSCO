@@ -216,14 +216,19 @@ class rsched_driver():
         plt.show()
 
 
-    def add_dv(self, om_problem):
-        # add design variables
-        if len(self.opt_options['omega']) == 2:
+    def add_dv(self, om_problem, opt_vars):
+        '''add design variables'''
+
+        if 'omega' in opt_vars and len(self.opt_options['omega']) == 2:
             om_problem.model.add_design_var(
                     'r_sched.omega', lower=self.opt_options['omega'][0], upper=self.opt_options['omega'][1])
-        if len(self.opt_options['k_float']) == 2:
+
+        if 'k_float' in opt_vars and len(self.opt_options['k_float']) == 2:
             om_problem.model.add_design_var(
-                'r_sched.k_float', lower=self.opt_options['k_float'][0], upper=self.opt_options['k_float'][1])
+                'r_sched.k_float', lower=self.opt_options['k_float'][0], upper=self.opt_options['k_float'][1], ref=100)
+
+        # Make sure design variables are stored appropriately in OM problem
+        om_problem.model._design_vars = om_problem.model._static_design_vars
 
         return om_problem
 
