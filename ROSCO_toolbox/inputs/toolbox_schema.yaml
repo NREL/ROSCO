@@ -93,15 +93,6 @@ properties:
             
     controller_params:
         type: object
-        required:
-            - zeta_vs
-            - omega_vs
-            - zeta_pc
-            - omega_pc
-            # - ptfm_freq   # only required if Fl_Mode = 1, let's check for this in code because its' hard here
-            # - twr_freq
-            # - zeta_flp    # only required if Flp_Mode = 1, let's check for this in code because its' hard here
-            # - omega_flp
         properties:
             LoggingLevel:
                 type: number
@@ -195,30 +186,35 @@ properties:
                     type: number
                     minimum: 0
                     uniqueItems: True
+                default: [12]
             zeta_pc:                       
-                type: array
+                type: [array,number]
                 description: List of pitch controller desired damping ratio at U_pc [-]
                 unit: none
                 items:
                     type: number
                     minimum: 0
+                default: [1.0]
             omega_pc:                     
-                type: array
+                type: [array,number]
                 description: List of pitch controller desired natural frequency at U_pc [rad/s]
                 unit: rad/s
                 items:
                     type: number
                     minimum: 0
+                default: [0.2]
             zeta_vs:                        
                 type: number
                 minimum: 0
                 description: Torque controller desired damping ratio [-]
                 unit: none
+                default: 1.0
             omega_vs:                     
                 type: number
                 minimum: 0
                 description: Torque controller desired natural frequency [rad/s]
                 unit: rad/s
+                default: 0.2
             max_pitch:           
                 description: Maximum pitch angle [rad], {default = 90 degrees}
                 type: number
