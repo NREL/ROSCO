@@ -67,7 +67,7 @@ templates_path = ['_templates']
 pygments_style = "friendly"
 
 # # The master toctree document.
-# master_doc = "index"
+master_doc = "index"
 
 # # If true, `todo` and `todoList` produce output, else they produce nothing.
 # todo_include_todos = False
@@ -84,7 +84,7 @@ copyright = f"{date.today().year}, National Renewable Energy Laboratory"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx-rtd-theme"
+# html_theme = "sphinx_rtd_theme"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
