@@ -7,9 +7,6 @@ In this example:
   - Leverage the run_openfast functionality to compile a turbsim binary
 '''
 
-# Python Modules
-import numpy as np
-import matplotlib.pyplot as plt 
 # ROSCO toolbox modules 
 from ROSCO_toolbox.utilities import run_openfast
 import os

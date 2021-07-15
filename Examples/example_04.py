@@ -12,11 +12,10 @@ In this example:
 '''
 # Python modules
 import matplotlib.pyplot as plt 
-import yaml, os 
+import os 
 # ROSCO toolbox modules 
 from ROSCO_toolbox import controller as ROSCO_controller
 from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox import sim as ROSCO_sim
 from ROSCO_toolbox.utilities import write_DISCON
 from ROSCO_toolbox.inputs.validation import load_rosco_yaml
 

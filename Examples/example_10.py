@@ -16,7 +16,7 @@ Note: You will need a turbine model with DAC capabilites in order to run this.
 '''
 
 # Python Modules
-import yaml, os
+import os
 # ROSCO Modules
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox import controller as ROSCO_controller
