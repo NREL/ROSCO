@@ -157,6 +157,7 @@ class rsched_driver():
             self.sms = []
             for u in self.opt_options['windspeed']:
                 # Run initial doe
+                print('Finding initial condition for u = ', u)
                 self.om_doe.set_val('r_sched.u_eval', u)
                 self.doe_logfile = os.path.join(
                     self.output_dir, self.output_name + '.' + str(u) + ".doe.sql")
@@ -171,7 +172,9 @@ class rsched_driver():
                 try:
                     # Find initial omega
                     om0 = np.mean(doe_df['r_sched.omega_opt'][doe_df['r_sched.sm'] > 0.0])
-                    print('FOUND AN INITIAL CONDITION', om0)
+                    if np.isnan(om0):
+                        raise
+                    print('Found an initial condition:', om0)
 
                 except:
                     print('Unable to initialize om0 properly')
@@ -182,6 +185,7 @@ class rsched_driver():
                 self.om_opt.set_val('r_sched.omega', om0)
 
                 # Run optimization
+                print('Running optimization for u = ', u)
                 opt_logfile = os.path.join(self.output_dir, self.output_name + '.' + str(u) + ".opt.sql")
                 self.om_opt = self.setup_recorder(self.om_opt, opt_logfile)
                 self.om_opt.run_driver()
@@ -310,7 +314,7 @@ def load_DOE(doe_logs, outfile_name=None):
                 else:
                     collected_data[key].append(np.array(data[key][key_idx]))
 
-    df = pd.DataFrame.from_dict(collected_data)
+    df = pd.DataFrame.from_dict(collected_data, dtype=float)
 
     if outfile_name:
         df.to_csv(outfile_name, index=False)
