@@ -24,7 +24,7 @@ author = 'Nikhar J. Abbas, Daniel S. Zalkind'
 
 # The full version, including alpha/beta/rc tags
 import ROSCO_toolbox
-release = ROSCO_toolbox.__version__
+release = str(ROSCO_toolbox.__version__)
 
 from unittest import mock
 class MockModule(mock.Mock):
@@ -84,7 +84,7 @@ copyright = f"{date.today().year}, National Renewable Energy Laboratory"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "furo"
+# html_theme = "furo"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
