@@ -74,7 +74,7 @@ limitations under the License.
    :maxdepth: 3
    :numbered:
    
-   install.rst
-   standard_use.rst
-   rosco_toolbox.rst
-   rosco.rst
+   source/install.rst
+   source/standard_use.rst
+   source/rosco_toolbox.rst
+   source/rosco.rst
