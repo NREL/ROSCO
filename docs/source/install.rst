@@ -26,6 +26,8 @@ For non-developers (those not interested in modifying the source code), the a 64
 For users needing a 32-bit version on Windows and/or developers, CMake can be used to compile the Fortran code. 
 
 
+.. _compiling_rosco:
+
 Anaconda download for non-developers
 .....................................
 
@@ -122,39 +124,41 @@ If you do not already have Anaconda installed on your machine, please install it
 Then please follow the following steps:
 
 1.  Create a conda environment for ROSCO
+
     ::
 
         conda config --add channels conda-forge
         conda create -y --name rosco-env python=3.8
         conda activate rosco-env
-    ::
 
 2.  Install WISDEM
+
     ::
 
         conda install -y wisdem
 
-
 You should then do step three *or* four. 
 If you do not want to compile the ROSCO controller within the installation of the ROSCO toolbox, please follow the instructions for :ref:`compiling_rosco`.
 
-3.  Clone and Install the ROSCO toolbox with ROSCO
+1.  Clone and Install the ROSCO toolbox with ROSCO
+
     :: 
 
         git clone https://github.com/NREL/ROSCO_toolbox.git
         cd ROSCO_toolbox
         git submodule init
         git submodule update
-        conda install compilers 					# (Mac/Linux only)
-        conda install m2w64-toolchain libpython     # (Windows only)
-        python setup.py install --compile-rosco
+        conda install compilers # (Mac/Linux only)
+        conda install m2w64-toolchain libpython # (Windows only)
+        python setup.py install --compile-rosco 
 
-4.	Clone and Install the ROSCO toolbox *without* ROSCO
+4.	Clone and Install the ROSCO toolbox without ROSCO
+
     ::
     
         git clone https://github.com/NREL/ROSCO_toolbox.git
         cd ROSCO_toolbox
-        python setup.py install 
+        python setup.py install
 
 
 **Alternatively...**

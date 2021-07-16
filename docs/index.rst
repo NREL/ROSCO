@@ -1,5 +1,5 @@
-ROSCO toolbox documentation
-===========================
+ROSCO Documentation
+===================
 .. only:: html
 
    :Version: |release|
@@ -10,7 +10,7 @@ NREL's Reference OpenSource Controller (ROSCO) toolbox for wind turbine applicat
 Figure :numref:`fig-RT` shows the general workflow for the ROSCO toolchain.
 
 .. _fig-RT:
-.. figure:: /figures/ROSCO_toolbox.png
+.. figure:: /source/figures/ROSCO_toolbox.png
    :alt: ROSCO_toolbox
    :align: center
    :width: 400px
@@ -52,18 +52,10 @@ Please help us better understand the ROSCO user-base and how we can improve ROSC
    <iframe width="640px" height= "480px" src= "https://forms.office.com/Pages/ResponsePage.aspx?id=fp3yoM0oVE-EQniFrufAgGWnC45k8q5Kl90RBkHijqBUN0JTNzBJT1QwMjIzNDhCWDlDTUZPWDdMWC4u&embed=true" frameborder= "0" marginwidth= "0" marginheight= "0" style= "border: none; max-width:100%; max-height:100vh" allowfullscreen webkitallowfullscreen mozallowfullscreen msallowfullscreen> </iframe>
    
 |
-Directory
----------
 
-.. toctree::
-   :numbered:
-   
-   source/install.rst
-   source/standard_use.rst
-   source/rosco_toolbox.rst
-   source/rosco.rst
 
-**License**
+License
+-------
 Copyright 2020 NREL
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,3 +69,12 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+.. toctree::
+   :maxdepth: 3
+   :numbered:
+   
+   source/install.rst
+   source/standard_use.rst
+   source/rosco_toolbox.rst
+   source/rosco.rst

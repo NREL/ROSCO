@@ -3,7 +3,7 @@
 .. _rosco:
 
 ROSCO Controller Structure
-========================
+==========================
 Here, we give an overview of the structure of the ROSCO controller and how the code is implemented. 
 
 -----
@@ -169,7 +169,7 @@ Examples of the DISCON.IN file are found in each of the Test Cases in the ROSCO 
   * - 
     - :code:`PC_Switch`
     - Float
-    - Angle above lowest :code:`PC_MinPit` to switch to above rated torque control, [rad]. Used for :code:`VS_ControlMode`=0,1.
+    - Angle above lowest :code:`PC_MinPit` to switch to above rated torque control, [rad]. Used for :code:`VS_ControlMode` = 0,1.
   * - INDIVIDUAL PITCH CONTROL
     - :code:`IPC_IntSat`
     - Float
