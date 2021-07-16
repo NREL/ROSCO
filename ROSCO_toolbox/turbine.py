@@ -158,7 +158,7 @@ class Turbine():
 
         print('Loading FAST model: %s ' % FAST_InputFile)
         self.TurbineName = FAST_InputFile.strip('.fst')
-        fast = self.fast = InputReader_OpenFAST(FAST_ver=FAST_ver,dev_branch=dev_branch)
+        fast = self.fast = InputReader_OpenFAST()
         fast.FAST_InputFile = FAST_InputFile
         fast.FAST_directory = FAST_directory
         fast.execute()

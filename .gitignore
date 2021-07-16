@@ -10,7 +10,7 @@ Source/x64/
 Source/Release/
 *build*
 Makefile
-*install*
+*/install/*
 
 # Archive
 Scripts/CompileDISCONHereCopyRun\.cmd

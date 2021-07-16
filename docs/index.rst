@@ -1,5 +1,5 @@
 ROSCO Documentation
-===========================
+===================
 .. only:: html
 
    :Version: |release|
@@ -71,11 +71,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 .. toctree::
-   :hidden:
    :maxdepth: 3
    :numbered:
    
-   install.rst
-   standard_use.rst
-   rosco_toolbox.rst
-   rosco.rst
+   source/install.rst
+   source/standard_use.rst
+   source/rosco_toolbox.rst
+   source/rosco.rst
