@@ -86,6 +86,11 @@ jobs:
         run: |
           conda install -y compilers
           conda install -y wisdem
+      - name: Add dependencies windows specific
+        if: true == contains( matrix.os, 'windows')
+        run: |
+          conda install -y m2w64-toolchain libpython 
+          conda install -y wisdem
         
 
       # Install ROSCO toolbox

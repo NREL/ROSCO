@@ -45,8 +45,9 @@ controller_params:
   # twr_freq:           # None                # Tower natural frequency [rad/s]
   # ptfm_freq:          # None                # Platform natural frequency [rad/s]         
 # Controller parameters
-  zeta_pc:            0.8                   # Pitch controller desired damping ratio [-]
-  omega_pc:           0.3                   # Pitch controller desired natural frequency [rad/s]
+  U_pc:               [12]
+  zeta_pc:            [0.8]                  # Pitch controller desired damping ratio [-]
+  omega_pc:           [0.3]                   # Pitch controller desired natural frequency [rad/s]
   zeta_vs:            0.7                   # Torque controller desired damping ratio [-]
   omega_vs:           0.2                   # Torque controller desired natural frequency [rad/s]
   # Optional - these can be defined, but do not need to be
