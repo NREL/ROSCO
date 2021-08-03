@@ -222,7 +222,10 @@ class Controller():
         Pi_wind         = 1/2 * rho * Ar * v**2 * dCt_dTSR * dlambda_dv + rho * Ar * v * Ct_op
 
         # Second order system coefficients
-        A = dtau_domega/J             # Plant pole
+        if self.VS_ControlMode in [0,2]: # Constant torque above rated
+            A = dtau_domega/J
+        else:                            # Constant power above rated
+            A = dtau_domega/J + Ng**2/J  * turbine.rated_power/(Ng**2*rated_rotor_speed**2)
         B_tau = -Ng**2/J              # Torque input  
         B_beta = dtau_dbeta/J         # Blade pitch input 
 
