@@ -153,7 +153,7 @@ class Controller():
         v = np.concatenate((v_below_rated, v_above_rated))
 
         # separate TSRs by operations regions
-        TSR_below_rated = np.ones(len(v_below_rated))*turbine.TSR_operational # below rated     
+        TSR_below_rated = [min(turbine.TSR_operational, rated_rotor_speed*R/v) for v in v_below_rated] # below rated     
         TSR_above_rated = rated_rotor_speed*R/v_above_rated                   # above rated
         # TSR_below_rated = np.minimum(np.max(TSR_above_rated), TSR_below_rated)
         TSR_op = np.concatenate((TSR_below_rated, TSR_above_rated))   # operational TSRs
