@@ -260,7 +260,7 @@ class Controller():
         self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A_vs,B_tau[0:len(v_below_rated)],linearize=False,v=v_below_rated)
 
         # -- Find K for Komega_g^2 --
-        self.vs_rgn2K = (pi*rho*R**5.0 * turbine.Cp.max) / (2.0 * turbine.Cp.TSR_opt**3 * Ng**3)/ (turbine.GenEff/100 * turbine.GBoxEff/100)
+        self.vs_rgn2K = (pi*rho*R**5.0 * turbine.Cp.max) / (2.0 * turbine.Cp.TSR_opt**3 * Ng**3)/ (turbine.GBoxEff/100)
         self.vs_refspd = min(turbine.TSR_operational * turbine.v_rated/R, turbine.rated_rotor_speed) * Ng
 
         # -- Define some setpoints --
@@ -287,14 +287,13 @@ class Controller():
         self.B_beta         = B_beta
         self.B_tau          = B_tau
         self.B_wind         = B_wind
-        self.TSR_op         = TSR_op
-        self.omega_op       = np.minimum(turbine.rated_rotor_speed, TSR_op*v/R)
+        self.omega_op       = np.maximum(np.minimum(turbine.rated_rotor_speed, TSR_op*v/R), self.vs_minspd)
         self.Pi_omega       = Pi_omega
         self.Pi_beta        = Pi_beta
         self.Pi_wind        = Pi_wind
 
         # - Might want these to debug -
-        # self.Cp_op = Cp_op
+        self.Cp_op = Cp_op
 
         # --- Minimum pitch saturation ---
         self.ps_min_bld_pitch = np.ones(len(self.pitch_op)) * self.min_pitch
@@ -519,11 +518,18 @@ class ControllerBlocks():
                 # Find Cp coefficients at below-rated tip speed ratios
                 Cp_op = turbine.Cp.interp_surface(turbine.pitch_initial_rad,TSR_at_minspeed[i])
                 Cp_max = max(Cp_op)
-                f_pitch_min = interpolate.interp1d(Cp_op, turbine.pitch_initial_rad, bounds_error=False, fill_value=(turbine.pitch_initial_rad[0],turbine.pitch_initial_rad[-1]))
-                min_pitch[i] = f_pitch_min(Cp_max)
+                # f_pitch_min = interpolate.interp1d(Cp_op, -turbine.pitch_initial_rad, kind='quadratic', bounds_error=False, fill_value=(turbine.pitch_initial_rad[0],turbine.pitch_initial_rad[-1]))
+                f_pitch_min = interpolate.interp1d(turbine.pitch_initial_rad, -Cp_op, kind='quadratic', bounds_error=False, fill_value=(turbine.pitch_initial_rad[0],turbine.pitch_initial_rad[-1]))
+                from scipy import optimize
+                res = optimize.minimize(f_pitch_min, 0.0)
+                min_pitch[i] = res.x[0]
+                # min_pitch[i] = f_pitch_min(Cp_max)
                 
                 # modify existing minimum pitch schedule
                 controller.ps_min_bld_pitch[i] = np.maximum(controller.ps_min_bld_pitch[i], min_pitch[i])
+
+                # Save Cp_op
+                controller.Cp_op[i] = -res.fun
             else:
                 return
 
