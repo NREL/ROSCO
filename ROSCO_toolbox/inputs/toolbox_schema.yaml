@@ -163,9 +163,9 @@ properties:
             Fl_Mode:            
                 type: number
                 minimum: 0
-                maximum: 1
+                maximum: 2
                 default: 0
-                description: Floating specific feedback mode (0- no nacelle velocity feedback, 1- nacelle velocity feedback)
+                description: Floating specific feedback mode (0- no nacelle velocity feedback, 1 - nacelle velocity feedback, 2 - nacelle pitching acceleration feedback)
             Flp_Mode:           
                 type: number
                 minimum: 0

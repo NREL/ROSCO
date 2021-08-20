@@ -308,10 +308,12 @@ class Controller():
             self.ps.min_pitch_saturation(self,turbine)
 
         # --- Floating feedback term ---
-        if self.Fl_Mode == 1: # Floating feedback
+        if self.Fl_Mode >= 1: # Floating feedback
             # If we haven't set Kp_float as a control parameter
             if self.tune_Fl:
                 Kp_float = (dtau_dv/dtau_dbeta) * Ng 
+                if self.Fl_Mode == 2:
+                    Kp_float *= turbine.TowerHt      
                 f_kp     = interpolate.interp1d(v,Kp_float)
                 self.Kp_float = f_kp(turbine.v_rated * (1.05))   # get Kp at v_rated + 0.5 m/s
                 # Turn on the notch filter if floating
