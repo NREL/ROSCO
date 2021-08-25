@@ -57,3 +57,6 @@ controller_params:
   # flp_maxpit:         # None                  # Maximum (and minimum) flap pitch angle [rad]
   twr_freq:  3.355 # for semi only!
   ptfm_freq: 0.213 # for semi only!
+  filter_params:
+    f_fl_highpassfreq: 0.01
+

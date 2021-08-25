@@ -252,7 +252,9 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'F_NotchCornerFreq',accINFILE(1),CntrPar%F_NotchCornerFreq,ErrVar)
         CALL ParseAry(UnControllerParameters, CurLine, 'F_NotchBetaNumDen', CntrPar%F_NotchBetaNumDen, 2, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'F_SSCornerFreq',accINFILE(1),CntrPar%F_SSCornerFreq,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'F_WECornerFreq',accINFILE(1),CntrPar%F_WECornerFreq,ErrVar)
         CALL ParseAry(UnControllerParameters, CurLine, 'F_FlCornerFreq', CntrPar%F_FlCornerFreq, 2, accINFILE(1), ErrVar )
+        CALL ParseInput(UnControllerParameters,CurLine,'F_FlHighPassFreq',accINFILE(1),CntrPar%F_FlHighPassFreq,ErrVar)
         CALL ParseAry(UnControllerParameters, CurLine, 'F_FlpCornerFreq', CntrPar%F_FlpCornerFreq, 2, accINFILE(1), ErrVar )
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
@@ -604,6 +606,18 @@ CONTAINS
         IF (CntrPar%F_SSCornerFreq <= 0.0) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'F_SSCornerFreq must be greater than zero.'
+        ENDIF
+
+        ! F_WECornerFreq
+        IF (CntrPar%F_WECornerFreq <= 0.0) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'F_WECornerFreq must be greater than zero.'
+        ENDIF
+
+        ! F_FlHighPassFreq
+        IF (CntrPar%F_FlHighPassFreq <= 0.0) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'F_FlHighPassFreq must be greater than zero.'
         ENDIF
 
         IF (CntrPar%Fl_Mode > 0) THEN

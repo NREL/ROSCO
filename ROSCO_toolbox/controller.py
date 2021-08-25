@@ -75,9 +75,7 @@ class Controller():
         self.vs_minspd          = controller_params['vs_minspd']
         self.ss_vsgain          = controller_params['ss_vsgain']
         self.ss_pcgain          = controller_params['ss_pcgain']
-        self.ss_cornerfreq      = controller_params['f_ss_cornerfreq']
         self.ps_percent         = controller_params['ps_percent']
-        self.sd_cornerfreq      = controller_params['sd_cornerfreq']
         self.sd_maxpit          = controller_params['sd_maxpit']
         self.WS_GS_n            = controller_params['WS_GS_n']
         self.PC_GS_n            = controller_params['PC_GS_n']
@@ -104,19 +102,25 @@ class Controller():
             else:
                 self.Kp_float = 0
 
-            self.tune_Fl = controller_params['tune_Fl']
-
+            self.tune_Fl = controller_params['tune_Fl']            
 
         else:
             self.twr_freq   = 0
             self.ptfm_freq  = 0
-
 
         # Use critical damping if LPFType = 2
         if controller_params['F_LPFType'] == 2:
             self.F_LPFDamping = 0.7
         else:
             self.F_LPFDamping = 0.0
+
+        # Filter parameters
+        self.f_we_cornerfreq        = controller_params['filter_params']['f_we_cornerfreq']
+        self.f_fl_highpassfreq      = controller_params['filter_params']['f_fl_highpassfreq']
+        self.f_ss_cornerfreq        = controller_params['filter_params']['f_ss_cornerfreq']
+        self.f_sd_cornerfreq        = controller_params['filter_params']['f_sd_cornerfreq']
+
+
 
         # Error checking: number of breakpoints
         if self.WS_GS_n <= self.PC_GS_n:

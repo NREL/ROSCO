@@ -256,11 +256,6 @@ properties:
                 type: number
                 default: 0.6981
                 unit: rad
-            sd_cornerfreq:       
-                description: Cutoff Frequency for first order low-pass filter for blade pitch angle [rad/s], {default = 0.41888 ~ time constant of 15s}
-                type: number
-                default: 0.41888
-                unit: rad
             flp_maxpit:            
                 description: Maximum (and minimum) flap pitch angle [rad]
                 type: number
@@ -276,12 +271,6 @@ properties:
                 description: Platform natural frequency, for floating only
                 unit: rad/s
                 minimum: 0
-            f_ss_cornerfreq:
-                type: number
-                description: First order low-pass filter cornering frequency for setpoint smoother [rad/s]
-                minimum: 0
-                unit: rad/s
-                default: 0.6283
             WS_GS_n:
                 type: number
                 description: Number of wind speed breakpoints
@@ -301,22 +290,33 @@ properties:
                 description: Whether to automatically tune Kp_float
                 default: True
             
-    filter_params:
-        type: object
-        default: {}
-        properties:
-            f_we_cornerfreq:
-                type: number
-                description: Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s]
-                minimum: 0
-                unit: rad/s
-                default: 0.209440
-            f_fl_highpassfreq:        
-                type: number
-                minimum: 0
-                unit: rad/s
-                default: 0.01042
-                description: Natural frequency of first-order high-pass filter for nacelle fore-aft motion [rad/s]
+            filter_params:
+                type: object
+                default: {}
+                properties:
+                    f_we_cornerfreq:
+                        type: number
+                        description: Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s]
+                        minimum: 0
+                        unit: rad/s
+                        default: 0.209440
+                    f_fl_highpassfreq:        
+                        type: number
+                        minimum: 0
+                        unit: rad/s
+                        default: 0.01042
+                        description: Natural frequency of first-order high-pass filter for nacelle fore-aft motion [rad/s]
+                    f_ss_cornerfreq:
+                        type: number
+                        description: First order low-pass filter cornering frequency for setpoint smoother [rad/s]
+                        minimum: 0
+                        unit: rad/s
+                        default: 0.6283
+                    f_sd_cornerfreq:       
+                        description: Cutoff Frequency for first order low-pass filter for blade pitch angle [rad/s], {default = 0.41888 ~ time constant of 15s}
+                        type: number
+                        default: 0.41888
+                        unit: rad
 
     # modeling_options:
     #     type: object
