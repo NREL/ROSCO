@@ -121,7 +121,8 @@ class Controller():
         self.f_ss_cornerfreq        = controller_params['filter_params']['f_ss_cornerfreq']
         self.f_sd_cornerfreq        = controller_params['filter_params']['f_sd_cornerfreq']
 
-
+        # Save controller_params for later (direct passthrough)
+        self.controller_params = controller_params
 
         # Error checking: number of breakpoints
         if self.WS_GS_n <= self.PC_GS_n:
@@ -350,6 +351,13 @@ class Controller():
             self.flp_angle = 0.0
             self.Ki_flap = np.array([0.0])
             self.Kp_flap = np.array([0.0])
+
+        # --- Set up filters ---
+        self.f_lpf_cornerfreq = turbine.bld_edgewise_freq / 4
+
+        # --- Direct input passthrough ---
+        if 'f_lpf_cornerfreq' in self.controller_params['filter_params']:
+            self.f_lpf_cornerfreq = self.controller_params['filter_params']['f_lpf_cornerfreq']
 
     def tune_flap_controller(self,turbine):
         '''

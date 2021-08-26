@@ -35,8 +35,6 @@ properties:
             - max_pitch_rate
             - max_torque_rate
             - rated_power
-            - bld_edgewise_freq
-            - bld_flapwise_freq
         properties:
             rotor_inertia:
                 type: number
@@ -77,6 +75,7 @@ properties:
                 description: Blade edgewise first natural frequency [rad/s]
                 unit: rad/s
                 minimum: 0
+                default: 4.0
             bld_flapwise_freq:
                 type: number
                 description: Blade flapwise first natural frequency [rad/s]
@@ -299,6 +298,18 @@ properties:
                 type: object
                 default: {}
                 properties:
+                    f_lpf_cornerfreq:
+                        type: number
+                        description: Corner frequency (-3dB point) in the first order low pass filter of the generator speed [rad/s]
+                        minimum: 0
+                        unit: rad/s
+                        # default: 1.00810
+                    f_lpf_damping:
+                        type: number
+                        description: Damping ratio in the first order low pass filter of the generator speed [-]
+                        minimum: 0
+                        unit: rad/s
+                        # default: 0.707
                     f_we_cornerfreq:
                         type: number
                         description: Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s]
