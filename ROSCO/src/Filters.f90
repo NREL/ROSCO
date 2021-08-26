@@ -249,14 +249,20 @@ CONTAINS
 
     END FUNCTION NotchFilter
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE PreFilterMeasuredSignals(CntrPar, LocalVar, objInst)
+    SUBROUTINE PreFilterMeasuredSignals(CntrPar, LocalVar, objInst, ErrVar)
     ! Prefilter measured wind turbine signals to separate the filtering from the actual control actions
 
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, ErrorVariables
         
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+        TYPE(ErrorVariables), INTENT(INOUT)    :: ErrVar
+
+        ! If there's an error, don't even try to run
+        IF (ErrVar%aviFAIL < 0) THEN
+            RETURN
+        ENDIF
 
         ! Filter the HSS (generator) and LSS (rotor) speed measurement:
         ! Apply Low-Pass Filter (choice between first- and second-order low-pass filter)
