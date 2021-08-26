@@ -289,13 +289,17 @@ CONTAINS
             ! Force to start at 0
             IF (LocalVar%iStatus == 0) THEN
                 LocalVar%NacIMU_FA_AccF = SecLPFilter(0., LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
+                LocalVar%FA_AccF = SecLPFilter(0., LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
             ELSE
                 LocalVar%NacIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
+                LocalVar%FA_AccF = SecLPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
             ENDIF
             LocalVar%NacIMU_FA_AccF = HPFilter(LocalVar%NacIMU_FA_AccF, LocalVar%DT, CntrPar%F_FlHighPassFreq, LocalVar%iStatus, .FALSE., objInst%instHPF) 
+            LocalVar%FA_AccF = HPFilter(LocalVar%FA_AccF, LocalVar%DT, CntrPar%F_FlHighPassFreq, LocalVar%iStatus, .FALSE., objInst%instHPF) 
             
             IF (CntrPar%F_NotchType >= 2) THEN
                 LocalVar%NACIMU_FA_AccF = NotchFilter(LocalVar%NacIMU_FA_AccF, LocalVar%DT, CntrPar%F_NotchCornerFreq, CntrPar%F_NotchBetaNumDen(1), CntrPar%F_NotchBetaNumDen(2), LocalVar%iStatus, .FALSE., objInst%instNotch) ! Fixed Damping
+                LocalVar%FA_AccF = NotchFilter(LocalVar%FA_AccF, LocalVar%DT, CntrPar%F_NotchCornerFreq, CntrPar%F_NotchBetaNumDen(1), CntrPar%F_NotchBetaNumDen(2), LocalVar%iStatus, .FALSE., objInst%instNotch) ! Fixed Damping
             ENDIF
         ENDIF
 

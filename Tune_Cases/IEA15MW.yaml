@@ -36,12 +36,12 @@ controller_params:
   WE_Mode:            2                     # Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator (Ortega et al.)}
   PS_Mode:            3                     # Pitch saturation mode {0: no pitch saturation, 1: peak shaving, 2: Cp-maximizing pitch saturation, 3: peak shaving and Cp-maximizing pitch saturation}
   SD_Mode:            0                     # Shutdown mode {0: no shutdown procedure, 1: pitch to max pitch at shutdown}
-  Fl_Mode:            1                     # Floating specific feedback mode {0: no nacelle velocity feedback, 1: nacelle velocity feedback}
+  Fl_Mode:            2                     # Floating specific feedback mode {0: no nacelle velocity feedback, 1: nacelle velocity feedback}
   Flp_Mode:           0                     # Flap control mode {0: no flap control, 1: steady state flap angle, 2: Proportional flap control}
   # Controller parameters       
-  U_pc:               [14,20]
-  zeta_pc:            [2.0,1.0]                  # Pitch controller desired damping ratio [-]
-  omega_pc:           [0.15,0.3]                  # Pitch controller desired natural frequency [rad/s]
+  # U_pc:               [14]
+  zeta_pc:            2.0                 # Pitch controller desired damping ratio [-]
+  omega_pc:           0.3                  # Pitch controller desired natural frequency [rad/s]
   zeta_vs:            0.85                   # Torque controller desired damping ratio [-]
   omega_vs:           0.12                 # Torque controller desired natural frequency [rad/s]
   # Optional - these can be defined, but do not need to be

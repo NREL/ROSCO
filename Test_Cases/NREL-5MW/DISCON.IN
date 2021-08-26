@@ -8,7 +8,7 @@
 1                   ! F_LPFType			- {1: first-order low-pass filter, 2: second-order low-pass filter}, [rad/s] (currently filters generator speed and pitch control signals
 0                   ! F_NotchType		- Notch on the measured generator speed and/or tower fore-aft motion (for floating) {0: disable, 1: generator speed, 2: tower-top fore-aft motion, 3: generator speed and tower-top fore-aft motion}
 0                   ! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {0: off, 1: 1P reductions, 2: 1P+2P reductions}
-2                   ! VS_ControlMode	- Generator torque control mode in above rated conditions {0: constant torque, 1: constant power, 2: TSR tracking PI control}
+3                   ! VS_ControlMode	- Generator torque control mode in above rated conditions {0: constant torque, 1: constant power, 2: TSR tracking PI control}
 1                   ! PC_ControlMode    - Blade pitch control mode {0: No pitch, fix to fine pitch, 1: active PI blade pitch control}
 0                   ! Y_ControlMode		- Yaw control mode {0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}
 1                   ! SS_Mode           - Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
@@ -28,12 +28,12 @@
 0.00000   1.00000   ! F_FlpCornerFreq   - Corner frequency and damping in the second order low pass filter of the blade root bending moment for flap control [rad/s, -].
 
 !------- BLADE PITCH CONTROL ----------------------------------------------
-27                  ! PC_GS_n			- Amount of gain-scheduling table entries
-0.063580  0.091667  0.113820  0.132927  0.150163  0.165982  0.180787  0.194909  0.208461  0.221269  0.233885  0.245874  0.257736  0.269106  0.280469  0.291234  0.302266  0.312525  0.322919  0.333308  0.342993  0.352949  0.362942  0.372100  0.381515  0.391200  0.400190                ! PC_GS_angles	    - Gain-schedule table: pitch angles
--0.013001  -0.011195  -0.009748  -0.008563  -0.007574  -0.006736  -0.006017  -0.005394  -0.004848  -0.004367  -0.003938  -0.003554  -0.003209  -0.002897  -0.002612  -0.002353  -0.002115  -0.001896  -0.001693  -0.001506  -0.001332  -0.001170  -0.001019  -0.000877  -0.000745  -0.000620  -0.000503                ! PC_GS_KP		- Gain-schedule table: pitch controller kp gains
--0.005660  -0.005036  -0.004536  -0.004126  -0.003785  -0.003495  -0.003247  -0.003031  -0.002843  -0.002676  -0.002528  -0.002396  -0.002276  -0.002168  -0.002070  -0.001980  -0.001898  -0.001822  -0.001752  -0.001688  -0.001628  -0.001572  -0.001519  -0.001470  -0.001425  -0.001381  -0.001341                ! PC_GS_KI		- Gain-schedule table: pitch controller ki gains
-0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0                ! PC_GS_KD			- Gain-schedule table: pitch controller kd gains
-0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0                ! PC_GS_TF			- Gain-schedule table: pitch controller tf gains (derivative filter)
+30                  ! PC_GS_n			- Amount of gain-scheduling table entries
+0.057184  0.084679  0.106097  0.124429  0.140845  0.155934  0.170053  0.183401  0.196139  0.208359  0.220146  0.231564  0.242647  0.253450  0.263988  0.274301  0.284401  0.294305  0.304033  0.313597  0.323005  0.332262  0.341382  0.350374  0.359244  0.367996  0.376635  0.385162  0.393584  0.401904                ! PC_GS_angles	    - Gain-schedule table: pitch angles [rad].
+-0.017430  -0.015265  -0.013508  -0.012054  -0.010831  -0.009787  -0.008886  -0.008101  -0.007410  -0.006798  -0.006251  -0.005760  -0.005317  -0.004915  -0.004548  -0.004213  -0.003905  -0.003620  -0.003358  -0.003114  -0.002887  -0.002676  -0.002478  -0.002293  -0.002119  -0.001956  -0.001802  -0.001656  -0.001519  -0.001389                ! PC_GS_KP		- Gain-schedule table: pitch controller kp gains [s].
+-0.005822  -0.005216  -0.004724  -0.004317  -0.003975  -0.003683  -0.003431  -0.003211  -0.003018  -0.002846  -0.002693  -0.002556  -0.002432  -0.002319  -0.002217  -0.002123  -0.002037  -0.001957  -0.001884  -0.001815  -0.001752  -0.001693  -0.001637  -0.001586  -0.001537  -0.001491  -0.001448  -0.001408  -0.001369  -0.001333                ! PC_GS_KI		- Gain-schedule table: pitch controller ki gains [-].
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0                ! PC_GS_KD			- Gain-schedule table: pitch controller kd gains
+0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0                ! PC_GS_TF			- Gain-schedule table: pitch controller tf gains (derivative filter)
 1.570800000000      ! PC_MaxPit			- Maximum physical pitch limit, [rad].
 0.000000000000      ! PC_MinPit			- Minimum physical pitch limit, [rad].
 0.174500000000      ! PC_MaxRat			- Maximum pitch rate (in absolute value) in pitch controller, [rad/s].

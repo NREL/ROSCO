@@ -93,15 +93,6 @@ properties:
             
     controller_params:
         type: object
-        required:
-            - zeta_vs
-            - omega_vs
-            - zeta_pc
-            - omega_pc
-            # - ptfm_freq   # only required if Fl_Mode = 1, let's check for this in code because its' hard here
-            # - twr_freq
-            # - zeta_flp    # only required if Flp_Mode = 1, let's check for this in code because its' hard here
-            # - omega_flp
         properties:
             LoggingLevel:
                 type: number
@@ -172,9 +163,9 @@ properties:
             Fl_Mode:            
                 type: number
                 minimum: 0
-                maximum: 1
-                default: 1
-                description: Floating specific feedback mode (0- no nacelle velocity feedback, 1- nacelle velocity feedback)
+                maximum: 2
+                default: 0
+                description: Floating specific feedback mode (0- no nacelle velocity feedback, 1 - nacelle velocity feedback, 2 - nacelle pitching acceleration feedback)
             Flp_Mode:           
                 type: number
                 minimum: 0
@@ -197,29 +188,33 @@ properties:
                     uniqueItems: True
                 default: [12]
             zeta_pc:                       
-                type: array
+                type: [array, number]
                 description: List of pitch controller desired damping ratio at U_pc [-]
                 unit: none
                 items:
                     type: number
                     minimum: 0
+                default: [1.0]
             omega_pc:                     
-                type: array
+                type: [array, number]
                 description: List of pitch controller desired natural frequency at U_pc [rad/s]
                 unit: rad/s
                 items:
                     type: number
                     minimum: 0
+                default: [0.2]
             zeta_vs:                        
                 type: number
                 minimum: 0
                 description: Torque controller desired damping ratio [-]
                 unit: none
+                default: 1.0
             omega_vs:                     
                 type: number
                 minimum: 0
                 description: Torque controller desired natural frequency [rad/s]
                 unit: rad/s
+                default: 0.2
             max_pitch:           
                 description: Maximum pitch angle [rad], {default = 90 degrees}
                 type: number
@@ -289,6 +284,16 @@ properties:
                 type: boolean
                 description: Whether to automatically tune Kp_float
                 default: True
+            zeta_flp:                        
+                type: number
+                minimum: 0
+                description: Flap controller desired damping ratio [-]
+                unit: none
+            omega_flp:                     
+                type: number
+                minimum: 0
+                description: Flap controller desired natural frequency [rad/s]
+                unit: rad/s
             
             filter_params:
                 type: object

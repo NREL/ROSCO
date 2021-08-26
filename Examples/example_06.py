@@ -19,7 +19,6 @@ import matplotlib.pyplot as plt
 from ROSCO_toolbox import controller as ROSCO_controller
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox.utilities import write_DISCON, run_openfast
-from ROSCO_toolbox import sim as ROSCO_sim
 from ROSCO_toolbox.inputs.validation import load_rosco_yaml
 
 
@@ -27,7 +26,7 @@ this_dir = os.path.dirname(os.path.abspath(__file__))
 example_out_dir = os.path.join(this_dir,'examples_out')
 
 # Load yaml file 
-parameter_filename = os.path.join(os.path.dirname(this_dir), 'Tune_Cases', 'IEA15MW.yaml') 
+parameter_filename = os.path.join(os.path.dirname(this_dir), 'Tune_Cases', 'IEA15MW_MultiOmega.yaml') 
 inps = load_rosco_yaml(parameter_filename)
 path_params         = inps['path_params']
 turbine_params      = inps['turbine_params']
