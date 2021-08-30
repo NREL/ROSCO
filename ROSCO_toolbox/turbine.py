@@ -662,7 +662,7 @@ class RotorPerformance():
         max_tsr_id = self.TSR_initial[max_ind[0]]
 
         P = plt.contourf(self.pitch_initial_rad * rad2deg, self.TSR_initial, self.performance_table, 
-                        levels=np.linspace(0,np.max(self.performance_table),20))
+                        levels=20)
         plt.colorbar(format='%1.3f')
         plt.title('Power Coefficient', fontsize=14, fontweight='bold')
         plt.xlabel('Pitch Angle [deg]', fontsize=14, fontweight='bold')
@@ -672,3 +672,6 @@ class RotorPerformance():
                     (max_beta_id+0.2, max_tsr_id+0.2), color='red')
         plt.xticks(fontsize=12)
         plt.yticks(fontsize=12)
+
+
+
