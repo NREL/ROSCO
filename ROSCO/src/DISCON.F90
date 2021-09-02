@@ -89,8 +89,8 @@ IF (ErrVar%aviFAIL < 0) THEN
     ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
     print * , TRIM(ErrVar%ErrMsg)
 ENDIF
-ErrMsg = ErrVar%ErrMsg
-avcMSG = TRANSFER(TRIM(ErrVar%ErrMsg)//C_NULL_CHAR, avcMSG, SIZE(avcMSG))
+ErrMsg = ADJUSTL(TRIM(ErrVar%ErrMsg))
+avcMSG = TRANSFER(ErrMsg//C_NULL_CHAR, avcMSG, SIZE(avcMSG))
 aviFAIL = ErrVar%aviFAIL
 
 RETURN
