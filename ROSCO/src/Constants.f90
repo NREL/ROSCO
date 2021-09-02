@@ -14,11 +14,15 @@
 MODULE Constants
     USE, INTRINSIC  :: ISO_C_Binding
     
-    REAL(C_Double), PARAMETER          :: RPS2RPM = 9.5492966                  ! Factor to convert radians per second to revolutions per minute.
-    REAL(C_Double), PARAMETER          :: R2D = 57.295780                      ! Factor to convert radians to degrees.
-    REAL(C_Double), PARAMETER          :: D2R = 0.0175                         ! Factor to convert degrees to radians.
-    REAL(C_Double), PARAMETER          :: PI = 3.14159265359                   ! Mathematical constant pi
-    INTEGER(4), PARAMETER       :: NP_1 = 1                             ! First rotational harmonic
-    INTEGER(4), PARAMETER       :: NP_2 = 2                             ! Second rotational harmonic
-    CHARACTER(*),  PARAMETER      :: NewLine     = ACHAR(10)                         ! The delimiter for New Lines [ Windows is CHAR(13)//CHAR(10); MAC is CHAR(13); Unix is CHAR(10) {CHAR(13)=\r is a line feed, CHAR(10)=\n is a new line}]
+    INTEGER, PARAMETER                  :: DbKi             = C_DOUBLE            !< Default kind for double floating-point numbers
+    INTEGER, PARAMETER                  :: ReKi             = C_FLOAT             !< Default kind for single floating-point numbers
+    INTEGER, PARAMETER                  :: IntKi            = C_INT               !< Default kind for integer numbers
+    
+    REAL(DbKi), PARAMETER               :: RPS2RPM          = 9.5492966           ! Factor to convert radians per second to revolutions per minute.
+    REAL(DbKi), PARAMETER               :: R2D              = 57.295780           ! Factor to convert radians to degrees.
+    REAL(DbKi), PARAMETER               :: D2R              = 0.0175              ! Factor to convert degrees to radians.
+    REAL(DbKi), PARAMETER               :: PI               = 3.14159265359       ! Mathematical constant pi
+    INTEGER(IntKi), PARAMETER           :: NP_1             = 1                   ! First rotational harmonic
+    INTEGER(IntKi), PARAMETER           :: NP_2             = 2                   ! Second rotational harmonic
+    CHARACTER(*),  PARAMETER            :: NewLine          = ACHAR(10)           ! The delimiter for New Lines [ Windows is CHAR(13)//CHAR(10); MAC is CHAR(13); Unix is CHAR(10) {CHAR(13)=\r is a line feed, CHAR(10)=\n is a new line}]
 END MODULE Constants

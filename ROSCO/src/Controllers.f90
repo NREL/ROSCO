@@ -50,8 +50,8 @@ CONTAINS
 
         ! Allocate Variables:
         REAL(C_FLOAT), INTENT(INOUT)            :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from the DLL controller.
-        INTEGER(4)                              :: K            ! Index used for looping through blades.
-        REAL(C_Double), Save                           :: PitComT_Last 
+        INTEGER(IntKi)                              :: K            ! Index used for looping through blades.
+        REAL(DbKi), Save                           :: PitComT_Last 
 
         CHARACTER(*), PARAMETER                 :: RoutineName = 'PitchControl'
 
@@ -259,14 +259,14 @@ CONTAINS
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
         
         ! Local variables
-        REAL(C_Double)                  :: PitComIPC(3), PitComIPCF(3), PitComIPC_1P(3), PitComIPC_2P(3)
-        INTEGER(4)               :: K                                       ! Integer used to loop through turbine blades
-        REAL(C_Double)                  :: axisTilt_1P, axisYaw_1P, axisYawF_1P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
-        REAL(C_Double), SAVE            :: IntAxisTilt_1P, IntAxisYaw_1P           ! Integral of the direct axis and quadrature axis, 1P
-        REAL(C_Double)                  :: axisTilt_2P, axisYaw_2P, axisYawF_2P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
-        REAL(C_Double), SAVE            :: IntAxisTilt_2P, IntAxisYaw_2P           ! Integral of the direct axis and quadrature axis, 1P
-        REAL(C_Double)                  :: IntAxisYawIPC_1P                        ! IPC contribution with yaw-by-IPC component
-        REAL(C_Double)                  :: Y_MErrF, Y_MErrF_IPC                    ! Unfiltered and filtered yaw alignment error [rad]
+        REAL(DbKi)                  :: PitComIPC(3), PitComIPCF(3), PitComIPC_1P(3), PitComIPC_2P(3)
+        INTEGER(IntKi)               :: K                                       ! Integer used to loop through turbine blades
+        REAL(DbKi)                  :: axisTilt_1P, axisYaw_1P, axisYawF_1P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
+        REAL(DbKi), SAVE            :: IntAxisTilt_1P, IntAxisYaw_1P           ! Integral of the direct axis and quadrature axis, 1P
+        REAL(DbKi)                  :: axisTilt_2P, axisYaw_2P, axisYawF_2P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
+        REAL(DbKi), SAVE            :: IntAxisTilt_2P, IntAxisYaw_2P           ! Integral of the direct axis and quadrature axis, 1P
+        REAL(DbKi)                  :: IntAxisYawIPC_1P                        ! IPC contribution with yaw-by-IPC component
+        REAL(DbKi)                  :: Y_MErrF, Y_MErrF_IPC                    ! Unfiltered and filtered yaw alignment error [rad]
         
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
@@ -344,7 +344,7 @@ CONTAINS
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
         
         ! Local variables
-        INTEGER(4) :: K    ! Integer used to loop through turbine blades
+        INTEGER(IntKi) :: K    ! Integer used to loop through turbine blades
 
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
@@ -360,7 +360,7 @@ CONTAINS
         
     END SUBROUTINE ForeAftDamping
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(C_Double) FUNCTION FloatingFeedback(LocalVar, CntrPar, objInst) 
+    REAL(DbKi) FUNCTION FloatingFeedback(LocalVar, CntrPar, objInst) 
     ! FloatingFeedback defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
     !       Fl_Mode = 0, No feedback
     !       Fl_Mode = 1, Proportional feedback of nacelle velocity (translational)
@@ -372,8 +372,8 @@ CONTAINS
         TYPE(LocalVariables), INTENT(IN)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables 
-        REAL(C_Double)                      :: FA_vel ! Tower fore-aft velocity [m/s]
-        REAL(C_Double)                      :: NacIMU_FA_vel ! Tower fore-aft pitching velocity [rad/s]
+        REAL(DbKi)                      :: FA_vel ! Tower fore-aft velocity [m/s]
+        REAL(DbKi)                      :: NacIMU_FA_vel ! Tower fore-aft pitching velocity [rad/s]
         
         ! Calculate floating contribution to pitch command
         FA_vel = PIController(LocalVar%FA_AccF, 0.0, 1.0, -100.0 , 100.0 ,LocalVar%DT, 0.0, .FALSE., objInst%instPI) ! NJA: should never reach saturation limits....
@@ -399,11 +399,11 @@ CONTAINS
         TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
         ! Internal Variables
-        Integer(4)                                :: K
-        REAL(C_Double)                                   :: rootMOOP_F(3)
-        REAL(C_Double)                                   :: RootMyb_Vel(3)
-        REAL(C_Double), SAVE                             :: RootMyb_Last(3)
-        REAL(C_Double)                                   :: RootMyb_VelErr(3)
+        INTEGER(IntKi)                                :: K
+        REAL(DbKi)                                   :: rootMOOP_F(3)
+        REAL(DbKi)                                   :: RootMyb_Vel(3)
+        REAL(DbKi), SAVE                             :: RootMyb_Last(3)
+        REAL(DbKi)                                   :: RootMyb_VelErr(3)
 
         ! Flap control
         IF (CntrPar%Flp_Mode >= 1) THEN
