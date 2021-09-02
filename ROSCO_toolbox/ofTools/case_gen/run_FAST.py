@@ -7,7 +7,7 @@ Example script to run the DLCs in OpenFAST
 from ROSCO_toolbox.ofTools.case_gen.runFAST_pywrapper   import runFAST_pywrapper, runFAST_pywrapper_batch
 from ROSCO_toolbox.ofTools.case_gen.CaseGen_IEC         import CaseGen_IEC
 from ROSCO_toolbox.ofTools.case_gen.CaseGen_General     import CaseGen_General
-from ROSCO_toolbox.ofTools.case_gen.CaseLibrary         import power_curve, set_channels, find_max_group, sweep_rated_torque, load_tuning_yaml
+from ROSCO_toolbox.ofTools.case_gen.CaseLibrary         import power_curve, set_channels, find_max_group, sweep_rated_torque, load_tuning_yaml, simp_step
 from wisdem.commonse.mpi_tools              import MPI
 import sys, os, platform
 import numpy as np
@@ -23,18 +23,14 @@ tune_case_dir   = os.path.realpath(os.path.join(this_dir,'../../../Tune_Cases'))
 
 
 def run_FAST(tuning_yaml,wind_case_fcn,control_sweep_fcn,save_dir,n_cores=1):
-    
-    # Specify rosco controller dylib
-    rosco_dll = '/Users/dzalkind/Tools/ROSCO/ROSCO/build/libdiscon.dylib' #'/Users/dzalkind/Tools/ROSCO_toolbox/ROSCO/build/libdiscon.dylib'
+    # set up run directory
+    if control_sweep_fcn:
+        sweep_name = control_sweep_fcn.__name__
+    else:
+        sweep_name = 'base'
 
-    if not rosco_dll: # use WEIS ROSCO
-        run_dir1            = os.path.dirname( os.path.dirname( os.path.dirname( os.path.realpath(__file__) ) ) ) + os.sep
-        if platform.system() == 'Windows':
-            rosco_dll = os.path.join(run_dir1, 'local/lib/libdiscon.dll')
-        elif platform.system() == 'Darwin':
-            rosco_dll = os.path.join(run_dir1, 'local/lib/libdiscon.dylib')
-        else:
-            rosco_dll = os.path.join(run_dir1, 'local/lib/libdiscon.so')
+    turbine_name = os.path.split(tuning_yaml)[-1].split('.')[0]
+    run_dir = os.path.join(save_dir,turbine_name,wind_case_fcn.__name__,sweep_name)
 
     
     # Start with tuning yaml definition of controller
@@ -69,8 +65,22 @@ def run_FAST(tuning_yaml,wind_case_fcn,control_sweep_fcn,save_dir,n_cores=1):
         control_base_case[('DISCON_in',discon_input)] = {'vals': [discon_vt[discon_input]], 'group': 0}
 
     # Set up wind case
-    case_inputs = wind_case_fcn()
+    case_inputs = wind_case_fcn(run_dir)
     case_inputs.update(control_base_case)
+
+    # Specify rosco controller dylib
+    rosco_dll = '/Users/dzalkind/Tools/ROSCO/ROSCO/build/libdiscon.dylib' #'/Users/dzalkind/Tools/ROSCO_toolbox/ROSCO/build/libdiscon.dylib'
+
+    if not rosco_dll: # use WEIS ROSCO
+        run_dir1            = os.path.dirname( os.path.dirname( os.path.dirname( os.path.realpath(__file__) ) ) ) + os.sep
+        if platform.system() == 'Windows':
+            rosco_dll = os.path.join(run_dir1, 'local/lib/libdiscon.dll')
+        elif platform.system() == 'Darwin':
+            rosco_dll = os.path.join(run_dir1, 'local/lib/libdiscon.dylib')
+        else:
+            rosco_dll = os.path.join(run_dir1, 'local/lib/libdiscon.so')
+
+    case_inputs[('ServoDyn','DLL_FileName')] = {'vals': [rosco_dll], 'group': 0}
 
     # Sweep control parameter
     if control_sweep_fcn:
@@ -80,9 +90,7 @@ def run_FAST(tuning_yaml,wind_case_fcn,control_sweep_fcn,save_dir,n_cores=1):
     else:
         sweep_name = 'base'
 
-    # set up run directory
-    turbine_name = os.path.split(tuning_yaml)[-1].split('.')[0]
-    run_dir = os.path.join(save_dir,turbine_name,wind_case_fcn.__name__,sweep_name)
+    
         
     # Generate cases
     case_list, case_name_list = CaseGen_General(case_inputs, dir_matrix=run_dir, namebase=turbine_name)
@@ -150,10 +158,17 @@ def run_FAST(tuning_yaml,wind_case_fcn,control_sweep_fcn,save_dir,n_cores=1):
 if __name__ == "__main__":
 
     # Simulation config
-    sim_config = 6
-    n_cores = 8
+    sim_config = 1
+    n_cores = 1
 
-    if sim_config == 6:
+    if sim_config == 1:
+        # FOCAL single wind speed testing
+        tuning_yaml = '/Users/dzalkind/Tools/ROSCO/Tune_Cases/IEA15MW_FOCAL.yaml'
+        wind_case   = simp_step
+        sweep_mode  = None
+        save_dir    = '/Users/dzalkind/Projects/FOCAL'
+    
+    elif sim_config == 6:
 
         # FOCAL rated wind speed tuning
         tuning_yaml = '/Users/dzalkind/Tools/ROSCO/Tune_Cases/IEA15MW_FOCAL.yaml'
