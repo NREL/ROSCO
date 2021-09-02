@@ -44,7 +44,7 @@ CONTAINS
         REAL(DbKi), INTENT(IN)     :: minValue
         REAL(DbKi), INTENT(IN)     :: maxValue
 
-        saturate = MIN(MAX(inputValue,minValue), maxValue)
+        saturate = REAL(MIN(MAX(inputValue,minValue), maxValue),DbKi)
 
     END FUNCTION saturate
     
@@ -562,7 +562,7 @@ CONTAINS
         CHARACTER(29), PARAMETER                    :: FmtDat = "(F10.3,TR5,99(ES10.3E2,TR5:))"   ! The format of the debugging data
         INTEGER(IntKi), PARAMETER                       :: UnDb = 85        ! I/O unit for the debugging information
         INTEGER(IntKi), PARAMETER                       :: UnDb2 = 86       ! I/O unit for the debugging information, avrSWAP
-        REAL(C_FLOAT), INTENT(INOUT)                :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
+        REAL(ReKi), INTENT(INOUT)                :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         CHARACTER(size_avcOUTNAME-1), INTENT(IN)    :: RootName     ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
         CHARACTER(200)                              :: Version      ! git version of ROSCO
         CHARACTER(10)                               :: DebugOutStr1,  DebugOutStr2, DebugOutStr3, DebugOutStr4, DebugOutStr5, &

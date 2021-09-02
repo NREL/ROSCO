@@ -288,8 +288,8 @@ CONTAINS
         IF (CntrPar%Fl_Mode > 0) THEN
             ! Force to start at 0
             IF (LocalVar%iStatus == 0) THEN
-                LocalVar%NacIMU_FA_AccF = SecLPFilter(0., LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
-                LocalVar%FA_AccF = SecLPFilter(0., LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
+                LocalVar%NacIMU_FA_AccF = SecLPFilter(REAL(0.,DbKi), LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
+                LocalVar%FA_AccF = SecLPFilter(REAL(0.,DbKi), LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
             ELSE
                 LocalVar%NacIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
                 LocalVar%FA_AccF = SecLPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%iStatus, .FALSE., objInst%instSecLPF) ! Fixed Damping
@@ -310,8 +310,8 @@ CONTAINS
 
 
         ! Control commands (used by WSE, mostly)
-        LocalVar%VS_LastGenTrqF = SecLPFilter(LocalVar%VS_LastGenTrq, LocalVar%DT, CntrPar%F_LPFCornerFreq, 0.7, LocalVar%iStatus, .FALSE., objInst%instSecLPF)
-        LocalVar%PC_PitComTF    = SecLPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%F_LPFCornerFreq*0.25, 0.7, LocalVar%iStatus, .FALSE., objInst%instSecLPF)
+        LocalVar%VS_LastGenTrqF = SecLPFilter(LocalVar%VS_LastGenTrq, LocalVar%DT, CntrPar%F_LPFCornerFreq, REAL(0.7,DbKi), LocalVar%iStatus, .FALSE., objInst%instSecLPF)
+        LocalVar%PC_PitComTF    = SecLPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%F_LPFCornerFreq*0.25, REAL(0.7,DbKi), LocalVar%iStatus, .FALSE., objInst%instSecLPF)
 
     END SUBROUTINE PreFilterMeasuredSignals
     END MODULE Filters
