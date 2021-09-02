@@ -26,26 +26,26 @@ MODULE Filters
 
 CONTAINS
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION LPFilter(InputSignal, DT, CornerFreq, iStatus, reset, inst)
+    REAL(C_Double) FUNCTION LPFilter(InputSignal, DT, CornerFreq, iStatus, reset, inst)
     ! Discrete time Low-Pass Filter of the form:
     !                               Continuous Time Form:   H(s) = CornerFreq/(1 + CornerFreq)
     !                               Discrete Time Form:     H(z) = (b1z + b0) / (a1*z + a0)
     !
-        REAL(8), INTENT(IN)         :: InputSignal
-        REAL(8), INTENT(IN)         :: DT                       ! time step [s]
-        REAL(8), INTENT(IN)         :: CornerFreq               ! corner frequency [rad/s]
+        REAL(C_Double), INTENT(IN)         :: InputSignal
+        REAL(C_Double), INTENT(IN)         :: DT                       ! time step [s]
+        REAL(C_Double), INTENT(IN)         :: CornerFreq               ! corner frequency [rad/s]
         INTEGER(4), INTENT(IN)      :: iStatus                  ! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
         INTEGER(4), INTENT(INOUT)   :: inst                     ! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
         LOGICAL(4), INTENT(IN)      :: reset                    ! Reset the filter to the input signal
 
             ! Local
-        REAL(8), DIMENSION(99), SAVE    :: a1                   ! Denominator coefficient 1
-        REAL(8), DIMENSION(99), SAVE    :: a0                   ! Denominator coefficient 0
-        REAL(8), DIMENSION(99), SAVE    :: b1                    ! Numerator coefficient 1
-        REAL(8), DIMENSION(99), SAVE    :: b0                    ! Numerator coefficient 0 
+        REAL(C_Double), DIMENSION(99), SAVE    :: a1                   ! Denominator coefficient 1
+        REAL(C_Double), DIMENSION(99), SAVE    :: a0                   ! Denominator coefficient 0
+        REAL(C_Double), DIMENSION(99), SAVE    :: b1                    ! Numerator coefficient 1
+        REAL(C_Double), DIMENSION(99), SAVE    :: b0                    ! Numerator coefficient 0 
 
-        REAL(8), DIMENSION(99), SAVE    :: InputSignalLast      ! Input signal the last time this filter was called. Supports 99 separate instances.
-        REAL(8), DIMENSION(99), SAVE    :: OutputSignalLast ! Output signal the last time this filter was called. Supports 99 separate instances.
+        REAL(C_Double), DIMENSION(99), SAVE    :: InputSignalLast      ! Input signal the last time this filter was called. Supports 99 separate instances.
+        REAL(C_Double), DIMENSION(99), SAVE    :: OutputSignalLast ! Output signal the last time this filter was called. Supports 99 separate instances.
 
             ! Initialization
         IF ((iStatus == 0) .OR. reset) THEN   
@@ -69,29 +69,29 @@ CONTAINS
 
     END FUNCTION LPFilter
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION SecLPFilter(InputSignal, DT, CornerFreq, Damp, iStatus, reset, inst)
+    REAL(C_Double) FUNCTION SecLPFilter(InputSignal, DT, CornerFreq, Damp, iStatus, reset, inst)
     ! Discrete time Low-Pass Filter of the form:
     !                               Continuous Time Form:   H(s) = CornerFreq^2/(s^2 + 2*CornerFreq*Damp*s + CornerFreq^2)
     !                               Discrete Time From:     H(z) = (b2*z^2 + b1*z + b0) / (a2*z^2 + a1*z + a0)
-        REAL(8), INTENT(IN)         :: InputSignal
-        REAL(8), INTENT(IN)         :: DT                       ! time step [s]
-        REAL(8), INTENT(IN)         :: CornerFreq               ! corner frequency [rad/s]
-        REAL(8), INTENT(IN)         :: Damp                     ! Dampening constant
+        REAL(C_Double), INTENT(IN)         :: InputSignal
+        REAL(C_Double), INTENT(IN)         :: DT                       ! time step [s]
+        REAL(C_Double), INTENT(IN)         :: CornerFreq               ! corner frequency [rad/s]
+        REAL(C_Double), INTENT(IN)         :: Damp                     ! Dampening constant
         INTEGER(4), INTENT(IN)      :: iStatus                  ! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
         INTEGER(4), INTENT(INOUT)   :: inst                     ! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
         LOGICAL(4), INTENT(IN)      :: reset                    ! Reset the filter to the input signal
 
         ! Local
-        REAL(8), DIMENSION(99), SAVE    :: a2                   ! Denominator coefficient 2
-        REAL(8), DIMENSION(99), SAVE    :: a1                   ! Denominator coefficient 1
-        REAL(8), DIMENSION(99), SAVE    :: a0                   ! Denominator coefficient 0
-        REAL(8), DIMENSION(99), SAVE    :: b2                   ! Numerator coefficient 2
-        REAL(8), DIMENSION(99), SAVE    :: b1                   ! Numerator coefficient 1
-        REAL(8), DIMENSION(99), SAVE    :: b0                   ! Numerator coefficient 0 
-        REAL(8), DIMENSION(99), SAVE    :: InputSignalLast1     ! Input signal the last time this filter was called. Supports 99 separate instances.
-        REAL(8), DIMENSION(99), SAVE    :: InputSignalLast2     ! Input signal the next to last time this filter was called. Supports 99 separate instances.
-        REAL(8), DIMENSION(99), SAVE    :: OutputSignalLast1    ! Output signal the last time this filter was called. Supports 99 separate instances.
-        REAL(8), DIMENSION(99), SAVE    :: OutputSignalLast2    ! Output signal the next to last time this filter was called. Supports 99 separate instances.
+        REAL(C_Double), DIMENSION(99), SAVE    :: a2                   ! Denominator coefficient 2
+        REAL(C_Double), DIMENSION(99), SAVE    :: a1                   ! Denominator coefficient 1
+        REAL(C_Double), DIMENSION(99), SAVE    :: a0                   ! Denominator coefficient 0
+        REAL(C_Double), DIMENSION(99), SAVE    :: b2                   ! Numerator coefficient 2
+        REAL(C_Double), DIMENSION(99), SAVE    :: b1                   ! Numerator coefficient 1
+        REAL(C_Double), DIMENSION(99), SAVE    :: b0                   ! Numerator coefficient 0 
+        REAL(C_Double), DIMENSION(99), SAVE    :: InputSignalLast1     ! Input signal the last time this filter was called. Supports 99 separate instances.
+        REAL(C_Double), DIMENSION(99), SAVE    :: InputSignalLast2     ! Input signal the next to last time this filter was called. Supports 99 separate instances.
+        REAL(C_Double), DIMENSION(99), SAVE    :: OutputSignalLast1    ! Output signal the last time this filter was called. Supports 99 separate instances.
+        REAL(C_Double), DIMENSION(99), SAVE    :: OutputSignalLast2    ! Output signal the next to last time this filter was called. Supports 99 separate instances.
 
         ! Initialization
         IF ((iStatus == 0) .OR. reset )  THEN
@@ -126,19 +126,19 @@ CONTAINS
 
     END FUNCTION SecLPFilter
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION HPFilter( InputSignal, DT, CornerFreq, iStatus, reset, inst)
+    REAL(C_Double) FUNCTION HPFilter( InputSignal, DT, CornerFreq, iStatus, reset, inst)
     ! Discrete time High-Pass Filter
 
-        REAL(8), INTENT(IN)     :: InputSignal
-        REAL(8), INTENT(IN)     :: DT                       ! time step [s]
-        REAL(8), INTENT(IN)     :: CornerFreq               ! corner frequency [rad/s]
+        REAL(C_Double), INTENT(IN)     :: InputSignal
+        REAL(C_Double), INTENT(IN)     :: DT                       ! time step [s]
+        REAL(C_Double), INTENT(IN)     :: CornerFreq               ! corner frequency [rad/s]
         INTEGER, INTENT(IN)     :: iStatus                  ! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
         INTEGER, INTENT(INOUT)  :: inst                     ! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
         LOGICAL(4), INTENT(IN)  :: reset                    ! Reset the filter to the input signal
         ! Local
-        REAL(8)                         :: K                        ! Constant gain
-        REAL(8), DIMENSION(99), SAVE    :: InputSignalLast      ! Input signal the last time this filter was called. Supports 99 separate instances.
-        REAL(8), DIMENSION(99), SAVE    :: OutputSignalLast ! Output signal the last time this filter was called. Supports 99 separate instances.
+        REAL(C_Double)                         :: K                        ! Constant gain
+        REAL(C_Double), DIMENSION(99), SAVE    :: InputSignalLast      ! Input signal the last time this filter was called. Supports 99 separate instances.
+        REAL(C_Double), DIMENSION(99), SAVE    :: OutputSignalLast ! Output signal the last time this filter was called. Supports 99 separate instances.
 
         ! Initialization
         IF ((iStatus == 0) .OR. reset)  THEN
@@ -157,22 +157,22 @@ CONTAINS
 
     END FUNCTION HPFilter
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION NotchFilterSlopes(InputSignal, DT, CornerFreq, Damp, iStatus, reset, inst)
+    REAL(C_Double) FUNCTION NotchFilterSlopes(InputSignal, DT, CornerFreq, Damp, iStatus, reset, inst)
     ! Discrete time inverted Notch Filter with descending slopes, G = CornerFreq*s/(Damp*s^2+CornerFreq*s+Damp*CornerFreq^2)
 
-        REAL(8), INTENT(IN)     :: InputSignal
-        REAL(8), INTENT(IN)     :: DT                       ! time step [s]
-        REAL(8), INTENT(IN)     :: CornerFreq               ! corner frequency [rad/s]
-        REAL(8), INTENT(IN)     :: Damp                     ! Dampening constant
+        REAL(C_Double), INTENT(IN)     :: InputSignal
+        REAL(C_Double), INTENT(IN)     :: DT                       ! time step [s]
+        REAL(C_Double), INTENT(IN)     :: CornerFreq               ! corner frequency [rad/s]
+        REAL(C_Double), INTENT(IN)     :: Damp                     ! Dampening constant
         INTEGER, INTENT(IN)     :: iStatus                  ! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
         INTEGER, INTENT(INOUT)  :: inst                     ! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
         LOGICAL(4), INTENT(IN)  :: reset                    ! Reset the filter to the input signal
         ! Local
-        REAL(8), DIMENSION(99), SAVE :: b2, b0, a2, a1, a0    ! Input signal the last time this filter was called. Supports 99 separate instances.
-        REAL(8), DIMENSION(99), SAVE :: InputSignalLast1    ! Input signal the last time this filter was called. Supports 99 separate instances.
-        REAL(8), DIMENSION(99), SAVE :: InputSignalLast2    ! Input signal the next to last time this filter was called. Supports 99 separate instances.
-        REAL(8), DIMENSION(99), SAVE :: OutputSignalLast1   ! Output signal the last time this filter was called. Supports 99 separate instances.
-        REAL(8), DIMENSION(99), SAVE :: OutputSignalLast2   ! Output signal the next to last time this filter was called. Supports 99 separate instances.
+        REAL(C_Double), DIMENSION(99), SAVE :: b2, b0, a2, a1, a0    ! Input signal the last time this filter was called. Supports 99 separate instances.
+        REAL(C_Double), DIMENSION(99), SAVE :: InputSignalLast1    ! Input signal the last time this filter was called. Supports 99 separate instances.
+        REAL(C_Double), DIMENSION(99), SAVE :: InputSignalLast2    ! Input signal the next to last time this filter was called. Supports 99 separate instances.
+        REAL(C_Double), DIMENSION(99), SAVE :: OutputSignalLast1   ! Output signal the last time this filter was called. Supports 99 separate instances.
+        REAL(C_Double), DIMENSION(99), SAVE :: OutputSignalLast2   ! Output signal the next to last time this filter was called. Supports 99 separate instances.
         
         ! Initialization
         IF ((iStatus == 0) .OR. reset) THEN
@@ -203,25 +203,25 @@ CONTAINS
 
     END FUNCTION NotchFilterSlopes
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION NotchFilter(InputSignal, DT, omega, betaNum, betaDen, iStatus, reset, inst)
+    REAL(C_Double) FUNCTION NotchFilter(InputSignal, DT, omega, betaNum, betaDen, iStatus, reset, inst)
     ! Discrete time Notch Filter 
     !                               Continuous Time Form: G(s) = (s^2 + 2*omega*betaNum*s + omega^2)/(s^2 + 2*omega*betaDen*s + omega^2)
     !                               Discrete Time Form:   H(z) = (b2*z^2 +b1*z^2 + b0*z)/((z^2 +a1*z^2 + a0*z))
 
-        REAL(8), INTENT(IN)     :: InputSignal
-        REAL(8), INTENT(IN)     :: DT                       ! time step [s]
-        REAL(8), INTENT(IN)     :: omega                    ! corner frequency [rad/s]
-        REAL(8), INTENT(IN)     :: betaNum                  ! Dampening constant in numerator of filter transfer function
-        REAL(8), INTENT(IN)     :: betaDen                  ! Dampening constant in denominator of filter transfer function
+        REAL(C_Double), INTENT(IN)     :: InputSignal
+        REAL(C_Double), INTENT(IN)     :: DT                       ! time step [s]
+        REAL(C_Double), INTENT(IN)     :: omega                    ! corner frequency [rad/s]
+        REAL(C_Double), INTENT(IN)     :: betaNum                  ! Dampening constant in numerator of filter transfer function
+        REAL(C_Double), INTENT(IN)     :: betaDen                  ! Dampening constant in denominator of filter transfer function
         INTEGER, INTENT(IN)     :: iStatus                  ! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
         INTEGER, INTENT(INOUT)  :: inst                     ! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
         LOGICAL(4), INTENT(IN)  :: reset                    ! Reset the filter to the input signal
         ! Local
-        REAL(8), DIMENSION(99), SAVE    :: K, b2, b1, b0, a1, a0    ! Constant gain
-        REAL(8), DIMENSION(99), SAVE    :: InputSignalLast1         ! Input signal the last time this filter was called. Supports 99 separate instances.
-        REAL(8), DIMENSION(99), SAVE    :: InputSignalLast2         ! Input signal the next to last time this filter was called. Supports 99 separate instances.
-        REAL(8), DIMENSION(99), SAVE    :: OutputSignalLast1        ! Output signal the last time this filter was called. Supports 99 separate instances.
-        REAL(8), DIMENSION(99), SAVE    :: OutputSignalLast2        ! Output signal the next to last time this filter was called. Supports 99 separate instances.
+        REAL(C_Double), DIMENSION(99), SAVE    :: K, b2, b1, b0, a1, a0    ! Constant gain
+        REAL(C_Double), DIMENSION(99), SAVE    :: InputSignalLast1         ! Input signal the last time this filter was called. Supports 99 separate instances.
+        REAL(C_Double), DIMENSION(99), SAVE    :: InputSignalLast2         ! Input signal the next to last time this filter was called. Supports 99 separate instances.
+        REAL(C_Double), DIMENSION(99), SAVE    :: OutputSignalLast1        ! Output signal the last time this filter was called. Supports 99 separate instances.
+        REAL(C_Double), DIMENSION(99), SAVE    :: OutputSignalLast2        ! Output signal the next to last time this filter was called. Supports 99 separate instances.
 
         ! Initialization
         IF ((iStatus == 0) .OR. reset) THEN

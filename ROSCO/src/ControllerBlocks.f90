@@ -41,11 +41,11 @@ CONTAINS
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
 
-        REAL(8)                                 :: VS_RefSpd        ! Referece speed for variable speed torque controller, [rad/s] 
-        REAL(8)                                 :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
-        REAL(8)                                 :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
+        REAL(C_Double)                                 :: VS_RefSpd        ! Referece speed for variable speed torque controller, [rad/s] 
+        REAL(C_Double)                                 :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
+        REAL(C_Double)                                 :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
         ! temp
-        ! REAL(8)                                 :: VS_TSRop = 7.5
+        ! REAL(C_Double)                                 :: VS_TSRop = 7.5
 
         ! ----- Calculate yaw misalignment error -----
         LocalVar%Y_MErr = LocalVar%Y_M + CntrPar%Y_MErrSet ! Yaw-alignment error
@@ -182,36 +182,36 @@ CONTAINS
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
 
         ! Allocate Variables
-        REAL(8)                 :: F_WECornerFreq   ! Corner frequency (-3dB point) for first order low pass filter for measured hub height wind speed [Hz]
+        REAL(C_Double)                 :: F_WECornerFreq   ! Corner frequency (-3dB point) for first order low pass filter for measured hub height wind speed [Hz]
 
         !       Only used in EKF, if WE_Mode = 2
-        REAL(8), SAVE           :: om_r             ! Estimated rotor speed [rad/s]
-        REAL(8), SAVE           :: v_t              ! Estimated wind speed, turbulent component [m/s]
-        REAL(8), SAVE           :: v_m              ! Estimated wind speed, 10-minute averaged [m/s]
-        REAL(8), SAVE           :: v_h              ! Combined estimated wind speed [m/s]
-        REAL(8)                 :: L                ! Turbulent length scale parameter [m]
-        REAL(8)                 :: Ti               ! Turbulent intensity, [-]
-        ! REAL(8), DIMENSION(3,3) :: I
+        REAL(C_Double), SAVE           :: om_r             ! Estimated rotor speed [rad/s]
+        REAL(C_Double), SAVE           :: v_t              ! Estimated wind speed, turbulent component [m/s]
+        REAL(C_Double), SAVE           :: v_m              ! Estimated wind speed, 10-minute averaged [m/s]
+        REAL(C_Double), SAVE           :: v_h              ! Combined estimated wind speed [m/s]
+        REAL(C_Double)                 :: L                ! Turbulent length scale parameter [m]
+        REAL(C_Double)                 :: Ti               ! Turbulent intensity, [-]
+        ! REAL(C_Double), DIMENSION(3,3) :: I
         !           - operating conditions
-        REAL(8)                 :: A_op             ! Estimated operational system pole [UNITS!]
-        REAL(8)                 :: Cp_op            ! Estimated operational Cp [-]
-        REAL(8)                 :: Tau_r            ! Estimated rotor torque [Nm]
-        REAL(8)                 :: a                ! wind variance
-        REAL(8)                 :: lambda           ! tip-speed-ratio [rad]
-        REAL(8)                 :: RotSpeed         ! Rotor Speed [rad], locally
+        REAL(C_Double)                 :: A_op             ! Estimated operational system pole [UNITS!]
+        REAL(C_Double)                 :: Cp_op            ! Estimated operational Cp [-]
+        REAL(C_Double)                 :: Tau_r            ! Estimated rotor torque [Nm]
+        REAL(C_Double)                 :: a                ! wind variance
+        REAL(C_Double)                 :: lambda           ! tip-speed-ratio [rad]
+        REAL(C_Double)                 :: RotSpeed         ! Rotor Speed [rad], locally
 
         !           - Covariance matrices
-        REAL(8), DIMENSION(3,3)         :: F        ! First order system jacobian 
-        REAL(8), DIMENSION(3,3), SAVE   :: P        ! Covariance estiamte 
-        REAL(8), DIMENSION(1,3)         :: H        ! Output equation jacobian 
-        REAL(8), DIMENSION(3,1), SAVE   :: xh       ! Estimated state matrix
-        REAL(8), DIMENSION(3,1)         :: dxh      ! Estimated state matrix deviation from previous timestep
-        REAL(8), DIMENSION(3,3)         :: Q        ! Process noise covariance matrix
-        REAL(8), DIMENSION(1,1)         :: S        ! Innovation covariance 
-        REAL(8), DIMENSION(3,1), SAVE   :: K        ! Kalman gain matrix
-        REAL(8)                         :: R_m      ! Measurement noise covariance [(rad/s)^2]
+        REAL(C_Double), DIMENSION(3,3)         :: F        ! First order system jacobian 
+        REAL(C_Double), DIMENSION(3,3), SAVE   :: P        ! Covariance estiamte 
+        REAL(C_Double), DIMENSION(1,3)         :: H        ! Output equation jacobian 
+        REAL(C_Double), DIMENSION(3,1), SAVE   :: xh       ! Estimated state matrix
+        REAL(C_Double), DIMENSION(3,1)         :: dxh      ! Estimated state matrix deviation from previous timestep
+        REAL(C_Double), DIMENSION(3,3)         :: Q        ! Process noise covariance matrix
+        REAL(C_Double), DIMENSION(1,1)         :: S        ! Innovation covariance 
+        REAL(C_Double), DIMENSION(3,1), SAVE   :: K        ! Kalman gain matrix
+        REAL(C_Double)                         :: R_m      ! Measurement noise covariance [(rad/s)^2]
         
-        REAL(8), DIMENSION(3,1), SAVE   :: B
+        REAL(C_Double), DIMENSION(3,1), SAVE   :: B
 
         CHARACTER(*), PARAMETER                 :: RoutineName = 'WindSpeedEstimator'
 
@@ -327,7 +327,7 @@ CONTAINS
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables
-        REAL(8)                      :: DelOmega                            ! Reference generator speed shift, rad/s.
+        REAL(C_Double)                      :: DelOmega                            ! Reference generator speed shift, rad/s.
         
         ! ------ Setpoint Smoothing ------
         IF ( CntrPar%SS_Mode == 1) THEN
@@ -342,7 +342,7 @@ CONTAINS
 
     END SUBROUTINE SetpointSmoother
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION PitchSaturation(LocalVar, CntrPar, objInst, DebugVar, ErrVar) 
+    REAL(C_Double) FUNCTION PitchSaturation(LocalVar, CntrPar, objInst, DebugVar, ErrVar) 
     ! PitchSaturation defines a minimum blade pitch angle based on a lookup table provided by DISCON.IN
     !       SS_Mode = 0, No setpoint smoothing
     !       SS_Mode = 1, Implement pitch saturation
@@ -367,7 +367,7 @@ CONTAINS
 
     END FUNCTION PitchSaturation
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION Shutdown(LocalVar, CntrPar, objInst) 
+    REAL(C_Double) FUNCTION Shutdown(LocalVar, CntrPar, objInst) 
     ! PeakShaving defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
     !       SS_Mode = 0, No setpoint smoothing
     !       SS_Mode = 1, Implement setpoint smoothing
@@ -378,7 +378,7 @@ CONTAINS
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables 
-        REAL(8)                      :: SD_BlPitchF
+        REAL(C_Double)                      :: SD_BlPitchF
         ! Initialize Shutdown Varible
         IF (LocalVar%iStatus == 0) THEN
             LocalVar%SD = .FALSE.

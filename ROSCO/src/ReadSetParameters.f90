@@ -406,7 +406,7 @@ CONTAINS
 
         INTEGER(4)                                  :: CurLine 
         CHARACTER(*), PARAMETER                     :: RoutineName = 'ReadCpFile'
-        REAL(8), DIMENSION(:), ALLOCATABLE          :: TmpPerf
+        REAL(C_Double), DIMENSION(:), ALLOCATABLE          :: TmpPerf
 
         CurLine = 1
 
@@ -986,7 +986,7 @@ CONTAINS
         CHARACTER(20)                           :: Words       (2)               ! The two "words" parsed from the line
         LOGICAL, OPTIONAL,      INTENT(IN   )   :: CheckName
 
-        REAL(8),             INTENT(INOUT)      :: Variable   ! Variable
+        REAL(C_Double),             INTENT(INOUT)      :: Variable   ! Variable
         INTEGER(4)                              :: ErrStatLcl                    ! Error status local to this routine.
 
         LOGICAL                                 :: CheckName_
@@ -1112,7 +1112,7 @@ CONTAINS
         INTEGER(4),             INTENT(IN   )   :: Un   ! Input file unit
         INTEGER,                INTENT(IN   )   :: AryLen                        !< The length of the array to parse.
 
-        REAL(8), ALLOCATABLE,   INTENT(INOUT)   :: Ary(:)            !< The array to receive the input values.
+        REAL(C_Double), ALLOCATABLE,   INTENT(INOUT)   :: Ary(:)            !< The array to receive the input values.
 
         INTEGER(4),             INTENT(INOUT)   :: LineNum                       !< The number of the line to parse.
         CHARACTER(*),           INTENT(IN)      :: FileName                      !< The name of the file being parsed.
