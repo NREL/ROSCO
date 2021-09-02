@@ -1372,7 +1372,12 @@ class InputWriter_OpenFAST(InputWriter_Common):
         controller.Ki_flap              = self.fst_vt['DISCON_in']['Flp_Ki']
         controller.flp_angle            = self.fst_vt['DISCON_in']['Flp_Angle']
         controller.flp_maxpit           = self.fst_vt['DISCON_in']['Flp_MaxPit']
-
+        controller.f_lpf_cornerfreq     = self.fst_vt['DISCON_in']['F_LPFCornerFreq']
+        controller.f_ss_cornerfreq      = self.fst_vt['DISCON_in']['F_SSCornerFreq']
+        controller.f_we_cornerfreq      = self.fst_vt['DISCON_in']['F_WECornerFreq']
+        controller.f_fl_highpassfreq    = self.fst_vt['DISCON_in']['F_FlHighPassFreq']
+        controller.f_sd_cornerfreq      = self.fst_vt['DISCON_in']['SD_CornerFreq']
+        
         turbine = type('', (), {})()
         turbine.Cp = type('', (), {})()
         turbine.Ct = type('', (), {})()

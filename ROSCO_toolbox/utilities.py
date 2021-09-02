@@ -377,7 +377,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['F_WECornerFreq']       = controller.f_we_cornerfreq
     DISCON_dict['F_SSCornerFreq']       = controller.f_ss_cornerfreq
     DISCON_dict['F_FlHighPassFreq']     = controller.f_fl_highpassfreq
-    DISCON_dict['F_FlCornerFreq']       = [turbine.ptfm_freq, 1.0]
+    DISCON_dict['F_FlCornerFreq']       = [controller.ptfm_freq, 1.0]
     DISCON_dict['F_FlpCornerFreq']      = [turbine.bld_flapwise_freq*1/3, 1.0]
     # ------- BLADE PITCH CONTROL -------
     DISCON_dict['PC_GS_n']			= len(controller.pitch_op_pc)
@@ -451,7 +451,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['PS_BldPitchMin']   = controller.ps_min_bld_pitch
     # ------- SHUTDOWN -------
     DISCON_dict['SD_MaxPit']        = controller.sd_maxpit
-    DISCON_dict['SD_CornerFreq']    = controller.sd_cornerfreq
+    DISCON_dict['SD_CornerFreq']    = controller.f_sd_cornerfreq
     # ------- Floating -------
     DISCON_dict['Fl_Kp']            = controller.Kp_float
     # ------- FLAP ACTUATION -------
