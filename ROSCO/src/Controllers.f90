@@ -100,7 +100,7 @@ CONTAINS
 
         
         ! FloatingFeedback
-        IF (CntrPar%Fl_Mode == 1) THEN
+        IF (CntrPar%Fl_Mode > 0) THEN
             LocalVar%Fl_PitCom = FloatingFeedback(LocalVar, CntrPar, objInst)
             LocalVar%PC_PitComT = LocalVar%PC_PitComT + LocalVar%Fl_PitCom
         ENDIF
