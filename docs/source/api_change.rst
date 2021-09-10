@@ -11,7 +11,7 @@ Thus, be sure to implement each in order so that subsequent line numbers are cor
 
 
 ROSCO v2.4.0 to ROSCO `develop`
----------------------------------
+-------------------------------
 Two filter parameters were added to 
 - change the high pass filter in the floating feedback module
 - change the low pass filter of the wind speed estimator signal that is used in torque control
@@ -28,7 +28,7 @@ Line    Flag Name        Example Value
 
 
 ROSCO v2.4.0 to ROSCO v2.3.0
----------------------------
+----------------------------
 ====== =============== ======================================================================================================================================================================================================
 Added in ROSCO develop
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
