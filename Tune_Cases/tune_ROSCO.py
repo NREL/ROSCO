@@ -5,7 +5,7 @@ import os
 #-------------------------------- LOAD INPUT PARAMETERS ---------------------------------#
 # Change this for your turbine
 this_dir            = os.path.dirname(__file__)
-parameter_filename  = os.path.join(this_dir,'NREL5MW.yaml')                         # Name of .yaml input file for the specific turbine
+parameter_filename  = os.path.join(this_dir,'IEA15MW.yaml')                         # Name of .yaml input file for the specific turbine
 
 
 
@@ -23,13 +23,14 @@ import yaml
 from ROSCO_toolbox import controller as ROSCO_controller
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox.utilities import write_rotor_performance, write_DISCON
+from ROSCO_toolbox.inputs.validation import load_rosco_yaml
 
 # Initialize parameter dictionaries
 turbine_params = {}
 control_params = {}
 
 # Load input file contents, put them in some dictionaries to keep things cleaner
-inps = yaml.safe_load(open(parameter_filename))
+inps = load_rosco_yaml(parameter_filename)
 path_params = inps['path_params']
 turbine_params = inps['turbine_params']
 controller_params = inps['controller_params']

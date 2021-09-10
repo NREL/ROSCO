@@ -3,6 +3,10 @@ name: CI_rosco-pytools
 # We run CI on push commits on all branches
 on: [push, pull_request]
 
+# Specify FORTRAN compiler
+env:
+  FORTRAN_COMPILER: gfortran-10
+  
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
@@ -34,16 +38,15 @@ jobs:
 
 
       # Install dependencies of ROSCO toolbox
-      - name: Add dependencies ubuntu specific
-        if: false == contains( matrix.os, 'windows')
-        run: |
-          conda install -y compilers
-          conda install -y wisdem
       - name: Add dependencies windows specific
         if: true == contains( matrix.os, 'windows')
         run: |
           conda install -y m2w64-toolchain libpython 
-          conda install -y wisdem
+
+      - name: Add dependencies macOS specific
+        if: true == contains( matrix.os, 'macOS')
+        run: |
+          conda install compilers
         
 
       # Install ROSCO toolbox
@@ -84,7 +87,6 @@ jobs:
       - name: Add dependencies ubuntu specific
         if: false == contains( matrix.os, 'windows')
         run: |
-          conda install -y compilers
           conda install -y wisdem
       - name: Add dependencies windows specific
         if: true == contains( matrix.os, 'windows')
@@ -141,7 +143,6 @@ jobs:
       - name: Add dependencies ubuntu specific
         if: false == contains( matrix.os, 'windows')
         run: |
-          conda install -y compilers
           conda install -y wisdem
         
 
