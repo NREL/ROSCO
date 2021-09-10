@@ -78,3 +78,4 @@ limitations under the License.
    source/standard_use.rst
    source/rosco_toolbox.rst
    source/rosco.rst
+   source/api_change.rst
