@@ -31,6 +31,8 @@ Figure :numref:`fig-RT` shows the general workflow for the ROSCO toolchain.
 * Follows Bladed-style control interface
 * Modular
 
+For the latest API changes to the DISCON.IN file, please see :ref:`api_change`.
+
 Standard Use
 ------------
 
