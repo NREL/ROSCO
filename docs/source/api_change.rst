@@ -10,7 +10,7 @@ The line number corresponds to the resulting line number after all changes are i
 Thus, be sure to implement each in order so that subsequent line numbers are correct.
 
 
-ROSCO v2.4.0 to ROSCO `develop`
+ROSCO v2.3.0 to ROSCO `develop`
 -------------------------------
 Two filter parameters were added to 
 - change the high pass filter in the floating feedback module
@@ -27,7 +27,7 @@ Line    Flag Name           Example Value
 
 
 
-ROSCO v2.4.0 to ROSCO v2.3.0
+ROSCO v2.3.0 to ROSCO v2.4.0
 ----------------------------
 ====== =================    ======================================================================================================================================================================================================
 Added in ROSCO develop
