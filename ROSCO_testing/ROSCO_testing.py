@@ -24,6 +24,8 @@ from ROSCO_toolbox.ofTools.case_gen.runFAST_pywrapper import runFAST_pywrapper_b
 from matplotlib.backends.backend_pdf import FigureCanvasPdf, PdfPages
 from ROSCO_toolbox.ofTools.fast_io import output_processing
 import matplotlib.pyplot as plt
+from ROSCO_toolbox import utilities as ROSCO_utilities
+
 
 
 
@@ -462,7 +464,11 @@ class ROSCO_testing():
             self.wind_dir = os.path.join(run_dir_init, 'wind')  # wind in base runDir
 
             # Point to different DISCON.IN files using more_case_inputs
-            more_case_inputs[('ServoDyn', 'DLL_InFile')] = {'vals': [discon], 'group': 0}
+            # Control (DISCON) Inputs
+            discon_vt = ROSCO_utilities.read_DISCON(discon)
+            for discon_input in discon_vt:
+                more_case_inputs[('DISCON_in',discon_input)] = {'vals': [discon_vt[discon_input]], 'group': 0}
+
             self.wind_dir = os.path.join(run_dir_init, 'wind')  # wind in base runDir
 
             if testtype.lower() == 'light':
