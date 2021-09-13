@@ -122,11 +122,7 @@ def run_FAST(tuning_yaml,wind_case_fcn,control_sweep_fcn,save_dir,n_cores=1):
         model_dir                   = os.path.join(os.path.dirname( os.path.dirname( os.path.realpath(__file__) ) ), '01_aeroelasticse/OpenFAST_models')
 
         # FAST_directory (relative to Tune_Dir/)
-        if os.path.isabs(path_params['FAST_directory']):
-            fastBatch.FAST_directory    = tune_case_dir
-        else:
-            fastBatch.FAST_directory    = os.path.realpath(os.path.join(tune_case_dir,path_params['FAST_directory']))
-
+        fastBatch.FAST_directory    = os.path.realpath(os.path.join(tune_case_dir,path_params['FAST_directory']))
         fastBatch.FAST_InputFile    = path_params['FAST_InputFile']        
         fastBatch.channels          = channels
         fastBatch.FAST_runDirectory = run_dir
@@ -158,15 +154,15 @@ def run_FAST(tuning_yaml,wind_case_fcn,control_sweep_fcn,save_dir,n_cores=1):
 if __name__ == "__main__":
 
     # Simulation config
-    sim_config = 1
-    n_cores = 1
+    sim_config = 6
+    n_cores = 8
 
     if sim_config == 1:
         # FOCAL single wind speed testing
         tuning_yaml = '/Users/dzalkind/Tools/ROSCO/Tune_Cases/IEA15MW_FOCAL.yaml'
         wind_case   = simp_step
         sweep_mode  = None
-        save_dir    = '/Users/dzalkind/Projects/FOCAL'
+        save_dir    = '/Users/dzalkind/Projects/FOCAL/torque_274'
     
     elif sim_config == 6:
 
@@ -174,7 +170,7 @@ if __name__ == "__main__":
         tuning_yaml = '/Users/dzalkind/Tools/ROSCO/Tune_Cases/IEA15MW_FOCAL.yaml'
         wind_case   = power_curve
         sweep_mode  = sweep_rated_torque
-        save_dir    = '/Users/dzalkind/Projects/FOCAL'
+        save_dir    = '/Users/dzalkind/Projects/FOCAL/drop_torque'
 
     else:
         raise Exception('This simulation configuration is not supported.')
