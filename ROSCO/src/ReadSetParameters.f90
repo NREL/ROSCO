@@ -102,7 +102,6 @@ CONTAINS
         CHARACTER(KIND=C_CHAR), INTENT(IN)      :: accINFILE(NINT(avrSWAP(50)))     ! The name of the parameter input file
         
         INTEGER(4)                              :: K    ! Index used for looping through blades.
-        CHARACTER(200)                          :: git_version
 
         CHARACTER(*), PARAMETER                 :: RoutineName = 'SetParameters'
 
@@ -141,10 +140,9 @@ CONTAINS
             
             ! Inform users that we are using this user-defined routine:
             ! ErrVar%aviFAIL = 1
-            git_version = QueryGitVersion()
             PRINT *,'                                                                              '//NEW_LINE('A')// &
                     '------------------------------------------------------------------------------'//NEW_LINE('A')// &
-                    'Running ROSCO-'//TRIM(git_version)//NEW_LINE('A')// &
+                    'Running ROSCO-'//TRIM(rosco_version)//NEW_LINE('A')// &
                     'A wind turbine controller framework for public use in the scientific field    '//NEW_LINE('A')// &
                     'Developed in collaboration: National Renewable Energy Laboratory              '//NEW_LINE('A')// &
                     '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
