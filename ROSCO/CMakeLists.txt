@@ -33,17 +33,6 @@ set(SOURCES
     src/ReadSetParameters.f90
 )
 
-# Git version
-if( DEFINED GIT_DESCRIBE )
-  message( WARNING
-    "Version information has been set as a CMake flag. This should only used when the git-version cannot be set automatically."
-  )
-else()
-  include(${CMAKE_SOURCE_DIR}/cmake/GetGitRevisionDescription.cmake)
-  git_describe(GIT_DESCRIBE)
-endif()
-add_definitions(-DGIT_VERSION_INFO="${GIT_DESCRIBE}")
-
 # Library
 add_library(discon SHARED ${SOURCES})
 
