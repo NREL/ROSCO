@@ -140,13 +140,13 @@ CONTAINS
             
             ! Inform users that we are using this user-defined routine:
             ! ErrVar%aviFAIL = 1
-            PRINT *,'                                                                              '//NEW_LINE('A')// &
-                    '------------------------------------------------------------------------------'//NEW_LINE('A')// &
-                    'Running ROSCO-'//TRIM(rosco_version)//NEW_LINE('A')// &
-                    'A wind turbine controller framework for public use in the scientific field    '//NEW_LINE('A')// &
-                    'Developed in collaboration: National Renewable Energy Laboratory              '//NEW_LINE('A')// &
-                    '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
-                    '------------------------------------------------------------------------------'
+            write (*,*) '                                                                              '//NEW_LINE('A')// &
+                        '------------------------------------------------------------------------------'//NEW_LINE('A')// &
+                        'Running ROSCO-'//TRIM(rosco_version)//NEW_LINE('A')// &
+                        'A wind turbine controller framework for public use in the scientific field    '//NEW_LINE('A')// &
+                        'Developed in collaboration: National Renewable Energy Laboratory              '//NEW_LINE('A')// &
+                        '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
+                        '------------------------------------------------------------------------------'
 
             CALL ReadControlParameterFileSub(CntrPar, accINFILE, NINT(avrSWAP(50)),ErrVar)
             ! If there's been an file reading error, don't continue
