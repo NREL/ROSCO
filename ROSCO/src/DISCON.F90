@@ -99,8 +99,11 @@ IF (ErrVar%aviFAIL < 0) THEN
     print * , TRIM(ErrVar%ErrMsg)
 ENDIF
 ErrMsg = ADJUSTL(TRIM(ErrVar%ErrMsg))
+avcMSG = TRANSFER(ErrMsg//C_NULL_CHAR, avcMSG, LEN(ErrMsg)+1)
 avcMSG = TRANSFER(ErrMsg//C_NULL_CHAR, avcMSG, SIZE(avcMSG))
 aviFAIL = ErrVar%aviFAIL
+
+ErrVar%ErrMsg = ''
 
 RETURN
 END SUBROUTINE DISCON
