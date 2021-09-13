@@ -13,3 +13,4 @@ Examples:
 9. Run turbsim to compile binary.
 10. Tune a controller for distributed aerodynamic control.
 11. Generate simplified linear models, save the parameters to a file.
+12. Run robust controller tuning

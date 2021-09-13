@@ -96,7 +96,6 @@ class CMakeBuildExt(build_ext):
                     cmake_args += ['-DCMAKE_GENERATOR_PLATFORM=x64']
                 else:
                     cmake_args += ['-G', 'MinGW Makefiles']
-                    cmake_args += ['-D', 'CMAKE_Fortran_COMPILER=gfortran']
 
             self.build_temp = os.path.join( os.path.dirname( os.path.realpath(__file__) ), 'ROSCO', 'build')
             os.makedirs(localdir, exist_ok=True)
