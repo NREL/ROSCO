@@ -67,7 +67,7 @@ If you wish to write your own scripts to leverage the ROSCO tools, but do not ne
 
     ::
 
-        conda install rosco
+        conda install -y ROSCO
 
 Note that if you do choose to install the ROSCO Toolbox this way, you will not have the source code. This will download a compiled ROSCO binary file into the default filepath for any dynamic libraries downloaded via anaconda while in the ROSCO-env. 
 The ROSCO binary file can be copied to your desired folder using:
