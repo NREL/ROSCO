@@ -4,12 +4,11 @@
 
 Installing the ROSCO tools
 ===========================
-Depending on what is needed, a user can choose to use just the ROSCO controller or to use both the ROSCO controller and the toolbox.
-Both the controller and the toolbox should be installed if one wishes to leverage the full ROSCO toolchain. 
+Depending on what is needed, a user can choose to use just the ROSCO controller or to use both the ROSCO controller and the toolbox. Both the controller and the toolbox should be installed if one wishes to leverage the full ROSCO toolchain. 
 
 It is recommended to install the ROSCO toolset in full following the instruction in :ref:`full_rosco`
 
-For users planning to only download and compile the ROSCO controller, please follow the instructions on :ref:`rosco_controller`. 
+For users planning to only download and/or compile the ROSCO controller, please follow the instructions on :ref:`rosco_controller`. 
 
 .. _full_rosco:
 
@@ -20,8 +19,7 @@ We recommend using the full ROSCO toolchain. This also eases the installation pr
 
 Installing
 ..............
-Installation of the complete ROSCO toolbox is made easy through `Anaconda <https://www.anaconda.com/>`_. 
-If you do not already have Anaconda installed on your machine, please install it. 
+Installation of the complete ROSCO toolset is made easy through `Anaconda <https://www.anaconda.com/>`_. If you do not already have Anaconda installed on your machine, please install it. Additionally, we primarily support the use of CMake_ to control the software compilation process. If you plan to compile the ROSCO controller's source code, we request that you download CMake as well.
 
 Then please follow the following steps:
 
@@ -39,10 +37,10 @@ Then please follow the following steps:
 
         conda install -y wisdem
 
-You should then do step three *or* four. 
-If you do not want to compile the ROSCO controller while also instaling the ROSCO toolbox, please follow the instructions for :ref:`compiling_rosco`.
+You should then do step 3a *or* 3b. 
+If you do not want to compile the ROSCO controller while also installing the ROSCO toolbox, please follow the instructions for :ref:`compiling_rosco`.
 
-1.  Clone and Install the ROSCO toolbox with ROSCO
+3. Clone and Install the ROSCO toolbox with ROSCO
 
     :: 
 
@@ -69,8 +67,7 @@ If you wish to write your own scripts to leverage the ROSCO tools, but do not ne
 
         conda install -y ROSCO
 
-Note that if you do choose to install the ROSCO Toolbox this way, you will not have the source code. This will download a compiled ROSCO binary file into the default filepath for any dynamic libraries downloaded via anaconda while in the ROSCO-env. 
-The ROSCO binary file can be copied to your desired folder using:
+Note that if you do choose to install ROSCO this way, you will not have the source code. This will install the python-based ROSCO toolbox and download a compiled ROSCO controller binary file into the default filepath. The ROSCO binary file can be copied to your desired folder using:
 ::
 
     cp $CONDA_PREFIX/lib/libdiscon.* <desired_folder>
@@ -78,7 +75,7 @@ The ROSCO binary file can be copied to your desired folder using:
 on linux or:
 ::
 
-    copy %CONDA_PREFIX%/lib/libdiscon.* <desired_folder>
+    copy %CONDA_PREFIX%/lib/libdiscon.dll <desired_folder>
 
 on Windows.
 
@@ -181,7 +178,7 @@ This will generate a file called :code:`libdiscon.dll` in the :code:`/ROSCO/inst
 
 Getting Started
 ...................
-Please see a the :ref:`standard_use` for several example scripts using ROSCO and the ROSCO_toolbox.
+Please see :ref:`standard_use` for several example scripts using ROSCO and the ROSCO_toolbox.
 
 
 .. _Anaconda: https://www.anaconda.com/

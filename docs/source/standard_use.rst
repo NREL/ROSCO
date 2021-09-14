@@ -5,15 +5,15 @@
 Standard ROSCO Workflow
 =======================
 This page outlines methods for reading turbine models, generating the control parameters of a :code:`DISCON.IN`: file, and running aeroelastic simulations to test controllers.
-A set of `example scripts <https://github.com/NREL/ROSCO_toolbox/tree/main/Examples>`_ demonstrate the functionality of ROSCO_toolbox and ROSCO controller.
+A set of `example scripts <https://github.com/NREL/ROSCO/tree/main/Examples>`_ demonstrate the functionality of the ROSCO toolbox and controller.
 
 
 Reading Turbine Models
 ----------------------
 Control parameters depend on the turbine model.
 The ROSCO_toolbox uses OpenFAST inputs and an additional :code:`.yaml` formatted file to set up a :code:`turbine` object in python.
-Several OpenFAST inputs are located in `Test_Cases/ <https://github.com/NREL/ROSCO_toolbox/tree/main/Test_Cases>`_.
-The controller tuning :code:`.yaml` are located in `Tune_Cases/ <https://github.com/NREL/ROSCO_toolbox/tree/main/Tune_Cases>`_.
+Several OpenFAST inputs are located in `Test_Cases/ <https://github.com/NREL/ROSCO/tree/main/Test_Cases>`_.
+The controller tuning :code:`.yaml` are located in `Tune_Cases/ <https://github.com/NREL/ROSCO/tree/main/Tune_Cases>`_.
 A detailed description of the ROSCO control inputs and tuning :code:`.yaml` are provided in :ref:`discon_in` and :ref:`rt_tuning_yaml`, respectively.
 
 * :code:`example_01.py` loads an OpenFAST turbine model and displays a summary of its information
@@ -34,7 +34,7 @@ To tune the PI gains of the torque control, set :code:`omega_vs` and :code:`zeta
 Similarly, set :code:`omega_pc` and :code:`zeta_pc` to tune the PI pitch controller; gain scheduling is automatically handled using turbine information.
 Generally :code:`omega_*` increases the responsiveness of the controller, reducing generator speed variations, but an also increases loading on the turbine.
 :code:`zeta_*` changes the damping of the controller and is generally less important of a tuning parameter, but could also help with loading.
-The default parameters in `Tune_Cases/ <https://github.com/NREL/ROSCO_toolbox/tree/main/Tune_Cases>`_ are known to work well with the turbines in this repository.
+The default parameters in `Tune_Cases/ <https://github.com/NREL/ROSCO/tree/main/Tune_Cases>`_ are known to work well with the turbines in this repository.
 
 * :code:`example_04.py` loads a turbine and tunes the PI control gains
 * :code:`example_05.py` tunes a controller and runs a simple simualtion (not using OpenFAST)
@@ -57,14 +57,6 @@ ROSCO also contains a method for distributed aerodynamic control (e.g., via trai
 
 * :code:`example_10.py` tunes a controller for distributed aerodynamic control
 
-.. This was incorported into the above
-.. .. _generate_discon:
-.. Generating DISCON.IN
-.. --------------------
-.. IF you would like to run the generic tuning process for ROSCO, examples are shown in the :code:`Tune_Cases` folder. When you run your own version of :code:`tune_ROSCO.py`, you will have two files that are necessary to run the controller. 
-.. 1. `DISCON.IN` (or similar) - the input file to `libdiscon.*`. When running the controller in OpenFAST, `DISCON.IN` must be appropriately pointed to by the `DLL_FileName` parameter in ServoDyn. 
-.. 2. `Cp_Cq_Ct.txt` (or similar) - This file contains rotor performance tables that are necessary to run the wind speed estimators in ROSCO. This can live wherever you desire, just be sure to point to it properly with the `PerfFileName` parameter in `DISCON.IN`.
-
 Running OpenFAST Simulations
 ----------------------------
 
@@ -78,7 +70,7 @@ For example in `Test_Cases/NREL-5MW`:
   Note that these file paths are relative to the path of the main fast input (:code:`NREL-5MW.fst`)
 * :code:`DISCON.IN` has :code:`"Cp_Ct_Cq.NREL5MW.txt"` as the :code:`PerfFileName` input
 
-The ROSCO_toolbox has methods for running OpenFAST (and other) binary executables using system calls, as well as post-processing tools in `ofTools/ <https://github.com/NREL/ROSCO_toolbox/tree/develop/ROSCO_toolbox/ofTools>`_.
+The ROSCO_toolbox has methods for running OpenFAST (and other) binary executables using system calls, as well as post-processing tools in `ofTools/ <https://github.com/NREL/ROSCO/tree/main/ROSCO_toolbox/ofTools>`_.
 
 Several example scripts are set up to quickly simulate ROSCO with OpenFAST:
 
@@ -90,7 +82,7 @@ Several example scripts are set up to quickly simulate ROSCO with OpenFAST:
 Testing ROSCO
 -------------
 
-The ROSCO_toolbox also contains tools for testing ROSCO in IEC design load cases (DLCs), located in `ROSCO_testing/ <https://github.com/NREL/ROSCO_toolbox/tree/develop/ROSCO_testing>`_.
+The ROSCO_toolbox also contains tools for testing ROSCO in IEC design load cases (DLCs), located in `ROSCO_testing/ <https://github.com/NREL/ROSCO/tree/main/ROSCO_testing>`_.
 The script :code:`run_Testing.py` allows the user to set up their own set of tests.
 By setting :code:`testtype`, the user can run a variety of tests:
 
