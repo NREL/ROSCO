@@ -171,6 +171,7 @@ CONTAINS
     !       WE_Mode = 0, Filter hub height wind speed as passed from servodyn using first order low pass filter with 1Hz cornering frequency
     !       WE_Mode = 1, Use Inversion and Inveriance filter as defined by Ortege et. al. 
         USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances, PerformanceData, DebugVariables, ErrorVariables
+        USE ieee_arithmetic
         IMPLICIT NONE
     
         ! Inputs
@@ -297,7 +298,16 @@ CONTAINS
                 v_m = xh(3,1)
                 v_h = v_t + v_m
                 LocalVar%WE_Vw = v_m + v_t
+
+                IF (ieee_is_nan(v_h)) THEN
+                    om_r = LocalVar%RotSpeedF
+                    v_t = 0.0
+                    v_m = LocalVar%HorWindV
+                    v_h = LocalVar%HorWindV
+                    LocalVar%WE_Vw = v_m + v_t
                 ENDIF
+
+            ENDIF
             ! Debug Outputs
             DebugVar%WE_Cp = Cp_op
             DebugVar%WE_Vm = v_m
