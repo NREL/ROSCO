@@ -13,12 +13,12 @@ Note - you will need to have a compiled controller in ROSCO/build/
 # Python Modules
 import yaml
 import os
+import numpy as np
 import matplotlib.pyplot as plt
 # ROSCO toolbox modules 
 from ROSCO_toolbox import controller as ROSCO_controller
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox.utilities import write_DISCON, run_openfast
-from ROSCO_toolbox import sim as ROSCO_sim
 from ROSCO_toolbox.inputs.validation import load_rosco_yaml
 
 
@@ -26,7 +26,7 @@ this_dir = os.path.dirname(os.path.abspath(__file__))
 example_out_dir = os.path.join(this_dir,'examples_out')
 
 # Load yaml file 
-parameter_filename = os.path.join(os.path.dirname(this_dir), 'Tune_Cases', 'IEA15MW.yaml') 
+parameter_filename = os.path.join(os.path.dirname(this_dir), 'Tune_Cases', 'IEA15MW_MultiOmega.yaml') 
 inps = load_rosco_yaml(parameter_filename)
 path_params         = inps['path_params']
 turbine_params      = inps['turbine_params']
@@ -44,6 +44,14 @@ turbine.load_from_fast(path_params['FAST_InputFile'], \
 
 # Tune controller 
 controller.tune_controller(turbine)
+
+# Now double Kp_float and check that it's passed through
+Kp_float = -18
+controller_params['Kp_float'] = Kp_float
+controller_params['tune_Fl'] = False
+controller      = ROSCO_controller.Controller(controller_params)
+controller.tune_controller(turbine)
+np.testing.assert_almost_equal(Kp_float,controller.Kp_float)
 
 # Write parameter input file
 param_file = os.path.join(this_dir,'DISCON.IN')   # This must be named DISCON.IN to be seen by the compiled controller binary. 

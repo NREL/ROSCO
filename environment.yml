@@ -9,3 +9,4 @@ dependencies:
   - scipy
   - pyYAML
   - pandas
+  - wisdem
