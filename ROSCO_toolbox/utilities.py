@@ -170,7 +170,11 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<014.5f}      ! SD_CornerFreq     - Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]\n'.format(controller.sd_cornerfreq))
     file.write('\n')
     file.write('!------- Floating -----------------------------------------------------------\n')
-    file.write('{:<014.5f}      ! Fl_Kp             - Nacelle velocity proportional feedback gain [s]\n'.format(controller.Kp_float))
+    if controller.Fl_Mode == 2:
+        floatstr = 'pitching'
+    else:
+        floatstr = 'velocity'
+    file.write('{:<014.5f}      ! Fl_Kp             - Nacelle {} proportional feedback gain [s]\n'.format(controller.Kp_float, floatstr))
     file.write('\n')
     file.write('!------- FLAP ACTUATION -----------------------------------------------------\n')
     file.write('{:<014.5f}      ! Flp_Angle         - Initial or steady state flap angle [rad]\n'.format(controller.flp_angle))

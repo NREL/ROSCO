@@ -1,0 +1,73 @@
+name: CI_rosco-compile
+
+# We run CI on push commits on all branches
+on: [push, pull_request]
+
+# Specify FORTRAN compiler
+env:
+  FORTRAN_COMPILER: gfortran-10
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: ["ubuntu-latest", "macOS-latest", "windows-latest"]
+        python-version: ["3.8"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup environment
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniconda-version: "latest"
+          channels: conda-forge, general
+          auto-update-conda: true
+
+
+      - name: Add dependencies windows 
+        if: true == contains( matrix.os, 'windows')
+        shell: bash -l {0}
+        run: |
+          conda install -y m2w64-toolchain
+
+      - name: Setup Workspace
+        run: cmake -E make_directory ${{runner.workspace}}/ROSCO/ROSCO/build
+
+      - name: Configure and Build - unix
+        if: false == contains( matrix.os, 'windows')
+        working-directory: ${{runner.workspace}}/ROSCO/ROSCO/build
+        run: |
+          cmake \
+            -DCMAKE_INSTALL_PREFIX:PATH=${{runner.workspace}}/ROSCO/ROSCO/install \
+            -DCMAKE_Fortran_COMPILER:STRING=${{env.FORTRAN_COMPILER}} \
+            ..
+          cmake --build . --target install
+
+      - name: Configure and Build - windows
+        if: true == contains( matrix.os, 'windows')
+        working-directory: ${{runner.workspace}}/ROSCO/ROSCO/build
+        shell: bash -l {0}
+        run: |
+          cmake \
+            -DCMAKE_INSTALL_PREFIX:PATH=${{runner.workspace}}/ROSCO/ROSCO/install \
+            -G "MinGW Makefiles" \
+            .. 
+          cmake --build . --target install
+
+      # # Install ROSCO linux
+      # - name: Compile ROSCO linux
+      #   if: false == contains( matrix.os, 'windows')
+      #   working-directory: ${{runner.workspace}}/ROSCO/ROSCO/build
+
+      # # Install ROSCO windows
+      # - name: Compile ROSCO windows
+      #   if: true == contains( matrix.os, 'windows')
+      #   working-directory: ${{runner.workspace}}/ROSCO/ROSCO/build
+        # run: cmake --build . --target install -G "MinGW Makefiles" 
+          

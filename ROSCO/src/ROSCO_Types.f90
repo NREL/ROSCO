@@ -198,6 +198,7 @@ TYPE, PUBLIC :: LocalVariables
     LOGICAL(1)                          :: SD                           ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(8)                             :: Fl_PitCom                           ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(8)                             :: NACIMU_FA_AccF
+    REAL(8)                             :: FA_AccF
     REAL(8)                             :: Flp_Angle(3)                 ! Flap Angle (rad)
     END TYPE LocalVariables
 

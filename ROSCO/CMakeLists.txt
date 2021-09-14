@@ -12,7 +12,7 @@ message(STATUS "CMAKE_Fortran_COMPILER_ID = ${CMAKE_Fortran_COMPILER_ID}")
 if(APPLE OR UNIX)
   # Enable .dll export
   if (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -r8 -double_size 64 -cpp")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -r8 -double-size 64 -cpp -no-wrap-margin")
   else()
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -ffree-line-length-0 -fdefault-real-8 -fdefault-double-8 -cpp")
   endif()
@@ -32,17 +32,6 @@ set(SOURCES
     src/Functions.f90
     src/ReadSetParameters.f90
 )
-
-# Git version
-if( DEFINED GIT_DESCRIBE )
-  message( WARNING
-    "Version information has been set as a CMake flag. This should only used when the git-version cannot be set automatically."
-  )
-else()
-  include(${CMAKE_SOURCE_DIR}/cmake/GetGitRevisionDescription.cmake)
-  git_describe(GIT_DESCRIBE)
-endif()
-add_definitions(-DGIT_VERSION_INFO="${GIT_DESCRIBE}")
 
 # Library
 add_library(discon SHARED ${SOURCES})

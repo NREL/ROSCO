@@ -582,7 +582,7 @@ CONTAINS
         ALLOCATE(DebugOutData(nDebugOuts))
         !                 Header                            Unit                                Variable
         ! Filters
-        DebugOutStr1   = 'FA_AccF';     DebugOutUni1   = '(m/s)';      DebugOutData(1)   = LocalVar%NacIMU_FA_AccF
+        DebugOutStr1   = 'FA_AccF';     DebugOutUni1   = '(rad/s^2)';      DebugOutData(1)   = LocalVar%NacIMU_FA_AccF
         DebugOutStr2   = 'FA_AccR';     DebugOutUni2   = '(rad/s^2)';  DebugOutData(2)   = LocalVar%NacIMU_FA_Acc
         DebugOutStr3  = 'RotSpeed';     DebugOutUni3  = '(rad/s)';     DebugOutData(3)  = LocalVar%RotSpeed
         DebugOutStr4  = 'RotSpeedF';    DebugOutUni4  = '(rad/s)';     DebugOutData(4)  = LocalVar%RotSpeedF
@@ -594,13 +594,13 @@ CONTAINS
         DebugOutStr9  = 'PC_MinPit';     DebugOutUni9  = '(rad)';      DebugOutData(9)  = LocalVar%PC_MinPit
         DebugOutStr10  = 'SS_dOmF';      DebugOutUni10  = '(rad/s)';   DebugOutData(10)  = LocalVar%SS_DelOmegaF
         ! WSE
-        DebugOutStr11  = 'WE_Vw';        DebugOutUni11  = '(rad)';     DebugOutData(11)  = LocalVar%WE_Vw
+        DebugOutStr11  = 'WE_Vw';        DebugOutUni11  = '(m/s)';     DebugOutData(11)  = LocalVar%WE_Vw
         DebugOutStr12  = 'WE_b';         DebugOutUni12  = '(deg)';     DebugOutData(12)  = DebugVar%WE_b
         DebugOutStr13  = 'WE_t';         DebugOutUni13  = '(Nm)';      DebugOutData(13)  = DebugVar%WE_t
         DebugOutStr14  = 'WE_w';         DebugOutUni14  = '(rad/s)';   DebugOutData(14)  = DebugVar%WE_w
         DebugOutStr15  = 'WE_Vm';        DebugOutUni15  = '(m/s)';     DebugOutData(15)  = DebugVar%WE_Vm
         DebugOutStr16  = 'WE_Vt';        DebugOutUni16  = '(m/s)';     DebugOutData(16)  = DebugVar%WE_Vt
-        DebugOutStr17  = 'WE_lambda';    DebugOutUni17  = '(rad/s)';   DebugOutData(17)  = DebugVar%WE_lambda
+        DebugOutStr17  = 'WE_lambda';    DebugOutUni17  = '(-)';   DebugOutData(17)  = DebugVar%WE_lambda
         DebugOutStr18  = 'WE_Cp';        DebugOutUni18  = '(-)';       DebugOutData(18)  = DebugVar%WE_Cp
 
         Allocate(DebugOutStrings(nDebugOuts))
@@ -621,9 +621,8 @@ CONTAINS
         ! If we're debugging, open the debug file and write the header:
             ! Note that the headers will be Truncated to 10 characters!!
             IF (CntrPar%LoggingLevel > 0) THEN
-                Version = QueryGitVersion()
                 OPEN(unit=UnDb, FILE=RootName(1:size_avcOUTNAME-5)//'RO.dbg')
-                WRITE (UnDb,*)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(Version)
+                WRITE (UnDb,*)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)
                 WRITE (UnDb,'(99(a10,TR5:))') 'Time',   DebugOutStrings
                 WRITE (UnDb,'(99(a10,TR5:))') '(sec)',  DebugOutUnits
             END IF
@@ -654,24 +653,6 @@ CONTAINS
 
     END SUBROUTINE Debug
 
-!-------------------------------------------------------------------------------------------------------------------------------
-FUNCTION QueryGitVersion()
-
-   CHARACTER(200) :: QueryGitVersion
-
-! The Visual Studio project sets the path for where to find the header file with version info
-#ifdef GIT_INCLUDE_FILE
-#include GIT_INCLUDE_FILE
-#endif
-
-#ifdef GIT_VERSION_INFO
-   QueryGitVersion = GIT_VERSION_INFO
-#else
-   QueryGitVersion = 'unversioned'
-#endif
-
-   RETURN
-END FUNCTION QueryGitVersion
 
 !-------------------------------------------------------------------------------------------------------------------------------
     ! Copied from NWTC_IO.f90
