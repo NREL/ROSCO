@@ -17,7 +17,7 @@ turbine_params:
   v_max:              25.0                  # Cut-out wind speed [m/s], -- Does not need to be exact (JUST ASSUME FOR NOW)
   max_pitch_rate:     0.0349                # Maximum blade pitch rate [rad/s]
   max_torque_rate:    4500000.              # Maximum torque rate [Nm/s], {~1/4 VS_RtTq/s}
-  rated_power:        15000000.             # Rated Power [W]
+  rated_power:        1.4780e+07             # Rated Power [W]
   TSR_operational:    9.0
 
 #------------------------------- CONTROLLER PARAMETERS ----------------------------------
@@ -44,7 +44,7 @@ controller_params:
   omega_vs:           0.12                 # Torque controller desired natural frequency [rad/s]
   # Optional - these can be defined, but do not need to be
   # max_pitch:          # None                # Maximum pitch angle [rad], {default = 90 degrees}
-  min_pitch:          0.0                   # Minimum pitch angle [rad], {default = 0 degrees}
+  min_pitch:          0.030                   # Minimum pitch angle [rad], {default = 0 degrees}
   vs_minspd:          0.523598775           # Minimum rotor speed [rad/s], {default = 0 rad/s}
   # ss_cornerfreq:      # None                # First order low-pass filter cornering frequency for setpoint smoother [rad/s]
   # ss_vsgain:          # None                # Torque controller setpoint smoother gain bias percentage [%, <= 1 ], {default = 100%}
