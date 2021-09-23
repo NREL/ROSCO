@@ -18,7 +18,7 @@ turbine_params:
   max_pitch_rate:     0.0349                # Maximum blade pitch rate [rad/s]
   max_torque_rate:    4500000.              # Maximum torque rate [Nm/s], {~1/4 VS_RtTq/s}
   rated_power:        1.4780e+07             # Rated Power [W]
-  TSR_operational:    9.0
+  TSR_operational:    7.49
 
 #------------------------------- CONTROLLER PARAMETERS ----------------------------------
 controller_params:
