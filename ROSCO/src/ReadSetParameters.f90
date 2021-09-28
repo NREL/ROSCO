@@ -485,7 +485,6 @@ CONTAINS
         ! F_LPFType
         IF ((CntrPar%F_LPFType < 1) .OR. (CntrPar%F_LPFType > 2)) THEN
             ErrVar%aviFAIL = -1
-            PRINT *, CntrPar%F_LPFType
             ErrVar%ErrMsg  = 'F_LPFType must be 1 or 2.'
         ENDIF
 
@@ -555,9 +554,9 @@ CONTAINS
         ENDIF
 
         ! Fl_Mode
-        IF ((CntrPar%Fl_Mode < 0) .OR. (CntrPar%Fl_Mode > 1)) THEN
+        IF ((CntrPar%Fl_Mode < 0) .OR. (CntrPar%Fl_Mode > 2)) THEN
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'Fl_Mode must be 0 or 1.'
+            ErrVar%ErrMsg  = 'Fl_Mode must be 0, 1, or 2.'
         ENDIF
 
         ! Flp_Mode

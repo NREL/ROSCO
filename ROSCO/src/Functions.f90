@@ -628,7 +628,7 @@ CONTAINS
             END IF
             
             IF (CntrPar%LoggingLevel > 1) THEN 
-                OPEN(unit=UnDb2, FILE='DEBUG2.dbg')
+                OPEN(unit=UnDb2, FILE=RootName(1:size_avcOUTNAME-5)//'RO.dbg2')
                 WRITE(UnDb2,'(/////)')
                 WRITE(UnDb2,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1,85)
                 WRITE(UnDb2,'(A,85("'//Tab//'(-)"))')  '(s)'

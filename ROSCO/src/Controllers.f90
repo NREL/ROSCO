@@ -100,7 +100,7 @@ CONTAINS
 
         
         ! FloatingFeedback
-        IF (CntrPar%Fl_Mode == 1) THEN
+        IF (CntrPar%Fl_Mode > 0) THEN
             LocalVar%Fl_PitCom = FloatingFeedback(LocalVar, CntrPar, objInst)
             LocalVar%PC_PitComT = LocalVar%PC_PitComT + LocalVar%Fl_PitCom
         ENDIF
@@ -363,7 +363,8 @@ CONTAINS
     REAL FUNCTION FloatingFeedback(LocalVar, CntrPar, objInst) 
     ! FloatingFeedback defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
     !       Fl_Mode = 0, No feedback
-    !       Fl_Mode = 1, Proportional feedback of nacelle velocity
+    !       Fl_Mode = 1, Proportional feedback of nacelle velocity (translational)
+    !       Fl_Mode = 2, Proportional feedback of nacelle velocity (rotational)
         USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
         IMPLICIT NONE
         ! Inputs
