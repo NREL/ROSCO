@@ -112,17 +112,43 @@ def smargin(linturb, controller, u_eval):
     sp_sens = sp.signal.StateSpace(sens_sys.A, sens_sys.B, sens_sys.C, sens_sys.D)
 
     def nyquist_min(om): return np.abs(sp.signal.freqresp(sp_plant, w=om)[1] + 1.)
+    def sens_min(om): return -sp.signal.bode(sp_sens, w=om)[1]
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        ws, _ = sp.signal.freqresp(sp_sens, n=1000000)
-        res = sp.optimize.minimize(nyquist_min, ws[np.argmin(nyquist_min(ws))], method='SLSQP', options={
-                                   'finite_diff_rel_step': 1e-2})
+        # Find first local maxima in sensitivity function
+        ws, m, _ = sp.signal.bode(sp_sens, n=100000)
+        m0 = m[0]
+        m1 = m[1]
+        i = 1
+        w0 = ws[0]
+        while m1 >= m0 and i < len(ws)-1:
+            m0 = m1
+            m1 = m[i+1]
+            i += 1
+            w0 = ws[i]
 
-    if any(sp_sens.poles > 0):
-        sm = -res.fun
-    else:
-        sm = res.fun
+        if any(sp_sens.poles > 0):
+            sm_mag = sp.signal.freqresp(sp_plant, w=w0)[1]
+            sm = np.sqrt((1 - np.abs(sm_mag.real))**2 + sm_mag.imag**2)
+            nearest_nyquist = nyquist_min(ws).min()
+            nearest_nyquist_freq = ws[nyquist_min(ws).argmin()]
+            mag_at_min = sp.signal.freqresp(sp_plant, w=nearest_nyquist_freq)[1]
+            if nearest_nyquist < sm:
+                res = sp.optimize.minimize(nyquist_min, ws[np.argmin(nyquist_min(ws))], method='SLSQP', options={
+                    'finite_diff_rel_step': 1e-6})
+                sm2 = res.fun
+
+                sm_list = [sm, sm2]
+                mag_list = [np.abs(sm_mag), np.abs(mag_at_min)]
+                sm = sm_list[np.argmax(mag_list)]
+            sm *= -1 # Flip sign because it's unstable
+        else:
+            res = sp.optimize.minimize(nyquist_min, ws[np.argmin(nyquist_min(ws))], method='SLSQP', options={
+                                    'finite_diff_rel_step': 1e-6})
+            sm = res.fun
+
+
 
     return sm
 
