@@ -76,7 +76,10 @@ class CMakeBuildExt(build_ext):
         super().copy_extensions_to_source()
     
     def build_extension(self, ext):
-        if isinstance(ext, CMakeExtension):
+        if not isinstance(ext, CMakeExtension):
+            super().build_extension(ext)
+
+        else:
             # Ensure that CMake is present and working
             try:
                 self.spawn(['cmake', '--version'])
@@ -105,8 +108,6 @@ class CMakeBuildExt(build_ext):
             self.spawn(['cmake', '-S', ext.sourcedir, '-B', self.build_temp] + cmake_args)
             self.spawn(['cmake', '--build', self.build_temp, '--target', 'install', '--config', 'Release'])
 
-        else:
-            super().build_extension(ext)
 
 
 # All of the extensions
