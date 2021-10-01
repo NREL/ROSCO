@@ -5,7 +5,7 @@ on: [push, pull_request]
 
 # Specify FORTRAN compiler
 env:
-  FORTRAN_COMPILER: gfortran-10
+  FC: gfortran
   
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -47,15 +47,7 @@ jobs:
         if: true == contains( matrix.os, 'macOS')
         run: |
           conda install compilers
-        
 
-      # Install ROSCO toolbox
-      - name: Install ROSCO toolbox - Windows
-        if: true == contains( matrix.os, 'windows')
-        env:
-          FC: gfortran
-        run: |
-          python setup.py develop --compile-rosco
 
       # Install ROSCO toolbox
       - name: Install ROSCO toolbox
