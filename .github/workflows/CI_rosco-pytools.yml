@@ -50,6 +50,14 @@ jobs:
         
 
       # Install ROSCO toolbox
+      - name: Install ROSCO toolbox - Windows
+        if: true == contains( matrix.os, 'windows')
+        env:
+          FC: gfortran
+        run: |
+          python setup.py develop --compile-rosco
+
+      # Install ROSCO toolbox
       - name: Install ROSCO toolbox
         run: |
           python setup.py develop --compile-rosco
