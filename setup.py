@@ -95,11 +95,12 @@ class CMakeBuildExt(build_ext):
             cmake_args += ['-DCMAKE_INSTALL_PREFIX={}'.format(localdir)]
 
             if platform.system() == 'Windows':
-                # if self.compiler.compiler_type == 'msvc':
-                #     cmake_args += ['-DCMAKE_GENERATOR_PLATFORM=x64']
-                # else:
-                cmake_args += ['-G', 'MinGW Makefiles']
-                # cmake_args += ['-DCMAKE_Fortran_COMPILER=gfortran']
+                if "gfortran" in os.environ["FC"].lower():
+                    cmake_args += ['-G', 'MinGW Makefiles']
+                elif self.compiler.compiler_type == 'msvc':
+                    cmake_args += ['-DCMAKE_GENERATOR_PLATFORM=x64']
+                else:
+                    raise ValueError("Unable to find the system's Fortran compiler.")
 
             self.build_temp = os.path.join( os.path.dirname( os.path.realpath(__file__) ), 'ROSCO', 'build')
             os.makedirs(localdir, exist_ok=True)
