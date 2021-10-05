@@ -76,7 +76,10 @@ class CMakeBuildExt(build_ext):
         super().copy_extensions_to_source()
     
     def build_extension(self, ext):
-        if isinstance(ext, CMakeExtension):
+        if not isinstance(ext, CMakeExtension):
+            super().build_extension(ext)
+
+        else:
             # Ensure that CMake is present and working
             try:
                 self.spawn(['cmake', '--version'])
@@ -92,10 +95,12 @@ class CMakeBuildExt(build_ext):
             cmake_args += ['-DCMAKE_INSTALL_PREFIX={}'.format(localdir)]
 
             if platform.system() == 'Windows':
-                if self.compiler.compiler_type == 'msvc':
+                if "gfortran" in os.environ["FC"].lower():
+                    cmake_args += ['-G', 'MinGW Makefiles']
+                elif self.compiler.compiler_type == 'msvc':
                     cmake_args += ['-DCMAKE_GENERATOR_PLATFORM=x64']
                 else:
-                    cmake_args += ['-G', 'MinGW Makefiles']
+                    raise ValueError("Unable to find the system's Fortran compiler.")
 
             self.build_temp = os.path.join( os.path.dirname( os.path.realpath(__file__) ), 'ROSCO', 'build')
             os.makedirs(localdir, exist_ok=True)
@@ -105,8 +110,6 @@ class CMakeBuildExt(build_ext):
             self.spawn(['cmake', '-S', ext.sourcedir, '-B', self.build_temp] + cmake_args)
             self.spawn(['cmake', '--build', self.build_temp, '--target', 'install', '--config', 'Release'])
 
-        else:
-            super().build_extension(ext)
 
 
 # All of the extensions
@@ -185,7 +188,6 @@ metadata = dict(
     url                           = URL,
     install_requires              = REQUIRED,
     python_requires               = REQUIRES_PYTHON,
-    include_package_date          = True,
     packages                      = find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
     license                       = 'Apache License, Version 2.0',
     cmdclass                      = {'build_ext': CMakeBuildExt, 'upload': UploadCommand},
