@@ -188,7 +188,6 @@ metadata = dict(
     url                           = URL,
     install_requires              = REQUIRED,
     python_requires               = REQUIRES_PYTHON,
-    # include_package_date          = True,
     packages                      = find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
     license                       = 'Apache License, Version 2.0',
     cmdclass                      = {'build_ext': CMakeBuildExt, 'upload': UploadCommand},
