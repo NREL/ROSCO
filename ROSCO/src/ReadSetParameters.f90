@@ -861,7 +861,7 @@ CONTAINS
 
         ! --- Floating Control ---
         IF (CntrPar%Fl_Mode > 0) THEN
-            IF (CntrPar%F_NotchType <= 1 .OR. CntrPar%F_NotchCornerFreq == 0.0) THEN
+            IF (CntrPar%F_NotchType < 1 .OR. CntrPar%F_NotchCornerFreq == 0.0) THEN
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg = 'F_NotchType and F_NotchCornerFreq must be specified for Fl_Mode greater than zero.'
             ENDIF
