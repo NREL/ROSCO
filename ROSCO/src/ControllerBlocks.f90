@@ -11,15 +11,6 @@
 ! -------------------------------------------------------------------------------------------
 
 ! This module contains additional routines and functions to supplement the primary controllers used in the Controllers module
-!
-! Many of these have I/O flags as a part of the DISCON input file 
-!
-! Blocks (Subroutines):
-!       State Machine: determine the state of the wind turbine to specify the corresponding control actions
-!       WindSpeedEstimator: Estimate wind speed
-!       SetpointSmoother: Modify generator torque and blade pitch controller setpoints in transition region
-!       PitchSaturation: Prescribe specific minimum pitch schedule
-!       Shutdown: Shutdown control for max bld pitch
 
 MODULE ControllerBlocks
 
@@ -37,15 +28,13 @@ CONTAINS
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
         USE Constants
         ! Allocate variables
-        TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
-        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+        TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
+        TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
 
-        REAL(8)                                 :: VS_RefSpd        ! Referece speed for variable speed torque controller, [rad/s] 
-        REAL(8)                                 :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
-        REAL(8)                                 :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
-        ! temp
-        ! REAL(8)                                 :: VS_TSRop = 7.5
+        REAL(8)                                         :: VS_RefSpd        ! Referece speed for variable speed torque controller, [rad/s] 
+        REAL(8)                                         :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
+        REAL(8)                                         :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
 
         ! ----- Calculate yaw misalignment error -----
         LocalVar%Y_MErr = LocalVar%Y_M + CntrPar%Y_MErrSet ! Yaw-alignment error
@@ -114,7 +103,7 @@ CONTAINS
         IMPLICIT NONE
     
         ! Inputs
-        TYPE(ControlParameters),    INTENT(IN)          :: CntrPar
+        TYPE(ControlParameters),    INTENT(IN   )       :: CntrPar
         TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
         
         ! Initialize State machine if first call
@@ -175,7 +164,7 @@ CONTAINS
         IMPLICIT NONE
     
         ! Inputs
-        TYPE(ControlParameters),    INTENT(IN)          :: CntrPar
+        TYPE(ControlParameters),    INTENT(IN   )       :: CntrPar
         TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar 
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
         TYPE(PerformanceData),      INTENT(INOUT)       :: PerfData
@@ -192,7 +181,7 @@ CONTAINS
         REAL(8), SAVE           :: v_h              ! Combined estimated wind speed [m/s]
         REAL(8)                 :: L                ! Turbulent length scale parameter [m]
         REAL(8)                 :: Ti               ! Turbulent intensity, [-]
-        ! REAL(8), DIMENSION(3,3) :: I
+
         !           - operating conditions
         REAL(8)                 :: A_op             ! Estimated operational system pole [UNITS!]
         REAL(8)                 :: Cp_op            ! Estimated operational Cp [-]
@@ -212,8 +201,6 @@ CONTAINS
         REAL(8), DIMENSION(3,1), SAVE   :: K        ! Kalman gain matrix
         REAL(8)                         :: R_m      ! Measurement noise covariance [(rad/s)^2]
         
-        REAL(8), DIMENSION(3,1), SAVE   :: B
-
         CHARACTER(*), PARAMETER                 :: RoutineName = 'WindSpeedEstimator'
 
         ! ---- Debug Inputs ------
@@ -336,9 +323,9 @@ CONTAINS
         IMPLICIT NONE
     
         ! Inputs
-        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
-        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+        TYPE(ControlParameters),    INTENT(IN   )       :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar 
+        TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
         ! Allocate Variables
         REAL(8)                      :: DelOmega                            ! Reference generator speed shift, rad/s.
         
@@ -362,13 +349,13 @@ CONTAINS
         USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances, DebugVariables, ErrorVariables
         IMPLICIT NONE
         ! Inputs
-        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
-        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
-        TYPE(DebugVariables), INTENT(INOUT)     :: DebugVar
-        TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
+        TYPE(ControlParameters),    INTENT(IN   )       :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar 
+        TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
+        TYPE(DebugVariables),       INTENT(INOUT)       :: DebugVar
+        TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
 
-        CHARACTER(*), PARAMETER                 :: RoutineName = 'PitchSaturation'
+        CHARACTER(*),               PARAMETER           :: RoutineName = 'PitchSaturation'
 
         ! Define minimum blade pitch angle as a function of estimated wind speed
         PitchSaturation = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, LocalVar%WE_Vw_F, ErrVar)
@@ -387,11 +374,12 @@ CONTAINS
         USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
         IMPLICIT NONE
         ! Inputs
-        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
-        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
-        ! Allocate Variables 
-        REAL(8)                      :: SD_BlPitchF
+        TYPE(ControlParameters),    INTENT(IN   )       :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar 
+        TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
+        
+        ! Local Variables 
+        REAL(8)                                         :: SD_BlPitchF
         ! Initialize Shutdown Varible
         IF (LocalVar%iStatus == 0) THEN
             LocalVar%SD = .FALSE.
