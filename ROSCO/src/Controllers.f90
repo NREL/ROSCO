@@ -91,7 +91,7 @@ CONTAINS
         ENDIF
         
         ! Pitch Saturation
-        IF (CntrPar%PS_Mode == 1) THEN
+        IF (CntrPar%PS_Mode > 0) THEN
             LocalVar%PC_MinPit = PitchSaturation(LocalVar,CntrPar,objInst,DebugVar, ErrVar)
             LocalVar%PC_MinPit = max(LocalVar%PC_MinPit, CntrPar%PC_FinePit)
         ELSE
