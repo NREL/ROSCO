@@ -5,9 +5,9 @@ ROSCO Documentation
    :Version: |release|
    :Date: |today|
 
-NREL's Reference OpenSource Controller (ROSCO) toolbox for wind turbine applications is a toolbox designed to ease controller implementation for the wind turbine researcher. The purpose of these documents is to provide information for the use of the ROSCO related toolchain. 
+NREL's Reference OpenSource Controller (ROSCO) tool-set for wind turbine applications designed to ease controller implementation for the wind turbine researcher. The purpose of these documents is to provide information for the use of the tool-set. 
 
-Figure :numref:`fig-RT` shows the general workflow for the ROSCO toolchain.
+Figure :numref:`fig-RT` shows the general workflow for the ROSCO tool-chain.
 
 .. _fig-RT:
 .. figure:: /source/figures/ROSCO_toolbox.png

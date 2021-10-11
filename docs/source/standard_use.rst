@@ -57,6 +57,10 @@ ROSCO also contains a method for distributed aerodynamic control (e.g., via trai
 
 * :code:`example_10.py` tunes a controller for distributed aerodynamic control
 
+The ROSCO toolbox also contains methods for working with OpenFAST linear models
+* :code:`example_11.py` exports a file of the parameters used for the simplified linear models used to tune ROSCO
+* :code:`example_12.py` shows how linear models generated using OpenFAST can be used to tune controllers with robust stability properties. 
+
 Running OpenFAST Simulations
 ----------------------------
 
