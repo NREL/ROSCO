@@ -17,6 +17,7 @@ from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox.linear.linear_models import LinearTurbineModel
 from ROSCO_toolbox.linear.lin_util import add_pcomp, smargin
 from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+from ROSCO_toolbox.utilities import list_check
 
 class RobustScheduling(om.ExplicitComponent):
     'Finding Robust gain schedules for pitch controllers in FOWTs'
@@ -29,6 +30,10 @@ class RobustScheduling(om.ExplicitComponent):
         # Options
         linturb_options = self.options['linturb_options']
         ROSCO_options = self.options['ROSCO_options']
+        if isinstance(list_check(ROSCO_options['controller_params']['omega_pc']), (list, np.ndarray)) or \
+                isinstance(list_check(ROSCO_options['controller_params']['zeta_pc']), (list, np.ndarray)):
+            raise AttributeError(
+                'Error: omega_pc and zeta_pc must be scalars for robust controller tuning.')
 
         # Load ROSCO Controller
         self.controller, self.turbine  = load_ROSCO(ROSCO_options['path_params'],

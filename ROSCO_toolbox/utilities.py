@@ -20,6 +20,7 @@ read_DISCON
 write_rotor_performance
 load_from_txt
 DISCON_dict
+list_check
 """
 import datetime
 import os
@@ -495,3 +496,33 @@ def run_openfast(fast_dir, fastcall='openfast', fastfile=None, chdir=True):
         # os.system('{} {}'.format(fastcall, os.path.join(fastfile)))
     subprocess.run([fastcall, os.path.join(fastfile)], check=True, cwd=cwd)
     print('OpenFAST simulation complete.')
+
+
+def list_check(x, return_bool=True):
+    '''
+    Check if the input is list-like or not
+
+    Parameters:
+    -----------
+        x: int, float, list, or np.ndarray
+            input to check
+        return_bool: bool
+            if true, returns True or False 
+
+    '''
+    if isinstance(x, (int, float)):
+        y = x
+        is_list = False
+    elif isinstance(x, (list, np.ndarray)):
+        if len(x) == 1:
+            y = x[0]
+        else:
+            y = x
+        is_list = True
+    else:
+        raise AttributeError('Cannot run list_check for variable of type: {}'.format(type(x)))
+
+    if return_bool:
+        return is_list
+    else:
+        return y
