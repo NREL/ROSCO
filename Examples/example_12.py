@@ -21,24 +21,20 @@ from ROSCO_toolbox.linear.robust_scheduling import rsched_driver
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox import controller as ROSCO_controller
 
+
 def run_example():
     # Shorthand directories
     this_dir = os.path.dirname(os.path.abspath(__file__))
     tune_dir = os.path.join(this_dir, '../Tune_Cases')
     test_dir = os.path.join(this_dir, '../Test_Cases')
 
-    # Setup linear turbine paths
-    linfile_root = os.path.join(test_dir, 'IEA-15-240-RWT-UMaineSemi', 'linearizations')
-    load_parallel = True
-    linturb_options = {'linfile_root': linfile_root,
-                        'load_parallel': load_parallel}
-
     # ROSCO options
-    parameter_filename = os.path.join(tune_dir, 'IEA15MW.yaml')
+    parameter_filename = os.path.join(tune_dir, 'IEA15MW_robust.yaml')
     inps = load_rosco_yaml(parameter_filename)
     path_params = inps['path_params']
     turbine_params = inps['turbine_params']
     controller_params = inps['controller_params']
+    linmodel_tuning = inps['linmodel_tuning']
     ROSCO_options = {
         'path_params': path_params,
         'turbine_params': turbine_params,
@@ -46,7 +42,7 @@ def run_example():
     }
 
     # Path options
-    example_out_dir = os.path.join( os.path.dirname(os.path.abspath(__file__)), 'examples_out' )
+    example_out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'examples_out')
     output_name = '12_robust_scheduling'
     path_options = {'output_dir': example_out_dir,
                     'output_name': output_name
@@ -65,18 +61,19 @@ def run_example():
     k_float = controller.Kp_float
 
     # Scheduling options
-    opt_options = { 'driver': 'optimization', #'design_of_experiments',
-                    'windspeed': [12, 13, 14, 15, 18, 24],
-                    'stability_margin': 0.1,
-                    'omega':[0.05, 0.2], # two inputs denotes a range for a design variable
-                    'k_float': [k_float]}    # one input denotes a set value
+    opt_options = {'driver': 'optimization',  # 'design_of_experiments',
+                   'windspeed': controller_params['U_pc'],
+                   'stability_margin': linmodel_tuning['stability_margin'],
+                   'omega': [linmodel_tuning['omega_pc']['min'],
+                             linmodel_tuning['omega_pc']['max']],  # two inputs denotes a range for a design variable
+                   'k_float': [k_float]}    # one input denotes a set value
 
     # Collect options
     options = {}
-    options['linturb_options'] = linturb_options
-    options['ROSCO_options']   = ROSCO_options
-    options['path_options']    = path_options
-    options['opt_options']     = opt_options
+    options['linturb_options'] = linmodel_tuning
+    options['ROSCO_options'] = ROSCO_options
+    options['path_options'] = path_options
+    options['opt_options'] = opt_options
 
     # Run robust scheduling
     sd = rsched_driver(options)
@@ -84,12 +81,11 @@ def run_example():
     sd.execute()
 
     # Re-define ROSCO tuning parameters
-    controller.U_pc = opt_options['windspeed']
     controller.omega_pc = sd.omegas
     controller.zeta_pc = np.ones(
         len(opt_options['windspeed'])) * controller.zeta_pc
 
-    # Tune ROSCO with to satisfy robust stability margin 
+    # Tune ROSCO with to satisfy robust stability margin
     controller.tune_controller(turbine)
 
     # Plot gain schedule
@@ -118,10 +114,10 @@ def run_example():
     ax[4].set_ylabel('Integral Gain')
     ax[4].grid()
 
-
-    if False:
+    if True:
         plt.show()
     else:
         plt.savefig(os.path.join(example_out_dir, '12_RobustSched.png'))
+
 if __name__ == '__main__':
     run_example()
