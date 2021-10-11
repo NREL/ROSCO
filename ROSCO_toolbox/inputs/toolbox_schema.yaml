@@ -123,7 +123,7 @@ properties:
                 minimum: 0
                 maximum: 3
                 default: 2
-                description: Generator torque control mode in above rated conditions (0- constant torque, 1- constant power, 2- TSR tracking PI control, 3- TSR tracking and constant power)
+                description: Generator torque control mode in above rated conditions (0- constant torque, 1- constant power, 2- TSR tracking PI control with constant torque, 3- TSR tracking with constant power)
             PC_ControlMode:     
                 type: number
                 minimum: 0
