@@ -17,7 +17,7 @@ from scipy.io import loadmat
 try:
     import pyFAST.linearization.mbc.mbc3 as mbc
 except ImportError:
-    import WEIS.control.mbc.mbc3 as mbc
+    import weis.control.mbc.mbc3 as mbc
 except ImportError:
     raise ImportError('Unable to load mbc3 from pyFAST or WEIS')
 
