@@ -123,7 +123,7 @@ properties:
                 minimum: 0
                 maximum: 3
                 default: 2
-                description: Generator torque control mode in above rated conditions (0- constant torque, 1- constant power, 2- TSR tracking PI control, 3- TSR tracking and constant power)
+                description: Generator torque control mode in above rated conditions (0- constant torque, 1- constant power, 2- TSR tracking PI control with constant torque, 3- TSR tracking with constant power)
             PC_ControlMode:     
                 type: number
                 minimum: 0
@@ -203,6 +203,11 @@ properties:
                     type: number
                     minimum: 0
                 default: [0.2]
+            interp_type:
+                type: string
+                description: Type of interpolation between above rated tuning values (only used for multiple pitch controller tuning values)
+                default: linear
+                enum: ['sigma', 'linear', 'quadratic', 'cubic']
             zeta_vs:                        
                 type: number
                 minimum: 0
@@ -305,7 +310,7 @@ properties:
                 minimum: 0
                 description: Flap controller desired natural frequency [rad/s]
                 unit: rad/s
-            
+
     filter_params:
         type: object
         default: {}
@@ -323,8 +328,42 @@ properties:
                 default: 0.01042
                 description: Natural frequency of first-order high-pass filter for nacelle fore-aft motion [rad/s]
 
-    # modeling_options:
-    #     type: object
-    #     default: {}
-    #     properties:
-            
+    linmodel_tuning:
+        type: object
+        default: {}
+        description: Inputs used for tuning ROSCO using linear (level 2) models
+        properties:
+            type: 
+                type: string
+                description: Type of level 2 based tuning - robust gain scheduling (robust) or simulation based optimization (simulation)
+                default: 'none' 
+                enum: ['none', 'robust', 'simulation']
+            linfile_path:
+                type: string
+                description: Path to OpenFAST linearization (.lin) files, if they exist 
+                default: none
+            lintune_outpath:
+                type: string
+                description: Path for outputs from linear model based tuning
+                default: lintune_outfiles
+            load_parallel:
+                type: boolean
+                description: Load linearization files in parallel (True/False)
+                default: False
+            stability_margin:
+                type: [number, array]
+                description: Desired maximum stability margin
+                default: 0.1
+            omega_pc:
+                type: object
+                default: {}
+                description: Pitch controller bandwidth constraints
+                min:
+                    type: [number, array]
+                    default: 0.0
+                    description: Desired maximum allowable omega for robust tuning. Array must be of length U_pc.
+                max:
+                    type: [number, array]
+                    default: 0.2
+                    description: Desired maximum allowable omega for robust tuning. Array must be of length U_pc.
+       

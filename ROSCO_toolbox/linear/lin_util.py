@@ -128,25 +128,25 @@ def smargin(linturb, controller, u_eval):
             i += 1
             w0 = ws[i]
 
+        sm_mag = sp.signal.freqresp(sp_plant, w=w0)[1]
+        sm = np.sqrt((1 - np.abs(sm_mag.real))**2 + sm_mag.imag**2)
+        nearest_nyquist = nyquist_min(ws).min()
+        nearest_nyquist_freq = ws[nyquist_min(ws).argmin()]
+        mag_at_min = sp.signal.freqresp(sp_plant, w=nearest_nyquist_freq)[1]
         if any(sp_sens.poles > 0):
-            sm_mag = sp.signal.freqresp(sp_plant, w=w0)[1]
-            sm = np.sqrt((1 - np.abs(sm_mag.real))**2 + sm_mag.imag**2)
-            nearest_nyquist = nyquist_min(ws).min()
-            nearest_nyquist_freq = ws[nyquist_min(ws).argmin()]
-            mag_at_min = sp.signal.freqresp(sp_plant, w=nearest_nyquist_freq)[1]
             if nearest_nyquist < sm:
-                res = sp.optimize.minimize(nyquist_min, ws[np.argmin(nyquist_min(ws))], method='SLSQP', options={
-                    'finite_diff_rel_step': 1e-6})
-                sm2 = res.fun
+                res = sp.optimize.minimize(nyquist_min, nearest_nyquist_freq, method='SLSQP', options={
+                    'finite_diff_rel_step': 1e-8})
+                sm2 = min(abs(res.fun), abs(nearest_nyquist))
 
                 sm_list = [sm, sm2]
                 mag_list = [np.abs(sm_mag), np.abs(mag_at_min)]
                 sm = sm_list[np.argmax(mag_list)]
-            sm *= -1 # Flip sign because it's unstable
+            sm *= -1  # Flip sign because it's unstable
         else:
-            res = sp.optimize.minimize(nyquist_min, ws[np.argmin(nyquist_min(ws))], method='SLSQP', options={
-                                    'finite_diff_rel_step': 1e-6})
-            sm = res.fun
+            res = sp.optimize.minimize(nyquist_min, nearest_nyquist_freq, method='SLSQP',
+                                       options={'finite_diff_rel_step': 1e-6})
+            sm = min(res.fun, nearest_nyquist)
 
 
 

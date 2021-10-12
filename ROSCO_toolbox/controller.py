@@ -13,6 +13,7 @@ import numpy as np
 import sys
 import datetime
 from scipy import interpolate, gradient, integrate
+from ROSCO_toolbox.utilities import list_check
 
 # Some useful constants
 now = datetime.datetime.now()
@@ -63,11 +64,12 @@ class Controller():
         self.Flp_Mode           = controller_params['Flp_Mode']
 
         # Necessary parameters
-        self.U_pc               = controller_params['U_pc']
-        self.zeta_pc            = controller_params['zeta_pc']
-        self.omega_pc           = controller_params['omega_pc']
-        self.zeta_vs            = controller_params['zeta_vs']
-        self.omega_vs           = controller_params['omega_vs']
+        self.U_pc = list_check(controller_params['U_pc'], return_bool=False)
+        self.zeta_pc = list_check(controller_params['zeta_pc'], return_bool=False)
+        self.omega_pc = list_check(controller_params['omega_pc'], return_bool=False)
+        self.zeta_vs = controller_params['zeta_vs']
+        self.omega_vs = controller_params['omega_vs']
+        self.interp_type = controller_params['interp_type']
 
         # Optional parameters with defaults
         self.min_pitch          = controller_params['min_pitch']
@@ -122,6 +124,12 @@ class Controller():
         if self.WS_GS_n <= self.PC_GS_n:
             raise Exception('Number of WS breakpoints is not greater than pitch control breakpoints')
 
+        # Error checking: pitch controller inputs
+        if list_check(self.U_pc) and \
+            (list_check(self.omega_pc) or list_check(self.zeta_pc)) and \
+                not len(self.U_pc) == len(self.omega_pc) == len(self.zeta_pc):
+            raise Exception(
+                'U_pc, omega_pc, and zeta_pc are all list-like and are not of equal length')
         
 
     def tune_controller(self, turbine):
@@ -241,17 +249,18 @@ class Controller():
         B_tau = B_tau * np.ones(len(v))
 
         # Resample omega_ and zeta_pc at above rated wind speeds
-        if self.U_pc \
-            and isinstance(self.omega_pc, (list,np.ndarray)) \
-            and isinstance(self.zeta_pc, (list,np.ndarray)) \
-            and len(self.U_pc) == len(self.omega_pc) == len(self.zeta_pc):
-            self.omega_pc_U = multi_sigma(v_above_rated[1:],self.U_pc,self.omega_pc)
-            self.zeta_pc_U  = multi_sigma(v_above_rated[1:],self.U_pc,self.zeta_pc)
-        elif isinstance(self.omega_pc, float) and isinstance(self.zeta_pc, float):
+        if not list_check(self.omega_pc) and not list_check(self.zeta_pc):
             self.omega_pc_U = self.omega_pc * np.ones(len(v_above_rated[1:]))
             self.zeta_pc_U = self.zeta_pc * np.ones(len(v_above_rated[1:]))
         else:
-            raise Exception('ROSCO_toolbox: The lengths of U_pc, omega_pc, and zeta_pc must be equal')
+            if self.interp_type == 'sigma':  # sigma interpolation
+                self.omega_pc_U = multi_sigma(v_above_rated[1:], self.U_pc, self.omega_pc)
+                self.zeta_pc_U = multi_sigma(v_above_rated[1:], self.U_pc, self.zeta_pc)
+            else:   # standard scipy interpolation types
+                interp_omega = interpolate.interp1d(self.U_pc, self.omega_pc, kind=self.interp_type, bounds_error=False, fill_value='extrapolate')
+                interp_zeta = interpolate.interp1d(self.U_pc, self.zeta_pc, kind=self.interp_type, bounds_error=False, fill_value='extrapolate')
+                self.omega_pc_U = interp_omega(v_above_rated[1:])
+                self.zeta_pc_U = interp_zeta(v_above_rated[1:])
 
         # -- Find gain schedule --
         self.pc_gain_schedule = ControllerTypes()

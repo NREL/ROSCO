@@ -218,11 +218,11 @@ class output_processing():
         fig, ax - corresponds to generated figure
         '''
 
-        if not fastdict:
+        if not fastout:
             try:
-                fastdict = self.fastout
+                fastout = self.fastout
             except:
-                Error('Cannot plot OpenFAST output data before it is loaded with load_fast_out.')
+                raise AttributeError('Cannot plot OpenFAST output data before it is loaded with load_fast_out.')
         if not cases:
             cases=self.plot_cases
 

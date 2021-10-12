@@ -6,7 +6,7 @@ Installing the ROSCO tools
 ===========================
 Depending on what is needed, a user can choose to use just the ROSCO controller or to use both the ROSCO controller and the toolbox. Both the controller and the toolbox should be installed if one wishes to leverage the full ROSCO toolchain. 
 
-It is recommended to install the ROSCO toolset in full following the instruction in :ref:`full_rosco`
+It is recommended to install the ROSCO tool-set in full following the instruction in :ref:`full_rosco`
 
 For users planning to only download and/or compile the ROSCO controller, please follow the instructions on :ref:`rosco_controller`. 
 
@@ -15,11 +15,11 @@ For users planning to only download and/or compile the ROSCO controller, please 
 Full ROSCO 
 ----------
 
-We recommend using the full ROSCO toolchain. This also eases the installation process.
+We recommend using the full ROSCO tool-chain. This also eases the installation process.
 
 Installing
 ..............
-Installation of the complete ROSCO toolset is made easy through `Anaconda <https://www.anaconda.com/>`_. If you do not already have Anaconda installed on your machine, please install it. Additionally, we primarily support the use of CMake_ to control the software compilation process. If you plan to compile the ROSCO controller's source code, we request that you download CMake as well.
+Installation of the complete ROSCO tool-set is made easy through `Anaconda <https://www.anaconda.com/>`_. If you do not already have Anaconda installed on your machine, please install it. Additionally, we primarily support the use of CMake_ to control the software compilation process. If you plan to compile the ROSCO controller's source code, we request that you download CMake as well. You are free to compile ROSCO without the use of CMake, but we cannot guarantee support for all of the *many* available methods of compiling.
 
 Then please follow the following steps:
 
@@ -37,7 +37,7 @@ Then please follow the following steps:
 
         conda install -y wisdem
 
-You should then do step 3a *or* 3b. 
+You should then do step 3 *or* 4. 
 If you do not want to compile the ROSCO controller while also installing the ROSCO toolbox, please follow the instructions for :ref:`compiling_rosco`.
 
 3. Clone and Install the ROSCO toolbox with ROSCO
@@ -61,7 +61,7 @@ If you do not want to compile the ROSCO controller while also installing the ROS
 
 **Alternatively...**
 
-If you wish to write your own scripts to leverage the ROSCO tools, but do not necessarily need the source code or to run any of the examples, the ROSCO toolbox is available via Conda-Forge:
+If you wish to write your own scripts to leverage the ROSCO tools, but do not necessarily need the source code or to run any of the examples, ROSCO is available via Conda-Forge:
 
     ::
 
@@ -89,7 +89,7 @@ We primarily support the use of CMake_ for setting up the necessary build files 
 
 If one wishes to download the code via the command line, we provide two supported options in the subsections below. 
 For non-developers (those not interested in modifying the source code), the a 64-bit version of the compiled controller can be downloaded via Anaconda. 
-For users needing a 32-bit version on Windows and/or developers, CMake can be used to properly compile the Fortran code. 
+For developerrs and users needing a 32-bit version on Windows, CMake can be used to properly compile the Fortran code. 
 
 
 .. _compiling_rosco:
@@ -97,7 +97,7 @@ For users needing a 32-bit version on Windows and/or developers, CMake can be us
 Anaconda download for non-developers
 .....................................
 
-For users familiar with Anaconda_, a 64-bit version of ROSCO is available through the conda-forge channel. 
+For users familiar with Anaconda_, the tagged 64-bit versions of ROSCO are available through the conda-forge channel. 
 In order to download the most recently compiled version release, from an anaconda powershell (Windows) or terminal (Mac/Linux) window, create a new anaconda virtual environment: 
 ::
 
@@ -132,7 +132,7 @@ on Windows.
 
 CMake for developers (Mac/linux)
 .................................
-CMake_ provides a straightforward option for many users, particularly those on a Mac or Linux. We recommend that users use CMake if at all possible, as it is more difficult for us to support the use of other tools to aid with compiling ROSCO
+CMake_ provides a straightforward option for many users, particularly those on a Mac or Linux. We recommend that users use CMake if at all possible, as it is more difficult for us to support the use of other tools to aid with compiling ROSCO.
 
 On Mac/Linux, ROSCO can be compiled by first cloning the source code from git using:
 ::
