@@ -25,10 +25,6 @@ list_check
 import datetime
 import os
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import transforms
-from itertools import takewhile, product
-import struct
 import subprocess
 import ROSCO_toolbox
 
@@ -513,12 +509,19 @@ def list_check(x, return_bool=True):
     if isinstance(x, (int, float)):
         y = x
         is_list = False
-    elif isinstance(x, (list, np.ndarray)):
+    elif isinstance(x, list):
         if len(x) == 1:
             y = x[0]
+            is_list = False
         else:
             y = x
-        is_list = True
+            is_list = True
+    elif isinstance(x, np.ndarray):
+        y = x
+        if x.size == 1:
+            is_list = False
+        else:
+            is_list = True
     else:
         raise AttributeError('Cannot run list_check for variable of type: {}'.format(type(x)))
 

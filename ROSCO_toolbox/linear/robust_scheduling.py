@@ -2,15 +2,12 @@
 Methods for finding robust gain schedules
 '''
 
-import scipy as sp
 import numpy as np
 import glob
 import os
-import yaml
 import openmdao.api as om
 import matplotlib.pyplot as plt
 import pandas as pd
-import copy
 import multiprocessing as mp
 from ROSCO_toolbox import controller as ROSCO_controller
 from ROSCO_toolbox import turbine as ROSCO_turbine
