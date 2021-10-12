@@ -64,9 +64,9 @@ class Controller():
         self.Flp_Mode           = controller_params['Flp_Mode']
 
         # Necessary parameters
-        self.U_pc = list_check(controller_params['U_pc'])
-        self.zeta_pc = list_check(controller_params['zeta_pc'])
-        self.omega_pc = list_check(controller_params['omega_pc'])
+        self.U_pc = list_check(controller_params['U_pc'], return_bool=False)
+        self.zeta_pc = list_check(controller_params['zeta_pc'], return_bool=False)
+        self.omega_pc = list_check(controller_params['omega_pc'], return_bool=False)
         self.zeta_vs = controller_params['zeta_vs']
         self.omega_vs = controller_params['omega_vs']
         self.interp_type = controller_params['interp_type']
