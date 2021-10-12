@@ -11,14 +11,6 @@
 ! -------------------------------------------------------------------------------------------
 ! Read and set the parameters used by the controller
 
-! Submodules:
-!           CheckInputs: Initial condition and input check
-!           ComputeVariablesSetpoints: Compute setpoints used by controllers
-!           ReadAvrSWAP: Read AvrSWAP array
-!           ReadControlParameterFileSub: Read DISCON.IN input file
-!           ReadCPFile: Read text file containing Cp Surface
-!           SetParameters: Define initial conditions 
-
 MODULE ReadSetParameters
 
     USE, INTRINSIC :: ISO_C_Binding
@@ -55,23 +47,23 @@ CONTAINS
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
         
         ! Load variables from calling program (See Appendix A of Bladed User's Guide):
-        LocalVar%iStatus = NINT(avrSWAP(1))
-        LocalVar%Time = avrSWAP(2)
-        LocalVar%DT = avrSWAP(3)
-        LocalVar%VS_MechGenPwr = avrSWAP(14)
-        LocalVar%VS_GenPwr = avrSWAP(15)
-        LocalVar%GenSpeed = avrSWAP(20)
-        LocalVar%RotSpeed = avrSWAP(21)
-        LocalVar%GenTqMeas = avrSWAP(23)
-        LocalVar%Y_M = avrSWAP(24)
-        LocalVar%HorWindV = avrSWAP(27)
-        LocalVar%rootMOOP(1) = avrSWAP(30)
-        LocalVar%rootMOOP(2) = avrSWAP(31)
-        LocalVar%rootMOOP(3) = avrSWAP(32)
-        LocalVar%FA_Acc = avrSWAP(53)
-        LocalVar%NacIMU_FA_Acc = avrSWAP(83)
-        LocalVar%Azimuth = avrSWAP(60)
-        LocalVar%NumBl = NINT(avrSWAP(61))
+        LocalVar%iStatus            = NINT(avrSWAP(1))
+        LocalVar%Time               = avrSWAP(2)
+        LocalVar%DT                 = avrSWAP(3)
+        LocalVar%VS_MechGenPwr      = avrSWAP(14)
+        LocalVar%VS_GenPwr          = avrSWAP(15)
+        LocalVar%GenSpeed           = avrSWAP(20)
+        LocalVar%RotSpeed           = avrSWAP(21)
+        LocalVar%GenTqMeas          = avrSWAP(23)
+        LocalVar%Y_M                = avrSWAP(24)
+        LocalVar%HorWindV           = avrSWAP(27)
+        LocalVar%rootMOOP(1)        = avrSWAP(30)
+        LocalVar%rootMOOP(2)        = avrSWAP(31)
+        LocalVar%rootMOOP(3)        = avrSWAP(32)
+        LocalVar%FA_Acc             = avrSWAP(53)
+        LocalVar%NacIMU_FA_Acc      = avrSWAP(83)
+        LocalVar%Azimuth            = avrSWAP(60)
+        LocalVar%NumBl              = NINT(avrSWAP(61))
 
         ! --- NJA: usually feedback back the previous pitch command helps for numerical stability, sometimes it does not...
         IF (LocalVar%iStatus == 0) THEN
@@ -91,19 +83,20 @@ CONTAINS
                 
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData, ErrorVariables
         
-        INTEGER(4), INTENT(IN) :: size_avcMSG
-        TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
-        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
-        TYPE(PerformanceData), INTENT(INOUT)    :: PerfData
-        TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
+        REAL(C_FLOAT),              INTENT(INOUT)    :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
+        CHARACTER(C_CHAR),          INTENT(IN   )    :: accINFILE(NINT(avrSWAP(50)))     ! The name of the parameter input file
 
-        REAL(C_FLOAT), INTENT(INOUT)            :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
-        CHARACTER(KIND=C_CHAR), INTENT(IN)      :: accINFILE(NINT(avrSWAP(50)))     ! The name of the parameter input file
+        INTEGER(4),                 INTENT(IN   )   :: size_avcMSG
+        TYPE(ControlParameters),    INTENT(INOUT)   :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)   :: LocalVar
+        TYPE(ObjectInstances),      INTENT(INOUT)   :: objInst
+        TYPE(PerformanceData),      INTENT(INOUT)   :: PerfData
+        TYPE(ErrorVariables),       INTENT(INOUT)   :: ErrVar
+
         
         INTEGER(4)                              :: K    ! Index used for looping through blades.
 
-        CHARACTER(*), PARAMETER                 :: RoutineName = 'SetParameters'
+        CHARACTER(*),               PARAMETER       :: RoutineName = 'SetParameters'
 
         
         
@@ -114,12 +107,12 @@ CONTAINS
         ErrVar%size_avcMSG  = size_avcMSG
         
         ! Initialize all filter instance counters at 1
-        objInst%instLPF = 1
-        objInst%instSecLPF = 1
-        objInst%instHPF = 1
+        objInst%instLPF         = 1
+        objInst%instSecLPF      = 1
+        objInst%instHPF         = 1
         objInst%instNotchSlopes = 1
-        objInst%instNotch = 1
-        objInst%instPI = 1
+        objInst%instNotch       = 1
+        objInst%instPI          = 1
         
         ! Set unused outputs to zero (See Appendix A of Bladed User's Guide):
         avrSWAP(35) = 1.0 ! Generator contactor status: 1=main (high speed) variable-speed generator
@@ -159,17 +152,15 @@ CONTAINS
             IF (CntrPar%WE_Mode > 0) THEN
                 CALL READCpFile(CntrPar,PerfData,ErrVar)
             ENDIF
-            ! Initialize testValue (debugging variable)
-            LocalVar%TestType = 0
         
             ! Initialize the SAVED variables:
-            LocalVar%PitCom = LocalVar%BlPitch ! This will ensure that the variable speed controller picks the correct control region and the pitch controller picks the correct gain on the first call
-            LocalVar%Y_AccErr = 0.0  ! This will ensure that the accumulated yaw error starts at zero
-            LocalVar%Y_YawEndT = -1.0 ! This will ensure that the initial yaw end time is lower than the actual time to prevent initial yawing
+            LocalVar%PitCom     = LocalVar%BlPitch ! This will ensure that the variable speed controller picks the correct control region and the pitch controller picks the correct gain on the first call
+            LocalVar%Y_AccErr   = 0.0  ! This will ensure that the accumulated yaw error starts at zero
+            LocalVar%Y_YawEndT  = -1.0 ! This will ensure that the initial yaw end time is lower than the actual time to prevent initial yawing
             
             ! Wind speed estimator initialization
-            LocalVar%WE_Vw = LocalVar%HorWindV
-            LocalVar%WE_VwI = LocalVar%WE_Vw - CntrPar%WE_Gamma*LocalVar%RotSpeed
+            LocalVar%WE_Vw      = LocalVar%HorWindV
+            LocalVar%WE_VwI     = LocalVar%WE_Vw - CntrPar%WE_Gamma*LocalVar%RotSpeed
             
             ! Setpoint Smoother initialization to zero
             LocalVar%SS_DelOmegaF = 0
@@ -200,15 +191,15 @@ CONTAINS
         USE, INTRINSIC :: ISO_C_Binding
         USE ROSCO_Types, ONLY : ControlParameters, ErrorVariables
 
-        INTEGER(4)                                      :: accINFILE_size               ! size of DISCON input filename
+        INTEGER(4)                                      :: accINFILE_size               ! size of DISCON input filename, INTENT(IN) here??
         CHARACTER(accINFILE_size),  INTENT(IN   )       :: accINFILE(accINFILE_size)    ! DISCON input filename
-        INTEGER(4), PARAMETER                           :: UnControllerParameters = 89  ! Unit number to open file
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar                      ! Control parameter type
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar                      ! Control parameter type
 
+        INTEGER(4),                 PARAMETER                           :: UnControllerParameters = 89  ! Unit number to open file
         INTEGER(4)                                      :: CurLine 
 
-        CHARACTER(*), PARAMETER                         :: RoutineName = 'ReadControlParameterFileSub'
+        CHARACTER(*),               PARAMETER           :: RoutineName = 'ReadControlParameterFileSub'
 
         CurLine = 1
        
@@ -391,17 +382,17 @@ CONTAINS
     ! Read all constant control parameters from DISCON.IN parameter file
     SUBROUTINE ReadCpFile(CntrPar,PerfData, ErrVar)
         USE ROSCO_Types, ONLY : PerformanceData, ControlParameters, ErrorVariables
-
-        TYPE(PerformanceData),      INTENT(INOUT)   :: PerfData
+        
         TYPE(ControlParameters),    INTENT(INOUT)   :: CntrPar
+        TYPE(PerformanceData),      INTENT(INOUT)   :: PerfData
         TYPE(ErrorVariables),       INTENT(INOUT)   :: ErrVar
         
         ! Local variables
-        INTEGER(4), PARAMETER                       :: UnPerfParameters = 89
+        INTEGER(4),                 PARAMETER       :: UnPerfParameters = 89
         INTEGER(4)                                  :: i ! iteration index
 
         INTEGER(4)                                  :: CurLine 
-        CHARACTER(*), PARAMETER                     :: RoutineName = 'ReadCpFile'
+        CHARACTER(*),               PARAMETER       :: RoutineName = 'ReadCpFile'
         REAL(8), DIMENSION(:), ALLOCATABLE          :: TmpPerf
 
         CurLine = 1
@@ -542,7 +533,7 @@ CONTAINS
         ENDIF
 
         ! PS_Mode
-        IF ((CntrPar%PS_Mode < 0) .OR. (CntrPar%PS_Mode > 1)) THEN
+        IF ((CntrPar%PS_Mode < 0) .OR. (CntrPar%PS_Mode > 3)) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'PS_Mode must be 0 or 1.'
         ENDIF
@@ -861,7 +852,7 @@ CONTAINS
 
         ! --- Floating Control ---
         IF (CntrPar%Fl_Mode > 0) THEN
-            IF (CntrPar%F_NotchType <= 1 .OR. CntrPar%F_NotchCornerFreq == 0.0) THEN
+            IF (CntrPar%F_NotchType < 1 .OR. CntrPar%F_NotchCornerFreq == 0.0) THEN
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg = 'F_NotchType and F_NotchCornerFreq must be specified for Fl_Mode greater than zero.'
             ENDIF

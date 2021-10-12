@@ -12,14 +12,6 @@
 
 ! This module contains the primary controller routines
 
-! Subroutines:
-!           PitchControl: Blade pitch control high level subroutine
-!           VariableSpeedControl: Variable speed generator torque control
-!           YawRateControl: Nacelle yaw control
-!           IPC: Individual pitch control
-!           ForeAftDamping: Tower fore-aft damping control
-!           FloatingFeedback: Tower fore-aft feedback for floating offshore wind turbines
-
 MODULE Controllers
 
     USE, INTRINSIC :: ISO_C_Binding
@@ -35,25 +27,21 @@ CONTAINS
     ! Blade pitch controller, generally maximizes rotor speed below rated (region 2) and regulates rotor speed above rated (region 3)
     !       PC_State = 0, fix blade pitch to fine pitch angle (PC_FinePit)
     !       PC_State = 1, is gain scheduled PI controller 
-    ! Additional loops/methods (enabled via switches in DISCON.IN):
-    !       Individual pitch control
-    !       Tower fore-aft damping 
-    !       Sine excitation on pitch    
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
         
         ! Inputs
-        TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
-        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
-        TYPE(DebugVariables), INTENT(INOUT)     :: DebugVar
-        TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
+        REAL(C_FLOAT),              INTENT(INOUT)       :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from the DLL controller.
+        TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
+        TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
+        TYPE(DebugVariables),       INTENT(INOUT)       :: DebugVar
+        TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
 
         ! Allocate Variables:
-        REAL(C_FLOAT), INTENT(INOUT)            :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from the DLL controller.
-        INTEGER(4)                              :: K            ! Index used for looping through blades.
-        REAL(8), Save                           :: PitComT_Last 
+        INTEGER(4)                                      :: K            ! Index used for looping through blades.
+        REAL(8),                    Save                :: PitComT_Last 
 
-        CHARACTER(*), PARAMETER                 :: RoutineName = 'PitchControl'
+        CHARACTER(*),               PARAMETER           :: RoutineName = 'PitchControl'
 
         ! ------- Blade Pitch Controller --------
         ! Load PC State
@@ -91,7 +79,7 @@ CONTAINS
         ENDIF
         
         ! Pitch Saturation
-        IF (CntrPar%PS_Mode == 1) THEN
+        IF (CntrPar%PS_Mode > 0) THEN
             LocalVar%PC_MinPit = PitchSaturation(LocalVar,CntrPar,objInst,DebugVar, ErrVar)
             LocalVar%PC_MinPit = max(LocalVar%PC_MinPit, CntrPar%PC_FinePit)
         ELSE
@@ -148,11 +136,11 @@ CONTAINS
     !       VS_State = 6, Tip-Speed-Ratio tracking PI controller
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
         ! Inputs
-        TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
-        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+        REAL(C_FLOAT),              INTENT(INOUT)       :: avrSWAP(*)    ! The swap array, used to pass data to, and receive data from, the DLL controller.
+        TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
+        TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
         ! Allocate Variables
-        REAL(C_FLOAT), INTENT(INOUT)            :: avrSWAP(*)    ! The swap array, used to pass data to, and receive data from, the DLL controller.
         
         ! -------- Variable-Speed Torque Controller --------
         ! Define max torque
@@ -219,11 +207,10 @@ CONTAINS
         !       Y_ControlMode = 2, Yaw by IPC (accounted for in IPC subroutine)
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
     
-        REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
-    
-        TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
-        TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
+        REAL(C_FLOAT),              INTENT(INOUT)       :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
+        TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
+        TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
         
         !..............................................................................................................................
         ! Yaw control
@@ -258,19 +245,19 @@ CONTAINS
 
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
         
+        TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
+        TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
+
         ! Local variables
-        REAL(8)                  :: PitComIPC(3), PitComIPCF(3), PitComIPC_1P(3), PitComIPC_2P(3)
-        INTEGER(4)               :: K                                       ! Integer used to loop through turbine blades
-        REAL(8)                  :: axisTilt_1P, axisYaw_1P, axisYawF_1P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
-        REAL(8), SAVE            :: IntAxisTilt_1P, IntAxisYaw_1P           ! Integral of the direct axis and quadrature axis, 1P
-        REAL(8)                  :: axisTilt_2P, axisYaw_2P, axisYawF_2P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
-        REAL(8), SAVE            :: IntAxisTilt_2P, IntAxisYaw_2P           ! Integral of the direct axis and quadrature axis, 1P
-        REAL(8)                  :: IntAxisYawIPC_1P                        ! IPC contribution with yaw-by-IPC component
-        REAL(8)                  :: Y_MErrF, Y_MErrF_IPC                    ! Unfiltered and filtered yaw alignment error [rad]
-        
-        TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
-        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+        REAL(8)                                         :: PitComIPC(3), PitComIPCF(3), PitComIPC_1P(3), PitComIPC_2P(3)
+        INTEGER(4)                                      :: K                                       ! Integer used to loop through turbine blades
+        REAL(8)                                         :: axisTilt_1P, axisYaw_1P, axisYawF_1P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
+        REAL(8),                    SAVE                :: IntAxisTilt_1P, IntAxisYaw_1P           ! Integral of the direct axis and quadrature axis, 1P
+        REAL(8)                                         :: axisTilt_2P, axisYaw_2P, axisYawF_2P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
+        REAL(8),                    SAVE                :: IntAxisTilt_2P, IntAxisYaw_2P           ! Integral of the direct axis and quadrature axis, 1P
+        REAL(8)                                         :: IntAxisYawIPC_1P                        ! IPC contribution with yaw-by-IPC component
+        REAL(8)                                         :: Y_MErrF, Y_MErrF_IPC                    ! Unfiltered and filtered yaw alignment error [rad]
         
         ! Body
         ! Initialization
@@ -400,7 +387,7 @@ CONTAINS
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
         ! Internal Variables
         Integer(4)                                :: K
-        REAL(8)                                   :: rootMOOP_F(3)
+        REAL(8)                                   :: RootMOOP_F(3)
         REAL(8)                                   :: RootMyb_Vel(3)
         REAL(8), SAVE                             :: RootMyb_Last(3)
         REAL(8)                                   :: RootMyb_VelErr(3)
@@ -429,11 +416,6 @@ CONTAINS
                 LocalVar%Flp_Angle(1) = LocalVar%Flp_Angle(1) 
                 LocalVar%Flp_Angle(2) = LocalVar%Flp_Angle(2) 
                 LocalVar%Flp_Angle(3) = LocalVar%Flp_Angle(3) 
-                ! IF (MOD(LocalVar%Time,10.0) == 0) THEN
-                !     LocalVar%Flp_Angle(1) = LocalVar%Flp_Angle(1) + 1*D2R
-                !     LocalVar%Flp_Angle(2) = LocalVar%Flp_Angle(2) + 1*D2R
-                !     LocalVar%Flp_Angle(3) = LocalVar%Flp_Angle(3) + 1*D2R
-                ! ENDIF
 
             ! PII flap control
             ELSEIF (CntrPar%Flp_Mode == 2) THEN
