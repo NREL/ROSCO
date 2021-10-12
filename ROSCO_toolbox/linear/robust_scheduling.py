@@ -30,8 +30,12 @@ class RobustScheduling(om.ExplicitComponent):
         # Options
         linturb_options = self.options['linturb_options']
         ROSCO_options = self.options['ROSCO_options']
-        if isinstance(list_check(ROSCO_options['controller_params']['omega_pc']), (list, np.ndarray)) or \
-                isinstance(list_check(ROSCO_options['controller_params']['zeta_pc']), (list, np.ndarray)):
+        ROSCO_options['controller_params']['omega_pc'] = list_check(
+            ROSCO_options['controller_params']['omega_pc'], return_bool=False)
+        ROSCO_options['controller_params']['zeta_pc'] = list_check(
+            ROSCO_options['controller_params']['zeta_pc'], return_bool=False)
+        if list_check(ROSCO_options['controller_params']['omega_pc']) or \
+                list_check(ROSCO_options['controller_params']['zeta_pc']):
             raise AttributeError(
                 'Error: omega_pc and zeta_pc must be scalars for robust controller tuning.')
 
@@ -141,8 +145,8 @@ class rsched_driver():
                 self.opt_options['levels'] = 10
 
         # Clarify up input sizes
-        self.opt_options['omega'] = list_check(self.opt_options['omega'])
-        self.opt_options['k_float'] = list_check(self.opt_options['k_float'])
+        self.opt_options['omega'] = list_check(self.opt_options['omega'], return_bool=False)
+        self.opt_options['k_float'] = list_check(self.opt_options['k_float'], return_bool=False)
 
     def setup(self):
         '''
@@ -157,7 +161,7 @@ class rsched_driver():
 
         if self.opt_options['driver'] == 'design_of_experiments':
             self.om_problem = self.init_doe(self.om_problem, levels=self.opt_options['levels'])
-            if isinstance(self.opt_options['windspeed'], list):
+            if list_check(self.opt_options['windspeed']):
                 if len(self.opt_options['windspeed']) == 1:
                     self.opt_options['windspeed'] = self.opt_options['windspeed'][0]
                 else:
@@ -180,9 +184,9 @@ class rsched_driver():
         self.om_problem.setup()
 
         # Set constant values
-        if isinstance(self.opt_options['omega'], float):
+        if not list_check(self.opt_options['omega']):
             self.om_problem.set_val('r_sched.omega', self.opt_options['omega'])
-        if isinstance(self.opt_options['k_float'], float):
+        if not list_check(self.opt_options['k_float']):
             self.om_problem.set_val('r_sched.k_float', self.opt_options['k_float'])
 
         # Designate specific problem objects, add design variables
@@ -250,11 +254,11 @@ class rsched_driver():
     def add_dv(self, om_problem, opt_vars):
         '''add design variables'''
 
-        if 'omega' in opt_vars and isinstance(self.opt_options['omega'], (list, np.ndarray)):
+        if 'omega' in opt_vars and list_check(self.opt_options['omega']):
             om_problem.model.add_design_var(
                 'r_sched.omega', lower=self.opt_options['omega'][0], upper=self.opt_options['omega'][1])
 
-        if 'k_float' in opt_vars and isinstance(self.opt_options['k_float'], (list, np.ndarray)):
+        if 'k_float' in opt_vars and list_check(self.opt_options['k_float']):
             om_problem.model.add_design_var(
                 'r_sched.k_float', lower=self.opt_options['k_float'][0], upper=self.opt_options['k_float'][1], ref=100)
 
