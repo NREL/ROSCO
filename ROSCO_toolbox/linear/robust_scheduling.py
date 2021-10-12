@@ -218,7 +218,7 @@ class rsched_driver():
             self.k_floats = []
             self.sms = []
             for u in self.opt_options['windspeed']:
-                om0 = 0.01
+                om0 = 0.1
                 # Setup optimization
                 self.om_opt.set_val('r_sched.u_eval', u)
                 self.om_opt.set_val('r_sched.omega', om0)
