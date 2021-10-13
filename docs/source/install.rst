@@ -24,6 +24,7 @@ Installation of the complete ROSCO tool-set is made easy through `Anaconda <http
 Please follow the following steps to install the ROSCO tool-chain. You should do step 3 *or* 4. If you simply want to compile the ROSCO controller without installing the ROSCO toolbox, please follow the instructions for :ref:`compiling_rosco`.
 
 1.  Create a conda environment for ROSCO
+
     .. code-block:: bash
 
         conda config --add channels conda-forge
@@ -31,11 +32,13 @@ Please follow the following steps to install the ROSCO tool-chain. You should do
         conda activate rosco-env
 
 2.  Install WISDEM
+    
     .. code-block:: bash
 
         conda install -y wisdem
 
 3. Clone and Install the ROSCO toolbox with ROSCO
+    
     .. code-block:: bash
 
         git clone https://github.com/NREL/ROSCO_toolbox.git
@@ -45,6 +48,7 @@ Please follow the following steps to install the ROSCO tool-chain. You should do
         python setup.py install --compile-rosco 
 
 4.	Clone and Install the ROSCO toolbox without ROSCO
+    
     .. code-block:: bash
     
         git clone https://github.com/NREL/ROSCO_toolbox.git
@@ -55,16 +59,19 @@ Please follow the following steps to install the ROSCO tool-chain. You should do
 **Alternatively...**
 
 If you wish to write your own scripts to leverage the ROSCO tools, but do not necessarily need the source code or to run any of the examples, ROSCO is available via Conda-Forge:
+
 .. code-block:: bash
 
     conda install -y ROSCO
 
 Note that if you do choose to install ROSCO this way, you will not have the source code. This will install the python-based ROSCO toolbox and download a compiled ROSCO controller binary file into the default filepath. The ROSCO binary file can be copied to your desired folder using:
+
 .. code-block:: bash
 
     cp $CONDA_PREFIX/lib/libdiscon.* <desired_folder>
 
 on linux or:
+
 .. code-block:: bash
 
     copy %CONDA_PREFIX%/lib/libdiscon.dll <desired_folder>
