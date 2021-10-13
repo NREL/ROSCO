@@ -205,7 +205,7 @@ Please follow the following steps to install the ROSCO tool-chain. You should do
 
 
 Getting Started
-...................
+----------------
 Please see :ref:`standard_use` for several example scripts using ROSCO and the ROSCO_toolbox.
 
 
