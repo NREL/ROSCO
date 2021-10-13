@@ -43,7 +43,9 @@ The default parameters in `Tune_Cases/ <https://github.com/NREL/ROSCO/tree/main/
 Each of these examples generates a :code:`DISCON.IN` file, which is an input to libdiscon.*.
 When running the controller in OpenFAST, :code:`DISCON.IN` must be appropriately named using the :code:`DLL_FileName` parameter in ServoDyn. 
 
-OpenFAST can be installed from `source <https://github.com/OpenFAST/openfast>`_ or in a conda environment using::
+OpenFAST can be installed from `source <https://github.com/OpenFAST/openfast>`_ or in a conda environment using:
+
+.. code-block:: bash
 
   conda install -c conda-forge openfast
 

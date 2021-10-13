@@ -3,100 +3,59 @@
 .. _install:
 
 Installing the ROSCO tools
-==========================
-Depending on what is needed, a user can choose to use just the ROSCO controller or to use both the ROSCO controller and the toolbox. Both the controller and the toolbox should be installed if one wishes to leverage the full ROSCO toolchain. 
+===========================
+As a reminder, the ROSCO toolbox is a python-based tool used to write the DISCON.IN file, which is read by the ROSCO controller (a compiled binary file). If you only wish to run the controller, you *do not* need to install the ROSCO toolbox. 
 
-It is recommended to install the ROSCO tool-set in full following the instruction in :ref:`full_rosco`
+Depending on what is needed, a user can choose to use just the ROSCO controller or to use both the ROSCO controller and the toolbox. Both the controller and the toolbox should be installed if one wishes to leverage the full ROSCO tool-chain. :numref:`rosco_table` provides an overview of the primary methods available for :ref:`rosco_controller`. Additionally, :numref:`roscotoolbox_table` provides an overview of the primary methods available to acquire the ROSCO toolbox. Finally, if you wish to install and use both the controller and toolbox, the section about :ref:`full_rosco` provides the best methods of doing so. 
 
-For users planning to only download and/or compile the ROSCO controller, please follow the instructions on :ref:`rosco_controller`. 
+.. _rosco_table:
+.. list-table:: Methods for Installing the ROSCO Controller
+   :widths: 30 70
+   :header-rows: 1
 
-.. _full_rosco:
+   * - Method
+     - Use Case
+   * - :ref:`rosco_direct_download`
+     - Best for users who simply want to use a released version of the controller without working through the compilation procedures. 
+   * - :ref:`rosco_anaconda_download`
+     - Best for users who just want to use the controller but prefer to download using the Anaconda package man age Full ROSCO Installation   - Ur.
+   * - :ref:`full_rosco`
+     - Best for users who wish to both use the controller and leverage the tools in the ROSCO toolbox
+   * - :ref:`cmake_compile`
+     - Best for users who need to re-compile the source code often, plan to use non-released versions of ROSCO (including modified source code), or who simply want to compile the controller themselves so they have the full code available locally.
 
-Full ROSCO 
-----------
+.. _roscotoolbox_table:
+.. list-table:: Methods for Installing the ROSCO Toolbox
+   :widths: 30 70
+   :header-rows: 1
 
-We recommend using the full ROSCO tool-chain. This also eases the installation process.
+   * - Method
+     - Use Case
+   * - :ref:`roscotoolbox_anaconda_download`
+     - Best for users who simply want to use the primary ROSCO toolbox functions
+   * - :ref:`full_rosco`
+     - (Recommended) Best for users who wish to both use the primary ROSCO toolbox functions, as well run and use the many example and testing scripts available. This process can be done with or without compiling ROSCO.
 
-Installing
-..............
-Installation of the complete ROSCO tool-set is made easy through `Anaconda <https://www.anaconda.com/>`_. If you do not already have Anaconda installed on your machine, please install it. Additionally, we primarily support the use of CMake_ to control the software compilation process. If you plan to compile the ROSCO controller's source code, we request that you download CMake as well. You are free to compile ROSCO without the use of CMake, but we cannot guarantee support for all of the *many* available methods of compiling.
-
-Please follow the following steps to install the ROSCO tool-chain. You should do step 3 *or* 4. If you simply want to compile the ROSCO controller without installing the ROSCO toolbox, please follow the instructions for :ref:`compiling_rosco`.
-
-1. Create a conda environment for ROSCO
-
-    .. code-block:: bash
-
-        conda config --add channels conda-forge
-        conda create -y --name rosco-env python=3.8
-        conda activate rosco-env
-
-2. Install WISDEM
-    
-    .. code-block:: bash
-
-        conda install -y wisdem
-
-2. Clone and Install the ROSCO toolbox with ROSCO
-    
-    .. code-block:: bash
-
-        git clone https://github.com/NREL/ROSCO_toolbox.git
-        cd ROSCO_toolbox
-        conda install compilers # (Mac/Linux only)
-        conda install m2w64-toolchain libpython # (Windows only)
-        python setup.py install --compile-rosco 
-
-3. Clone and Install the ROSCO toolbox without ROSCO
-    
-    .. code-block:: bash
-    
-        git clone https://github.com/NREL/ROSCO_toolbox.git
-        cd ROSCO_toolbox
-        python setup.py install
-
-
-**Alternatively...**
-
-If you wish to write your own scripts to leverage the ROSCO tools, but do not necessarily need the source code or to run any of the examples, ROSCO is available via Conda-Forge:
-
-.. code-block:: bash
-
-    conda install -y ROSCO
-
-Note that if you do choose to install ROSCO this way, you will not have the source code. This will install the python-based ROSCO toolbox and download a compiled ROSCO controller binary file into the default filepath. The ROSCO binary file can be copied to your desired folder using:
-
-.. code-block:: bash
-
-    cp $CONDA_PREFIX/lib/libdiscon.* <desired_folder>
-
-on linux or:
-
-.. code-block:: bash
-
-    copy %CONDA_PREFIX%/lib/libdiscon.dll <desired_folder>
-
-on Windows.
+For many of the methods used to install both ROSCO and the ROSCO toolbox, both Anaconda_ and CMake_ are necessary. Anaconda is a popular package manager used to distribute software packages of various types. Anaconda is used to download requisite packages and distribute pre-compiled versions of the ROSCO tools. CMake is a build configuration system that creates files as input to a build tool like GNU Make, Visual Studio, or Ninja. CMake does not compile code or run compilers directly, but rather creates the environment needed for another tool to run compilers and create binaries. CMake is used to ease the processes of compiling the ROSCO controller locally. For more information on CMake, please see `understanding CMake <https://openfast.readthedocs.io/en/main/source/install/index.html#understanding-cmake>`_ in the OpenFAST documentation.
 
 
 .. _rosco_controller:
 
-ROSCO controller
-----------------
-The standard ROSCO controller is based in Fortran and must be compiled; this code can be found at: https://github.com/NREL/ROSCO/ROSCO. 
-We primarily support the use of CMake_ for setting up the necessary build files to compile ROSCO. The most recent tagged version releases of the controller are `available for download <https://github.com/NREL/ROSCO/tags>`_. 
+Installing the ROSCO controller
+--------------------------------
+The standard ROSCO controller is based in Fortran and must be compiled; the source code can be found at: https://github.com/NREL/ROSCO/ROSCO. 
 
-If one wishes to download the code via the command line, we provide two supported options in the subsections below. 
-For non-developers (those not interested in modifying the source code), the a 64-bit version of the compiled controller can be downloaded via Anaconda. 
-For developerrs and users needing a 32-bit version on Windows, CMake can be used to properly compile the Fortran code. 
+.. _rosco_direct_download:
 
+Direct Download
+................
+The most recent tagged version releases of the controller are `available for download <https://github.com/NREL/ROSCO/tags>`_. One can simply download these compiled binary files for their system and point to them in their simulation tools (e.g. through :code:`DLL_FileName` in the ServoDyn input file of OpenFAST).
 
-.. _compiling_rosco:
+.. _rosco_anaconda_download:
 
-Anaconda download for non-developers
-.....................................
-
-For users familiar with Anaconda_, the tagged 64-bit versions of ROSCO are available through the conda-forge channel. 
+Anaconda Download - ROSCO
+..........................
+Using the popular package manager, Anaconda_, the tagged 64-bit versions of ROSCO are available through the conda-forge channel. 
 In order to download the most recently compiled version release, from an anaconda powershell (Windows) or terminal (Mac/Linux) window, create a new anaconda virtual environment: 
 
 .. code-block:: bash
@@ -134,53 +93,138 @@ on linux or:
 on Windows.
 
 
-CMake for developers (Mac/linux)
-.................................
-CMake_ provides a straightforward option for many users, particularly those on a Mac or Linux. We recommend that users use CMake if at all possible, as it is more difficult for us to support the use of other tools to aid with compiling ROSCO.
+.. _cmake_compile:
 
-On Mac/Linux, ROSCO can be compiled by first cloning the source code from git using:
+Compile using CMake
+.....................
+CMake_ eases the compiling process significantly. We recommend that users use CMake if at all possible, as we cannot guarantee support for the use of other tools to aid with compiling ROSCO.
 
-.. code-block:: bash
-
-    git clone https://github.com/NREL/ROSCO.git
-
-And then compiling using CMake:
+On Mac/Linux, standard compilers are generally available without any additional downloads. On 32-bit windows, we recommend that you `install MinGW <http://capsis.cirad.fr/capsis/documentation/mingw-installation>`_ (Section 2). On 64-bit Windows, you can simply install the MSYS2 toolchain through Anaconda:
 
 .. code-block:: bash
-
-    cd ROSCO/ROSCO
-    mkdir build
-    cd build
-    cmake ..
-    make install
-
-This will generate a file called :code:`libdiscon.so` (Linux) or :code:`libdiscon.dylib` (Mac) in the :code:`/ROSCO/install/lib` directory. 
-
-
-
-CMake for developers/32-bit (Windows)
-......................................
-
-To compile ROSCO on Windows, you first need a Fortran compiler. If you need a 32-bit DLL, then we recommend `installing MinGW <http://capsis.cirad.fr/capsis/documentation/mingw-installation>`_ (Section 2).
-If you require a 64-bit version, you can install the MSYS2 toolchain through conda::
 
     conda install m2w64-toolchain libpython
 
-Note that if you have the 64-bit toolchain installed in your environment, you might have conflicts with the 32-bit compiler. We recommend therefore keeping separate environments if you want to compile 32- or 64-bit.
-
-Once you have your Fortran compiler successfully installed and configured, the build process is similar to on Mac and linux:
+Once the CMake and the required compilers are downloaded, the following code can be used to compile ROSCO.
 
 .. code-block:: bash
 
+    # Clone ROSCO
+    git clone https://github.com/NREL/ROSCO.git
+
+    # Compile ROSCO
     cd ROSCO/ROSCO
     mkdir build
     cd build
-    cmake .. -G "MinGW Makefiles"
-    mingw32-make
+    cmake ..                        # Mac/linux only
+    cmake .. -G "MinGW Makefiles"   # Windows only 
+    make install
 
-Note that the :code:`mingw32-make` command is (confusingly) valid for both 64-bit and 32-bit MinGW.
+This will generate a file called :code:`libdiscon.so` (Linux), :code:`libdiscon.dylib` (Mac), or :code:`libdisscon.dll` (Windows) in the :code:`/ROSCO/install/lib` directory. 
 
-This will generate a file called :code:`libdiscon.dll` in the :code:`/ROSCO/install/lib` directory. 
+.. _rosco_toolbox_install:
+
+Installing the ROSCO toolbox
+----------------------------
+The ROSCO toolbox is based in python and contains all relevant ROSCO tools; the source code can be found at: https://github.com/NREL/ROSCO/. In addition to tuning procedures, the ROSCO toolbox also contains example scripts, a Simulink Model of ROSCO, OpenFAST pre-and post-processing functions, linearized systems analysis tools, and a testing suite. 
+
+.. _roscotoolbox_anaconda_download:
+
+Anaconda Download - ROSCO Toolbox
+..................................
+If one wishes to simply use the modules provided in the ROSCO toolbox through scripts of their own, the ROSCO toolbox can be installed via the conda-forge channel of Anaconda. They can then be accessed using the standard methods of loading modules in python, e.g:
+
+.. code-block:: python
+
+    from ROSCO_toolbox import controller as ROSCO_controller
+    from ROSCO_toolbox import turbine as ROSCO_turbine
+
+Note that the install procedures for the ROSCO toolbox are the same as in :ref:`rosco_anaconda_download`, but do not involve moving the controller binary file. 
+In order to download the most recently compiled version release, from an anaconda powershell (Windows) or terminal (Mac/Linux) window, create a new anaconda virtual environment: 
+
+.. code-block:: bash
+
+    conda config --add channels conda-forge
+    conda create -y --name rosco-env python=3.8
+    conda activate rosco-env
+
+navigate to your desired folder to save the compiled binary using:
+
+.. code-block:: bash
+
+    cd <my_desired_folder>
+    
+and download the controller:
+
+.. code-block:: bash
+
+    conda install -y ROSCO
+
+
+
+.. _full_rosco:
+
+Full ROSCO Installation
+-----------------------
+
+We recommend using the full ROSCO tool-chain. This allows for full use of the provided functions along with the developed python packages and controller code, 
+
+Please follow the following steps to install the ROSCO tool-chain. You should do step 3 *or* 4. If you simply want to install the ROSCO toolbox without the controller, do step 3. If you would like to install the ROSCO toolbox and compile the controller simultaneously, do step 4. 
+
+1. Create a conda environment for ROSCO
+
+.. code-block:: bash
+
+    conda config --add channels conda-forge
+    conda create -y --name rosco-env python=3.8
+    conda activate rosco-env
+
+2. Install WISDEM
+    
+.. code-block:: bash
+
+    conda install -y wisdem
+
+3. Clone and Install the ROSCO toolbox with ROSCO
+    
+.. code-block:: bash
+
+    git clone https://github.com/NREL/ROSCO_toolbox.git
+    cd ROSCO_toolbox
+    conda install compilers # (Mac/Linux only)
+    conda install m2w64-toolchain libpython # (Windows only)
+    python setup.py install --compile-rosco 
+
+4. Clone and Install the ROSCO toolbox without ROSCO
+    
+.. code-block:: bash
+
+    git clone https://github.com/NREL/ROSCO_toolbox.git
+    cd ROSCO_toolbox
+    python setup.py install
+
+
+**Alternatively...**
+
+If you wish to write your own scripts to leverage the ROSCO tools, but do not necessarily need the source code or to run any of the examples, ROSCO is available via Conda-Forge:
+
+.. code-block:: bash
+
+    conda install -y ROSCO
+
+Note that if you do choose to install ROSCO this way, you will not have the source code. This will install the python-based ROSCO toolbox and download a compiled ROSCO controller binary file into the default filepath. The ROSCO binary file can be copied to your desired folder using:
+
+.. code-block:: bash
+
+    cp $CONDA_PREFIX/lib/libdiscon.* <desired_folder>
+
+on linux or:
+
+.. code-block:: bash
+
+    copy %CONDA_PREFIX%/lib/libdiscon.dll <desired_folder>
+
+on Windows.
 
 
 Getting Started
@@ -191,4 +235,3 @@ Please see :ref:`standard_use` for several example scripts using ROSCO and the R
 .. _Anaconda: https://www.anaconda.com/
 .. _CMake: https://cmake.org/
 .. _MinGW: https://mingw-w64.org/
-
