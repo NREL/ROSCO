@@ -8,8 +8,8 @@ Here, we give an overview of the structure of the ROSCO controller and how the c
 
 -----
 
-File Structure
---------------
+ROSCO File Structure
+---------------------
 The primary functions of the ROSCO toolbox are separated into several files. They include the following:
 
 * :code:`DISCON.f90` is the primary driver function. 

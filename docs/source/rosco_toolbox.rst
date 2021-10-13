@@ -8,8 +8,8 @@ Here, we give an overview of the structure of the ROSCO toolbox and how the code
 
 -----
 
-File Structure
----------------
+ROSCO Toolbox File Structure
+----------------------------
 The primary tools of the ROSCO toolbox are separated into several folders. They include the following:
 
 ROSCO_toolbox
