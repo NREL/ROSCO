@@ -3,7 +3,7 @@
 .. _install:
 
 Installing the ROSCO tools
-===========================
+==========================
 Depending on what is needed, a user can choose to use just the ROSCO controller or to use both the ROSCO controller and the toolbox. Both the controller and the toolbox should be installed if one wishes to leverage the full ROSCO toolchain. 
 
 It is recommended to install the ROSCO tool-set in full following the instruction in :ref:`full_rosco`
@@ -98,30 +98,35 @@ Anaconda download for non-developers
 
 For users familiar with Anaconda_, the tagged 64-bit versions of ROSCO are available through the conda-forge channel. 
 In order to download the most recently compiled version release, from an anaconda powershell (Windows) or terminal (Mac/Linux) window, create a new anaconda virtual environment: 
-::
+
+.. code-block:: bash
 
     conda config --add channels conda-forge
     conda create -y --name rosco-env python=3.8
     conda activate rosco-env
 
 navigate to your desired folder to save the compiled binary using:
-::
+
+.. code-block:: bash
 
     cd <my_desired_folder>
     
 and download the controller:
-::
+
+.. code-block:: bash
 
     conda install -y ROSCO
 
 This will download a compiled ROSCO binary file into the default filepath for any dynamic libraries downloaded via anaconda while in the ROSCO-env. 
 The ROSCO binary file can be copied to your desired folder using:
-::
+
+.. code-block:: bash
 
     cp $CONDA_PREFIX/lib/libdiscon.* .
 
 on linux or:
-::
+
+.. code-block:: bash
 
     copy %CONDA_PREFIX%/lib/libdiscon.* .
 
@@ -134,12 +139,14 @@ CMake for developers (Mac/linux)
 CMake_ provides a straightforward option for many users, particularly those on a Mac or Linux. We recommend that users use CMake if at all possible, as it is more difficult for us to support the use of other tools to aid with compiling ROSCO.
 
 On Mac/Linux, ROSCO can be compiled by first cloning the source code from git using:
-::
+
+.. code-block:: bash
 
     git clone https://github.com/NREL/ROSCO.git
 
 And then compiling using CMake:
-::
+
+.. code-block:: bash
 
     cd ROSCO/ROSCO
     mkdir build
@@ -162,7 +169,8 @@ If you require a 64-bit version, you can install the MSYS2 toolchain through con
 Note that if you have the 64-bit toolchain installed in your environment, you might have conflicts with the 32-bit compiler. We recommend therefore keeping separate environments if you want to compile 32- or 64-bit.
 
 Once you have your Fortran compiler successfully installed and configured, the build process is similar to on Mac and linux:
-::
+
+.. code-block:: bash
 
     cd ROSCO/ROSCO
     mkdir build
