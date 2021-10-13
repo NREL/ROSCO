@@ -23,7 +23,7 @@ Installation of the complete ROSCO tool-set is made easy through `Anaconda <http
 
 Please follow the following steps to install the ROSCO tool-chain. You should do step 3 *or* 4. If you simply want to compile the ROSCO controller without installing the ROSCO toolbox, please follow the instructions for :ref:`compiling_rosco`.
 
-1.  Create a conda environment for ROSCO
+1. Create a conda environment for ROSCO
 
     .. code-block:: bash
 
@@ -31,13 +31,13 @@ Please follow the following steps to install the ROSCO tool-chain. You should do
         conda create -y --name rosco-env python=3.8
         conda activate rosco-env
 
-2.  Install WISDEM
+2. Install WISDEM
     
     .. code-block:: bash
 
         conda install -y wisdem
 
-3. Clone and Install the ROSCO toolbox with ROSCO
+2. Clone and Install the ROSCO toolbox with ROSCO
     
     .. code-block:: bash
 
@@ -47,7 +47,7 @@ Please follow the following steps to install the ROSCO tool-chain. You should do
         conda install m2w64-toolchain libpython # (Windows only)
         python setup.py install --compile-rosco 
 
-4. Clone and Install the ROSCO toolbox without ROSCO
+3. Clone and Install the ROSCO toolbox without ROSCO
     
     .. code-block:: bash
     
