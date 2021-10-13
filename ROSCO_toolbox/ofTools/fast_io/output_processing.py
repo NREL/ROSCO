@@ -165,7 +165,8 @@ class output_processing():
                         print('{} is not available as an output channel.'.format(channel))
                 plt.legend(myleg, loc='upper center', bbox_to_anchor=(
                     0.5, 0.0), borderaxespad=2, ncol=len(fastout))
-
+            
+            fig.align_ylabels()
             figlist.append(fig)
             axeslist.append(axes)
 
