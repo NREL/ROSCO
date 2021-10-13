@@ -47,7 +47,7 @@ Please follow the following steps to install the ROSCO tool-chain. You should do
         conda install m2w64-toolchain libpython # (Windows only)
         python setup.py install --compile-rosco 
 
-4.	Clone and Install the ROSCO toolbox without ROSCO
+4. Clone and Install the ROSCO toolbox without ROSCO
     
     .. code-block:: bash
     
