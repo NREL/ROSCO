@@ -10,3 +10,4 @@ dependencies:
   - pyYAML
   - pandas
   - wisdem
+  - cmake
