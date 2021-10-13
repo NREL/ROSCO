@@ -68,7 +68,7 @@ navigate to your desired folder to save the compiled binary using:
 
 .. code-block:: bash
 
-    cd <my_desired_folder>
+    cd <desired_folder>
     
 and download the controller:
 
@@ -81,13 +81,13 @@ The ROSCO binary file can be copied to your desired folder using:
 
 .. code-block:: bash
 
-    cp $CONDA_PREFIX/lib/libdiscon.* .
+    cp $CONDA_PREFIX/lib/libdiscon.* <desired_folder>
 
 on linux or:
 
 .. code-block:: bash
 
-    copy %CONDA_PREFIX%/lib/libdiscon.* .
+    copy %CONDA_PREFIX%/lib/libdiscon.* <desired_folder>
 
 
 on Windows.
@@ -152,7 +152,7 @@ navigate to your desired folder to save the compiled binary using:
 
 .. code-block:: bash
 
-    cd <my_desired_folder>
+    cd <desired_folder>
     
 and download the controller:
 
@@ -202,29 +202,6 @@ Please follow the following steps to install the ROSCO tool-chain. You should do
     git clone https://github.com/NREL/ROSCO_toolbox.git
     cd ROSCO_toolbox
     python setup.py install
-
-
-**Alternatively...**
-
-If you wish to write your own scripts to leverage the ROSCO tools, but do not necessarily need the source code or to run any of the examples, ROSCO is available via Conda-Forge:
-
-.. code-block:: bash
-
-    conda install -y ROSCO
-
-Note that if you do choose to install ROSCO this way, you will not have the source code. This will install the python-based ROSCO toolbox and download a compiled ROSCO controller binary file into the default filepath. The ROSCO binary file can be copied to your desired folder using:
-
-.. code-block:: bash
-
-    cp $CONDA_PREFIX/lib/libdiscon.* <desired_folder>
-
-on linux or:
-
-.. code-block:: bash
-
-    copy %CONDA_PREFIX%/lib/libdiscon.dll <desired_folder>
-
-on Windows.
 
 
 Getting Started
