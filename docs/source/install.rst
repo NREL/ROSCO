@@ -21,7 +21,7 @@ Installing
 ..............
 Installation of the complete ROSCO tool-set is made easy through `Anaconda <https://www.anaconda.com/>`_. If you do not already have Anaconda installed on your machine, please install it. Additionally, we primarily support the use of CMake_ to control the software compilation process. If you plan to compile the ROSCO controller's source code, we request that you download CMake as well. You are free to compile ROSCO without the use of CMake, but we cannot guarantee support for all of the *many* available methods of compiling.
 
-Then please follow the following steps:
+Please follow the following steps to install the ROSCO tool-chain. You should do step 3 *or* 4. If you simply want to compile the ROSCO controller without installing the ROSCO toolbox, please follow the instructions for :ref:`compiling_rosco`.
 
 1.  Create a conda environment for ROSCO
 
@@ -37,9 +37,6 @@ Then please follow the following steps:
 
         conda install -y wisdem
 
-You should then do step 3 *or* 4. 
-If you do not want to compile the ROSCO controller while also installing the ROSCO toolbox, please follow the instructions for :ref:`compiling_rosco`.
-
 3. Clone and Install the ROSCO toolbox with ROSCO
 
     :: 
@@ -52,11 +49,11 @@ If you do not want to compile the ROSCO controller while also installing the ROS
 
 4.	Clone and Install the ROSCO toolbox without ROSCO
 
-        ::
-        
-            git clone https://github.com/NREL/ROSCO_toolbox.git
-            cd ROSCO_toolbox
-            python setup.py install
+    ::
+    
+        git clone https://github.com/NREL/ROSCO_toolbox.git
+        cd ROSCO_toolbox
+        python setup.py install
 
 
 **Alternatively...**
