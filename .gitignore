@@ -59,6 +59,7 @@ _build
 *.85
 *.i90
 *local*
+*build*
 
 # Binaries
 *.dylib
