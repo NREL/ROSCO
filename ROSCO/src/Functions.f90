@@ -29,6 +29,7 @@
 MODULE Functions
 
 USE Constants
+USE Filters
 
 IMPLICIT NONE
 
@@ -67,51 +68,51 @@ CONTAINS
     END FUNCTION ratelimit
 
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, reset, inst)
+    REAL FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, piP, reset, inst)
+        USE ROSCO_Types, ONLY : piParams
+
     ! PI controller, with output saturation
 
         IMPLICIT NONE
         ! Allocate Inputs
-        REAL(8), INTENT(IN)         :: error
-        REAL(8), INTENT(IN)         :: kp
-        REAL(8), INTENT(IN)         :: ki
-        REAL(8), INTENT(IN)         :: minValue
-        REAL(8), INTENT(IN)         :: maxValue
-        REAL(8), INTENT(IN)         :: DT
-        INTEGER(4), INTENT(INOUT)   :: inst
-        REAL(8), INTENT(IN)         :: I0
-        LOGICAL, INTENT(IN)         :: reset     
+        REAL(8),    INTENT(IN)         :: error
+        REAL(8),    INTENT(IN)         :: kp
+        REAL(8),    INTENT(IN)         :: ki
+        REAL(8),    INTENT(IN)         :: minValue
+        REAL(8),    INTENT(IN)         :: maxValue
+        REAL(8),    INTENT(IN)         :: DT
+        INTEGER(4), INTENT(INOUT)      :: inst
+        REAL(8),    INTENT(IN)         :: I0
+        TYPE(piParams), INTENT(INOUT)  :: piP
+        LOGICAL,    INTENT(IN)         :: reset     
         ! Allocate local variables
         INTEGER(4)                      :: i                                            ! Counter for making arrays
         REAL(8)                         :: PTerm                                        ! Proportional term
-        REAL(8), DIMENSION(99), SAVE    :: ITerm = (/ (real(9999.9), i = 1,99) /)       ! Integral term, current.
-        REAL(8), DIMENSION(99), SAVE    :: ITermLast = (/ (real(9999.9), i = 1,99) /)   ! Integral term, the last time this controller was called. Supports 99 separate instances.
-        INTEGER(4), DIMENSION(99), SAVE :: FirstCall = (/ (1, i=1,99) /)                ! First call of this function?
-        
+
         ! Initialize persistent variables/arrays, and set inital condition for integrator term
-        IF ((FirstCall(inst) == 1) .OR. reset) THEN
-            ITerm(inst) = I0
-            ITermLast(inst) = I0
+        IF (reset) THEN
+            piP%ITerm(inst) = I0
+            piP%ITermLast(inst) = I0
             
-            FirstCall(inst) = 0
             PIController = I0
         ELSE
             PTerm = kp*error
-            ITerm(inst) = ITerm(inst) + DT*ki*error
-            ITerm(inst) = saturate(ITerm(inst), minValue, maxValue)
-            PIController = saturate(PTerm + ITerm(inst), minValue, maxValue)
+            piP%ITerm(inst) = piP%ITerm(inst) + DT*ki*error
+            piP%ITerm(inst) = saturate(piP%ITerm(inst), minValue, maxValue)
+            PIController = saturate(PTerm + piP%ITerm(inst), minValue, maxValue)
         
-            ITermLast(inst) = ITerm(inst)
+            piP%ITermLast(inst) = piP%ITerm(inst)
         END IF
         inst = inst + 1
         
     END FUNCTION PIController
 
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(8) FUNCTION PIIController(error, error2, kp, ki, ki2, minValue, maxValue, DT, I0, reset, inst)
+    REAL(8) FUNCTION PIIController(error, error2, kp, ki, ki2, minValue, maxValue, DT, I0, piP, reset, inst)
     ! PI controller, with output saturation. 
     ! Added error2 term for additional integral control input
-
+        USE ROSCO_Types, ONLY : piParams
+        
         IMPLICIT NONE
         ! Allocate Inputs
         REAL(8), INTENT(IN)         :: error
@@ -124,35 +125,30 @@ CONTAINS
         REAL(8), INTENT(IN)         :: DT
         INTEGER(4), INTENT(INOUT)   :: inst
         REAL(8), INTENT(IN)         :: I0
+        TYPE(piParams), INTENT(INOUT) :: piP
         LOGICAL, INTENT(IN)         :: reset     
         ! Allocate local variables
         INTEGER(4)                      :: i                                            ! Counter for making arrays
         REAL(8)                         :: PTerm                                        ! Proportional term
-        REAL(8), DIMENSION(99), SAVE    :: ITerm = (/ (real(9999.9), i = 1,99) /)       ! Integral term, current.
-        REAL(8), DIMENSION(99), SAVE    :: ITermLast = (/ (real(9999.9), i = 1,99) /)   ! Integral term, the last time this controller was called. Supports 99 separate instances.
-        REAL(8), DIMENSION(99), SAVE    :: ITerm2 = (/ (real(9999.9), i = 1,99) /)       ! Second Integral term, current.
-        REAL(8), DIMENSION(99), SAVE    :: ITermLast2 = (/ (real(9999.9), i = 1,99) /)   ! Second Integral term, the last time this controller was called. Supports 99 separate instances.
-        INTEGER(4), DIMENSION(99), SAVE :: FirstCall = (/ (1, i=1,99) /)                ! First call of this function?
-        
+
         ! Initialize persistent variables/arrays, and set inital condition for integrator term
-        IF ((FirstCall(inst) == 1) .OR. reset) THEN
-            ITerm(inst) = I0
-            ITermLast(inst) = I0
-            ITerm2(inst) = I0
-            ITermLast2(inst) = I0
+        IF (reset) THEN
+            piP%ITerm(inst) = I0
+            piP%ITermLast(inst) = I0
+            piP%ITerm2(inst) = I0
+            piP%ITermLast2(inst) = I0
             
-            FirstCall(inst) = 0
             PIIController = I0
         ELSE
             PTerm = kp*error
-            ITerm(inst) = ITerm(inst) + DT*ki*error
-            ITerm2(inst) = ITerm2(inst) + DT*ki2*error2
-            ITerm(inst) = saturate(ITerm(inst), minValue, maxValue)
-            ITerm2(inst) = saturate(ITerm2(inst), minValue, maxValue)
-            PIIController = PTerm + ITerm(inst) + ITerm2(inst)
+            piP%ITerm(inst) = piP%ITerm(inst) + DT*ki*error
+            piP%ITerm2(inst) = piP%ITerm2(inst) + DT*ki2*error2
+            piP%ITerm(inst) = saturate(piP%ITerm(inst), minValue, maxValue)
+            piP%ITerm2(inst) = saturate(piP%ITerm2(inst), minValue, maxValue)
+            PIIController = PTerm + piP%ITerm(inst) + piP%ITerm2(inst)
             PIIController = saturate(PIIController, minValue, maxValue)
         
-            ITermLast(inst) = ITerm(inst)
+            piP%ITermLast(inst) = piP%ITerm(inst)
         END IF
         inst = inst + 1
         
@@ -616,7 +612,7 @@ CONTAINS
                                                 DebugOutUni17, DebugOutUni18]
         
         ! Initialize debug file
-        IF (LocalVar%iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
+        IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN  ! .TRUE. if we're on the first call to the DLL
         ! If we're debugging, open the debug file and write the header:
             ! Note that the headers will be Truncated to 10 characters!!
             IF (CntrPar%LoggingLevel > 0) THEN
@@ -627,7 +623,7 @@ CONTAINS
             END IF
             
             IF (CntrPar%LoggingLevel > 1) THEN 
-                OPEN(unit=UnDb2, FILE=RootName(1:size_avcOUTNAME-5)//'RO.dbg2')
+                OPEN(unit=UnDb2, FILE='DEBUG2.dbg')
                 WRITE(UnDb2,'(/////)')
                 WRITE(UnDb2,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1,85)
                 WRITE(UnDb2,'(A,85("'//Tab//'(-)"))')  '(s)'

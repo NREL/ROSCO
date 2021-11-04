@@ -39,7 +39,6 @@ CONTAINS
 
         ! Allocate Variables:
         INTEGER(4)                                      :: K            ! Index used for looping through blades.
-        REAL(8),                    Save                :: PitComT_Last 
 
         CHARACTER(*),               PARAMETER           :: RoutineName = 'PitchControl'
 
@@ -58,12 +57,9 @@ CONTAINS
         LocalVar%PC_TF = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_TF, LocalVar%PC_PitComTF, ErrVar) ! TF gains (derivative filter) !NJA - need to clarify
         
         ! Compute the collective pitch command associated with the proportional and integral gains:
-        IF (LocalVar%iStatus == 0) THEN
-            LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, CntrPar%PC_FinePit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%PitCom(1), .TRUE., objInst%instPI)
-        ELSE
-            LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, LocalVar%PC_MinPit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%BlPitch(1), .FALSE., objInst%instPI)
-        END IF
+        LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, CntrPar%PC_FinePit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%PitCom(1), LocalVar%piP, LocalVar%restart, objInst%instPI)
         DebugVar%PC_PICommand = LocalVar%PC_PitComT
+
         ! Find individual pitch control contribution
         IF ((CntrPar%IPC_ControlMode >= 1) .OR. (CntrPar%Y_ControlMode == 2)) THEN
             CALL IPC(CntrPar, LocalVar, objInst)
@@ -79,7 +75,7 @@ CONTAINS
         ENDIF
         
         ! Pitch Saturation
-        IF (CntrPar%PS_Mode > 0) THEN
+        IF (CntrPar%PS_Mode == 1) THEN
             LocalVar%PC_MinPit = PitchSaturation(LocalVar,CntrPar,objInst,DebugVar, ErrVar)
             LocalVar%PC_MinPit = max(LocalVar%PC_MinPit, CntrPar%PC_FinePit)
         ELSE
@@ -88,7 +84,7 @@ CONTAINS
 
         
         ! FloatingFeedback
-        IF (CntrPar%Fl_Mode > 0) THEN
+        IF (CntrPar%Fl_Mode == 1) THEN
             LocalVar%Fl_PitCom = FloatingFeedback(LocalVar, CntrPar, objInst)
             LocalVar%PC_PitComT = LocalVar%PC_PitComT + LocalVar%Fl_PitCom
         ENDIF
@@ -100,8 +96,8 @@ CONTAINS
         
         ! Saturate collective pitch commands:
         LocalVar%PC_PitComT = saturate(LocalVar%PC_PitComT, LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
-        LocalVar%PC_PitComT = ratelimit(LocalVar%PC_PitComT, PitComT_Last, CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
-        PitComT_Last = LocalVar%PC_PitComT
+        LocalVar%PC_PitComT = ratelimit(LocalVar%PC_PitComT, LocalVar%PC_PitComT_Last, CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
+        LocalVar%PC_PitComT_Last = LocalVar%PC_PitComT
 
         ! Combine and saturate all individual pitch commands:
         ! Filter to emulate pitch actuator
@@ -159,14 +155,14 @@ CONTAINS
             END IF
 
             ! PI controller
-            LocalVar%GenTq = PIController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, LocalVar%VS_MaxTq, LocalVar%DT, LocalVar%VS_LastGenTrq, .FALSE., objInst%instPI)
+            LocalVar%GenTq = PIController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, LocalVar%VS_MaxTq, LocalVar%DT, LocalVar%VS_LastGenTrq, LocalVar%piP, LocalVar%restart, objInst%instPI)
             LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, LocalVar%VS_MaxTq)
         
         ! K*Omega^2 control law with PI torque control in transition regions
         ELSE
             ! Update PI loops for region 1.5 and 2.5 PI control
-            LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_MaxOMTq, .FALSE., objInst%instPI)
-            LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, .FALSE., objInst%instPI)
+            LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_MaxOMTq, LocalVar%piP, LocalVar%restart, objInst%instPI)
+            LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, LocalVar%piP, LocalVar%restart, objInst%instPI)
             
             ! The action
             IF (LocalVar%VS_State == 1) THEN ! Region 1.5
@@ -221,8 +217,8 @@ CONTAINS
             IF (LocalVar%Time >= LocalVar%Y_YawEndT) THEN        ! Check if the turbine is currently yawing
                 avrSWAP(48) = 0.0                                ! Set yaw rate to zero
             
-                LocalVar%Y_ErrLPFFast = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPFast, LocalVar%iStatus, .FALSE., objInst%instLPF)        ! Fast low pass filtered yaw error with a frequency of 1
-                LocalVar%Y_ErrLPFSlow = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPSlow, LocalVar%iStatus, .FALSE., objInst%instLPF)        ! Slow low pass filtered yaw error with a frequency of 1/60
+                LocalVar%Y_ErrLPFFast = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPFast, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)        ! Fast low pass filtered yaw error with a frequency of 1
+                LocalVar%Y_ErrLPFSlow = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPSlow, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)        ! Slow low pass filtered yaw error with a frequency of 1/60
             
                 LocalVar%Y_AccErr = LocalVar%Y_AccErr + LocalVar%DT*SIGN(LocalVar%Y_ErrLPFFast**2, LocalVar%Y_ErrLPFFast)    ! Integral of the fast low pass filtered yaw error
             
@@ -231,8 +227,8 @@ CONTAINS
                 END IF
             ELSE
                 avrSWAP(48) = SIGN(CntrPar%Y_Rate, LocalVar%Y_MErr)        ! Set yaw rate to predefined yaw rate, the sign of the error is copied to the rate
-                LocalVar%Y_ErrLPFFast = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPFast, LocalVar%iStatus, .TRUE., objInst%instLPF)        ! Fast low pass filtered yaw error with a frequency of 1
-                LocalVar%Y_ErrLPFSlow = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPSlow, LocalVar%iStatus, .TRUE., objInst%instLPF)        ! Slow low pass filtered yaw error with a frequency of 1/60
+                LocalVar%Y_ErrLPFFast = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPFast, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)        ! Fast low pass filtered yaw error with a frequency of 1
+                LocalVar%Y_ErrLPFSlow = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPSlow, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)        ! Slow low pass filtered yaw error with a frequency of 1/60
                 LocalVar%Y_AccErr = 0.0    ! "
             END IF
         END IF
@@ -245,28 +241,26 @@ CONTAINS
 
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
         
-        TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
-        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
-        TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
-
         ! Local variables
-        REAL(8)                                         :: PitComIPC(3), PitComIPCF(3), PitComIPC_1P(3), PitComIPC_2P(3)
-        INTEGER(4)                                      :: K                                       ! Integer used to loop through turbine blades
-        REAL(8)                                         :: axisTilt_1P, axisYaw_1P, axisYawF_1P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
-        REAL(8),                    SAVE                :: IntAxisTilt_1P, IntAxisYaw_1P           ! Integral of the direct axis and quadrature axis, 1P
-        REAL(8)                                         :: axisTilt_2P, axisYaw_2P, axisYawF_2P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
-        REAL(8),                    SAVE                :: IntAxisTilt_2P, IntAxisYaw_2P           ! Integral of the direct axis and quadrature axis, 1P
-        REAL(8)                                         :: IntAxisYawIPC_1P                        ! IPC contribution with yaw-by-IPC component
-        REAL(8)                                         :: Y_MErrF, Y_MErrF_IPC                    ! Unfiltered and filtered yaw alignment error [rad]
+        REAL(8)                  :: PitComIPC(3), PitComIPCF(3), PitComIPC_1P(3), PitComIPC_2P(3)
+        INTEGER(4)               :: K                                       ! Integer used to loop through turbine blades
+        REAL(8)                  :: axisTilt_1P, axisYaw_1P, axisYawF_1P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
+        REAL(8)                  :: axisTilt_2P, axisYaw_2P, axisYawF_2P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
+        REAL(8)                  :: IntAxisYawIPC_1P                        ! IPC contribution with yaw-by-IPC component
+        REAL(8)                  :: Y_MErrF, Y_MErrF_IPC                    ! Unfiltered and filtered yaw alignment error [rad]
+        
+        TYPE(ControlParameters), INTENT(INOUT)      :: CntrPar
+        TYPE(LocalVariables),    INTENT(INOUT)      :: LocalVar
+        TYPE(ObjectInstances),   INTENT(INOUT)      :: objInst
         
         ! Body
         ! Initialization
         ! Set integrals to be 0 in the first time step
         IF (LocalVar%iStatus==0) THEN
-            IntAxisTilt_1P = 0.0
-            IntAxisYaw_1P = 0.0
-            IntAxisTilt_2P = 0.0
-            IntAxisYaw_2P = 0.0
+            LocalVar%IPC_IntAxisTilt_1P = 0.0
+            LocalVar%IPC_IntAxisYaw_1P = 0.0
+            LocalVar%IPC_IntAxisTilt_2P = 0.0
+            LocalVar%IPC_IntAxisYaw_2P = 0.0
         END IF
         
         ! Pass rootMOOPs through the Coleman transform to get the tilt and yaw moment axis
@@ -275,8 +269,8 @@ CONTAINS
         
         ! High-pass filter the MBC yaw component and filter yaw alignment error, and compute the yaw-by-IPC contribution
         IF (CntrPar%Y_ControlMode == 2) THEN
-            Y_MErrF = SecLPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_IPC_omegaLP, CntrPar%Y_IPC_zetaLP, LocalVar%iStatus, .FALSE., objInst%instSecLPF)
-            Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP(1), CntrPar%Y_IPC_KI(1), -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, 0.0, .FALSE., objInst%instPI)
+            Y_MErrF = SecLPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_IPC_omegaLP, CntrPar%Y_IPC_zetaLP, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF)
+            Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP(1), CntrPar%Y_IPC_KI(1), -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, 0.0, LocalVar%piP, LocalVar%restart, objInst%instPI)
         ELSE
             axisYawF_1P = axisYaw_1P
             Y_MErrF = 0.0
@@ -285,30 +279,30 @@ CONTAINS
         
         ! Integrate the signal and multiply with the IPC gain
         IF ((CntrPar%IPC_ControlMode >= 1) .AND. (CntrPar%Y_ControlMode /= 2)) THEN
-            IntAxisTilt_1P = IntAxisTilt_1P + LocalVar%DT * CntrPar%IPC_KI(1) * axisTilt_1P
-            IntAxisYaw_1P = IntAxisYaw_1P + LocalVar%DT * CntrPar%IPC_KI(1) * axisYawF_1P
-            IntAxisTilt_1P = saturate(IntAxisTilt_1P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
-            IntAxisYaw_1P = saturate(IntAxisYaw_1P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
+            LocalVar%IPC_IntAxisTilt_1P = LocalVar%IPC_IntAxisTilt_1P + LocalVar%DT * CntrPar%IPC_KI(1) * axisTilt_1P
+            LocalVar%IPC_IntAxisYaw_1P = LocalVar%IPC_IntAxisYaw_1P + LocalVar%DT * CntrPar%IPC_KI(1) * axisYawF_1P
+            LocalVar%IPC_IntAxisTilt_1P = saturate(LocalVar%IPC_IntAxisTilt_1P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
+            LocalVar%IPC_IntAxisYaw_1P = saturate(LocalVar%IPC_IntAxisYaw_1P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
             
             IF (CntrPar%IPC_ControlMode >= 2) THEN
-                IntAxisTilt_2P = IntAxisTilt_2P + LocalVar%DT * CntrPar%IPC_KI(2) * axisTilt_2P
-                IntAxisYaw_2P = IntAxisYaw_2P + LocalVar%DT * CntrPar%IPC_KI(2) * axisYawF_2P
-                IntAxisTilt_2P = saturate(IntAxisTilt_2P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
-                IntAxisYaw_2P = saturate(IntAxisYaw_2P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
+                LocalVar%IPC_IntAxisTilt_2P = LocalVar%IPC_IntAxisTilt_2P + LocalVar%DT * CntrPar%IPC_KI(2) * axisTilt_2P
+                LocalVar%IPC_IntAxisYaw_2P = LocalVar%IPC_IntAxisYaw_2P + LocalVar%DT * CntrPar%IPC_KI(2) * axisYawF_2P
+                LocalVar%IPC_IntAxisTilt_2P = saturate(LocalVar%IPC_IntAxisTilt_2P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
+                LocalVar%IPC_IntAxisYaw_2P = saturate(LocalVar%IPC_IntAxisYaw_2P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
             END IF
         ELSE
-            IntAxisTilt_1P = 0.0
-            IntAxisYaw_1P = 0.0
-            IntAxisTilt_2P = 0.0
-            IntAxisYaw_2P = 0.0
+            LocalVar%IPC_IntAxisTilt_1P = 0.0
+            LocalVar%IPC_IntAxisYaw_1P = 0.0
+            LocalVar%IPC_IntAxisTilt_2P = 0.0
+            LocalVar%IPC_IntAxisYaw_2P = 0.0
         END IF
         
         ! Add the yaw-by-IPC contribution
-        IntAxisYawIPC_1P = IntAxisYaw_1P + Y_MErrF_IPC
+        IntAxisYawIPC_1P = LocalVar%IPC_IntAxisYaw_1P + Y_MErrF_IPC
         
         ! Pass direct and quadrature axis through the inverse Coleman transform to get the commanded pitch angles
-        CALL ColemanTransformInverse(IntAxisTilt_1P, IntAxisYawIPC_1P, LocalVar%Azimuth, NP_1, CntrPar%IPC_aziOffset(1), PitComIPC_1P)
-        CALL ColemanTransformInverse(IntAxisTilt_2P, IntAxisYaw_2P, LocalVar%Azimuth, NP_2, CntrPar%IPC_aziOffset(2), PitComIPC_2P)
+        CALL ColemanTransformInverse(LocalVar%IPC_IntAxisTilt_1P, IntAxisYawIPC_1P, LocalVar%Azimuth, NP_1, CntrPar%IPC_aziOffset(1), PitComIPC_1P)
+        CALL ColemanTransformInverse(LocalVar%IPC_IntAxisTilt_2P, LocalVar%IPC_IntAxisYaw_2P, LocalVar%Azimuth, NP_2, CntrPar%IPC_aziOffset(2), PitComIPC_2P)
         
         ! Sum nP IPC contributions and store to LocalVar data type
         DO K = 1,LocalVar%NumBl
@@ -316,7 +310,7 @@ CONTAINS
             
             ! Optionally filter the resulting signal to induce a phase delay
             IF (CntrPar%IPC_CornerFreqAct > 0.0) THEN
-                PitComIPCF(K) = LPFilter(PitComIPC(K), LocalVar%DT, CntrPar%IPC_CornerFreqAct, LocalVar%iStatus, .FALSE., objInst%instLPF)
+                PitComIPCF(K) = LPFilter(PitComIPC(K), LocalVar%DT, CntrPar%IPC_CornerFreqAct, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
             ELSE
                 PitComIPCF(K) = PitComIPC(K)
             END IF
@@ -338,7 +332,7 @@ CONTAINS
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         
         ! Body
-        LocalVar%FA_AccHPFI = PIController(LocalVar%FA_AccHPF, 0.0, CntrPar%FA_KI, -CntrPar%FA_IntSat, CntrPar%FA_IntSat, LocalVar%DT, 0.0, .FALSE., objInst%instPI)
+        LocalVar%FA_AccHPFI = PIController(LocalVar%FA_AccHPF, 0.0, CntrPar%FA_KI, -CntrPar%FA_IntSat, CntrPar%FA_IntSat, LocalVar%DT, 0.0, LocalVar%piP, LocalVar%restart, objInst%instPI)
         
         ! Store the fore-aft pitch contribution to LocalVar data type
         DO K = 1,LocalVar%NumBl
@@ -355,16 +349,16 @@ CONTAINS
         USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
         IMPLICIT NONE
         ! Inputs
-        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
-        TYPE(LocalVariables), INTENT(IN)     :: LocalVar 
-        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+        TYPE(ControlParameters), INTENT(IN   )     :: CntrPar
+        TYPE(LocalVariables),    INTENT(INOUT)     :: LocalVar 
+        TYPE(ObjectInstances),   INTENT(INOUT)     :: objInst
         ! Allocate Variables 
         REAL(8)                      :: FA_vel ! Tower fore-aft velocity [m/s]
         REAL(8)                      :: NacIMU_FA_vel ! Tower fore-aft pitching velocity [rad/s]
         
         ! Calculate floating contribution to pitch command
-        FA_vel = PIController(LocalVar%FA_AccF, 0.0, 1.0, -100.0 , 100.0 ,LocalVar%DT, 0.0, .FALSE., objInst%instPI) ! NJA: should never reach saturation limits....
-        NacIMU_FA_vel = PIController(LocalVar%NacIMU_FA_AccF, 0.0, 1.0, -100.0 , 100.0 ,LocalVar%DT, 0.0, .FALSE., objInst%instPI) ! NJA: should never reach saturation limits....
+        FA_vel = PIController(LocalVar%FA_AccF, 0.0, 1.0, -100.0 , 100.0 ,LocalVar%DT, 0.0, LocalVar%piP, LocalVar%restart, objInst%instPI) ! NJA: should never reach saturation limits....
+        NacIMU_FA_vel = PIController(LocalVar%NacIMU_FA_AccF, 0.0, 1.0, -100.0 , 100.0 ,LocalVar%DT, 0.0, LocalVar%piP, LocalVar%restart, objInst%instPI) ! NJA: should never reach saturation limits....
         if (CntrPar%Fl_Mode == 1) THEN
             FloatingFeedback = (0.0 - FA_vel) * CntrPar%Fl_Kp !* LocalVar%PC_KP/maxval(CntrPar%PC_GS_KP)
         ELSEIF (CntrPar%Fl_Mode == 2) THEN
@@ -383,32 +377,31 @@ CONTAINS
         REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
     
         TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
-        TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
+        TYPE(LocalVariables),    INTENT(INOUT)    :: LocalVar
+        TYPE(ObjectInstances),   INTENT(INOUT)    :: objInst
         ! Internal Variables
         Integer(4)                                :: K
-        REAL(8)                                   :: RootMOOP_F(3)
+        REAL(8)                                   :: rootMOOP_F(3)
         REAL(8)                                   :: RootMyb_Vel(3)
-        REAL(8), SAVE                             :: RootMyb_Last(3)
         REAL(8)                                   :: RootMyb_VelErr(3)
 
         ! Flap control
         IF (CntrPar%Flp_Mode >= 1) THEN
             IF ((LocalVar%iStatus == 0) .AND. (CntrPar%Flp_Mode >= 1)) THEN
-                RootMyb_Last(1) = 0 - LocalVar%rootMOOP(1)
-                RootMyb_Last(2) = 0 - LocalVar%rootMOOP(2)
-                RootMyb_Last(3) = 0 - LocalVar%rootMOOP(3)
+                LocalVar%RootMyb_Last(1) = 0 - LocalVar%rootMOOP(1)
+                LocalVar%RootMyb_Last(2) = 0 - LocalVar%rootMOOP(2)
+                LocalVar%RootMyb_Last(3) = 0 - LocalVar%rootMOOP(3)
                 ! Initial Flap angle
                 LocalVar%Flp_Angle(1) = CntrPar%Flp_Angle
                 LocalVar%Flp_Angle(2) = CntrPar%Flp_Angle
                 LocalVar%Flp_Angle(3) = CntrPar%Flp_Angle
                 ! Initialize filter
-                RootMOOP_F(1) = SecLPFilter(LocalVar%rootMOOP(1),LocalVar%DT, CntrPar%F_FlpCornerFreq(1), CntrPar%F_FlpCornerFreq(2), LocalVar%iStatus, .FALSE.,objInst%instSecLPF)
-                RootMOOP_F(2) = SecLPFilter(LocalVar%rootMOOP(2),LocalVar%DT, CntrPar%F_FlpCornerFreq(1), CntrPar%F_FlpCornerFreq(2), LocalVar%iStatus, .FALSE.,objInst%instSecLPF)
-                RootMOOP_F(3) = SecLPFilter(LocalVar%rootMOOP(3),LocalVar%DT, CntrPar%F_FlpCornerFreq(1), CntrPar%F_FlpCornerFreq(2), LocalVar%iStatus, .FALSE.,objInst%instSecLPF)
+                RootMOOP_F(1) = SecLPFilter(LocalVar%rootMOOP(1),LocalVar%DT, CntrPar%F_FlpCornerFreq(1), CntrPar%F_FlpCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF)
+                RootMOOP_F(2) = SecLPFilter(LocalVar%rootMOOP(2),LocalVar%DT, CntrPar%F_FlpCornerFreq(1), CntrPar%F_FlpCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF)
+                RootMOOP_F(3) = SecLPFilter(LocalVar%rootMOOP(3),LocalVar%DT, CntrPar%F_FlpCornerFreq(1), CntrPar%F_FlpCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF)
                 ! Initialize controller
                 IF (CntrPar%Flp_Mode == 2) THEN
-                    LocalVar%Flp_Angle(K) = PIIController(RootMyb_VelErr(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, 0.05, -CntrPar%Flp_MaxPit , CntrPar%Flp_MaxPit , LocalVar%DT, 0.0, .TRUE., objInst%instPI)
+                    LocalVar%Flp_Angle(K) = PIIController(RootMyb_VelErr(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, 0.05, -CntrPar%Flp_MaxPit , CntrPar%Flp_MaxPit , LocalVar%DT, 0.0, LocalVar%piP, LocalVar%restart, objInst%instPI)
                 ENDIF
             
             ! Steady flap angle
@@ -421,19 +414,19 @@ CONTAINS
             ELSEIF (CntrPar%Flp_Mode == 2) THEN
                 DO K = 1,LocalVar%NumBl
                     ! LPF Blade root bending moment
-                    RootMOOP_F(K) = SecLPFilter(LocalVar%rootMOOP(K),LocalVar%DT, CntrPar%F_FlpCornerFreq(1), CntrPar%F_FlpCornerFreq(2), LocalVar%iStatus, .FALSE.,objInst%instSecLPF)
+                    RootMOOP_F(K) = SecLPFilter(LocalVar%rootMOOP(K),LocalVar%DT, CntrPar%F_FlpCornerFreq(1), CntrPar%F_FlpCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF)
                     
                     ! Find derivative and derivative error of blade root bending moment
-                    RootMyb_Vel(K) = (RootMOOP_F(K) - RootMyb_Last(K))/LocalVar%DT
+                    RootMyb_Vel(K) = (RootMOOP_F(K) - LocalVar%RootMyb_Last(K))/LocalVar%DT
                     RootMyb_VelErr(K) = 0 - RootMyb_Vel(K)
                     
                     ! Find flap angle command - includes an integral term to encourage zero flap angle
-                    LocalVar%Flp_Angle(K) = PIIController(RootMyb_VelErr(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, 0.05, -CntrPar%Flp_MaxPit , CntrPar%Flp_MaxPit , LocalVar%DT, 0.0, .FALSE., objInst%instPI)
+                    LocalVar%Flp_Angle(K) = PIIController(RootMyb_VelErr(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, 0.05, -CntrPar%Flp_MaxPit , CntrPar%Flp_MaxPit , LocalVar%DT, 0.0, LocalVar%piP, LocalVar%restart, objInst%instPI)
                     ! Saturation Limits
                     LocalVar%Flp_Angle(K) = saturate(LocalVar%Flp_Angle(K), -CntrPar%Flp_MaxPit, CntrPar%Flp_MaxPit)
                     
                     ! Save some data for next iteration
-                    RootMyb_Last(K) = RootMOOP_F(K)
+                    LocalVar%RootMyb_Last(K) = RootMOOP_F(K)
                 END DO
             ENDIF
 

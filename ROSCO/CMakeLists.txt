@@ -26,7 +26,7 @@ set(SOURCES
     src/Constants.f90
     src/ControllerBlocks.f90
     src/Controllers.f90
-    src/DISCON.F90
+    src/DISCON.f90
     src/ROSCO_Types.f90
     src/Filters.f90
     src/Functions.f90
