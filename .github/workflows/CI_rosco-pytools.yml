@@ -98,7 +98,7 @@ jobs:
       # Install ROSCO toolbox
       - name: Install ROSCO toolbox
         run: |
-          python setup.py develop --compile-rosco
+          python setup.py install --compile-rosco
           
       # Install OpenFAST
       - name: Install OpenFAST
