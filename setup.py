@@ -183,6 +183,7 @@ metadata = dict(
     install_requires              = REQUIRED,
     python_requires               = REQUIRES_PYTHON,
     packages                      = find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
+    package_data                  = {'': ['*.yaml']},
     license                       = 'Apache License, Version 2.0',
     cmdclass                      = {'build_ext': CMakeBuildExt, 'upload': UploadCommand},
     zip_safe                      = False,
