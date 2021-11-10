@@ -314,4 +314,4 @@ CONTAINS
         LocalVar%PC_PitComTF    = SecLPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%F_LPFCornerFreq*0.25, REAL(0.7,DbKi), LocalVar%iStatus, .FALSE., objInst%instSecLPF)
 
     END SUBROUTINE PreFilterMeasuredSignals
-    END MODULE Filters
+END MODULE Filters

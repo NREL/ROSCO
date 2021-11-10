@@ -10,3 +10,5 @@ dependencies:
   - pyYAML
   - pandas
   - wisdem
+  - cmake
+  - pyparsing==2.4.7 

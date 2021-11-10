@@ -20,14 +20,11 @@ read_DISCON
 write_rotor_performance
 load_from_txt
 DISCON_dict
+list_check
 """
 import datetime
 import os
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import transforms
-from itertools import takewhile, product
-import struct
 import subprocess
 import ROSCO_toolbox
 
@@ -67,7 +64,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! F_LPFType			- {{1: first-order low-pass filter, 2: second-order low-pass filter}}, [rad/s] (currently filters generator speed and pitch control signals\n'.format(int(controller.F_LPFType)))
     file.write('{0:<12d}        ! F_NotchType		- Notch on the measured generator speed and/or tower fore-aft motion (for floating) {{0: disable, 1: generator speed, 2: tower-top fore-aft motion, 3: generator speed and tower-top fore-aft motion}}\n'.format(int(controller.F_NotchType)))
     file.write('{0:<12d}        ! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {{0: off, 1: 1P reductions, 2: 1P+2P reductions}}\n'.format(int(controller.IPC_ControlMode)))
-    file.write('{0:<12d}        ! VS_ControlMode	- Generator torque control mode in above rated conditions {{0: constant torque, 1: constant power, 2: TSR tracking PI control}}\n'.format(int(controller.VS_ControlMode)))
+    file.write('{0:<12d}        ! VS_ControlMode	- Generator torque control mode in above rated conditions {{0: constant torque, 1: constant power, 2: TSR tracking PI control with constant torque, 3: TSR tracking PI control with constant power}}\n'.format(int(controller.VS_ControlMode)))
     file.write('{0:<12d}        ! PC_ControlMode    - Blade pitch control mode {{0: No pitch, fix to fine pitch, 1: active PI blade pitch control}}\n'.format(int(controller.PC_ControlMode)))
     file.write('{0:<12d}        ! Y_ControlMode		- Yaw control mode {{0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}}\n'.format(int(controller.Y_ControlMode)))
     file.write('{0:<12d}        ! SS_Mode           - Setpoint Smoother mode {{0: no setpoint smoothing, 1: introduce setpoint smoothing}}\n'.format(int(controller.SS_Mode)))
@@ -115,8 +112,8 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<014.5f}      ! VS_ArSatTq		- Above rated generator torque PI control saturation, [Nm]\n'.format(turbine.rated_torque))
     file.write('{:<014.5f}      ! VS_MaxRat			- Maximum torque rate (in absolute value) in torque controller, [Nm/s].\n'.format(turbine.max_torque_rate))
     file.write('{:<014.5f}      ! VS_MaxTq			- Maximum generator torque in Region 3 (HSS side), [Nm].\n'.format(turbine.max_torque))
-    file.write('{:<014.5f}      ! VS_MinTq			- Minimum generator (HSS side), [Nm].\n'.format(0.0))
-    file.write('{:<014.5f}      ! VS_MinOMSpd		- Optimal mode minimum speed, cut-in speed towards optimal mode gain path, [rad/s]\n'.format(controller.vs_minspd))
+    file.write('{:<014.5f}      ! VS_MinTq			- Minimum generator torque (HSS side), [Nm].\n'.format(0.0))
+    file.write('{:<014.5f}      ! VS_MinOMSpd		- Minimum generator speed [rad/s]\n'.format(controller.vs_minspd  * turbine.Ng))
     file.write('{:<014.5f}      ! VS_Rgn2K			- Generator torque constant in Region 2 (HSS side), [Nm/(rad/s)^2]\n'.format(controller.vs_rgn2K))
     file.write('{:<014.5f}      ! VS_RtPwr			- Wind turbine rated power [W]\n'.format(turbine.rated_power))
     file.write('{:<014.5f}      ! VS_RtTq			- Rated torque, [Nm].\n'.format(turbine.rated_torque))
@@ -499,3 +496,40 @@ def run_openfast(fast_dir, fastcall='openfast', fastfile=None, chdir=True):
         # os.system('{} {}'.format(fastcall, os.path.join(fastfile)))
     subprocess.run([fastcall, os.path.join(fastfile)], check=True, cwd=cwd)
     print('OpenFAST simulation complete.')
+
+
+def list_check(x, return_bool=True):
+    '''
+    Check if the input is list-like or not
+
+    Parameters:
+    -----------
+        x: int, float, list, or np.ndarray
+            input to check
+        return_bool: bool
+            if true, returns True or False 
+
+    '''
+    if isinstance(x, (int, float)):
+        y = x
+        is_list = False
+    elif isinstance(x, list):
+        if len(x) == 1:
+            y = x[0]
+            is_list = False
+        else:
+            y = x
+            is_list = True
+    elif isinstance(x, np.ndarray):
+        y = x
+        if x.size == 1:
+            is_list = False
+        else:
+            is_list = True
+    else:
+        raise AttributeError('Cannot run list_check for variable of type: {}'.format(type(x)))
+
+    if return_bool:
+        return is_list
+    else:
+        return y

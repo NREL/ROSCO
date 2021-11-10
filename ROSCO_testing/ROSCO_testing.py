@@ -24,8 +24,6 @@ from ROSCO_toolbox.ofTools.case_gen.runFAST_pywrapper import runFAST_pywrapper_b
 from matplotlib.backends.backend_pdf import FigureCanvasPdf, PdfPages
 from ROSCO_toolbox.ofTools.fast_io import output_processing
 import matplotlib.pyplot as plt
-from ROSCO_toolbox import utilities as ROSCO_utilities
-
 
 
 

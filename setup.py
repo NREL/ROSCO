@@ -23,15 +23,10 @@ import sys
 from shutil import rmtree, copy
 import glob 
 import platform
-from setuptools import find_packages, setup, Command
-from numpy.distutils.command.build_ext import build_ext
-from numpy.distutils.core import setup, Extension
+from setuptools import find_packages, setup, Command, Extension
+from setuptools.command.build_ext import build_ext
+from setuptools.command.install import install as _install
 
-import multiprocessing as mp
-from distutils.core import run_setup
-from setuptools import find_packages
-from numpy.distutils.command.build_ext import build_ext
-from numpy.distutils.core import setup, Extension
 from io import open
 
 # Package meta-data.
@@ -41,7 +36,7 @@ URL = 'https://github.com/NREL/ROSCO'
 EMAIL = 'nikhar.abbas@nrel.gov'
 AUTHOR = 'NREL, National Wind Technology Center'
 REQUIRES_PYTHON = '>=3.4'
-VERSION = '2.3.0'
+VERSION = '2.4.0'
 
 # These packages are required for all of the code to be executed. 
 # - Maybe you can get away with older versions...
@@ -58,7 +53,6 @@ REQUIRED = [
 
 # For the CMake Extensions
 this_directory = os.path.abspath(os.path.dirname(__file__))
-ncpus = mp.cpu_count()
 class CMakeExtension(Extension):
 
     def __init__(self, name, sourcedir='', **kwa):
@@ -76,7 +70,10 @@ class CMakeBuildExt(build_ext):
         super().copy_extensions_to_source()
     
     def build_extension(self, ext):
-        if isinstance(ext, CMakeExtension):
+        if not isinstance(ext, CMakeExtension):
+            super().build_extension(ext)
+
+        else:
             # Ensure that CMake is present and working
             try:
                 self.spawn(['cmake', '--version'])
@@ -92,10 +89,12 @@ class CMakeBuildExt(build_ext):
             cmake_args += ['-DCMAKE_INSTALL_PREFIX={}'.format(localdir)]
 
             if platform.system() == 'Windows':
-                if self.compiler.compiler_type == 'msvc':
+                if "gfortran" in os.environ["FC"].lower():
+                    cmake_args += ['-G', 'MinGW Makefiles']
+                elif self.compiler.compiler_type == 'msvc':
                     cmake_args += ['-DCMAKE_GENERATOR_PLATFORM=x64']
                 else:
-                    cmake_args += ['-G', 'MinGW Makefiles']
+                    raise ValueError("Unable to find the system's Fortran compiler.")
 
             self.build_temp = os.path.join( os.path.dirname( os.path.realpath(__file__) ), 'ROSCO', 'build')
             os.makedirs(localdir, exist_ok=True)
@@ -105,8 +104,6 @@ class CMakeBuildExt(build_ext):
             self.spawn(['cmake', '-S', ext.sourcedir, '-B', self.build_temp] + cmake_args)
             self.spawn(['cmake', '--build', self.build_temp, '--target', 'install', '--config', 'Release'])
 
-        else:
-            super().build_extension(ext)
 
 
 # All of the extensions
@@ -185,8 +182,8 @@ metadata = dict(
     url                           = URL,
     install_requires              = REQUIRED,
     python_requires               = REQUIRES_PYTHON,
-    include_package_date          = True,
     packages                      = find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
+    package_data                  = {'': ['*.yaml']},
     license                       = 'Apache License, Version 2.0',
     cmdclass                      = {'build_ext': CMakeBuildExt, 'upload': UploadCommand},
     zip_safe                      = False,

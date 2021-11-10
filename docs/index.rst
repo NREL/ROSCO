@@ -1,24 +1,22 @@
 ROSCO Documentation
 ===================
-.. only:: html
+:Version: |release|
+:Date: |today|
 
-   :Version: |release|
-   :Date: |today|
+NREL's Reference OpenSource Controller (ROSCO) tool-set for wind turbine applications designed to ease controller implementation for the wind turbine researcher. The purpose of these documents is to provide information for the use of the tool-set. 
 
-NREL's Reference OpenSource Controller (ROSCO) toolbox for wind turbine applications is a toolbox designed to ease controller implementation for the wind turbine researcher. The purpose of these documents is to provide information for the use of the ROSCO related toolchain. 
-
-Figure :numref:`fig-RT` shows the general workflow for the ROSCO toolchain.
+:numref:`fig-RT` shows the general workflow for the ROSCO tool-chain. with OpenFAST
 
 .. _fig-RT:
-.. figure:: /source/figures/ROSCO_toolbox.png
-   :alt: ROSCO_toolbox
+.. figure:: /source/figures/ROSCO_toolbox.svg
    :align: center
-   :width: 400px
+   :width: 80%
 
    ROSCO toolchain general workflow
 
 
 **ROSCO Toolbox**
+The python-based toolbox primarily used for tuning the controller and writing the DISCON.IN. 
 
 * Generic tuning of NREL's ROSCO controller
 * Simple 1-DOF turbine simulations for quick controller capability verifications
@@ -26,12 +24,11 @@ Figure :numref:`fig-RT` shows the general workflow for the ROSCO toolchain.
 * Linear model analysis capability
 
 **ROSCO Controller**
+The controller implementation itself. This is compiled to :code:`libdiscon.*`` file, reads the DISCON.IN file, and interfaces with OpenFAST using the Bladed-style interface. 
 
 * Fortran based
 * Follows Bladed-style control interface
 * Modular
-
-For the latest API changes to the DISCON.IN file, please see :ref:`api_change`.
 
 Standard Use
 ------------
@@ -53,7 +50,6 @@ Please help us better understand the ROSCO user-base and how we can improve ROSC
    
    <iframe width="640px" height= "480px" src= "https://forms.office.com/Pages/ResponsePage.aspx?id=fp3yoM0oVE-EQniFrufAgGWnC45k8q5Kl90RBkHijqBUN0JTNzBJT1QwMjIzNDhCWDlDTUZPWDdMWC4u&embed=true" frameborder= "0" marginwidth= "0" marginheight= "0" style= "border: none; max-width:100%; max-height:100vh" allowfullscreen webkitallowfullscreen mozallowfullscreen msallowfullscreen> </iframe>
    
-|
 
 
 License
@@ -64,7 +60,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-   http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,

@@ -29,7 +29,6 @@
 MODULE Functions
 
 USE Constants
-USE Filters
 
 IMPLICIT NONE
 
