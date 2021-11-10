@@ -18,7 +18,7 @@ Depending on what is needed, a user can choose to use just the ROSCO controller 
    * - :ref:`rosco_direct_download`
      - Best for users who simply want to use a released version of the controller without working through the compilation procedures. 
    * - :ref:`rosco_anaconda_download`
-     - Best for users who just want to use the controller but prefer to download using the Anaconda package man age Full ROSCO Installation   - Ur.
+     - Best for users who just want to use the controller but prefer to download using the Anaconda package man age Full ROSCO Installation.
    * - :ref:`full_rosco`
      - Best for users who wish to both use the controller and leverage the tools in the ROSCO toolbox
    * - :ref:`cmake_compile`
@@ -189,8 +189,8 @@ Please follow the following steps to install the ROSCO tool-chain. You should do
     
 .. code-block:: bash
 
-    git clone https://github.com/NREL/ROSCO_toolbox.git
-    cd ROSCO_toolbox
+    git clone https://github.com/NREL/ROSCO.git
+    cd ROSCO
     conda install compilers # (Mac/Linux only)
     conda install m2w64-toolchain libpython # (Windows only)
     python setup.py install --compile-rosco 
@@ -199,8 +199,8 @@ Please follow the following steps to install the ROSCO tool-chain. You should do
     
 .. code-block:: bash
 
-    git clone https://github.com/NREL/ROSCO_toolbox.git
-    cd ROSCO_toolbox
+    git clone https://github.com/NREL/ROSCO.git
+    cd ROSCO
     python setup.py install
 
 

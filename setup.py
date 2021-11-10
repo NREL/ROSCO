@@ -23,15 +23,10 @@ import sys
 from shutil import rmtree, copy
 import glob 
 import platform
-from setuptools import find_packages, setup, Command
-from numpy.distutils.command.build_ext import build_ext
-from numpy.distutils.core import setup, Extension
+from setuptools import find_packages, setup, Command, Extension
+from setuptools.command.build_ext import build_ext
+from setuptools.command.install import install as _install
 
-import multiprocessing as mp
-from distutils.core import run_setup
-from setuptools import find_packages
-from numpy.distutils.command.build_ext import build_ext
-from numpy.distutils.core import setup, Extension
 from io import open
 
 # Package meta-data.
@@ -41,7 +36,7 @@ URL = 'https://github.com/NREL/ROSCO'
 EMAIL = 'nikhar.abbas@nrel.gov'
 AUTHOR = 'NREL, National Wind Technology Center'
 REQUIRES_PYTHON = '>=3.4'
-VERSION = '2.4.0'
+VERSION = '2.4.1'
 
 # These packages are required for all of the code to be executed. 
 # - Maybe you can get away with older versions...
@@ -58,7 +53,6 @@ REQUIRED = [
 
 # For the CMake Extensions
 this_directory = os.path.abspath(os.path.dirname(__file__))
-ncpus = mp.cpu_count()
 class CMakeExtension(Extension):
 
     def __init__(self, name, sourcedir='', **kwa):
@@ -189,6 +183,7 @@ metadata = dict(
     install_requires              = REQUIRED,
     python_requires               = REQUIRES_PYTHON,
     packages                      = find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
+    package_data                  = {'': ['*.yaml']},
     license                       = 'Apache License, Version 2.0',
     cmdclass                      = {'build_ext': CMakeBuildExt, 'upload': UploadCommand},
     zip_safe                      = False,
