@@ -200,11 +200,7 @@ Please follow the following steps to install the ROSCO tool-chain. You should do
 .. code-block:: bash
 
     git clone https://github.com/NREL/ROSCO.git
-    cd ROSCO_toolbox
     python setup.py install
-
-
-Getting Started
 ----------------
 Please see :ref:`standard_use` for several example scripts using ROSCO and the ROSCO_toolbox.
 
