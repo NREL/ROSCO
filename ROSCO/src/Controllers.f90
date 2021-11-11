@@ -197,7 +197,7 @@ CONTAINS
         LocalVar%VS_LastGenPwr = LocalVar%VS_GenPwr
         
         ! Set the command generator torque (See Appendix A of Bladed User's Guide):
-        avrSWAP(47) = MAX(0.0, LocalVar%VS_LastGenTrq)  ! Demanded generator torque, prevent negatives.
+        avrSWAP(47) = MAX(0.0_DbKi, LocalVar%VS_LastGenTrq)  ! Demanded generator torque, prevent negatives.
     END SUBROUTINE VariableSpeedControl
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE YawRateControl(avrSWAP, CntrPar, LocalVar, objInst)
@@ -277,7 +277,7 @@ CONTAINS
         ! High-pass filter the MBC yaw component and filter yaw alignment error, and compute the yaw-by-IPC contribution
         IF (CntrPar%Y_ControlMode == 2) THEN
             Y_MErrF = SecLPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_IPC_omegaLP, CntrPar%Y_IPC_zetaLP, LocalVar%iStatus, .FALSE., objInst%instSecLPF)
-            Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP(1), CntrPar%Y_IPC_KI(1), -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, REAL(0.0,DbKi), .FALSE., objInst%instPI)
+            Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP(1), CntrPar%Y_IPC_KI(1), -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, 0.0_DbKi, .FALSE., objInst%instPI)
         ELSE
             axisYawF_1P = axisYaw_1P
             Y_MErrF = 0.0
@@ -339,7 +339,7 @@ CONTAINS
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         
         ! Body
-        LocalVar%FA_AccHPFI = PIController(LocalVar%FA_AccHPF, REAL(0.0,DbKi), CntrPar%FA_KI, -CntrPar%FA_IntSat, CntrPar%FA_IntSat, LocalVar%DT, REAL(0.0,DbKi), .FALSE., objInst%instPI)
+        LocalVar%FA_AccHPFI = PIController(LocalVar%FA_AccHPF, 0.0_DbKi, CntrPar%FA_KI, -CntrPar%FA_IntSat, CntrPar%FA_IntSat, LocalVar%DT, 0.0_DbKi, .FALSE., objInst%instPI)
         
         ! Store the fore-aft pitch contribution to LocalVar data type
         DO K = 1,LocalVar%NumBl
@@ -364,12 +364,12 @@ CONTAINS
         REAL(DbKi)                      :: NacIMU_FA_vel ! Tower fore-aft pitching velocity [rad/s]
         
         ! Calculate floating contribution to pitch command
-        FA_vel = PIController(LocalVar%FA_AccF, REAL(0.0,DbKi), REAL(1.0,DbKi), REAL(-100.0,DbKi) , REAL(100.0,DbKi) ,LocalVar%DT, REAL(0.0,DbKi), .FALSE., objInst%instPI) ! NJA: should never reach saturation limits....
-        NacIMU_FA_vel = PIController(LocalVar%NacIMU_FA_AccF, REAL(0.0,DbKi), REAL(1.0,DbKi), REAL(-100.0,DbKi) , REAL(100.0,DbKi) ,LocalVar%DT, REAL(0.0,DbKi), .FALSE., objInst%instPI) ! NJA: should never reach saturation limits....
+        FA_vel = PIController(LocalVar%FA_AccF, 0.0_DbKi, 1.0_DbKi, -100.0_DbKi , 100.0_DbKi ,LocalVar%DT, 0.0_DbKi, .FALSE., objInst%instPI) ! NJA: should never reach saturation limits....
+        NacIMU_FA_vel = PIController(LocalVar%NacIMU_FA_AccF, 0.0_DbKi, 1.0_DbKi, -100.0_DbKi , 100.0_DbKi ,LocalVar%DT, 0.0_DbKi, .FALSE., objInst%instPI) ! NJA: should never reach saturation limits....
         if (CntrPar%Fl_Mode == 1) THEN
-            FloatingFeedback = (REAL(0.0,DbKi) - FA_vel) * CntrPar%Fl_Kp !* LocalVar%PC_KP/maxval(CntrPar%PC_GS_KP)
+            FloatingFeedback = (0.0_DbKi - FA_vel) * CntrPar%Fl_Kp !* LocalVar%PC_KP/maxval(CntrPar%PC_GS_KP)
         ELSEIF (CntrPar%Fl_Mode == 2) THEN
-            FloatingFeedback = (REAL(0.0,DbKi) - NacIMU_FA_vel) * CntrPar%Fl_Kp !* LocalVar%PC_KP/maxval(CntrPar%PC_GS_KP)
+            FloatingFeedback = (0.0_DbKi - NacIMU_FA_vel) * CntrPar%Fl_Kp !* LocalVar%PC_KP/maxval(CntrPar%PC_GS_KP)
         END IF
 
     END FUNCTION FloatingFeedback

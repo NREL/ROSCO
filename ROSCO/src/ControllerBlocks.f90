@@ -231,11 +231,11 @@ CONTAINS
             Q = RESHAPE((/0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0/),(/3,3/))
             IF (LocalVar%iStatus == 0) THEN
                 ! Initialize recurring values
-                om_r = max(LocalVar%RotSpeedF, EPSILON(1.0))
+                om_r = max(LocalVar%RotSpeedF, EPSILON(1.0_DbKi))
                 v_t = 0.0
                 v_m = LocalVar%HorWindV
                 v_h = LocalVar%HorWindV
-                lambda = max(LocalVar%RotSpeed, EPSILON(1.0)) * CntrPar%WE_BladeRadius/v_h
+                lambda = max(LocalVar%RotSpeed, EPSILON(1.0_DbKi)) * CntrPar%WE_BladeRadius/v_h
                 xh = RESHAPE((/om_r, v_t, v_m/),(/3,1/))
                 P = RESHAPE((/0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 1.0/),(/3,3/))
                 K = RESHAPE((/0.0,0.0,0.0/),(/3,1/))
@@ -246,7 +246,7 @@ CONTAINS
                 A_op = interp1d(CntrPar%WE_FOPoles_v,CntrPar%WE_FOPoles,v_h,ErrVar)
 
                 ! TEST INTERP2D
-                lambda = max(LocalVar%RotSpeed, EPSILON(1.0)) * CntrPar%WE_BladeRadius/v_h
+                lambda = max(LocalVar%RotSpeed, EPSILON(1.0_DbKi)) * CntrPar%WE_BladeRadius/v_h
                 Cp_op = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%BlPitch(1)*R2D, lambda , ErrVar)
                 Cp_op = max(0.0,Cp_op)
                 
@@ -280,7 +280,7 @@ CONTAINS
                 
                 
                 ! Wind Speed Estimate
-                om_r = max(xh(1,1), EPSILON(1.0))
+                om_r = max(xh(1,1), EPSILON(1.0_DbKi))
                 v_t = xh(2,1)
                 v_m = xh(3,1)
                 v_h = v_t + v_m
@@ -398,7 +398,7 @@ CONTAINS
         ! Pitch Blades to 90 degrees at max pitch rate if in shutdown mode
         IF (LocalVar%SD) THEN
             Shutdown = LocalVar%BlPitch(1) + CntrPar%PC_MaxRat*LocalVar%DT
-            IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
+            IF (MODULO(LocalVar%Time, 10.0_DbKi) == 0) THEN
                 print *, ' ** SHUTDOWN MODE **'
             ENDIF
         ELSE

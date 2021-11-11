@@ -501,7 +501,7 @@ CONTAINS
         
         ! Lookup
         CPfunction = exp(-CP(1)/lambda)*(CP(2)/lambda-CP(3))+CP(4)*lambda
-        CPfunction = saturate(CPfunction, 0.001D0, 1.0D0)
+        CPfunction = saturate(CPfunction, 0.001_DbKi, 1.0_DbKi)
         
     END FUNCTION CPfunction
 
@@ -533,7 +533,7 @@ CONTAINS
         Cp = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%PC_PitComT*R2D, Lambda, ErrVar)
         
         AeroDynTorque = 0.5*(CntrPar%WE_RhoAir*RotorArea)*(LocalVar%WE_Vw**3/LocalVar%RotSpeedF)*Cp
-        AeroDynTorque = MAX(AeroDynTorque, 0.0)
+        AeroDynTorque = MAX(AeroDynTorque, 0.0_DbKi)
 
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN
@@ -634,7 +634,7 @@ CONTAINS
             END IF
         ELSE
             ! Print simulation status, every 10 seconds
-            IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
+            IF (MODULO(LocalVar%Time, 10.0_DbKi) == 0) THEN
                 WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0, LocalVar%WE_Vw ! LocalVar%Time !/1000.0
                 100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')
             END IF

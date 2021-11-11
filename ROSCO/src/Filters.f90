@@ -310,8 +310,8 @@ CONTAINS
 
 
         ! Control commands (used by WSE, mostly)
-        LocalVar%VS_LastGenTrqF = SecLPFilter(LocalVar%VS_LastGenTrq, LocalVar%DT, CntrPar%F_LPFCornerFreq, REAL(0.7,DbKi), LocalVar%iStatus, .FALSE., objInst%instSecLPF)
-        LocalVar%PC_PitComTF    = SecLPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%F_LPFCornerFreq*0.25, REAL(0.7,DbKi), LocalVar%iStatus, .FALSE., objInst%instSecLPF)
+        LocalVar%VS_LastGenTrqF = SecLPFilter(LocalVar%VS_LastGenTrq, LocalVar%DT, CntrPar%F_LPFCornerFreq, 0.7_DbKi, LocalVar%iStatus, .FALSE., objInst%instSecLPF)
+        LocalVar%PC_PitComTF    = SecLPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%F_LPFCornerFreq*0.25, 0.7_DbKi, LocalVar%iStatus, .FALSE., objInst%instSecLPF)
 
     END SUBROUTINE PreFilterMeasuredSignals
 END MODULE Filters
