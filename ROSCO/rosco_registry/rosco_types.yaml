@@ -2,15 +2,22 @@ default_types:
   integer: &integer
     type: integer
     description: None
+  integer_c: &integer_c
+    type: integer_c
+    description: None
   real: &real
     type: real
     description: None
-    shape: 1
+    shape: 1               # Use this if a higher-dimensional allocatable array (shape:2 --> REAL(8), DIMESION(:,:), ALLOCATABLE)
+    size: 0                # Use this if the type IS an array (size:3 --> REAL(8), BldPitch(3))
     allocatable: False
   character: &character
     type: character
     description: None
     allocatable: False
+  logical: &logical
+    type: logical
+    description: None
 
 ControlParameters:
     LoggingLevel: 
@@ -337,10 +344,10 @@ LocalVariables:
       <<: *real 
       description: 
     rootMOOP(3): 
-      <<: *REAL(8
+      <<: *real
       description: 
     BlPitch(3): 
-      <<: *REAL(8
+      <<: *real
       description: 
     Azimuth: 
       <<: *real 
@@ -494,7 +501,7 @@ LocalVariables:
       <<: *real 
       description: Yaw end time [s]. Indicates the time up until which yaw is active with a fixed rate
     SD:                           
-      type: logical
+      <<: *real
       description: Shutdown, .FALSE. if inactive, .TRUE. if active
     Fl_PitCom:                           
       <<: *real 
@@ -511,33 +518,47 @@ LocalVariables:
 ObjectInstances:
   instLPF:
     <<: *integer
+    description: Low-pass filter instance
   instSecLPF:
     <<: *integer
+    description: Second order low-pass filter instance
   instHPF:
     <<: *integer
+    description: High-pass filter instance
   instNotchSlopes:
     <<: *integer
+    description: Notch filter slopes instance
   instNotch:
     <<: *integer
+    description: Notch filter instance
   instPI:
     <<: *integer
+    description: PI controller instance
 
 PerformanceData:
   TSR_vec:
     <<: *real
     allocatable: True
+    description: TSR vector for performance surfaces
   Beta_vec:
     <<: *real
     allocatable: True
+    description: Blade pitch vector for performance surfaces [deg]
   Cp_mat:
     <<: *real
     allocatable: True
+    shape: 2
+    description: Power coefficient surface
   Ct_mat:
     <<: *real
     allocatable: True
+    shape: 2
+    description: Thrust coefficient surface
   Cq_mat:
     <<: *real
     allocatable: True
+    shape: 2
+    description: Torque coefficient surface
 
 DebugVariables:                                       
   WE_Cp: 
