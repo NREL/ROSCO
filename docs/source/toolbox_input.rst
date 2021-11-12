@@ -3,9 +3,9 @@
 
 .. _rt_tuning_yaml: 
 
-*********************************************
-ROSCO_Toolbox tuning .yaml input descriptions
-*********************************************
+**************************
+ROSCO_Toolbox tuning .yaml
+**************************
 Definition of inputs for ROSCO tuning procedure
 
 

@@ -87,8 +87,12 @@ class Schema2RST(object):
         self.f.close()
 
     def write_header(self):
-        title = 'ROSCO_Toolbox tuning .yaml input descriptions'
+        title = 'ROSCO_Toolbox tuning .yaml'
+        self.f.write("\n")
+        self.f.write(".. toctree::\n")
+        self.f.write("\n")
         self.f.write(".. _rt_tuning_yaml: \n")
+        self.f.write("\n")
         self.f.write("*" * len(title) + "\n")
         self.f.write(title + "\n")
         self.f.write("*" * len(title) + "\n")
