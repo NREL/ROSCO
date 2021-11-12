@@ -14,11 +14,11 @@ properties:
         properties:
             FAST_InputFile:
                 type: string
-                description: Name of *.fst file
+                description: Name of `*.fst` file
                 # default: IEA-15-240-RWT-UMaineSemi.fst
             FAST_directory:
                 type: string
-                description: Main OpenFAST model directory, where the *.fst lives, relative to ROSCO dir (if applicable)
+                description: Main OpenFAST model directory, where the `*.fst` lives, relative to ROSCO dir (if applicable)
                 # default: Test_Cases/IEA-15-240-RWT-UMaineSemi
             rotor_performance_filename:
                 type: string
@@ -366,6 +366,8 @@ properties:
                 type: [number, array]
                 description: Desired maximum stability margin
                 default: 0.1
+                items:
+                    type: number
             omega_pc:
                 type: object
                 default: {}
@@ -374,8 +376,12 @@ properties:
                     type: [number, array]
                     default: 0.0
                     description: Desired maximum allowable omega for robust tuning. Array must be of length U_pc.
+                    items:
+                        type: number
                 max:
                     type: [number, array]
                     default: 0.2
                     description: Desired maximum allowable omega for robust tuning. Array must be of length U_pc.
+                    items:
+                        type: number
        
