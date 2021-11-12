@@ -2,6 +2,7 @@ default_types:
   integer: &integer
     type: integer
     description: None
+    allocatable: False
   integer_c: &integer_c
     type: integer_c
     description: None
@@ -343,12 +344,14 @@ LocalVariables:
     HorWindV: 
       <<: *real 
       description: 
-    rootMOOP(3): 
+    rootMOOP: 
       <<: *real
       description: 
-    BlPitch(3): 
+      size: 3
+    BlPitch: 
       <<: *real
       description: 
+      size: 3
     Azimuth: 
       <<: *real 
       description: 
@@ -501,7 +504,7 @@ LocalVariables:
       <<: *real 
       description: Yaw end time [s]. Indicates the time up until which yaw is active with a fixed rate
     SD:                           
-      <<: *real
+      <<: *logical
       description: Shutdown, .FALSE. if inactive, .TRUE. if active
     Fl_PitCom:                           
       <<: *real 
