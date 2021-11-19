@@ -21,7 +21,6 @@ from ROSCO_toolbox.linear.robust_scheduling import rsched_driver
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox import controller as ROSCO_controller
 
-
 def run_example():
     # Shorthand directories
     this_dir = os.path.dirname(os.path.abspath(__file__))
@@ -114,10 +113,10 @@ def run_example():
     ax[4].set_ylabel('Integral Gain')
     ax[4].grid()
 
-    if True:
+
+    if False:
         plt.show()
     else:
         plt.savefig(os.path.join(example_out_dir, '12_RobustSched.png'))
-
 if __name__ == '__main__':
     run_example()

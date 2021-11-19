@@ -42,6 +42,7 @@ controller_params:
   U_pc:               [14,20]
   zeta_pc:            [2.0,1.0]                  # Pitch controller desired damping ratio [-]
   omega_pc:           [0.15,0.3]                  # Pitch controller desired natural frequency [rad/s]
+  interp_type:        sigma
   zeta_vs:            0.85                   # Torque controller desired damping ratio [-]
   omega_vs:           0.12                   # Torque controller desired natural frequency [rad/s]
   twr_freq:           3.355 # for semi only!

@@ -1343,7 +1343,6 @@ class InputWriter_OpenFAST(InputWriter_Common):
         controller.Fl_Mode              = int(self.fst_vt['DISCON_in']['Fl_Mode'])
         controller.Flp_Mode             = int(self.fst_vt['DISCON_in']['Flp_Mode'])
         controller.F_LPFDamping         = self.fst_vt['DISCON_in']['F_LPFDamping']
-        controller.ss_cornerfreq        = self.fst_vt['DISCON_in']['F_SSCornerFreq']
         controller.pitch_op_pc          = self.fst_vt['DISCON_in']['PC_GS_angles']
         controller.pc_gain_schedule.Kp  = self.fst_vt['DISCON_in']['PC_GS_KP']
         controller.pc_gain_schedule.Ki  = self.fst_vt['DISCON_in']['PC_GS_KI']
@@ -1366,13 +1365,18 @@ class InputWriter_OpenFAST(InputWriter_Common):
         # controller.ps_wind_speeds = self.fst_vt['DISCON_in']['ps_wind_speeds']
         controller.ps_min_bld_pitch     = self.fst_vt['DISCON_in']['PS_BldPitchMin']
         controller.sd_maxpit            = self.fst_vt['DISCON_in']['SD_MaxPit']
-        controller.sd_cornerfreq        = self.fst_vt['DISCON_in']['SD_CornerFreq']
         controller.Kp_float             = self.fst_vt['DISCON_in']['Fl_Kp']
         controller.Kp_flap              = self.fst_vt['DISCON_in']['Flp_Kp']
         controller.Ki_flap              = self.fst_vt['DISCON_in']['Flp_Ki']
         controller.flp_angle            = self.fst_vt['DISCON_in']['Flp_Angle']
         controller.flp_maxpit           = self.fst_vt['DISCON_in']['Flp_MaxPit']
 
+        controller.f_lpf_cornerfreq     = self.fst_vt['DISCON_in']['F_LPFCornerFreq']
+        controller.f_ss_cornerfreq      = self.fst_vt['DISCON_in']['F_SSCornerFreq']
+        controller.f_we_cornerfreq      = self.fst_vt['DISCON_in']['F_WECornerFreq']
+        controller.f_fl_highpassfreq    = self.fst_vt['DISCON_in']['F_FlHighPassFreq']
+        controller.f_sd_cornerfreq      = self.fst_vt['DISCON_in']['SD_CornerFreq']
+        
         turbine = type('', (), {})()
         turbine.Cp = type('', (), {})()
         turbine.Ct = type('', (), {})()

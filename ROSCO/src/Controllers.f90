@@ -30,7 +30,7 @@ CONTAINS
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
         
         ! Inputs
-        REAL(C_FLOAT),              INTENT(INOUT)       :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from the DLL controller.
+        REAL(ReKi),              INTENT(INOUT)       :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from the DLL controller.
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
         TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
@@ -38,8 +38,8 @@ CONTAINS
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
 
         ! Allocate Variables:
-        INTEGER(4)                                      :: K            ! Index used for looping through blades.
-        REAL(8),                    Save                :: PitComT_Last 
+        INTEGER(IntKi)                                  :: K            ! Index used for looping through blades.
+        REAL(DbKi), Save                                :: PitComT_Last 
 
         CHARACTER(*),               PARAMETER           :: RoutineName = 'PitchControl'
 
@@ -136,7 +136,7 @@ CONTAINS
     !       VS_State = 6, Tip-Speed-Ratio tracking PI controller
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
         ! Inputs
-        REAL(C_FLOAT),              INTENT(INOUT)       :: avrSWAP(*)    ! The swap array, used to pass data to, and receive data from, the DLL controller.
+        REAL(ReKi),                 INTENT(INOUT)       :: avrSWAP(*)    ! The swap array, used to pass data to, and receive data from, the DLL controller.
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
         TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
@@ -197,7 +197,7 @@ CONTAINS
         LocalVar%VS_LastGenPwr = LocalVar%VS_GenPwr
         
         ! Set the command generator torque (See Appendix A of Bladed User's Guide):
-        avrSWAP(47) = MAX(0.0, LocalVar%VS_LastGenTrq)  ! Demanded generator torque, prevent negatives.
+        avrSWAP(47) = MAX(0.0_DbKi, LocalVar%VS_LastGenTrq)  ! Demanded generator torque, prevent negatives.
     END SUBROUTINE VariableSpeedControl
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE YawRateControl(avrSWAP, CntrPar, LocalVar, objInst)
@@ -207,7 +207,7 @@ CONTAINS
         !       Y_ControlMode = 2, Yaw by IPC (accounted for in IPC subroutine)
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
     
-        REAL(C_FLOAT),              INTENT(INOUT)       :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
+        REAL(ReKi),                 INTENT(INOUT)       :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
         TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
@@ -250,14 +250,15 @@ CONTAINS
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
 
         ! Local variables
-        REAL(8)                                         :: PitComIPC(3), PitComIPCF(3), PitComIPC_1P(3), PitComIPC_2P(3)
-        INTEGER(4)                                      :: K                                       ! Integer used to loop through turbine blades
-        REAL(8)                                         :: axisTilt_1P, axisYaw_1P, axisYawF_1P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
-        REAL(8),                    SAVE                :: IntAxisTilt_1P, IntAxisYaw_1P           ! Integral of the direct axis and quadrature axis, 1P
-        REAL(8)                                         :: axisTilt_2P, axisYaw_2P, axisYawF_2P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
-        REAL(8),                    SAVE                :: IntAxisTilt_2P, IntAxisYaw_2P           ! Integral of the direct axis and quadrature axis, 1P
-        REAL(8)                                         :: IntAxisYawIPC_1P                        ! IPC contribution with yaw-by-IPC component
-        REAL(8)                                         :: Y_MErrF, Y_MErrF_IPC                    ! Unfiltered and filtered yaw alignment error [rad]
+        REAL(DbKi)                  :: PitComIPC(3), PitComIPCF(3), PitComIPC_1P(3), PitComIPC_2P(3)
+        INTEGER(IntKi)               :: K                                       ! Integer used to loop through turbine blades
+        REAL(DbKi)                  :: axisTilt_1P, axisYaw_1P, axisYawF_1P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
+        REAL(DbKi), SAVE            :: IntAxisTilt_1P, IntAxisYaw_1P           ! Integral of the direct axis and quadrature axis, 1P
+        REAL(DbKi)                  :: axisTilt_2P, axisYaw_2P, axisYawF_2P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
+        REAL(DbKi), SAVE            :: IntAxisTilt_2P, IntAxisYaw_2P           ! Integral of the direct axis and quadrature axis, 1P
+        REAL(DbKi)                  :: IntAxisYawIPC_1P                        ! IPC contribution with yaw-by-IPC component
+        REAL(DbKi)                  :: Y_MErrF, Y_MErrF_IPC                    ! Unfiltered and filtered yaw alignment error [rad]
+        
         
         ! Body
         ! Initialization
@@ -276,7 +277,7 @@ CONTAINS
         ! High-pass filter the MBC yaw component and filter yaw alignment error, and compute the yaw-by-IPC contribution
         IF (CntrPar%Y_ControlMode == 2) THEN
             Y_MErrF = SecLPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_IPC_omegaLP, CntrPar%Y_IPC_zetaLP, LocalVar%iStatus, .FALSE., objInst%instSecLPF)
-            Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP(1), CntrPar%Y_IPC_KI(1), -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, 0.0, .FALSE., objInst%instPI)
+            Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP(1), CntrPar%Y_IPC_KI(1), -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, 0.0_DbKi, .FALSE., objInst%instPI)
         ELSE
             axisYawF_1P = axisYaw_1P
             Y_MErrF = 0.0
@@ -331,14 +332,14 @@ CONTAINS
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
         
         ! Local variables
-        INTEGER(4) :: K    ! Integer used to loop through turbine blades
+        INTEGER(IntKi) :: K    ! Integer used to loop through turbine blades
 
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         
         ! Body
-        LocalVar%FA_AccHPFI = PIController(LocalVar%FA_AccHPF, 0.0, CntrPar%FA_KI, -CntrPar%FA_IntSat, CntrPar%FA_IntSat, LocalVar%DT, 0.0, .FALSE., objInst%instPI)
+        LocalVar%FA_AccHPFI = PIController(LocalVar%FA_AccHPF, 0.0_DbKi, CntrPar%FA_KI, -CntrPar%FA_IntSat, CntrPar%FA_IntSat, LocalVar%DT, 0.0_DbKi, .FALSE., objInst%instPI)
         
         ! Store the fore-aft pitch contribution to LocalVar data type
         DO K = 1,LocalVar%NumBl
@@ -347,7 +348,7 @@ CONTAINS
         
     END SUBROUTINE ForeAftDamping
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION FloatingFeedback(LocalVar, CntrPar, objInst) 
+    REAL(DbKi) FUNCTION FloatingFeedback(LocalVar, CntrPar, objInst) 
     ! FloatingFeedback defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
     !       Fl_Mode = 0, No feedback
     !       Fl_Mode = 1, Proportional feedback of nacelle velocity (translational)
@@ -359,16 +360,16 @@ CONTAINS
         TYPE(LocalVariables), INTENT(IN)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         ! Allocate Variables 
-        REAL(8)                      :: FA_vel ! Tower fore-aft velocity [m/s]
-        REAL(8)                      :: NacIMU_FA_vel ! Tower fore-aft pitching velocity [rad/s]
+        REAL(DbKi)                      :: FA_vel ! Tower fore-aft velocity [m/s]
+        REAL(DbKi)                      :: NacIMU_FA_vel ! Tower fore-aft pitching velocity [rad/s]
         
         ! Calculate floating contribution to pitch command
-        FA_vel = PIController(LocalVar%FA_AccF, 0.0, 1.0, -100.0 , 100.0 ,LocalVar%DT, 0.0, .FALSE., objInst%instPI) ! NJA: should never reach saturation limits....
-        NacIMU_FA_vel = PIController(LocalVar%NacIMU_FA_AccF, 0.0, 1.0, -100.0 , 100.0 ,LocalVar%DT, 0.0, .FALSE., objInst%instPI) ! NJA: should never reach saturation limits....
+        FA_vel = PIController(LocalVar%FA_AccF, 0.0_DbKi, 1.0_DbKi, -100.0_DbKi , 100.0_DbKi ,LocalVar%DT, 0.0_DbKi, .FALSE., objInst%instPI) ! NJA: should never reach saturation limits....
+        NacIMU_FA_vel = PIController(LocalVar%NacIMU_FA_AccF, 0.0_DbKi, 1.0_DbKi, -100.0_DbKi , 100.0_DbKi ,LocalVar%DT, 0.0_DbKi, .FALSE., objInst%instPI) ! NJA: should never reach saturation limits....
         if (CntrPar%Fl_Mode == 1) THEN
-            FloatingFeedback = (0.0 - FA_vel) * CntrPar%Fl_Kp !* LocalVar%PC_KP/maxval(CntrPar%PC_GS_KP)
+            FloatingFeedback = (0.0_DbKi - FA_vel) * CntrPar%Fl_Kp !* LocalVar%PC_KP/maxval(CntrPar%PC_GS_KP)
         ELSEIF (CntrPar%Fl_Mode == 2) THEN
-            FloatingFeedback = (0.0 - NacIMU_FA_vel) * CntrPar%Fl_Kp !* LocalVar%PC_KP/maxval(CntrPar%PC_GS_KP)
+            FloatingFeedback = (0.0_DbKi - NacIMU_FA_vel) * CntrPar%Fl_Kp !* LocalVar%PC_KP/maxval(CntrPar%PC_GS_KP)
         END IF
 
     END FUNCTION FloatingFeedback
@@ -380,17 +381,17 @@ CONTAINS
         !       Y_ControlMode = 2, Yaw by IPC (accounted for in IPC subroutine)
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
     
-        REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
+        REAL(ReKi), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
     
         TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
         ! Internal Variables
-        Integer(4)                                :: K
-        REAL(8)                                   :: RootMOOP_F(3)
-        REAL(8)                                   :: RootMyb_Vel(3)
-        REAL(8), SAVE                             :: RootMyb_Last(3)
-        REAL(8)                                   :: RootMyb_VelErr(3)
+        INTEGER(IntKi)                                :: K
+        REAL(DbKi)                                   :: rootMOOP_F(3)
+        REAL(DbKi)                                   :: RootMyb_Vel(3)
+        REAL(DbKi), SAVE                             :: RootMyb_Last(3)
+        REAL(DbKi)                                   :: RootMyb_VelErr(3)
 
         ! Flap control
         IF (CntrPar%Flp_Mode >= 1) THEN
@@ -428,7 +429,7 @@ CONTAINS
                     RootMyb_VelErr(K) = 0 - RootMyb_Vel(K)
                     
                     ! Find flap angle command - includes an integral term to encourage zero flap angle
-                    LocalVar%Flp_Angle(K) = PIIController(RootMyb_VelErr(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, 0.05, -CntrPar%Flp_MaxPit , CntrPar%Flp_MaxPit , LocalVar%DT, 0.0, .FALSE., objInst%instPI)
+                    LocalVar%Flp_Angle(K) = PIIController(RootMyb_VelErr(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, REAL(0.05,DbKi), -CntrPar%Flp_MaxPit , CntrPar%Flp_MaxPit , LocalVar%DT, 0.0, .FALSE., objInst%instPI)
                     ! Saturation Limits
                     LocalVar%Flp_Angle(K) = saturate(LocalVar%Flp_Angle(K), -CntrPar%Flp_MaxPit, CntrPar%Flp_MaxPit)
                     

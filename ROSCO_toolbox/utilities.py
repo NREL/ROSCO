@@ -75,12 +75,14 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! Flp_Mode          - Flap control mode {{0: no flap control, 1: steady state flap angle, 2: Proportional flap control}}\n'.format(int(controller.Flp_Mode)))
     file.write('\n')
     file.write('!------- FILTERS ----------------------------------------------------------\n') 
-    file.write('{:<13.5f}       ! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [rad/s]\n'.format(turbine.bld_edgewise_freq * 1/4)) 
+    file.write('{:<13.5f}       ! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [rad/s]\n'.format(controller.f_lpf_cornerfreq)) 
     file.write('{:<13.5f}       ! F_LPFDamping		- Damping coefficient {{used only when F_FilterType = 2}} [-]\n'.format(controller.F_LPFDamping))
     file.write('{:<13.5f}       ! F_NotchCornerFreq	- Natural frequency of the notch filter, [rad/s]\n'.format(controller.twr_freq))
     file.write('{:<10.5f}{:<9.5f} ! F_NotchBetaNumDen	- Two notch damping values (numerator and denominator, resp) - determines the width and depth of the notch, [-]\n'.format(0.0,0.25))
-    file.write('{:<014.5f}      ! F_SSCornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother, [rad/s].\n'.format(controller.ss_cornerfreq))
+    file.write('{:<13.5f}       ! F_SSCornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother, [rad/s].\n'.format(controller.f_ss_cornerfreq))
+    file.write('{:<13.5f}       ! F_WECornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s].\n'.format(controller.f_we_cornerfreq))
     file.write('{:<10.5f}{:<9.5f} ! F_FlCornerFreq    - Natural frequency and damping in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s, -].\n'.format(controller.ptfm_freq, 1.0))
+    file.write('{:<13.5f}       ! F_FlHighPassFreq    - Natural frequency of first-order high-pass filter for nacelle fore-aft motion [rad/s].\n'.format(controller.f_fl_highpassfreq))
     file.write('{:<10.5f}{:<9.5f} ! F_FlpCornerFreq   - Corner frequency and damping in the second order low pass filter of the blade root bending moment for flap control [rad/s, -].\n'.format(turbine.bld_flapwise_freq*1/3, 1.0))
     
     file.write('\n')
@@ -136,7 +138,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write(      '"{}"      ! PerfFileName      - File containing rotor performance tables (Cp,Ct,Cq)\n'.format(txt_filename))
     file.write('{:<7d} {:<10d}  ! PerfTableSize     - Size of rotor performance tables, first number refers to number of blade pitch angles, second number referse to number of tip-speed ratios\n'.format(len(turbine.Cp.pitch_initial_rad),len(turbine.Cp.TSR_initial)))
     file.write('{:<11d}         ! WE_FOPoles_N      - Number of first-order system poles used in EKF\n'.format(len(controller.A)))
-    file.write('{}              ! WE_FOPoles_v      - Wind speeds corresponding to first-order system poles [m/s]\n'.format(''.join('{:<4.2f} '.format(controller.v[i]) for i in range(len(controller.v)))))
+    file.write('{}              ! WE_FOPoles_v      - Wind speeds corresponding to first-order system poles [m/s]\n'.format(''.join('{:<4.4f} '.format(controller.v[i]) for i in range(len(controller.v)))))
     file.write('{}              ! WE_FOPoles        - First order system poles [1/s]\n'.format(''.join('{:<10.8f} '.format(controller.A[i]) for i in range(len(controller.A)))))
     file.write('\n')
     file.write('!------- YAW CONTROL ------------------------------------------------------\n')
@@ -164,7 +166,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('\n')
     file.write('!------- SHUTDOWN -----------------------------------------------------------\n')
     file.write('{:<014.5f}      ! SD_MaxPit         - Maximum blade pitch angle to initiate shutdown, [rad]\n'.format(controller.sd_maxpit))
-    file.write('{:<014.5f}      ! SD_CornerFreq     - Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]\n'.format(controller.sd_cornerfreq))
+    file.write('{:<014.5f}      ! SD_CornerFreq     - Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]\n'.format(controller.f_sd_cornerfreq))
     file.write('\n')
     file.write('!------- Floating -----------------------------------------------------------\n')
     if controller.Fl_Mode == 2:
@@ -369,8 +371,10 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['F_LPFDamping']		    = controller.F_LPFDamping
     DISCON_dict['F_NotchCornerFreq']    = controller.twr_freq
     DISCON_dict['F_NotchBetaNumDen']    = [0.0, 0.25]
-    DISCON_dict['F_SSCornerFreq']       = controller.ss_cornerfreq
-    DISCON_dict['F_FlCornerFreq']       = [turbine.ptfm_freq, 1.0]
+    DISCON_dict['F_WECornerFreq']       = controller.f_we_cornerfreq
+    DISCON_dict['F_SSCornerFreq']       = controller.f_ss_cornerfreq
+    DISCON_dict['F_FlHighPassFreq']     = controller.f_fl_highpassfreq
+    DISCON_dict['F_FlCornerFreq']       = [controller.ptfm_freq, 1.0]
     DISCON_dict['F_FlpCornerFreq']      = [turbine.bld_flapwise_freq*1/3, 1.0]
     # ------- BLADE PITCH CONTROL -------
     DISCON_dict['PC_GS_n']			= len(controller.pitch_op_pc)
@@ -444,7 +448,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['PS_BldPitchMin']   = controller.ps_min_bld_pitch
     # ------- SHUTDOWN -------
     DISCON_dict['SD_MaxPit']        = controller.sd_maxpit
-    DISCON_dict['SD_CornerFreq']    = controller.sd_cornerfreq
+    DISCON_dict['SD_CornerFreq']    = controller.f_sd_cornerfreq
     # ------- Floating -------
     DISCON_dict['Fl_Kp']            = controller.Kp_float
     # ------- FLAP ACTUATION -------

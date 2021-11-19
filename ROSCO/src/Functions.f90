@@ -34,31 +34,31 @@ IMPLICIT NONE
 
 CONTAINS
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION saturate(inputValue, minValue, maxValue)
+    REAL(DbKi) FUNCTION saturate(inputValue, minValue, maxValue)
     ! Saturates inputValue. Makes sure it is not smaller than minValue and not larger than maxValue
 
         IMPLICIT NONE
 
-        REAL(8), INTENT(IN)     :: inputValue
-        REAL(8), INTENT(IN)     :: minValue
-        REAL(8), INTENT(IN)     :: maxValue
+        REAL(DbKi), INTENT(IN)     :: inputValue
+        REAL(DbKi), INTENT(IN)     :: minValue
+        REAL(DbKi), INTENT(IN)     :: maxValue
 
-        saturate = MIN(MAX(inputValue,minValue), maxValue)
+        saturate = REAL(MIN(MAX(inputValue,minValue), maxValue),DbKi)
 
     END FUNCTION saturate
     
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION ratelimit(inputSignal, inputSignalPrev, minRate, maxRate, DT)
+    REAL(DbKi) FUNCTION ratelimit(inputSignal, inputSignalPrev, minRate, maxRate, DT)
     ! Saturates inputValue. Makes sure it is not smaller than minValue and not larger than maxValue
         IMPLICIT NONE
 
-        REAL(8), INTENT(IN)     :: inputSignal
-        REAL(8), INTENT(IN)     :: inputSignalPrev
-        REAL(8), INTENT(IN)     :: minRate
-        REAL(8), INTENT(IN)     :: maxRate
-        REAL(8), INTENT(IN)     :: DT
+        REAL(DbKi), INTENT(IN)     :: inputSignal
+        REAL(DbKi), INTENT(IN)     :: inputSignalPrev
+        REAL(DbKi), INTENT(IN)     :: minRate
+        REAL(DbKi), INTENT(IN)     :: maxRate
+        REAL(DbKi), INTENT(IN)     :: DT
         ! Local variables
-        REAL(8)                 :: rate
+        REAL(DbKi)                 :: rate
 
         rate = (inputSignal - inputSignalPrev)/DT                       ! Signal rate (unsaturated)
         rate = saturate(rate, minRate, maxRate)                 ! Saturate the signal rate
@@ -67,26 +67,26 @@ CONTAINS
     END FUNCTION ratelimit
 
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, reset, inst)
+    REAL(DbKi) FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, reset, inst)
     ! PI controller, with output saturation
 
         IMPLICIT NONE
         ! Allocate Inputs
-        REAL(8), INTENT(IN)         :: error
-        REAL(8), INTENT(IN)         :: kp
-        REAL(8), INTENT(IN)         :: ki
-        REAL(8), INTENT(IN)         :: minValue
-        REAL(8), INTENT(IN)         :: maxValue
-        REAL(8), INTENT(IN)         :: DT
-        INTEGER(4), INTENT(INOUT)   :: inst
-        REAL(8), INTENT(IN)         :: I0
+        REAL(DbKi), INTENT(IN)         :: error
+        REAL(DbKi), INTENT(IN)         :: kp
+        REAL(DbKi), INTENT(IN)         :: ki
+        REAL(DbKi), INTENT(IN)         :: minValue
+        REAL(DbKi), INTENT(IN)         :: maxValue
+        REAL(DbKi), INTENT(IN)         :: DT
+        INTEGER(IntKi), INTENT(INOUT)   :: inst
+        REAL(DbKi), INTENT(IN)         :: I0
         LOGICAL, INTENT(IN)         :: reset     
         ! Allocate local variables
-        INTEGER(4)                      :: i                                            ! Counter for making arrays
-        REAL(8)                         :: PTerm                                        ! Proportional term
-        REAL(8), DIMENSION(99), SAVE    :: ITerm = (/ (real(9999.9), i = 1,99) /)       ! Integral term, current.
-        REAL(8), DIMENSION(99), SAVE    :: ITermLast = (/ (real(9999.9), i = 1,99) /)   ! Integral term, the last time this controller was called. Supports 99 separate instances.
-        INTEGER(4), DIMENSION(99), SAVE :: FirstCall = (/ (1, i=1,99) /)                ! First call of this function?
+        INTEGER(IntKi)                      :: i                                            ! Counter for making arrays
+        REAL(DbKi)                         :: PTerm                                        ! Proportional term
+        REAL(DbKi), DIMENSION(99), SAVE    :: ITerm = (/ (real(9999.9), i = 1,99) /)       ! Integral term, current.
+        REAL(DbKi), DIMENSION(99), SAVE    :: ITermLast = (/ (real(9999.9), i = 1,99) /)   ! Integral term, the last time this controller was called. Supports 99 separate instances.
+        INTEGER(IntKi), DIMENSION(99), SAVE :: FirstCall = (/ (1, i=1,99) /)                ! First call of this function?
         
         ! Initialize persistent variables/arrays, and set inital condition for integrator term
         IF ((FirstCall(inst) == 1) .OR. reset) THEN
@@ -108,31 +108,31 @@ CONTAINS
     END FUNCTION PIController
 
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(8) FUNCTION PIIController(error, error2, kp, ki, ki2, minValue, maxValue, DT, I0, reset, inst)
+    REAL(DbKi) FUNCTION PIIController(error, error2, kp, ki, ki2, minValue, maxValue, DT, I0, reset, inst)
     ! PI controller, with output saturation. 
     ! Added error2 term for additional integral control input
 
         IMPLICIT NONE
         ! Allocate Inputs
-        REAL(8), INTENT(IN)         :: error
-        REAL(8), INTENT(IN)         :: error2
-        REAL(8), INTENT(IN)         :: kp
-        REAL(8), INTENT(IN)         :: ki2
-        REAL(8), INTENT(IN)         :: ki
-        REAL(8), INTENT(IN)         :: minValue
-        REAL(8), INTENT(IN)         :: maxValue
-        REAL(8), INTENT(IN)         :: DT
-        INTEGER(4), INTENT(INOUT)   :: inst
-        REAL(8), INTENT(IN)         :: I0
+        REAL(DbKi), INTENT(IN)         :: error
+        REAL(DbKi), INTENT(IN)         :: error2
+        REAL(DbKi), INTENT(IN)         :: kp
+        REAL(DbKi), INTENT(IN)         :: ki2
+        REAL(DbKi), INTENT(IN)         :: ki
+        REAL(DbKi), INTENT(IN)         :: minValue
+        REAL(DbKi), INTENT(IN)         :: maxValue
+        REAL(DbKi), INTENT(IN)         :: DT
+        INTEGER(IntKi), INTENT(INOUT)   :: inst
+        REAL(DbKi), INTENT(IN)         :: I0
         LOGICAL, INTENT(IN)         :: reset     
         ! Allocate local variables
-        INTEGER(4)                      :: i                                            ! Counter for making arrays
-        REAL(8)                         :: PTerm                                        ! Proportional term
-        REAL(8), DIMENSION(99), SAVE    :: ITerm = (/ (real(9999.9), i = 1,99) /)       ! Integral term, current.
-        REAL(8), DIMENSION(99), SAVE    :: ITermLast = (/ (real(9999.9), i = 1,99) /)   ! Integral term, the last time this controller was called. Supports 99 separate instances.
-        REAL(8), DIMENSION(99), SAVE    :: ITerm2 = (/ (real(9999.9), i = 1,99) /)       ! Second Integral term, current.
-        REAL(8), DIMENSION(99), SAVE    :: ITermLast2 = (/ (real(9999.9), i = 1,99) /)   ! Second Integral term, the last time this controller was called. Supports 99 separate instances.
-        INTEGER(4), DIMENSION(99), SAVE :: FirstCall = (/ (1, i=1,99) /)                ! First call of this function?
+        INTEGER(IntKi)                      :: i                                            ! Counter for making arrays
+        REAL(DbKi)                         :: PTerm                                        ! Proportional term
+        REAL(DbKi), DIMENSION(99), SAVE    :: ITerm = (/ (real(9999.9), i = 1,99) /)       ! Integral term, current.
+        REAL(DbKi), DIMENSION(99), SAVE    :: ITermLast = (/ (real(9999.9), i = 1,99) /)   ! Integral term, the last time this controller was called. Supports 99 separate instances.
+        REAL(DbKi), DIMENSION(99), SAVE    :: ITerm2 = (/ (real(9999.9), i = 1,99) /)       ! Second Integral term, current.
+        REAL(DbKi), DIMENSION(99), SAVE    :: ITermLast2 = (/ (real(9999.9), i = 1,99) /)   ! Second Integral term, the last time this controller was called. Supports 99 separate instances.
+        INTEGER(IntKi), DIMENSION(99), SAVE :: FirstCall = (/ (1, i=1,99) /)                ! First call of this function?
         
         ! Initialize persistent variables/arrays, and set inital condition for integrator term
         IF ((FirstCall(inst) == 1) .OR. reset) THEN
@@ -159,21 +159,21 @@ CONTAINS
     END FUNCTION PIIController
 
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION interp1d(xData, yData, xq, ErrVar)
+    REAL(DbKi) FUNCTION interp1d(xData, yData, xq, ErrVar)
     ! interp1d 1-D interpolation (table lookup), xData should be strictly increasing
         
         USE ROSCO_Types, ONLY : ErrorVariables
         IMPLICIT NONE
 
         ! Inputs
-        REAL(8), DIMENSION(:), INTENT(IN)       :: xData        ! Provided x data (vector), to be interpolated
-        REAL(8), DIMENSION(:), INTENT(IN)       :: yData        ! Provided y data (vector), to be interpolated
-        REAL(8), INTENT(IN)                     :: xq           ! x-value for which the y value has to be interpolated
-        INTEGER(4)                              :: I            ! Iteration index
+        REAL(DbKi), DIMENSION(:), INTENT(IN)       :: xData        ! Provided x data (vector), to be interpolated
+        REAL(DbKi), DIMENSION(:), INTENT(IN)       :: yData        ! Provided y data (vector), to be interpolated
+        REAL(DbKi), INTENT(IN)                     :: xq           ! x-value for which the y value has to be interpolated
+        INTEGER(IntKi)                              :: I            ! Iteration index
 
         ! Error Catching
         TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
-        INTEGER(4)                              :: I_DIFF
+        INTEGER(IntKi)                              :: I_DIFF
 
         CHARACTER(*), PARAMETER                 :: RoutineName = 'interp1d'
 
@@ -220,7 +220,7 @@ CONTAINS
     END FUNCTION interp1d
 
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION interp2d(xData, yData, zData, xq, yq, ErrVar)
+    REAL(DbKi) FUNCTION interp2d(xData, yData, zData, xq, yq, ErrVar)
     ! interp2d 2-D interpolation (table lookup). Query done using bilinear interpolation. 
     ! Note that the interpolated matrix with associated query vectors may be different than "standard", - zData should be formatted accordingly
     ! - xData follows the matrix from left to right
@@ -238,26 +238,26 @@ CONTAINS
         IMPLICIT NONE
     
         ! Inputs
-        REAL(8), DIMENSION(:),   INTENT(IN)     :: xData        ! Provided x data (vector), to find query point (should be strictly increasing)
-        REAL(8), DIMENSION(:),   INTENT(IN)     :: yData        ! Provided y data (vector), to find query point (should be strictly increasing)
-        REAL(8), DIMENSION(:,:), INTENT(IN)     :: zData        ! Provided z data (vector), to be interpolated
-        REAL(8),                 INTENT(IN)     :: xq           ! x-value for which the z value has to be interpolated
-        REAL(8),                 INTENT(IN)     :: yq           ! y-value for which the z value has to be interpolated
+        REAL(DbKi), DIMENSION(:),   INTENT(IN)     :: xData        ! Provided x data (vector), to find query point (should be strictly increasing)
+        REAL(DbKi), DIMENSION(:),   INTENT(IN)     :: yData        ! Provided y data (vector), to find query point (should be strictly increasing)
+        REAL(DbKi), DIMENSION(:,:), INTENT(IN)     :: zData        ! Provided z data (vector), to be interpolated
+        REAL(DbKi),                 INTENT(IN)     :: xq           ! x-value for which the z value has to be interpolated
+        REAL(DbKi),                 INTENT(IN)     :: yq           ! y-value for which the z value has to be interpolated
 
         ! Allocate variables
-        INTEGER(4)                              :: i            ! Iteration index & query index, x-direction
-        INTEGER(4)                              :: ii           ! Iteration index & second que .  ry index, x-direction
-        INTEGER(4)                              :: j            ! Iteration index & query index, y-direction
-        INTEGER(4)                              :: jj           ! Iteration index & second query index, y-direction
-        REAL(8), DIMENSION(2,2)                 :: fQ           ! zData value at query points for bilinear interpolation            
-        REAL(8), DIMENSION(1)                   :: fxy           ! Interpolated z-data point to be returned
-        REAL(8)                                 :: fxy1          ! zData value at query point for bilinear interpolation
-        REAL(8)                                 :: fxy2          ! zData value at query point for bilinear interpolation       
+        INTEGER(IntKi)                              :: i            ! Iteration index & query index, x-direction
+        INTEGER(IntKi)                              :: ii           ! Iteration index & second que .  ry index, x-direction
+        INTEGER(IntKi)                              :: j            ! Iteration index & query index, y-direction
+        INTEGER(IntKi)                              :: jj           ! Iteration index & second query index, y-direction
+        REAL(DbKi), DIMENSION(2,2)                 :: fQ           ! zData value at query points for bilinear interpolation            
+        REAL(DbKi), DIMENSION(1)                   :: fxy           ! Interpolated z-data point to be returned
+        REAL(DbKi)                                 :: fxy1          ! zData value at query point for bilinear interpolation
+        REAL(DbKi)                                 :: fxy2          ! zData value at query point for bilinear interpolation       
         LOGICAL                                 :: edge     
 
         ! Error Catching
         TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
-        INTEGER(4)                              :: I_DIFF
+        INTEGER(IntKi)                              :: I_DIFF
 
         CHARACTER(*), PARAMETER                 :: RoutineName = 'interp2d'
         
@@ -372,9 +372,9 @@ CONTAINS
     FUNCTION matinv3(A) RESULT(B)
     ! Performs a direct calculation of the inverse of a 3×3 matrix.
     ! Source: http://fortranwiki.org/fortran/show/Matrix+inversion
-        REAL(8), INTENT(IN) :: A(3,3)   !! Matrix
-        REAL(8)             :: B(3,3)   !! Inverse matrix
-        REAL(8)             :: detinv
+        REAL(DbKi), INTENT(IN) :: A(3,3)   !! Matrix
+        REAL(DbKi)             :: B(3,3)   !! Inverse matrix
+        REAL(DbKi)             :: detinv
 
         ! Calculate the inverse determinant of the matrix
         detinv = 1/(A(1,1)*A(2,2)*A(3,3) - A(1,1)*A(2,3)*A(3,2)&
@@ -398,7 +398,7 @@ CONTAINS
     ! Produces an identity matrix of size n x n
 
         INTEGER, INTENT(IN)         :: n
-        REAL(8), DIMENSION(n, n)    :: A
+        REAL(DbKi), DIMENSION(n, n)    :: A
         INTEGER                     :: i
         INTEGER                     :: j
 
@@ -416,22 +416,22 @@ CONTAINS
     END FUNCTION identity
 
 !-------------------------------------------------------------------------------------------------------------------------------  
-    REAL FUNCTION DFController(error, Kd, Tf, DT, inst)
+    REAL(DbKi) FUNCTION DFController(error, Kd, Tf, DT, inst)
     ! DF controller, with output saturation
     
         IMPLICIT NONE
         ! Inputs
-        REAL(8), INTENT(IN)     :: error
-        REAL(8), INTENT(IN)     :: kd
-        REAL(8), INTENT(IN)     :: tf
-        REAL(8), INTENT(IN)     :: DT
-        INTEGER(4), INTENT(IN)  :: inst
+        REAL(DbKi), INTENT(IN)     :: error
+        REAL(DbKi), INTENT(IN)     :: kd
+        REAL(DbKi), INTENT(IN)     :: tf
+        REAL(DbKi), INTENT(IN)     :: DT
+        INTEGER(IntKi), INTENT(IN)  :: inst
         ! Local
-        REAL(8)                         :: B                                    ! 
-        INTEGER(4)                      :: i                                    ! Counter for making arrays
-        REAL(8), DIMENSION(99), SAVE    :: errorLast = (/ (0, i=1,99) /)        ! 
-        REAL(8), DIMENSION(99), SAVE    :: DFControllerLast = (/ (0, i=1,99) /) ! 
-        INTEGER(4), DIMENSION(99), SAVE :: FirstCall = (/ (1, i=1,99) /)        ! First call of this function?
+        REAL(DbKi)                         :: B                                    ! 
+        INTEGER(IntKi)                      :: i                                    ! Counter for making arrays
+        REAL(DbKi), DIMENSION(99), SAVE    :: errorLast = (/ (0, i=1,99) /)        ! 
+        REAL(DbKi), DIMENSION(99), SAVE    :: DFControllerLast = (/ (0, i=1,99) /) ! 
+        INTEGER(IntKi), DIMENSION(99), SAVE :: FirstCall = (/ (1, i=1,99) /)        ! First call of this function?
         
         ! Initialize persistent variables/arrays, and set inital condition for integrator term
         ! IF (FirstCall(inst) == 1) THEN
@@ -452,14 +452,14 @@ CONTAINS
 
         IMPLICIT NONE
         ! Inputs
-        REAL(8), INTENT(IN)     :: rootMOOP(3)                      ! Root out of plane bending moments of each blade
-        REAL(8), INTENT(IN)     :: aziAngle                         ! Rotor azimuth angle
-        INTEGER(4), INTENT(IN)  :: nHarmonic                        ! The harmonic number, nP
+        REAL(DbKi), INTENT(IN)     :: rootMOOP(3)                      ! Root out of plane bending moments of each blade
+        REAL(DbKi), INTENT(IN)     :: aziAngle                         ! Rotor azimuth angle
+        INTEGER(IntKi), INTENT(IN)  :: nHarmonic                        ! The harmonic number, nP
         ! Outputs
-        REAL(8), INTENT(OUT)    :: axTOut, axYOut               ! Direct axis and quadrature axis outputted by this transform
+        REAL(DbKi), INTENT(OUT)    :: axTOut, axYOut               ! Direct axis and quadrature axis outputted by this transform
         ! Local
-        REAL(8), PARAMETER      :: phi2 = 2.0/3.0*PI                ! Phase difference from first to second blade
-        REAL(8), PARAMETER      :: phi3 = 4.0/3.0*PI                ! Phase difference from first to third blade
+        REAL(DbKi), PARAMETER      :: phi2 = 2.0/3.0*PI                ! Phase difference from first to second blade
+        REAL(DbKi), PARAMETER      :: phi3 = 4.0/3.0*PI                ! Phase difference from first to third blade
 
         ! Body
         axTOut  = 2.0/3.0 * (cos(nHarmonic*(aziAngle))*rootMOOP(1) + cos(nHarmonic*(aziAngle+phi2))*rootMOOP(2) + cos(nHarmonic*(aziAngle+phi3))*rootMOOP(3))
@@ -473,15 +473,15 @@ CONTAINS
     ! back to root out of plane bending moments of each turbine blade
         IMPLICIT NONE
         ! Inputs
-        REAL(8), INTENT(IN)     :: axTIn, axYIn         ! Direct axis and quadrature axis
-        REAL(8), INTENT(IN)     :: aziAngle                     ! Rotor azimuth angle
-        REAL(8), INTENT(IN)     :: aziOffset                    ! Phase shift added to the azimuth angle
-        INTEGER(4), INTENT(IN)  :: nHarmonic                    ! The harmonic number, nP
+        REAL(DbKi), INTENT(IN)     :: axTIn, axYIn         ! Direct axis and quadrature axis
+        REAL(DbKi), INTENT(IN)     :: aziAngle                     ! Rotor azimuth angle
+        REAL(DbKi), INTENT(IN)     :: aziOffset                    ! Phase shift added to the azimuth angle
+        INTEGER(IntKi), INTENT(IN)  :: nHarmonic                    ! The harmonic number, nP
         ! Outputs
-        REAL(8), INTENT(OUT)    :: PitComIPC(3)                 ! Root out of plane bending moments of each blade
+        REAL(DbKi), INTENT(OUT)    :: PitComIPC(3)                 ! Root out of plane bending moments of each blade
         ! Local
-        REAL(8), PARAMETER      :: phi2 = 2.0/3.0*PI                ! Phase difference from first to second blade
-        REAL(8), PARAMETER      :: phi3 = 4.0/3.0*PI                ! Phase difference from first to third blade
+        REAL(DbKi), PARAMETER      :: phi2 = 2.0/3.0*PI                ! Phase difference from first to second blade
+        REAL(DbKi), PARAMETER      :: phi3 = 4.0/3.0*PI                ! Phase difference from first to third blade
 
         ! Body
         PitComIPC(1) = cos(nHarmonic*(aziAngle+aziOffset))*axTIn + sin(nHarmonic*(aziAngle+aziOffset))*axYIn
@@ -491,22 +491,22 @@ CONTAINS
     END SUBROUTINE ColemanTransformInverse
 
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION CPfunction(CP, lambda)
+    REAL(DbKi) FUNCTION CPfunction(CP, lambda)
     ! Paremeterized Cp(lambda) function for a fixed pitch angle. Circumvents the need of importing a look-up table
         IMPLICIT NONE
         
         ! Inputs
-        REAL(8), INTENT(IN) :: CP(4)    ! Parameters defining the parameterizable Cp(lambda) function
-        REAL(8), INTENT(IN) :: lambda    ! Estimated or measured tip-speed ratio input
+        REAL(DbKi), INTENT(IN) :: CP(4)    ! Parameters defining the parameterizable Cp(lambda) function
+        REAL(DbKi), INTENT(IN) :: lambda    ! Estimated or measured tip-speed ratio input
         
         ! Lookup
         CPfunction = exp(-CP(1)/lambda)*(CP(2)/lambda-CP(3))+CP(4)*lambda
-        CPfunction = saturate(CPfunction, 0.001D0, 1.0D0)
+        CPfunction = saturate(CPfunction, 0.001_DbKi, 1.0_DbKi)
         
     END FUNCTION CPfunction
 
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION AeroDynTorque(LocalVar, CntrPar, PerfData, ErrVar)
+    REAL(DbKi) FUNCTION AeroDynTorque(LocalVar, CntrPar, PerfData, ErrVar)
     ! Function for computing the aerodynamic torque, divided by the effective rotor torque of the turbine, for use in wind speed estimation
         
         USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, PerformanceData, ErrorVariables
@@ -519,9 +519,9 @@ CONTAINS
         TYPE(ErrorVariables), INTENT(INOUT) :: ErrVar
             
         ! Local
-        REAL(8) :: RotorArea
-        REAL(8) :: Cp
-        REAL(8) :: Lambda
+        REAL(DbKi) :: RotorArea
+        REAL(DbKi) :: Cp
+        REAL(DbKi) :: Lambda
 
         CHARACTER(*), PARAMETER                 :: RoutineName = 'AeroDynTorque'
 
@@ -533,7 +533,7 @@ CONTAINS
         Cp = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%PC_PitComT*R2D, Lambda, ErrVar)
         
         AeroDynTorque = 0.5*(CntrPar%WE_RhoAir*RotorArea)*(LocalVar%WE_Vw**3/LocalVar%RotSpeedF)*Cp
-        AeroDynTorque = MAX(AeroDynTorque, 0.0)
+        AeroDynTorque = MAX(AeroDynTorque, 0.0_DbKi)
 
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN
@@ -555,13 +555,13 @@ CONTAINS
         TYPE(LocalVariables), INTENT(IN)        :: LocalVar
         TYPE(DebugVariables), INTENT(IN)        :: DebugVar
     
-        INTEGER(4), INTENT(IN)                      :: size_avcOUTNAME
-        INTEGER(4)                                  :: I , nDebugOuts               ! Generic index.
+        INTEGER(IntKi), INTENT(IN)                      :: size_avcOUTNAME
+        INTEGER(IntKi)                                  :: I , nDebugOuts               ! Generic index.
         CHARACTER(1), PARAMETER                     :: Tab = CHAR(9)                        ! The tab character.
         CHARACTER(29), PARAMETER                    :: FmtDat = "(F10.3,TR5,99(ES10.3E2,TR5:))"   ! The format of the debugging data
-        INTEGER(4), PARAMETER                       :: UnDb = 85        ! I/O unit for the debugging information
-        INTEGER(4), PARAMETER                       :: UnDb2 = 86       ! I/O unit for the debugging information, avrSWAP
-        REAL(C_FLOAT), INTENT(INOUT)                :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
+        INTEGER(IntKi), PARAMETER                       :: UnDb = 85        ! I/O unit for the debugging information
+        INTEGER(IntKi), PARAMETER                       :: UnDb2 = 86       ! I/O unit for the debugging information, avrSWAP
+        REAL(ReKi), INTENT(INOUT)                :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         CHARACTER(size_avcOUTNAME-1), INTENT(IN)    :: RootName     ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
         CHARACTER(200)                              :: Version      ! git version of ROSCO
         CHARACTER(10)                               :: DebugOutStr1,  DebugOutStr2, DebugOutStr3, DebugOutStr4, DebugOutStr5, &
@@ -573,7 +573,7 @@ CONTAINS
                                                          DebugOutUni11, DebugOutUni12, DebugOutUni13, DebugOutUni14, DebugOutUni15, & 
                                                          DebugOutUni16, DebugOutUni17, DebugOutUni18, DebugOutUni19, DebugOutUni20 
         CHARACTER(10), ALLOCATABLE                  :: DebugOutStrings(:), DebugOutUnits(:)
-        REAL(8), ALLOCATABLE                        :: DebugOutData(:)
+        REAL(DbKi), ALLOCATABLE                        :: DebugOutData(:)
 
         ! Set up Debug Strings and Data
         ! Note that Debug strings have 10 character limit
@@ -634,7 +634,7 @@ CONTAINS
             END IF
         ELSE
             ! Print simulation status, every 10 seconds
-            IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
+            IF (MODULO(LocalVar%Time, 10.0_DbKi) == 0) THEN
                 WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0, LocalVar%WE_Vw ! LocalVar%Time !/1000.0
                 100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')
             END IF
@@ -746,8 +746,8 @@ FUNCTION CurDate( )
 
     IMPLICIT NONE
 
-    REAL(8), DIMENSION(:)            :: Array
-    INTEGER(4)         :: I_DIFF
+    REAL(DbKi), DIMENSION(:)            :: Array
+    INTEGER(IntKi)         :: I_DIFF
 
     NonDecreasing = .TRUE.
     ! Is Array non decreasing

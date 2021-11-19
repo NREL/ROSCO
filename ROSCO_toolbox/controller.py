@@ -77,9 +77,7 @@ class Controller():
         self.vs_minspd          = controller_params['vs_minspd']
         self.ss_vsgain          = controller_params['ss_vsgain']
         self.ss_pcgain          = controller_params['ss_pcgain']
-        self.ss_cornerfreq      = controller_params['f_ss_cornerfreq']
         self.ps_percent         = controller_params['ps_percent']
-        self.sd_cornerfreq      = controller_params['sd_cornerfreq']
         self.sd_maxpit          = controller_params['sd_maxpit']
         self.WS_GS_n            = controller_params['WS_GS_n']
         self.PC_GS_n            = controller_params['PC_GS_n']
@@ -113,12 +111,20 @@ class Controller():
             self.twr_freq   = 0
             self.ptfm_freq  = 0
 
-
         # Use critical damping if LPFType = 2
         if controller_params['F_LPFType'] == 2:
             self.F_LPFDamping = 0.7
         else:
             self.F_LPFDamping = 0.0
+
+        # Filter parameters
+        self.f_we_cornerfreq        = controller_params['filter_params']['f_we_cornerfreq']
+        self.f_fl_highpassfreq      = controller_params['filter_params']['f_fl_highpassfreq']
+        self.f_ss_cornerfreq        = controller_params['filter_params']['f_ss_cornerfreq']
+        self.f_sd_cornerfreq        = controller_params['filter_params']['f_sd_cornerfreq']
+
+        # Save controller_params for later (direct passthrough)
+        self.controller_params = controller_params
 
         # Error checking: number of breakpoints
         if self.WS_GS_n <= self.PC_GS_n:
@@ -354,6 +360,13 @@ class Controller():
             self.flp_angle = 0.0
             self.Ki_flap = np.array([0.0])
             self.Kp_flap = np.array([0.0])
+
+        # --- Set up filters ---
+        self.f_lpf_cornerfreq = turbine.bld_edgewise_freq / 4
+
+        # --- Direct input passthrough ---
+        if 'f_lpf_cornerfreq' in self.controller_params['filter_params']:
+            self.f_lpf_cornerfreq = self.controller_params['filter_params']['f_lpf_cornerfreq']
 
     def tune_flap_controller(self,turbine):
         '''

@@ -115,6 +115,14 @@ Examples of the DISCON.IN file are found in each of the Test Cases in the ROSCO 
     - Float Float
     - Corner frequency and damping ratio for the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s, -].
   * -
+    - :code:`F_WECornerFreq`
+    - Float
+    - Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s].
+  * -
+    - :code:`F_FlHighPassFreq`
+    - Float
+    -  Natural frequency of first-order high-pass filter for nacelle fore-aft motion [rad/s]..
+  * -
     - :code:`F_FlpCornerFreq`
     - Float Float
     - Corner frequency and damping ratio in the second order low pass filter of the blade root bending moment for flap control [rad/s, -].

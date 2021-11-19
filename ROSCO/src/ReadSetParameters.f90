@@ -43,7 +43,7 @@ CONTAINS
     SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar)
         USE ROSCO_Types, ONLY : LocalVariables
 
-        REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
+        REAL(ReKi), INTENT(INOUT) :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
         
         ! Load variables from calling program (See Appendix A of Bladed User's Guide):
@@ -83,8 +83,8 @@ CONTAINS
                 
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData, ErrorVariables
         
-        REAL(C_FLOAT),              INTENT(INOUT)    :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
-        CHARACTER(C_CHAR),          INTENT(IN   )    :: accINFILE(NINT(avrSWAP(50)))     ! The name of the parameter input file
+        REAL(ReKi),                 INTENT(INOUT)   :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
+        CHARACTER(C_CHAR),          INTENT(IN   )   :: accINFILE(NINT(avrSWAP(50)))     ! The name of the parameter input file
 
         INTEGER(4),                 INTENT(IN   )   :: size_avcMSG
         TYPE(ControlParameters),    INTENT(INOUT)   :: CntrPar
@@ -191,13 +191,13 @@ CONTAINS
         USE, INTRINSIC :: ISO_C_Binding
         USE ROSCO_Types, ONLY : ControlParameters, ErrorVariables
 
-        INTEGER(4)                                      :: accINFILE_size               ! size of DISCON input filename, INTENT(IN) here??
+        INTEGER(IntKi)                                      :: accINFILE_size               ! size of DISCON input filename
         CHARACTER(accINFILE_size),  INTENT(IN   )       :: accINFILE(accINFILE_size)    ! DISCON input filename
+        INTEGER(IntKi), PARAMETER                           :: UnControllerParameters = 89  ! Unit number to open file
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar                      ! Control parameter type
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar                      ! Control parameter type
 
-        INTEGER(4),                 PARAMETER                           :: UnControllerParameters = 89  ! Unit number to open file
-        INTEGER(4)                                      :: CurLine 
+        INTEGER(IntKi)                                      :: CurLine 
 
         CHARACTER(*),               PARAMETER           :: RoutineName = 'ReadControlParameterFileSub'
 
@@ -241,7 +241,9 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'F_NotchCornerFreq',accINFILE(1),CntrPar%F_NotchCornerFreq,ErrVar)
         CALL ParseAry(UnControllerParameters, CurLine, 'F_NotchBetaNumDen', CntrPar%F_NotchBetaNumDen, 2, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'F_SSCornerFreq',accINFILE(1),CntrPar%F_SSCornerFreq,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'F_WECornerFreq',accINFILE(1),CntrPar%F_WECornerFreq,ErrVar)
         CALL ParseAry(UnControllerParameters, CurLine, 'F_FlCornerFreq', CntrPar%F_FlCornerFreq, 2, accINFILE(1), ErrVar )
+        CALL ParseInput(UnControllerParameters,CurLine,'F_FlHighPassFreq',accINFILE(1),CntrPar%F_FlHighPassFreq,ErrVar)
         CALL ParseAry(UnControllerParameters, CurLine, 'F_FlpCornerFreq', CntrPar%F_FlpCornerFreq, 2, accINFILE(1), ErrVar )
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
@@ -388,12 +390,12 @@ CONTAINS
         TYPE(ErrorVariables),       INTENT(INOUT)   :: ErrVar
         
         ! Local variables
-        INTEGER(4),                 PARAMETER       :: UnPerfParameters = 89
-        INTEGER(4)                                  :: i ! iteration index
+        INTEGER(IntKi), PARAMETER                       :: UnPerfParameters = 89
+        INTEGER(IntKi)                                  :: i ! iteration index
 
-        INTEGER(4)                                  :: CurLine 
-        CHARACTER(*),               PARAMETER       :: RoutineName = 'ReadCpFile'
-        REAL(8), DIMENSION(:), ALLOCATABLE          :: TmpPerf
+        INTEGER(IntKi)                                  :: CurLine 
+        CHARACTER(*), PARAMETER                     :: RoutineName = 'ReadCpFile'
+        REAL(DbKi), DIMENSION(:), ALLOCATABLE          :: TmpPerf
 
         CurLine = 1
 
@@ -453,8 +455,8 @@ CONTAINS
         TYPE(ControlParameters),    INTENT(IN   )       :: CntrPar
         TYPE(LocalVariables),       INTENT(IN   )       :: LocalVar
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
-        INTEGER(4),                 INTENT(IN   )       :: size_avcMSG
-        REAL(C_FLOAT),              INTENT(IN   )       :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
+        INTEGER(IntKi),                 INTENT(IN   )       :: size_avcMSG
+        REAL(ReKi),              INTENT(IN   )       :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
         
         CHARACTER(*), PARAMETER                         :: RoutineName = 'CheckInputs'
         ! Local
@@ -592,6 +594,18 @@ CONTAINS
         IF (CntrPar%F_SSCornerFreq <= 0.0) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'F_SSCornerFreq must be greater than zero.'
+        ENDIF
+
+        ! F_WECornerFreq
+        IF (CntrPar%F_WECornerFreq <= 0.0) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'F_WECornerFreq must be greater than zero.'
+        ENDIF
+
+        ! F_FlHighPassFreq
+        IF (CntrPar%F_FlHighPassFreq <= 0.0) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'F_FlHighPassFreq must be greater than zero.'
         ENDIF
 
         IF (CntrPar%Fl_Mode > 0) THEN
@@ -888,15 +902,15 @@ CONTAINS
         USE ROSCO_Types, ONLY : ErrorVariables
 
         CHARACTER(1024)                         :: Line
-        INTEGER(4),             INTENT(IN   )   :: Un   ! Input file unit
+        INTEGER(IntKi),             INTENT(IN   )   :: Un   ! Input file unit
         CHARACTER(*),           INTENT(IN   )   :: VarName   ! Input file unit
         CHARACTER(*),           INTENT(IN   )   :: FileName   ! Input file unit
-        INTEGER(4),             INTENT(INOUT)   :: CurLine   ! Current line of input
+        INTEGER(IntKi),             INTENT(INOUT)   :: CurLine   ! Current line of input
         TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
         CHARACTER(20)                           :: Words       (2)               ! The two "words" parsed from the line
 
-        INTEGER(4),             INTENT(INOUT)   :: Variable   ! Variable
-        INTEGER(4)                              :: ErrStatLcl                    ! Error status local to this routine.
+        INTEGER(IntKi),             INTENT(INOUT)   :: Variable   ! Variable
+        INTEGER(IntKi)                              :: ErrStatLcl                    ! Error status local to this routine.
         LOGICAL, OPTIONAL,      INTENT(IN   )   :: CheckName
 
         LOGICAL                                 :: CheckName_
@@ -952,16 +966,16 @@ CONTAINS
         USE ROSCO_Types, ONLY : ErrorVariables
 
         CHARACTER(1024)                         :: Line
-        INTEGER(4),             INTENT(IN   )   :: Un   ! Input file unit
+        INTEGER(IntKi),             INTENT(IN   )   :: Un   ! Input file unit
         CHARACTER(*),           INTENT(IN   )   :: VarName   ! Input file unit
         CHARACTER(*),           INTENT(IN   )   :: FileName   ! Input file unit
-        INTEGER(4),             INTENT(INOUT)   :: CurLine   ! Current line of input
+        INTEGER(IntKi),             INTENT(INOUT)   :: CurLine   ! Current line of input
         TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
         CHARACTER(20)                           :: Words       (2)               ! The two "words" parsed from the line
         LOGICAL, OPTIONAL,      INTENT(IN   )   :: CheckName
 
-        REAL(8),             INTENT(INOUT)      :: Variable   ! Variable
-        INTEGER(4)                              :: ErrStatLcl                    ! Error status local to this routine.
+        REAL(DbKi),             INTENT(INOUT)      :: Variable   ! Variable
+        INTEGER(IntKi)                              :: ErrStatLcl                    ! Error status local to this routine.
 
         LOGICAL                                 :: CheckName_
 
@@ -1016,16 +1030,16 @@ CONTAINS
         USE ROSCO_Types, ONLY : ErrorVariables
 
         CHARACTER(1024)                         :: Line
-        INTEGER(4),             INTENT(IN   )   :: Un   ! Input file unit
+        INTEGER(IntKi),             INTENT(IN   )   :: Un   ! Input file unit
         CHARACTER(*),           INTENT(IN   )   :: VarName   ! Input file unit
         CHARACTER(*),           INTENT(IN   )   :: FileName   ! Input file unit
-        INTEGER(4),             INTENT(INOUT)   :: CurLine   ! Current line of input
+        INTEGER(IntKi),             INTENT(INOUT)   :: CurLine   ! Current line of input
         TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
         CHARACTER(200)                          :: Words       (2)               ! The two "words" parsed from the line
         LOGICAL, OPTIONAL,      INTENT(IN   )   :: CheckName
 
         CHARACTER(*),           INTENT(INOUT)   :: Variable   ! Variable
-        INTEGER(4)                              :: ErrStatLcl                    ! Error status local to this routine.
+        INTEGER(IntKi)                              :: ErrStatLcl                    ! Error status local to this routine.
 
         LOGICAL                                 :: CheckName_
 
@@ -1083,12 +1097,12 @@ CONTAINS
         USE ROSCO_Types, ONLY : ErrorVariables
 
         ! Arguments declarations.
-        INTEGER(4),             INTENT(IN   )   :: Un   ! Input file unit
+        INTEGER(IntKi),             INTENT(IN   )   :: Un   ! Input file unit
         INTEGER,                INTENT(IN   )   :: AryLen                        !< The length of the array to parse.
 
-        REAL(8), ALLOCATABLE,   INTENT(INOUT)   :: Ary(:)            !< The array to receive the input values.
+        REAL(DbKi), ALLOCATABLE,   INTENT(INOUT)   :: Ary(:)            !< The array to receive the input values.
 
-        INTEGER(4),             INTENT(INOUT)   :: LineNum                       !< The number of the line to parse.
+        INTEGER(IntKi),             INTENT(INOUT)   :: LineNum                       !< The number of the line to parse.
         CHARACTER(*),           INTENT(IN)      :: FileName                      !< The name of the file being parsed.
 
 
@@ -1102,8 +1116,8 @@ CONTAINS
         ! Local declarations.
 
         CHARACTER(1024)                         :: Line
-        INTEGER(4)                              :: ErrStatLcl                    ! Error status local to this routine.
-        INTEGER(4)                              :: i
+        INTEGER(IntKi)                              :: ErrStatLcl                    ! Error status local to this routine.
+        INTEGER(IntKi)                              :: i
 
         CHARACTER(200), ALLOCATABLE             :: Words_Ary       (:)               ! The array "words" parsed from the line.
         CHARACTER(1024)                         :: Debug_String 
@@ -1210,12 +1224,12 @@ CONTAINS
     USE ROSCO_Types, ONLY : ErrorVariables
 
     ! Arguments declarations.
-    INTEGER(4),             INTENT(IN   )   :: Un   ! Input file unit
+    INTEGER(IntKi),             INTENT(IN   )   :: Un   ! Input file unit
     INTEGER,                INTENT(IN   )   :: AryLen                        !< The length of the array to parse.
 
-    INTEGER(4), ALLOCATABLE,   INTENT(INOUT)   :: Ary(:)            !< The array to receive the input values.
+    INTEGER(IntKi), ALLOCATABLE,   INTENT(INOUT)   :: Ary(:)            !< The array to receive the input values.
 
-    INTEGER(4),             INTENT(INOUT)   :: LineNum                       !< The number of the line to parse.
+    INTEGER(IntKi),             INTENT(INOUT)   :: LineNum                       !< The number of the line to parse.
     CHARACTER(*),           INTENT(IN)      :: FileName                      !< The name of the file being parsed.
 
 
@@ -1228,8 +1242,8 @@ CONTAINS
     ! Local declarations.
 
     CHARACTER(1024)                         :: Line
-    INTEGER(4)                              :: ErrStatLcl                    ! Error status local to this routine.
-    INTEGER(4)                              :: i
+    INTEGER(IntKi)                              :: ErrStatLcl                    ! Error status local to this routine.
+    INTEGER(IntKi)                              :: i
 
     CHARACTER(200), ALLOCATABLE             :: Words_Ary       (:)               ! The array "words" parsed from the line.
     CHARACTER(1024)                         :: Debug_String 
@@ -1339,8 +1353,8 @@ SUBROUTINE ChkParseData ( Words, ExpVarName, FileName, FileLineNum, ErrVar )
         ! Arguments declarations.
     TYPE(ErrorVariables),         INTENT(INOUT)          :: ErrVar   ! Current line of input
 
-    INTEGER(4), INTENT(IN)             :: FileLineNum                   !< The number of the line in the file being parsed.
-    INTEGER(4)                        :: NameIndx                      !< The index into the Words array that points to the variable name.
+    INTEGER(IntKi), INTENT(IN)             :: FileLineNum                   !< The number of the line in the file being parsed.
+    INTEGER(IntKi)                        :: NameIndx                      !< The index into the Words array that points to the variable name.
 
     CHARACTER(*),   INTENT(IN)             :: ExpVarName                    !< The expected variable name.
     CHARACTER(*),   INTENT(IN)             :: Words       (2)               !< The two words to be parsed from the line.
@@ -1392,8 +1406,8 @@ END SUBROUTINE ChkParseData
 
 !=======================================================================
 subroutine ReadEmptyLine(Un,CurLine)
-    INTEGER(4),         INTENT(IN   )          :: Un   ! Input file unit
-    INTEGER(4),         INTENT(INOUT)          :: CurLine   ! Current line of input
+    INTEGER(IntKi),         INTENT(IN   )          :: Un   ! Input file unit
+    INTEGER(IntKi),         INTENT(INOUT)          :: CurLine   ! Current line of input
 
     CHARACTER(1024)                            :: Line
 

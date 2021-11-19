@@ -1,6 +1,9 @@
 import textwrap
 
 import validation
+from shutil import copy
+import os
+
 
 mywidth = 70
 myindent = " " * 4
@@ -84,9 +87,15 @@ class Schema2RST(object):
         self.f.close()
 
     def write_header(self):
-        self.f.write("*" * 30 + "\n")
-        self.f.write(self.fname + "\n")
-        self.f.write("*" * 30 + "\n")
+        title = 'ROSCO_Toolbox tuning .yaml'
+        self.f.write("\n")
+        self.f.write(".. toctree::\n")
+        self.f.write("\n")
+        self.f.write(".. _rt_tuning_yaml: \n")
+        self.f.write("\n")
+        self.f.write("*" * len(title) + "\n")
+        self.f.write(title + "\n")
+        self.f.write("*" * len(title) + "\n")
         if "description" in self.yaml.keys():
             self.f.write(self.yaml["description"] + "\n")
 
@@ -106,6 +115,18 @@ class Schema2RST(object):
                 if rv[k]["type"] == "object" and "properties" in rv[k].keys():
                     k_desc = None if not "description" in rv[k] else rv[k]["description"]
                     self.write_loop(rv[k]["properties"], idepth + 1, k, k_desc)
+
+                # If multiple types are allowed, only ["number", "integer", "string", "boolean"] allowed, need to
+                # add support for objects, but nothing is like this now
+                elif isinstance(rv[k]["type"], list):
+                    type_string = []
+                    for i_type in range(len(rv[k]["type"])):
+                        temp_rv = rv[k].copy()
+                        temp_rv['type'] = rv[k]["type"][i_type]
+                        type_string.append(get_type_string(temp_rv))
+
+                    self.f.write(":code:`" + k + "` : " + ' or '.join(type_string) + "\n")
+                    self.f.write(get_description_string(rv[k]) + "\n")
 
                 elif rv[k]["type"].lower() in ["number", "integer", "string", "boolean"]:
                     self.f.write(":code:`" + k + "` : " + get_type_string(rv[k]) + "\n")
@@ -127,5 +148,10 @@ class Schema2RST(object):
 
 
 if __name__ == "__main__":
-    myobj = Schema2RST('/Users/dzalkind/Tools/ROSCO/ROSCO_toolbox/inputs/toolbox_schema.yaml')
+    shema_file = os.path.join(os.path.dirname(__file__),'toolbox_schema.yaml')
+    myobj = Schema2RST(shema_file)
     myobj.write_rst()
+
+    filename = myobj.fout.split('/')[-1]
+    doc_file = os.path.realpath(os.path.join(os.path.dirname(__file__),'../../docs/source/toolbox_input.rst'))
+    copy(myobj.fout, doc_file)
