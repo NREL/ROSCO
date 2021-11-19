@@ -234,11 +234,11 @@ CONTAINS
             Q = RESHAPE((/0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0/),(/3,3/))
             IF (LocalVar%iStatus == 0) THEN
                 ! Initialize recurring values
-                om_r = max(LocalVar%RotSpeedF, CntrPar%VS_MinOMSpd / CntrPar%WE_GearboxRatio)
+                om_r = max(LocalVar%RotSpeedF, 0.5 * CntrPar%VS_MinOMSpd / CntrPar%WE_GearboxRatio)
                 v_t = 0.0
                 v_m = LocalVar%HorWindV
                 v_h = LocalVar%HorWindV
-                lambda = max(LocalVar%RotSpeed, CntrPar%VS_MinOMSpd / CntrPar%WE_GearboxRatio) * CntrPar%WE_BladeRadius/v_h
+                lambda = max(LocalVar%RotSpeed, 0.5 * CntrPar%VS_MinOMSpd / CntrPar%WE_GearboxRatio) * CntrPar%WE_BladeRadius/v_h
                 xh = RESHAPE((/om_r, v_t, v_m/),(/3,1/))
                 P = RESHAPE((/0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 1.0/),(/3,3/))
                 K = RESHAPE((/0.0,0.0,0.0/),(/3,1/))
@@ -247,8 +247,8 @@ CONTAINS
             ELSE
 
                 ! Saturate inputs here
-                IF (LocalVar%RotSpeedF < CntrPar%VS_MinOMSpd / CntrPar%WE_GearboxRatio) THEN
-                    WE_Inp_Speed = CntrPar%VS_MinOMSpd / CntrPar%WE_GearboxRatio
+                IF (LocalVar%RotSpeedF < 0.5 * CntrPar%VS_MinOMSpd / CntrPar%WE_GearboxRatio) THEN
+                    WE_Inp_Speed = 0.5 * CntrPar%VS_MinOMSpd / CntrPar%WE_GearboxRatio
                 ELSE
                     WE_Inp_Speed = LocalVar%RotSpeedF
                 END IF
@@ -259,8 +259,8 @@ CONTAINS
                     WE_Inp_Pitch = LocalVar%BlPitch(1)
                 END IF
 
-                IF (LocalVar%VS_LastGenTrqF < 0.25 * CntrPar%VS_RtTq) THEN
-                    WE_Inp_Torque = 0.25 * CntrPar%VS_RtTq
+                IF (LocalVar%VS_LastGenTrqF < 0.125 * CntrPar%VS_RtTq) THEN
+                    WE_Inp_Torque = 0.125 * CntrPar%VS_RtTq
                 ELSE
                     WE_Inp_Torque = LocalVar%VS_LastGenTrqF
                 END IF
