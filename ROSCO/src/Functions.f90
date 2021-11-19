@@ -506,7 +506,7 @@ CONTAINS
     END FUNCTION CPfunction
 
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(DbKi) FUNCTION AeroDynTorque(LocalVar, CntrPar, PerfData, ErrVar)
+    REAL(DbKi) FUNCTION AeroDynTorque(RotSpeed, BldPitch, LocalVar, CntrPar, PerfData, ErrVar)
     ! Function for computing the aerodynamic torque, divided by the effective rotor torque of the turbine, for use in wind speed estimation
         
         USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, PerformanceData, ErrorVariables
@@ -517,6 +517,9 @@ CONTAINS
         TYPE(LocalVariables), INTENT(IN) :: LocalVar
         TYPE(PerformanceData), INTENT(IN) :: PerfData
         TYPE(ErrorVariables), INTENT(INOUT) :: ErrVar
+
+        REAL(DbKi), INTENT(IN)  :: RotSpeed
+        REAL(DbKi), INTENT(IN)  :: BldPitch
             
         ! Local
         REAL(DbKi) :: RotorArea
@@ -527,12 +530,12 @@ CONTAINS
 
         ! Find Torque
         RotorArea = PI*CntrPar%WE_BladeRadius**2
-        Lambda = LocalVar%RotSpeedF*CntrPar%WE_BladeRadius/LocalVar%WE_Vw
+        Lambda = RotSpeed*CntrPar%WE_BladeRadius/LocalVar%WE_Vw
 
         ! Compute Cp
-        Cp = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%PC_PitComT*R2D, Lambda, ErrVar)
+        Cp = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, BldPitch*R2D, Lambda, ErrVar)
         
-        AeroDynTorque = 0.5*(CntrPar%WE_RhoAir*RotorArea)*(LocalVar%WE_Vw**3/LocalVar%RotSpeedF)*Cp
+        AeroDynTorque = 0.5*(CntrPar%WE_RhoAir*RotorArea)*(LocalVar%WE_Vw**3/RotSpeed)*Cp
         AeroDynTorque = MAX(AeroDynTorque, 0.0_DbKi)
 
         ! Add RoutineName to error message
