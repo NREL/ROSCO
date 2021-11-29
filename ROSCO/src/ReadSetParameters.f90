@@ -86,7 +86,7 @@ CONTAINS
         REAL(ReKi),                 INTENT(INOUT)   :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
         CHARACTER(C_CHAR),          INTENT(IN   )   :: accINFILE(NINT(avrSWAP(50)))     ! The name of the parameter input file
 
-        INTEGER(4),                 INTENT(IN   )   :: size_avcMSG
+        INTEGER(IntKi),                 INTENT(IN   )   :: size_avcMSG
         TYPE(ControlParameters),    INTENT(INOUT)   :: CntrPar
         TYPE(LocalVariables),       INTENT(INOUT)   :: LocalVar
         TYPE(ObjectInstances),      INTENT(INOUT)   :: objInst
@@ -94,7 +94,7 @@ CONTAINS
         TYPE(ErrorVariables),       INTENT(INOUT)   :: ErrVar
 
         
-        INTEGER(4)                              :: K    ! Index used for looping through blades.
+        INTEGER(IntKi)                              :: K    ! Index used for looping through blades.
 
         CHARACTER(*),               PARAMETER       :: RoutineName = 'SetParameters'
 
@@ -191,13 +191,16 @@ CONTAINS
         USE, INTRINSIC :: ISO_C_Binding
         USE ROSCO_Types, ONLY : ControlParameters, ErrorVariables
 
-        INTEGER(IntKi)                                      :: accINFILE_size               ! size of DISCON input filename
+        INTEGER(IntKi)                                  :: accINFILE_size               ! size of DISCON input filename
         CHARACTER(accINFILE_size),  INTENT(IN   )       :: accINFILE(accINFILE_size)    ! DISCON input filename
-        INTEGER(IntKi), PARAMETER                           :: UnControllerParameters = 89  ! Unit number to open file
+        INTEGER(IntKi), PARAMETER                       :: UnControllerParameters = 89  ! Unit number to open file
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar                      ! Control parameter type
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar                      ! Control parameter type
 
-        INTEGER(IntKi)                                      :: CurLine 
+        INTEGER(IntKi)                                  :: CurLine 
+
+        CHARACTER(1024)                                 :: OL_String                    ! Open description loop string
+        INTEGER(IntKi)                                  :: OL_Count                     ! Number of open loop channels
 
         CHARACTER(*),               PARAMETER           :: RoutineName = 'ReadControlParameterFileSub'
 
@@ -232,6 +235,8 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'SD_Mode',accINFILE(1),CntrPar%SD_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'FL_Mode',accINFILE(1),CntrPar%FL_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_Mode',accINFILE(1),CntrPar%Flp_Mode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'OL_Mode',accINFILE(1),CntrPar%OL_Mode,ErrVar)
+
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !----------------- FILTER CONSTANTS ---------------------
@@ -359,6 +364,59 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_Kp',accINFILE(1),CntrPar%Flp_Kp,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_Ki',accINFILE(1),CntrPar%Flp_Ki,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_MaxPit',accINFILE(1),CntrPar%Flp_MaxPit,ErrVar)
+
+        !------------ Open loop input ------------
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(UnControllerParameters,CurLine,'OL_Filename',accINFILE(1),CntrPar%OL_Filename,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Ind_Breakpoint',accINFILE(1),CntrPar%Ind_Breakpoint,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Ind_BldPitch',accINFILE(1),CntrPar%Ind_BldPitch,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Ind_GenTq',accINFILE(1),CntrPar%Ind_GenTq,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Ind_YawRate',accINFILE(1),CntrPar%Ind_YawRate,ErrVar)
+
+        READ(UnControllerParameters, *) CntrPar%OL_Filename  
+        READ(UnControllerParameters, *) CntrPar%Ind_Breakpoint  
+        READ(UnControllerParameters, *) CntrPar%Ind_BldPitch  
+        READ(UnControllerParameters, *) CntrPar%Ind_GenTq
+        READ(UnControllerParameters, *) CntrPar%Ind_YawRate
+        
+        ! Read open loop input, if desired
+        IF (CntrPar%OL_Mode == 1) THEN
+            OL_String = ''      ! Display string
+            OL_Count  = 0
+            IF (CntrPar%Ind_BldPitch > 0) THEN
+                OL_String   = TRIM(OL_String)//' BldPitch '
+                OL_Count    = OL_Count + 1
+            ENDIF
+
+            IF (CntrPar%Ind_GenTq > 0) THEN
+                OL_String   = TRIM(OL_String)//' GenTq '
+                OL_Count    = OL_Count + 1
+            ENDIF
+
+            IF (CntrPar%Ind_YawRate > 0) THEN
+                OL_String   = TRIM(OL_String)//' YawRate '
+                OL_Count    = OL_Count + 1
+            ENDIF
+
+            PRINT *, 'ROSCO: Implementing open loop control for'//TRIM(OL_String)
+            CALL Read_OL_Input(CntrPar%OL_Filename,110,OL_Count,CntrPar%OL_Breakpoints,CntrPar%OL_Channels)
+
+            IF (CntrPar%Ind_BldPitch > 0) THEN
+                CntrPar%OL_BldPitch = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch-1)
+            ENDIF
+
+            IF (CntrPar%Ind_GenTq > 0) THEN
+                CntrPar%OL_GenTq = CntrPar%OL_Channels(:,CntrPar%Ind_GenTq-1)
+            ENDIF
+
+            IF (CntrPar%Ind_YawRate > 0) THEN
+                CntrPar%OL_YawRate = CntrPar%OL_Channels(:,CntrPar%Ind_YawRate-1)
+            ENDIF
+        END IF
+
+        ! Debugging outputs (echo someday)
+        write(400,*) CntrPar%OL_Breakpoints, CntrPar%OL_BldPitch, CntrPar%OL_GenTq, CntrPar%OL_YawRate
+
         ! END OF INPUT FILE    
 
         ! Close Input File
@@ -1488,5 +1546,140 @@ SUBROUTINE GetWords ( Line, Words, NumWords )
 
     RETURN
 END SUBROUTINE GetWords
+
+! ------------------------------------------------------
+    ! Read Open Loop Control Inputs
+    ! 
+    ! Timeseries or lookup tables of the form
+    ! index (time or wind speed)   channel_1 \t channel_2 \t channel_3 ...
+SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Breakpoints, Channels)
+
+    CHARACTER(1024), INTENT(IN)                             :: OL_InputFileName    ! DISCON input filename
+    INTEGER(IntKi), INTENT(IN)                                  :: Unit_OL_Input 
+    INTEGER(IntKi), INTENT(IN)                                  :: NumChannels     ! Number of open loop channels being defined
+
+    LOGICAL                                                 :: FileExists
+    INTEGER                                                 :: IOS                                                 ! I/O status of OPEN.
+    CHARACTER(1024)                                         :: Line              ! Temp variable for reading whole line from file
+    INTEGER(IntKi)                                              :: NumComments
+    INTEGER(IntKi)                                              :: NumDataLines
+    INTEGER(IntKi)                                              :: NumCols 
+    REAL(DbKi)                                                 :: TmpData(NumChannels+1)  ! Temp variable for reading all columns from a line
+    CHARACTER(15)                                           :: NumString
+
+    REAL(DbKi), INTENT(OUT), DIMENSION(:), ALLOCATABLE         :: Breakpoints    ! Breakpoints of open loop Channels
+    REAL(DbKi), INTENT(OUT), DIMENSION(:,:), ALLOCATABLE       :: Channels         ! Open loop channels
+    INTEGER(IntKi)                                              :: I,J
+
+    NumCols             = NumChannels + 1
+
+    !-------------------------------------------------------------------------------------------------
+    ! Read from input file, borrowed (read: copied) from (Open)FAST team...thanks!
+    !-------------------------------------------------------------------------------------------------
+
+    !-------------------------------------------------------------------------------------------------
+    ! Open the file for reading
+    !-------------------------------------------------------------------------------------------------
+
+    INQUIRE (FILE = OL_InputFileName, EXIST = FileExists)
+
+    IF ( .NOT. FileExists) THEN
+        PRINT *, TRIM(OL_InputFileName)// ' does not exist, setting Channels = 1 for all time'
+        ALLOCATE(Breakpoints(2))
+        ALLOCATE(Channels(2,1))
+        Channels(1,1) = 1;              Channels(2,1)           = 1
+        Breakpoints(1) = 0;             Breakpoints(2)          = 90000;
+
+    ELSE
+
+        OPEN( Unit_OL_Input, FILE=TRIM(OL_InputFileName), STATUS='OLD', FORM='FORMATTED', IOSTAT=IOS, ACTION='READ' )
+
+        IF (IOS /= 0) THEN
+            PRINT *, 'Cannot open ' // TRIM(OL_InputFileName) // ', setting R = 1 for all time'
+            ALLOCATE(Breakpoints(2))
+            ALLOCATE(Channels(2,1))
+            Channels(1,1) = 1;              Channels(2,1) = 1
+            Breakpoints(1) = 0;             Breakpoints(2)       = 90000;
+            CLOSE(Unit_OL_Input)
+        
+        ELSE
+            ! Do all the stuff!
+
+            !-------------------------------------------------------------------------------------------------
+            ! Find the number of comment lines
+            !-------------------------------------------------------------------------------------------------
+
+            LINE = '!'                          ! Initialize the line for the DO WHILE LOOP
+            NumComments = -1                    ! the last line we read is not a comment, so we'll initialize this to -1 instead of 0
+
+            DO WHILE ( (INDEX( LINE, '!' ) > 0) .OR. (INDEX( LINE, '#' ) > 0) .OR. (INDEX( LINE, '%' ) > 0) ) ! Lines containing "!" are treated as comment lines
+                NumComments = NumComments + 1
+                
+                READ(Unit_OL_Input,'( A )',IOSTAT=IOS) LINE
+
+                ! NWTC_IO has some error catching here that we'll skip for now
+        
+            END DO !WHILE
+
+            !-------------------------------------------------------------------------------------------------
+            ! Find the number of data lines
+            !-------------------------------------------------------------------------------------------------
+
+            NumDataLines = 0
+
+            READ(LINE,*,IOSTAT=IOS) ( TmpData(I), I=1,NumCols ) ! this line was read when we were figuring out the comment lines; let's make sure it contains
+
+            DO WHILE (IOS == 0)  ! read the rest of the file (until an error occurs)
+                NumDataLines = NumDataLines + 1
+                
+                READ(Unit_OL_Input,*,IOSTAT=IOS) ( TmpData(I), I=1,NumCols )
+            
+            END DO !WHILE
+        
+        
+            IF (NumDataLines < 1) THEN
+                WRITE (NumString,'(I11)')  NumComments
+                PRINT *, 'Error: '//TRIM(NumString)//' comment lines were found in the uniform wind file, '// &
+                            'but the first data line does not contain the proper format.'
+                CLOSE(Unit_OL_Input)
+            END IF
+
+            !-------------------------------------------------------------------------------------------------
+            ! Allocate arrays for the uniform wind data
+            !-------------------------------------------------------------------------------------------------
+            ALLOCATE(Breakpoints(NumDataLines))
+            ALLOCATE(Channels(NumDataLines,NumChannels))
+
+            !-------------------------------------------------------------------------------------------------
+            ! Rewind the file (to the beginning) and skip the comment lines
+            !-------------------------------------------------------------------------------------------------
+
+            REWIND( Unit_OL_Input )
+
+            DO I=1,NumComments
+                READ(Unit_OL_Input,'( A )',IOSTAT=IOS) LINE
+            END DO !I
+        
+
+            !-------------------------------------------------------------------------------------------------
+            ! Read the data arrays
+            !-------------------------------------------------------------------------------------------------
+        
+            DO I=1,NumDataLines
+            
+                READ(Unit_OL_Input,*,IOSTAT=IOS) ( TmpData(J), J=1,NumCols )
+
+                IF (IOS > 0) THEN
+                    CLOSE(Unit_OL_Input)
+                END IF
+
+                Breakpoints(I)          = TmpData(1)
+                Channels(I,:)        = TmpData(2:)
+        
+            END DO !I     
+        END IF
+    END IF
+
+END SUBROUTINE Read_OL_Input
 
 END MODULE ReadSetParameters

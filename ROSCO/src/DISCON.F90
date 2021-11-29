@@ -77,11 +77,11 @@ IF ((LocalVar%iStatus >= 0) .AND. (ErrVar%aviFAIL >= 0))  THEN  ! Only compute c
     CALL StateMachine(CntrPar, LocalVar)
     CALL SetpointSmoother(LocalVar, CntrPar, objInst)
     CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
-    CALL VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst)
+    CALL VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
     CALL PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
     
     IF (CntrPar%Y_ControlMode > 0) THEN
-        CALL YawRateControl(avrSWAP, CntrPar, LocalVar, objInst)
+        CALL YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
     END IF
     
     IF (CntrPar%Flp_Mode > 0) THEN
