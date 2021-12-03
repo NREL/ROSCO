@@ -364,6 +364,7 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_Kp',accINFILE(1),CntrPar%Flp_Kp,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_Ki',accINFILE(1),CntrPar%Flp_Ki,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_MaxPit',accINFILE(1),CntrPar%Flp_MaxPit,ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
 
         !------------ Open loop input ------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
@@ -372,12 +373,6 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'Ind_BldPitch',accINFILE(1),CntrPar%Ind_BldPitch,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Ind_GenTq',accINFILE(1),CntrPar%Ind_GenTq,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Ind_YawRate',accINFILE(1),CntrPar%Ind_YawRate,ErrVar)
-
-        READ(UnControllerParameters, *) CntrPar%OL_Filename  
-        READ(UnControllerParameters, *) CntrPar%Ind_Breakpoint  
-        READ(UnControllerParameters, *) CntrPar%Ind_BldPitch  
-        READ(UnControllerParameters, *) CntrPar%Ind_GenTq
-        READ(UnControllerParameters, *) CntrPar%Ind_YawRate
         
         ! Read open loop input, if desired
         IF (CntrPar%OL_Mode == 1) THEN
@@ -399,7 +394,7 @@ CONTAINS
             ENDIF
 
             PRINT *, 'ROSCO: Implementing open loop control for'//TRIM(OL_String)
-            CALL Read_OL_Input(CntrPar%OL_Filename,110,OL_Count,CntrPar%OL_Breakpoints,CntrPar%OL_Channels)
+            CALL Read_OL_Input(CntrPar%OL_Filename,110_IntKi,OL_Count,CntrPar%OL_Breakpoints,CntrPar%OL_Channels)
 
             IF (CntrPar%Ind_BldPitch > 0) THEN
                 CntrPar%OL_BldPitch = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch-1)
