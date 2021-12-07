@@ -521,11 +521,12 @@ def list_check(x, return_bool=True):
             y = x
             is_list = True
     elif isinstance(x, np.ndarray):
-        y = x
         if x.size == 1:
             is_list = False
+            y = float(x)
         else:
             is_list = True
+            y = x
     else:
         raise AttributeError('Cannot run list_check for variable of type: {}'.format(type(x)))
 
