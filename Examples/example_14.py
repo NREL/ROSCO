@@ -44,12 +44,12 @@ olc = ROSCO_controller.OpenLoopControl()
 olc.interp_timeseries(
   'blade_pitch', 
   [0,40,80,120], 
-  [0.1745,0.2618,0.0873,0.1396] , 
+  [0,0,0.0873,0.1396] , 
   'sigma'
   )
 olc.const_timeseries(
   'generator_torque', 
-  19624046
+  19624046*.5
   )
 olc.sine_timeseries('nacelle_yaw', 3, 60)
 
