@@ -47,7 +47,7 @@ MODULE SysSubs
 
         ! This SUBROUTINE is used to dynamically load a DLL.
      
-        TYPE (DLL_Type),           INTENT(INOUT)  :: DLL         ! The DLL to be loaded.
+        TYPE (ExtDLL_Type),           INTENT(INOUT)  :: DLL         ! The DLL to be loaded.
         INTEGER(IntKi),            INTENT(  OUT)  :: ErrStat     ! Error status of the operation
         CHARACTER(*),              INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
      

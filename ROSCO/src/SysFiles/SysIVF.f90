@@ -46,7 +46,7 @@ MODULE SysSubs
         USE IFWINTY,  ONLY : HANDLE
         USE kernel32, ONLY : LoadLibrary
      
-        TYPE (DLL_Type),           INTENT(INOUT)  :: DLL         !< The DLL to be loaded.
+        TYPE (ExtDLL_Type),           INTENT(INOUT)  :: DLL         !< The DLL to be loaded.
         INTEGER(IntKi),            INTENT(  OUT)  :: ErrStat     !< Error status of the operation
         CHARACTER(*),              INTENT(  OUT)  :: ErrMsg      !< Error message if ErrStat /= ErrID_None
         INTEGER(HANDLE)                           :: FileAddr    ! The address of file FileName.         (RETURN value from LoadLibrary in kernel32.f90)
