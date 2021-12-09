@@ -339,6 +339,36 @@ properties:
                         type: number
                         default: 0.41888
                         unit: rad
+            open_loop:
+                type: object
+                default: {}
+                properties:
+                    flag:
+                        description: Flag to use open loop control
+                        type: boolean
+                        default: False
+                    filename:
+                        description: Filename of open loop input that ROSCO reads
+                        type: string
+                        default: unused
+                    OL_Ind_Breakpoint:
+                        description: Index (column, 1-indexed) of breakpoint (time) in open loop index
+                        type: number
+                        default: 1
+                    OL_Ind_BldPitch:
+                        description: Index (column, 1-indexed) of breakpoint (time) in open loop index
+                        type: number
+                        default: 0
+                    OL_Ind_GenTq:
+                        description: Index (column, 1-indexed) of breakpoint (time) in open loop index
+                        type: number
+                        default: 0
+                    OL_Ind_YawRate:
+                        description: Index (column, 1-indexed) of breakpoint (time) in open loop index
+                        type: number
+                        default: 0
+
+
 
     linmodel_tuning:
         type: object
