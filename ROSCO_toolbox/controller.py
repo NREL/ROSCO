@@ -651,7 +651,7 @@ class OpenLoopControl(object):
 
         
     def const_timeseries(self,control,value):
-        self.ol_timeseries[control] = np.ones(len(self.ol_timeseries['time']))
+        self.ol_timeseries[control] = value * np.ones(len(self.ol_timeseries['time']))
         
 
     def interp_timeseries(self,control,breakpoints,values,method='sigma'):
