@@ -210,11 +210,8 @@ CONTAINS
 
         CurLine = 1
 
-
+        ! Get primary path of DISCON.IN file (accINFILE(1) here)
         CALL GetPath( accINFILE(1), PriPath )     ! Input files will be relative to the path where the primary input file is located.
-        PRINT *, "accINFILE: ", accINFILE(1)
-        PRINT *, "PriPath: ", PriPath
-        PRINT *, "PathIsRelative returns ", PathIsRelative(accINFILE(1))
 
         OPEN(unit=UnControllerParameters, file=accINFILE(1), status='old', action='read')
         
