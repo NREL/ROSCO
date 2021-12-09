@@ -17,6 +17,7 @@ MODULE ReadSetParameters
 
     USE Constants
     USE Functions
+    USE SysSubs
 
     IMPLICIT NONE
 
@@ -202,10 +203,18 @@ CONTAINS
         CHARACTER(1024)                                 :: OL_String                    ! Open description loop string
         INTEGER(IntKi)                                  :: OL_Count                     ! Number of open loop channels
 
+        CHARACTER(1024)                                 :: PriPath        ! Path name of the primary DISCON file
+
+
         CHARACTER(*),               PARAMETER           :: RoutineName = 'ReadControlParameterFileSub'
 
         CurLine = 1
-       
+
+
+        CALL GetPath( accINFILE(1), PriPath )     ! Input files will be relative to the path where the primary input file is located.
+        PRINT *, "accINFILE: ", accINFILE(1)
+        PRINT *, "PriPath: ", PriPath
+        PRINT *, "PathIsRelative returns ", PathIsRelative(accINFILE(1))
 
         OPEN(unit=UnControllerParameters, file=accINFILE(1), status='old', action='read')
         
@@ -310,7 +319,7 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'WE_GearboxRatio',accINFILE(1),CntrPar%WE_GearboxRatio,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'WE_Jtot',accINFILE(1),CntrPar%WE_Jtot,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'WE_RhoAir',accINFILE(1),CntrPar%WE_RhoAir,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PerfFileName',accINFILE(1),CntrPar%PerfFileName,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PerfFileName',accINFILE(1),CntrPar%PerfFileName,ErrVar)        
         CALL ParseAry(UnControllerParameters, CurLine, 'PerfTableSize', CntrPar%PerfTableSize, 2, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'WE_FOPoles_N',accINFILE(1),CntrPar%WE_FOPoles_N,ErrVar)
         CALL ParseAry(UnControllerParameters, CurLine, 'WE_FOPoles_v', CntrPar%WE_FOPoles_v, CntrPar%WE_FOPoles_N, accINFILE(1), ErrVar )
@@ -373,6 +382,10 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'Ind_BldPitch',accINFILE(1),CntrPar%Ind_BldPitch,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Ind_GenTq',accINFILE(1),CntrPar%Ind_GenTq,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Ind_YawRate',accINFILE(1),CntrPar%Ind_YawRate,ErrVar)
+
+        ! Fix Paths (add relative paths if called from another dir)
+        IF (PathIsRelative(CntrPar%PerfFileName)) CntrPar%PerfFileName = TRIM(PriPath)//TRIM(CntrPar%PerfFileName)
+        IF (PathIsRelative(CntrPar%OL_Filename)) CntrPar%OL_Filename = TRIM(PriPath)//TRIM(CntrPar%OL_Filename)
         
         ! Read open loop input, if desired
         IF (CntrPar%OL_Mode == 1) THEN
@@ -1541,7 +1554,75 @@ SUBROUTINE GetWords ( Line, Words, NumWords )
 
     RETURN
 END SUBROUTINE GetWords
+!=======================================================================
+!> Let's parse the path name from the name of the given file.
+!! We'll count everything before (and including) the last "\" or "/".
+SUBROUTINE GetPath ( GivenFil, PathName )
 
+    ! Argument declarations.
+
+ CHARACTER(*), INTENT(IN)     :: GivenFil                                     !< The name of the given file.
+ CHARACTER(*), INTENT(OUT)    :: PathName                                     !< The path name of the given file (based solely on the GivenFil text string).
+
+
+    ! Local declarations.
+
+ INTEGER                      :: I                                            ! DO index for character position.
+
+
+    ! Look for path separators
+
+ I = INDEX( GivenFil, '\', BACK=.TRUE. )
+ I = MAX( I, INDEX( GivenFil, '/', BACK=.TRUE. ) )
+
+ IF ( I == 0 ) THEN
+    ! we don't have a path specified, return '.'
+    PathName = '.'//PathSep
+ ELSE
+    PathName = GivenFil(:I)
+ END IF
+
+
+ RETURN
+ END SUBROUTINE GetPath
+!=======================================================================
+!> This routine determines if the given file name is absolute or relative.
+!! We will consider an absolute path one that satisfies one of the
+!! following four criteria:
+!!     1. It contains ":/"
+!!     2. It contains ":\"
+!!     3. It starts with "/"
+!!     4. It starts with "\"
+!!   
+!! All others are considered relative.
+ FUNCTION PathIsRelative ( GivenFil )
+
+    ! Argument declarations.
+
+ CHARACTER(*), INTENT(IN)     :: GivenFil                                            !< The name of the given file.
+ LOGICAL                      :: PathIsRelative                                      !< The function return value
+
+ 
+
+    ! Determine if file name begins with an absolute path name or if it is relative 
+    !    note that Doxygen has serious issues if you use the single quote instead of  
+    !    double quote characters in the strings below:
+
+ PathIsRelative = .FALSE.
+
+ IF ( ( INDEX( GivenFil, ":/") == 0 ) .AND. ( INDEX( GivenFil, ":\") == 0 ) ) THEN   ! No drive is specified (by ":\" or ":/")
+
+    IF ( INDEX( "/\", GivenFil(1:1) ) == 0 ) THEN                                    ! The file name doesn't start with "\" or "/"
+
+       PathIsRelative = .TRUE.
+
+    END IF
+
+ END IF
+
+ RETURN
+ END FUNCTION PathIsRelative
+!=======================================================================
 ! ------------------------------------------------------
     ! Read Open Loop Control Inputs
     ! 

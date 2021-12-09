@@ -255,4 +255,15 @@ TYPE, PUBLIC :: ErrorVariables
     CHARACTER(:), ALLOCATABLE       :: ErrMsg              ! a Fortran version of the C string argument (not considered an array here) [subtract 1 for the C null-character]
 END TYPE ErrorVariables
 
+TYPE, PUBLIC :: ExtDLL_Type 
+
+    INTEGER(C_INTPTR_T)       :: FileAddr                                        !< The address of file FileName.         (RETURN value from LoadLibrary ) [Windows]
+    TYPE(C_PTR)               :: FileAddrX = C_NULL_PTR                          !< The address of file FileName.         (RETURN value from dlopen ) [Linux]
+    TYPE(C_FUNPTR)            :: ProcAddr(3)  = C_NULL_FUNPTR    !< The address of procedure ProcName.    (RETURN value from GetProcAddress or dlsym) [initialized to Null for pack/unpack]
+
+    CHARACTER(1024)           :: FileName                                        !< The name of the DLL file including the full path to the current working directory.
+    CHARACTER(1024)           :: ProcName(3)  = ""               !< The name of the procedure in the DLL that will be called.
+
+END TYPE ExtDLL_Type
+
 END MODULE ROSCO_Types
