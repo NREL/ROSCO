@@ -35,15 +35,15 @@ set(SOURCES
 
 if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
   if (WIN32)
-    set(NWTC_SYS_FILE src/SysGnuWin.f90)
+    set(NWTC_SYS_FILE src/SysFiles/SysGnuWin.f90)
   elseif (APPLE OR UNIX OR CYGWIN)
     set(NWTC_SYS_FILE src/SysFiles/SysGnuLinux.f90)
   endif ()
 elseif (${CMAKE_Fortran_COMPILER_ID} MATCHES "^Intel")
   if (APPLE OR UNIX)
-    set(NWTC_SYS_FILE src/SysIFL.f90)
+    set(NWTC_SYS_FILE src/SysFiles/SysIFL.f90)
   elseif (WIN32)
-    set(NWTC_SYS_FILE src/SysIVF.f90)
+    set(NWTC_SYS_FILE src/SysFiles/SysIVF.f90)
   endif (APPLE OR UNIX)
 endif ()
 
