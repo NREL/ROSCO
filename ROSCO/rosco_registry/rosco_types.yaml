@@ -4,6 +4,7 @@ default_types:
     description: 
     allocatable: False
     equals: 
+    size: 0
   real: &real
     type: real
     description: 
@@ -20,22 +21,27 @@ default_types:
   logical: &logical
     type: logical
     description: 
+    size: 0
     equals: 
   c_integer: &c_integer
     type: c_integer
     description: 
+    size: 0
     equals: 
   c_pointer: &c_pointer
     type: c_pointer
     description: 
+    size: 0
     equals: 
   c_funptr: &c_funptr
     type: c_funptr
     description: 
+    size: 0
     equals: 
   c_intptr_t: &c_intptr_t
     type: c_intptr_t
     description: 
+    size: 0
     equals: 
   
 

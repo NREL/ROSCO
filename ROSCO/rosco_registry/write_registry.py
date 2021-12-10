@@ -29,14 +29,11 @@ def write_registry(yfile):
     file.close()
 
 def check_size(main_attribute, sub_attribute):
-    if main_attribute[sub_attribute]['type'] in ['real', 'character']:
-        size = int(main_attribute[sub_attribute]['size'])
-        if size == 0:
-            atstr = sub_attribute
-        else:
-            atstr = sub_attribute + '({})'.format(size)
-    else:
+    size = int(main_attribute[sub_attribute]['size'])
+    if size == 0:
         atstr = sub_attribute
+    else:
+        atstr = sub_attribute + '({})'.format(size)
     return atstr
 
 def read_type(param):
