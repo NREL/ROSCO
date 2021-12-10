@@ -1,29 +1,50 @@
 default_types: 
   integer: &integer
     type: integer
-    description: None
+    description: 
     allocatable: False
-  integer_c: &integer_c
-    type: integer_c
-    description: None
+    equals: 
   real: &real
     type: real
-    description: None
+    description: 
     shape: 1               # Use this if a higher-dimensional allocatable array (shape:2 --> REAL(8), DIMESION(:,:), ALLOCATABLE)
     size: 0                # Use this if the type IS an array (size:3 --> REAL(8), BldPitch(3))
     allocatable: False
+    equals: 
   character: &character
     type: character
-    description: None
+    description: 
     allocatable: False
+    size: 0
+    equals: 
   logical: &logical
     type: logical
-    description: None
+    description: 
+    equals: 
+  c_integer: &c_integer
+    type: c_integer
+    description: 
+    equals: 
+  c_pointer: &c_pointer
+    type: c_pointer
+    description: 
+    equals: 
+  c_funptr: &c_funptr
+    type: c_funptr
+    description: 
+    equals: 
+  c_intptr_t: &c_intptr_t
+    type: c_intptr_t
+    description: 
+    equals: 
+  
 
 ControlParameters:
     LoggingLevel: 
       <<: *integer
       description: 0 - write no debug files, 1 - write standard output .dbg-file, 2 - write standard output .dbg-file and complete avrSWAP-array .dbg2-file
+    
+    # Filters
     F_LPFType:
       <<: *integer
       description: 'Low pass filter on the rotor and generator speed {1 - first-order low-pass filter, 2 - second-order low-pass filter}, [rad/s]'
@@ -45,15 +66,23 @@ ControlParameters:
       allocatable: True
     F_SSCornerFreq:
       <<: *real
-      description: Setpoint Smoother mode {0 - no setpoint smoothing, 1 - introduce setpoint smoothing}
+      description: Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother [rad/s]
+    F_WECornerFreq:
+      <<: *real
+      description: Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s]
     F_FlCornerFreq:
       <<: *real
       description: Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s].
       allocatable: True
+    F_FlHighPassFreq:
+      <<: *real
+      description: Natural frequency of first-roder high-pass filter for nacelle fore-aft motion [rad/s].
     F_FlpCornerFreq:
       <<: *real
       description: Corner frequency (-3dB point) in the second order low pass filter of the blade root bending moment for flap control [rad/s].
       allocatable: True
+    
+    # Tower fore-aft damping
     FA_HPFCornerFreq:
       <<: *real
       description: Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]
@@ -63,6 +92,8 @@ ControlParameters:
     FA_KI:
       <<: *real
       description: Integral gain for the fore-aft tower damper controller, -1 = off / >0 = on [rad s/m]
+    
+    # Individual Pitch Control
     IPC_ControlMode:
       <<: *integer
       description: Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {0 - off, 1 - 1P reductions, 2 - 1P+2P reductions}
@@ -80,6 +111,8 @@ ControlParameters:
     IPC_CornerFreqAct:
       <<: *real
       description: Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal {0 - Disable}, [rad/s]
+    
+    # Collective Pitch Controller
     PC_ControlMode:
       <<: *integer
       description: Blade pitch control mode {0 - No pitch, fix to fine pitch, 1 - active PI blade pitch control}
@@ -127,6 +160,8 @@ ControlParameters:
     PC_Switch:
       <<: *real
       description: Angle above lowest minimum pitch angle for switch [rad]
+    
+    # Generator Torque Controller
     VS_ControlMode:
       <<: *integer
       description: Generator torque control mode in above rated conditions {0 - constant torque, 1 - constant power, 2 - TSR Tracking, 3 - TSR Tracking w/ const power}
@@ -174,6 +209,8 @@ ControlParameters:
     VS_TSRopt:
       <<: *real
       description: Power-maximizing region 2 tip-speed ratio [rad]
+    
+    # Setpoint Smoother
     SS_Mode:
       <<: *integer
       description: Setpoint Smoother mode {0 - no setpoint smoothing, 1 - introduce setpoint smoothing}
@@ -183,6 +220,8 @@ ControlParameters:
     SS_PCGain:
       <<: *real
       description: Collective pitch controller setpoint smoother gain, [-].
+    
+    # Wind Speed Estimator
     WE_Mode:
       <<: *integer
       description: Wind speed estimator mode {0 - One-second low pass filtered hub height wind speed, 1 - Imersion and Invariance Estimator (Ortega et al.)
@@ -226,6 +265,8 @@ ControlParameters:
       <<: *real
       description: First order system poles
       allocatable: True
+    
+    # Yaw Controller
     Y_ControlMode:
       <<: *integer
       description: Yaw control mode {0 - no yaw control, 1 - yaw rate control, 2 - yaw-by-IPC}
@@ -264,6 +305,8 @@ ControlParameters:
     Y_Rate:
       <<: *real
       description: Yaw rate [rad/s]
+    
+    # Pitch Saturation
     PS_Mode:
       <<: *integer
       description: Pitch saturation mode {0 - no peak shaving, 1 -  implement pitch saturation}
@@ -278,6 +321,8 @@ ControlParameters:
       <<: *real
       description: Minimum blade pitch angles [rad]
       allocatable: True
+    
+    # Shutdown 
     SD_Mode:
       <<: *integer
       description: Shutdown mode {0 - no shutdown procedure, 1 - pitch to max pitch at shutdown}
@@ -287,12 +332,16 @@ ControlParameters:
     SD_CornerFreq:
       <<: *real
       description: Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]
+    
+    # Floating
     Fl_Mode:
       <<: *integer
       description: Floating specific feedback mode {0 - no nacelle velocity feedback, 1 - nacelle velocity feedback}
     Fl_Kp:
       <<: *real
       description: Nacelle velocity proportional feedback gain [s]
+    
+    # Trailing edge flaps
     Flp_Mode:
       <<: *integer
       description: Flap actuator mode {0 - off, 1 - fixed flap position, 2 - PI flap control}
@@ -308,6 +357,48 @@ ControlParameters:
     Flp_MaxPit:
       <<: *real
       description: Maximum (and minimum) flap pitch angle [rad]
+    
+    # Open-loop Control
+    OL_Filename:
+      <<: *character
+      description: Input file with open loop timeseries
+    OL_Mode:
+      <<: *integer
+      description: Open loop control mode {0 - no open loop control, 1 - open loop control vs. time, 2 - open loop control vs. wind speed}
+    Ind_Breakpoint:
+      <<: *integer
+      description: The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)
+    Ind_BldPitch:
+      <<: *integer
+      description: The column in OL_Filename that contains the blade pitch input in rad
+    Ind_GenTq:
+      <<: *integer
+      description: The column in OL_Filename that contains the generator torque in Nm
+    Ind_YawRate:
+      <<: *integer
+      description: The column in OL_Filename that contains the generator torque in Nm
+    OL_Breakpoints:
+      <<: *real
+      allocatable: True
+      description: Open loop breakpoints in timeseries
+    OL_BldPitch:
+      <<: *real
+      allocatable: True
+      description: Open blade pitch timeseries
+    OL_GenTq:
+      <<: *real
+      allocatable: True
+      description: Open generator torque timeseries
+    OL_YawRate:
+      <<: *real
+      allocatable: True
+      description: Open yaw rate timeseries
+    OL_Channels:
+      <<: *real
+      allocatable: True
+      description: Open loop channels in timeseries
+    
+    # Calculated
     PC_RtTq99:
       <<: *real
       description: 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
@@ -593,11 +684,32 @@ ErrorVariables:
   size_avcMSG: 
     <<: *integer
   aviFAIL: 
-    <<: *integer_c
+    <<: *c_integer
     description: 'A flag used to indicate the success of this DLL call set as follows: 0 if the DLL call was successful, >0 if the DLL call was successful but cMessage should be issued as a warning messsage, <0 if the DLL call was unsuccessful or for any other reason the simulation is to be stopped at this point with cMessage as the error message.'
   ErrMsg: 
     <<: *character      
     description: a Fortran version of the C string argument (not considered an array here) [subtract 1 for the C null-character]
     allocatable: True
 
+ExtDLL_Type:
 
+  FileAddr:
+    <<: *c_intptr_t
+    description: The address of file FileName. (RETURN value from LoadLibrary ) [Windows]
+  FileAddrX:
+    <<: *c_pointer
+    equals: C_NULL_PTR
+    description: The address of file FileName. (RETURN value from dlopen ) [Linux]
+  ProcAddr:
+    <<: *c_funptr
+    size: 3
+    equals: C_NULL_FUNPTR
+    description: The address of procedure ProcName. (RETURN value from GetProcAddress or dlsym) [initialized to Null for pack/unpack]
+  FileName:
+    <<: *character
+    description: The name of the DLL file including the full path to the current working directory.
+  ProcName:
+    <<: *character
+    equals: '""'
+    size: 3
+    description: The name of the procedure in the DLL that will be called.
