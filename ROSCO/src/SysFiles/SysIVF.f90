@@ -79,7 +79,7 @@ MODULE SysSubs
         USE IFWINTY,  ONLY : LPVOID
         USE kernel32, ONLY : GetProcAddress
      
-        TYPE (DLL_Type),           INTENT(INOUT)  :: DLL         !< The DLL to be loaded.
+        TYPE (ExtDLL_Type),           INTENT(INOUT)  :: DLL         !< The DLL to be loaded.
         INTEGER(IntKi),            INTENT(  OUT)  :: ErrStat     !< Error status of the operation
         CHARACTER(*),              INTENT(  OUT)  :: ErrMsg      !< Error message if ErrStat /= ErrID_None
         INTEGER(LPVOID)                           :: ProcAddr    ! The address of procedure ProcName.    (RETURN value from GetProcAddress in kernel32.f90)
@@ -113,7 +113,7 @@ MODULE SysSubs
         USE IFWINTY,  ONLY : BOOL, HANDLE, FALSE !, LPVOID
         USE kernel32, ONLY : FreeLibrary
      
-        TYPE (DLL_Type),           INTENT(INOUT)  :: DLL         !< The DLL to be freed.
+        TYPE (ExtDLL_Type),           INTENT(INOUT)  :: DLL         !< The DLL to be freed.
         INTEGER(IntKi),            INTENT(  OUT)  :: ErrStat     !< Error status of the operation
         CHARACTER(*),              INTENT(  OUT)  :: ErrMsg      !< Error message if ErrStat /= ErrID_None
         INTEGER(HANDLE)                           :: FileAddr    ! The address of file FileName.  (RETURN value from LoadLibrary in kernel32.f90)

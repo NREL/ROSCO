@@ -95,7 +95,7 @@ MODULE SysSubs
      
         ! This SUBROUTINE is used to dynamically load a procedure in a DLL.
      
-        TYPE (DLL_Type),           INTENT(INOUT)  :: DLL         ! The DLL to be loaded.
+        TYPE (ExtDLL_Type),           INTENT(INOUT)  :: DLL         ! The DLL to be loaded.
         INTEGER(IntKi),            INTENT(  OUT)  :: ErrStat     ! Error status of the operation
         CHARACTER(*),              INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
         INTEGER(IntKi)                            :: i
@@ -142,7 +142,7 @@ MODULE SysSubs
      
         ! This SUBROUTINE is used to free a dynamically loaded DLL (loaded in LoadDynamicLib).
      
-        TYPE (DLL_Type),           INTENT(INOUT)  :: DLL         ! The DLL to be freed.
+        TYPE (ExtDLL_Type),           INTENT(INOUT)  :: DLL         ! The DLL to be freed.
         INTEGER(IntKi),            INTENT(  OUT)  :: ErrStat     ! Error status of the operation
         CHARACTER(*),              INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
      
