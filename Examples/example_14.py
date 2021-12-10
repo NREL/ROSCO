@@ -40,7 +40,7 @@ turbine_params      = inps['turbine_params']
 controller_params   = inps['controller_params']
 
 # Set up open loop input
-olc = ROSCO_controller.OpenLoopControl()
+olc = ROSCO_controller.OpenLoopControl(t_max=300)
 olc.interp_timeseries(
   'blade_pitch', 
   [0,40,80,120], 
@@ -51,7 +51,7 @@ olc.const_timeseries(
   'generator_torque', 
   19624046*.5
   )
-olc.sine_timeseries('nacelle_yaw', 3, 60)
+olc.sine_timeseries('nacelle_yaw', 0.0524, 60)
 
 # Plot open loop timeseries
 fig,ax = olc.plot_timeseries()
@@ -135,11 +135,11 @@ cases['Baseline'] = ['Wind1VelX', 'BldPitch1', 'GenTq', 'RotSpeed','NacYaw']
 out_file = os.path.join(example_out_dir,'14_OL_Sim/OL_Example_0.outb')
 op = output_processing.output_processing()
 fastout = op.load_fast_out(out_file, tmin=0)
-fix, ax = op.plot_fast_out(cases=cases,showplot=False)
+fig, ax = op.plot_fast_out(cases=cases,showplot=False)
 
 if False:
   plt.show()
 else:
-  fig.savefig(os.path.join(example_out_dir,'14_OL_FAST_Out.png'))
+  fig[0].savefig(os.path.join(example_out_dir,'14_OL_FAST_Out.png'))
 
 

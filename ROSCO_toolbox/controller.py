@@ -782,7 +782,7 @@ class OpenLoopControl(object):
 
             if OL_Ind_YawRate:
                 header_line += '\t\tYawRate'
-                unit_line   += '\t\t(Nm)'
+                unit_line   += '\t\t(rad/s)'
 
             header_line += '\n'
             unit_line   += '\n'
