@@ -396,6 +396,7 @@ ControlParameters:
     OL_Channels:
       <<: *real
       allocatable: True
+      shape: 2
       description: Open loop channels in timeseries
     
     # Calculated
