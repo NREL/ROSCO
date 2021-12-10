@@ -51,7 +51,7 @@ MODULE SysSubs
         INTEGER(IntKi),            INTENT(  OUT)  :: ErrStat     ! Error status of the operation
         CHARACTER(*),              INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
      
-     #ifdef USE_DLL_INTERFACE         
+#ifdef USE_DLL_INTERFACE         
      
      !bjj: these are values I found on the web; I have no idea if they actually work...
      !bjj: hopefully we can find them pre-defined in a header somewhere
@@ -93,12 +93,12 @@ MODULE SysSubs
         ! Get the procedure address:
      
         CALL LoadDynamicLibProc ( DLL, ErrStat, ErrMsg )
-     #else
+#else
      
         ErrStat = ErrID_Fatal
         ErrMsg = ' LoadDynamicLib: Not compiled with -DUSE_DLL_INTERFACE for '//TRIM(OS_Desc)
            
-     #endif
+#endif
         
         RETURN
      END SUBROUTINE LoadDynamicLib
@@ -112,7 +112,7 @@ MODULE SysSubs
         CHARACTER(*),              INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
         INTEGER(IntKi)                            :: i
      
-     #ifdef USE_DLL_INTERFACE           
+#ifdef USE_DLL_INTERFACE           
      
         INTERFACE !linux API routines
      
@@ -147,12 +147,12 @@ MODULE SysSubs
            end if
         end do
            
-     #else
+#else
      
         ErrStat = ErrID_Fatal
         ErrMsg = ' LoadDynamicLibProc: Not compiled with -DUSE_DLL_INTERFACE for '//TRIM(OS_Desc)
            
-     #endif
+#endif
         
         RETURN
      END SUBROUTINE LoadDynamicLibProc
@@ -167,7 +167,7 @@ MODULE SysSubs
            INTEGER(C_INT)                            :: Success     ! Whether or not the call to dlClose was successful
            INTEGER(C_INT), PARAMETER                 :: TRUE  = 0
      
-     #ifdef USE_DLL_INTERFACE           
+#ifdef USE_DLL_INTERFACE           
      !bjj: note that this is not tested.
      
         INTERFACE !linux API routine
@@ -199,12 +199,12 @@ MODULE SysSubs
            DLL%FileAddrX = C_NULL_PTR
         END IF
         
-     #else
+#else
      
            ErrStat = ErrID_Fatal
            ErrMsg = ' FreeDynamicLib: Not compiled with -DUSE_DLL_INTERFACE for '//TRIM(OS_Desc)
               
-     #endif
+#endif
         
            RETURN
         END SUBROUTINE FreeDynamicLib
