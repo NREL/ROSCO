@@ -32,9 +32,9 @@ CONTAINS
         TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
 
-        REAL(8)                                         :: VS_RefSpd        ! Referece speed for variable speed torque controller, [rad/s] 
-        REAL(8)                                         :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
-        REAL(8)                                         :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
+        REAL(DbKi)                                      :: VS_RefSpd        ! Referece speed for variable speed torque controller, [rad/s] 
+        REAL(DbKi)                                      :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
+        REAL(DbKi)                                      :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
 
         ! ----- Calculate yaw misalignment error -----
         LocalVar%Y_MErr = LocalVar%Y_M + CntrPar%Y_MErrSet ! Yaw-alignment error
@@ -172,48 +172,73 @@ CONTAINS
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
 
         ! Allocate Variables
-        REAL(8)                 :: F_WECornerFreq   ! Corner frequency (-3dB point) for first order low pass filter for measured hub height wind speed [Hz]
+        REAL(DbKi)                 :: F_WECornerFreq   ! Corner frequency (-3dB point) for first order low pass filter for measured hub height wind speed [Hz]
 
         !       Only used in EKF, if WE_Mode = 2
-        REAL(8), SAVE           :: om_r             ! Estimated rotor speed [rad/s]
-        REAL(8), SAVE           :: v_t              ! Estimated wind speed, turbulent component [m/s]
-        REAL(8), SAVE           :: v_m              ! Estimated wind speed, 10-minute averaged [m/s]
-        REAL(8), SAVE           :: v_h              ! Combined estimated wind speed [m/s]
-        REAL(8)                 :: L                ! Turbulent length scale parameter [m]
-        REAL(8)                 :: Ti               ! Turbulent intensity, [-]
-
+        REAL(DbKi), SAVE           :: om_r             ! Estimated rotor speed [rad/s]
+        REAL(DbKi), SAVE           :: v_t              ! Estimated wind speed, turbulent component [m/s]
+        REAL(DbKi), SAVE           :: v_m              ! Estimated wind speed, 10-minute averaged [m/s]
+        REAL(DbKi), SAVE           :: v_h              ! Combined estimated wind speed [m/s]
+        REAL(DbKi)                 :: L                ! Turbulent length scale parameter [m]
+        REAL(DbKi)                 :: Ti               ! Turbulent intensity, [-]
+        ! REAL(DbKi), DIMENSION(3,3) :: I
         !           - operating conditions
-        REAL(8)                 :: A_op             ! Estimated operational system pole [UNITS!]
-        REAL(8)                 :: Cp_op            ! Estimated operational Cp [-]
-        REAL(8)                 :: Tau_r            ! Estimated rotor torque [Nm]
-        REAL(8)                 :: a                ! wind variance
-        REAL(8)                 :: lambda           ! tip-speed-ratio [rad]
-        REAL(8)                 :: RotSpeed         ! Rotor Speed [rad], locally
+        REAL(DbKi)                 :: A_op             ! Estimated operational system pole [UNITS!]
+        REAL(DbKi)                 :: Cp_op            ! Estimated operational Cp [-]
+        REAL(DbKi)                 :: Tau_r            ! Estimated rotor torque [Nm]
+        REAL(DbKi)                 :: a                ! wind variance
+        REAL(DbKi)                 :: lambda           ! tip-speed-ratio [rad]
+        REAL(DbKi)                 :: RotSpeed         ! Rotor Speed [rad], locally
 
         !           - Covariance matrices
-        REAL(8), DIMENSION(3,3)         :: F        ! First order system jacobian 
-        REAL(8), DIMENSION(3,3), SAVE   :: P        ! Covariance estiamte 
-        REAL(8), DIMENSION(1,3)         :: H        ! Output equation jacobian 
-        REAL(8), DIMENSION(3,1), SAVE   :: xh       ! Estimated state matrix
-        REAL(8), DIMENSION(3,1)         :: dxh      ! Estimated state matrix deviation from previous timestep
-        REAL(8), DIMENSION(3,3)         :: Q        ! Process noise covariance matrix
-        REAL(8), DIMENSION(1,1)         :: S        ! Innovation covariance 
-        REAL(8), DIMENSION(3,1), SAVE   :: K        ! Kalman gain matrix
-        REAL(8)                         :: R_m      ! Measurement noise covariance [(rad/s)^2]
+        REAL(DbKi), DIMENSION(3,3)         :: F        ! First order system jacobian 
+        REAL(DbKi), DIMENSION(3,3), SAVE   :: P        ! Covariance estiamte 
+        REAL(DbKi), DIMENSION(1,3)         :: H        ! Output equation jacobian 
+        REAL(DbKi), DIMENSION(3,1), SAVE   :: xh       ! Estimated state matrix
+        REAL(DbKi), DIMENSION(3,1)         :: dxh      ! Estimated state matrix deviation from previous timestep
+        REAL(DbKi), DIMENSION(3,3)         :: Q        ! Process noise covariance matrix
+        REAL(DbKi), DIMENSION(1,1)         :: S        ! Innovation covariance 
+        REAL(DbKi), DIMENSION(3,1), SAVE   :: K        ! Kalman gain matrix
+        REAL(DbKi)                         :: R_m      ! Measurement noise covariance [(rad/s)^2]
+
+        REAL(DbKi)              :: WE_Inp_Pitch
+        REAL(DbKi)              :: WE_Inp_Torque
+        REAL(DbKi)              :: WE_Inp_Speed
         
         CHARACTER(*), PARAMETER                 :: RoutineName = 'WindSpeedEstimator'
 
+        
+
+        ! Saturate inputs to WSE
+        IF (LocalVar%RotSpeedF < 0.25 * CntrPar%VS_MinOMSpd / CntrPar%WE_GearboxRatio) THEN
+            WE_Inp_Speed = 0.25 * CntrPar%VS_MinOMSpd / CntrPar%WE_GearboxRatio
+        ELSE
+            WE_Inp_Speed = LocalVar%RotSpeedF
+        END IF
+
+        IF (LocalVar%BlPitch(1) < CntrPar%PC_MinPit) THEN
+            WE_Inp_Pitch = CntrPar%PC_MinPit
+        ELSE
+            WE_Inp_Pitch = LocalVar%BlPitch(1)
+        END IF
+
+        IF (LocalVar%VS_LastGenTrqF < 0.0001 * CntrPar%VS_RtTq) THEN
+            WE_Inp_Torque = 0.0001 * CntrPar%VS_RtTq
+        ELSE
+            WE_Inp_Torque = LocalVar%VS_LastGenTrqF
+        END IF
+
         ! ---- Debug Inputs ------
-        DebugVar%WE_b   = LocalVar%PC_PitComTF*R2D
-        DebugVar%WE_w   = LocalVar%RotSpeedF
-        DebugVar%WE_t   = LocalVar%VS_LastGenTrqF
+        DebugVar%WE_b   = WE_Inp_Pitch
+        DebugVar%WE_w   = WE_Inp_Speed
+        DebugVar%WE_t   = WE_Inp_Torque
 
         ! ---- Define wind speed estimate ---- 
         
         ! Inversion and Invariance Filter implementation
         IF (CntrPar%WE_Mode == 1) THEN      
             ! Compute AeroDynTorque
-            Tau_r = AeroDynTorque(LocalVar, CntrPar, PerfData, ErrVar)
+            Tau_r = AeroDynTorque(LocalVar%RotSpeedF, LocalVar%BlPitch(1), LocalVar, CntrPar, PerfData, ErrVar)
 
             LocalVar%WE_VwIdot = CntrPar%WE_Gamma/CntrPar%WE_Jtot*(LocalVar%VS_LastGenTrq*CntrPar%WE_GearboxRatio - Tau_r)
             LocalVar%WE_VwI = LocalVar%WE_VwI + LocalVar%WE_VwIdot*LocalVar%DT
@@ -231,23 +256,24 @@ CONTAINS
             Q = RESHAPE((/0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0/),(/3,3/))
             IF (LocalVar%iStatus == 0) THEN
                 ! Initialize recurring values
-                om_r = max(LocalVar%RotSpeedF, EPSILON(1.0))
+                om_r = WE_Inp_Speed
                 v_t = 0.0
                 v_m = LocalVar%HorWindV
                 v_h = LocalVar%HorWindV
-                lambda = max(LocalVar%RotSpeed, EPSILON(1.0)) * CntrPar%WE_BladeRadius/v_h
+                lambda = WE_Inp_Speed * CntrPar%WE_BladeRadius/v_h
                 xh = RESHAPE((/om_r, v_t, v_m/),(/3,1/))
                 P = RESHAPE((/0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 1.0/),(/3,3/))
                 K = RESHAPE((/0.0,0.0,0.0/),(/3,1/))
                 Cp_op   = 0.25  ! initialize so debug output doesn't give *****
                 
             ELSE
+
                 ! Find estimated operating Cp and system pole
                 A_op = interp1d(CntrPar%WE_FOPoles_v,CntrPar%WE_FOPoles,v_h,ErrVar)
 
                 ! TEST INTERP2D
-                lambda = max(LocalVar%RotSpeed, EPSILON(1.0)) * CntrPar%WE_BladeRadius/v_h
-                Cp_op = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%BlPitch(1)*R2D, lambda , ErrVar)
+                lambda = max(WE_Inp_Speed, EPSILON(1.0_DbKi)) * CntrPar%WE_BladeRadius/v_h
+                Cp_op = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, WE_Inp_Pitch*R2D, lambda , ErrVar)
                 Cp_op = max(0.0,Cp_op)
                 
                 ! Update Jacobian
@@ -263,9 +289,9 @@ CONTAINS
                 Q(3,3) = (2.0**2.0)/600.0
                 
                 ! Prediction update
-                Tau_r = AeroDynTorque(LocalVar, CntrPar, PerfData, ErrVar)
+                Tau_r = AeroDynTorque(WE_Inp_Speed, WE_Inp_Pitch, LocalVar, CntrPar, PerfData, ErrVar)
                 a = PI * v_m/(2.0*L)
-                dxh(1,1) = 1.0/CntrPar%WE_Jtot * (Tau_r - CntrPar%WE_GearboxRatio * LocalVar%VS_LastGenTrqF)
+                dxh(1,1) = 1.0/CntrPar%WE_Jtot * (Tau_r - CntrPar%WE_GearboxRatio * WE_Inp_Torque)
                 dxh(2,1) = -a*v_t
                 dxh(3,1) = 0.0
                 
@@ -275,19 +301,19 @@ CONTAINS
                 ! Measurement update
                 S = MATMUL(H,MATMUL(P,TRANSPOSE(H))) + R_m        ! NJA: (H*T*H') \approx 0
                 K = MATMUL(P,TRANSPOSE(H))/S(1,1)
-                xh = xh + K*(LocalVar%RotSpeedF - om_r)
+                xh = xh + K*(WE_Inp_Speed - om_r)
                 P = MATMUL(identity(3) - MATMUL(K,H),P)
                 
                 
                 ! Wind Speed Estimate
-                om_r = max(xh(1,1), EPSILON(1.0))
+                om_r = max(xh(1,1), EPSILON(1.0_DbKi))
                 v_t = xh(2,1)
                 v_m = xh(3,1)
                 v_h = v_t + v_m
                 LocalVar%WE_Vw = v_m + v_t
 
                 IF (ieee_is_nan(v_h)) THEN
-                    om_r = LocalVar%RotSpeedF
+                    om_r = WE_Inp_Speed
                     v_t = 0.0
                     v_m = LocalVar%HorWindV
                     v_h = LocalVar%HorWindV
@@ -301,11 +327,8 @@ CONTAINS
             DebugVar%WE_Vt = v_t
             DebugVar%WE_lambda = lambda
         ELSE        
-            ! Define Variables
-            F_WECornerFreq = 0.20944  ! Fix to 30 second time constant for now    
-
             ! Filter wind speed at hub height as directly passed from OpenFAST
-            LocalVar%WE_Vw = LPFilter(LocalVar%HorWindV, LocalVar%DT, F_WECornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
+            LocalVar%WE_Vw = LPFilter(LocalVar%HorWindV, LocalVar%DT, CntrPar%F_WECornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
         ENDIF 
 
         ! Add RoutineName to error message
@@ -327,7 +350,7 @@ CONTAINS
         TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar 
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
         ! Allocate Variables
-        REAL(8)                      :: DelOmega                            ! Reference generator speed shift, rad/s.
+        REAL(DbKi)                      :: DelOmega                            ! Reference generator speed shift, rad/s.
         
         ! ------ Setpoint Smoothing ------
         IF ( CntrPar%SS_Mode == 1) THEN
@@ -342,7 +365,7 @@ CONTAINS
 
     END SUBROUTINE SetpointSmoother
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION PitchSaturation(LocalVar, CntrPar, objInst, DebugVar, ErrVar) 
+    REAL(DbKi) FUNCTION PitchSaturation(LocalVar, CntrPar, objInst, DebugVar, ErrVar) 
     ! PitchSaturation defines a minimum blade pitch angle based on a lookup table provided by DISCON.IN
     !       SS_Mode = 0, No setpoint smoothing
     !       SS_Mode = 1, Implement pitch saturation
@@ -367,7 +390,7 @@ CONTAINS
 
     END FUNCTION PitchSaturation
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION Shutdown(LocalVar, CntrPar, objInst) 
+    REAL(DbKi) FUNCTION Shutdown(LocalVar, CntrPar, objInst) 
     ! PeakShaving defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
     !       SS_Mode = 0, No setpoint smoothing
     !       SS_Mode = 1, Implement setpoint smoothing
@@ -379,7 +402,7 @@ CONTAINS
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
         
         ! Local Variables 
-        REAL(8)                                         :: SD_BlPitchF
+        REAL(DbKi)                                      :: SD_BlPitchF
         ! Initialize Shutdown Varible
         IF (LocalVar%iStatus == 0) THEN
             LocalVar%SD = .FALSE.
@@ -401,7 +424,7 @@ CONTAINS
         ! Pitch Blades to 90 degrees at max pitch rate if in shutdown mode
         IF (LocalVar%SD) THEN
             Shutdown = LocalVar%BlPitch(1) + CntrPar%PC_MaxRat*LocalVar%DT
-            IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
+            IF (MODULO(LocalVar%Time, 10.0_DbKi) == 0) THEN
                 print *, ' ** SHUTDOWN MODE **'
             ENDIF
         ELSE

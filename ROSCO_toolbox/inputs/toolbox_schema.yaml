@@ -14,11 +14,11 @@ properties:
         properties:
             FAST_InputFile:
                 type: string
-                description: Name of *.fst file
+                description: Name of `*.fst` file
                 # default: IEA-15-240-RWT-UMaineSemi.fst
             FAST_directory:
                 type: string
-                description: Main OpenFAST model directory, where the *.fst lives, relative to ROSCO dir (if applicable)
+                description: Main OpenFAST model directory, where the `*.fst` lives, relative to ROSCO dir (if applicable)
                 # default: Test_Cases/IEA-15-240-RWT-UMaineSemi
             rotor_performance_filename:
                 type: string
@@ -77,6 +77,7 @@ properties:
                 description: Blade edgewise first natural frequency [rad/s]
                 unit: rad/s
                 minimum: 0
+                default: 4.0
             bld_flapwise_freq:
                 type: number
                 description: Blade flapwise first natural frequency [rad/s]
@@ -256,11 +257,6 @@ properties:
                 type: number
                 default: 0.6981
                 unit: rad
-            sd_cornerfreq:       
-                description: Cutoff Frequency for first order low-pass filter for blade pitch angle [rad/s], {default = 0.41888 ~ time constant of 15s}
-                type: number
-                default: 0.41888
-                unit: rad
             flp_maxpit:            
                 description: Maximum (and minimum) flap pitch angle [rad]
                 type: number
@@ -276,12 +272,6 @@ properties:
                 description: Platform natural frequency, for floating only
                 unit: rad/s
                 minimum: 0
-            f_ss_cornerfreq:
-                type: number
-                description: First order low-pass filter cornering frequency for setpoint smoother [rad/s]
-                minimum: 0
-                unit: rad/s
-                default: 0.6283
             WS_GS_n:
                 type: number
                 description: Number of wind speed breakpoints
@@ -310,23 +300,75 @@ properties:
                 minimum: 0
                 description: Flap controller desired natural frequency [rad/s]
                 unit: rad/s
+            filter_params:
+                type: object
+                default: {}
+                properties:
+                    f_lpf_cornerfreq:
+                        type: number
+                        description: Corner frequency (-3dB point) in the first order low pass filter of the generator speed [rad/s]
+                        minimum: 0
+                        unit: rad/s
+                        # default: 1.00810
+                    f_lpf_damping:
+                        type: number
+                        description: Damping ratio in the first order low pass filter of the generator speed [-]
+                        minimum: 0
+                        unit: rad/s
+                        # default: 0.707
+                    f_we_cornerfreq:
+                        type: number
+                        description: Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s]
+                        minimum: 0
+                        unit: rad/s
+                        default: 0.209440
+                    f_fl_highpassfreq:        
+                        type: number
+                        minimum: 0
+                        unit: rad/s
+                        default: 0.01042
+                        description: Natural frequency of first-order high-pass filter for nacelle fore-aft motion [rad/s]
+                    f_ss_cornerfreq:
+                        type: number
+                        description: First order low-pass filter cornering frequency for setpoint smoother [rad/s]
+                        minimum: 0
+                        unit: rad/s
+                        default: 0.6283
+                    f_sd_cornerfreq:       
+                        description: Cutoff Frequency for first order low-pass filter for blade pitch angle [rad/s], {default = 0.41888 ~ time constant of 15s}
+                        type: number
+                        default: 0.41888
+                        unit: rad
+            open_loop:
+                type: object
+                default: {}
+                properties:
+                    flag:
+                        description: Flag to use open loop control
+                        type: boolean
+                        default: False
+                    filename:
+                        description: Filename of open loop input that ROSCO reads
+                        type: string
+                        default: unused
+                    OL_Ind_Breakpoint:
+                        description: Index (column, 1-indexed) of breakpoint (time) in open loop index
+                        type: number
+                        default: 1
+                    OL_Ind_BldPitch:
+                        description: Index (column, 1-indexed) of breakpoint (time) in open loop index
+                        type: number
+                        default: 0
+                    OL_Ind_GenTq:
+                        description: Index (column, 1-indexed) of breakpoint (time) in open loop index
+                        type: number
+                        default: 0
+                    OL_Ind_YawRate:
+                        description: Index (column, 1-indexed) of breakpoint (time) in open loop index
+                        type: number
+                        default: 0
 
-    filter_params:
-        type: object
-        default: {}
-        properties:
-            f_we_cornerfreq:
-                type: number
-                description: Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s]
-                minimum: 0
-                unit: rad/s
-                default: 0.209440
-            f_fl_highpassfreq:        
-                type: number
-                minimum: 0
-                unit: rad/s
-                default: 0.01042
-                description: Natural frequency of first-order high-pass filter for nacelle fore-aft motion [rad/s]
+
 
     linmodel_tuning:
         type: object
@@ -354,6 +396,8 @@ properties:
                 type: [number, array]
                 description: Desired maximum stability margin
                 default: 0.1
+                items:
+                    type: number
             omega_pc:
                 type: object
                 default: {}
@@ -362,8 +406,12 @@ properties:
                     type: [number, array]
                     default: 0.0
                     description: Desired maximum allowable omega for robust tuning. Array must be of length U_pc.
+                    items:
+                        type: number
                 max:
                     type: [number, array]
                     default: 0.2
                     description: Desired maximum allowable omega for robust tuning. Array must be of length U_pc.
+                    items:
+                        type: number
        
