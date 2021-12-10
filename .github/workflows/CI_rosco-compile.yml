@@ -41,7 +41,7 @@ jobs:
           
       # Re-generate registry
       - name: Generate Registry
-        run: python ${{runner.workspace}}/ROSCO/ROSCO/rosco_registry/write_registry.py
+        run: python ROSCO/rosco_registry/write_registry.py
           
       
       - name: Add dependencies windows 
