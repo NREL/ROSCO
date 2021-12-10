@@ -404,23 +404,25 @@ CONTAINS
             ENDIF
 
             PRINT *, 'ROSCO: Implementing open loop control for'//TRIM(OL_String)
-            CALL Read_OL_Input(CntrPar%OL_Filename,110_IntKi,OL_Count,CntrPar%OL_Breakpoints,CntrPar%OL_Channels)
+            CALL Read_OL_Input(CntrPar%OL_Filename,110_IntKi,OL_Count,CntrPar%OL_Channels, ErrVar)
+
+            CntrPar%OL_Breakpoints = CntrPar%OL_Channels(:,CntrPar%Ind_Breakpoint)
 
             IF (CntrPar%Ind_BldPitch > 0) THEN
-                CntrPar%OL_BldPitch = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch-1)
+                CntrPar%OL_BldPitch = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch)
             ENDIF
 
             IF (CntrPar%Ind_GenTq > 0) THEN
-                CntrPar%OL_GenTq = CntrPar%OL_Channels(:,CntrPar%Ind_GenTq-1)
+                CntrPar%OL_GenTq = CntrPar%OL_Channels(:,CntrPar%Ind_GenTq)
             ENDIF
 
             IF (CntrPar%Ind_YawRate > 0) THEN
-                CntrPar%OL_YawRate = CntrPar%OL_Channels(:,CntrPar%Ind_YawRate-1)
+                CntrPar%OL_YawRate = CntrPar%OL_Channels(:,CntrPar%Ind_YawRate)
             ENDIF
         END IF
 
         ! Debugging outputs (echo someday)
-        write(400,*) CntrPar%OL_Breakpoints, CntrPar%OL_BldPitch, CntrPar%OL_GenTq, CntrPar%OL_YawRate
+        ! write(400,*) CntrPar%OL_YawRate
 
         ! END OF INPUT FILE    
 
@@ -934,6 +936,17 @@ CONTAINS
                 ErrVar%ErrMsg = 'F_NotchType and F_NotchCornerFreq must be specified for Fl_Mode greater than zero.'
             ENDIF
         ENDIF
+
+        ! --- Open loop control ---
+        IF (((CntrPar%Ind_Breakpoint) < 0) .OR. &
+        (CntrPar%Ind_BldPitch < 0) .OR. &
+        (CntrPar%Ind_GenTq < 0) .OR. &
+        (CntrPar%Ind_YawRate < 0)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg = 'All open loop control indices must be greater than zero'
+        ENDIF
+            
+
         
         ! Abort if the user has not requested a pitch angle actuator (See Appendix A
         ! of Bladed User's Guide):
@@ -1625,24 +1638,31 @@ SUBROUTINE GetPath ( GivenFil, PathName )
     ! 
     ! Timeseries or lookup tables of the form
     ! index (time or wind speed)   channel_1 \t channel_2 \t channel_3 ...
-SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Breakpoints, Channels)
+    ! This could be used to read any group of data of unspecified length ...
+SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Channels, ErrVar)
+
+    USE ROSCO_Types, ONLY : ErrorVariables
 
     CHARACTER(1024), INTENT(IN)                             :: OL_InputFileName    ! DISCON input filename
-    INTEGER(IntKi), INTENT(IN)                                  :: Unit_OL_Input 
-    INTEGER(IntKi), INTENT(IN)                                  :: NumChannels     ! Number of open loop channels being defined
+    INTEGER(IntKi), INTENT(IN)                              :: Unit_OL_Input 
+    INTEGER(IntKi), INTENT(IN)                              :: NumChannels     ! Number of open loop channels being defined
+    ! REAL(DbKi), INTENT(OUT), DIMENSION(:), ALLOCATABLE      :: Breakpoints    ! Breakpoints of open loop Channels
+    REAL(DbKi), INTENT(OUT), DIMENSION(:,:), ALLOCATABLE    :: Channels         ! Open loop channels
+    TYPE(ErrorVariables),         INTENT(INOUT)          :: ErrVar   ! Current line of input
+
 
     LOGICAL                                                 :: FileExists
     INTEGER                                                 :: IOS                                                 ! I/O status of OPEN.
     CHARACTER(1024)                                         :: Line              ! Temp variable for reading whole line from file
-    INTEGER(IntKi)                                              :: NumComments
-    INTEGER(IntKi)                                              :: NumDataLines
-    INTEGER(IntKi)                                              :: NumCols 
-    REAL(DbKi)                                                 :: TmpData(NumChannels+1)  ! Temp variable for reading all columns from a line
+    INTEGER(IntKi)                                          :: NumComments
+    INTEGER(IntKi)                                          :: NumDataLines
+    INTEGER(IntKi)                                          :: NumCols 
+    REAL(DbKi)                                              :: TmpData(NumChannels+1)  ! Temp variable for reading all columns from a line
     CHARACTER(15)                                           :: NumString
 
-    REAL(DbKi), INTENT(OUT), DIMENSION(:), ALLOCATABLE         :: Breakpoints    ! Breakpoints of open loop Channels
-    REAL(DbKi), INTENT(OUT), DIMENSION(:,:), ALLOCATABLE       :: Channels         ! Open loop channels
-    INTEGER(IntKi)                                              :: I,J
+    INTEGER(IntKi)                                          :: I,J
+
+    CHARACTER(*),               PARAMETER                   :: RoutineName = 'ReadControlParameterFileSub'
 
     NumCols             = NumChannels + 1
 
@@ -1657,23 +1677,16 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Breakpoin
     INQUIRE (FILE = OL_InputFileName, EXIST = FileExists)
 
     IF ( .NOT. FileExists) THEN
-        PRINT *, TRIM(OL_InputFileName)// ' does not exist, setting Channels = 1 for all time'
-        ALLOCATE(Breakpoints(2))
-        ALLOCATE(Channels(2,1))
-        Channels(1,1) = 1;              Channels(2,1)           = 1
-        Breakpoints(1) = 0;             Breakpoints(2)          = 90000;
+        ErrVar%aviFAIL = -1
+        ErrVar%ErrMsg = TRIM(OL_InputFileName)// ' does not exist'
 
     ELSE
 
         OPEN( Unit_OL_Input, FILE=TRIM(OL_InputFileName), STATUS='OLD', FORM='FORMATTED', IOSTAT=IOS, ACTION='READ' )
 
         IF (IOS /= 0) THEN
-            PRINT *, 'Cannot open ' // TRIM(OL_InputFileName) // ', setting R = 1 for all time'
-            ALLOCATE(Breakpoints(2))
-            ALLOCATE(Channels(2,1))
-            Channels(1,1) = 1;              Channels(2,1) = 1
-            Breakpoints(1) = 0;             Breakpoints(2)       = 90000;
-            CLOSE(Unit_OL_Input)
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg = 'Cannot open '//TRIM(OL_InputFileName)
         
         ELSE
             ! Do all the stuff!
@@ -1712,7 +1725,8 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Breakpoin
         
             IF (NumDataLines < 1) THEN
                 WRITE (NumString,'(I11)')  NumComments
-                PRINT *, 'Error: '//TRIM(NumString)//' comment lines were found in the uniform wind file, '// &
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'Error: '//TRIM(NumString)//' comment lines were found in the uniform wind file, '// &
                             'but the first data line does not contain the proper format.'
                 CLOSE(Unit_OL_Input)
             END IF
@@ -1720,7 +1734,6 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Breakpoin
             !-------------------------------------------------------------------------------------------------
             ! Allocate arrays for the uniform wind data
             !-------------------------------------------------------------------------------------------------
-            ALLOCATE(Breakpoints(NumDataLines))
             ALLOCATE(Channels(NumDataLines,NumChannels))
 
             !-------------------------------------------------------------------------------------------------
@@ -1746,12 +1759,15 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Breakpoin
                     CLOSE(Unit_OL_Input)
                 END IF
 
-                Breakpoints(I)          = TmpData(1)
-                Channels(I,:)        = TmpData(2:)
+                Channels(I,:)        = TmpData
         
             END DO !I     
         END IF
     END IF
+
+    IF (ErrVar%aviFAIL < 0) THEN
+        ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+    ENDIF
 
 END SUBROUTINE Read_OL_Input
 
