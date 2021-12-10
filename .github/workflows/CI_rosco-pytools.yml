@@ -50,7 +50,7 @@ jobs:
 
       # Re-generate registry
       - name: Generate Registry
-        run: python ${{runner.workspace}}/ROSCO/rosco_registry/write_registry.py
+        run: python ${{runner.workspace}}/ROSCO/ROSCO/rosco_registry/write_registry.py
         
       # Install ROSCO toolbox
       - name: Install ROSCO toolbox
