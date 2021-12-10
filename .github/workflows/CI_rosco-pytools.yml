@@ -48,6 +48,10 @@ jobs:
         run: |
           conda install compilers
 
+      # Re-generate registry
+      - name: Generate Registry
+        run: python ${{runner.workspace}}/ROSCO/rosco_registry/write_registry.py
+        
       # Install ROSCO toolbox
       - name: Install ROSCO toolbox
         run: |
