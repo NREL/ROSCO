@@ -23,7 +23,8 @@ elseif (WIN32)
   elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -libs:static -free -static -fpp -real-size:64 -double-size:64")
 #     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} /ffree-line-length-0 /static-libgcc /static-libgfortran /static /fdefault-real-8 /fdefault-double-8 /cpp")
-  endif()endif()
+  endif()
+endif()
 
 
 set(SOURCES
