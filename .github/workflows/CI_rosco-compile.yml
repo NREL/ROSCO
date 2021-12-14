@@ -16,7 +16,7 @@ jobs:
       fail-fast: true
       matrix:
         os: ["ubuntu-latest", "macOS-latest", "windows-latest"]
-        python-version: ["3.8"]
+        python-version: ["3.8"]    
 
     steps:
       - name: Checkout repository
@@ -28,8 +28,21 @@ jobs:
           miniconda-version: "latest"
           channels: conda-forge, general
           auto-update-conda: true
+          python-version: 3.8
+          environment-file: environment.yml
 
-
+      # Install ROSCO toolbox
+      - name: Install ROSCO toolbox
+        shell: bash -l {0}
+        run: |
+          python setup.py install      
+          
+      # Re-generate registry
+      - name: Generate Registry
+        shell: bash -l {0}
+        run: python ROSCO/rosco_registry/write_registry.py
+          
+      
       - name: Add dependencies windows 
         if: true == contains( matrix.os, 'windows')
         shell: bash -l {0}
@@ -59,15 +72,3 @@ jobs:
             -G "MinGW Makefiles" \
             .. 
           cmake --build . --target install
-
-      # # Install ROSCO linux
-      # - name: Compile ROSCO linux
-      #   if: false == contains( matrix.os, 'windows')
-      #   working-directory: ${{runner.workspace}}/ROSCO/ROSCO/build
-
-      # # Install ROSCO windows
-      # - name: Compile ROSCO windows
-      #   if: true == contains( matrix.os, 'windows')
-      #   working-directory: ${{runner.workspace}}/ROSCO/ROSCO/build
-        # run: cmake --build . --target install -G "MinGW Makefiles" 
-          
