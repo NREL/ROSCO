@@ -200,20 +200,45 @@ CONTAINS
         REAL(DbKi), DIMENSION(1,1)         :: S        ! Innovation covariance 
         REAL(DbKi), DIMENSION(3,1), SAVE   :: K        ! Kalman gain matrix
         REAL(DbKi)                         :: R_m      ! Measurement noise covariance [(rad/s)^2]
+
+        REAL(DbKi)              :: WE_Inp_Pitch
+        REAL(DbKi)              :: WE_Inp_Torque
+        REAL(DbKi)              :: WE_Inp_Speed
         
         CHARACTER(*), PARAMETER                 :: RoutineName = 'WindSpeedEstimator'
 
+        
+
+        ! Saturate inputs to WSE
+        IF (LocalVar%RotSpeedF < 0.25 * CntrPar%VS_MinOMSpd / CntrPar%WE_GearboxRatio) THEN
+            WE_Inp_Speed = 0.25 * CntrPar%VS_MinOMSpd / CntrPar%WE_GearboxRatio
+        ELSE
+            WE_Inp_Speed = LocalVar%RotSpeedF
+        END IF
+
+        IF (LocalVar%BlPitch(1) < CntrPar%PC_MinPit) THEN
+            WE_Inp_Pitch = CntrPar%PC_MinPit
+        ELSE
+            WE_Inp_Pitch = LocalVar%BlPitch(1)
+        END IF
+
+        IF (LocalVar%VS_LastGenTrqF < 0.0001 * CntrPar%VS_RtTq) THEN
+            WE_Inp_Torque = 0.0001 * CntrPar%VS_RtTq
+        ELSE
+            WE_Inp_Torque = LocalVar%VS_LastGenTrqF
+        END IF
+
         ! ---- Debug Inputs ------
-        DebugVar%WE_b   = LocalVar%PC_PitComTF*R2D
-        DebugVar%WE_w   = LocalVar%RotSpeedF
-        DebugVar%WE_t   = LocalVar%VS_LastGenTrqF
+        DebugVar%WE_b   = WE_Inp_Pitch
+        DebugVar%WE_w   = WE_Inp_Speed
+        DebugVar%WE_t   = WE_Inp_Torque
 
         ! ---- Define wind speed estimate ---- 
         
         ! Inversion and Invariance Filter implementation
         IF (CntrPar%WE_Mode == 1) THEN      
             ! Compute AeroDynTorque
-            Tau_r = AeroDynTorque(LocalVar, CntrPar, PerfData, ErrVar)
+            Tau_r = AeroDynTorque(LocalVar%RotSpeedF, LocalVar%BlPitch(1), LocalVar, CntrPar, PerfData, ErrVar)
 
             LocalVar%WE_VwIdot = CntrPar%WE_Gamma/CntrPar%WE_Jtot*(LocalVar%VS_LastGenTrq*CntrPar%WE_GearboxRatio - Tau_r)
             LocalVar%WE_VwI = LocalVar%WE_VwI + LocalVar%WE_VwIdot*LocalVar%DT
@@ -231,23 +256,24 @@ CONTAINS
             Q = RESHAPE((/0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0/),(/3,3/))
             IF (LocalVar%iStatus == 0) THEN
                 ! Initialize recurring values
-                om_r = max(LocalVar%RotSpeedF, EPSILON(1.0_DbKi))
+                om_r = WE_Inp_Speed
                 v_t = 0.0
                 v_m = LocalVar%HorWindV
                 v_h = LocalVar%HorWindV
-                lambda = max(LocalVar%RotSpeed, EPSILON(1.0_DbKi)) * CntrPar%WE_BladeRadius/v_h
+                lambda = WE_Inp_Speed * CntrPar%WE_BladeRadius/v_h
                 xh = RESHAPE((/om_r, v_t, v_m/),(/3,1/))
                 P = RESHAPE((/0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 1.0/),(/3,3/))
                 K = RESHAPE((/0.0,0.0,0.0/),(/3,1/))
                 Cp_op   = 0.25  ! initialize so debug output doesn't give *****
                 
             ELSE
+
                 ! Find estimated operating Cp and system pole
                 A_op = interp1d(CntrPar%WE_FOPoles_v,CntrPar%WE_FOPoles,v_h,ErrVar)
 
                 ! TEST INTERP2D
-                lambda = max(LocalVar%RotSpeed, EPSILON(1.0_DbKi)) * CntrPar%WE_BladeRadius/v_h
-                Cp_op = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, LocalVar%BlPitch(1)*R2D, lambda , ErrVar)
+                lambda = max(WE_Inp_Speed, EPSILON(1.0_DbKi)) * CntrPar%WE_BladeRadius/v_h
+                Cp_op = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, WE_Inp_Pitch*R2D, lambda , ErrVar)
                 Cp_op = max(0.0,Cp_op)
                 
                 ! Update Jacobian
@@ -263,9 +289,9 @@ CONTAINS
                 Q(3,3) = (2.0**2.0)/600.0
                 
                 ! Prediction update
-                Tau_r = AeroDynTorque(LocalVar, CntrPar, PerfData, ErrVar)
+                Tau_r = AeroDynTorque(WE_Inp_Speed, WE_Inp_Pitch, LocalVar, CntrPar, PerfData, ErrVar)
                 a = PI * v_m/(2.0*L)
-                dxh(1,1) = 1.0/CntrPar%WE_Jtot * (Tau_r - CntrPar%WE_GearboxRatio * LocalVar%VS_LastGenTrqF)
+                dxh(1,1) = 1.0/CntrPar%WE_Jtot * (Tau_r - CntrPar%WE_GearboxRatio * WE_Inp_Torque)
                 dxh(2,1) = -a*v_t
                 dxh(3,1) = 0.0
                 
@@ -275,7 +301,7 @@ CONTAINS
                 ! Measurement update
                 S = MATMUL(H,MATMUL(P,TRANSPOSE(H))) + R_m        ! NJA: (H*T*H') \approx 0
                 K = MATMUL(P,TRANSPOSE(H))/S(1,1)
-                xh = xh + K*(LocalVar%RotSpeedF - om_r)
+                xh = xh + K*(WE_Inp_Speed - om_r)
                 P = MATMUL(identity(3) - MATMUL(K,H),P)
                 
                 
@@ -287,7 +313,7 @@ CONTAINS
                 LocalVar%WE_Vw = v_m + v_t
 
                 IF (ieee_is_nan(v_h)) THEN
-                    om_r = LocalVar%RotSpeedF
+                    om_r = WE_Inp_Speed
                     v_t = 0.0
                     v_m = LocalVar%HorWindV
                     v_h = LocalVar%HorWindV

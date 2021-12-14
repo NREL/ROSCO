@@ -10,7 +10,7 @@
 # specific language governing permissions and limitations under the License.
 
 import numpy as np
-import sys
+import sys, os
 import datetime
 from scipy import interpolate, gradient, integrate
 from ROSCO_toolbox.utilities import list_check
@@ -122,6 +122,25 @@ class Controller():
         self.f_fl_highpassfreq      = controller_params['filter_params']['f_fl_highpassfreq']
         self.f_ss_cornerfreq        = controller_params['filter_params']['f_ss_cornerfreq']
         self.f_sd_cornerfreq        = controller_params['filter_params']['f_sd_cornerfreq']
+
+        # Open loop parameters: set up and error catching
+        self.OL_Mode            = int(controller_params['open_loop']['flag'])
+        self.OL_Filename        = controller_params['open_loop']['filename']
+        self.OL_Ind_Breakpoint  = self.OL_Ind_BldPitch = self.OL_Ind_GenTq = self.OL_Ind_YawRate = 0
+        
+        if self.OL_Mode:
+            ol_params               = controller_params['open_loop']
+            
+                
+            self.OL_Ind_Breakpoint  = ol_params['OL_Ind_Breakpoint']
+            self.OL_Ind_BldPitch    = ol_params['OL_Ind_BldPitch']
+            self.OL_Ind_GenTq       = ol_params['OL_Ind_GenTq']
+            self.OL_Ind_YawRate     = ol_params['OL_Ind_YawRate']
+
+            # Check that file exists because we won't write it
+            if not os.path.exists(self.OL_Filename):
+                raise Exception(f'Open-loop control set up, but the open loop file {self.OL_Filename} does not exist')
+            
 
         # Save controller_params for later (direct passthrough)
         self.controller_params = controller_params
@@ -603,6 +622,190 @@ class ControllerTypes():
         self.Kp = 1/B * (2*zeta*om_n + A)
         self.Ki = om_n**2/B           
 
+class OpenLoopControl(object):
+    '''
+    Open loop controls for
+        - blade_pitch
+        - generator_torque
+        - nacelle_yaw and nacelle_yaw_rate
+
+    Please see Examples/example_14.py for an example on how to use this class.
+
+    '''
+
+    def __init__(self, **kwargs):
+        self.dt     = 0.05
+        self.t_max  = 200
+
+        # Optional population class attributes from key word arguments
+        for (k, w) in kwargs.items():
+            try:
+                setattr(self, k, w)
+            except:
+                pass
+
+        self.ol_timeseries = {}
+        self.ol_timeseries['time'] = np.arange(0,self.t_max,self.dt)
+
+        self.allowed_controls = ['blade_pitch','generator_torque','nacelle_yaw','nacelle_yaw_rate']
+
+        
+    def const_timeseries(self,control,value):
+        self.ol_timeseries[control] = value * np.ones(len(self.ol_timeseries['time']))
+        
+
+    def interp_timeseries(self,control,breakpoints,values,method='sigma'):
+
+        # Error checking
+        if not list_check(breakpoints) or len(breakpoints) == 1:
+            raise Exception('Open loop breakpoints are not a list with length greater than 1')
+
+        if not list_check(values) or len(values) == 1:
+            raise Exception('Open loop values are not a list with length greater than 1')
+
+        if len(breakpoints) != len(values):
+            raise Exception('Open loop breakpoints and values do not have the same length')
+
+        if control not in self.allowed_controls:
+            raise Exception(f'Open loop control of {control} is not allowed')
+
+        else:
+            # Finally interpolate
+            if method == 'sigma':
+                self.ol_timeseries[control] = multi_sigma(self.ol_timeseries['time'],breakpoints,values)
+            
+            elif method == 'linear':
+                interp_fcn = interpolate.interp1d(breakpoints,values,fill_value=values[-1],bounds_error=False)
+                self.ol_timeseries[control] = interp_fcn(self.ol_timeseries['time'])
+
+            elif method == 'cubic':
+                interp_fcn = interpolate.interp1d(breakpoints,values,kind='cubic',fill_value=values[-1],bounds_error=False)
+                self.ol_timeseries[control] = interp_fcn(self.ol_timeseries['time'])
+
+            else:
+                raise Exception(f'Open loop interpolation method {method} not supported')
+
+        if control == 'nacelle_yaw':
+            self.compute_yaw_rate()
+
+
+    def sine_timeseries(self,control,amplitude,period):
+        
+        if period <= 0:
+            raise Exception('Open loop sine input period is <= 0')
+
+        if control not in self.allowed_controls:
+            raise Exception(f'Open loop control of {control} is not allowed')
+        else:
+            self.ol_timeseries[control] = amplitude * np.sin(2 * np.pi *  self.ol_timeseries['time'] / period)
+
+        if control == 'nacelle_yaw':
+            self.compute_yaw_rate()
+
+    def compute_yaw_rate(self):
+        self.ol_timeseries['nacelle_yaw_rate'] = np.concatenate(([0],np.diff(self.ol_timeseries['nacelle_yaw'])))/self.dt
+
+    def plot_timeseries(self):
+        '''
+        Debugging script for showing open loop timeseries
+        '''
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots(len(self.ol_timeseries)-1,1)
+        i_ax = -1
+        for ol_input in self.ol_timeseries:
+            if ol_input != 'time':
+                i_ax += 1
+                if len(self.ol_timeseries)-1 == 1:
+                    ax.plot(self.ol_timeseries['time'],self.ol_timeseries[ol_input])
+                    ax.set_ylabel(ol_input)
+                else:
+                    ax[i_ax].plot(self.ol_timeseries['time'],self.ol_timeseries[ol_input])
+                    ax[i_ax].set_ylabel(ol_input)
+        return fig, ax
+
+    def write_input(self,ol_filename):
+        ''' 
+        Write open loop control input
+        Return open_loop dict for control params
+        '''
+
+        ol_timeseries = self.ol_timeseries
+
+        OL_Ind_Breakpoint = 1
+        OL_Ind_BldPitch = OL_Ind_GenTq = OL_Ind_YawRate = 0
+
+        self.OL_Ind_Breakpoint = 1
+        ol_index_counter = 2   # start input index at 2
+        
+        if 'time' in ol_timeseries:
+            ol_control_array = ol_timeseries['time']
+
+        else:
+            raise Exception('WARNING: no time index for open loop control.  This is only index currently supported')
+
+        if 'blade_pitch' in ol_timeseries:
+            OL_Ind_BldPitch = ol_index_counter
+            ol_index_counter += 1
+            
+            ol_control_array = np.c_[ol_control_array,ol_timeseries['blade_pitch']]
+
+        if 'generator_torque' in ol_timeseries:
+            OL_Ind_GenTq = ol_index_counter
+            ol_index_counter += 1
+            
+            ol_control_array = np.c_[ol_control_array,ol_timeseries['generator_torque']]
+
+        if 'nacelle_yaw_rate' in ol_timeseries:
+            OL_Ind_YawRate = ol_index_counter
+            ol_index_counter += 1
+
+            ol_control_array = np.c_[ol_control_array,ol_timeseries['nacelle_yaw_rate']]
+
+        if 'nacelle_yaw' in ol_timeseries and 'nacelle_yaw_rate' not in ol_timeseries:
+            raise Exception('nacelle_yaw is in ol_timeseries and nacelle_yaw_rate is not.  ROSCO can only command yaw rate. Use compute_yaw_rate() to convert.')
+
+        # Open file
+        if not os.path.exists(os.path.dirname(os.path.abspath(ol_filename))):
+            os.makedirs(os.path.dirname(os.path.abspath(ol_filename)))
+        
+        with open(ol_filename,'w') as f:
+            # Write header
+            header_line = '!\tTime'
+            unit_line   = '!\t(sec.)'
+            if OL_Ind_BldPitch:
+                header_line += '\t\tBldPitch'
+                unit_line   += '\t\t(rad.)'
+
+            if OL_Ind_GenTq:
+                header_line += '\t\tGenTq'
+                unit_line   += '\t\t(Nm)'
+
+            if OL_Ind_YawRate:
+                header_line += '\t\tYawRate'
+                unit_line   += '\t\t(rad/s)'
+
+            header_line += '\n'
+            unit_line   += '\n'
+
+            f.write(header_line)
+            f.write(unit_line)
+
+            # Write lines
+            for ol_line in ol_control_array:
+                line = ''.join(['{:<10.8f}\t'.format(val) for val in ol_line]) + '\n'
+                f.write(line)
+
+        # Output open_loop dict for control params
+        open_loop = {}
+        open_loop['flag']               = True
+        open_loop['filename']           = ol_filename
+        open_loop['OL_Ind_Breakpoint']  = OL_Ind_Breakpoint
+        open_loop['OL_Ind_BldPitch']    = OL_Ind_BldPitch
+        open_loop['OL_Ind_GenTq']       = OL_Ind_GenTq
+        open_loop['OL_Ind_YawRate']     = OL_Ind_YawRate
+
+        return open_loop
+
 
 # helper functions
 
@@ -660,7 +863,7 @@ def multi_sigma(xx,x_bp,y_bp):
 
     # add first and last values to beginning and end
     yy[xx<x_bp[0]]      = y_bp[0]
-    yy[xx>x_bp[-1]]     = y_bp[-1]
+    yy[xx>=x_bp[-1]]     = y_bp[-1]
 
     if False:  # debug plot
         import matplotlib.pyplot as plt

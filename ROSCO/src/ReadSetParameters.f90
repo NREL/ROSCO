@@ -17,6 +17,7 @@ MODULE ReadSetParameters
 
     USE Constants
     USE Functions
+    USE SysSubs
 
     IMPLICIT NONE
 
@@ -86,7 +87,7 @@ CONTAINS
         REAL(ReKi),                 INTENT(INOUT)   :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
         CHARACTER(C_CHAR),          INTENT(IN   )   :: accINFILE(NINT(avrSWAP(50)))     ! The name of the parameter input file
 
-        INTEGER(4),                 INTENT(IN   )   :: size_avcMSG
+        INTEGER(IntKi),                 INTENT(IN   )   :: size_avcMSG
         TYPE(ControlParameters),    INTENT(INOUT)   :: CntrPar
         TYPE(LocalVariables),       INTENT(INOUT)   :: LocalVar
         TYPE(ObjectInstances),      INTENT(INOUT)   :: objInst
@@ -94,7 +95,7 @@ CONTAINS
         TYPE(ErrorVariables),       INTENT(INOUT)   :: ErrVar
 
         
-        INTEGER(4)                              :: K    ! Index used for looping through blades.
+        INTEGER(IntKi)                              :: K    ! Index used for looping through blades.
 
         CHARACTER(*),               PARAMETER       :: RoutineName = 'SetParameters'
 
@@ -191,18 +192,26 @@ CONTAINS
         USE, INTRINSIC :: ISO_C_Binding
         USE ROSCO_Types, ONLY : ControlParameters, ErrorVariables
 
-        INTEGER(IntKi)                                      :: accINFILE_size               ! size of DISCON input filename
+        INTEGER(IntKi)                                  :: accINFILE_size               ! size of DISCON input filename
         CHARACTER(accINFILE_size),  INTENT(IN   )       :: accINFILE(accINFILE_size)    ! DISCON input filename
-        INTEGER(IntKi), PARAMETER                           :: UnControllerParameters = 89  ! Unit number to open file
+        INTEGER(IntKi), PARAMETER                       :: UnControllerParameters = 89  ! Unit number to open file
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar                      ! Control parameter type
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar                      ! Control parameter type
 
-        INTEGER(IntKi)                                      :: CurLine 
+        INTEGER(IntKi)                                  :: CurLine 
+
+        CHARACTER(1024)                                 :: OL_String                    ! Open description loop string
+        INTEGER(IntKi)                                  :: OL_Count                     ! Number of open loop channels
+
+        CHARACTER(1024)                                 :: PriPath        ! Path name of the primary DISCON file
+
 
         CHARACTER(*),               PARAMETER           :: RoutineName = 'ReadControlParameterFileSub'
 
         CurLine = 1
-       
+
+        ! Get primary path of DISCON.IN file (accINFILE(1) here)
+        CALL GetPath( accINFILE(1), PriPath )     ! Input files will be relative to the path where the primary input file is located.
 
         OPEN(unit=UnControllerParameters, file=accINFILE(1), status='old', action='read')
         
@@ -232,6 +241,8 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'SD_Mode',accINFILE(1),CntrPar%SD_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'FL_Mode',accINFILE(1),CntrPar%FL_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_Mode',accINFILE(1),CntrPar%Flp_Mode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'OL_Mode',accINFILE(1),CntrPar%OL_Mode,ErrVar)
+
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !----------------- FILTER CONSTANTS ---------------------
@@ -305,7 +316,7 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'WE_GearboxRatio',accINFILE(1),CntrPar%WE_GearboxRatio,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'WE_Jtot',accINFILE(1),CntrPar%WE_Jtot,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'WE_RhoAir',accINFILE(1),CntrPar%WE_RhoAir,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PerfFileName',accINFILE(1),CntrPar%PerfFileName,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PerfFileName',accINFILE(1),CntrPar%PerfFileName,ErrVar)        
         CALL ParseAry(UnControllerParameters, CurLine, 'PerfTableSize', CntrPar%PerfTableSize, 2, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'WE_FOPoles_N',accINFILE(1),CntrPar%WE_FOPoles_N,ErrVar)
         CALL ParseAry(UnControllerParameters, CurLine, 'WE_FOPoles_v', CntrPar%WE_FOPoles_v, CntrPar%WE_FOPoles_N, accINFILE(1), ErrVar )
@@ -359,6 +370,60 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_Kp',accINFILE(1),CntrPar%Flp_Kp,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_Ki',accINFILE(1),CntrPar%Flp_Ki,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_MaxPit',accINFILE(1),CntrPar%Flp_MaxPit,ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+
+        !------------ Open loop input ------------
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(UnControllerParameters,CurLine,'OL_Filename',accINFILE(1),CntrPar%OL_Filename,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Ind_Breakpoint',accINFILE(1),CntrPar%Ind_Breakpoint,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Ind_BldPitch',accINFILE(1),CntrPar%Ind_BldPitch,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Ind_GenTq',accINFILE(1),CntrPar%Ind_GenTq,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Ind_YawRate',accINFILE(1),CntrPar%Ind_YawRate,ErrVar)
+
+        ! Fix Paths (add relative paths if called from another dir)
+        IF (PathIsRelative(CntrPar%PerfFileName)) CntrPar%PerfFileName = TRIM(PriPath)//TRIM(CntrPar%PerfFileName)
+        IF (PathIsRelative(CntrPar%OL_Filename)) CntrPar%OL_Filename = TRIM(PriPath)//TRIM(CntrPar%OL_Filename)
+        
+        ! Read open loop input, if desired
+        IF (CntrPar%OL_Mode == 1) THEN
+            OL_String = ''      ! Display string
+            OL_Count  = 0
+            IF (CntrPar%Ind_BldPitch > 0) THEN
+                OL_String   = TRIM(OL_String)//' BldPitch '
+                OL_Count    = OL_Count + 1
+            ENDIF
+
+            IF (CntrPar%Ind_GenTq > 0) THEN
+                OL_String   = TRIM(OL_String)//' GenTq '
+                OL_Count    = OL_Count + 1
+            ENDIF
+
+            IF (CntrPar%Ind_YawRate > 0) THEN
+                OL_String   = TRIM(OL_String)//' YawRate '
+                OL_Count    = OL_Count + 1
+            ENDIF
+
+            PRINT *, 'ROSCO: Implementing open loop control for'//TRIM(OL_String)
+            CALL Read_OL_Input(CntrPar%OL_Filename,110_IntKi,OL_Count,CntrPar%OL_Channels, ErrVar)
+
+            CntrPar%OL_Breakpoints = CntrPar%OL_Channels(:,CntrPar%Ind_Breakpoint)
+
+            IF (CntrPar%Ind_BldPitch > 0) THEN
+                CntrPar%OL_BldPitch = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch)
+            ENDIF
+
+            IF (CntrPar%Ind_GenTq > 0) THEN
+                CntrPar%OL_GenTq = CntrPar%OL_Channels(:,CntrPar%Ind_GenTq)
+            ENDIF
+
+            IF (CntrPar%Ind_YawRate > 0) THEN
+                CntrPar%OL_YawRate = CntrPar%OL_Channels(:,CntrPar%Ind_YawRate)
+            ENDIF
+        END IF
+
+        ! Debugging outputs (echo someday)
+        ! write(400,*) CntrPar%OL_YawRate
+
         ! END OF INPUT FILE    
 
         ! Close Input File
@@ -871,6 +936,17 @@ CONTAINS
                 ErrVar%ErrMsg = 'F_NotchType and F_NotchCornerFreq must be specified for Fl_Mode greater than zero.'
             ENDIF
         ENDIF
+
+        ! --- Open loop control ---
+        IF (((CntrPar%Ind_Breakpoint) < 0) .OR. &
+        (CntrPar%Ind_BldPitch < 0) .OR. &
+        (CntrPar%Ind_GenTq < 0) .OR. &
+        (CntrPar%Ind_YawRate < 0)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg = 'All open loop control indices must be greater than zero'
+        ENDIF
+            
+
         
         ! Abort if the user has not requested a pitch angle actuator (See Appendix A
         ! of Bladed User's Guide):
@@ -1488,5 +1564,211 @@ SUBROUTINE GetWords ( Line, Words, NumWords )
 
     RETURN
 END SUBROUTINE GetWords
+!=======================================================================
+!> Let's parse the path name from the name of the given file.
+!! We'll count everything before (and including) the last "\" or "/".
+SUBROUTINE GetPath ( GivenFil, PathName )
+
+    ! Argument declarations.
+
+ CHARACTER(*), INTENT(IN)     :: GivenFil                                     !< The name of the given file.
+ CHARACTER(*), INTENT(OUT)    :: PathName                                     !< The path name of the given file (based solely on the GivenFil text string).
+
+
+    ! Local declarations.
+
+ INTEGER                      :: I                                            ! DO index for character position.
+
+
+    ! Look for path separators
+
+ I = INDEX( GivenFil, '\', BACK=.TRUE. )
+ I = MAX( I, INDEX( GivenFil, '/', BACK=.TRUE. ) )
+
+ IF ( I == 0 ) THEN
+    ! we don't have a path specified, return '.'
+    PathName = '.'//PathSep
+ ELSE
+    PathName = GivenFil(:I)
+ END IF
+
+
+ RETURN
+ END SUBROUTINE GetPath
+!=======================================================================
+!> This routine determines if the given file name is absolute or relative.
+!! We will consider an absolute path one that satisfies one of the
+!! following four criteria:
+!!     1. It contains ":/"
+!!     2. It contains ":\"
+!!     3. It starts with "/"
+!!     4. It starts with "\"
+!!   
+!! All others are considered relative.
+ FUNCTION PathIsRelative ( GivenFil )
+
+    ! Argument declarations.
+
+ CHARACTER(*), INTENT(IN)     :: GivenFil                                            !< The name of the given file.
+ LOGICAL                      :: PathIsRelative                                      !< The function return value
+
+ 
+
+    ! Determine if file name begins with an absolute path name or if it is relative 
+    !    note that Doxygen has serious issues if you use the single quote instead of  
+    !    double quote characters in the strings below:
+
+ PathIsRelative = .FALSE.
+
+ IF ( ( INDEX( GivenFil, ":/") == 0 ) .AND. ( INDEX( GivenFil, ":\") == 0 ) ) THEN   ! No drive is specified (by ":\" or ":/")
+
+    IF ( INDEX( "/\", GivenFil(1:1) ) == 0 ) THEN                                    ! The file name doesn't start with "\" or "/"
+
+       PathIsRelative = .TRUE.
+
+    END IF
+
+ END IF
+
+ RETURN
+ END FUNCTION PathIsRelative
+!=======================================================================
+! ------------------------------------------------------
+    ! Read Open Loop Control Inputs
+    ! 
+    ! Timeseries or lookup tables of the form
+    ! index (time or wind speed)   channel_1 \t channel_2 \t channel_3 ...
+    ! This could be used to read any group of data of unspecified length ...
+SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Channels, ErrVar)
+
+    USE ROSCO_Types, ONLY : ErrorVariables
+
+    CHARACTER(1024), INTENT(IN)                             :: OL_InputFileName    ! DISCON input filename
+    INTEGER(IntKi), INTENT(IN)                              :: Unit_OL_Input 
+    INTEGER(IntKi), INTENT(IN)                              :: NumChannels     ! Number of open loop channels being defined
+    ! REAL(DbKi), INTENT(OUT), DIMENSION(:), ALLOCATABLE      :: Breakpoints    ! Breakpoints of open loop Channels
+    REAL(DbKi), INTENT(OUT), DIMENSION(:,:), ALLOCATABLE    :: Channels         ! Open loop channels
+    TYPE(ErrorVariables),         INTENT(INOUT)          :: ErrVar   ! Current line of input
+
+
+    LOGICAL                                                 :: FileExists
+    INTEGER                                                 :: IOS                                                 ! I/O status of OPEN.
+    CHARACTER(1024)                                         :: Line              ! Temp variable for reading whole line from file
+    INTEGER(IntKi)                                          :: NumComments
+    INTEGER(IntKi)                                          :: NumDataLines
+    INTEGER(IntKi)                                          :: NumCols 
+    REAL(DbKi)                                              :: TmpData(NumChannels+1)  ! Temp variable for reading all columns from a line
+    CHARACTER(15)                                           :: NumString
+
+    INTEGER(IntKi)                                          :: I,J
+
+    CHARACTER(*),               PARAMETER                   :: RoutineName = 'ReadControlParameterFileSub'
+
+    NumCols             = NumChannels + 1
+
+    !-------------------------------------------------------------------------------------------------
+    ! Read from input file, borrowed (read: copied) from (Open)FAST team...thanks!
+    !-------------------------------------------------------------------------------------------------
+
+    !-------------------------------------------------------------------------------------------------
+    ! Open the file for reading
+    !-------------------------------------------------------------------------------------------------
+
+    INQUIRE (FILE = OL_InputFileName, EXIST = FileExists)
+
+    IF ( .NOT. FileExists) THEN
+        ErrVar%aviFAIL = -1
+        ErrVar%ErrMsg = TRIM(OL_InputFileName)// ' does not exist'
+
+    ELSE
+
+        OPEN( Unit_OL_Input, FILE=TRIM(OL_InputFileName), STATUS='OLD', FORM='FORMATTED', IOSTAT=IOS, ACTION='READ' )
+
+        IF (IOS /= 0) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg = 'Cannot open '//TRIM(OL_InputFileName)
+        
+        ELSE
+            ! Do all the stuff!
+
+            !-------------------------------------------------------------------------------------------------
+            ! Find the number of comment lines
+            !-------------------------------------------------------------------------------------------------
+
+            LINE = '!'                          ! Initialize the line for the DO WHILE LOOP
+            NumComments = -1                    ! the last line we read is not a comment, so we'll initialize this to -1 instead of 0
+
+            DO WHILE ( (INDEX( LINE, '!' ) > 0) .OR. (INDEX( LINE, '#' ) > 0) .OR. (INDEX( LINE, '%' ) > 0) ) ! Lines containing "!" are treated as comment lines
+                NumComments = NumComments + 1
+                
+                READ(Unit_OL_Input,'( A )',IOSTAT=IOS) LINE
+
+                ! NWTC_IO has some error catching here that we'll skip for now
+        
+            END DO !WHILE
+
+            !-------------------------------------------------------------------------------------------------
+            ! Find the number of data lines
+            !-------------------------------------------------------------------------------------------------
+
+            NumDataLines = 0
+
+            READ(LINE,*,IOSTAT=IOS) ( TmpData(I), I=1,NumCols ) ! this line was read when we were figuring out the comment lines; let's make sure it contains
+
+            DO WHILE (IOS == 0)  ! read the rest of the file (until an error occurs)
+                NumDataLines = NumDataLines + 1
+                
+                READ(Unit_OL_Input,*,IOSTAT=IOS) ( TmpData(I), I=1,NumCols )
+            
+            END DO !WHILE
+        
+        
+            IF (NumDataLines < 1) THEN
+                WRITE (NumString,'(I11)')  NumComments
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'Error: '//TRIM(NumString)//' comment lines were found in the uniform wind file, '// &
+                            'but the first data line does not contain the proper format.'
+                CLOSE(Unit_OL_Input)
+            END IF
+
+            !-------------------------------------------------------------------------------------------------
+            ! Allocate arrays for the uniform wind data
+            !-------------------------------------------------------------------------------------------------
+            ALLOCATE(Channels(NumDataLines,NumChannels))
+
+            !-------------------------------------------------------------------------------------------------
+            ! Rewind the file (to the beginning) and skip the comment lines
+            !-------------------------------------------------------------------------------------------------
+
+            REWIND( Unit_OL_Input )
+
+            DO I=1,NumComments
+                READ(Unit_OL_Input,'( A )',IOSTAT=IOS) LINE
+            END DO !I
+        
+
+            !-------------------------------------------------------------------------------------------------
+            ! Read the data arrays
+            !-------------------------------------------------------------------------------------------------
+        
+            DO I=1,NumDataLines
+            
+                READ(Unit_OL_Input,*,IOSTAT=IOS) ( TmpData(J), J=1,NumCols )
+
+                IF (IOS > 0) THEN
+                    CLOSE(Unit_OL_Input)
+                END IF
+
+                Channels(I,:)        = TmpData
+        
+            END DO !I     
+        END IF
+    END IF
+
+    IF (ErrVar%aviFAIL < 0) THEN
+        ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+    ENDIF
+
+END SUBROUTINE Read_OL_Input
 
 END MODULE ReadSetParameters
