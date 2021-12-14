@@ -1,5 +1,5 @@
 ! Controller parameter input file for the IEA-15-240-RWT-UMaineSemi wind turbine
-!    - File written using ROSCO version 2.4.1 controller tuning logic on 12/03/21
+!    - File written using ROSCO version 2.4.1 controller tuning logic on 12/13/21
 
 !------- DEBUG ------------------------------------------------------------
 1                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: write standard output .dbg-file and complete avrSWAP-array .dbg2-file}
@@ -79,24 +79,24 @@
 1.0                 ! WE_GearboxRatio	- Gearbox ratio [>=1],  [-]
 318628138.00000      ! WE_Jtot			- Total drivetrain inertia, including blades, hub and casted generator inertia to LSS, [kg m^2]
 1.225               ! WE_RhoAir			- Air density, [kg m^-3]
-"Cp_Ct_Cq.IEA15MW.txt"      ! PerfFileName      - File containing rotor performance tables (Cp,Ct,Cq)
+"Cp_Ct_Cq.IEA15MW.txt"      ! PerfFileName      - File containing rotor performance tables (Cp,Ct,Cq) (absolute path or relative to this file)
 104     72          ! PerfTableSize     - Size of rotor performance tables, first number refers to number of blade pitch angles, second number referse to number of tip-speed ratios
 60                  ! WE_FOPoles_N      - Number of first-order system poles used in EKF
 3.0000 3.2669 3.5338 3.8007 4.0676 4.3345 4.6014 4.8683 5.1352 5.4021 5.6690 5.9359 6.2028 6.4697 6.7366 7.0034 7.2703 7.5372 7.8041 8.0710 8.3379 8.6048 8.8717 9.1386 9.4055 9.6724 9.9393 10.2062 10.4731 10.7400 11.2153 11.6907 12.1660 12.6413 13.1167 13.5920 14.0673 14.5427 15.0180 15.4933 15.9687 16.4440 16.9193 17.3947 17.8700 18.3453 18.8207 19.2960 19.7713 20.2467 20.7220 21.1973 21.6727 22.1480 22.6233 23.0987 23.5740 24.0493 24.5247 25.0000               ! WE_FOPoles_v      - Wind speeds corresponding to first-order system poles [m/s]
 -0.02366483 -0.02577018 -0.02787553 -0.02998089 -0.03208624 -0.03419159 -0.03629695 -0.03840230 -0.04050765 -0.04261301 -0.04471836 -0.04682371 -0.04892907 -0.05103442 -0.05313977 -0.05524513 -0.05735048 -0.05945583 -0.06156119 -0.06366654 -0.06577189 -0.06787725 -0.06998260 -0.07208795 -0.07419331 -0.07629866 -0.07840401 -0.08050937 -0.08261472 -0.07921295 -0.05363855 -0.05601196 -0.06228621 -0.07050010 -0.08000290 -0.09048156 -0.10174863 -0.11365942 -0.12615707 -0.13917960 -0.15270665 -0.16669562 -0.18106141 -0.19588503 -0.21106595 -0.22664340 -0.24258187 -0.25886648 -0.27550565 -0.29248186 -0.30978187 -0.32738614 -0.34531736 -0.36353035 -0.38202289 -0.40082810 -0.41987220 -0.43918834 -0.45876266 -0.47857910               ! WE_FOPoles        - First order system poles [1/s]
 
 !------- YAW CONTROL ------------------------------------------------------
-0.0                 ! Y_ErrThresh		- Yaw error threshold. Turbine begins to yaw when it passes this. [rad^2 s]
-0.0                 ! Y_IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from yaw-by-IPC), [rad]
+0.13960             ! Y_ErrThresh		- Yaw error threshold. Turbine begins to yaw when it passes this. [rad^2 s]
+0.00000             ! Y_IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from yaw-by-IPC), [rad]
 1                   ! Y_IPC_n			- Number of controller gains (yaw-by-IPC)
-0.0                 ! Y_IPC_KP			- Yaw-by-IPC proportional controller gain Kp
-0.0                 ! Y_IPC_KI			- Yaw-by-IPC integral controller gain Ki
-0.0                 ! Y_IPC_omegaLP		- Low-pass filter corner frequency for the Yaw-by-IPC controller to filtering the yaw alignment error, [rad/s].
-0.0                 ! Y_IPC_zetaLP		- Low-pass filter damping factor for the Yaw-by-IPC controller to filtering the yaw alignment error, [-].
-0.0                 ! Y_MErrSet			- Yaw alignment error, set point [rad]
-0.0                 ! Y_omegaLPFast		- Corner frequency fast low pass filter, 1.0 [rad/s]
-0.0                 ! Y_omegaLPSlow		- Corner frequency slow low pass filter, 1/60 [rad/s]
-0.0                 ! Y_Rate			- Yaw rate [rad/s]
+0.00000             ! Y_IPC_KP			- Yaw-by-IPC proportional controller gain Kp
+0.00000             ! Y_IPC_KI			- Yaw-by-IPC integral controller gain Ki
+0.20940             ! Y_IPC_omegaLP		- Low-pass filter corner frequency for the Yaw-by-IPC controller to filtering the yaw alignment error, [rad/s].
+1.00000             ! Y_IPC_zetaLP		- Low-pass filter damping factor for the Yaw-by-IPC controller to filtering the yaw alignment error, [-].
+0.00000             ! Y_MErrSet			- Yaw alignment error, set point [rad]
+0.20940             ! Y_omegaLPFast		- Corner frequency fast low pass filter, 1.0 [rad/s]
+0.10470             ! Y_omegaLPSlow		- Corner frequency slow low pass filter, 1/60 [rad/s]
+0.00520             ! Y_Rate			- Yaw rate [rad/s]
 
 !------- TOWER FORE-AFT DAMPING -------------------------------------------
 -1                  ! FA_KI				- Integral gain for the fore-aft tower damper controller, -1 = off / >0 = on [rad s/m] - !NJA - Make this a flag
@@ -122,7 +122,7 @@
 0.174500000000      ! Flp_MaxPit        - Maximum (and minimum) flap pitch angle [rad]
 
 !------- Open Loop Control -----------------------------------------------------
-"unused"            ! OL_Filename       - Input file with open loop timeseries
+"unused"            ! OL_Filename       - Input file with open loop timeseries (absolute path or relative to this file)
 0                   ! Ind_Breakpoint    - The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)
 0                   ! Ind_BldPitch      - The column in OL_Filename that contains the blade pitch input in rad
 0                   ! Ind_GenTq         - The column in OL_Filename that contains the generator torque in Nm
