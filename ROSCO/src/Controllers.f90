@@ -291,9 +291,7 @@ CONTAINS
         REAL(DbKi)                  :: PitComIPC(3), PitComIPCF(3), PitComIPC_1P(3), PitComIPC_2P(3)
         INTEGER(IntKi)               :: K                                       ! Integer used to loop through turbine blades
         REAL(DbKi)                  :: axisTilt_1P, axisYaw_1P, axisYawF_1P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
-        REAL(DbKi), SAVE            :: IntAxisTilt_1P, IntAxisYaw_1P           ! Integral of the direct axis and quadrature axis, 1P
         REAL(DbKi)                  :: axisTilt_2P, axisYaw_2P, axisYawF_2P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
-        REAL(DbKi), SAVE            :: IntAxisTilt_2P, IntAxisYaw_2P           ! Integral of the direct axis and quadrature axis, 1P
         REAL(DbKi)                  :: IntAxisYawIPC_1P                        ! IPC contribution with yaw-by-IPC component
         REAL(DbKi)                  :: Y_MErrF, Y_MErrF_IPC                    ! Unfiltered and filtered yaw alignment error [rad]
         
@@ -302,10 +300,10 @@ CONTAINS
         ! Initialization
         ! Set integrals to be 0 in the first time step
         IF (LocalVar%iStatus==0) THEN
-            IntAxisTilt_1P = 0.0
-            IntAxisYaw_1P = 0.0
-            IntAxisTilt_2P = 0.0
-            IntAxisYaw_2P = 0.0
+            LocalVar%IPC_IntAxisTilt_1P = 0.0
+            LocalVar%IPC_IntAxisYaw_1P = 0.0
+            LocalVar%IPC_IntAxisTilt_2P = 0.0
+            LocalVar%IPC_IntAxisYaw_2P = 0.0
         END IF
         
         ! Pass rootMOOPs through the Coleman transform to get the tilt and yaw moment axis
@@ -324,30 +322,30 @@ CONTAINS
         
         ! Integrate the signal and multiply with the IPC gain
         IF ((CntrPar%IPC_ControlMode >= 1) .AND. (CntrPar%Y_ControlMode /= 2)) THEN
-            IntAxisTilt_1P = IntAxisTilt_1P + LocalVar%DT * CntrPar%IPC_KI(1) * axisTilt_1P
-            IntAxisYaw_1P = IntAxisYaw_1P + LocalVar%DT * CntrPar%IPC_KI(1) * axisYawF_1P
-            IntAxisTilt_1P = saturate(IntAxisTilt_1P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
-            IntAxisYaw_1P = saturate(IntAxisYaw_1P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
+            LocalVar%IPC_IntAxisTilt_1P = LocalVar%IPC_IntAxisTilt_1P + LocalVar%DT * CntrPar%IPC_KI(1) * axisTilt_1P
+            LocalVar%IPC_IntAxisYaw_1P = LocalVar%IPC_IntAxisYaw_1P + LocalVar%DT * CntrPar%IPC_KI(1) * axisYawF_1P
+            LocalVar%IPC_IntAxisTilt_1P = saturate(LocalVar%IPC_IntAxisTilt_1P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
+            LocalVar%IPC_IntAxisYaw_1P = saturate(LocalVar%IPC_IntAxisYaw_1P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
             
             IF (CntrPar%IPC_ControlMode >= 2) THEN
-                IntAxisTilt_2P = IntAxisTilt_2P + LocalVar%DT * CntrPar%IPC_KI(2) * axisTilt_2P
-                IntAxisYaw_2P = IntAxisYaw_2P + LocalVar%DT * CntrPar%IPC_KI(2) * axisYawF_2P
-                IntAxisTilt_2P = saturate(IntAxisTilt_2P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
-                IntAxisYaw_2P = saturate(IntAxisYaw_2P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
+                LocalVar%IPC_IntAxisTilt_2P = LocalVar%IPC_IntAxisTilt_2P + LocalVar%DT * CntrPar%IPC_KI(2) * axisTilt_2P
+                LocalVar%IPC_IntAxisYaw_2P = LocalVar%IPC_IntAxisYaw_2P + LocalVar%DT * CntrPar%IPC_KI(2) * axisYawF_2P
+                LocalVar%IPC_IntAxisTilt_2P = saturate(LocalVar%IPC_IntAxisTilt_2P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
+                LocalVar%IPC_IntAxisYaw_2P = saturate(LocalVar%IPC_IntAxisYaw_2P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
             END IF
         ELSE
-            IntAxisTilt_1P = 0.0
-            IntAxisYaw_1P = 0.0
-            IntAxisTilt_2P = 0.0
-            IntAxisYaw_2P = 0.0
+            LocalVar%IPC_IntAxisTilt_1P = 0.0
+            LocalVar%IPC_IntAxisYaw_1P = 0.0
+            LocalVar%IPC_IntAxisTilt_2P = 0.0
+            LocalVar%IPC_IntAxisYaw_2P = 0.0
         END IF
         
         ! Add the yaw-by-IPC contribution
-        IntAxisYawIPC_1P = IntAxisYaw_1P + Y_MErrF_IPC
+        IntAxisYawIPC_1P = LocalVar%IPC_IntAxisYaw_1P + Y_MErrF_IPC
         
         ! Pass direct and quadrature axis through the inverse Coleman transform to get the commanded pitch angles
-        CALL ColemanTransformInverse(IntAxisTilt_1P, IntAxisYawIPC_1P, LocalVar%Azimuth, NP_1, CntrPar%IPC_aziOffset(1), PitComIPC_1P)
-        CALL ColemanTransformInverse(IntAxisTilt_2P, IntAxisYaw_2P, LocalVar%Azimuth, NP_2, CntrPar%IPC_aziOffset(2), PitComIPC_2P)
+        CALL ColemanTransformInverse(LocalVar%IPC_IntAxisTilt_1P, IntAxisYawIPC_1P, LocalVar%Azimuth, NP_1, CntrPar%IPC_aziOffset(1), PitComIPC_1P)
+        CALL ColemanTransformInverse(LocalVar%IPC_IntAxisTilt_2P, LocalVar%IPC_IntAxisYaw_2P, LocalVar%Azimuth, NP_2, CntrPar%IPC_aziOffset(2), PitComIPC_2P)
         
         ! Sum nP IPC contributions and store to LocalVar data type
         DO K = 1,LocalVar%NumBl
