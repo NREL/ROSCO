@@ -114,19 +114,75 @@ TYPE, PUBLIC :: ControlParameters
     REAL(8)                       :: VS_MinOMTq                  ! Minimum torque at the beginning of the below-rated region 2, [Nm]
 END TYPE ControlParameters
 
+TYPE, PUBLIC :: WE
+    REAL(8)                       :: om_r                        ! Estimated rotor speed [rad/s]
+    REAL(8)                       :: v_t                         ! Estimated wind speed, turbulent component [m/s]
+    REAL(8)                       :: v_m                         ! Estimated wind speed, 10-minute averaged [m/s]
+    REAL(8)                       :: v_h                         ! Combined estimated wind speed [m/s]
+    REAL(8), DIMENSION(3,3)       :: P                           ! Covariance estiamte
+    REAL(8), DIMENSION(3,1)       :: xh                          ! Estimated state matrix
+    REAL(8), DIMENSION(3,1)       :: K                           ! Kalman gain matrix
+END TYPE WE
+
+TYPE, PUBLIC :: FilterParameters
+    REAL(8), DIMENSION(99)        :: lpf1_a1                     ! First order filter - Denominator coefficient 1
+    REAL(8), DIMENSION(99)        :: lpf1_a0                     ! First order filter - Denominator coefficient 0
+    REAL(8), DIMENSION(99)        :: lpf1_b1                     ! First order filter - Numerator coefficient 1
+    REAL(8), DIMENSION(99)        :: lpf1_b0                     ! First order filter - Numerator coefficient 0
+    REAL(8), DIMENSION(99)        :: lpf1_InputSignalLast        ! First order filter - Previous input
+    REAL(8), DIMENSION(99)        :: lpf1_OutputSignalLast       ! First order filter - Previous output
+    REAL(8), DIMENSION(99)        :: lpf2_a2                     ! Second order filter - Denominator coefficient 2
+    REAL(8), DIMENSION(99)        :: lpf2_a1                     ! Second order filter - Denominator coefficient 1
+    REAL(8), DIMENSION(99)        :: lpf2_a0                     ! Second order filter - Denominator coefficient 0
+    REAL(8), DIMENSION(99)        :: lpf2_b2                     ! Second order filter - Numerator coefficient 2
+    REAL(8), DIMENSION(99)        :: lpf2_b1                     ! Second order filter - Numerator coefficient 1
+    REAL(8), DIMENSION(99)        :: lpf2_b0                     ! Second order filter - Numerator coefficient 0
+    REAL(8), DIMENSION(99)        :: lpf2_InputSignalLast2       ! Second order filter - Previous input 2
+    REAL(8), DIMENSION(99)        :: lpf2_OutputSignalLast2      ! Second order filter - Previous output 2
+    REAL(8), DIMENSION(99)        :: lpf2_InputSignalLast1       ! Second order filter - Previous input 1
+    REAL(8), DIMENSION(99)        :: lpf2_OutputSignalLast1      ! Second order filter - Previous output 1
+    REAL(8), DIMENSION(99)        :: hpf_InputSignalLast         ! High pass filter - Previous output 1
+    REAL(8), DIMENSION(99)        :: hpf_OutputSignalLast        ! High pass filter - Previous output 1
+    REAL(8), DIMENSION(99)        :: nfs_OutputSignalLast1       ! Notch filter slopes previous output 1
+    REAL(8), DIMENSION(99)        :: nfs_OutputSignalLast2       ! Notch filter slopes previous output 2
+    REAL(8), DIMENSION(99)        :: nfs_InputSignalLast1        ! Notch filter slopes previous input 1
+    REAL(8), DIMENSION(99)        :: nfs_InputSignalLast2        ! Notch filter slopes previous input 1
+    REAL(8), DIMENSION(99)        :: nfs_b2                      ! Notch filter slopes numerator coefficient 2
+    REAL(8), DIMENSION(99)        :: nfs_b0                      ! Notch filter slopes numerator coefficient 0
+    REAL(8), DIMENSION(99)        :: nfs_a2                      ! Notch filter slopes denominator coefficient 2
+    REAL(8), DIMENSION(99)        :: nfs_a1                      ! Notch filter slopes denominator coefficient 1
+    REAL(8), DIMENSION(99)        :: nfs_a0                      ! Notch filter slopes denominator coefficient 0
+    REAL(8), DIMENSION(99)        :: nf_OutputSignalLast1        ! Notch filter previous output 1
+    REAL(8), DIMENSION(99)        :: nf_OutputSignalLast2        ! Notch filter previous output 2
+    REAL(8), DIMENSION(99)        :: nf_InputSignalLast1         ! Notch filter previous input 1
+    REAL(8), DIMENSION(99)        :: nf_InputSignalLast2         ! Notch filter previous input 2
+    REAL(8), DIMENSION(99)        :: nf_b2                       ! Notch filter numerator coefficient 2
+    REAL(8), DIMENSION(99)        :: nf_b1                       ! Notch filter numerator coefficient 1
+    REAL(8), DIMENSION(99)        :: nf_b0                       ! Notch filter numerator coefficient 0
+    REAL(8), DIMENSION(99)        :: nf_a1                       ! Notch filter denominator coefficient 1
+    REAL(8), DIMENSION(99)        :: nf_a0                       ! Notch filter denominator coefficient 0
+END TYPE FilterParameters
+
+TYPE, PUBLIC :: piParams
+    REAL(8), DIMENSION(99)        :: ITerm                       ! Integrator term
+    REAL(8), DIMENSION(99)        :: ITermLast                   ! Previous integrator term
+    REAL(8), DIMENSION(99)        :: ITerm2                      ! Integrator term - second integrator
+    REAL(8), DIMENSION(99)        :: ITermLast2                  ! Previous integrator term - second integrator
+END TYPE piParams
+
 TYPE, PUBLIC :: LocalVariables
-    INTEGER(4)                    :: iStatus                     ! None
-    REAL(8)                       :: Time                        ! None
-    REAL(8)                       :: DT                          ! None
-    REAL(8)                       :: VS_GenPwr                   ! None
-    REAL(8)                       :: GenSpeed                    ! None
-    REAL(8)                       :: RotSpeed                    ! None
-    REAL(8)                       :: Y_M                         ! None
-    REAL(8)                       :: HorWindV                    ! None
-    REAL(8)                       :: rootMOOP(3)                 ! None
-    REAL(8)                       :: BlPitch(3)                  ! None
-    REAL(8)                       :: Azimuth                     ! None
-    INTEGER(4)                    :: NumBl                       ! None
+    INTEGER(4)                    :: iStatus                     ! Initialization status
+    REAL(8)                       :: Time                        ! Time [s]
+    REAL(8)                       :: DT                          ! Time step [s]
+    REAL(8)                       :: VS_GenPwr                   ! Generator power [W]
+    REAL(8)                       :: GenSpeed                    ! Generator speed (HSS) [rad/s]
+    REAL(8)                       :: RotSpeed                    ! Rotor speed (LSS) [rad/s]
+    REAL(8)                       :: Y_M                         ! Yaw direction [rad]
+    REAL(8)                       :: HorWindV                    ! Hub height wind speed m/s
+    REAL(8)                       :: rootMOOP(3)                 ! Blade root bending moment [Nm]
+    REAL(8)                       :: BlPitch(3)                  ! Blade pitch [rad]
+    REAL(8)                       :: Azimuth                     ! Rotor aziumuth angle [rad]
+    INTEGER(4)                    :: NumBl                       ! Number of blades [-]
     REAL(8)                       :: FA_Acc                      ! Tower fore-aft acceleration [m/s^2]
     REAL(8)                       :: NacIMU_FA_Acc               ! Tower fore-aft acceleration [rad/s^2]
     REAL(8)                       :: FA_AccHPF                   ! High-pass filtered fore-aft acceleration [m/s^2]
@@ -146,11 +202,15 @@ TYPE, PUBLIC :: LocalVariables
     REAL(8)                       :: PC_MaxPit                   ! Maximum pitch setting in pitch controller (variable) [rad].
     REAL(8)                       :: PC_MinPit                   ! Minimum pitch setting in pitch controller (variable) [rad].
     REAL(8)                       :: PC_PitComT                  ! Total command pitch based on the sum of the proportional and integral terms [rad].
+    REAL(8)                       :: PC_PitComT_Last             ! Last total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(8)                       :: PC_PitComTF                 ! Filtered Total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(8)                       :: PC_PitComT_IPC(3)           ! Total command pitch based on the sum of the proportional and integral terms, including IPC term [rad].
     REAL(8)                       :: PC_PwrErr                   ! Power error with respect to rated power [W]
-    REAL(8)                       :: PC_SineExcitation           ! Sine contribution to pitch signal
     REAL(8)                       :: PC_SpdErr                   ! Current speed error (pitch control) [rad/s].
+    REAL(8)                       :: IPC_IntAxisTilt_1P          ! Integral of the direct axis, 1P
+    REAL(8)                       :: IPC_IntAxisYaw_1P           ! Integral of quadrature, 1P
+    REAL(8)                       :: IPC_IntAxisTilt_2P          ! Integral of the direct axis, 2P
+    REAL(8)                       :: IPC_IntAxisYaw_2P           ! Integral of quadrature, 2P
     INTEGER(4)                    :: PC_State                    ! State of the pitch control system
     REAL(8)                       :: PitCom(3)                   ! Commanded pitch of each blade the last time the controller was called [rad].
     REAL(8)                       :: SS_DelOmegaF                ! Filtered setpoint shifting term defined in setpoint smoother [rad/s].
@@ -174,11 +234,18 @@ TYPE, PUBLIC :: LocalVariables
     REAL(8)                       :: Y_ErrLPFSlow                ! Filtered yaw error by slow low pass filter [rad].
     REAL(8)                       :: Y_MErr                      ! Measured yaw error, measured + setpoint [rad].
     REAL(8)                       :: Y_YawEndT                   ! Yaw end time [s]. Indicates the time up until which yaw is active with a fixed rate
-    LOGICAL(1)                    :: SD                          ! Shutdown, .FALSE. if inactive, .TRUE. if active
+    LOGICAL                       :: SD                          ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(8)                       :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(8)                       :: NACIMU_FA_AccF              ! None
     REAL(8)                       :: FA_AccF                     ! None
     REAL(8)                       :: Flp_Angle(3)                ! Flap Angle (rad)
+    REAL(8)                       :: RootMyb_Last(3)             ! Last blade root bending moment (Nm)
+    INTEGER(4)                    :: ACC_INFILE_SIZE             ! Length of parameter input filename
+    CHARACTER, DIMENSION(:), ALLOCATABLE     :: ACC_INFILE                  ! Parameter input filename
+    LOGICAL                       :: restart                     ! Restart flag
+    TYPE(WE)                      :: WE                          ! Wind speed estimator parameters derived type
+    TYPE(FilterParameters)        :: FP                          ! Filter parameters derived type
+    TYPE(piParams)                :: piP                         ! PI parameters derived type
 END TYPE LocalVariables
 
 TYPE, PUBLIC :: ObjectInstances

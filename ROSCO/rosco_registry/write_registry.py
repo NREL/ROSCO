@@ -29,11 +29,14 @@ def write_registry(yfile):
     file.close()
 
 def check_size(main_attribute, sub_attribute):
-    size = int(main_attribute[sub_attribute]['size'])
-    if size == 0:
+    if main_attribute[sub_attribute]['type'] == 'derived_type':
         atstr = sub_attribute
     else:
-        atstr = sub_attribute + '({})'.format(size)
+        size = int(main_attribute[sub_attribute]['size'])
+        if size == 0:
+            atstr = sub_attribute
+        else:
+            atstr = sub_attribute + '({})'.format(size)
     return atstr
 
 def read_type(param):
@@ -43,16 +46,24 @@ def read_type(param):
             f90type += ', DIMENSION(:), ALLOCATABLE'
     elif param['type'] == 'real':
         f90type = 'REAL(8)'
-        if param['allocatable'] and param['shape'] == 1:
-            f90type += ', DIMENSION(:), ALLOCATABLE'
-        if param['allocatable'] and param['shape'] == 2:
-            f90type += ', DIMENSION(:,:), ALLOCATABLE'
-    elif param['type'] == 'character':
-        f90type = 'CHARACTER(1024)'
         if param['allocatable']:
-            f90type = 'CHARACTER(:), ALLOCATABLE'
+            if param['dimension']:
+                f90type += ', DIMENSION{}, ALLOCATABLE'.format(param['dimension'])
+            else:
+                f90type += ', DIMENSION(:), ALLOCATABLE'
+        elif param['dimension']:
+            f90type += ', DIMENSION{}'.format(param['dimension'])
+    elif param['type'] == 'character':
+        f90type = 'CHARACTER'
+        if param['length']:
+            f90type += '({})'.format(param['length'])
+        if param['allocatable']:
+            if param['dimension']:
+                f90type += ', DIMENSION{}, ALLOCATABLE'.format(param['dimension'])
+            else:
+                f90type = 'CHARACTER(:), ALLOCATABLE'
     elif param['type'] == 'logical':
-        f90type = 'LOGICAL(1)'
+        f90type = 'LOGICAL'
     elif param['type'] == 'c_integer':
         f90type = 'INTEGER(C_INT)'
     elif param['type'] == 'c_pointer':
@@ -61,6 +72,8 @@ def read_type(param):
         f90type = 'INTEGER(C_INTPTR_T)'
     elif param['type'] == 'c_funptr':
         f90type = 'TYPE(C_FUNPTR)'
+    elif param['type'] == 'derived_type':
+        f90type = 'TYPE({})'.format(param['id'])
     else:
         raise AttributeError('{} does not have a recognizable type'.format(param['type']))
 
