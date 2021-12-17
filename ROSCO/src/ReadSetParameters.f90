@@ -82,7 +82,7 @@ CONTAINS
         ELSE
             LocalVar%restart = .False.
         ENDIF
-        
+
     END SUBROUTINE ReadAvrSWAP    
 ! -----------------------------------------------------------------------------------
     ! Define parameters for control actions
@@ -147,7 +147,12 @@ CONTAINS
                         'Developed in collaboration: National Renewable Energy Laboratory              '//NEW_LINE('A')// &
                         '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
                         '------------------------------------------------------------------------------'
+            ! Specifically save accINFILE info (DISCON.IN)
+            LocalVar%ACC_INFILE_SIZE = NINT(avrSWAP(50))
+            Allocate(LocalVar%ACC_INFILE(LocalVar%ACC_INFILE_SIZE))
+            LocalVar%ACC_INFILE = accINFILE
 
+            ! Read Control Parameter File
             CALL ReadControlParameterFileSub(CntrPar, accINFILE, NINT(avrSWAP(50)),ErrVar)
             ! If there's been an file reading error, don't continue
             ! Add RoutineName to error message
