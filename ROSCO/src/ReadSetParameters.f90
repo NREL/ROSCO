@@ -77,6 +77,12 @@ CONTAINS
             LocalVar%BlPitch(3) = LocalVar%PitCom(3)      
         ENDIF
 
+        IF (LocalVar%iStatus == 0) THEN
+            LocalVar%restart = .True.
+        ELSE
+            LocalVar%restart = .False.
+        ENDIF
+        
     END SUBROUTINE ReadAvrSWAP    
 ! -----------------------------------------------------------------------------------
     ! Define parameters for control actions

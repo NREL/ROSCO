@@ -321,7 +321,7 @@ CONTAINS
             DebugVar%WE_lambda = lambda
         ELSE        
             ! Filter wind speed at hub height as directly passed from OpenFAST
-            LocalVar%WE_Vw = LPFilter(LocalVar%HorWindV, LocalVar%DT, CntrPar%F_WECornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
+            LocalVar%WE_Vw = LPFilter(LocalVar%HorWindV, LocalVar%DT, CntrPar%F_WECornerFreq, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
         ENDIF 
 
         ! Add RoutineName to error message
@@ -351,7 +351,7 @@ CONTAINS
             DelOmega = ((LocalVar%PC_PitComT - LocalVar%PC_MinPit)/0.524) * CntrPar%SS_VSGain - ((CntrPar%VS_RtPwr - LocalVar%VS_LastGenPwr))/CntrPar%VS_RtPwr * CntrPar%SS_PCGain ! Normalize to 30 degrees for now
             DelOmega = DelOmega * CntrPar%PC_RefSpd
             ! Filter
-            LocalVar%SS_DelOmegaF = LPFilter(DelOmega, LocalVar%DT, CntrPar%F_SSCornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF) 
+            LocalVar%SS_DelOmegaF = LPFilter(DelOmega, LocalVar%DT, CntrPar%F_SSCornerFreq, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
         ELSE
             LocalVar%SS_DelOmegaF = 0 ! No setpoint smoothing
         ENDIF
@@ -404,7 +404,7 @@ CONTAINS
         ! See if we should shutdown
         IF (.NOT. LocalVar%SD ) THEN
             ! Filter pitch signal
-            SD_BlPitchF = LPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%SD_CornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
+            SD_BlPitchF = LPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%SD_CornerFreq, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
             
             ! Go into shutdown if above max pit
             IF (SD_BlPitchF > CntrPar%SD_MaxPit) THEN
