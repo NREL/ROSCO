@@ -426,15 +426,14 @@ CONTAINS
         INTEGER(IntKi)                                :: K
         REAL(DbKi)                                   :: rootMOOP_F(3)
         REAL(DbKi)                                   :: RootMyb_Vel(3)
-        REAL(DbKi), SAVE                             :: RootMyb_Last(3)
         REAL(DbKi)                                   :: RootMyb_VelErr(3)
 
         ! Flap control
         IF (CntrPar%Flp_Mode >= 1) THEN
             IF ((LocalVar%iStatus == 0) .AND. (CntrPar%Flp_Mode >= 1)) THEN
-                RootMyb_Last(1) = 0 - LocalVar%rootMOOP(1)
-                RootMyb_Last(2) = 0 - LocalVar%rootMOOP(2)
-                RootMyb_Last(3) = 0 - LocalVar%rootMOOP(3)
+                LocalVar%RootMyb_Last(1) = 0 - LocalVar%rootMOOP(1)
+                LocalVar%RootMyb_Last(2) = 0 - LocalVar%rootMOOP(2)
+                LocalVar%RootMyb_Last(3) = 0 - LocalVar%rootMOOP(3)
                 ! Initial Flap angle
                 LocalVar%Flp_Angle(1) = CntrPar%Flp_Angle
                 LocalVar%Flp_Angle(2) = CntrPar%Flp_Angle
@@ -461,7 +460,7 @@ CONTAINS
                     RootMOOP_F(K) = SecLPFilter(LocalVar%rootMOOP(K),LocalVar%DT, CntrPar%F_FlpCornerFreq(1), CntrPar%F_FlpCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart,objInst%instSecLPF)
                     
                     ! Find derivative and derivative error of blade root bending moment
-                    RootMyb_Vel(K) = (RootMOOP_F(K) - RootMyb_Last(K))/LocalVar%DT
+                    RootMyb_Vel(K) = (RootMOOP_F(K) - LocalVar%RootMyb_Last(K))/LocalVar%DT
                     RootMyb_VelErr(K) = 0 - RootMyb_Vel(K)
                     
                     ! Find flap angle command - includes an integral term to encourage zero flap angle
@@ -470,7 +469,7 @@ CONTAINS
                     LocalVar%Flp_Angle(K) = saturate(LocalVar%Flp_Angle(K), -CntrPar%Flp_MaxPit, CntrPar%Flp_MaxPit)
                     
                     ! Save some data for next iteration
-                    RootMyb_Last(K) = RootMOOP_F(K)
+                    LocalVar%RootMyb_Last(K) = RootMOOP_F(K)
                 END DO
             ENDIF
 
