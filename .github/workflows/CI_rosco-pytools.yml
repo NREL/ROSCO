@@ -160,3 +160,4 @@ jobs:
         run: |
           cd ROSCO_testing
           python ROSCO_testing.py
+          python regtest.py
