@@ -76,7 +76,7 @@ class RegressionTesting(unittest.TestCase):
             writer.execute()
 
         # Run first case
-        fastcall = '/Users/nabbas/.conda/envs/rosco-env/bin/openfast'
+        fastcall = 'openfast'
         run_openfast(
             test_out_dir,
             fastcall=fastcall,
