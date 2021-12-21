@@ -84,25 +84,26 @@ class CMakeBuildExt(build_ext):
             localdir = os.path.join(this_directory, 'ROSCO','install')
             os.makedirs(localdir, exist_ok=True)
 
-            cmake_args = ['-DBUILD_SHARED_LIBS=OFF']
-            cmake_args += ['-DCMAKE_Fortran_FLAGS=-ffree-line-length-0']
-            cmake_args += ['-DCMAKE_INSTALL_PREFIX={}'.format(localdir)]
+            # cmake_args = ['-DBUILD_SHARED_LIBS=OFF']
+            # cmake_args += ['-DCMAKE_Fortran_FLAGS=-ffree-line-length-0']
+            # cmake_args += ['-DCMAKE_INSTALL_PREFIX={}'.format(localdir)]
 
-            if platform.system() == 'Windows':
-                if "gfortran" in os.environ["FC"].lower():
-                    cmake_args += ['-G', 'MinGW Makefiles']
-                elif self.compiler.compiler_type == 'msvc':
-                    cmake_args += ['-DCMAKE_GENERATOR_PLATFORM=x64']
-                else:
-                    raise ValueError("Unable to find the system's Fortran compiler.")
+            # if platform.system() == 'Windows':
+            #     if "gfortran" in os.environ["FC"].lower():
+            #         cmake_args += ['-G', 'MinGW Makefiles']
+            #     elif self.compiler.compiler_type == 'msvc':
+            #         cmake_args += ['-DCMAKE_GENERATOR_PLATFORM=x64']
+            #     else:
+            #         raise ValueError("Unable to find the system's Fortran compiler.")
 
             self.build_temp = os.path.join( os.path.dirname( os.path.realpath(__file__) ), 'ROSCO', 'build')
             os.makedirs(localdir, exist_ok=True)
             # Need fresh build directory for CMake
             os.makedirs(self.build_temp, exist_ok=True)
 
-            self.spawn(['cmake', '-S', ext.sourcedir, '-B', self.build_temp] + cmake_args)
-            self.spawn(['cmake', '--build', self.build_temp, '--target', 'install', '--config', 'Release'])
+            # self.spawn(['cmake', '-S', ext.sourcedir, '-B', self.build_temp] + cmake_args)
+            self.spawn(['cmake', '-B', self.build_temp, os.path.join(this_directory, 'ROSCO')])
+            self.spawn(['cmake', '--build', self.build_temp, '--target', 'install'])
 
 
 
