@@ -93,16 +93,12 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -9)) .AND. (ErrVar%aviFAI
     IF (CntrPar%Flp_Mode > 0) THEN
         CALL FlapControl(avrSWAP, CntrPar, LocalVar, objInst)
     END IF
-    
-    IF (CntrPar%LoggingLevel > 0) THEN
-        CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, SIZE(avcOUTNAME))
-    END IF
 
 ELSEIF ((LocalVar%iStatus == -8) .AND. (ErrVar%aviFAIL >= 0))  THEN ! Write restart files
-    CALL WriteRestartFile(LocalVar, CntrPar, objInst, RootName, SIZE(avcOUTNAME))
-    CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, SIZE(avcOUTNAME))
-    
+    CALL WriteRestartFile(LocalVar, CntrPar, objInst, RootName, SIZE(avcOUTNAME))    
 ENDIF
+
+CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, SIZE(avcOUTNAME))
 
 ! Add RoutineName to error message
 IF (ErrVar%aviFAIL < 0) THEN
@@ -113,7 +109,6 @@ ErrMsg = ADJUSTL(TRIM(ErrVar%ErrMsg))
 avcMSG = TRANSFER(ErrMsg//C_NULL_CHAR, avcMSG, LEN(ErrMsg)+1)
 avcMSG = TRANSFER(ErrMsg//C_NULL_CHAR, avcMSG, SIZE(avcMSG))
 aviFAIL = ErrVar%aviFAIL
-
 ErrVar%ErrMsg = ''
 
 RETURN
