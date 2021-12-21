@@ -2239,6 +2239,7 @@ class InputReader_OpenFAST(InputReader_Common):
             channel_list = channels.split(',')
             self.set_outlist(self.fst_vt['outlist']['MoorDyn'], channel_list)
             data = f.readline()
+        f.close()
 
 
 class InputReader_FAST7(InputReader_Common):
