@@ -902,16 +902,16 @@ PerformanceData:
 DebugVariables:                                       
   WE_Cp: 
     <<: *real  
-    description: Cp that WSE uses to determine aerodynamic torque[-]
+    description: Cp that WSE uses to determine aerodynamic torque [-]
   WE_b: 
     <<: *real  
-    description: Pitch that WSE uses to determine aerodynamic torque[-]
+    description: Pitch that WSE uses to determine aerodynamic torque [-]
   WE_w: 
     <<: *real  
-    description: Rotor Speed that WSE uses to determine aerodynamic torque[-]
+    description: Rotor Speed that WSE uses to determine aerodynamic torque [-]
   WE_t: 
     <<: *real  
-    description: Torque that WSE uses[-]
+    description: Torque that WSE uses [-]
   WE_Vm: 
     <<: *real  
     description: Mean wind speed component in WSE [m/s]
