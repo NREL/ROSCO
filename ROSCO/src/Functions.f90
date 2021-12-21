@@ -410,36 +410,6 @@ CONTAINS
     
     END FUNCTION identity
 
-!-------------------------------------------------------------------------------------------------------------------------------  
-    REAL(DbKi) FUNCTION DFController(error, Kd, Tf, DT, inst)
-    ! DF controller, with output saturation
-    
-        IMPLICIT NONE
-        ! Inputs
-        REAL(DbKi), INTENT(IN)     :: error
-        REAL(DbKi), INTENT(IN)     :: kd
-        REAL(DbKi), INTENT(IN)     :: tf
-        REAL(DbKi), INTENT(IN)     :: DT
-        INTEGER(IntKi), INTENT(IN)  :: inst
-        ! Local
-        REAL(DbKi)                         :: B                                    ! 
-        INTEGER(IntKi)                      :: i                                    ! Counter for making arrays
-        REAL(DbKi), DIMENSION(99), SAVE    :: errorLast = (/ (0, i=1,99) /)        ! 
-        REAL(DbKi), DIMENSION(99), SAVE    :: DFControllerLast = (/ (0, i=1,99) /) ! 
-        INTEGER(IntKi), DIMENSION(99), SAVE :: FirstCall = (/ (1, i=1,99) /)        ! First call of this function?
-        
-        ! Initialize persistent variables/arrays, and set inital condition for integrator term
-        ! IF (FirstCall(inst) == 1) THEN
-            ! FirstCall(inst) = 0
-        ! END IF
-        
-        B = 2.0/DT
-        DFController = (Kd*B)/(B*Tf+1.0)*error - (Kd*B)/(B*Tf+1.0)*errorLast(inst) - (1.0-B*Tf)/(B*Tf+1.0)*DFControllerLast(inst)
-
-        errorLast(inst) = error
-        DFControllerLast(inst) = DFController
-    END FUNCTION DFController
-
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE ColemanTransform(rootMOOP, aziAngle, nHarmonic, axTOut, axYOut)
     ! The Coleman or d-q axis transformation transforms the root out of plane bending moments of each turbine blade
