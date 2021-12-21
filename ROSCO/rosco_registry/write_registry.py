@@ -86,7 +86,6 @@ def write_roscoio(yfile):
     file.write('END SUBROUTINE WriteRestartFile\n')
     file.write('\n \n')
     file.write('SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootName, size_avcOUTNAME, ErrVar)\n')
-    # file.write('    USE ROSCO_Types, ONLY: LocalVariables, ControlParameters, ObjectInstances, PerformanceData, ErrorVariables\n')
     file.write("    TYPE(LocalVariables), INTENT(INOUT)             :: LocalVar\n")
     file.write("    TYPE(ControlParameters), INTENT(INOUT)          :: CntrPar\n")
     file.write("    TYPE(ObjectInstances), INTENT(INOUT)            :: objInst\n")
@@ -213,8 +212,6 @@ def write_roscoio(yfile):
     
     file.write("    ! Initialize debug file\n")
     file.write("    IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN ! .TRUE. if we're on the first call to the DLL\n")
-    file.write("    ! If we're debugging, open the debug file and write the header:\n")
-    file.write("    ! Note that the headers will be Truncated to 10 characters!!\n")
     file.write("        IF (CntrPar%LoggingLevel > 0) THEN\n")
     file.write("            OPEN(unit=UnDb, FILE=RootName(1: size_avcOUTNAME-5)//'RO.dbg')\n")
     file.write("            WRITE(UnDb, *)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)\n")
