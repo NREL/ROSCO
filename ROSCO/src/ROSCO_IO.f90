@@ -461,12 +461,12 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME
     LocalVarOutData(61) = LocalVar%Y_ErrLPFSlow
     LocalVarOutData(62) = LocalVar%Y_MErr
     LocalVarOutData(63) = LocalVar%Y_YawEndT
-    LocalVarOutData(65) = LocalVar%Fl_PitCom
-    LocalVarOutData(66) = LocalVar%NACIMU_FA_AccF
-    LocalVarOutData(67) = LocalVar%FA_AccF
-    LocalVarOutData(68) = LocalVar%Flp_Angle(1)
-    LocalVarOutData(69) = LocalVar%RootMyb_Last(1)
-    LocalVarOutData(70) = LocalVar%ACC_INFILE_SIZE
+    LocalVarOutData(64) = LocalVar%Fl_PitCom
+    LocalVarOutData(65) = LocalVar%NACIMU_FA_AccF
+    LocalVarOutData(66) = LocalVar%FA_AccF
+    LocalVarOutData(67) = LocalVar%Flp_Angle(1)
+    LocalVarOutData(68) = LocalVar%RootMyb_Last(1)
+    LocalVarOutData(69) = LocalVar%ACC_INFILE_SIZE
     LocalVarOutStrings = [CHARACTER(15) ::  'iStatus', 'Time', 'DT', 'VS_GenPwr', 'GenSpeed', & 
                                       'RotSpeed', 'Y_M', 'HorWindV', 'rootMOOP', 'BlPitch', & 
                                       'Azimuth', 'NumBl', 'FA_Acc', 'NacIMU_FA_Acc', 'FA_AccHPF', & 

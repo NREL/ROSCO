@@ -194,12 +194,11 @@ def write_roscoio(yfile):
     file.write('    nLocalVars = {}\n'.format(len(lv_strings)))
     file.write('    Allocate(LocalVarOutData(nLocalVars))\n')
     file.write('    Allocate(LocalVarOutStrings(nLocalVars))\n')
-    for lv_idx, localvar in enumerate(reg['LocalVariables']):
-        if reg['LocalVariables'][localvar]['type'] in ['integer', 'real']:
-            if reg['LocalVariables'][localvar]['size'] > 0:
-                file.write('    LocalVarOutData({}) = LocalVar%{}(1)\n'.format(lv_idx+1, localvar))
-            else:
-                file.write('    LocalVarOutData({}) = LocalVar%{}\n'.format(lv_idx+1, localvar))
+    for lv_idx, localvar in enumerate(lv_strings):
+        if reg['LocalVariables'][localvar]['size'] > 0:
+            file.write('    LocalVarOutData({}) = LocalVar%{}(1)\n'.format(lv_idx+1, localvar))
+        else:
+            file.write('    LocalVarOutData({}) = LocalVar%{}\n'.format(lv_idx+1, localvar))
     file.write('    LocalVarOutStrings = [CHARACTER(15) :: ')
     counter = 0
     for string in lv_strings:
