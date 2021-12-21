@@ -78,7 +78,11 @@ CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst,
 ! Filter signals
 CALL PreFilterMeasuredSignals(CntrPar, LocalVar, objInst, ErrVar)
 
-IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -9)) .AND. (ErrVar%aviFAIL >= 0))  THEN  ! Only compute control calculations if no error has occurred and we are not on the last time step
+IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAIL >= 0))  THEN  ! Only compute control calculations if no error has occurred and we are not on the last time step
+    IF ((LocalVar%iStatus == -8) .AND. (ErrVar%aviFAIL >= 0))  THEN ! Write restart files
+        CALL WriteRestartFile(LocalVar, CntrPar, objInst, RootName, SIZE(avcOUTNAME))    
+    ENDIF
+    
     CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
     CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
     CALL StateMachine(CntrPar, LocalVar)
@@ -94,9 +98,8 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -9)) .AND. (ErrVar%aviFAI
         CALL FlapControl(avrSWAP, CntrPar, LocalVar, objInst)
     END IF
 
-ELSEIF ((LocalVar%iStatus == -8) .AND. (ErrVar%aviFAIL >= 0))  THEN ! Write restart files
-    CALL WriteRestartFile(LocalVar, CntrPar, objInst, RootName, SIZE(avcOUTNAME))    
-ENDIF
+
+END IF
 
 CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, SIZE(avcOUTNAME))
 
