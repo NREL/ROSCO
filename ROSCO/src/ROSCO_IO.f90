@@ -25,7 +25,7 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, objInst, RootName, size_avcOUTNAM
     CHARACTER(128)               :: ErrMsg              
     CHARACTER(128)               :: n_t_global          ! timestep number as a string
 
-    WRITE(n_t_global, '(I0.0)' ), NINT(LocalVar%Time/LocalVar%DT)
+    WRITE(n_t_global, '(I0.0)' ) NINT(LocalVar%Time/LocalVar%DT)
     InFile = RootName(1:size_avcOUTNAME-5)//TRIM( n_t_global )//'.RO.chkp'
     OPEN(unit=Un, FILE=TRIM(InFile), STATUS='UNKNOWN', FORM='UNFORMATTED' , ACCESS='STREAM', IOSTAT=ErrStat, ACTION='WRITE' )
 
@@ -196,7 +196,7 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
     CHARACTER(128)               :: ErrMsg              
     CHARACTER(128)               :: n_t_global          ! timestep number as a string
 
-    WRITE(n_t_global, '(I0.0)' ), NINT(avrSWAP(2)/avrSWAP(3))
+    WRITE(n_t_global, '(I0.0)' ) NINT(avrSWAP(2)/avrSWAP(3))
     InFile = RootName(1:size_avcOUTNAME-5)//TRIM( n_t_global )//'.RO.chkp'
     OPEN(unit=Un, FILE=TRIM(InFile), STATUS='UNKNOWN', FORM='UNFORMATTED' , ACCESS='STREAM', IOSTAT=ErrStat, ACTION='READ' )
 
