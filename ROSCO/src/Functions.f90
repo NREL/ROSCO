@@ -67,26 +67,26 @@ CONTAINS
     END FUNCTION ratelimit
 
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, piP, reset, inst)
+    REAL(DbKi) FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, piP, reset, inst)
         USE ROSCO_Types, ONLY : piParams
 
     ! PI controller, with output saturation
 
         IMPLICIT NONE
         ! Allocate Inputs
-        REAL(8),    INTENT(IN)         :: error
-        REAL(8),    INTENT(IN)         :: kp
-        REAL(8),    INTENT(IN)         :: ki
-        REAL(8),    INTENT(IN)         :: minValue
-        REAL(8),    INTENT(IN)         :: maxValue
-        REAL(8),    INTENT(IN)         :: DT
-        INTEGER(4), INTENT(INOUT)      :: inst
-        REAL(8),    INTENT(IN)         :: I0
+        REAL(DbKi),    INTENT(IN)         :: error
+        REAL(DbKi),    INTENT(IN)         :: kp
+        REAL(DbKi),    INTENT(IN)         :: ki
+        REAL(DbKi),    INTENT(IN)         :: minValue
+        REAL(DbKi),    INTENT(IN)         :: maxValue
+        REAL(DbKi),    INTENT(IN)         :: DT
+        INTEGER(IntKi), INTENT(INOUT)      :: inst
+        REAL(DbKi),    INTENT(IN)         :: I0
         TYPE(piParams), INTENT(INOUT)  :: piP
         LOGICAL,    INTENT(IN)         :: reset     
         ! Allocate local variables
-        INTEGER(4)                      :: i                                            ! Counter for making arrays
-        REAL(8)                         :: PTerm                                        ! Proportional term
+        INTEGER(IntKi)                      :: i                                            ! Counter for making arrays
+        REAL(DbKi)                         :: PTerm                                        ! Proportional term
 
         ! Initialize persistent variables/arrays, and set inital condition for integrator term
         IF (reset) THEN
@@ -107,28 +107,28 @@ CONTAINS
     END FUNCTION PIController
 
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(8) FUNCTION PIIController(error, error2, kp, ki, ki2, minValue, maxValue, DT, I0, piP, reset, inst)
+    REAL(DbKi) FUNCTION PIIController(error, error2, kp, ki, ki2, minValue, maxValue, DT, I0, piP, reset, inst)
     ! PI controller, with output saturation. 
     ! Added error2 term for additional integral control input
         USE ROSCO_Types, ONLY : piParams
         
         IMPLICIT NONE
         ! Allocate Inputs
-        REAL(8), INTENT(IN)         :: error
-        REAL(8), INTENT(IN)         :: error2
-        REAL(8), INTENT(IN)         :: kp
-        REAL(8), INTENT(IN)         :: ki2
-        REAL(8), INTENT(IN)         :: ki
-        REAL(8), INTENT(IN)         :: minValue
-        REAL(8), INTENT(IN)         :: maxValue
-        REAL(8), INTENT(IN)         :: DT
-        INTEGER(4), INTENT(INOUT)   :: inst
-        REAL(8), INTENT(IN)         :: I0
+        REAL(DbKi), INTENT(IN)         :: error
+        REAL(DbKi), INTENT(IN)         :: error2
+        REAL(DbKi), INTENT(IN)         :: kp
+        REAL(DbKi), INTENT(IN)         :: ki2
+        REAL(DbKi), INTENT(IN)         :: ki
+        REAL(DbKi), INTENT(IN)         :: minValue
+        REAL(DbKi), INTENT(IN)         :: maxValue
+        REAL(DbKi), INTENT(IN)         :: DT
+        INTEGER(IntKi), INTENT(INOUT)   :: inst
+        REAL(DbKi), INTENT(IN)         :: I0
         TYPE(piParams), INTENT(INOUT) :: piP
         LOGICAL, INTENT(IN)         :: reset     
         ! Allocate local variables
-        INTEGER(4)                      :: i                                            ! Counter for making arrays
-        REAL(8)                         :: PTerm                                        ! Proportional term
+        INTEGER(IntKi)                      :: i                                            ! Counter for making arrays
+        REAL(DbKi)                         :: PTerm                                        ! Proportional term
 
         ! Initialize persistent variables/arrays, and set inital condition for integrator term
         IF (reset) THEN
