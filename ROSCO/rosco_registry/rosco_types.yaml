@@ -939,6 +939,12 @@ DebugVariables:
   FA_AccF:
     <<: *real
     description: Filtered FA_Acc [m/s]
+  Fl_PitCom:
+    <<: *real
+    description: Floating contribution to the pitch command [rad]
+  PC_MinPit:
+    <<: *real
+    description: Minimum blade pitch angle [rad]
 
 
 ErrorVariables:

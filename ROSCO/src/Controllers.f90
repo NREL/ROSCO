@@ -80,11 +80,12 @@ CONTAINS
         ELSE
             LocalVar%PC_MinPit = CntrPar%PC_FinePit
         ENDIF
-
+        DebugVar%PC_MinPit = LocalVar%PC_MinPit
         
         ! FloatingFeedback
         IF (CntrPar%Fl_Mode > 0) THEN
             LocalVar%Fl_PitCom = FloatingFeedback(LocalVar, CntrPar, objInst)
+            DebugVar%FL_PitCom = LocalVar%Fl_PitCom
             LocalVar%PC_PitComT = LocalVar%PC_PitComT + LocalVar%Fl_PitCom
         ENDIF
         

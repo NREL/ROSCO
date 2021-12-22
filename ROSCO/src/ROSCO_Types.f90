@@ -280,6 +280,8 @@ TYPE, PUBLIC :: DebugVariables
     REAL(DbKi)                    :: RotSpeedF                   ! Filtered rotor speed [rad/s]
     REAL(DbKi)                    :: NacIMU_FA_AccF              ! Filtered NacIMU_FA_Acc [rad/s]
     REAL(DbKi)                    :: FA_AccF                     ! Filtered FA_Acc [m/s]
+    REAL(DbKi)                    :: Fl_PitCom                   ! Floating contribution to the pitch command [rad]
+    REAL(DbKi)                    :: PC_MinPit                   ! Minimum blade pitch angle [rad]
 END TYPE DebugVariables
 
 TYPE, PUBLIC :: ErrorVariables
