@@ -219,13 +219,14 @@ CONTAINS
 
     END FUNCTION NotchFilter
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE PreFilterMeasuredSignals(CntrPar, LocalVar, objInst, ErrVar)
+    SUBROUTINE PreFilterMeasuredSignals(CntrPar, LocalVar, DebugVar, objInst, ErrVar)
     ! Prefilter measured wind turbine signals to separate the filtering from the actual control actions
 
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, ErrorVariables
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, DebugVariables, ObjectInstances, ErrorVariables
         
         TYPE(ControlParameters), INTENT(INOUT)      :: CntrPar
         TYPE(LocalVariables),    INTENT(INOUT)      :: LocalVar
+        TYPE(DebugVariables),    INTENT(INOUT)      :: DebugVar
         TYPE(ObjectInstances),   INTENT(INOUT)      :: objInst
         TYPE(ErrorVariables),   INTENT(INOUT)       :: ErrVar
 
@@ -271,5 +272,10 @@ CONTAINS
         LocalVar%VS_LastGenTrqF = SecLPFilter(LocalVar%VS_LastGenTrq, LocalVar%DT, CntrPar%F_LPFCornerFreq, 0.7_DbKi, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF)
         LocalVar%PC_PitComTF    = SecLPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%F_LPFCornerFreq*0.25, 0.7_DbKi, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF)
 
+        ! Debug Variables
+        DebugVar%GenSpeedF = LocalVar%GenSpeedF
+        DebugVar%RotSpeedF = LocalVar%RotSpeedF
+        DebugVar%NacIMU_FA_AccF = LocalVar%NacIMU_FA_AccF
+        DebugVar%FA_AccF = LocalVar%FA_AccF
     END SUBROUTINE PreFilterMeasuredSignals
     END MODULE Filters

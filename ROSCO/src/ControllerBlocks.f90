@@ -323,7 +323,7 @@ CONTAINS
             ! Filter wind speed at hub height as directly passed from OpenFAST
             LocalVar%WE_Vw = LPFilter(LocalVar%HorWindV, LocalVar%DT, CntrPar%F_WECornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
         ENDIF 
-
+        DebugVar%WE_Vw = LocalVar%WE_Vw
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN
             ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)

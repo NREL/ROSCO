@@ -379,7 +379,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME
     CHARACTER(15), ALLOCATABLE      :: LocalVarOutStrings(:)
     REAL(DbKi), ALLOCATABLE         :: LocalVarOutData(:)
  
-    nDebugOuts = 8
+    nDebugOuts = 13
     Allocate(DebugOutData(nDebugOuts))
     Allocate(DebugOutStrings(nDebugOuts))
     Allocate(DebugOutUnits(nDebugOuts))
@@ -389,12 +389,19 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME
     DebugOutData(4) = DebugVar%WE_t
     DebugOutData(5) = DebugVar%WE_Vm
     DebugOutData(6) = DebugVar%WE_Vt
-    DebugOutData(7) = DebugVar%WE_lambda
-    DebugOutData(8) = DebugVar%PC_PICommand
+    DebugOutData(7) = DebugVar%WE_Vw
+    DebugOutData(8) = DebugVar%WE_lambda
+    DebugOutData(9) = DebugVar%PC_PICommand
+    DebugOutData(10) = DebugVar%GenSpeedF
+    DebugOutData(11) = DebugVar%RotSpeedF
+    DebugOutData(12) = DebugVar%NacIMU_FA_AccF
+    DebugOutData(13) = DebugVar%FA_AccF
     DebugOutStrings = [CHARACTER(15) ::  'WE_Cp', 'WE_b', 'WE_w', 'WE_t', 'WE_Vm', & 
-                                      'WE_Vt', 'WE_lambda', 'PC_PICommand']
+                                      'WE_Vt', 'WE_Vw', 'WE_lambda', 'PC_PICommand', 'GenSpeedF', & 
+                                      'RotSpeedF', 'NacIMU_FA_AccF', 'FA_AccF']
     DebugOutUnits = [CHARACTER(15) ::  '[-]', '[-]', '[-]', '[-]', '[m/s]', & 
-                                      '[m/s]', '[rad]', '[rad]']
+                                      '[m/s]', '[m/s]', '[rad]', '[rad]', '[rad/s]', & 
+                                      '[rad/s]', '[rad/s]', '[m/s]']
     nLocalVars = 69
     Allocate(LocalVarOutData(nLocalVars))
     Allocate(LocalVarOutStrings(nLocalVars))
@@ -483,8 +490,6 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME
                                       'FA_AccF', 'Flp_Angle', 'RootMyb_Last', 'ACC_INFILE_SIZE']
     ! Initialize debug file
     IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN ! .TRUE. if we're on the first call to the DLL
-    ! If we're debugging, open the debug file and write the header:
-    ! Note that the headers will be Truncated to 10 characters!!
         IF (CntrPar%LoggingLevel > 0) THEN
             OPEN(unit=UnDb, FILE=RootName(1: size_avcOUTNAME-5)//'RO.dbg')
             WRITE(UnDb, *)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)

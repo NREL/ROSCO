@@ -918,12 +918,28 @@ DebugVariables:
   WE_Vt: 
     <<: *real  
     description: Turbulent wind speed component in WSE [m/s]
+  WE_Vw: 
+    <<: *real  
+    description: Estimated wind speed in WSE [m/s]
   WE_lambda: 
     <<: *real  
     description: TSR in WSE [rad]
   PC_PICommand:
     <<: *real 
-    description: Commanded collective pitch from pitch PI controller [rad]                
+    description: Commanded collective pitch from pitch PI controller [rad]     
+  GenSpeedF:
+    <<: *real
+    description: Filtered generator speed [rad/s]
+  RotSpeedF:
+    <<: *real
+    description: Filtered rotor speed [rad/s]
+  NacIMU_FA_AccF:
+    <<: *real
+    description: Filtered NacIMU_FA_Acc [rad/s]
+  FA_AccF:
+    <<: *real
+    description: Filtered FA_Acc [m/s]
+
 
 ErrorVariables:
   size_avcMSG: 

@@ -273,8 +273,13 @@ TYPE, PUBLIC :: DebugVariables
     REAL(DbKi)                    :: WE_t                        ! Torque that WSE uses [-]
     REAL(DbKi)                    :: WE_Vm                       ! Mean wind speed component in WSE [m/s]
     REAL(DbKi)                    :: WE_Vt                       ! Turbulent wind speed component in WSE [m/s]
+    REAL(DbKi)                    :: WE_Vw                       ! Estimated wind speed in WSE [m/s]
     REAL(DbKi)                    :: WE_lambda                   ! TSR in WSE [rad]
     REAL(DbKi)                    :: PC_PICommand                ! Commanded collective pitch from pitch PI controller [rad]
+    REAL(DbKi)                    :: GenSpeedF                   ! Filtered generator speed [rad/s]
+    REAL(DbKi)                    :: RotSpeedF                   ! Filtered rotor speed [rad/s]
+    REAL(DbKi)                    :: NacIMU_FA_AccF              ! Filtered NacIMU_FA_Acc [rad/s]
+    REAL(DbKi)                    :: FA_AccF                     ! Filtered FA_Acc [m/s]
 END TYPE DebugVariables
 
 TYPE, PUBLIC :: ErrorVariables
