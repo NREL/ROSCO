@@ -84,3 +84,6 @@ ROSCO_testing/results/
 *.autosave
 *.mat
 
+# OpenFAST outputs
+outputs/
+

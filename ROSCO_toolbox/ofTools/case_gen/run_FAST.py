@@ -7,7 +7,7 @@ Example script to run the DLCs in OpenFAST
 from ROSCO_toolbox.ofTools.case_gen.runFAST_pywrapper   import runFAST_pywrapper, runFAST_pywrapper_batch
 from ROSCO_toolbox.ofTools.case_gen.CaseGen_IEC         import CaseGen_IEC
 from ROSCO_toolbox.ofTools.case_gen.CaseGen_General     import CaseGen_General
-from ROSCO_toolbox.ofTools.case_gen.CaseLibrary         import power_curve, set_channels, find_max_group, sweep_rated_torque, load_tuning_yaml, simp_step, steps
+from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
 from wisdem.commonse.mpi_tools              import MPI
 import sys, os, platform
 import numpy as np
@@ -28,7 +28,7 @@ class run_FAST_ROSCO():
 
         # Set default parameters
         self.tuning_yaml        = os.path.join(tune_case_dir,'IEA15MW.yaml')
-        self.wind_case_fcn      = power_curve
+        self.wind_case_fcn      = cl.power_curve
         self.wind_case_opts     = {}
         self.control_sweep_fcn  = None
         self.save_dir           = os.path.join(rosco_dir,'outputs')
@@ -96,7 +96,7 @@ class run_FAST_ROSCO():
 
         # Sweep control parameter
         if self.control_sweep_fcn:
-            case_inputs_control = self.control_sweep_fcn(self.tuning_yaml,find_max_group(case_inputs)+1)
+            case_inputs_control = self.control_sweep_fcn(self.tuning_yaml,cl.find_max_group(case_inputs)+1)
             sweep_name = self.control_sweep_fcn.__name__
             case_inputs.update(case_inputs_control)
         else:
@@ -106,7 +106,7 @@ class run_FAST_ROSCO():
             
         # Generate cases
         case_list, case_name_list = CaseGen_General(case_inputs, dir_matrix=run_dir, namebase=turbine_name)
-        channels = set_channels()
+        channels = cl.set_channels()
 
         # Management of parallelization, leave in for now
         if MPI:
@@ -175,7 +175,7 @@ if __name__ == "__main__":
     if sim_config == 1:
         # FOCAL single wind speed testing
         r.tuning_yaml = os.path.join(tune_case_dir,'IEA15MW.yaml')
-        r.wind_case   = simp_step
+        r.wind_case   = cl.simp_step
         r.sweep_mode  = None
         r.save_dir    = '/Users/dzalkind/Tools/ROSCO/outputs'
     
@@ -184,14 +184,14 @@ if __name__ == "__main__":
         # FOCAL rated wind speed tuning
         r.tuning_yaml = os.path.join(tune_case_dir,'IEA15MW_FOCAL.yaml')
         r.wind_case   = power_curve
-        r.sweep_mode  = sweep_rated_torque
+        r.sweep_mode  = cl.sweep_rated_torque
         r.save_dir    = '/Users/dzalkind/Projects/FOCAL/drop_torque'
 
     elif sim_config == 7:
 
         # FOCAL rated wind speed tuning
         r.tuning_yaml = os.path.join(tune_case_dir,'IEA15MW.yaml')
-        r.wind_case   = steps
+        r.wind_case   = cl.steps
         r.wind_case_opts = {
             'times': [200,300,400,500], 
             'winds': [6,10,14,18]
