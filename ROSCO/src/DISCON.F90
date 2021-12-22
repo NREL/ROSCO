@@ -67,6 +67,7 @@ RootName = TRANSFER(avcOUTNAME, RootName)
 ! Check for restart
 IF ( (NINT(avrSWAP(1)) == -9) .AND. (aviFAIL >= 0))  THEN ! Read restart files
     CALL ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootName, SIZE(avcOUTNAME), ErrVar)
+    CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, SIZE(avcOUTNAME))
 END IF
 
 ! Read avrSWAP array into derived types/variables
@@ -98,10 +99,10 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
         CALL FlapControl(avrSWAP, CntrPar, LocalVar, objInst)
     END IF
 
+    CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, SIZE(avcOUTNAME))
 
 END IF
 
-CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, SIZE(avcOUTNAME))
 
 ! Add RoutineName to error message
 IF (ErrVar%aviFAIL < 0) THEN
