@@ -164,4 +164,5 @@ jobs:
       # Regression testing
       - name: Run regression testing
         run: |
+          cd ROSCO_testing
           python regtest.py
