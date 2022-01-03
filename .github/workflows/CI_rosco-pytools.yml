@@ -155,8 +155,14 @@ jobs:
         run: |
           conda install openfast==3.0.0
 
-      # Run Testing
-      - name: Run testing
+      # Run ROSCO Testing
+      - name: Run ROSCO testing
         run: |
           cd ROSCO_testing
           python ROSCO_testing.py
+      
+      # Regression testing
+      - name: Run regression testing
+        run: |
+          cd ROSCO_testing
+          python regtest.py

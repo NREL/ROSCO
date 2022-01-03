@@ -67,51 +67,51 @@ CONTAINS
     END FUNCTION ratelimit
 
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(DbKi) FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, reset, inst)
+    REAL(DbKi) FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, piP, reset, inst)
+        USE ROSCO_Types, ONLY : piParams
+
     ! PI controller, with output saturation
 
         IMPLICIT NONE
         ! Allocate Inputs
-        REAL(DbKi), INTENT(IN)         :: error
-        REAL(DbKi), INTENT(IN)         :: kp
-        REAL(DbKi), INTENT(IN)         :: ki
-        REAL(DbKi), INTENT(IN)         :: minValue
-        REAL(DbKi), INTENT(IN)         :: maxValue
-        REAL(DbKi), INTENT(IN)         :: DT
-        INTEGER(IntKi), INTENT(INOUT)   :: inst
-        REAL(DbKi), INTENT(IN)         :: I0
-        LOGICAL, INTENT(IN)         :: reset     
+        REAL(DbKi),    INTENT(IN)         :: error
+        REAL(DbKi),    INTENT(IN)         :: kp
+        REAL(DbKi),    INTENT(IN)         :: ki
+        REAL(DbKi),    INTENT(IN)         :: minValue
+        REAL(DbKi),    INTENT(IN)         :: maxValue
+        REAL(DbKi),    INTENT(IN)         :: DT
+        INTEGER(IntKi), INTENT(INOUT)      :: inst
+        REAL(DbKi),    INTENT(IN)         :: I0
+        TYPE(piParams), INTENT(INOUT)  :: piP
+        LOGICAL,    INTENT(IN)         :: reset     
         ! Allocate local variables
         INTEGER(IntKi)                      :: i                                            ! Counter for making arrays
         REAL(DbKi)                         :: PTerm                                        ! Proportional term
-        REAL(DbKi), DIMENSION(99), SAVE    :: ITerm = (/ (real(9999.9), i = 1,99) /)       ! Integral term, current.
-        REAL(DbKi), DIMENSION(99), SAVE    :: ITermLast = (/ (real(9999.9), i = 1,99) /)   ! Integral term, the last time this controller was called. Supports 99 separate instances.
-        INTEGER(IntKi), DIMENSION(99), SAVE :: FirstCall = (/ (1, i=1,99) /)                ! First call of this function?
-        
+
         ! Initialize persistent variables/arrays, and set inital condition for integrator term
-        IF ((FirstCall(inst) == 1) .OR. reset) THEN
-            ITerm(inst) = I0
-            ITermLast(inst) = I0
+        IF (reset) THEN
+            piP%ITerm(inst) = I0
+            piP%ITermLast(inst) = I0
             
-            FirstCall(inst) = 0
             PIController = I0
         ELSE
             PTerm = kp*error
-            ITerm(inst) = ITerm(inst) + DT*ki*error
-            ITerm(inst) = saturate(ITerm(inst), minValue, maxValue)
-            PIController = saturate(PTerm + ITerm(inst), minValue, maxValue)
+            piP%ITerm(inst) = piP%ITerm(inst) + DT*ki*error
+            piP%ITerm(inst) = saturate(piP%ITerm(inst), minValue, maxValue)
+            PIController = saturate(PTerm + piP%ITerm(inst), minValue, maxValue)
         
-            ITermLast(inst) = ITerm(inst)
+            piP%ITermLast(inst) = piP%ITerm(inst)
         END IF
         inst = inst + 1
         
     END FUNCTION PIController
 
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(DbKi) FUNCTION PIIController(error, error2, kp, ki, ki2, minValue, maxValue, DT, I0, reset, inst)
+    REAL(DbKi) FUNCTION PIIController(error, error2, kp, ki, ki2, minValue, maxValue, DT, I0, piP, reset, inst)
     ! PI controller, with output saturation. 
     ! Added error2 term for additional integral control input
-
+        USE ROSCO_Types, ONLY : piParams
+        
         IMPLICIT NONE
         ! Allocate Inputs
         REAL(DbKi), INTENT(IN)         :: error
@@ -124,35 +124,30 @@ CONTAINS
         REAL(DbKi), INTENT(IN)         :: DT
         INTEGER(IntKi), INTENT(INOUT)   :: inst
         REAL(DbKi), INTENT(IN)         :: I0
+        TYPE(piParams), INTENT(INOUT) :: piP
         LOGICAL, INTENT(IN)         :: reset     
         ! Allocate local variables
         INTEGER(IntKi)                      :: i                                            ! Counter for making arrays
         REAL(DbKi)                         :: PTerm                                        ! Proportional term
-        REAL(DbKi), DIMENSION(99), SAVE    :: ITerm = (/ (real(9999.9), i = 1,99) /)       ! Integral term, current.
-        REAL(DbKi), DIMENSION(99), SAVE    :: ITermLast = (/ (real(9999.9), i = 1,99) /)   ! Integral term, the last time this controller was called. Supports 99 separate instances.
-        REAL(DbKi), DIMENSION(99), SAVE    :: ITerm2 = (/ (real(9999.9), i = 1,99) /)       ! Second Integral term, current.
-        REAL(DbKi), DIMENSION(99), SAVE    :: ITermLast2 = (/ (real(9999.9), i = 1,99) /)   ! Second Integral term, the last time this controller was called. Supports 99 separate instances.
-        INTEGER(IntKi), DIMENSION(99), SAVE :: FirstCall = (/ (1, i=1,99) /)                ! First call of this function?
-        
+
         ! Initialize persistent variables/arrays, and set inital condition for integrator term
-        IF ((FirstCall(inst) == 1) .OR. reset) THEN
-            ITerm(inst) = I0
-            ITermLast(inst) = I0
-            ITerm2(inst) = I0
-            ITermLast2(inst) = I0
+        IF (reset) THEN
+            piP%ITerm(inst) = I0
+            piP%ITermLast(inst) = I0
+            piP%ITerm2(inst) = I0
+            piP%ITermLast2(inst) = I0
             
-            FirstCall(inst) = 0
             PIIController = I0
         ELSE
             PTerm = kp*error
-            ITerm(inst) = ITerm(inst) + DT*ki*error
-            ITerm2(inst) = ITerm2(inst) + DT*ki2*error2
-            ITerm(inst) = saturate(ITerm(inst), minValue, maxValue)
-            ITerm2(inst) = saturate(ITerm2(inst), minValue, maxValue)
-            PIIController = PTerm + ITerm(inst) + ITerm2(inst)
+            piP%ITerm(inst) = piP%ITerm(inst) + DT*ki*error
+            piP%ITerm2(inst) = piP%ITerm2(inst) + DT*ki2*error2
+            piP%ITerm(inst) = saturate(piP%ITerm(inst), minValue, maxValue)
+            piP%ITerm2(inst) = saturate(piP%ITerm2(inst), minValue, maxValue)
+            PIIController = PTerm + piP%ITerm(inst) + piP%ITerm2(inst)
             PIIController = saturate(PIIController, minValue, maxValue)
         
-            ITermLast(inst) = ITerm(inst)
+            piP%ITermLast(inst) = piP%ITerm(inst)
         END IF
         inst = inst + 1
         
@@ -415,36 +410,6 @@ CONTAINS
     
     END FUNCTION identity
 
-!-------------------------------------------------------------------------------------------------------------------------------  
-    REAL(DbKi) FUNCTION DFController(error, Kd, Tf, DT, inst)
-    ! DF controller, with output saturation
-    
-        IMPLICIT NONE
-        ! Inputs
-        REAL(DbKi), INTENT(IN)     :: error
-        REAL(DbKi), INTENT(IN)     :: kd
-        REAL(DbKi), INTENT(IN)     :: tf
-        REAL(DbKi), INTENT(IN)     :: DT
-        INTEGER(IntKi), INTENT(IN)  :: inst
-        ! Local
-        REAL(DbKi)                         :: B                                    ! 
-        INTEGER(IntKi)                      :: i                                    ! Counter for making arrays
-        REAL(DbKi), DIMENSION(99), SAVE    :: errorLast = (/ (0, i=1,99) /)        ! 
-        REAL(DbKi), DIMENSION(99), SAVE    :: DFControllerLast = (/ (0, i=1,99) /) ! 
-        INTEGER(IntKi), DIMENSION(99), SAVE :: FirstCall = (/ (1, i=1,99) /)        ! First call of this function?
-        
-        ! Initialize persistent variables/arrays, and set inital condition for integrator term
-        ! IF (FirstCall(inst) == 1) THEN
-            ! FirstCall(inst) = 0
-        ! END IF
-        
-        B = 2.0/DT
-        DFController = (Kd*B)/(B*Tf+1.0)*error - (Kd*B)/(B*Tf+1.0)*errorLast(inst) - (1.0-B*Tf)/(B*Tf+1.0)*DFControllerLast(inst)
-
-        errorLast(inst) = error
-        DFControllerLast(inst) = DFController
-    END FUNCTION DFController
-
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE ColemanTransform(rootMOOP, aziAngle, nHarmonic, axTOut, axYOut)
     ! The Coleman or d-q axis transformation transforms the root out of plane bending moments of each turbine blade
@@ -544,116 +509,6 @@ CONTAINS
         ENDIF
         
     END FUNCTION AeroDynTorque
-
-!-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME)
-    ! Debug routine, defines what gets printed to DEBUG.dbg if LoggingLevel = 1
-    
-        USE, INTRINSIC  :: ISO_C_Binding
-        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, DebugVariables
-        
-        IMPLICIT NONE
-    
-        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
-        TYPE(LocalVariables), INTENT(IN)        :: LocalVar
-        TYPE(DebugVariables), INTENT(IN)        :: DebugVar
-    
-        INTEGER(IntKi), INTENT(IN)                      :: size_avcOUTNAME
-        INTEGER(IntKi)                                  :: I , nDebugOuts               ! Generic index.
-        CHARACTER(1), PARAMETER                     :: Tab = CHAR(9)                        ! The tab character.
-        CHARACTER(29), PARAMETER                    :: FmtDat = "(F10.3,TR5,99(ES10.3E2,TR5:))"   ! The format of the debugging data
-        INTEGER(IntKi), PARAMETER                       :: UnDb = 85        ! I/O unit for the debugging information
-        INTEGER(IntKi), PARAMETER                       :: UnDb2 = 86       ! I/O unit for the debugging information, avrSWAP
-        REAL(ReKi), INTENT(INOUT)                :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
-        CHARACTER(size_avcOUTNAME-1), INTENT(IN)    :: RootName     ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
-        CHARACTER(200)                              :: Version      ! git version of ROSCO
-        CHARACTER(10)                               :: DebugOutStr1,  DebugOutStr2, DebugOutStr3, DebugOutStr4, DebugOutStr5, &
-                                                         DebugOutStr6, DebugOutStr7, DebugOutStr8, DebugOutStr9, DebugOutStr10, &
-                                                         DebugOutStr11, DebugOutStr12, DebugOutStr13, DebugOutStr14, DebugOutStr15, & 
-                                                         DebugOutStr16, DebugOutStr17, DebugOutStr18, DebugOutStr19, DebugOutStr20                                                           
-        CHARACTER(10)                               :: DebugOutUni1,  DebugOutUni2, DebugOutUni3, DebugOutUni4, DebugOutUni5, &
-                                                         DebugOutUni6, DebugOutUni7, DebugOutUni8, DebugOutUni9, DebugOutUni10, &
-                                                         DebugOutUni11, DebugOutUni12, DebugOutUni13, DebugOutUni14, DebugOutUni15, & 
-                                                         DebugOutUni16, DebugOutUni17, DebugOutUni18, DebugOutUni19, DebugOutUni20 
-        CHARACTER(10), ALLOCATABLE                  :: DebugOutStrings(:), DebugOutUnits(:)
-        REAL(DbKi), ALLOCATABLE                        :: DebugOutData(:)
-
-        ! Set up Debug Strings and Data
-        ! Note that Debug strings have 10 character limit
-        nDebugOuts = 18
-        ALLOCATE(DebugOutData(nDebugOuts))
-        !                 Header                            Unit                                Variable
-        ! Filters
-        DebugOutStr1   = 'FA_AccF';     DebugOutUni1   = '(rad/s^2)';      DebugOutData(1)   = LocalVar%NacIMU_FA_AccF
-        DebugOutStr2   = 'FA_AccR';     DebugOutUni2   = '(rad/s^2)';  DebugOutData(2)   = LocalVar%NacIMU_FA_Acc
-        DebugOutStr3  = 'RotSpeed';     DebugOutUni3  = '(rad/s)';     DebugOutData(3)  = LocalVar%RotSpeed
-        DebugOutStr4  = 'RotSpeedF';    DebugOutUni4  = '(rad/s)';     DebugOutData(4)  = LocalVar%RotSpeedF
-        DebugOutStr5  = 'GenSpeed';     DebugOutUni5  = '(rad/s)';     DebugOutData(5)  = LocalVar%GenSpeed
-        DebugOutStr6  = 'GenSpeedF';    DebugOutUni6  = '(rad/s)';     DebugOutData(6)  = LocalVar%GenSpeedF
-        ! Floating
-        DebugOutStr7  = 'FA_Acc';        DebugOutUni7  = '(m/s^2)';    DebugOutData(7)  = LocalVar%FA_Acc
-        DebugOutStr8  = 'Fl_Pitcom';     DebugOutUni8  = '(rad)';      DebugOutData(8)  = LocalVar%Fl_Pitcom
-        DebugOutStr9  = 'PC_MinPit';     DebugOutUni9  = '(rad)';      DebugOutData(9)  = LocalVar%PC_MinPit
-        DebugOutStr10  = 'SS_dOmF';      DebugOutUni10  = '(rad/s)';   DebugOutData(10)  = LocalVar%SS_DelOmegaF
-        ! WSE
-        DebugOutStr11  = 'WE_Vw';        DebugOutUni11  = '(m/s)';     DebugOutData(11)  = LocalVar%WE_Vw
-        DebugOutStr12  = 'WE_b';         DebugOutUni12  = '(deg)';     DebugOutData(12)  = DebugVar%WE_b
-        DebugOutStr13  = 'WE_t';         DebugOutUni13  = '(Nm)';      DebugOutData(13)  = DebugVar%WE_t
-        DebugOutStr14  = 'WE_w';         DebugOutUni14  = '(rad/s)';   DebugOutData(14)  = DebugVar%WE_w
-        DebugOutStr15  = 'WE_Vm';        DebugOutUni15  = '(m/s)';     DebugOutData(15)  = DebugVar%WE_Vm
-        DebugOutStr16  = 'WE_Vt';        DebugOutUni16  = '(m/s)';     DebugOutData(16)  = DebugVar%WE_Vt
-        DebugOutStr17  = 'WE_lambda';    DebugOutUni17  = '(-)';   DebugOutData(17)  = DebugVar%WE_lambda
-        DebugOutStr18  = 'WE_Cp';        DebugOutUni18  = '(-)';       DebugOutData(18)  = DebugVar%WE_Cp
-
-        Allocate(DebugOutStrings(nDebugOuts))
-        Allocate(DebugOutUnits(nDebugOuts))
-        DebugOutStrings =   [CHARACTER(10)  :: DebugOutStr1, DebugOutStr2, DebugOutStr3, DebugOutStr4, &
-                                                DebugOutStr5, DebugOutStr6, DebugOutStr7, DebugOutStr8, &
-                                                DebugOutStr9, DebugOutStr10, DebugOutStr11, DebugOutStr12, &
-                                                DebugOutStr13, DebugOutStr14, DebugOutStr15, DebugOutStr16, &
-                                                DebugOutStr17, DebugOutStr18]
-        DebugOutUnits =     [CHARACTER(10)  :: DebugOutUni1, DebugOutUni2, DebugOutUni3, DebugOutUni4, &
-                                                DebugOutUni5, DebugOutUni6, DebugOutUni7, DebugOutUni8, &
-                                                DebugOutUni9, DebugOutUni10, DebugOutUni11, DebugOutUni12, &
-                                                DebugOutUni13, DebugOutUni14, DebugOutUni15, DebugOutUni1, &
-                                                DebugOutUni17, DebugOutUni18]
-        
-        ! Initialize debug file
-        IF (LocalVar%iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
-        ! If we're debugging, open the debug file and write the header:
-            ! Note that the headers will be Truncated to 10 characters!!
-            IF (CntrPar%LoggingLevel > 0) THEN
-                OPEN(unit=UnDb, FILE=RootName(1:size_avcOUTNAME-5)//'RO.dbg')
-                WRITE (UnDb,*)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)
-                WRITE (UnDb,'(99(a10,TR5:))') 'Time',   DebugOutStrings
-                WRITE (UnDb,'(99(a10,TR5:))') '(sec)',  DebugOutUnits
-            END IF
-            
-            IF (CntrPar%LoggingLevel > 1) THEN 
-                OPEN(unit=UnDb2, FILE=RootName(1:size_avcOUTNAME-5)//'RO.dbg2')
-                WRITE(UnDb2,'(/////)')
-                WRITE(UnDb2,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1,85)
-                WRITE(UnDb2,'(A,85("'//Tab//'(-)"))')  '(s)'
-            END IF
-        ELSE
-            ! Print simulation status, every 10 seconds
-            IF (MODULO(LocalVar%Time, 10.0_DbKi) == 0) THEN
-                WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0, LocalVar%WE_Vw ! LocalVar%Time !/1000.0
-                100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')
-            END IF
-            
-        ENDIF
-
-        ! Write debug files
-        IF (CntrPar%LoggingLevel > 0) THEN
-            WRITE (UnDb,FmtDat)  LocalVar%Time, DebugOutData
-        END IF
-
-        IF (CntrPar%LoggingLevel > 1) THEN
-            WRITE (UnDb2,FmtDat)    LocalVar%Time, avrSWAP(1:85)
-        END IF
-
-    END SUBROUTINE Debug
 
 
 !-------------------------------------------------------------------------------------------------------------------------------

@@ -475,7 +475,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     return DISCON_dict
 
 
-def run_openfast(fast_dir, fastcall='openfast', fastfile=None, chdir=True):
+def run_openfast(fast_dir, fastcall='openfast', fastfile=None, chdir=True, restart=False):
     '''
     Runs a openfast openfast simulation.
     
@@ -509,7 +509,10 @@ def run_openfast(fast_dir, fastcall='openfast', fastfile=None, chdir=True):
 
     print('Running OpenFAST simulation for {} through the ROSCO toolbox...'.format(fastfile))
         # os.system('{} {}'.format(fastcall, os.path.join(fastfile)))
-    subprocess.run([fastcall, os.path.join(fastfile)], check=True, cwd=cwd)
+    if restart:
+        subprocess.run([fastcall,'-restart', os.path.join(fastfile)], check=True, cwd=cwd)
+    else:
+        subprocess.run([fastcall, os.path.join(fastfile)], check=True, cwd=cwd)
     print('OpenFAST simulation complete.')
 
 

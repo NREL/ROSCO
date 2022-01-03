@@ -36,6 +36,7 @@ set(SOURCES
     src/Filters.f90
     src/Functions.f90
     src/ReadSetParameters.f90
+    src/ROSCO_IO.f90
 )
 
 if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")

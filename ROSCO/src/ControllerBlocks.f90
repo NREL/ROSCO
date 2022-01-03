@@ -175,10 +175,6 @@ CONTAINS
         REAL(DbKi)                 :: F_WECornerFreq   ! Corner frequency (-3dB point) for first order low pass filter for measured hub height wind speed [Hz]
 
         !       Only used in EKF, if WE_Mode = 2
-        REAL(DbKi), SAVE           :: om_r             ! Estimated rotor speed [rad/s]
-        REAL(DbKi), SAVE           :: v_t              ! Estimated wind speed, turbulent component [m/s]
-        REAL(DbKi), SAVE           :: v_m              ! Estimated wind speed, 10-minute averaged [m/s]
-        REAL(DbKi), SAVE           :: v_h              ! Combined estimated wind speed [m/s]
         REAL(DbKi)                 :: L                ! Turbulent length scale parameter [m]
         REAL(DbKi)                 :: Ti               ! Turbulent intensity, [-]
         ! REAL(DbKi), DIMENSION(3,3) :: I
@@ -192,13 +188,10 @@ CONTAINS
 
         !           - Covariance matrices
         REAL(DbKi), DIMENSION(3,3)         :: F        ! First order system jacobian 
-        REAL(DbKi), DIMENSION(3,3), SAVE   :: P        ! Covariance estiamte 
         REAL(DbKi), DIMENSION(1,3)         :: H        ! Output equation jacobian 
-        REAL(DbKi), DIMENSION(3,1), SAVE   :: xh       ! Estimated state matrix
         REAL(DbKi), DIMENSION(3,1)         :: dxh      ! Estimated state matrix deviation from previous timestep
         REAL(DbKi), DIMENSION(3,3)         :: Q        ! Process noise covariance matrix
         REAL(DbKi), DIMENSION(1,1)         :: S        ! Innovation covariance 
-        REAL(DbKi), DIMENSION(3,1), SAVE   :: K        ! Kalman gain matrix
         REAL(DbKi)                         :: R_m      ! Measurement noise covariance [(rad/s)^2]
 
         REAL(DbKi)              :: WE_Inp_Pitch
@@ -256,81 +249,81 @@ CONTAINS
             Q = RESHAPE((/0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0/),(/3,3/))
             IF (LocalVar%iStatus == 0) THEN
                 ! Initialize recurring values
-                om_r = WE_Inp_Speed
-                v_t = 0.0
-                v_m = LocalVar%HorWindV
-                v_h = LocalVar%HorWindV
-                lambda = WE_Inp_Speed * CntrPar%WE_BladeRadius/v_h
-                xh = RESHAPE((/om_r, v_t, v_m/),(/3,1/))
-                P = RESHAPE((/0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 1.0/),(/3,3/))
-                K = RESHAPE((/0.0,0.0,0.0/),(/3,1/))
+                LocalVar%WE%om_r = WE_Inp_Speed
+                LocalVar%WE%v_t = 0.0
+                LocalVar%WE%v_m = LocalVar%HorWindV
+                LocalVar%WE%v_h = LocalVar%HorWindV
+                lambda = WE_Inp_Speed * CntrPar%WE_BladeRadius/LocalVar%WE%v_h
+                LocalVar%WE%xh = RESHAPE((/LocalVar%WE%om_r, LocalVar%WE%v_t, LocalVar%WE%v_m/),(/3,1/))
+                LocalVar%WE%P = RESHAPE((/0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 1.0/),(/3,3/))
+                LocalVar%WE%K = RESHAPE((/0.0,0.0,0.0/),(/3,1/))
                 Cp_op   = 0.25  ! initialize so debug output doesn't give *****
                 
             ELSE
 
                 ! Find estimated operating Cp and system pole
-                A_op = interp1d(CntrPar%WE_FOPoles_v,CntrPar%WE_FOPoles,v_h,ErrVar)
+                A_op = interp1d(CntrPar%WE_FOPoles_v,CntrPar%WE_FOPoles,LocalVar%WE%v_h,ErrVar)
 
                 ! TEST INTERP2D
-                lambda = max(WE_Inp_Speed, EPSILON(1.0_DbKi)) * CntrPar%WE_BladeRadius/v_h
+                lambda = max(WE_Inp_Speed, EPSILON(1.0_DbKi)) * CntrPar%WE_BladeRadius/LocalVar%WE%v_h
                 Cp_op = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, WE_Inp_Pitch*R2D, lambda , ErrVar)
                 Cp_op = max(0.0,Cp_op)
                 
                 ! Update Jacobian
                 F(1,1) = A_op
-                F(1,2) = 1.0/(2.0*CntrPar%WE_Jtot) * CntrPar%WE_RhoAir * PI *CntrPar%WE_BladeRadius**2.0 * 1/om_r * 3.0 * Cp_op * v_h**2.0
-                F(1,3) = 1.0/(2.0*CntrPar%WE_Jtot) * CntrPar%WE_RhoAir * PI *CntrPar%WE_BladeRadius**2.0 * 1/om_r * 3.0 * Cp_op * v_h**2.0
-                F(2,2) = - PI * v_m/(2.0*L)
-                F(2,3) = - PI * v_t/(2.0*L)
+                F(1,2) = 1.0/(2.0*CntrPar%WE_Jtot) * CntrPar%WE_RhoAir * PI *CntrPar%WE_BladeRadius**2.0 * 1/LocalVar%WE%om_r * 3.0 * Cp_op * LocalVar%WE%v_h**2.0
+                F(1,3) = 1.0/(2.0*CntrPar%WE_Jtot) * CntrPar%WE_RhoAir * PI *CntrPar%WE_BladeRadius**2.0 * 1/LocalVar%WE%om_r * 3.0 * Cp_op * LocalVar%WE%v_h**2.0
+                F(2,2) = - PI * LocalVar%WE%v_m/(2.0*L)
+                F(2,3) = - PI * LocalVar%WE%v_t/(2.0*L)
                 
                 ! Update process noise covariance
                 Q(1,1) = 0.00001
-                Q(2,2) =(PI * (v_m**3.0) * (Ti**2.0)) / L
+                Q(2,2) =(PI * (LocalVar%WE%v_m**3.0) * (Ti**2.0)) / L
                 Q(3,3) = (2.0**2.0)/600.0
                 
                 ! Prediction update
                 Tau_r = AeroDynTorque(WE_Inp_Speed, WE_Inp_Pitch, LocalVar, CntrPar, PerfData, ErrVar)
-                a = PI * v_m/(2.0*L)
+                a = PI * LocalVar%WE%v_m/(2.0*L)
                 dxh(1,1) = 1.0/CntrPar%WE_Jtot * (Tau_r - CntrPar%WE_GearboxRatio * WE_Inp_Torque)
-                dxh(2,1) = -a*v_t
+                dxh(2,1) = -a*LocalVar%WE%v_t
                 dxh(3,1) = 0.0
                 
-                xh = xh + LocalVar%DT * dxh ! state update
-                P = P + LocalVar%DT*(MATMUL(F,P) + MATMUL(P,TRANSPOSE(F)) + Q - MATMUL(K * R_m, TRANSPOSE(K))) 
+                LocalVar%WE%xh = LocalVar%WE%xh + LocalVar%DT * dxh ! state update
+                LocalVar%WE%P = LocalVar%WE%P + LocalVar%DT*(MATMUL(F,LocalVar%WE%P) + MATMUL(LocalVar%WE%P,TRANSPOSE(F)) + Q - MATMUL(LocalVar%WE%K * R_m, TRANSPOSE(LocalVar%WE%K))) 
                 
                 ! Measurement update
-                S = MATMUL(H,MATMUL(P,TRANSPOSE(H))) + R_m        ! NJA: (H*T*H') \approx 0
-                K = MATMUL(P,TRANSPOSE(H))/S(1,1)
-                xh = xh + K*(WE_Inp_Speed - om_r)
-                P = MATMUL(identity(3) - MATMUL(K,H),P)
+                S = MATMUL(H,MATMUL(LocalVar%WE%P,TRANSPOSE(H))) + R_m        ! NJA: (H*T*H') \approx 0
+                LocalVar%WE%K = MATMUL(LocalVar%WE%P,TRANSPOSE(H))/S(1,1)
+                LocalVar%WE%xh = LocalVar%WE%xh + LocalVar%WE%K*(WE_Inp_Speed - LocalVar%WE%om_r)
+                LocalVar%WE%P = MATMUL(identity(3) - MATMUL(LocalVar%WE%K,H),LocalVar%WE%P)
                 
                 
                 ! Wind Speed Estimate
-                om_r = max(xh(1,1), EPSILON(1.0_DbKi))
-                v_t = xh(2,1)
-                v_m = xh(3,1)
-                v_h = v_t + v_m
-                LocalVar%WE_Vw = v_m + v_t
+                LocalVar%WE%om_r = max(LocalVar%WE%xh(1,1), EPSILON(1.0_DbKi))
+                LocalVar%WE%v_t = LocalVar%WE%xh(2,1)
+                LocalVar%WE%v_m = LocalVar%WE%xh(3,1)
+                LocalVar%WE%v_h = LocalVar%WE%v_t + LocalVar%WE%v_m
+                LocalVar%WE_Vw = LocalVar%WE%v_m + LocalVar%WE%v_t
 
-                IF (ieee_is_nan(v_h)) THEN
-                    om_r = WE_Inp_Speed
-                    v_t = 0.0
-                    v_m = LocalVar%HorWindV
-                    v_h = LocalVar%HorWindV
-                    LocalVar%WE_Vw = v_m + v_t
+                IF (ieee_is_nan(LocalVar%WE%v_h)) THEN
+                    LocalVar%WE%om_r = WE_Inp_Speed
+                    LocalVar%WE%v_t = 0.0
+                    LocalVar%WE%v_m = LocalVar%HorWindV
+                    LocalVar%WE%v_h = LocalVar%HorWindV
+                    LocalVar%WE_Vw = LocalVar%WE%v_m + LocalVar%WE%v_t
                 ENDIF
 
             ENDIF
             ! Debug Outputs
             DebugVar%WE_Cp = Cp_op
-            DebugVar%WE_Vm = v_m
-            DebugVar%WE_Vt = v_t
+            DebugVar%WE_Vm = LocalVar%WE%v_m
+            DebugVar%WE_Vt = LocalVar%WE%v_t
             DebugVar%WE_lambda = lambda
         ELSE        
             ! Filter wind speed at hub height as directly passed from OpenFAST
-            LocalVar%WE_Vw = LPFilter(LocalVar%HorWindV, LocalVar%DT, CntrPar%F_WECornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
+            LocalVar%WE_Vw = LPFilter(LocalVar%HorWindV, LocalVar%DT, CntrPar%F_WECornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
         ENDIF 
-
+        DebugVar%WE_Vw = LocalVar%WE_Vw
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN
             ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
@@ -358,7 +351,7 @@ CONTAINS
             DelOmega = ((LocalVar%PC_PitComT - LocalVar%PC_MinPit)/0.524) * CntrPar%SS_VSGain - ((CntrPar%VS_RtPwr - LocalVar%VS_LastGenPwr))/CntrPar%VS_RtPwr * CntrPar%SS_PCGain ! Normalize to 30 degrees for now
             DelOmega = DelOmega * CntrPar%PC_RefSpd
             ! Filter
-            LocalVar%SS_DelOmegaF = LPFilter(DelOmega, LocalVar%DT, CntrPar%F_SSCornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF) 
+            LocalVar%SS_DelOmegaF = LPFilter(DelOmega, LocalVar%DT, CntrPar%F_SSCornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
         ELSE
             LocalVar%SS_DelOmegaF = 0 ! No setpoint smoothing
         ENDIF
@@ -411,7 +404,7 @@ CONTAINS
         ! See if we should shutdown
         IF (.NOT. LocalVar%SD ) THEN
             ! Filter pitch signal
-            SD_BlPitchF = LPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%SD_CornerFreq, LocalVar%iStatus, .FALSE., objInst%instLPF)
+            SD_BlPitchF = LPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%SD_CornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
             
             ! Go into shutdown if above max pit
             IF (SD_BlPitchF > CntrPar%SD_MaxPit) THEN

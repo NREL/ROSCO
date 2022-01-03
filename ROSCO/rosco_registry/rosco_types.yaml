@@ -8,7 +8,7 @@ default_types:
   real: &real
     type: real
     description: 
-    shape: 1               # Use this if a higher-dimensional allocatable array (shape:2 --> REAL(8), DIMESION(:,:), ALLOCATABLE)
+    dimension:             # Use this if a higher-dimensional allocatable array (dimension:(:,:) --> REAL(8), DIMESION(:,:), ALLOCATABLE)
     size: 0                # Use this if the type IS an array (size:3 --> REAL(8), BldPitch(3))
     allocatable: False
     equals: 
@@ -17,6 +17,8 @@ default_types:
     description: 
     allocatable: False
     size: 0
+    length:
+    dimension: 
     equals: 
   logical: &logical
     type: logical
@@ -43,6 +45,12 @@ default_types:
     description: 
     size: 0
     equals: 
+  type: &derived_type
+    type: derived_type
+    id: 
+    equals: 
+    description: 
+
   
 
 ControlParameters:
@@ -256,6 +264,7 @@ ControlParameters:
     PerfFileName:
       <<: *character
       description: File containing rotor performance tables (Cp,Ct,Cq)
+      length: 1024
     PerfTableSize:
       <<: *integer
       description: Size of rotor performance tables, first number refers to number of blade pitch angles, second number referse to number of tip-speed ratios
@@ -368,6 +377,7 @@ ControlParameters:
     OL_Filename:
       <<: *character
       description: Input file with open loop timeseries
+      length: 1024
     OL_Mode:
       <<: *integer
       description: Open loop control mode {0 - no open loop control, 1 - open loop control vs. time, 2 - open loop control vs. wind speed}
@@ -402,7 +412,7 @@ ControlParameters:
     OL_Channels:
       <<: *real
       allocatable: True
-      shape: 2
+      dimension: (:,:)
       description: Open loop channels in timeseries
     
     # Calculated
@@ -416,46 +426,235 @@ ControlParameters:
       <<: *real
       description: Minimum torque at the beginning of the below-rated region 2, [Nm]
 
+WE:
+    om_r:
+      <<: *real
+      description: Estimated rotor speed [rad/s]
+    v_t:
+      <<: *real
+      description: Estimated wind speed, turbulent component [m/s]
+    v_m:
+      <<: *real
+      description: Estimated wind speed, 10-minute averaged [m/s]
+    v_h:
+      <<: *real
+      description: Combined estimated wind speed [m/s]
+    P:
+      <<: *real
+      dimension: (3,3)
+      description: Covariance estiamte 
+    xh:
+      <<: *real
+      dimension: (3,1)
+      description: Estimated state matrix
+    K:
+      <<: *real
+      dimension: (3,1)
+      description: Kalman gain matrix
+
+FilterParameters:
+    lpf1_a1:
+      <<: *real
+      dimension: (99)
+      description: First order filter - Denominator coefficient 1
+    lpf1_a0:
+      <<: *real
+      dimension: (99)
+      description: First order filter - Denominator coefficient 0
+    lpf1_b1:
+      <<: *real
+      dimension: (99)
+      description: First order filter - Numerator coefficient 1
+    lpf1_b0:
+      <<: *real
+      dimension: (99)
+      description: First order filter - Numerator coefficient 0
+    lpf1_InputSignalLast:
+      <<: *real
+      dimension: (99)
+      description: First order filter - Previous input
+    lpf1_OutputSignalLast:
+      <<: *real
+      dimension: (99)
+      description: First order filter - Previous output
+    lpf2_a2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Denominator coefficient 2
+    lpf2_a1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Denominator coefficient 1
+    lpf2_a0:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Denominator coefficient 0
+    lpf2_b2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Numerator coefficient 2
+    lpf2_b1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Numerator coefficient 1
+    lpf2_b0:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Numerator coefficient 0
+    lpf2_InputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous input 2
+    lpf2_OutputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous output 2
+    lpf2_InputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous input 1 
+    lpf2_OutputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous output 1
+    hpf_InputSignalLast:
+      <<: *real
+      dimension: (99)
+      description: High pass filter - Previous output 1
+    hpf_OutputSignalLast:
+      <<: *real
+      dimension: (99)
+      description: High pass filter - Previous output 1
+    nfs_OutputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Notch filter slopes previous output 1
+    nfs_OutputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Notch filter slopes previous output 2
+    nfs_InputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Notch filter slopes previous input 1
+    nfs_InputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Notch filter slopes previous input 1
+    nfs_b2:
+      <<: *real
+      dimension: (99)
+      description: Notch filter slopes numerator coefficient 2
+    nfs_b0:
+      <<: *real
+      dimension: (99)
+      description: Notch filter slopes numerator coefficient 0
+    nfs_a2:
+      <<: *real
+      dimension: (99)
+      description: Notch filter slopes denominator coefficient 2
+    nfs_a1:
+      <<: *real
+      dimension: (99)
+      description: Notch filter slopes denominator coefficient 1
+    nfs_a0:
+      <<: *real
+      dimension: (99)
+      description: Notch filter slopes denominator coefficient 0
+    nf_OutputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Notch filter previous output 1
+    nf_OutputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Notch filter previous output 2
+    nf_InputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Notch filter previous input 1
+    nf_InputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Notch filter previous input 2
+    nf_b2:
+      <<: *real
+      dimension: (99)
+      description: Notch filter numerator coefficient 2
+    nf_b1:
+      <<: *real
+      dimension: (99)
+      description: Notch filter numerator coefficient 1
+    nf_b0:
+      <<: *real
+      dimension: (99)
+      description: Notch filter numerator coefficient 0
+    nf_a1:
+      <<: *real
+      dimension: (99)
+      description: Notch filter denominator coefficient 1
+    nf_a0:
+      <<: *real
+      dimension: (99)
+      description: Notch filter denominator coefficient 0  
+
+piParams:
+    ITerm:
+      <<: *real
+      dimension: (99)
+      description: Integrator term
+    ITermLast:
+      <<: *real
+      dimension: (99)
+      description: Previous integrator term
+    ITerm2:
+      <<: *real
+      dimension: (99)
+      description: Integrator term - second integrator
+    ITermLast2:
+      <<: *real
+      dimension: (99)
+      description: Previous integrator term - second integrator
 
 LocalVariables:
     iStatus: 
       <<: *integer 
-      description: 
+      description: Initialization status
     Time: 
       <<: *real 
-      description: 
+      description: Time [s]
     DT: 
       <<: *real 
-      description: 
+      description: Time step [s]
     VS_GenPwr: 
       <<: *real 
-      description: 
+      description: Generator power [W]
     GenSpeed: 
       <<: *real 
-      description: 
+      description: Generator speed (HSS) [rad/s]
     RotSpeed: 
       <<: *real 
-      description: 
+      description: Rotor speed (LSS) [rad/s]
     Y_M: 
       <<: *real 
-      description: 
+      description: Yaw direction [rad]
     HorWindV: 
       <<: *real 
-      description: 
+      description: Hub height wind speed m/s
     rootMOOP: 
       <<: *real
-      description: 
+      description: Blade root bending moment [Nm]
       size: 3
     BlPitch: 
       <<: *real
-      description: 
+      description: Blade pitch [rad]
       size: 3
     Azimuth: 
       <<: *real 
-      description: 
+      description: Rotor aziumuth angle [rad]
     NumBl: 
       <<: *integer 
-      description: 
+      description: Number of blades [-]
     FA_Acc:                       
       <<: *real 
       description: Tower fore-aft acceleration [m/s^2]
@@ -515,6 +714,9 @@ LocalVariables:
     PC_PitComT:                   
       <<: *real 
       description: Total command pitch based on the sum of the proportional and integral terms [rad].
+    PC_PitComT_Last:                   
+      <<: *real 
+      description: Last total command pitch based on the sum of the proportional and integral terms [rad].
     PC_PitComTF:                   
       <<: *real 
       description: Filtered Total command pitch based on the sum of the proportional and integral terms [rad].
@@ -525,12 +727,21 @@ LocalVariables:
     PC_PwrErr:                    
       <<: *real 
       description: Power error with respect to rated power [W]
-    PC_SineExcitation:            
-      <<: *real 
-      description: Sine contribution to pitch signal
     PC_SpdErr:                    
       <<: *real 
       description: Current speed error (pitch control) [rad/s].
+    IPC_IntAxisTilt_1P:
+      <<: *real
+      description: Integral of the direct axis, 1P
+    IPC_IntAxisYaw_1P:
+      <<: *real
+      description: Integral of quadrature, 1P
+    IPC_IntAxisTilt_2P:
+      <<: *real
+      description: Integral of the direct axis, 2P
+    IPC_IntAxisYaw_2P:
+      <<: *real
+      description: Integral of quadrature, 2P
     PC_State:                     
       <<: *integer 
       description: State of the pitch control system
@@ -615,6 +826,33 @@ LocalVariables:
       <<: *real 
       description: Flap Angle (rad)
       size: 3
+    RootMyb_Last:
+      <<: *real 
+      description: Last blade root bending moment (Nm)
+      size: 3
+    ACC_INFILE_SIZE:
+      <<: *integer
+      description: Length of parameter input filename
+    ACC_INFILE:
+      <<: *character
+      description: Parameter input filename
+      dimension: (:)
+      allocatable: True
+    restart:
+      <<: *logical
+      description: Restart flag
+    WE: 
+      <<: *derived_type
+      id: WE 
+      description: Wind speed estimator parameters derived type
+    FP:
+      <<: *derived_type
+      id: FilterParameters
+      description: Filter parameters derived type
+    piP:
+      <<: *derived_type
+      id: piParams
+      description: PI parameters derived type
 
 ObjectInstances:
   instLPF:
@@ -648,44 +886,66 @@ PerformanceData:
   Cp_mat:
     <<: *real
     allocatable: True
-    shape: 2
+    dimension: (:,:)
     description: Power coefficient surface
   Ct_mat:
     <<: *real
     allocatable: True
-    shape: 2
+    dimension: (:,:)
     description: Thrust coefficient surface
   Cq_mat:
     <<: *real
     allocatable: True
-    shape: 2
+    dimension: (:,:)
     description: Torque coefficient surface
 
 DebugVariables:                                       
   WE_Cp: 
     <<: *real  
-    description: Cp that WSE uses to determine aerodynamic torque[-]
+    description: Cp that WSE uses to determine aerodynamic torque [-]
   WE_b: 
     <<: *real  
-    description: Pitch that WSE uses to determine aerodynamic torque[-]
+    description: Pitch that WSE uses to determine aerodynamic torque [-]
   WE_w: 
     <<: *real  
-    description: Rotor Speed that WSE uses to determine aerodynamic torque[-]
+    description: Rotor Speed that WSE uses to determine aerodynamic torque [-]
   WE_t: 
     <<: *real  
-    description: Torque that WSE uses[-]
+    description: Torque that WSE uses [-]
   WE_Vm: 
     <<: *real  
     description: Mean wind speed component in WSE [m/s]
   WE_Vt: 
     <<: *real  
     description: Turbulent wind speed component in WSE [m/s]
+  WE_Vw: 
+    <<: *real  
+    description: Estimated wind speed in WSE [m/s]
   WE_lambda: 
     <<: *real  
     description: TSR in WSE [rad]
   PC_PICommand:
     <<: *real 
-    description: Commanded collective pitch from pitch PI controller [rad]                
+    description: Commanded collective pitch from pitch PI controller [rad]     
+  GenSpeedF:
+    <<: *real
+    description: Filtered generator speed [rad/s]
+  RotSpeedF:
+    <<: *real
+    description: Filtered rotor speed [rad/s]
+  NacIMU_FA_AccF:
+    <<: *real
+    description: Filtered NacIMU_FA_Acc [rad/s]
+  FA_AccF:
+    <<: *real
+    description: Filtered FA_Acc [m/s]
+  Fl_PitCom:
+    <<: *real
+    description: Floating contribution to the pitch command [rad]
+  PC_MinPit:
+    <<: *real
+    description: Minimum blade pitch angle [rad]
+
 
 ErrorVariables:
   size_avcMSG: 
@@ -699,7 +959,6 @@ ErrorVariables:
     allocatable: True
 
 ExtDLL_Type:
-
   FileAddr:
     <<: *c_intptr_t
     description: The address of file FileName. (RETURN value from LoadLibrary ) [Windows]
@@ -714,9 +973,11 @@ ExtDLL_Type:
     description: The address of procedure ProcName. (RETURN value from GetProcAddress or dlsym) [initialized to Null for pack/unpack]
   FileName:
     <<: *character
+    length: 1024
     description: The name of the DLL file including the full path to the current working directory.
   ProcName:
     <<: *character
     equals: '""'
     size: 3
+    length: 1024
     description: The name of the procedure in the DLL that will be called.
