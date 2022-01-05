@@ -142,6 +142,11 @@ class Controller():
                 raise Exception(f'Open-loop control set up, but the open loop file {self.OL_Filename} does not exist')
             
 
+        # Pitch actuator parameters
+        self.PA_Mode = controller_params['PA_Mode']
+        self.PA_CornerFreq = controller_params['PA_CornerFreq']
+        self.PA_Damping = controller_params['PA_Damping']
+
         # Save controller_params for later (direct passthrough)
         self.controller_params = controller_params
 

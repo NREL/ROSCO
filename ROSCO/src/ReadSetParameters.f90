@@ -253,6 +253,7 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'FL_Mode',accINFILE(1),CntrPar%FL_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_Mode',accINFILE(1),CntrPar%Flp_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'OL_Mode',accINFILE(1),CntrPar%OL_Mode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PA_Mode',accINFILE(1),CntrPar%PA_Mode,ErrVar)
 
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
@@ -390,6 +391,15 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'Ind_BldPitch',accINFILE(1),CntrPar%Ind_BldPitch,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Ind_GenTq',accINFILE(1),CntrPar%Ind_GenTq,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Ind_YawRate',accINFILE(1),CntrPar%Ind_YawRate,ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+
+        !------------ Pitch Actuator Inputs ------------
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(UnControllerParameters,CurLine,'PA_CornerFreq',accINFILE(1),CntrPar%PA_CornerFreq,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PA_Damping',accINFILE(1),CntrPar%PA_Damping,ErrVar)
+
+        PRINT *, "PA_CornerFreq:", CntrPar%PA_CornerFreq
+        PRINT *, "PA_Damping:", CntrPar%PA_Damping
 
         ! Fix Paths (add relative paths if called from another dir)
         IF (PathIsRelative(CntrPar%PerfFileName)) CntrPar%PerfFileName = TRIM(PriPath)//TRIM(CntrPar%PerfFileName)
@@ -956,6 +966,22 @@ CONTAINS
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg = 'All open loop control indices must be greater than zero'
         ENDIF
+
+        ! --- Pitch Actuator ---
+        IF (CntrPar%PA_Mode > 0) THEN
+            IF ((CntrPar%PA_Mode < 0) .OR. (CntrPar%PA_Mode < 2)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'PA_Mode must be 0, 1, or 2'
+            END IF
+            IF (CntrPar%PA_CornerFreq < 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'PA_CornerFreq must be greater than 0'
+            END IF
+            IF (CntrPar%PA_Damping < 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'PA_Damping must be greater than 0'
+            END IF
+        END IF
             
 
         
