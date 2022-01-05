@@ -30,6 +30,7 @@ class run_FAST_ROSCO():
         self.tuning_yaml        = os.path.join(tune_case_dir,'IEA15MW.yaml')
         self.wind_case_fcn      = cl.power_curve
         self.wind_case_opts     = {}
+        self.control_sweep_opts = {}
         self.control_sweep_fcn  = None
         self.save_dir           = os.path.join(rosco_dir,'outputs')
         self.n_cores            = 1
@@ -77,7 +78,8 @@ class run_FAST_ROSCO():
             control_base_case[('DISCON_in',discon_input)] = {'vals': [discon_vt[discon_input]], 'group': 0}
 
         # Set up wind case
-        case_inputs = self.wind_case_fcn(run_dir)
+        self.wind_case_opts['run_dir'] = run_dir
+        case_inputs = self.wind_case_fcn(**self.wind_case_opts)
         case_inputs.update(control_base_case)
 
         # Specify rosco controller dylib
@@ -96,13 +98,13 @@ class run_FAST_ROSCO():
 
         # Sweep control parameter
         if self.control_sweep_fcn:
-            case_inputs_control = self.control_sweep_fcn(self.tuning_yaml,cl.find_max_group(case_inputs)+1)
+            self.control_sweep_opts['tuning_yaml'] = self.tuning_yaml
+            case_inputs_control = self.control_sweep_fcn(cl.find_max_group(case_inputs)+1, **self.control_sweep_opts)
             sweep_name = self.control_sweep_fcn.__name__
             case_inputs.update(case_inputs_control)
         else:
             sweep_name = 'base'
 
-        
             
         # Generate cases
         case_list, case_name_list = CaseGen_General(case_inputs, dir_matrix=run_dir, namebase=turbine_name)
@@ -166,7 +168,7 @@ class run_FAST_ROSCO():
 if __name__ == "__main__":
 
     # Simulation config
-    sim_config = 1
+    sim_config = 7
     
     r = run_FAST_ROSCO()
 
@@ -175,29 +177,36 @@ if __name__ == "__main__":
     if sim_config == 1:
         # FOCAL single wind speed testing
         r.tuning_yaml = os.path.join(tune_case_dir,'IEA15MW.yaml')
-        r.wind_case   = cl.simp_step
+        r.wind_case_fcn = cl.simp_step
         r.sweep_mode  = None
         r.save_dir    = '/Users/dzalkind/Tools/ROSCO/outputs'
     
     elif sim_config == 6:
 
         # FOCAL rated wind speed tuning
-        r.tuning_yaml = os.path.join(tune_case_dir,'IEA15MW_FOCAL.yaml')
-        r.wind_case   = power_curve
-        r.sweep_mode  = cl.sweep_rated_torque
-        r.save_dir    = '/Users/dzalkind/Projects/FOCAL/drop_torque'
+        r.tuning_yaml   = os.path.join(tune_case_dir,'IEA15MW_FOCAL.yaml')
+        r.wind_case_fcn = power_curve
+        r.sweep_mode    = cl.sweep_rated_torque
+        r.save_dir      = '/Users/dzalkind/Projects/FOCAL/drop_torque'
 
     elif sim_config == 7:
 
         # FOCAL rated wind speed tuning
-        r.tuning_yaml = os.path.join(tune_case_dir,'IEA15MW.yaml')
-        r.wind_case   = cl.steps
-        r.wind_case_opts = {
-            'times': [200,300,400,500], 
-            'winds': [6,10,14,18]
+        r.tuning_yaml   = os.path.join(tune_case_dir,'IEA15MW.yaml')
+        r.wind_case_fcn     = cl.steps
+        r.wind_case_opts    = {
+            'tt': [100,200], 
+            'U': [16,18],
+            'U_0': 13
             }
-        r.sweep_mode  = None
-        r.save_dir    = '/Users/dzalkind/Tools/ROSCO/outputs'
+        r.sweep_mode    = None
+        r.save_dir      = '/Users/dzalkind/Tools/ROSCO/outputs'
+        r.control_sweep_fcn = cl.sweep_pitch_act
+        r.control_sweep_opts = {
+            'act_bw': np.array([0.25,0.5,1,10]) * np.pi * 2
+        }
+
+        r.n_cores = 4
 
     else:
         raise Exception('This simulation configuration is not supported.')

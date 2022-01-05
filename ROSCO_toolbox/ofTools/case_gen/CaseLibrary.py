@@ -3,7 +3,7 @@ import numpy as np
 
 from ROSCO_toolbox.ofTools.case_gen.CaseGen_General import CaseGen_General
 from ROSCO_toolbox.ofTools.case_gen.CaseGen_IEC import CaseGen_IEC
-from ROSCO_toolbox.ofTools.case_gen.HH_WindFile import HH_StepFile
+from ROSCO_toolbox.ofTools.case_gen.HH_WindFile import HH_StepFile, HH_WindFile
 
 # ROSCO 
 from ROSCO_toolbox import controller as ROSCO_controller
@@ -118,15 +118,18 @@ def base_op_case():
 
     return case_inputs
 
-def power_curve(run_dir,**wind_case_opts):
+def power_curve(**wind_case_opts):
     # Constant wind speed, multiple wind speeds, define below
 
     # Runtime
     T_max   = 400.
 
-    # Run conditions
-    U = np.arange(4,14.5,.5).tolist()
-    U = np.linspace(9.5,12,num=16)
+    if 'U' in wind_case_opts:
+        U = wind_case_opts['U']
+    else: # default
+        # Run conditions
+        U = np.arange(4,14.5,.5).tolist()
+        U = np.linspace(9.5,12,num=16)
 
 
     case_inputs = base_op_case()
@@ -139,7 +142,7 @@ def power_curve(run_dir,**wind_case_opts):
 
     return case_inputs
 
-def simp_step(run_dir,**wind_case_opts):
+def simp_step(**wind_case_opts):
     # Set up cases for FIW-JIP project
     # 3.x in controller tuning register
 
@@ -178,9 +181,230 @@ def simp_step(run_dir,**wind_case_opts):
     case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
     case_inputs[("InflowWind","Filename_Uni")] = {'vals':step_wind_files, 'group':1}
 
+    return case_inputs
+
+def single_steps(discon_file,runDir, namebase,rosco_dll=''):
+    # Set up cases for FIW-JIP project
+    # 3.x in controller tuning register
+
+    # Default Runtime
+    T_max   = 800.
+
+    # Step Wind Setup
+
+    # Make Default step wind object
+    hh_step = HH_StepFile()
+    hh_step.t_max = T_max
+    hh_step.t_step = 400
+    hh_step.wind_directory = runDir
+
+    # Run conditions
+    U = np.arange(4,24,1).tolist()
+    step_wind_files = []
+
+    for u in U:
+        # Step up
+        hh_step.u_start = u
+        hh_step.u_end   = u+1
+        hh_step.update()
+        hh_step.write()
+
+        step_wind_files.append(hh_step.filename)
+
+        # Step down
+        hh_step.u_start = u+1
+        hh_step.u_end   = u
+        hh_step.update()
+        hh_step.write()
+
+        step_wind_files.append(hh_step.filename)
+
+    case_inputs = base_op_case()
+
+    # wind inflow
+    case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
+    case_inputs[("InflowWind","Filename_Uni")] = {'vals':step_wind_files, 'group':1}
+
+def steps(**wind_case_opts):
+    # Muliple steps in same simulation at time, wind breakpoints, this function adds zero-order hold, 100 seconds to end
+
+    if 'tt' in wind_case_opts and 'U' in wind_case_opts:
+        tt = wind_case_opts['tt']
+        U = wind_case_opts['U']
+    else:
+        raise Exception('You must define tt and U in **wind_case_opts dict to use steps() fcn')
+
+    if 'dt' in wind_case_opts:
+        dt = wind_case_opts['dt']
+    else:
+        dt = 0.05
+
+    if 'U_0' in wind_case_opts:
+        U_0 = wind_case_opts['U_0']
+    else:
+        U_0 = U[0]
+
+    if 'T_max' in wind_case_opts:
+        T_max = wind_case_opts['T_max']
+    else:
+        T_max = tt[-1] + 100
+
+    if len(tt) != len(U):
+        raise Exception('steps: len(tt) and len(U) must be the same')
 
 
-    # # Tune Floating Feedback Gain
+    # Make Default step wind object
+    hh_wind = HH_WindFile()
+    hh_wind.t_max = T_max
+    hh_wind.filename = os.path.join(wind_case_opts['run_dir'],'steps.hh')
+
+    # Step Wind Setup
+    hh_wind.time = [0]
+    hh_wind.wind_speed = [U_0]
+    for t, u in zip(tt,U):
+        hh_wind.time.append(t-dt)
+        hh_wind.wind_speed.append(hh_wind.wind_speed[-1])
+
+        hh_wind.time.append(t)
+        hh_wind.wind_speed.append(u)
+
+    hh_wind.wind_dir = [0] * len(hh_wind.time)
+    hh_wind.vert_speed = [0] * len(hh_wind.time)
+    hh_wind.horiz_shear = [0] * len(hh_wind.time)
+    hh_wind.vert_shear = [0] * len(hh_wind.time)
+    hh_wind.linv_shear = [0] * len(hh_wind.time)
+    hh_wind.gust_speed = [0] * len(hh_wind.time)
+    
+    if False:
+        hh_wind.plot()
+
+    hh_wind.write()
+    case_inputs = base_op_case()
+
+    case_inputs[("Fst","TMax")] = {'vals':[T_max], 'group':0}
+
+
+    # wind inflow
+    case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
+    case_inputs[("InflowWind","Filename_Uni")] = {'vals':[hh_wind.filename], 'group':0}
+
+    return case_inputs
+
+
+##############################################################################################
+#
+#   Control sweep cases
+#
+##############################################################################################
+
+def sweep_rated_torque(start_group, **control_sweep_opts):
+
+    # Sweep multiplier of original rated torque
+    multipliers = np.linspace(1,1.5,5)
+
+
+    # Load yaml file 
+    inps = load_rosco_yaml(tuning_yaml)
+    path_params         = inps['path_params']
+    controller_params   = inps['controller_params']
+
+    var_trees = []
+    for m in multipliers:
+        
+        turbine_params      = inps['turbine_params'].copy()
+        turbine_params['rated_power'] *= m
+
+        # Instantiate turbine, controller, and file processing classes
+        turbine         = ROSCO_turbine.Turbine(turbine_params)
+        controller      = ROSCO_controller.Controller(controller_params)
+
+        # Load turbine data from OpenFAST and rotor performance text file
+        cp_filename = os.path.join(tune_case_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
+        turbine.load_from_fast(path_params['FAST_InputFile'], \
+            os.path.join(tune_case_dir,path_params['FAST_directory']), \
+            dev_branch=True,rot_source='txt',\
+            txt_filename=cp_filename)
+
+        controller.tune_controller(turbine)
+        discon_vt = ROSCO_utilities.DISCON_dict(turbine, controller, txt_filename=cp_filename)            
+        var_trees.append(discon_vt.copy())
+
+    # Translate array of dicts into dict of arrays
+    discon_array = {}
+    for var in var_trees[0]:
+        discon_array[var] = []
+
+    for vt in var_trees:
+        for var in vt:
+            discon_array[var].append(vt[var])
+            
+    
+    case_inputs_control = {}
+    for discon_input in discon_array:
+        case_inputs_control[('DISCON_in',discon_input)] = {'vals': discon_array[discon_input], 'group': start_group}
+
+    return case_inputs_control
+
+def sweep_pitch_act(start_group, **control_sweep_opts):
+    if 'act_bw' in control_sweep_opts:
+        act_bw = control_sweep_opts['act_bw']
+    else:
+        raise Exception('Define act_bw to sweep or program something else.')
+
+    case_inputs_control = {}
+    case_inputs_control[('DISCON_in','PA_CornerFreq')] = {'vals': act_bw.tolist(), 'group': start_group}
+
+    return case_inputs_control
+ 
+#  def sweep_pc_mode(cont_yaml,omega=np.linspace(.05,.35,8,endpoint=True).tolist(),zeta=[1.5],group=2):
+    
+    
+#     inps                = yaml.safe_load(open(cont_yaml))
+#     path_params         = inps['path_params']
+#     turbine_params      = inps['turbine_params']
+#     controller_params   = inps['controller_params']
+
+#     # make default controller, turbine objects for ROSCO_toolbox
+#     turbine             = ROSCO_turbine.Turbine(turbine_params)
+#     turbine.load_from_fast( path_params['FAST_InputFile'],path_params['FAST_directory'], dev_branch=True)
+
+#     controller          = ROSCO_controller.Controller(controller_params)
+
+#     # tune default controller
+#     controller.tune_controller(turbine)
+
+#     # check if inputs are lists
+#     if not isinstance(omega,list):
+#         omega = [omega]
+#     if not isinstance(zeta,list):
+#         zeta = [zeta]
+
+#     # Loop through and make PI gains
+#     pc_kp = []
+#     pc_ki = []
+#     m_omega = []  # flattened (omega,zeta) pairs
+#     m_zeta = []  # flattened (omega,zeta) pairs
+#     for o in omega:
+#         for z in zeta:
+#             controller.omega_pc = o
+#             controller.zeta_pc  = z
+#             controller.tune_controller(turbine)
+#             pc_kp.append(controller.pc_gain_schedule.Kp.tolist())
+#             pc_ki.append(controller.pc_gain_schedule.Ki.tolist())
+#             m_omega.append(o)
+#             m_zeta.append(z)
+
+#     # add control gains to case_list
+#     case_inputs = {}
+#     case_inputs[('meta','omega')]          = {'vals': m_omega, 'group': group}
+#     case_inputs[('meta','zeta')]          = {'vals': m_zeta, 'group': group}
+#     case_inputs[('DISCON_in', 'PC_GS_KP')] = {'vals': pc_kp, 'group': group}
+#     case_inputs[('DISCON_in', 'PC_GS_KI')] = {'vals': pc_ki, 'group': group}
+
+#     return case_inputs
+
+ ## Old sweep functions
+     # # Tune Floating Feedback Gain
     # if tune == 'fl_gain':
     #     case_inputs[('DISCON_in','Fl_Kp')] = {'vals': np.linspace(0,-18,6,endpoint=True).tolist(), 'group': 2}
 
@@ -238,155 +462,6 @@ def simp_step(run_dir,**wind_case_opts):
 
     # elif tune == 'yaw':
     #     case_inputs[('ElastoDyn','NacYaw')]     = {'vals': [-10,0,10], 'group': 3}
-
-
-
-    return case_inputs
-
-
-def single_steps(discon_file,runDir, namebase,rosco_dll=''):
-    # Set up cases for FIW-JIP project
-    # 3.x in controller tuning register
-
-    # Default Runtime
-    T_max   = 800.
-
-    # Step Wind Setup
-
-    # Make Default step wind object
-    hh_step = HH_StepFile()
-    hh_step.t_max = T_max
-    hh_step.t_step = 400
-    hh_step.wind_directory = runDir
-
-    # Run conditions
-    U = np.arange(4,24,1).tolist()
-    step_wind_files = []
-
-    for u in U:
-        # Step up
-        hh_step.u_start = u
-        hh_step.u_end   = u+1
-        hh_step.update()
-        hh_step.write()
-
-        step_wind_files.append(hh_step.filename)
-
-        # Step down
-        hh_step.u_start = u+1
-        hh_step.u_end   = u
-        hh_step.update()
-        hh_step.write()
-
-        step_wind_files.append(hh_step.filename)
-
-    case_inputs = base_op_case()
-
-    # wind inflow
-    case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
-    case_inputs[("InflowWind","Filename")] = {'vals':step_wind_files, 'group':1}
-
-
-
-def sweep_pc_mode(cont_yaml,omega=np.linspace(.05,.35,8,endpoint=True).tolist(),zeta=[1.5],group=2):
-    
-    
-    inps                = yaml.safe_load(open(cont_yaml))
-    path_params         = inps['path_params']
-    turbine_params      = inps['turbine_params']
-    controller_params   = inps['controller_params']
-
-    # make default controller, turbine objects for ROSCO_toolbox
-    turbine             = ROSCO_turbine.Turbine(turbine_params)
-    turbine.load_from_fast( path_params['FAST_InputFile'],path_params['FAST_directory'], dev_branch=True)
-
-    controller          = ROSCO_controller.Controller(controller_params)
-
-    # tune default controller
-    controller.tune_controller(turbine)
-
-    # check if inputs are lists
-    if not isinstance(omega,list):
-        omega = [omega]
-    if not isinstance(zeta,list):
-        zeta = [zeta]
-
-    # Loop through and make PI gains
-    pc_kp = []
-    pc_ki = []
-    m_omega = []  # flattened (omega,zeta) pairs
-    m_zeta = []  # flattened (omega,zeta) pairs
-    for o in omega:
-        for z in zeta:
-            controller.omega_pc = o
-            controller.zeta_pc  = z
-            controller.tune_controller(turbine)
-            pc_kp.append(controller.pc_gain_schedule.Kp.tolist())
-            pc_ki.append(controller.pc_gain_schedule.Ki.tolist())
-            m_omega.append(o)
-            m_zeta.append(z)
-
-    # add control gains to case_list
-    case_inputs = {}
-    case_inputs[('meta','omega')]          = {'vals': m_omega, 'group': group}
-    case_inputs[('meta','zeta')]          = {'vals': m_zeta, 'group': group}
-    case_inputs[('DISCON_in', 'PC_GS_KP')] = {'vals': pc_kp, 'group': group}
-    case_inputs[('DISCON_in', 'PC_GS_KI')] = {'vals': pc_ki, 'group': group}
-
-    return case_inputs
-
-# Control sweep functions
-# function(controller,turbine,start_group)
-
-
-def sweep_rated_torque(tuning_yaml,start_group):
-
-    # Sweep multiplier of original rated torque
-    multipliers = np.linspace(1,1.5,5)
-
-
-    # Load yaml file 
-    inps = load_rosco_yaml(tuning_yaml)
-    path_params         = inps['path_params']
-    controller_params   = inps['controller_params']
-
-    var_trees = []
-    for m in multipliers:
-        
-        turbine_params      = inps['turbine_params'].copy()
-        turbine_params['rated_power'] *= m
-
-        # Instantiate turbine, controller, and file processing classes
-        turbine         = ROSCO_turbine.Turbine(turbine_params)
-        controller      = ROSCO_controller.Controller(controller_params)
-
-        # Load turbine data from OpenFAST and rotor performance text file
-        cp_filename = os.path.join(tune_case_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
-        turbine.load_from_fast(path_params['FAST_InputFile'], \
-            os.path.join(tune_case_dir,path_params['FAST_directory']), \
-            dev_branch=True,rot_source='txt',\
-            txt_filename=cp_filename)
-
-        controller.tune_controller(turbine)
-        discon_vt = ROSCO_utilities.DISCON_dict(turbine, controller, txt_filename=cp_filename)            
-        var_trees.append(discon_vt.copy())
-
-    # Translate array of dicts into dict of arrays
-    discon_array = {}
-    for var in var_trees[0]:
-        discon_array[var] = []
-
-    for vt in var_trees:
-        for var in vt:
-            discon_array[var].append(vt[var])
-            
-    
-    case_inputs_control = {}
-    for discon_input in discon_array:
-        case_inputs_control[('DISCON_in',discon_input)] = {'vals': discon_array[discon_input], 'group': start_group}
-
-    return case_inputs_control
- 
 
 
 
