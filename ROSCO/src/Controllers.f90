@@ -204,7 +204,9 @@ CONTAINS
         
         ! Open loop torque control
         IF ((CntrPar%OL_Mode == 1) .AND. (CntrPar%Ind_GenTq > 0)) THEN
-            LocalVar%GenTq = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_GenTq,LocalVar%Time,ErrVar)
+            IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN
+                LocalVar%GenTq = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_GenTq,LocalVar%Time,ErrVar)
+            ENDIF
         ENDIF
 
         ! Reset the value of LocalVar%VS_LastGenTrq to the current values:
@@ -265,7 +267,9 @@ CONTAINS
         ! If using open loop yaw rate control, overwrite controlled output
         ! Open loop torque control
         IF ((CntrPar%OL_Mode == 1) .AND. (CntrPar%Ind_YawRate > 0)) THEN
-            avrSWAP(48) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_YawRate,LocalVar%Time, ErrVar)
+            IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN
+                avrSWAP(48) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_YawRate,LocalVar%Time, ErrVar)
+            ENDIF
         ENDIF
 
         ! Add RoutineName to error message
