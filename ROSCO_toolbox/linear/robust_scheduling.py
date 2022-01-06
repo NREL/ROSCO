@@ -66,6 +66,7 @@ class RobustScheduling(om.ExplicitComponent):
             self.turbine.Ct_table = np.squeeze(dict_inputs['Ct_table'])
             self.turbine.Cq_table = np.squeeze(dict_inputs['Cq_table'])
             self.turbine.pitch_initial_rad = dict_inputs['pitch_vector']
+            self.turbine.bld_edgewise_freq = float(dict_inputs['edge_freq'])
             self.turbine.TSR_initial = dict_inputs['tsr_vector']
             RotorPerformance = ROSCO_turbine.RotorPerformance
             self.turbine.Cp = RotorPerformance(
