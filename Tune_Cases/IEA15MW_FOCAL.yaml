@@ -19,7 +19,8 @@ turbine_params:
   max_torque_rate:    4500000.              # Maximum torque rate [Nm/s], {~1/4 VS_RtTq/s}
   rated_power:        1.4780e+07             # Rated Power [W]
   TSR_operational:    7.49
-
+  bld_edgewise_freq:  4.0324                # Blade edgewise first natural frequency [rad/s]
+  bld_flapwise_freq:  3.4872                # Blade flapwise first natural frequency [rad/s]
 #------------------------------- CONTROLLER PARAMETERS ----------------------------------
 controller_params:
   # Controller flags 
