@@ -760,6 +760,10 @@ LocalVariables:
       <<: *real 
       description: Commanded pitch of each blade the last time the controller was called [rad].
       size: 3
+    PitComAct:                  
+      <<: *real 
+      description: Actuated pitch of each blade the last time the controller was called [rad].
+      size: 3
     SS_DelOmegaF:                 
       <<: *real 
       description: Filtered setpoint shifting term defined in setpoint smoother [rad/s].
