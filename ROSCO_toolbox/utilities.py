@@ -63,7 +63,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('!    - File written using ROSCO version {} controller tuning logic on {}\n'.format(ROSCO_toolbox.__version__, now.strftime('%m/%d/%y')))
     file.write('\n')
     file.write('!------- DEBUG ------------------------------------------------------------\n')
-    file.write('{0:<12d}        ! LoggingLevel		- {{0: write no debug files, 1: write standard output .dbg-file, 2: write standard output .dbg-file and complete avrSWAP-array .dbg2-file}}\n'.format(int(rosco_vt['LoggingLevel'])))
+    file.write('{0:<12d}        ! LoggingLevel		- {{0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}}\n'.format(int(rosco_vt['LoggingLevel'])))
     file.write('\n')
     file.write('!------- CONTROLLER FLAGS -------------------------------------------------\n')
     file.write('{0:<12d}        ! F_LPFType			- {{1: first-order low-pass filter, 2: second-order low-pass filter}}, [rad/s] (currently filters generator speed and pitch control signals\n'.format(int(rosco_vt['F_LPFType'])))
