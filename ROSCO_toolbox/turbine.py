@@ -506,8 +506,8 @@ class Turbine():
 
         # Create CC-Blade Rotor
         r0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlSpn']) 
-        chord0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlChord'])
-        theta0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlTwist'])
+        chord = np.array(self.fast.fst_vt['AeroDynBlade']['BlChord'])
+        theta = np.array(self.fast.fst_vt['AeroDynBlade']['BlTwist'])
         # -- Adjust for Aerodyn15
         r = r0 + self.Rhub
         af_idx = np.array(self.fast.fst_vt['AeroDynBlade']['BlAFID']).astype(int) - 1 #Reset to 0 index
