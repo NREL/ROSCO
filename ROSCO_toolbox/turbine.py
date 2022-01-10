@@ -510,12 +510,7 @@ class Turbine():
         theta0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlTwist'])
         # -- Adjust for Aerodyn15
         r = r0 + self.Rhub
-        chord_intfun = interpolate.interp1d(r0,chord0, bounds_error=None, fill_value='extrapolate', kind='zero')
-        chord = chord_intfun(r)
-        theta_intfun = interpolate.interp1d(r0,theta0, bounds_error=None, fill_value='extrapolate', kind='zero')
-        theta = theta_intfun(r)
         af_idx = np.array(self.fast.fst_vt['AeroDynBlade']['BlAFID']).astype(int) - 1 #Reset to 0 index
-        AFNames = self.fast.fst_vt['AeroDyn15']['AFNames']   
 
         # Read OpenFAST Airfoil data, assumes AeroDyn > v15.03 and associated polars > v1.01
         af_dict = {}
