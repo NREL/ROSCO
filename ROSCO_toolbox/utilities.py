@@ -402,8 +402,8 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['PC_Switch']		= 1 * deg2rad
     # ------- INDIVIDUAL PITCH CONTROL -------
     DISCON_dict['IPC_IntSat']		= 0.087266
-    DISCON_dict['IPC_KP']			= [controller.Kp_ipc1p, 0.0]
-    DISCON_dict['IPC_KI']			= [controller.Ki_ipc1p, 0.0]
+    DISCON_dict['IPC_KP']           = [controller.Kp_ipc1p, controller.Kp_ipc2p]
+    DISCON_dict['IPC_KI']           = [controller.Ki_ipc1p, controller.Ki_ipc2p]
     DISCON_dict['IPC_aziOffset']	= [0.0, 0.0]
     DISCON_dict['IPC_CornerFreqAct'] = 0.0
     # ------- VS TORQUE CONTROL -------

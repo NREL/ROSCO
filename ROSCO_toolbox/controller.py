@@ -45,7 +45,6 @@ class Controller():
 
         print('-----------------------------------------------------------------------------')
         print('   Tuning a reference wind turbine controller using NREL\'s ROSCO toolbox    ')
-        # print('      Developed by Nikhar J. Abbas for collaborative research purposes.      ')
         print('-----------------------------------------------------------------------------')
 
         # Controller Flags
@@ -82,6 +81,10 @@ class Controller():
         self.WS_GS_n            = controller_params['WS_GS_n']
         self.PC_GS_n            = controller_params['PC_GS_n']
         self.flp_maxpit         = controller_params['flp_maxpit']
+        self.Kp_ipc1p           = controller_params['Kp_ipc1p']
+        self.Ki_ipc1p           = controller_params['Ki_ipc1p']
+        self.Kp_ipc2p           = controller_params['Kp_ipc2p']
+        self.Ki_ipc2p           = controller_params['Ki_ipc2p']
         
         #  Optional parameters without defaults
         if self.Flp_Mode > 0:
@@ -360,10 +363,6 @@ class Controller():
             
         else:
             self.Kp_float = 0.0
-
-        # --- Individual pitch control ---
-        self.Kp_ipc1p = 0.0
-        self.Ki_ipc1p = 0.0
         
         # Flap actuation 
         if self.Flp_Mode >= 1:
