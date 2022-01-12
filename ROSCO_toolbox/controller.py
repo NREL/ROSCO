@@ -81,11 +81,11 @@ class Controller():
         self.WS_GS_n            = controller_params['WS_GS_n']
         self.PC_GS_n            = controller_params['PC_GS_n']
         self.flp_maxpit         = controller_params['flp_maxpit']
-        self.Kp_ipc1p           = controller_params['Kp_ipc1p']
-        self.Ki_ipc1p           = controller_params['Ki_ipc1p']
-        self.Kp_ipc2p           = controller_params['Kp_ipc2p']
-        self.Ki_ipc2p           = controller_params['Ki_ipc2p']
-        
+        self.Kp_ipc1p           = controller_params['IPC_Kp1p']
+        self.Ki_ipc1p           = controller_params['IPC_Ki1p']
+        self.Kp_ipc2p           = controller_params['IPC_Kp2p']
+        self.Ki_ipc2p           = controller_params['IPC_Kp2p']
+
         #  Optional parameters without defaults
         if self.Flp_Mode > 0:
             try:
