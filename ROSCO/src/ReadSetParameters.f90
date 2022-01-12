@@ -630,11 +630,15 @@ CONTAINS
         ENDIF
 
         ! Flp_Mode
-        IF ((CntrPar%Flp_Mode < 0) .OR. (CntrPar%Flp_Mode > 2)) THEN
+        IF ((CntrPar%Flp_Mode < 0) .OR. (CntrPar%Flp_Mode > 3)) THEN
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'Flp_Mode must be 0, 1, or 2.'
+            ErrVar%ErrMsg  = 'Flp_Mode must be 0, 1, 2, or 3.'
         ENDIF
 
+        IF ((CntrPar%IPC_ControlMode) .AND. (CntrPar%Flp_Mode)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg   = 'ROSCO does not currently support IPC_ControlMode and Flp_Mode > 0'
+        ENDIF
         !------- FILTERS ----------------------------------------------------------
         
         ! F_LPFCornerFreq
