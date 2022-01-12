@@ -114,9 +114,13 @@ ControlParameters:
     IPC_IntSat:
       <<: *real
       description: Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
+    IPC_KP:
+      <<: *real
+      description: Integral gain for the individual pitch controller, [-].
+      allocatable: True
     IPC_KI:
       <<: *real
-      description: Integral gain for the individual pitch controller, [-]. 8E-10
+      description: Integral gain for the individual pitch controller, [-]. 
       allocatable: True
     IPC_aziOffset:
       <<: *real
@@ -645,6 +649,10 @@ LocalVariables:
       <<: *real
       description: Blade root bending moment [Nm]
       size: 3
+    rootMOOPF: 
+      <<: *real
+      description: Filtered Blade root bending moment [Nm]
+      size: 3
     BlPitch: 
       <<: *real
       description: Blade pitch [rad]
@@ -730,16 +738,16 @@ LocalVariables:
     PC_SpdErr:                    
       <<: *real 
       description: Current speed error (pitch control) [rad/s].
-    IPC_IntAxisTilt_1P:
+    IPC_AxisTilt_1P:
       <<: *real
       description: Integral of the direct axis, 1P
-    IPC_IntAxisYaw_1P:
+    IPC_AxisYaw_1P:
       <<: *real
       description: Integral of quadrature, 1P
-    IPC_IntAxisTilt_2P:
+    IPC_AxisTilt_2P:
       <<: *real
       description: Integral of the direct axis, 2P
-    IPC_IntAxisYaw_2P:
+    IPC_AxisYaw_2P:
       <<: *real
       description: Integral of quadrature, 2P
     PC_State:                     
@@ -945,6 +953,18 @@ DebugVariables:
   PC_MinPit:
     <<: *real
     description: Minimum blade pitch angle [rad]
+  axisTilt_1P:
+    <<: *real
+    description: Tilt component of coleman transformation, 1P
+  axisYaw_1P:
+    <<: *real
+    description: Yaw component of coleman transformation, 1P
+  axisTilt_2P:
+    <<: *real
+    description: Tilt component of coleman transformation, 2P
+  axisYaw_2P:
+    <<: *real
+    description: Yaw component of coleman transformation, 2P
 
 
 ErrorVariables:
