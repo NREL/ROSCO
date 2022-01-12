@@ -362,6 +362,7 @@ class Controller():
             self.Kp_float = 0.0
 
         # --- Individual pitch control ---
+        self.Kp_ipc1p = 0.0
         self.Ki_ipc1p = 0.0
         
         # Flap actuation 
