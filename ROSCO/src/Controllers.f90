@@ -422,14 +422,14 @@ CONTAINS
         TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
         ! Internal Variables
-        INTEGER(IntKi)                                :: K
-        REAL(DbKi)                                   :: rootMOOP_F(3)
-        REAL(DbKi)                                   :: RootMyb_Vel(3)
-        REAL(DbKi)                                   :: RootMyb_VelErr(3)
-
+        INTEGER(IntKi)              :: K
+        REAL(DbKi)                  :: RootMyb_Vel(3)
+        REAL(DbKi)                  :: RootMyb_VelErr(3)
+        REAL(DbKi)                  :: axisTilt_1P, axisYaw_1P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
+        REAL(DbKi)                  :: Flp_axisTilt_1P, Flp_axisYaw_1P ! Flap command in direct and quadrature axis coordinates
         ! Flap control
-        IF (CntrPar%Flp_Mode >= 1) THEN
-            IF ((LocalVar%iStatus == 0) .AND. (CntrPar%Flp_Mode >= 1)) THEN
+        IF (CntrPar%Flp_Mode > 0) THEN
+            IF (LocalVar%iStatus == 0) THEN
                 LocalVar%RootMyb_Last(1) = 0 - LocalVar%rootMOOP(1)
                 LocalVar%RootMyb_Last(2) = 0 - LocalVar%rootMOOP(2)
                 LocalVar%RootMyb_Last(3) = 0 - LocalVar%rootMOOP(3)
@@ -437,10 +437,6 @@ CONTAINS
                 LocalVar%Flp_Angle(1) = CntrPar%Flp_Angle
                 LocalVar%Flp_Angle(2) = CntrPar%Flp_Angle
                 LocalVar%Flp_Angle(3) = CntrPar%Flp_Angle
-                ! Initialize filter
-                RootMOOP_F(1) = SecLPFilter(LocalVar%rootMOOP(1),LocalVar%DT, CntrPar%F_FlpCornerFreq(1), CntrPar%F_FlpCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart,objInst%instSecLPF)
-                RootMOOP_F(2) = SecLPFilter(LocalVar%rootMOOP(2),LocalVar%DT, CntrPar%F_FlpCornerFreq(1), CntrPar%F_FlpCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart,objInst%instSecLPF)
-                RootMOOP_F(3) = SecLPFilter(LocalVar%rootMOOP(3),LocalVar%DT, CntrPar%F_FlpCornerFreq(1), CntrPar%F_FlpCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart,objInst%instSecLPF)
                 ! Initialize controller
                 IF (CntrPar%Flp_Mode == 2) THEN
                     LocalVar%Flp_Angle(K) = PIIController(RootMyb_VelErr(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, 0.05, -CntrPar%Flp_MaxPit , CntrPar%Flp_MaxPit , LocalVar%DT, 0.0, LocalVar%piP, LocalVar%restart, objInst%instPI)
@@ -455,27 +451,37 @@ CONTAINS
             ! PII flap control
             ELSEIF (CntrPar%Flp_Mode == 2) THEN
                 DO K = 1,LocalVar%NumBl
-                    ! LPF Blade root bending moment
-                    RootMOOP_F(K) = SecLPFilter(LocalVar%rootMOOP(K),LocalVar%DT, CntrPar%F_FlpCornerFreq(1), CntrPar%F_FlpCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart,objInst%instSecLPF)
-                    
                     ! Find derivative and derivative error of blade root bending moment
-                    RootMyb_Vel(K) = (RootMOOP_F(K) - LocalVar%RootMyb_Last(K))/LocalVar%DT
+                    RootMyb_Vel(K) = (LocalVar%rootMOOPF(K) - LocalVar%RootMyb_Last(K))/LocalVar%DT
                     RootMyb_VelErr(K) = 0 - RootMyb_Vel(K)
                     
                     ! Find flap angle command - includes an integral term to encourage zero flap angle
                     LocalVar%Flp_Angle(K) = PIIController(RootMyb_VelErr(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, REAL(0.05,DbKi), -CntrPar%Flp_MaxPit , CntrPar%Flp_MaxPit , LocalVar%DT, 0.0, LocalVar%piP, LocalVar%restart, objInst%instPI)
                     ! Saturation Limits
-                    LocalVar%Flp_Angle(K) = saturate(LocalVar%Flp_Angle(K), -CntrPar%Flp_MaxPit, CntrPar%Flp_MaxPit)
+                    LocalVar%Flp_Angle(K) = saturate(LocalVar%Flp_Angle(K), -CntrPar%Flp_MaxPit, CntrPar%Flp_MaxPit) * R2D
                     
                     ! Save some data for next iteration
-                    LocalVar%RootMyb_Last(K) = RootMOOP_F(K)
+                    LocalVar%RootMyb_Last(K) = LocalVar%rootMOOPF(K)
                 END DO
+
+            ! Cyclic flap Control
+            ELSEIF (CntrPar%Flp_Mode == 3) THEN
+                ! Pass rootMOOPs through the Coleman transform to get the tilt and yaw moment axis
+                CALL ColemanTransform(LocalVar%rootMOOPF, LocalVar%Azimuth, NP_1, axisTilt_1P, axisYaw_1P)
+
+                ! Apply PI control
+                Flp_axisTilt_1P = PIController(axisTilt_1P, CntrPar%Flp_Kp, CntrPar%Flp_Ki, -CntrPar%Flp_MaxPit, CntrPar%Flp_MaxPit, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+                Flp_axisYaw_1P = PIController(axisYaw_1P, CntrPar%Flp_Kp, CntrPar%Flp_Ki, -CntrPar%Flp_MaxPit, CntrPar%Flp_MaxPit, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+            
+                ! Pass direct and quadrature axis through the inverse Coleman transform to get the commanded pitch angles
+                CALL ColemanTransformInverse(Flp_axisTilt_1P, Flp_axisYaw_1P, LocalVar%Azimuth, NP_1, 0.0_DbKi, LocalVar%Flp_Angle)
+                
             ENDIF
 
             ! Send to AVRSwap
-            avrSWAP(120) = LocalVar%Flp_Angle(1) * R2D   ! Needs to be sent to openfast in degrees
-            avrSWAP(121) = LocalVar%Flp_Angle(2) * R2D   ! Needs to be sent to openfast in degrees
-            avrSWAP(122) = LocalVar%Flp_Angle(3) * R2D   ! Needs to be sent to openfast in degrees
+            avrSWAP(120) = LocalVar%Flp_Angle(1)   ! Send flap pitch command (deg)
+            avrSWAP(121) = LocalVar%Flp_Angle(2)   ! Send flap pitch command (deg)
+            avrSWAP(122) = LocalVar%Flp_Angle(3)   ! Send flap pitch command (deg)
         ELSE
             RETURN
         ENDIF
