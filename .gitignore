@@ -12,6 +12,7 @@ Source/Release/
 Makefile
 */install/*
 *test_out*
+*CMakeFiles*
 
 # Archive
 Scripts/CompileDISCONHereCopyRun\.cmd
