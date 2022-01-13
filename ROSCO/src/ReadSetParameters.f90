@@ -776,6 +776,16 @@ CONTAINS
             ErrVar%ErrMsg  = 'IPC_KI(2) must be zero or greater than zero.'
         ENDIF
 
+        IF (CntrPar%IPC_KI(1) < 0.0)  THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'IPC_KP(1) must be zero or greater than zero.'
+        ENDIF
+        
+        IF (CntrPar%IPC_KI(2) < 0.0)  THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'IPC_KP(2) must be zero or greater than zero.'
+        ENDIF
+
         !------- VS TORQUE CONTROL ------------------------------------------------
        
         IF (CntrPar%VS_MaxRat <= 0.0) THEN
