@@ -46,3 +46,5 @@ controller_params:
   zeta_flp:           0.7                     # Flap controller desired damping ratio [-]
   omega_flp:          2.63                    # Flap controller desired natural frequency [rad/s]
   ps_percent:         0.8
+  IPC_Kp1p: 2.05e-08
+  IPC_Ki1p: 1.45e-09
