@@ -1714,7 +1714,7 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Channels,
         
         ELSE
             ! Do all the stuff!
-
+            PRINT *, "Find number of comment lines"
             !-------------------------------------------------------------------------------------------------
             ! Find the number of comment lines
             !-------------------------------------------------------------------------------------------------
@@ -1731,6 +1731,7 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Channels,
         
             END DO !WHILE
 
+            PRINT *, "Find number of data lines"
             !-------------------------------------------------------------------------------------------------
             ! Find the number of data lines
             !-------------------------------------------------------------------------------------------------
