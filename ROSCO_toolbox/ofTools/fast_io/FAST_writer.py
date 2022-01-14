@@ -1142,7 +1142,7 @@ class InputWriter_OpenFAST(InputWriter_Common):
             f.write('! ......... x-y coordinates are next if NumCoords > 0 .............\n')
             f.write('! x-y coordinate of airfoil reference\n')
             f.write('!  x/c        y/c\n')
-            f.write('{: 5f}       0\n'.format(self.fst_vt['AeroDyn15']['rthick'][afi]))
+            f.write('{: 5f}       0\n'.format(self.fst_vt['AeroDyn15']['ac'][afi]))
             f.write('! coordinates of airfoil shape\n')
             f.write('! interpolation to 200 points\n')
             f.write('!  x/c        y/c\n')
