@@ -105,6 +105,10 @@ txt_filename=os.path.join(this_dir,path_params['FAST_directory'],path_params['ro
 for discon_input in discon_vt:
     case_inputs[('DISCON_in',discon_input)] = {'vals': [discon_vt[discon_input]], 'group': 0}
 
+case_inputs[('Fst','TMax')] = {'vals': [300], 'group': 0}
+case_inputs[('InflowWind','HWindSpeed')] = {'vals': [10], 'group': 0}
+case_inputs[('ElastoDyn','HWindSpeed')] = {'vals': [5.], 'group': 0}
+
 # Generate cases
 run_dir = os.path.join(example_out_dir,'14_OL_Sim')
 if not os.path.exists(run_dir):
