@@ -399,7 +399,7 @@ CONTAINS
         ! Read open loop input, if desired
         IF (CntrPar%OL_Mode == 1) THEN
             OL_String = ''      ! Display string
-            OL_Count  = 0
+            OL_Count  = 1
             IF (CntrPar%Ind_BldPitch > 0) THEN
                 OL_String   = TRIM(OL_String)//' BldPitch '
                 OL_Count    = OL_Count + 1
@@ -1682,15 +1682,12 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Channels,
     CHARACTER(1024)                                         :: Line              ! Temp variable for reading whole line from file
     INTEGER(IntKi)                                          :: NumComments
     INTEGER(IntKi)                                          :: NumDataLines
-    INTEGER(IntKi)                                          :: NumCols 
     REAL(DbKi)                                              :: TmpData(NumChannels+1)  ! Temp variable for reading all columns from a line
     CHARACTER(15)                                           :: NumString
 
     INTEGER(IntKi)                                          :: I,J
 
     CHARACTER(*),               PARAMETER                   :: RoutineName = 'ReadControlParameterFileSub'
-
-    NumCols             = NumChannels + 1
 
     !-------------------------------------------------------------------------------------------------
     ! Read from input file, borrowed (read: copied) from (Open)FAST team...thanks!
@@ -1739,12 +1736,12 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Channels,
 
             NumDataLines = 0
 
-            READ(LINE,*,IOSTAT=IOS) ( TmpData(I), I=1,NumCols ) ! this line was read when we were figuring out the comment lines; let's make sure it contains
+            READ(LINE,*,IOSTAT=IOS) ( TmpData(I), I=1,NumChannels ) ! this line was read when we were figuring out the comment lines; let's make sure it contains
 
             DO WHILE (IOS == 0)  ! read the rest of the file (until an error occurs)
                 NumDataLines = NumDataLines + 1
                 
-                READ(Unit_OL_Input,*,IOSTAT=IOS) ( TmpData(I), I=1,NumCols )
+                READ(Unit_OL_Input,*,IOSTAT=IOS) ( TmpData(I), I=1,NumChannels )
             
             END DO !WHILE
         
@@ -1779,7 +1776,7 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Channels,
         
             DO I=1,NumDataLines
             
-                READ(Unit_OL_Input,*,IOSTAT=IOS) ( TmpData(J), J=1,NumCols )
+                READ(Unit_OL_Input,*,IOSTAT=IOS) ( TmpData(J), J=1,NumChannels )
 
                 IF (IOS > 0) THEN
                     CLOSE(Unit_OL_Input)
