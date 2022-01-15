@@ -30,6 +30,9 @@ from ROSCO_toolbox.ofTools.case_gen.CaseGen_General     import CaseGen_General
 this_dir          = os.path.dirname(os.path.abspath(__file__))
 rosco_dir         = os.path.dirname(this_dir)
 example_out_dir   = os.path.join(this_dir,'examples_out')
+example_out_dir = os.path.join(this_dir,'examples_out')
+if not os.path.isdir(example_out_dir):
+  os.makedirs(example_out_dir)
 
 # Load yaml file (Open Loop Case)
 parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW_OL.yaml')
@@ -108,6 +111,7 @@ for discon_input in discon_vt:
 case_inputs[('Fst','TMax')] = {'vals': [300], 'group': 0}
 case_inputs[('InflowWind','HWindSpeed')] = {'vals': [10], 'group': 0}
 case_inputs[('ElastoDyn','HWindSpeed')] = {'vals': [5.], 'group': 0}
+case_inputs[('DISCON_in','LoggingLevel')] = {'vals': [0], 'group': 0}
 
 # Generate cases
 run_dir = os.path.join(example_out_dir,'14_OL_Sim')
