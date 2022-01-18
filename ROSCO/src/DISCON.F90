@@ -124,6 +124,13 @@ avcMSG = TRANSFER(ErrMsg//C_NULL_CHAR, avcMSG, SIZE(avcMSG))
 aviFAIL = ErrVar%aviFAIL
 ErrVar%ErrMsg = ''
 
+PRINT *, "AVRSwap(42): ", AVRSwap(42)
+PRINT *, "AVRSwap(43): ", AVRSwap(43)
+PRINT *, "AVRSwap(44): ", AVRSwap(44)
+PRINT *, "AVRSwap(45): ", AVRSwap(45)
+PRINT *, "AVRSwap(47): ", AVRSwap(47)
+PRINT *, "AVRSwap(48): ", AVRSwap(48)
+
 PRINT *, "Finished ROSCO"
 
 RETURN
