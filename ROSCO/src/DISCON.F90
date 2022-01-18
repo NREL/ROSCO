@@ -119,5 +119,7 @@ avcMSG = TRANSFER(ErrMsg//C_NULL_CHAR, avcMSG, SIZE(avcMSG))
 aviFAIL = ErrVar%aviFAIL
 ErrVar%ErrMsg = ''
 
+PRINT *, "Finished ROSCO"
+
 RETURN
 END SUBROUTINE DISCON
