@@ -362,26 +362,25 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
 END SUBROUTINE ReadRestartFile
 
  
-SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, PriPath, RootName)
+SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME)
 ! Debug routine, defines what gets printed to DEBUG.dbg if LoggingLevel = 1
 
     TYPE(ControlParameters), INTENT(IN) :: CntrPar
-    TYPE(LocalVariables), INTENT(IN)    :: LocalVar
-    TYPE(DebugVariables), INTENT(IN)    :: DebugVar
-    REAL(ReKi), INTENT(INOUT)           :: avrSWAP(*)                   ! The swap array, used to pass data to, and receive data from, the DLL controller.
-    CHARACTER(*), INTENT(IN)            :: PriPath        ! Path name of the primary DISCON file
-    CHARACTER(*), INTENT(IN)            :: RootName            ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
+    TYPE(LocalVariables), INTENT(IN) :: LocalVar
+    TYPE(DebugVariables), INTENT(IN) :: DebugVar
 
+    INTEGER(IntKi), INTENT(IN)      :: size_avcOUTNAME
     INTEGER(IntKi)                  :: I , nDebugOuts, nLocalVars   ! Generic index.
     CHARACTER(1), PARAMETER         :: Tab = CHAR(9)                ! The tab character.
     CHARACTER(29), PARAMETER        :: FmtDat = "(F20.5,TR5,99(ES20.5E2,TR5:))"   ! The format of the debugging data
     INTEGER(IntKi), PARAMETER       :: UnDb = 85                    ! I/O unit for the debugging information
     INTEGER(IntKi), PARAMETER       :: UnDb2 = 86                   ! I/O unit for the debugging information, avrSWAP
     INTEGER(IntKi), PARAMETER       :: UnDb3 = 87                   ! I/O unit for the debugging information, avrSWAP
+    REAL(ReKi), INTENT(INOUT)       :: avrSWAP(*)                   ! The swap array, used to pass data to, and receive data from, the DLL controller.
+    CHARACTER(size_avcOUTNAME-1), INTENT(IN) :: RootName            ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
     CHARACTER(200)                  :: Version                      ! git version of ROSCO
     CHARACTER(15), ALLOCATABLE      :: DebugOutStrings(:), DebugOutUnits(:)
     REAL(DbKi), ALLOCATABLE         :: DebugOutData(:)
-    CHARACTER(1024)                 :: DBG_Filename
  
     CHARACTER(15), ALLOCATABLE      :: LocalVarOutStrings(:)
     REAL(DbKi), ALLOCATABLE         :: LocalVarOutData(:)
@@ -507,23 +506,23 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, PriPath, RootName)
                                      ]
     ! Initialize debug file
     IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN ! .TRUE. if we're on the first call to the DLL
-        DBG_Filename = TRIM(PriPath)//TRIM(PathSep)//TRIM(RootName)//".RO.dbg"
         IF (CntrPar%LoggingLevel > 0) THEN
-            OPEN(unit=UnDb, FILE=TRIM(DBG_Filename))
+            PRINT * , RootName(1: size_avcOUTNAME-5)
+            OPEN(unit=UnDb, FILE=RootName(1: size_avcOUTNAME-5)//'RO.dbg')
             WRITE(UnDb, *)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)
             WRITE(UnDb, '(99(a20,TR5:))') 'Time',   DebugOutStrings
             WRITE(UnDb, '(99(a20,TR5:))') '(sec)',  DebugOutUnits
         END IF
 
         IF (CntrPar%LoggingLevel > 1) THEN
-            OPEN(unit=UnDb2, FILE=TRIM(DBG_Filename)//"2")
+            OPEN(unit=UnDb2, FILE=RootName(1: size_avcOUTNAME-5)//'RO.dbg2')
             WRITE(UnDb2, *)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)
             WRITE(UnDb2, '(99(a20,TR5:))') 'Time',   LocalVarOutStrings
             WRITE(UnDb2, '(99(a20,TR5:))')
         END IF
 
         IF (CntrPar%LoggingLevel > 2) THEN
-            OPEN(unit=UnDb3, FILE=TRIM(DBG_Filename)//"3")
+            OPEN(unit=UnDb3, FILE=RootName(1: size_avcOUTNAME-5)//'RO.dbg3')
             WRITE(UnDb3,'(/////)')
             WRITE(UnDb3,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1, 85)
             WRITE(UnDb3,'(A,85("'//Tab//'(-)"))')  '(s)'

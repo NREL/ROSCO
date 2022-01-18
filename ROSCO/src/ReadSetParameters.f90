@@ -556,9 +556,9 @@ CONTAINS
         !------- DEBUG ------------------------------------------------------------
 
         ! LoggingLevel
-        IF ((CntrPar%LoggingLevel < 0) .OR. (CntrPar%LoggingLevel > 3)) THEN
+        IF ((CntrPar%LoggingLevel < 0) .OR. (CntrPar%LoggingLevel > 2)) THEN
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'LoggingLevel must be 0 - 3.'
+            ErrVar%ErrMsg  = 'LoggingLevel must be 0, 1, or 2.'
         ENDIF
 
         !------- CONTROLLER FLAGS -------------------------------------------------
@@ -1809,66 +1809,5 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Channels,
     ENDIF
 
 END SUBROUTINE Read_OL_Input
-
-!=======================================================================
-SUBROUTINE GetRoot ( GivenFil, RootName )
-
-
-    ! Let's parse the root file name from the name of the given file.
-    ! We'll count everything after the last period as the extension.
-
-
-    ! Argument declarations.
-
- CHARACTER(*), INTENT(IN)     :: GivenFil                                     ! The name of the given file.
- CHARACTER(*), INTENT(OUT)    :: RootName                                     ! The parsed root name of the given file.
-
-
-    ! Local declarations.
-
- INTEGER                      :: I                                            ! DO index for character position.
-
-
-
-    ! Deal with a couple of special cases.
-
- IF ( ( TRIM( GivenFil ) == "." ) .OR. (  TRIM( GivenFil ) == ".." ) )  THEN
-    RootName = TRIM( GivenFil )
-    RETURN
- END IF
-
-
-    ! More-normal cases.
-
- DO I=LEN_TRIM( GivenFil ),1,-1
-
-
-    IF ( GivenFil(I:I) == '.' )  THEN
-
-
-       IF ( I < LEN_TRIM( GivenFil ) ) THEN                   ! Make sure the index I is okay
-          IF ( INDEX( '\/', GivenFil(I+1:I+1)) == 0 ) THEN    ! Make sure we don't have the RootName in a different directory
-             RootName = GivenFil(:I-1)
-          ELSE
-             RootName = GivenFil                              ! This does not have a file extension
-          END IF
-       ELSE
-          IF ( I == 1 ) THEN
-             RootName = ''
-          ELSE
-             RootName = GivenFil(:I-1)
-          END IF
-       END IF
-
-       RETURN
-
-    END IF
- END DO ! I
-
- RootName =  GivenFil
-
-
- RETURN
- END SUBROUTINE GetRoot ! ( GivenFil, RootName )
 
 END MODULE ReadSetParameters
