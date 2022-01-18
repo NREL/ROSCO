@@ -49,6 +49,7 @@ CHARACTER(KIND=C_CHAR),         INTENT(IN   )   :: avcOUTNAME(NINT(avrSWAP(51)))
 CHARACTER(KIND=C_CHAR),         INTENT(INOUT)   :: avcMSG(NINT(avrSWAP(49)))        ! MESSAGE (Message from DLL to simulation code [ErrMsg])  The message which will be displayed by the calling program if aviFAIL <> 0.
 CHARACTER(SIZE(avcOUTNAME)-1)                   :: RootName                         ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
 CHARACTER(SIZE(avcMSG)-1)                       :: ErrMsg                           ! a Fortran version of the C string argument (not considered an array here) [subtract 1 for the C null-character]
+CHARACTER(1024)                                 :: PriPath        ! Path name of the primary DISCON file
 
 TYPE(ControlParameters),        SAVE           :: CntrPar
 TYPE(LocalVariables),           SAVE           :: LocalVar
@@ -60,6 +61,10 @@ TYPE(ErrorVariables),           SAVE           :: ErrVar
 CHARACTER(*),                   PARAMETER      :: RoutineName = 'ROSCO'
 
 RootName = TRANSFER(avcOUTNAME, RootName)
+
+CALL GetRoot(RootName,RootName)
+CALL GetPath( accINFILE(1), PriPath ) 
+
 !------------------------------------------------------------------------------------------------------------------------------
 ! Main control calculations
 !------------------------------------------------------------------------------------------------------------------------------
@@ -68,7 +73,7 @@ RootName = TRANSFER(avcOUTNAME, RootName)
 IF ( (NINT(avrSWAP(1)) == -9) .AND. (aviFAIL >= 0))  THEN ! Read restart files
     CALL ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootName, SIZE(avcOUTNAME), ErrVar)
     IF ( CntrPar%LoggingLevel > 0 ) THEN
-        CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, SIZE(avcOUTNAME))
+        CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, PriPath, RootName)
     END IF 
 END IF
 
@@ -102,7 +107,7 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
     END IF
     
     IF ( CntrPar%LoggingLevel > 0 ) THEN
-        CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, SIZE(avcOUTNAME))
+        CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, PriPath, RootName)
     END IF 
     
 END IF
