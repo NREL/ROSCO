@@ -420,6 +420,8 @@ CONTAINS
             PRINT *, "Finished reading OL_Input"
 
             PRINT *, "CntrPar%Ind_Breakpoint: ", CntrPar%Ind_Breakpoint
+            PRINT *, "SHAPE(CntrPar%OL_Channels): ", SHAPE(CntrPar%OL_Channels)
+            PRINT *, "CntrPar%OL_Channels: ", CntrPar%OL_Channels
 
             CntrPar%OL_Breakpoints = CntrPar%OL_Channels(:,CntrPar%Ind_Breakpoint)
 
