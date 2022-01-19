@@ -87,7 +87,7 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
     ENDIF
     
     CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
-    CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
+    CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst, DebugVar)
     CALL StateMachine(CntrPar, LocalVar)
     CALL SetpointSmoother(LocalVar, CntrPar, objInst)
     CALL VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
@@ -118,8 +118,6 @@ avcMSG = TRANSFER(ErrMsg//C_NULL_CHAR, avcMSG, LEN(ErrMsg)+1)
 avcMSG = TRANSFER(ErrMsg//C_NULL_CHAR, avcMSG, SIZE(avcMSG))
 aviFAIL = ErrVar%aviFAIL
 ErrVar%ErrMsg = ''
-
-PRINT *, "Finished ROSCO"
 
 RETURN
 END SUBROUTINE DISCON

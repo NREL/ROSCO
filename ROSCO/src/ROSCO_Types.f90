@@ -20,6 +20,9 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_FlCornerFreq              ! Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s].
     REAL(DbKi)                    :: F_FlHighPassFreq            ! Natural frequency of first-roder high-pass filter for nacelle fore-aft motion [rad/s].
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_FlpCornerFreq             ! Corner frequency (-3dB point) in the second order low pass filter of the blade root bending moment for flap control [rad/s].
+    INTEGER(IntKi)                :: Twr_ControlMode             ! Tower Fore-Aft control mode {0 - no fore-aft control, 1 -Frequency exclusion zone, 2 - Tower fore-aft damping}
+    REAL(DbKi)                    :: Twr_ExclSpeed               ! Rotor speed for exclusion [LSS] [rad]
+    REAL(DbKi)                    :: Twr_ExclBand                ! One-half of the total frequency exclusion band. Torque controller reference will be Twr_ExclFreq +/- Twr_ExlBand [rad]
     REAL(DbKi)                    :: FA_HPFCornerFreq            ! Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]
     REAL(DbKi)                    :: FA_IntSat                   ! Integrator saturation (maximum signal amplitude contrbution to pitch from FA damper), [rad]
     REAL(DbKi)                    :: FA_KI                       ! Integral gain for the fore-aft tower damper controller, -1 = off / >0 = on [rad s/m]
@@ -241,6 +244,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None
     REAL(DbKi)                    :: FA_AccF                     ! None
+    INTEGER(IntKi)                :: FA_Hist                     ! Hysteresis state for tower resonance avoidance.
     REAL(DbKi)                    :: Flp_Angle(3)                ! Flap Angle (rad)
     REAL(DbKi)                    :: RootMyb_Last(3)             ! Last blade root bending moment (Nm)
     INTEGER(IntKi)                :: ACC_INFILE_SIZE             ! Length of parameter input filename
@@ -288,6 +292,8 @@ TYPE, PUBLIC :: DebugVariables
     REAL(DbKi)                    :: axisYaw_1P                  ! Yaw component of coleman transformation, 1P
     REAL(DbKi)                    :: axisTilt_2P                 ! Tilt component of coleman transformation, 2P
     REAL(DbKi)                    :: axisYaw_2P                  ! Yaw component of coleman transformation, 2P
+    REAL(DbKi)                    :: VS_RefSpeed_Excl            ! Torque controller reference speed after exclusion zone shift
+    REAL(DbKi)                    :: VS_RefSpeed                 ! Torque controller reference speed
 END TYPE DebugVariables
 
 TYPE, PUBLIC :: ErrorVariables

@@ -67,7 +67,7 @@ CONTAINS
         END IF
         
         ! Include tower fore-aft tower vibration damping control
-        IF ((CntrPar%FA_KI > 0.0) .OR. (CntrPar%Y_ControlMode == 2)) THEN
+        IF ((CntrPar%Twr_ControlMode == 2) .OR. (CntrPar%Y_ControlMode == 2)) THEN
             CALL ForeAftDamping(CntrPar, LocalVar, objInst)
         ELSE
             LocalVar%FA_PitCom = 0.0 ! THIS IS AN ARRAY!!

@@ -115,6 +115,7 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, objInst, RootName, size_avcOUTNAM
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Fl_PitCom
         WRITE( Un, IOSTAT=ErrStat) LocalVar%NACIMU_FA_AccF
         WRITE( Un, IOSTAT=ErrStat) LocalVar%FA_AccF
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%FA_Hist
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(1)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(2)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(3)
@@ -289,6 +290,7 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%Fl_PitCom
         READ( Un, IOSTAT=ErrStat) LocalVar%NACIMU_FA_AccF
         READ( Un, IOSTAT=ErrStat) LocalVar%FA_AccF
+        READ( Un, IOSTAT=ErrStat) LocalVar%FA_Hist
         READ( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(1)
         READ( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(2)
         READ( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(3)
@@ -385,7 +387,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME
     CHARACTER(15), ALLOCATABLE      :: LocalVarOutStrings(:)
     REAL(DbKi), ALLOCATABLE         :: LocalVarOutData(:)
  
-    nDebugOuts = 19
+    nDebugOuts = 21
     Allocate(DebugOutData(nDebugOuts))
     Allocate(DebugOutStrings(nDebugOuts))
     Allocate(DebugOutUnits(nDebugOuts))
@@ -408,15 +410,19 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME
     DebugOutData(17) = DebugVar%axisYaw_1P
     DebugOutData(18) = DebugVar%axisTilt_2P
     DebugOutData(19) = DebugVar%axisYaw_2P
+    DebugOutData(20) = DebugVar%VS_RefSpeed_Excl
+    DebugOutData(21) = DebugVar%VS_RefSpeed
     DebugOutStrings = [CHARACTER(15) ::  'WE_Cp', 'WE_b', 'WE_w', 'WE_t', 'WE_Vm', & 
                                       'WE_Vt', 'WE_Vw', 'WE_lambda', 'PC_PICommand', 'GenSpeedF', & 
                                       'RotSpeedF', 'NacIMU_FA_AccF', 'FA_AccF', 'Fl_PitCom', 'PC_MinPit', & 
-                                      'axisTilt_1P', 'axisYaw_1P', 'axisTilt_2P', 'axisYaw_2P']
+                                      'axisTilt_1P', 'axisYaw_1P', 'axisTilt_2P', 'axisYaw_2P', 'VS_RefSpeed_Excl', & 
+                                      'VS_RefSpeed']
     DebugOutUnits = [CHARACTER(15) ::  '[-]', '[-]', '[-]', '[-]', '[m/s]', & 
                                       '[m/s]', '[m/s]', '[rad]', '[rad]', '[rad/s]', & 
                                       '[rad/s]', '[rad/s]', '[m/s]', '[rad]', '[rad]', & 
-                                      '', '', '', '']
-    nLocalVars = 70
+                                      '', '', '', '', '', & 
+                                      '']
+    nLocalVars = 71
     Allocate(LocalVarOutData(nLocalVars))
     Allocate(LocalVarOutStrings(nLocalVars))
     LocalVarOutData(1) = LocalVar%iStatus
@@ -486,9 +492,10 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME
     LocalVarOutData(65) = LocalVar%Fl_PitCom
     LocalVarOutData(66) = LocalVar%NACIMU_FA_AccF
     LocalVarOutData(67) = LocalVar%FA_AccF
-    LocalVarOutData(68) = LocalVar%Flp_Angle(1)
-    LocalVarOutData(69) = LocalVar%RootMyb_Last(1)
-    LocalVarOutData(70) = LocalVar%ACC_INFILE_SIZE
+    LocalVarOutData(68) = LocalVar%FA_Hist
+    LocalVarOutData(69) = LocalVar%Flp_Angle(1)
+    LocalVarOutData(70) = LocalVar%RootMyb_Last(1)
+    LocalVarOutData(71) = LocalVar%ACC_INFILE_SIZE
     LocalVarOutStrings = [CHARACTER(15) ::  'iStatus', 'Time', 'DT', 'VS_GenPwr', 'GenSpeed', & 
                                       'RotSpeed', 'Y_M', 'HorWindV', 'rootMOOP', 'rootMOOPF', & 
                                       'BlPitch', 'Azimuth', 'NumBl', 'FA_Acc', 'NacIMU_FA_Acc', & 
@@ -502,12 +509,11 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME
                                       'VS_SpdErrBr', 'VS_SpdErr', 'VS_State', 'VS_Rgn3Pitch', 'WE_Vw', & 
                                       'WE_Vw_F', 'WE_VwI', 'WE_VwIdot', 'VS_LastGenTrqF', 'Y_AccErr', & 
                                       'Y_ErrLPFFast', 'Y_ErrLPFSlow', 'Y_MErr', 'Y_YawEndT', 'Fl_PitCom', & 
-                                      'NACIMU_FA_AccF', 'FA_AccF', 'Flp_Angle', 'RootMyb_Last', 'ACC_INFILE_SIZE' & 
-                                     ]
+                                      'NACIMU_FA_AccF', 'FA_AccF', 'FA_Hist', 'Flp_Angle', 'RootMyb_Last', & 
+                                      'ACC_INFILE_SIZE']
     ! Initialize debug file
     IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN ! .TRUE. if we're on the first call to the DLL
         IF (CntrPar%LoggingLevel > 0) THEN
-            PRINT * , RootName(1: size_avcOUTNAME-5)
             OPEN(unit=UnDb, FILE=RootName(1: size_avcOUTNAME-5)//'RO.dbg')
             WRITE(UnDb, *)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)
             WRITE(UnDb, '(99(a20,TR5:))') 'Time',   DebugOutStrings
