@@ -445,9 +445,9 @@ CONTAINS
         END IF
 
         ! Debugging outputs (echo someday)
-        PRINT *, "CntrPar%Ind_Breakpoint: ", CntrPar%Ind_Breakpoint
-        PRINT *, "CntrPar%Ind_BldPitch: ", CntrPar%Ind_BldPitch
-        PRINT *, "CntrPar%Ind_GenTq: ", CntrPar%Ind_GenTq
+        PRINT *, "CntrPar%OL_Breakpoints: ", CntrPar%OL_Breakpoints
+        PRINT *, "CntrPar%OL_BldPitch: ", CntrPar%OL_BldPitch
+        PRINT *, "CntrPar%OL_GenTq: ", CntrPar%OL_GenTq
         PRINT *, "CntrPar%OL_YawRate: ", CntrPar%OL_YawRate
 
         ! END OF INPUT FILE    
