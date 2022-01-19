@@ -445,7 +445,10 @@ CONTAINS
         END IF
 
         ! Debugging outputs (echo someday)
-        ! write(400,*) CntrPar%OL_YawRate
+        PRINT *, "CntrPar%Ind_Breakpoint: ", CntrPar%Ind_Breakpoint
+        PRINT *, "CntrPar%Ind_BldPitch: ", CntrPar%Ind_BldPitch
+        PRINT *, "CntrPar%Ind_GenTq: ", CntrPar%Ind_GenTq
+        PRINT *, "CntrPar%OL_YawRate: ", CntrPar%OL_YawRate
 
         ! END OF INPUT FILE    
 
