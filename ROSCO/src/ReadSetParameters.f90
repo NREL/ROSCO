@@ -1796,12 +1796,13 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Channels,
             DO I=1,NumDataLines
             
                 READ(Unit_OL_Input,*,IOSTAT=IOS) ( TmpData(J), J=1,NumChannels )
-
+                PRINT *, IOS
                 IF (IOS > 0) THEN
                     CLOSE(Unit_OL_Input)
                 END IF
 
                 Channels(I,:)        = TmpData
+                PRINT *, I
         
             END DO !I     
         END IF
