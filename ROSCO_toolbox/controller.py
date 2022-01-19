@@ -55,6 +55,7 @@ class Controller():
         self.VS_ControlMode     = controller_params['VS_ControlMode']
         self.PC_ControlMode     = controller_params['PC_ControlMode']
         self.Y_ControlMode      = controller_params['Y_ControlMode']
+        self.Twr_ControlMode    = controller_params['Twr_ControlMode']
         self.SS_Mode            = controller_params['SS_Mode']
         self.WE_Mode            = controller_params['WE_Mode']
         self.PS_Mode            = controller_params['PS_Mode']
@@ -85,7 +86,9 @@ class Controller():
         self.Ki_ipc1p           = controller_params['IPC_Ki1p']
         self.Kp_ipc2p           = controller_params['IPC_Kp2p']
         self.Ki_ipc2p           = controller_params['IPC_Kp2p']
-
+        self.Twr_ExclSpeed      = controller_params['Twr_ExclSpeed']
+        self.Twr_ExclBand       = controller_params['Twr_ExclBand']
+        
         #  Optional parameters without defaults
         if self.Flp_Mode > 0:
             try:

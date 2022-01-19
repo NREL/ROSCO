@@ -137,6 +137,12 @@ properties:
                 maximum: 2
                 default: 0
                 description: Yaw control mode (0- no yaw control, 1- yaw rate control, 2- yaw-by-IPC)
+            Twr_ControlMode:      
+                type: number
+                minimum: 0
+                maximum: 2
+                default: 0
+                description: Tower control mode (0 - no fore-aft control, 1 - Frequency exclusion zone, 2 - Tower fore-aft damping)
             SS_Mode:            
                 type: number
                 minimum: 0
@@ -321,6 +327,16 @@ properties:
                 type: number
                 minimum: 0
                 description: integral gain for IPC, 2P [-]
+                default: 0.0
+            Twr_ExclSpeed:
+                type: number
+                minimum: 0
+                description: Rotor speed for exclusion [LSS] [rad/s]
+                default: 0.0
+            Twr_ExclBand:
+                type: number
+                minimum: 0
+                description: One-half of the total frequency exclusion band. Torque controller reference will be Twr_ExclFreq +/- Twr_ExlBand [rad/s]
                 default: 0.0
             filter_params:
                 type: object
