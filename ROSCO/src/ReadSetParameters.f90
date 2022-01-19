@@ -420,8 +420,6 @@ CONTAINS
             PRINT *, "Finished reading OL_Input"
 
             PRINT *, "CntrPar%Ind_Breakpoint: ", CntrPar%Ind_Breakpoint
-            PRINT *, "SHAPE(CntrPar%OL_Channels): ", SHAPE(CntrPar%OL_Channels)
-            PRINT *, "CntrPar%OL_Channels: ", CntrPar%OL_Channels
 
             CntrPar%OL_Breakpoints = CntrPar%OL_Channels(:,CntrPar%Ind_Breakpoint)
 
@@ -447,10 +445,7 @@ CONTAINS
         END IF
 
         ! Debugging outputs (echo someday)
-        PRINT *, "CntrPar%OL_Breakpoints: ", CntrPar%OL_Breakpoints
-        PRINT *, "CntrPar%OL_BldPitch: ", CntrPar%OL_BldPitch
-        PRINT *, "CntrPar%OL_GenTq: ", CntrPar%OL_GenTq
-        PRINT *, "CntrPar%OL_YawRate: ", CntrPar%OL_YawRate
+        ! write(400,*) CntrPar%OL_YawRate
 
         ! END OF INPUT FILE    
 
@@ -1798,13 +1793,12 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Channels,
             DO I=1,NumDataLines
             
                 READ(Unit_OL_Input,*,IOSTAT=IOS) ( TmpData(J), J=1,NumChannels )
-                PRINT *, IOS
+
                 IF (IOS > 0) THEN
                     CLOSE(Unit_OL_Input)
                 END IF
 
                 Channels(I,:)        = TmpData
-                PRINT *, I
         
             END DO !I     
         END IF
