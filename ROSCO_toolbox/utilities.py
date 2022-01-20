@@ -138,7 +138,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('!------- WIND SPEED ESTIMATOR ---------------------------------------------\n')
     file.write('{:<13.3f}       ! WE_BladeRadius    - Blade length (distance from hub center to blade tip), [m]\n'.format(rosco_vt['WE_BladeRadius']))
     file.write('{:<11d}         ! WE_CP_n           - Amount of parameters in the Cp array\n'.format(int(rosco_vt['WE_CP_n'])))
-    file.write('{:<11d}         ! WE_CP - Parameters that define the parameterized CP(lambda) function\n'.format(rosco_vt['WE_CP']))
+    file.write('{:<13.1f}       ! WE_CP - Parameters that define the parameterized CP(lambda) function\n'.format(rosco_vt['WE_CP']))
     file.write('{:<13.1f}		! WE_Gamma          - Adaption gain of the wind speed estimator algorithm [m/rad]\n'.format(rosco_vt['WE_Gamma']))
     file.write('{:<13.1f}       ! WE_GearboxRatio	- Gearbox ratio [>=1],  [-]\n'.format(rosco_vt['WE_GearboxRatio']))
     file.write('{:<14.5f}     ! WE_Jtot	        - Total drivetrain inertia, including blades, hub and casted generator inertia to LSS, [kg m^2]\n'.format(rosco_vt['WE_Jtot']))
