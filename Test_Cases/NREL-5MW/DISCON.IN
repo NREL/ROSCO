@@ -47,9 +47,9 @@
 
 !------- INDIVIDUAL PITCH CONTROL -----------------------------------------
 0.1                 ! IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from IPC), [rad]
-0.000e+00 0.000e+00  ! IPC_KP			- Proportional gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions, [-]
-0.000e+00 0.000e+00  ! IPC_KI			- Integral gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions, [-]
-0.000000  0.000000   ! IPC_aziOffset		- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. 
+2.000e-6 0.000e+00  ! IPC_KP			- Proportional gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions, [-]
+4.000e-6 0.000e+00  ! IPC_KI			- Integral gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions, [-]
+0.3491  0.000000   ! IPC_aziOffset		- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. 
 0.0                 ! IPC_CornerFreqAct - Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal {0: Disable}, [rad/s]
 
 !------- VS TORQUE CONTROL ------------------------------------------------
