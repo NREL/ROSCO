@@ -176,10 +176,10 @@ class Turbine():
         self.NumBl              = fast.fst_vt['ElastoDyn']['NumBl']
         self.TowerHt            = fast.fst_vt['ElastoDyn']['TowerHt']
         self.shearExp           = 0.2  #HARD CODED FOR NOW
-        if 'default' in fast.fst_vt['AeroDyn15']['AirDens']:
+        if 'default' in str(fast.fst_vt['AeroDyn15']['AirDens']):
             fast.fst_vt['AeroDyn15']['AirDens'] = 1.225
         self.rho                = fast.fst_vt['AeroDyn15']['AirDens']
-        if 'default' in fast.fst_vt['AeroDyn15']['KinVisc']:
+        if 'default' in str(fast.fst_vt['AeroDyn15']['KinVisc']):
             fast.fst_vt['AeroDyn15']['KinVisc'] = 1.460e-5
         self.mu                 = fast.fst_vt['AeroDyn15']['KinVisc']
         self.Ng                 = fast.fst_vt['ElastoDyn']['GBRatio']
