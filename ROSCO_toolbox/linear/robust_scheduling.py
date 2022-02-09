@@ -16,6 +16,7 @@ from ROSCO_toolbox.linear.lin_util import add_pcomp, smargin
 from ROSCO_toolbox.inputs.validation import load_rosco_yaml
 from ROSCO_toolbox.utilities import list_check
 
+
 class RobustScheduling(om.ExplicitComponent):
     'Finding Robust gain schedules for pitch controllers in FOWTs'
 
@@ -151,9 +152,15 @@ class rsched_driver():
         Setup the OpenMDAO problem
         '''
         # Initialize problem
-        self.om_problem = om.Problem()
+        from openmdao.utils.mpi import MPI, FakeComm
+        if MPI:
+            self.om_problem = om.Problem(comm=FakeComm())
+            self.om_problem._run_root_only = True
+            self.om_problem.comm.allgather = MPI.COMM_WORLD.allgather
+            self.om_problem.comm.Bcast = MPI.COMM_WORLD.Bcast
+        else:
+            self.om_problem = om.Problem()
 
-        # Add subsystem
         self.om_problem.model.add_subsystem('r_sched', RobustScheduling(linturb_options=self.linturb_options,
                                                                         ROSCO_options=self.ROSCO_options))
 
@@ -166,7 +173,7 @@ class rsched_driver():
                     ValueError(
                         'Can only run design of experiments for a single opt_options["windspeed"]')
         elif self.opt_options['driver'] == 'optimization':
-            self.om_problem = self.init_doe(self.om_problem, levels=self.opt_options['levels'])
+            self.om_problem = self.init_optimization(self.om_problem)
         else:
             ValueError(
                 "self.opt_options['driver'] must be either 'design_of_experiments' or 'optimization'.")
@@ -180,7 +187,6 @@ class rsched_driver():
 
         # Setup OM Problem
         self.om_problem.setup()
-
         # Set constant values
         if not list_check(self.opt_options['omega']):
             self.om_problem.set_val('r_sched.omega', self.opt_options['omega'])
@@ -197,7 +203,7 @@ class rsched_driver():
 
             self.om_opt = self.om_problem
             self.om_opt = self.add_dv(self.om_opt, ['omega', 'k_float'])
-            self.om_opt = self.init_optimization(self.om_opt)
+            # self.om_opt = self.init_optimization(self.om_opt)
 
     def execute(self):
         '''
@@ -223,10 +229,10 @@ class rsched_driver():
 
                 # Run optimization
                 print('Finding ROSCO tuning parameters for u = {}, sm = {}'.format(
-                    u, self.linturb_options['stability_margin']))
+                    u, self.opt_options['stability_margin']))
                 opt_logfile = os.path.join(
                     self.output_dir, self.output_name + '.' + str(u) + ".opt.sql")
-                self.om_opt = self.setup_recorder(self.om_opt, opt_logfile)
+                # self.om_opt = self.setup_recorder(self.om_opt, opt_logfile)
                 self.om_opt.run_driver()
                 self.om_opt.cleanup()
 
@@ -385,6 +391,7 @@ def load_linturb(linfile_path, load_parallel=False):
                                  nlin=max(linfile_numbers), rm_hydro=True, load_parallel=load_parallel)
 
     return linturb
+
 
 def load_ROSCO(path_params, turbine_params, controller_params):
     turbine = ROSCO_turbine.Turbine(turbine_params)
