@@ -207,7 +207,7 @@ properties:
             interp_type:
                 type: string
                 description: Type of interpolation between above rated tuning values (only used for multiple pitch controller tuning values)
-                default: linear
+                default: sigma
                 enum: ['sigma', 'linear', 'quadratic', 'cubic']
             zeta_vs:                        
                 type: number
