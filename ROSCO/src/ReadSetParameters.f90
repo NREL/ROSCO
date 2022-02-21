@@ -556,9 +556,9 @@ CONTAINS
         !------- DEBUG ------------------------------------------------------------
 
         ! LoggingLevel
-        IF ((CntrPar%LoggingLevel < 0) .OR. (CntrPar%LoggingLevel > 2)) THEN
+        IF ((CntrPar%LoggingLevel < 0) .OR. (CntrPar%LoggingLevel > 3)) THEN
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'LoggingLevel must be 0, 1, or 2.'
+            ErrVar%ErrMsg  = 'LoggingLevel must be 0 - 3.'
         ENDIF
 
         !------- CONTROLLER FLAGS -------------------------------------------------
