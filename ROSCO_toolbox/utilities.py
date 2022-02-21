@@ -379,8 +379,17 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     # ------- FILTERS -------
     DISCON_dict['F_LPFCornerFreq']	    = turbine.bld_edgewise_freq * 1/4
     DISCON_dict['F_LPFDamping']		    = controller.F_LPFDamping
-    DISCON_dict['F_NotchCornerFreq']    = controller.twr_freq
-    DISCON_dict['F_NotchBetaNumDen']    = [0.0, 0.25]
+    if controller.Flp_Mode > 0:
+        DISCON_dict['F_NotchCornerFreq'] = turbine.bld_flapwise_freq
+        DISCON_dict['F_NotchBetaNumDen'] = [0.0, 0.5]
+    else:
+        DISCON_dict['F_NotchCornerFreq'] = controller.twr_freq
+        DISCON_dict['F_NotchBetaNumDen'] = [0.0, 0.25]
+    DISCON_dict['F_WECornerFreq'] = controller.f_we_cornerfreq
+    DISCON_dict['F_SSCornerFreq'] = controller.f_ss_cornerfreq
+    DISCON_dict['F_FlHighPassFreq'] = controller.f_fl_highpassfreq
+    DISCON_dict['F_FlCornerFreq'] = [controller.ptfm_freq, 1.0]
+    DISCON_dict['F_FlpCornerFreq'] = [turbine.bld_flapwise_freq*3, 1.0]
     DISCON_dict['F_WECornerFreq']       = controller.f_we_cornerfreq
     DISCON_dict['F_SSCornerFreq']       = controller.f_ss_cornerfreq
     DISCON_dict['F_FlHighPassFreq']     = controller.f_fl_highpassfreq

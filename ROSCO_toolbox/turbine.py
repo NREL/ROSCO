@@ -226,8 +226,8 @@ class Turbine():
             self.TSR_operational = self.Cp.TSR_opt
 
         # Pull out some floating-related data
-        wave_tp = fast.fst_vt['HydroDyn']['WaveTp'] 
         try:
+            wave_tp = fast.fst_vt['HydroDyn']['WaveTp'] 
             self.wave_peak_period = 1/wave_tp       # Will work if HydroDyn exists and a peak period is defined...
         except:
             self.wave_peak_period = 0.0             # Set as 0.0 when HydroDyn doesn't exist (fixed bottom)

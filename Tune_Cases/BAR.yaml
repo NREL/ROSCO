@@ -43,8 +43,8 @@ controller_params:
   zeta_vs:            0.5                     # Torque controller desired damping ratio [-]
   omega_vs:           0.1                     # Torque controller desired natural frequency [rad/s]
   # Only needed if Flp_Mode > 0
-  zeta_flp:           0.7                     # Flap controller desired damping ratio [-]
-  omega_flp:          2.63                    # Flap controller desired natural frequency [rad/s]
+  flp_kp_norm:        0.1                     # Flap controller gain normalization term
+  flp_tau:            10                      # Flap controller integral gain time constant [s]
   ps_percent:         0.8
   IPC_Kp1p: 2.05e-08
   IPC_Ki1p: 1.45e-09
