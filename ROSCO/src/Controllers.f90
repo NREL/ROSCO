@@ -453,17 +453,10 @@ CONTAINS
             ! PII flap control
             ELSEIF (CntrPar%Flp_Mode == 2) THEN
                 DO K = 1,LocalVar%NumBl
-                    ! Find derivative and derivative error of blade root bending moment
-                    RootMyb_Vel(K) = (LocalVar%rootMOOPF(K) - LocalVar%RootMyb_Last(K))/LocalVar%DT
-                    RootMyb_VelErr(K) = 0 - RootMyb_Vel(K)
-                    
                     ! Find flap angle command - includes an integral term to encourage zero flap angle
-                    LocalVar%Flp_Angle(K) = PIIController(RootMyb_VelErr(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, REAL(0.05,DbKi), -CntrPar%Flp_MaxPit , CntrPar%Flp_MaxPit , LocalVar%DT, 0.0, LocalVar%piP, LocalVar%restart, objInst%instPI)
+                    LocalVar%Flp_Angle(K) = PIIController(-LocalVar%rootMOOPF(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, REAL(0.05,DbKi), -CntrPar%Flp_MaxPit , CntrPar%Flp_MaxPit , LocalVar%DT, 0.0, LocalVar%piP, LocalVar%restart, objInst%instPI)
                     ! Saturation Limits
                     LocalVar%Flp_Angle(K) = saturate(LocalVar%Flp_Angle(K), -CntrPar%Flp_MaxPit, CntrPar%Flp_MaxPit) * R2D
-                    
-                    ! Save some data for next iteration
-                    LocalVar%RootMyb_Last(K) = LocalVar%rootMOOPF(K)
                 END DO
 
             ! Cyclic flap Control
