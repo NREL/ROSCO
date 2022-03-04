@@ -1,3 +1,7 @@
+.. toctree::
+
+.. _install:
+
 **Running Bladed simulations with ROSCO controller**
 
 ROSCO controller can be used with Bladed.
