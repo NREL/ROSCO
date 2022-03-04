@@ -90,5 +90,3 @@ Instructions to run Bladed from the command line are available
 on the Bladed Knowledge Base
 
 .. |image1| image:: figures/Bladed_control_screen.png
-   :width: 5in
-   :height: 5.21667in
