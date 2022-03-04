@@ -16,24 +16,24 @@ Configuration in Bladed is as follows:
 
 In the Bladed External Controller dialog, fill in the fields as follows:
 
--  'Time step'* – value non-critical as ROSCO adapts to whatever value
+-  'Time step' – value non-critical as ROSCO adapts to whatever value
    is specified. Suggest 10ms.
 
     
 
--  'Additional Controller Parameters'* - copy all text from DISCON.IN
+-  'Additional Controller Parameters' - copy all text from DISCON.IN
    for the relevant turbine and paste in to this field.
 
    Notes:
 
--  This must be the topmost field called 'Additional Controller
+   -  This must be the topmost field called 'Additional Controller
    Parameters', not the field with the same name lower down in external
    controller 1 settings.
 
--  Do not add, remove or re-order any lines in this text as this will
+   -  Do not add, remove or re-order any lines in this text as this will
    break ROSCO parsing of the content.
 
--  Any paths such as PerfFileName must be absolute (eg
+   -  Any paths such as PerfFileName must be absolute (eg
    'C:\ROSCO\config.txt', not '..\config.txt') for use with Bladed.
 
 ..
