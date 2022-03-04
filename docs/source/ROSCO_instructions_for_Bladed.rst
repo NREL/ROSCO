@@ -52,28 +52,21 @@ In the Bladed External Controller dialog, fill in the fields as follows:
 
 In External Controller dialog,
 
-   *'Communication interval'* - ROSCO adapts to whatever value is
-   specified. Suggest 10ms.
+ -  *'Communication interval'* - ROSCO adapts to whatever value is specified. Suggest 10ms.
 
-   *'Controller code'* - path to the ROSCO libdiscon_win32.dll
+ -  *'Controller code'* - path to the ROSCO libdiscon_win32.dll
 
-   *'Calling convention'* - \__cdecl
+ -  *'Calling convention'* - \__cdecl
 
-   *'External Controller data'* - copy the configuration text from
-   DISCON.IN for the relevant turbine and paste in to this field.
+ -  *'External Controller data'* - copy the configuration text from DISCON.IN for the relevant turbine and paste in to this field.
 
    Notes:
 
--  Do not add, remove or re-order any lines in this text as this will
-   break ROSCO parsing of the content
+   -  Do not add, remove or re-order any lines in this text as this will break ROSCO parsing of the content
 
--  Any paths such as PerfFileName must be absolute (eg
-   'C:\ROSCO\config.txt', not '..\config.txt') for use with Bladed.
+   -  Any paths such as PerfFileName must be absolute (eg 'C:\ROSCO\config.txt', not '..\config.txt') for use with Bladed.
 
  
-
-**
-**
 
 **Troubleshooting (all Bladed versions)**
 
