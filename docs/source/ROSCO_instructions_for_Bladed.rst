@@ -26,15 +26,11 @@ In the Bladed External Controller dialog, fill in the fields as follows:
 
    Notes:
 
-   -  This must be the topmost field called 'Additional Controller
-   Parameters', not the field with the same name lower down in external
-   controller 1 settings.
+   -  This must be the topmost field called 'Additional Controller Parameters', not the field with the same name lower down in external controller 1 settings.
 
-   -  Do not add, remove or re-order any lines in this text as this will
-   break ROSCO parsing of the content.
+   -  Do not add, remove or re-order any lines in this text as this will break ROSCO parsing of the content.
 
-   -  Any paths such as PerfFileName must be absolute (eg
-   'C:\ROSCO\config.txt', not '..\config.txt') for use with Bladed.
+   -  Any paths such as PerfFileName must be absolute (eg 'C:\ROSCO\config.txt', not '..\config.txt') for use with Bladed.
 
 ..
 
