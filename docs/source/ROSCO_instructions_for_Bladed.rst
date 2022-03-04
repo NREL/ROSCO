@@ -16,12 +16,12 @@ Configuration in Bladed is as follows:
 
 In the Bladed External Controller dialog, fill in the fields as follows:
 
-   *'Time step'* – value non-critical as ROSCO adapts to whatever value
+-  'Time step'* – value non-critical as ROSCO adapts to whatever value
    is specified. Suggest 10ms.
 
     
 
-   *'Additional Controller Parameters'* - copy all text from DISCON.IN
+-  'Additional Controller Parameters'* - copy all text from DISCON.IN
    for the relevant turbine and paste in to this field.
 
    Notes:
