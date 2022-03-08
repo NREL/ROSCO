@@ -1693,12 +1693,12 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Channels,
     CHARACTER(1024)                                         :: Line              ! Temp variable for reading whole line from file
     INTEGER(IntKi)                                          :: NumComments
     INTEGER(IntKi)                                          :: NumDataLines
-    REAL(DbKi)                                              :: TmpData(NumChannels+1)  ! Temp variable for reading all columns from a line
+    REAL(DbKi)                                              :: TmpData(NumChannels)  ! Temp variable for reading all columns from a line
     CHARACTER(15)                                           :: NumString
 
     INTEGER(IntKi)                                          :: I,J
 
-    CHARACTER(*),               PARAMETER                   :: RoutineName = 'ReadControlParameterFileSub'
+    CHARACTER(*),               PARAMETER                   :: RoutineName = 'Read_OL_Input'
 
     !-------------------------------------------------------------------------------------------------
     ! Read from input file, borrowed (read: copied) from (Open)FAST team...thanks!
