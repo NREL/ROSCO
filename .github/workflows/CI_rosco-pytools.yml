@@ -102,7 +102,7 @@ jobs:
       # Install OpenFAST
       - name: Install OpenFAST
         run: |
-          conda install openfast==3.0.0
+          conda install openfast==3.1.0
           
       # Run examples
       - name: Run examples
