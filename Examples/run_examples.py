@@ -5,19 +5,19 @@ from time import time
 import importlib
 
 all_scripts = [
-    # 'example_01',
-    # 'example_02',
-    # 'example_03',
-    # 'example_04',
-    # 'example_05',
-    # 'example_06',
-    # 'example_07',
-    # 'example_08',
-    # 'example_09',
-    # 'example_10',
-    # 'example_11',
-    # 'example_12',
-    # 'example_13',
+    'example_01',
+    'example_02',
+    'example_03',
+    'example_04',
+    'example_05',
+    'example_06',
+    'example_07',
+    'example_08',
+    'example_09',
+    'example_10',
+    'example_11',
+    'example_12',
+    'example_13',
     'example_14'
 ]
 
