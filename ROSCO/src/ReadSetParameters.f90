@@ -417,27 +417,16 @@ CONTAINS
 
             PRINT *, 'ROSCO: Implementing open loop control for'//TRIM(OL_String)
             CALL Read_OL_Input(CntrPar%OL_Filename,110_IntKi,OL_Count,CntrPar%OL_Channels, ErrVar)
-            PRINT *, "Finished reading OL_Input"
-
-            PRINT *, "CntrPar%Ind_Breakpoint: ", CntrPar%Ind_Breakpoint
 
             CntrPar%OL_Breakpoints = CntrPar%OL_Channels(:,CntrPar%Ind_Breakpoint)
-
-            PRINT *, "CntrPar%Ind_BldPitch: ", CntrPar%Ind_BldPitch
 
             IF (CntrPar%Ind_BldPitch > 0) THEN
                 CntrPar%OL_BldPitch = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch)
             ENDIF
 
-            PRINT *, "CntrPar%Ind_GenTq: ", CntrPar%Ind_GenTq
-
-
             IF (CntrPar%Ind_GenTq > 0) THEN
                 CntrPar%OL_GenTq = CntrPar%OL_Channels(:,CntrPar%Ind_GenTq)
             ENDIF
-
-            PRINT *, "CntrPar%Ind_YawRate: ", CntrPar%Ind_YawRate
-
 
             IF (CntrPar%Ind_YawRate > 0) THEN
                 CntrPar%OL_YawRate = CntrPar%OL_Channels(:,CntrPar%Ind_YawRate)
@@ -1724,7 +1713,6 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Channels,
         
         ELSE
             ! Do all the stuff!
-            PRINT *, "Find number of comment lines"
             !-------------------------------------------------------------------------------------------------
             ! Find the number of comment lines
             !-------------------------------------------------------------------------------------------------
@@ -1741,7 +1729,6 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Channels,
         
             END DO !WHILE
 
-            PRINT *, "Find number of data lines"
             !-------------------------------------------------------------------------------------------------
             ! Find the number of data lines
             !-------------------------------------------------------------------------------------------------
@@ -1766,9 +1753,6 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Channels,
                 CLOSE(Unit_OL_Input)
             END IF
 
-            PRINT *, "About to allocate"
-            PRINT *, "NumDataLines: ", NumDataLines
-            PRINT *, "NumChannels: ", NumChannels
             !-------------------------------------------------------------------------------------------------
             ! Allocate arrays for the uniform wind data
             !-------------------------------------------------------------------------------------------------
@@ -1778,14 +1762,12 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Channels,
             ! Rewind the file (to the beginning) and skip the comment lines
             !-------------------------------------------------------------------------------------------------
 
-            PRINT *, "Rewinding"
             REWIND( Unit_OL_Input )
 
             DO I=1,NumComments
                 READ(Unit_OL_Input,'( A )',IOSTAT=IOS) LINE
             END DO !I
         
-            PRINT *, "Reading"
             !-------------------------------------------------------------------------------------------------
             ! Read the data arrays
             !-------------------------------------------------------------------------------------------------
