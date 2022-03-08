@@ -153,7 +153,7 @@ jobs:
       # Install OpenFAST
       - name: Install OpenFAST
         run: |
-          conda install openfast==3.0.0
+          conda install openfast==3.1.0
 
       # Run ROSCO Testing
       - name: Run ROSCO testing
