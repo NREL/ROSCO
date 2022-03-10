@@ -92,6 +92,12 @@ jobs:
         run: |
           conda install -y m2w64-toolchain libpython 
           conda install -y wisdem
+      - name: Add pyFAST dependency
+        if: false == contains( matrix.os, 'windows')
+        run: |
+          git clone http://github.com/OpenFAST/python-toolbox
+          cd python-toolbox
+          python -m pip install -e .
         
 
       # Install ROSCO toolbox
