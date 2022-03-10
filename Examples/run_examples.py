@@ -16,7 +16,7 @@ all_scripts = [
     'example_09',
     'example_10',
     'example_11',
-    # 'example_12',
+    'example_12',
     'example_13',
     'example_14'
 ]

@@ -78,6 +78,8 @@ def run_example():
     options['path_options'] = path_options
     options['opt_options'] = opt_options
 
+    options['linturb_options']['linfile_path'] = os.path.join(this_dir, options['linturb_options']['linfile_path'])
+
     # Run robust scheduling
     sd = rsched_driver(options)
     sd.setup()
