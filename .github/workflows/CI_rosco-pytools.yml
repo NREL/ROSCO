@@ -43,10 +43,10 @@ jobs:
         run: |
           conda install -y m2w64-toolchain libpython 
 
-      - name: Add dependencies macOS specific
-        if: true == contains( matrix.os, 'macOS')
-        run: |
-          conda install compilers
+      # - name: Add dependencies macOS specific
+      #   if: true == contains( matrix.os, 'macOS')
+      #   run: |
+      #     conda install compilers
 
       # Install ROSCO toolbox
       - name: Install ROSCO toolbox
