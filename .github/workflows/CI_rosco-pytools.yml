@@ -41,8 +41,9 @@ jobs:
       - name: Add dependencies windows specific
         if: true == contains( matrix.os, 'windows')
         run: |
+          set FC=
           conda install -y m2w64-toolchain libpython 
-          set FC=gfortran
+          
 
       # - name: Add dependencies macOS specific
       #   if: true == contains( matrix.os, 'macOS')
