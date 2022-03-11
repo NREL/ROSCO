@@ -52,7 +52,15 @@ jobs:
       #     conda install compilers
 
       # Install ROSCO toolbox
+      - name: Install ROSCO toolbox on Windows
+        if: true == contains( matrix.os, 'windows')
+        env:
+          FC: gfortran
+        run: |
+          python setup.py develop --compile-rosco
+
       - name: Install ROSCO toolbox
+        if: false == contains( matrix.os, 'windows')
         run: |
           python setup.py develop --compile-rosco
           
