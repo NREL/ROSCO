@@ -40,8 +40,9 @@ jobs:
       # Install dependencies of ROSCO toolbox
       - name: Add dependencies windows specific
         if: true == contains( matrix.os, 'windows')
+        env:
+          FC: gfortran
         run: |
-          set FC=
           conda install -y m2w64-toolchain libpython 
           
 
