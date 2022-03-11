@@ -42,6 +42,8 @@ jobs:
         if: true == contains( matrix.os, 'windows')
         run: |
           conda install -y m2w64-toolchain libpython 
+        env:
+          FC: gfortran
           
 
       # - name: Add dependencies macOS specific
@@ -51,9 +53,6 @@ jobs:
 
       # Install ROSCO toolbox
       - name: Install ROSCO toolbox
-        env:
-          FC: gfortran
-          if: true == contains( matrix.os, 'windows')
         run: |
           python setup.py develop --compile-rosco
           
