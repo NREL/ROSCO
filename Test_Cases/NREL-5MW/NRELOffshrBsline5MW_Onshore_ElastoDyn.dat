@@ -135,6 +135,9 @@ True          TabDelim    - Use tab delimiters in text tabular output file? (fla
 "RootFzb1"                - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
 "RootMxb1"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
 "RootMyb1"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
+"RootMyc1"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
+"RootMyc2"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
+"RootMyc3"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
 "RootMzb1"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
 "RotTorq"                 - Rotor torque and low-speed shaft 0- and 90-bending moments at the main bearing
 "LSSGagMya"               - Rotor torque and low-speed shaft 0- and 90-bending moments at the main bearing

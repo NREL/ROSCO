@@ -13,7 +13,7 @@ fast.FAST_directory    = '/Users/dzalkind/Tools/ROSCO/Test_Cases/5MW_Land_Simuli
 
 % Simulink Parameters
 % Model
-simu.SimModel           = fullfile(this_dir,'Simulink','ROSCO_IPC');
+simu.SimModel           = fullfile(this_dir,'Simulink','ROSCO');
 
 % Script for loading parameters
 simu.ParamScript        = fullfile(this_dir,'Utilities','load_ROSCO_params');
