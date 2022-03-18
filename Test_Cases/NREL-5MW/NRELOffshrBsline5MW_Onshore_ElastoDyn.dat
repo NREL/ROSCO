@@ -4,8 +4,6 @@ NREL 5.0 MW Baseline Wind Turbine for Use in Offshore Analysis. Properties from 
 False         Echo        - Echo input data to "<RootName>.ech" (flag)
           3   Method      - Integration method: {1: RK4, 2: AB4, or 3: ABM4} (-)
 "DEFAULT"     DT          - Integration time step (s)
----------------------- ENVIRONMENTAL CONDITION ---------------------------------
-    9.80665   Gravity     - Gravitational acceleration (m/s^2)
 ---------------------- DEGREES OF FREEDOM --------------------------------------
 True          FlapDOF1    - First flapwise blade mode DOF (flag)
 True          FlapDOF2    - Second flapwise blade mode DOF (flag)
@@ -137,6 +135,9 @@ True          TabDelim    - Use tab delimiters in text tabular output file? (fla
 "RootFzb1"                - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
 "RootMxb1"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
 "RootMyb1"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
+"RootMyc1"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
+"RootMyc2"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
+"RootMyc3"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
 "RootMzb1"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
 "RotTorq"                 - Rotor torque and low-speed shaft 0- and 90-bending moments at the main bearing
 "LSSGagMya"               - Rotor torque and low-speed shaft 0- and 90-bending moments at the main bearing

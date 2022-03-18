@@ -3,7 +3,7 @@ Generated with AeroElasticSE FAST driver
 ---------------------- SIMULATION CONTROL --------------------------------------
 True                   Echo        - Echo input data to <RootName>.ech (flag)
 "FATAL"                AbortLevel  - Error level when simulation should abort (string) {"WARNING", "SEVERE", "FATAL"}
-60.0                   TMax        - Total run time (s)
+10.0                   TMax        - Total run time (s)
 0.01                   DT          - Recommended module time step (s)
 2                      InterpOrder - Interpolation order for input/output time history (-) {1=linear, 2=quadratic}
 0                      NumCrctn    - Number of correction iterations (-) {0=explicit calculation, i.e., no corrections}
@@ -18,6 +18,17 @@ True                   Echo        - Echo input data to <RootName>.ech (flag)
 0                      CompSub     - Compute sub-structural dynamics (switch) {0=None; 1=SubDyn; 2=External Platform MCKF}
 0                      CompMooring - Compute mooring system (switch) {0=None; 1=MAP++; 2=FEAMooring; 3=MoorDyn; 4=OrcaFlex}
 0                      CompIce     - Compute ice loads (switch) {0=None; 1=IceFloe; 2=IceDyn}
+          0   MHK             - MHK turbine type (switch) {0=Not an MHK turbine; 1=Fixed MHK turbine; 2=Floating MHK turbine}
+---------------------- ENVIRONMENTAL CONDITIONS --------------------------------
+    9.80665   Gravity         - Gravitational acceleration (m/s^2)
+      1.225   AirDens         - Air density (kg/m^3)
+       1025   WtrDens         - Water density (kg/m^3)
+  1.464E-05   KinVisc         - Kinematic viscosity of working fluid (m^2/s)
+        335   SpdSound        - Speed of sound in working fluid (m/s)
+     103500   Patm            - Atmospheric pressure (Pa) [used only for an MHK turbine cavitation check]
+       1700   Pvap            - Vapour pressure of working fluid (Pa) [used only for an MHK turbine cavitation check]
+         50   WtrDpth         - Water depth (m)
+          0   MSL2SWL         - Offset between still-water level and mean sea level (m) [positive upward]
 ---------------------- INPUT FILES ---------------------------------------------
 "BAR_10_ElastoDyn.dat" EDFile      - Name of file containing ElastoDyn input parameters (quoted string)
 "BAR_10_BeamDyn.dat"   BDBldFile(1) - Name of file containing BeamDyn input parameters for blade 1 (quoted string)
