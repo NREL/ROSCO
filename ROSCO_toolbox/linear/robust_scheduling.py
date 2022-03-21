@@ -66,6 +66,7 @@ class RobustScheduling(om.ExplicitComponent):
             self.turbine.Ct_table = np.squeeze(dict_inputs['Ct_table'])
             self.turbine.Cq_table = np.squeeze(dict_inputs['Cq_table'])
             self.turbine.pitch_initial_rad = dict_inputs['pitch_vector']
+            self.turbine.bld_edgewise_freq = float(dict_inputs['edge_freq'])
             self.turbine.TSR_initial = dict_inputs['tsr_vector']
             RotorPerformance = ROSCO_turbine.RotorPerformance
             self.turbine.Cp = RotorPerformance(
@@ -282,7 +283,6 @@ class rsched_driver():
         os.makedirs(self.output_dir, exist_ok=True)
         # om_problem.driver.options['run_parallel'] = True
         # om_problem.driver.options['procs_per_model'] = 1
-
         return om_problem
 
     @staticmethod
@@ -312,7 +312,6 @@ class rsched_driver():
             doe_outfile = '.'.join(self.doe_logfile.split('.')[:-1]) + '.csv'
         else:
             doe_outfile = None
-
         df = load_DOE(self.doe_logfile, outfile_name=doe_outfile)
 
         return df
@@ -386,7 +385,6 @@ def load_linturb(linfile_path, load_parallel=False):
                                  nlin=max(linfile_numbers), rm_hydro=True, load_parallel=load_parallel)
 
     return linturb
-
 
 def load_ROSCO(path_params, turbine_params, controller_params):
     turbine = ROSCO_turbine.Turbine(turbine_params)

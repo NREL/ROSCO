@@ -4,17 +4,19 @@
 
 clear;
 
+[this_dir,~,~] = fileparts(mfilename('fullpath'));
+
 % Compile FAST for use with simulink & mex using openfast docs
 fast.FAST_SFuncDir     = '/Users/dzalkind/Tools/openfast-sim/glue-codes/simulink/src';  %%%% NEED FOR SIMULINK
 fast.FAST_InputFile    = '5MW_Land_Simulink.fst';   % FAST input file (ext=.fst)
-fast.FAST_directory    = '/Users/dzalkind/Tools/ROSCO_toolbox/Test_Cases/5MW_Land_Simulink';   % Path to fst directory files
+fast.FAST_directory    = '/Users/dzalkind/Tools/ROSCO/Test_Cases/5MW_Land_Simulink';   % Path to fst directory files
 
 % Simulink Parameters
 % Model
-simu.SimModel           = '/Users/dzalkind/Tools/ROSCO_toolbox/Matlab_Toolbox/Simulink/ROSCO';
+simu.SimModel           = fullfile(this_dir,'Simulink','ROSCO');
 
 % Script for loading parameters
-simu.ParamScript        = '/Users/dzalkind/Tools/matlab-tools/Simulations/SimulinkModels/load_ROSCO_params';
+simu.ParamScript        = fullfile(this_dir,'Utilities','load_ROSCO_params');
 
 %% Simulink Setup
 
@@ -74,4 +76,6 @@ end
 
 %% Plot
 Pl_FastPlots(simout)
+
+
 
