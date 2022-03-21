@@ -74,7 +74,6 @@ In External Controller dialog,
    -  Any paths such as PerfFileName must be absolute (eg 'C:\ROSCO\config.txt', not '..\config.txt') for use with Bladed.
 
 
-
 **Troubleshooting (all Bladed versions)**
 
 Most error messages from ROSCO are not passed to the Bladed GUI for
