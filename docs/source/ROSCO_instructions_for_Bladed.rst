@@ -1,6 +1,6 @@
 .. toctree::
 
-.. _install:
+.. _bladed:
 
 **Running Bladed simulations with ROSCO controller**
 
