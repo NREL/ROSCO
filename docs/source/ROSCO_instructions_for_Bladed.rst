@@ -1,6 +1,6 @@
 .. toctree::
 
-.. _bladed:
+.. _ROSCO_instructions_for_Bladed:
 
 Running Bladed simulations with ROSCO controller
 ================================================
