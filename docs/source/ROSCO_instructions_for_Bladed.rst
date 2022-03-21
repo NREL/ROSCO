@@ -17,8 +17,8 @@ Configuration in Bladed is as follows:
 
  
 
-Bladed versions 4.6 to current (4.12):
---------------------------------------
+Bladed versions 4.6 to current (4.12)
+-------------------------------------
 
 In the Bladed External Controller dialog, fill in the fields as follows:
 
@@ -54,8 +54,8 @@ In the Bladed External Controller dialog, fill in the fields as follows:
 
 
 
-Bladed 4.5 & earlier:
----------------------
+Bladed 4.5 & earlier
+--------------------
 
 In External Controller dialog,
 
