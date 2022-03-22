@@ -78,3 +78,4 @@ limitations under the License.
    source/rosco.rst
    source/api_change.rst
    source/toolbox_input.rst
+   source/ROSCO_instructions_for_Bladed.rst
