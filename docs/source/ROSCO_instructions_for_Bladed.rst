@@ -1,8 +1,9 @@
 .. toctree::
 
-.. _install:
+.. _ROSCO_instructions_for_Bladed:
 
-**Running Bladed simulations with ROSCO controller**
+Running Bladed simulations with ROSCO controller
+================================================
 
 ROSCO controller can be used with Bladed.
 
@@ -16,14 +17,15 @@ Configuration in Bladed is as follows:
 
  
 
-**Bladed versions 4.6 to current (4.12):**
+Bladed versions 4.6 to current (4.12)
+-------------------------------------
 
 In the Bladed External Controller dialog, fill in the fields as follows:
 
--  *'Time step'* – value non-critical as ROSCO adapts to whatever value
+-  *'Time step'*  value non-critical as ROSCO adapts to whatever value
    is specified. Suggest 10ms.
 
-    
+   
 
 -  *'Additional Controller Parameters'* - copy all text from DISCON.IN
    for the relevant turbine and paste in to this field.
@@ -40,7 +42,7 @@ In the Bladed External Controller dialog, fill in the fields as follows:
 
    -  *'Controller location'* - path to the ROSCO libdiscon_win32.dll
 
-   -  *'Calling convention'* -  \__cdecl
+   -  *'Calling convention'* - \__cdecl
 
    -  *'Additional Controller Parameters'* - blank
 
@@ -50,9 +52,10 @@ In the Bladed External Controller dialog, fill in the fields as follows:
 
 **Example setup shown in the image below**\ |image1|
 
- 
 
-**Bladed 4.5 & earlier:**
+
+Bladed 4.5 & earlier
+--------------------
 
 In External Controller dialog,
 
@@ -70,7 +73,6 @@ In External Controller dialog,
 
    -  Any paths such as PerfFileName must be absolute (eg 'C:\ROSCO\config.txt', not '..\config.txt') for use with Bladed.
 
- 
 
 **Troubleshooting (all Bladed versions)**
 
