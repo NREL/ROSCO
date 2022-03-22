@@ -75,23 +75,18 @@ Line    Input Name           Example Value
 ROSCO v2.4.1 to ROSCO v2.5.0
 -------------------------------
 Two filter parameters were added to 
-
-
 - change the high pass filter in the floating feedback module
-
 - change the low pass filter of the wind speed estimator signal that is used in torque control
 
 Open loop control inputs, users must specify:
-
 - The open loop input filename, an example can be found in Examples/Example_OL_Input.dat
-
 - Indices (columns) of values specified in OL_Filename
 
 IPC
 - Proportional Control capabilities were added, 1P and 2P gains should be specified
 
 ====== =================    ======================================================================================================================================================================================================
-Line    Input Name           Example Value
+Line    Flag Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
 20     OL_Mode              0                   ! OL_Mode           - Open loop control mode {0: no open loop control, 1: open loop control vs. time, 2: open loop control vs. wind speed}
 27     F_WECornerFreq       0.20944             ! F_WECornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s].
