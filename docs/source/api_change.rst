@@ -10,7 +10,7 @@ The line number corresponds to the resulting line number after all changes are i
 Thus, be sure to implement each in order so that subsequent line numbers are correct.
 
 
-ROSCO v2.4.1 to ROSCO `develop`
+ROSCO v2.4.1 to ROSCO v2.5.0
 -------------------------------
 Two filter parameters were added to 
 - change the high pass filter in the floating feedback module
