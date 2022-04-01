@@ -25,6 +25,7 @@ USE             :: Controllers
 USE             :: Constants
 USE             :: Filters
 USE             :: Functions
+USE             :: ROSCO_IO
 
 IMPLICIT NONE
 ! Enable .dll export
@@ -38,8 +39,8 @@ IMPLICIT NONE
 !------------------------------------------------------------------------------------------------------------------------------
 
 ! Passed Variables:
-!REAL(C_FLOAT), INTENT(IN)      :: from_SC(*)       ! DATA from the super controller
-!REAL(C_FLOAT), INTENT(INOUT)   :: to_SC(*)         ! DATA to the super controller
+!REAL(ReKi), INTENT(IN)      :: from_SC(*)       ! DATA from the super controller
+!REAL(ReKi), INTENT(INOUT)   :: to_SC(*)         ! DATA to the super controller
 
 REAL(C_FLOAT),                  INTENT(INOUT)   :: avrSWAP(*)                       ! The swap array, used to pass data to, and receive data from, the DLL controller.
 INTEGER(C_INT),                 INTENT(INOUT)   :: aviFAIL                          ! A flag used to indicate the success of this DLL call set as follows: 0 if the DLL call was successful, >0 if the DLL call was successful but cMessage should be issued as a warning messsage, <0 if the DLL call was unsuccessful or for any other reason the simulation is to be stopped at this point with cMessage as the error message.
@@ -62,6 +63,15 @@ RootName = TRANSFER(avcOUTNAME, RootName)
 !------------------------------------------------------------------------------------------------------------------------------
 ! Main control calculations
 !------------------------------------------------------------------------------------------------------------------------------
+
+! Check for restart
+IF ( (NINT(avrSWAP(1)) == -9) .AND. (aviFAIL >= 0))  THEN ! Read restart files
+    CALL ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootName, SIZE(avcOUTNAME), ErrVar)
+    IF ( CntrPar%LoggingLevel > 0 ) THEN
+        CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, SIZE(avcOUTNAME))
+    END IF 
+END IF
+
 ! Read avrSWAP array into derived types/variables
 CALL ReadAvrSWAP(avrSWAP, LocalVar)
 
@@ -69,29 +79,45 @@ CALL ReadAvrSWAP(avrSWAP, LocalVar)
 CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, ErrVar)
 
 ! Filter signals
-CALL PreFilterMeasuredSignals(CntrPar, LocalVar, objInst)
+CALL PreFilterMeasuredSignals(CntrPar, LocalVar, DebugVar, objInst, ErrVar)
 
-IF ((LocalVar%iStatus >= 0) .AND. (ErrVar%aviFAIL >= 0))  THEN  ! Only compute control calculations if no error has occurred and we are not on the last time step
+IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAIL >= 0))  THEN  ! Only compute control calculations if no error has occurred and we are not on the last time step
+    IF ((LocalVar%iStatus == -8) .AND. (ErrVar%aviFAIL >= 0))  THEN ! Write restart files
+        CALL WriteRestartFile(LocalVar, CntrPar, objInst, RootName, SIZE(avcOUTNAME))    
+    ENDIF
+    
     CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
     CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
     CALL StateMachine(CntrPar, LocalVar)
     CALL SetpointSmoother(LocalVar, CntrPar, objInst)
-    CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
-    CALL VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst)
+    CALL VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
     CALL PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
-    CALL YawRateControl(avrSWAP, CntrPar, LocalVar, objInst)
-    CALL FlapControl(avrSWAP, CntrPar, LocalVar, objInst)
-    CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, SIZE(avcOUTNAME))
+    
+    IF (CntrPar%Y_ControlMode > 0) THEN
+        CALL YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
+    END IF
+    
+    IF (CntrPar%Flp_Mode > 0) THEN
+        CALL FlapControl(avrSWAP, CntrPar, LocalVar, objInst)
+    END IF
+    
+    IF ( CntrPar%LoggingLevel > 0 ) THEN
+        CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, SIZE(avcOUTNAME))
+    END IF 
+    
 END IF
+
 
 ! Add RoutineName to error message
 IF (ErrVar%aviFAIL < 0) THEN
     ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
     print * , TRIM(ErrVar%ErrMsg)
 ENDIF
-ErrMsg = ErrVar%ErrMsg
-avcMSG = TRANSFER(TRIM(ErrVar%ErrMsg)//C_NULL_CHAR, avcMSG, SIZE(avcMSG))
+ErrMsg = ADJUSTL(TRIM(ErrVar%ErrMsg))
+avcMSG = TRANSFER(ErrMsg//C_NULL_CHAR, avcMSG, LEN(ErrMsg)+1)
+avcMSG = TRANSFER(ErrMsg//C_NULL_CHAR, avcMSG, SIZE(avcMSG))
 aviFAIL = ErrVar%aviFAIL
+ErrVar%ErrMsg = ''
 
 RETURN
 END SUBROUTINE DISCON

@@ -11,6 +11,8 @@ Source/Release/
 *build*
 Makefile
 */install/*
+*test_out*
+*CMakeFiles*
 
 # Archive
 Scripts/CompileDISCONHereCopyRun\.cmd
@@ -50,6 +52,7 @@ _build
 *.sum
 *.ech
 *.dbg
+*.dbg2
 *.out
 *.outb
 *.dbg

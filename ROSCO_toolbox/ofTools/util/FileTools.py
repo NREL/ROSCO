@@ -127,6 +127,7 @@ def save_yaml(outdir, fname, data_out):
     yaml.width = float("inf")
     yaml.indent(mapping=4, sequence=6, offset=3)
     yaml.dump(data_out, f)
+    f.close()
 
 
 def select_cases(cases, var_sel, val_sel):

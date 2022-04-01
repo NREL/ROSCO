@@ -12,3 +12,4 @@ dependencies:
   - wisdem
   - cmake
   - pyparsing==2.4.7 
+  - control

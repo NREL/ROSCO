@@ -24,7 +24,7 @@ The python-based toolbox primarily used for tuning the controller and writing th
 * Linear model analysis capability
 
 **ROSCO Controller**
-The controller implementation itself. This is compiled to :code:`libdiscon.*`` file, reads the DISCON.IN file, and interfaces with OpenFAST using the Bladed-style interface. 
+The controller implementation itself. This is compiled to :code:`libdiscon.*` file, reads the DISCON.IN file, and interfaces with OpenFAST using the Bladed-style interface. 
 
 * Fortran based
 * Follows Bladed-style control interface
@@ -76,3 +76,6 @@ limitations under the License.
    source/standard_use.rst
    source/rosco_toolbox.rst
    source/rosco.rst
+   source/api_change.rst
+   source/toolbox_input.rst
+   source/ROSCO_instructions_for_Bladed.rst

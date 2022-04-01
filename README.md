@@ -32,6 +32,9 @@ Please help us better understand the ROSCO user-base and how we can improve rosc
 [ROSCO toolchain survey](https://forms.office.com/Pages/ResponsePage.aspx?id=fp3yoM0oVE-EQniFrufAgGWnC45k8q5Kl90RBkHijqBUN0JTNzBJT1QwMjIzNDhCWDlDTUZPWDdMWC4u)
 
 ## Referencing
+To reference the ROSCO source code directly, please use the following DOI:
+[![DOI](https://zenodo.org/badge/220498357.svg)](https://zenodo.org/badge/latestdoi/220498357)
+
 If the ROSCO Toolbox played a role in your research, please cite it. This software can be
 cited as:
 
