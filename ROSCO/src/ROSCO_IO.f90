@@ -533,25 +533,24 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME
             WRITE(UnDb3,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1, 85)
             WRITE(UnDb3,'(A,85("'//Tab//'(-)"))')  '(s)'
         END IF
-    ELSE
+    END IF
         ! Print simulation status, every 10 seconds
-        IF (MODULO(LocalVar%Time, 10.0_DbKi) == 0) THEN
-            WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0, LocalVar%WE_Vw
-            100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')
-        END IF
+    IF (MODULO(LocalVar%Time, 10.0_DbKi) == 0) THEN
+        WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0, LocalVar%WE_Vw
+        100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')
+    END IF
 
-        ! Write debug files
-        IF(CntrPar%LoggingLevel > 0) THEN
-            WRITE (UnDb, FmtDat)  LocalVar%Time, DebugOutData
-        END IF
+    ! Write debug files
+    IF(CntrPar%LoggingLevel > 0) THEN
+        WRITE (UnDb, FmtDat)  LocalVar%Time, DebugOutData
+    END IF
 
-        IF(CntrPar%LoggingLevel > 1) THEN
-            WRITE (UnDb2, FmtDat)  LocalVar%Time, LocalVarOutData
-        END IF
+    IF(CntrPar%LoggingLevel > 1) THEN
+        WRITE (UnDb2, FmtDat)  LocalVar%Time, LocalVarOutData
+    END IF
 
-        IF(CntrPar%LoggingLevel > 2) THEN
-            WRITE (UnDb3, FmtDat)    LocalVar%Time, avrSWAP(1: 85)
-        END IF
+    IF(CntrPar%LoggingLevel > 2) THEN
+        WRITE (UnDb3, FmtDat)    LocalVar%Time, avrSWAP(1: 85)
     END IF
 
 END SUBROUTINE Debug
