@@ -45,7 +45,6 @@ class Controller():
 
         print('-----------------------------------------------------------------------------')
         print('   Tuning a reference wind turbine controller using NREL\'s ROSCO toolbox    ')
-        # print('      Developed by Nikhar J. Abbas for collaborative research purposes.      ')
         print('-----------------------------------------------------------------------------')
 
         # Controller Flags
@@ -82,14 +81,19 @@ class Controller():
         self.WS_GS_n            = controller_params['WS_GS_n']
         self.PC_GS_n            = controller_params['PC_GS_n']
         self.flp_maxpit         = controller_params['flp_maxpit']
-        
+        self.Kp_ipc1p           = controller_params['IPC_Kp1p']
+        self.Ki_ipc1p           = controller_params['IPC_Ki1p']
+        self.Kp_ipc2p           = controller_params['IPC_Kp2p']
+        self.Ki_ipc2p           = controller_params['IPC_Kp2p']
+
         #  Optional parameters without defaults
         if self.Flp_Mode > 0:
             try:
-                self.zeta_flp   = controller_params['zeta_flp']
-                self.omega_flp  = controller_params['omega_flp']
+                self.flp_kp_norm = controller_params['flp_kp_norm']
+                self.flp_tau     = controller_params['flp_tau']
             except:
-                raise Exception('ROSCO_toolbox:controller: zeta_flp and omega_flp must be set if Flp_Mode > 0')
+                raise Exception(
+                    'ROSCO_toolbox:controller: flp_kp_norm and flp_tau must be set if Flp_Mode > 0')
 
         if self.Fl_Mode > 0:
             try:
@@ -365,9 +369,6 @@ class Controller():
             
         else:
             self.Kp_float = 0.0
-
-        # --- Individual pitch control ---
-        self.Ki_ipc1p = 0.0
         
         # Flap actuation 
         if self.Flp_Mode >= 1:
@@ -464,22 +465,13 @@ class Controller():
             C2[i] = integrate.trapz(0.5 * turbine.rho * turbine.chord * v_sec[0]**2 * turbine.span * Kcd * np.sin(phi))
             self.kappa[i]=C1[i]+C2[i]
 
-        # ------ Controller tuning -------
-        # Open loop blade response
-        zetaf  = turbine.bld_flapwise_damp
-        omegaf = turbine.bld_flapwise_freq
-        
-        # Desired Closed loop response
-        # zeta  = self.zeta_flp
-        # omega = 4.6/(ts*zeta)
-
         # PI Gains
-        if (self.zeta_flp == 0 or self.omega_flp == 0) or (not self.zeta_flp or not self.omega_flp):
-            sys.exit('ERROR! --- Zeta and Omega flap must be nonzero for Flp_Mode >= 1 ---')
+        if (self.flp_kp_norm == 0 or self.flp_tau == 0) or (not self.flp_kp_norm or not self.flp_tau):
+            raise ValueError('flp_kp_norm and flp_tau must be nonzero for Flp_Mode >= 1')
 
-        self.Kp_flap = (2*self.zeta_flp*self.omega_flp - 2*zetaf*omegaf)/(self.kappa*omegaf**2)
-        self.Ki_flap = (self.omega_flp**2 - omegaf**2)/(self.kappa*omegaf**2)
-        
+        self.Kp_flap = self.flp_kp_norm / self.kappa
+        self.Ki_flap = self.flp_kp_norm / self.kappa / self.flp_tau
+
 class ControllerBlocks():
     '''
     Class ControllerBlocks defines tuning parameters for additional controller features or "blocks"

@@ -213,7 +213,7 @@ properties:
             interp_type:
                 type: string
                 description: Type of interpolation between above rated tuning values (only used for multiple pitch controller tuning values)
-                default: linear
+                default: sigma
                 enum: ['sigma', 'linear', 'quadratic', 'cubic']
             zeta_vs:                        
                 type: number
@@ -306,6 +306,37 @@ properties:
                 minimum: 0
                 description: Flap controller desired natural frequency [rad/s]
                 unit: rad/s
+            flp_kp_norm:                     
+                type: number
+                minimum: 0
+                description: Flap controller normalization term for DC gain (kappa) 
+            flp_tau:                     
+                type: number
+                minimum: 0
+                description: Flap controller time constant for integral gain
+                unit: s
+            IPC_Kp1p:                     
+                type: number
+                minimum: 0
+                description: Proportional gain for IPC, 1P [s]
+                default: 0.0
+                unit: s
+            IPC_Kp2p:                     
+                type: number
+                minimum: 0
+                description: Proportional gain for IPC, 2P [-]
+                default: 0.0
+            IPC_Ki1p:                     
+                type: number
+                minimum: 0
+                description: Integral gain for IPC, 1P [s]
+                default: 0.0
+                unit: s
+            IPC_Ki2p:                     
+                type: number
+                minimum: 0
+                description: integral gain for IPC, 2P [-]
+                default: 0.0
             filter_params:
                 type: object
                 default: {}

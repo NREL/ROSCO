@@ -251,7 +251,7 @@ controller_params
     Type of interpolation between above rated tuning values (only used
     for multiple pitch controller tuning values)
 
-    *Default* = linear
+    *Default* = sigma
 
 :code:`zeta_vs` : Float
     Torque controller desired damping ratio [-]
@@ -353,6 +353,44 @@ controller_params
 
     *Minimum* = 0
 
+:code:`flp_kp_norm` : Float
+    Flap controller normalization term for DC gain (kappa)
+
+    *Minimum* = 0
+
+:code:`flp_tau` : Float, s
+    Flap controller time constant for integral gain
+
+    *Minimum* = 0
+
+:code:`IPC_Kp1p` : Float, s
+    Proportional gain for IPC, 1P [s]
+
+    *Default* = 0.0
+
+    *Minimum* = 0
+
+:code:`IPC_Kp2p` : Float
+    Proportional gain for IPC, 2P [-]
+
+    *Default* = 0.0
+
+    *Minimum* = 0
+
+:code:`IPC_Ki1p` : Float, s
+    Integral gain for IPC, 1P [s]
+
+    *Default* = 0.0
+
+    *Minimum* = 0
+
+:code:`IPC_Ki2p` : Float
+    integral gain for IPC, 2P [-]
+
+    *Default* = 0.0
+
+    *Minimum* = 0
+
 
 
 filter_params
@@ -400,6 +438,42 @@ filter_params
     angle [rad/s], {default = 0.41888 ~ time constant of 15s}
 
     *Default* = 0.41888
+
+
+
+open_loop
+########################################
+
+
+:code:`flag` : Boolean
+    Flag to use open loop control
+
+    *Default* = False
+
+:code:`filename` : String
+    Filename of open loop input that ROSCO reads
+
+    *Default* = unused
+
+:code:`OL_Ind_Breakpoint` : Float
+    Index (column, 1-indexed) of breakpoint (time) in open loop index
+
+    *Default* = 1
+
+:code:`OL_Ind_BldPitch` : Float
+    Index (column, 1-indexed) of breakpoint (time) in open loop index
+
+    *Default* = 0
+
+:code:`OL_Ind_GenTq` : Float
+    Index (column, 1-indexed) of breakpoint (time) in open loop index
+
+    *Default* = 0
+
+:code:`OL_Ind_YawRate` : Float
+    Index (column, 1-indexed) of breakpoint (time) in open loop index
+
+    *Default* = 0
 
 
 

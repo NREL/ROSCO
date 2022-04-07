@@ -443,7 +443,7 @@ CONTAINS
         REAL(DbKi), INTENT(IN)     :: aziOffset                    ! Phase shift added to the azimuth angle
         INTEGER(IntKi), INTENT(IN)  :: nHarmonic                    ! The harmonic number, nP
         ! Outputs
-        REAL(DbKi), INTENT(OUT)    :: PitComIPC(3)                 ! Root out of plane bending moments of each blade
+        REAL(DbKi), INTENT(OUT)    :: PitComIPC(3)                   ! Commanded individual pitch (deg)
         ! Local
         REAL(DbKi), PARAMETER      :: phi2 = 2.0/3.0*PI                ! Phase difference from first to second blade
         REAL(DbKi), PARAMETER      :: phi3 = 4.0/3.0*PI                ! Phase difference from first to third blade

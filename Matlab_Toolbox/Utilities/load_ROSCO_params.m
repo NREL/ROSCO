@@ -199,3 +199,22 @@ if 0
 end
 
 
+%% Individual Pitch Control
+
+R.IPC_ControlMode = GetFASTPar(P.SD_dllP,'IPC_ControlMode');
+
+
+IPC_KP = GetFASTPar(P.SD_dllP,'IPC_KP');
+R.IPC_KP_1P = IPC_KP(1);
+R.IPC_KP_2P = IPC_KP(2);
+
+IPC_KI = GetFASTPar(P.SD_dllP,'IPC_KI');
+R.IPC_KI_1P = IPC_KI(1);
+R.IPC_KI_2P = IPC_KI(2);
+
+
+IPC_aziOffset = GetFASTPar(P.SD_dllP,'IPC_aziOffset');
+R.IPC_aziOffset_1P = IPC_aziOffset(1);
+R.IPC_aziOffset_2P = IPC_aziOffset(2);
+
+

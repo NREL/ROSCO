@@ -3,6 +3,7 @@ import textwrap
 import validation
 from shutil import copy
 import os
+from wisdem.inputs import validation as wis_val
 
 
 mywidth = 70
@@ -77,7 +78,7 @@ class Schema2RST(object):
     def __init__(self, fname):
         self.fname = fname
         self.fout = fname.replace(".yaml", ".rst")
-        self.yaml = validation.load_yaml(fname)
+        self.yaml = wis_val.load_yaml(fname)
         self.f = None
 
     def write_rst(self):
