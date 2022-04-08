@@ -152,9 +152,17 @@ CONTAINS
         LOGICAL, OPTIONAL,  INTENT(IN)          :: Moving           ! Moving CornerFreq flag
 
         LOGICAL                                 :: Moving_          ! Local version
+        REAL(DbKi)                              :: CornerFreq_          ! Local version
 
         Moving_ = .FALSE.
         IF (PRESENT(Moving)) Moving_ = Moving   
+
+        ! Saturate Corner Freq at 0
+        IF (CornerFreq < 0) THEN 
+            CornerFreq_ = 0
+        ELSE
+            CornerFreq_ = CornerFreq
+        ENDIF
         
         ! Initialization
         IF ((iStatus == 0) .OR. reset) THEN
@@ -165,11 +173,11 @@ CONTAINS
         ENDIF
 
         IF ((iStatus == 0) .OR. reset .OR. Moving_) THEN
-            FP%nfs_b2(inst) = 2.0 * DT * CornerFreq
+            FP%nfs_b2(inst) = 2.0 * DT * CornerFreq_
             FP%nfs_b0(inst) = -FP%nfs_b2(inst)
-            FP%nfs_a2(inst) = Damp*DT**2.0*CornerFreq**2.0 + 2.0*DT*CornerFreq + 4.0*Damp
-            FP%nfs_a1(inst) = 2.0*Damp*DT**2.0*CornerFreq**2.0 - 8.0*Damp
-            FP%nfs_a0(inst) = Damp*DT**2.0*CornerFreq**2.0 - 2*DT*CornerFreq + 4.0*Damp
+            FP%nfs_a2(inst) = Damp*DT**2.0*CornerFreq_**2.0 + 2.0*DT*CornerFreq_ + 4.0*Damp
+            FP%nfs_a1(inst) = 2.0*Damp*DT**2.0*CornerFreq_**2.0 - 8.0*Damp
+            FP%nfs_a0(inst) = Damp*DT**2.0*CornerFreq_**2.0 - 2*DT*CornerFreq_ + 4.0*Damp
         ENDIF
 
         NotchFilterSlopes = 1.0/FP%nfs_a2(inst) * (FP%nfs_b2(inst)*InputSignal + FP%nfs_b0(inst)*FP%nfs_InputSignalLast1(inst) &
