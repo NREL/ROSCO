@@ -319,8 +319,7 @@ CONTAINS
             Y_MErrF_IPC = 0.0
         END IF
 
-        ! Soft shut
-        ! Test sigma
+        ! Soft sigma cut-in
         DO i = 1,2
             LocalVar%IPC_KP(i) = sigma(LocalVar%WE_Vw, CntrPar%IPC_Vramp(1), CntrPar%IPC_Vramp(2), 0.0_DbKi, CntrPar%IPC_KP(i), ErrVar)
             LocalVar%IPC_KI(i) = sigma(LocalVar%WE_Vw, CntrPar%IPC_Vramp(1), CntrPar%IPC_Vramp(2), 0.0_DbKi, CntrPar%IPC_KI(i), ErrVar)
@@ -369,7 +368,6 @@ CONTAINS
         DebugVar%axisTilt_2P = axisTilt_2P
         DebugVar%axisYaw_2P = axisYaw_2P
 
-        
 
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN
