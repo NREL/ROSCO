@@ -288,6 +288,7 @@ CONTAINS
 
         !------------------- IPC CONSTANTS -----------------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine) 
+        CALL ParseAry(UnControllerParameters, CurLine, 'IPC_Vramp', CntrPar%IPC_Vramp, 2, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'IPC_IntSat',accINFILE(1),CntrPar%IPC_IntSat,ErrVar)
         CALL ParseAry(UnControllerParameters, CurLine, 'IPC_KP', CntrPar%IPC_KP, 2, accINFILE(1), ErrVar )
         CALL ParseAry(UnControllerParameters, CurLine, 'IPC_KI', CntrPar%IPC_KI, 2, accINFILE(1), ErrVar )
