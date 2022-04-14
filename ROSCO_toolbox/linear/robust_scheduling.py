@@ -111,6 +111,7 @@ class RobustScheduling(om.ExplicitComponent):
         self.controller.tune_controller(self.turbine)
         sm = smargin(linturb, self.controller, inputs['u_eval'][0])
 
+        print('omega = {}, sm = {}'.format(inputs['omega'][0], sm))
         omega = inputs['omega']
 
         # Outputs
@@ -223,18 +224,26 @@ class rsched_driver():
             self.sms = []
             for u in self.opt_options['windspeed']:
                 om0 = 0.1
-                # Setup optimization
-                self.om_opt.set_val('r_sched.u_eval', u)
-                self.om_opt.set_val('r_sched.omega', om0)
+                try_count = 0
+                while try_count < 3:
+                    # Setup optimization
+                    self.om_opt.set_val('r_sched.u_eval', u)
+                    self.om_opt.set_val('r_sched.omega', om0)
 
-                # Run optimization
-                print('Finding ROSCO tuning parameters for u = {}, sm = {}'.format(
-                    u, self.opt_options['stability_margin']))
-                opt_logfile = os.path.join(
-                    self.output_dir, self.output_name + '.' + str(u) + ".opt.sql")
-                # self.om_opt = self.setup_recorder(self.om_opt, opt_logfile)
-                self.om_opt.run_driver()
-                self.om_opt.cleanup()
+                    # Run optimization
+                    print('Finding ROSCO tuning parameters for u = {}, sm = {}, omega_pc = {}, k_float = {}'.format(
+                        u, self.opt_options['stability_margin'], self.opt_options['omega'], self.opt_options['k_float']))
+                    opt_logfile = os.path.join(
+                        self.output_dir, self.output_name + '.' + str(u) + ".opt.sql")
+                    self.om_opt = self.setup_recorder(self.om_opt, opt_logfile)
+                    self.om_opt.run_driver()
+                    self.om_opt.cleanup()
+
+                    if self.om_opt.driver.fail:
+                        try_count += 1
+                        om0 = np.random.random_sample(1)*self.opt_options['omega'][-1]
+                    else:
+                        try_count = 4
 
                 # save values
                 self.omegas.append(self.om_opt.get_val('r_sched.omega')[0])
@@ -285,6 +294,7 @@ class rsched_driver():
     def init_doe(self, om_problem, levels=20):
         '''Initialize DOE driver'''
         om_problem.driver = om.DOEDriver(om.FullFactorialGenerator(levels=levels))
+        # om_problem.driver = om.DOEDriver(om.LatinHypercubeGenerator(samples=levels))
         # om_problem.driver = om.DOEDriver(om.UniformGenerator(num_samples=20))
         os.makedirs(self.output_dir, exist_ok=True)
         # om_problem.driver.options['run_parallel'] = True
