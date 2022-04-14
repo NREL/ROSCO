@@ -61,7 +61,7 @@ CONTAINS
         DebugVar%PC_PICommand = LocalVar%PC_PitComT
         ! Find individual pitch control contribution
         IF ((CntrPar%IPC_ControlMode >= 1) .OR. (CntrPar%Y_ControlMode == 2)) THEN
-            CALL IPC(CntrPar, LocalVar, objInst, DebugVar)
+            CALL IPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
         ELSE
             LocalVar%IPC_PitComF = 0.0 ! THIS IS AN ARRAY!!
         END IF
@@ -105,7 +105,7 @@ CONTAINS
             LocalVar%PitCom(K) = LocalVar%PC_PitComT + LocalVar%FA_PitCom(K) 
             LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the pitch satauration limits
             LocalVar%PitCom(K) = LocalVar%PC_PitComT + LocalVar%IPC_PitComF(K)                                          ! Add IPC
-            LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the absolute pitch angle limits
+            LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), CntrPar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the absolute pitch angle limits
             LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), LocalVar%BlPitch(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
         END DO
 
@@ -281,27 +281,29 @@ CONTAINS
 
     END SUBROUTINE YawRateControl
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE IPC(CntrPar, LocalVar, objInst, DebugVar)
+    SUBROUTINE IPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
         ! Individual pitch control subroutine
         !   - Calculates the commanded pitch angles for IPC employed for blade fatigue load reductions at 1P and 2P
         !   - Includes yaw by IPC
 
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
         
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
         TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
-        TYPE(DebugVariables),      INTENT(INOUT)        :: DebugVar
+        TYPE(DebugVariables),       INTENT(INOUT)        :: DebugVar
+        TYPE(ErrorVariables),       INTENT(INOUT)        :: ErrVar
 
         ! Local variables
         REAL(DbKi)                  :: PitComIPC(3), PitComIPCF(3), PitComIPC_1P(3), PitComIPC_2P(3)
-        INTEGER(IntKi)               :: K                                       ! Integer used to loop through turbine blades
+        INTEGER(IntKi)              :: i, K                                    ! Integer used to loop through gains and turbine blades
         REAL(DbKi)                  :: axisTilt_1P, axisYaw_1P, axisYawF_1P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
         REAL(DbKi)                  :: axisTilt_2P, axisYaw_2P, axisYawF_2P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
         REAL(DbKi)                  :: axisYawIPC_1P                           ! IPC contribution with yaw-by-IPC component
         REAL(DbKi)                  :: Y_MErrF, Y_MErrF_IPC                    ! Unfiltered and filtered yaw alignment error [rad]
         
-        
+        CHARACTER(*),               PARAMETER           :: RoutineName = 'IPC'
+
         ! Body
         ! Pass rootMOOPs through the Coleman transform to get the tilt and yaw moment axis
         CALL ColemanTransform(LocalVar%rootMOOPF, LocalVar%Azimuth, NP_1, axisTilt_1P, axisYaw_1P)
@@ -316,15 +318,22 @@ CONTAINS
             Y_MErrF = 0.0
             Y_MErrF_IPC = 0.0
         END IF
+
+        ! Soft shut
+        ! Test sigma
+        DO i = 1,2
+            LocalVar%IPC_KP(i) = sigma(LocalVar%WE_Vw, CntrPar%IPC_Vramp(1), CntrPar%IPC_Vramp(2), 0.0_DbKi, CntrPar%IPC_KP(i), ErrVar)
+            LocalVar%IPC_KI(i) = sigma(LocalVar%WE_Vw, CntrPar%IPC_Vramp(1), CntrPar%IPC_Vramp(2), 0.0_DbKi, CntrPar%IPC_KI(i), ErrVar)
+        END DO
         
         ! Integrate the signal and multiply with the IPC gain
         IF ((CntrPar%IPC_ControlMode >= 1) .AND. (CntrPar%Y_ControlMode /= 2)) THEN
-            LocalVar%IPC_axisTilt_1P = PIController(axisTilt_1P, CntrPar%IPC_KP(1), CntrPar%IPC_KI(1), -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
-            LocalVar%IPC_axisYaw_1P = PIController(axisYawF_1P, CntrPar%IPC_KP(1), CntrPar%IPC_KI(1), -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+            LocalVar%IPC_axisTilt_1P = PIController(axisTilt_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+            LocalVar%IPC_axisYaw_1P = PIController(axisYawF_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
             
             IF (CntrPar%IPC_ControlMode >= 2) THEN
-                LocalVar%IPC_axisTilt_2P = PIController(axisTilt_2P, CntrPar%IPC_KP(2), CntrPar%IPC_KI(2), -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
-                LocalVar%IPC_axisYaw_2P = PIController(axisYawF_2P, CntrPar%IPC_KP(2), CntrPar%IPC_KI(2), -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+                LocalVar%IPC_axisTilt_2P = PIController(axisTilt_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+                LocalVar%IPC_axisYaw_2P = PIController(axisYawF_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
             END IF
         ELSE
             LocalVar%IPC_axisTilt_1P = 0.0
@@ -361,6 +370,12 @@ CONTAINS
         DebugVar%axisYaw_2P = axisYaw_2P
 
         
+
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
+
     END SUBROUTINE IPC
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE ForeAftDamping(CntrPar, LocalVar, objInst)
