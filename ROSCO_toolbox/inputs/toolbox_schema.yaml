@@ -161,6 +161,12 @@ properties:
                 maximum: 1
                 default: 0
                 description: Shutdown mode (0- no shutdown procedure, 1- pitch to max pitch at shutdown)
+            TD_Mode:            
+                type: number
+                minimum: 0
+                maximum: 1
+                default: 0
+                description: Tower damper mode (0- no tower damper, 1- feed back translational nacelle accelleration to pitch angle
             Fl_Mode:            
                 type: number
                 minimum: 0

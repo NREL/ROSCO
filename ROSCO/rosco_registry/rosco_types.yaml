@@ -97,6 +97,9 @@ ControlParameters:
       allocatable: True
     
     # Tower fore-aft damping
+    TD_Mode:
+      <<: *integer
+      description: Tower damper mode (0- no tower damper, 1- feed back translational nacelle accelleration to pitch angle
     FA_HPFCornerFreq:
       <<: *real
       description: Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]

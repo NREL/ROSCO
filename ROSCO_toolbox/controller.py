@@ -60,6 +60,7 @@ class Controller():
         self.PS_Mode            = controller_params['PS_Mode']
         self.SD_Mode            = controller_params['SD_Mode']
         self.Fl_Mode            = controller_params['Fl_Mode']
+        self.TD_Mode            = controller_params['TD_Mode']
         self.Flp_Mode           = controller_params['Flp_Mode']
 
         # Necessary parameters
