@@ -331,6 +331,15 @@ properties:
                 minimum: 0
                 description: integral gain for IPC, 2P [-]
                 default: 0.0
+            IPC_Vramp:                     
+                type: array
+                description: wind speeds for IPC cut-in sigma function [m/s]
+                items:
+                    type: number
+                    minimum: 0.0
+                default: [0.0, 0.0]
+                unit: m/s
+
             filter_params:
                 type: object
                 default: {}
