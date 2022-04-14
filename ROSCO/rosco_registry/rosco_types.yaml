@@ -114,7 +114,7 @@ ControlParameters:
     IPC_Vramp:
       <<: *real
       description: Wind speeds for IPC cut-in sigma function [m/s]
-      size: 2
+      allocatable: True
     IPC_IntSat:
       <<: *real
       description: Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
@@ -977,8 +977,6 @@ DebugVariables:
   axisYaw_2P:
     <<: *real
     description: Yaw component of coleman transformation, 2P
-
-
 
 ErrorVariables:
   size_avcMSG: 
