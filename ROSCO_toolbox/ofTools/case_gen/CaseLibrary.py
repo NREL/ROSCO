@@ -374,7 +374,29 @@ def sweep_pitch_act(start_group, **control_sweep_opts):
     case_inputs_control[('DISCON_in','PA_CornerFreq')] = {'vals': act_bw.tolist(), 'group': start_group}
 
     return case_inputs_control
- 
+
+def sweep_ipc_gains(start_group, **control_sweep_opts):
+    case_inputs_control = {}
+    case_inputs_control[('DISCON_in','IPC_ControlMode')] = {'vals': [1], 'group': start_group}
+    case_inputs_control[('DISCON_in','IPC_KI')] = {'vals': [[1e-8,0]], 'group': start_group}
+    case_inputs_control[('DISCON_in','IPC_aziOffset')] = {'vals': [[0.0,0]], 'group': start_group}
+    case_inputs_control[('DISCON_in','IPC_IntSat')] = {'vals': [0.2618], 'group': start_group}
+
+    # [-0.5236,-0.43633,-0.34907,-0.2618,-0.17453,-0.087266           0    0.087266     0.17453      0.2618     0.34907     0.43633      0.5236     0.61087     0.69813      0.7854'
+
+    return case_inputs_control
+
+def sweep_fad_gains(start_group, **control_sweep_opts):
+    case_inputs_control = {}
+    g = np.array([0.,0.5,1.,1.5,2.0,2.5,3.0,3.5,4.0,5.0])
+    case_inputs_control[('DISCON_in','TD_Mode')] = {'vals': [1], 'group': start_group}
+    case_inputs_control[('DISCON_in','FA_KI')] = {'vals': (g*0.0175).tolist(), 'group': start_group+1}
+    case_inputs_control[('DISCON_in','FA_HPFCornerFreq')] = {'vals': [0.1], 'group': start_group}
+    case_inputs_control[('DISCON_in','FA_IntSat')] = {'vals': [0.2618], 'group': start_group}
+
+    # [-0.5236,-0.43633,-0.34907,-0.2618,-0.17453,-0.087266           0    0.087266     0.17453      0.2618     0.34907     0.43633      0.5236     0.61087     0.69813      0.7854'
+
+    return case_inputs_control
 #  def sweep_pc_mode(cont_yaml,omega=np.linspace(.05,.35,8,endpoint=True).tolist(),zeta=[1.5],group=2):
     
     
