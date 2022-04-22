@@ -218,3 +218,13 @@ R.IPC_aziOffset_1P = IPC_aziOffset(1);
 R.IPC_aziOffset_2P = IPC_aziOffset(2);
 
 
+%% OpenLoop
+
+% Temporary
+load('/Users/dzalkind/Tools/ROSCO/Matlab_Toolbox/OL_RAAW.mat')
+
+R.OL = OL;
+
+
+
+

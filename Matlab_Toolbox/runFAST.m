@@ -8,8 +8,8 @@ clear;
 
 % Compile FAST for use with simulink & mex using openfast docs
 fast.FAST_SFuncDir     = '/Users/dzalkind/Tools/openfast-sim/glue-codes/simulink/src';  %%%% NEED FOR SIMULINK
-fast.FAST_InputFile    = '5MW_Land_Simulink.fst';   % FAST input file (ext=.fst)
-fast.FAST_directory    = '/Users/dzalkind/Tools/ROSCO/Test_Cases/5MW_Land_Simulink';   % Path to fst directory files
+fast.FAST_InputFile    = 'RAAW.fst';   % FAST input file (ext=.fst)
+fast.FAST_directory    = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/OpenFAST_3p1/';   % Path to fst directory files
 
 % Simulink Parameters
 % Model
@@ -76,6 +76,8 @@ end
 
 %% Plot
 Pl_FastPlots(simout)
+
+
 
 
 
