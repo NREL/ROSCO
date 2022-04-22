@@ -73,6 +73,7 @@ def base_op_case():
     case_inputs[("Fst","OutFileFmt")]        = {'vals':[3], 'group':0}
     
     # DOFs
+    case_inputs[("ElastoDyn","GenDOF")]      = {'vals':['True'], 'group':0} 
     if False:
         case_inputs[("ElastoDyn","YawDOF")]      = {'vals':['True'], 'group':0}
         case_inputs[("ElastoDyn","FlapDOF1")]    = {'vals':['False'], 'group':0}
@@ -122,7 +123,7 @@ def power_curve(**wind_case_opts):
     # Constant wind speed, multiple wind speeds, define below
 
     # Runtime
-    T_max   = 400.
+    T_max   = 200.
 
     if 'U' in wind_case_opts:
         U = wind_case_opts['U']
@@ -146,20 +147,39 @@ def simp_step(**wind_case_opts):
     # Set up cases for FIW-JIP project
     # 3.x in controller tuning register
 
-    # Default Runtime
-    T_max   = 300.
+    if 'T_Max' in wind_case_opts:
+        T_max = wind_case_opts['T_Max']
+    else:
+        # Default Runtime
+        T_max   = 300.
+
+    if 'U_start' in wind_case_opts:
+        U_start = wind_case_opts['U_start']
+    else:
+        # Default Runtime
+        U_start   = [16]
+
+    if 'U_end' in wind_case_opts:
+        U_end = wind_case_opts['U_end']
+    else:
+        # Default Runtime
+        U_end   = [17]
+
+    if 'T_step' in wind_case_opts:
+        T_step = wind_case_opts['T_step']
+    else:
+        # Default Runtime
+        T_step   = 150
 
     # Step Wind Setup
 
     # Make Default step wind object
     hh_step = HH_StepFile()
     hh_step.t_max = T_max
-    hh_step.t_step = 150
-    hh_step.wind_directory = run_dir
+    hh_step.t_step = T_step
+    hh_step.wind_directory = wind_case_opts['wind_dir']
 
     # Run conditions
-    U_start     = [16]
-    U_end       = [17]
     step_wind_files = []
 
     for u_s,u_e in zip(U_start,U_end):
@@ -174,7 +194,6 @@ def simp_step(**wind_case_opts):
     case_inputs = base_op_case()
     # simulation settings
     case_inputs[("Fst","TMax")] = {'vals':[T_max], 'group':0}
-    case_inputs[("Fst","OutFileFmt")]        = {'vals':[2], 'group':0}
     # case_inputs[("Fst","DT")]        = {'vals':[1/80], 'group':0}
     
     # wind inflow
