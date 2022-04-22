@@ -319,8 +319,7 @@ CONTAINS
             Y_MErrF_IPC = 0.0
         END IF
 
-        ! Soft shut
-        ! Test sigma
+        ! Soft cutin with sigma function 
         DO i = 1,2
             LocalVar%IPC_KP(i) = sigma(LocalVar%WE_Vw, CntrPar%IPC_Vramp(1), CntrPar%IPC_Vramp(2), 0.0_DbKi, CntrPar%IPC_KP(i), ErrVar)
             LocalVar%IPC_KI(i) = sigma(LocalVar%WE_Vw, CntrPar%IPC_Vramp(1), CntrPar%IPC_Vramp(2), 0.0_DbKi, CntrPar%IPC_KI(i), ErrVar)
