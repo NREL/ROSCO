@@ -243,9 +243,9 @@ if __name__ == "__main__":
             'TMax': 720,
             'wind_filenames': ['/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW_IPC/wind/RAAW_NTM_U12.000000_Seed1693606511.0.bts']
             }
-        r.save_dir      = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/outputs/IPC_turb'
-        r.control_sweep_fcn = cl.sweep_ipc_gains
-        r.n_cores = 6
+        r.save_dir      = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/outputs/PS_BD'
+        r.control_sweep_fcn = cl.sweep_ps_percent
+        r.n_cores = 4
 
     else:
         raise Exception('This simulation configuration is not supported.')

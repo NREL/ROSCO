@@ -425,6 +425,47 @@ def sweep_fad_gains(start_group, **control_sweep_opts):
     # [-0.5236,-0.43633,-0.34907,-0.2618,-0.17453,-0.087266           0    0.087266     0.17453      0.2618     0.34907     0.43633      0.5236     0.61087     0.69813      0.7854'
 
     return case_inputs_control
+
+def sweep_ps_percent(start_group, **control_sweep_opts):
+        case_inputs_control = {}
+        
+        # Set sweep limits here
+        ps_perc = np.linspace(.7,1,num=8,endpoint=True).tolist()
+        
+        # load default params          
+        control_param_yaml  = control_sweep_opts['tuning_yaml']
+        inps                = load_rosco_yaml(control_param_yaml)
+        path_params         = inps['path_params']
+        turbine_params      = inps['turbine_params']
+        controller_params   = inps['controller_params']
+
+        # make default controller, turbine objects for ROSCO_toolbox
+        turbine             = ROSCO_turbine.Turbine(turbine_params)
+        turbine.load_from_fast( path_params['FAST_InputFile'],path_params['FAST_directory'], dev_branch=True)
+
+        controller          = ROSCO_controller.Controller(controller_params)
+
+        # tune default controller
+        controller.tune_controller(turbine)
+
+        # Loop through and make min pitch tables
+        ps_ws = []
+        ps_mp = []
+        m_ps  = []  # flattened (omega,zeta) pairs
+        for p in ps_perc:
+            controller.ps_percent = p
+            controller.tune_controller(turbine)
+            m_ps.append(controller.ps_min_bld_pitch)
+            ps_ws.append(controller.v)
+
+        # add control gains to case_list
+        # case_inputs_control[('meta','ps_perc')]          = {'vals': ps_perc, 'group': start_group}
+        case_inputs_control[('DISCON_in', 'PS_BldPitchMin')] = {'vals': m_ps, 'group': start_group}
+        case_inputs_control[('DISCON_in', 'PS_WindSpeeds')] = {'vals': ps_ws, 'group': start_group}
+
+        return case_inputs_control
+
+
 #  def sweep_pc_mode(cont_yaml,omega=np.linspace(.05,.35,8,endpoint=True).tolist(),zeta=[1.5],group=2):
     
     
@@ -492,39 +533,7 @@ def sweep_fad_gains(start_group, **control_sweep_opts):
     #     case_inputs.update(control_case_inputs)
 
 
-    # elif tune == 'ps_perc':
-    #     # Set sweep limits here
-    #     ps_perc = np.linspace(.75,1,num=8,endpoint=True).tolist()
-        
-    #     # load default params          
-    #     weis_dir            = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    #     control_param_yaml  = os.path.join(weis_dir,'examples/OpenFAST_models/CT15MW-spar/ServoData/IEA15MW-CT-spar.yaml')
-    #     inps                = yaml.safe_load(open(control_param_yaml))
-    #     path_params         = inps['path_params']
-    #     turbine_params      = inps['turbine_params']
-    #     controller_params   = inps['controller_params']
 
-    #     # make default controller, turbine objects for ROSCO_toolbox
-    #     turbine             = ROSCO_turbine.Turbine(turbine_params)
-    #     turbine.load_from_fast( path_params['FAST_InputFile'],path_params['FAST_directory'], dev_branch=True)
-
-    #     controller          = ROSCO_controller.Controller(controller_params)
-
-    #     # tune default controller
-    #     controller.tune_controller(turbine)
-
-    #     # Loop through and make min pitch tables
-    #     ps_ws = []
-    #     ps_mp = []
-    #     m_ps  = []  # flattened (omega,zeta) pairs
-    #     for p in ps_perc:
-    #         controller.ps_percent = p
-    #         controller.tune_controller(turbine)
-    #         m_ps.append(controller.ps_min_bld_pitch)
-
-    #     # add control gains to case_list
-    #     case_inputs[('meta','ps_perc')]          = {'vals': ps_perc, 'group': 2}
-    #     case_inputs[('DISCON_in', 'PS_BldPitchMin')] = {'vals': m_ps, 'group': 2}
 
     # elif tune == 'max_tq':
     #     case_inputs[('DISCON_in','VS_MaxTq')] = {'vals': [19624046.66639, 1.5*19624046.66639], 'group': 3}
