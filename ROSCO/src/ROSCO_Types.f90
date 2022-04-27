@@ -24,6 +24,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: FA_IntSat                   ! Integrator saturation (maximum signal amplitude contrbution to pitch from FA damper), [rad]
     REAL(DbKi)                    :: FA_KI                       ! Integral gain for the fore-aft tower damper controller, -1 = off / >0 = on [rad s/m]
     INTEGER(IntKi)                :: IPC_ControlMode             ! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {0 - off, 1 - 1P reductions, 2 - 1P+2P reductions}
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: IPC_Vramp                   ! Wind speeds for IPC cut-in sigma function [m/s]
     REAL(DbKi)                    :: IPC_IntSat                  ! Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: IPC_KP                      ! Integral gain for the individual pitch controller, [-].
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: IPC_KI                      ! Integral gain for the individual pitch controller, [-].
@@ -217,6 +218,8 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: IPC_AxisYaw_1P              ! Integral of quadrature, 1P
     REAL(DbKi)                    :: IPC_AxisTilt_2P             ! Integral of the direct axis, 2P
     REAL(DbKi)                    :: IPC_AxisYaw_2P              ! Integral of quadrature, 2P
+    REAL(DbKi)                    :: IPC_KI(2)                   ! Integral gain for IPC, after ramp [-]
+    REAL(DbKi)                    :: IPC_KP(2)                   ! Proportional gain for IPC, after ramp [-]
     INTEGER(IntKi)                :: PC_State                    ! State of the pitch control system
     REAL(DbKi)                    :: PitCom(3)                   ! Commanded pitch of each blade the last time the controller was called [rad].
     REAL(DbKi)                    :: PitComAct(3)                ! Actuated pitch of each blade the last time the controller was called [rad].
