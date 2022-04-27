@@ -501,7 +501,7 @@ CONTAINS
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
-        ALLOCATE(PerfData%Ct_mat(CntrPar%PerfTableSize(1),CntrPar%PerfTableSize(2)))
+        ALLOCATE(PerfData%Ct_mat(CntrPar%PerfTableSize(2),CntrPar%PerfTableSize(1)))
         DO i = 1,CntrPar%PerfTableSize(2)
             READ(UnPerfParameters, *) PerfData%Ct_mat(i,:) ! Read Ct table
         END DO
@@ -509,7 +509,7 @@ CONTAINS
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
-        ALLOCATE(PerfData%Cq_mat(CntrPar%PerfTableSize(1),CntrPar%PerfTableSize(2)))
+        ALLOCATE(PerfData%Cq_mat(CntrPar%PerfTableSize(2),CntrPar%PerfTableSize(1)))
         DO i = 1,CntrPar%PerfTableSize(2)
             READ(UnPerfParameters, *) PerfData%Cq_mat(i,:) ! Read Cq table
         END DO
