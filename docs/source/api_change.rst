@@ -9,6 +9,17 @@ The changes are tabulated according to the line number, and flag name.
 The line number corresponds to the resulting line number after all changes are implemented.
 Thus, be sure to implement each in order so that subsequent line numbers are correct.
 
+2.5.0 to ROSCO develop
+-------------------------------
+IPC
+- A wind speed based soft cut-in using a sigma interpolation is added for the IPC controller
+
+====== =================    ======================================================================================================================================================================================================
+Line    Flag Name           Example Value
+====== =================    ======================================================================================================================================================================================================
+49     IPC_Vramp            9.120000  11.400000  ! IPC_Vramp	- Start and end wind speeds for cut-in ramp function. First entry: IPC inactive, second entry: IPC fully active. [m/s]
+====== =================    ======================================================================================================================================================================================================
+
 
 ROSCO v2.4.1 to ROSCO v2.5.0
 -------------------------------

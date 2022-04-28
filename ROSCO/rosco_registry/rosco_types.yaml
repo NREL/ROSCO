@@ -111,6 +111,10 @@ ControlParameters:
     IPC_ControlMode:
       <<: *integer
       description: Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {0 - off, 1 - 1P reductions, 2 - 1P+2P reductions}
+    IPC_Vramp:
+      <<: *real
+      description: Wind speeds for IPC cut-in sigma function [m/s]
+      allocatable: True
     IPC_IntSat:
       <<: *real
       description: Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
@@ -750,6 +754,14 @@ LocalVariables:
     IPC_AxisYaw_2P:
       <<: *real
       description: Integral of quadrature, 2P
+    IPC_KI:
+      <<: *real
+      description: Integral gain for IPC, after ramp [-]
+      size: 2
+    IPC_KP:
+      <<: *real
+      description: Proportional gain for IPC, after ramp [-]
+      size: 2
     PC_State:                     
       <<: *integer 
       description: State of the pitch control system
@@ -965,7 +977,6 @@ DebugVariables:
   axisYaw_2P:
     <<: *real
     description: Yaw component of coleman transformation, 2P
-
 
 ErrorVariables:
   size_avcMSG: 
