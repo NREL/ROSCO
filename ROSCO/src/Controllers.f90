@@ -103,8 +103,8 @@ CONTAINS
         DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
             LocalVar%PitCom(K) = LocalVar%PC_PitComT + LocalVar%FA_PitCom(K) 
             LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the pitch satauration limits
-            LocalVar%PitCom(K) = LocalVar%PC_PitComT + LocalVar%IPC_PitComF(K)                                          ! Add IPC
-            LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), CntrPar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the absolute pitch angle limits
+            LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%IPC_PitComF(K)                                          ! Add IPC
+            LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the absolute pitch angle limits
             LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), LocalVar%BlPitch(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
         END DO
 
@@ -475,6 +475,7 @@ CONTAINS
                 LocalVar%Flp_Angle(3) = CntrPar%Flp_Angle
                 ! Initialize controller
                 IF (CntrPar%Flp_Mode == 2) THEN
+                    LocalVar%Flp_Angle(K) = PIIController(RootMyb_VelErr(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, 0.05, -CntrPar%Flp_MaxPit , CntrPar%Flp_MaxPit , LocalVar%DT, 0.0, LocalVar%piP, LocalVar%restart, objInst%instPI)
                 ENDIF
             
             ! Steady flap angle

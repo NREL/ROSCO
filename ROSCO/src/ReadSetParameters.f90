@@ -401,9 +401,6 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'PA_CornerFreq',accINFILE(1),CntrPar%PA_CornerFreq,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PA_Damping',accINFILE(1),CntrPar%PA_Damping,ErrVar)
 
-        PRINT *, "PA_CornerFreq:", CntrPar%PA_CornerFreq
-        PRINT *, "PA_Damping:", CntrPar%PA_Damping
-
         ! Fix Paths (add relative paths if called from another dir)
         IF (PathIsRelative(CntrPar%PerfFileName)) CntrPar%PerfFileName = TRIM(PriPath)//TRIM(CntrPar%PerfFileName)
         IF (PathIsRelative(CntrPar%OL_Filename)) CntrPar%OL_Filename = TRIM(PriPath)//TRIM(CntrPar%OL_Filename)
@@ -513,7 +510,7 @@ CONTAINS
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
-        ALLOCATE(PerfData%Ct_mat(CntrPar%PerfTableSize(1),CntrPar%PerfTableSize(2)))
+        ALLOCATE(PerfData%Ct_mat(CntrPar%PerfTableSize(2),CntrPar%PerfTableSize(1)))
         DO i = 1,CntrPar%PerfTableSize(2)
             READ(UnPerfParameters, *) PerfData%Ct_mat(i,:) ! Read Ct table
         END DO
@@ -521,7 +518,7 @@ CONTAINS
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
-        ALLOCATE(PerfData%Cq_mat(CntrPar%PerfTableSize(1),CntrPar%PerfTableSize(2)))
+        ALLOCATE(PerfData%Cq_mat(CntrPar%PerfTableSize(2),CntrPar%PerfTableSize(1)))
         DO i = 1,CntrPar%PerfTableSize(2)
             READ(UnPerfParameters, *) PerfData%Cq_mat(i,:) ! Read Cq table
         END DO
