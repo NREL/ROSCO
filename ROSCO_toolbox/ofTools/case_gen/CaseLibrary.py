@@ -34,7 +34,7 @@ def set_channels():
                                "NcIMUTAxs", "NcIMUTAys", "NcIMUTAzs", "NcIMURAxs", "NcIMURAys", "NcIMURAzs", \
                                 "NacYaw", "Wind1VelX", "Wind1VelY", "Wind1VelZ", "LSSTipMxa","LSSTipMya",\
                                    "LSSTipMza","LSSTipMxs","LSSTipMys","LSSTipMzs","LSShftFys","LSShftFzs", \
-                                       "TipRDxr", "TipRDyr", "TipRDzr","RtVAvgxh"]:
+                                       "TipRDxr", "TipRDyr", "TipRDzr","RtVAvgxh","RtAeroFxh"]:
         channels[var] = True
     return channels
 
@@ -333,6 +333,29 @@ def turb_bts(**wind_case_opts):
 
     return case_inputs
 
+def user_hh(**wind_case_opts):
+    '''
+     Uniform, hub-height wind file
+     Expected inputs:
+        TMax            TODO: someday make all TMaxs TMax
+        wind_inputs (list of string wind inputs filenames)
+    '''
+
+    if 'TMax' in wind_case_opts:
+        TMax = wind_case_opts['TMax']
+    else:
+        TMax = 720
+
+    if 'wind_filenames' not in wind_case_opts:
+        raise Exception('Define wind_filenames when using turb_bts case generator')
+
+    # wind inflow
+    case_inputs = base_op_case()
+    case_inputs[("Fst","TMax")] = {'vals':[TMax], 'group':0}
+    case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
+    case_inputs[("InflowWind","Filename_Uni")] = {'vals':wind_case_opts['wind_filenames'], 'group':1}
+
+    return case_inputs
 ##############################################################################################
 #
 #   Control sweep cases
