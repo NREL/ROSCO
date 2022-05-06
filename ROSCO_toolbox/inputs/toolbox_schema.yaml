@@ -161,6 +161,12 @@ properties:
                 maximum: 1
                 default: 0
                 description: Shutdown mode (0- no shutdown procedure, 1- pitch to max pitch at shutdown)
+            TD_Mode:            
+                type: number
+                minimum: 0
+                maximum: 1
+                default: 0
+                description: Tower damper mode (0- no tower damper, 1- feed back translational nacelle accelleration to pitch angle
             Fl_Mode:            
                 type: number
                 minimum: 0
@@ -179,6 +185,12 @@ properties:
                 maximum: 2
                 default: 0
                 description: Active Power Control Mode (0- no active power control 1- constant active power control, 2- open loop power vs time, 3- open loop power vs. wind speed)
+            PA_Mode:           
+                type: number
+                minimum: 0
+                maximum: 2
+                default: 0
+                description: Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
             U_pc:                       
                 type: array
                 description: List of wind speeds to schedule pitch control zeta and omega 
@@ -407,6 +419,17 @@ properties:
                         description: Index (column, 1-indexed) of breakpoint (time) in open loop index
                         type: number
                         default: 0
+            PA_CornerFreq:
+                type: number
+                description: Pitch actuator natural frequency [rad/s]
+                unit: rad/s
+                default: 3.14
+                minimum: 0
+            PA_Damping:
+                type: number
+                description: Pitch actuator damping ratio [-]
+                default: 0.707
+                minimum: 0
 
 
 

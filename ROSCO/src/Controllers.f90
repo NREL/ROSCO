@@ -67,7 +67,7 @@ CONTAINS
         END IF
         
         ! Include tower fore-aft tower vibration damping control
-        IF ((CntrPar%FA_KI > 0.0) .OR. (CntrPar%Y_ControlMode == 2)) THEN
+        IF ((CntrPar%TD_Mode > 0) .OR. (CntrPar%Y_ControlMode == 2)) THEN
             CALL ForeAftDamping(CntrPar, LocalVar, objInst)
         ELSE
             LocalVar%FA_PitCom = 0.0 ! THIS IS AN ARRAY!!
@@ -99,13 +99,12 @@ CONTAINS
         LocalVar%PC_PitComT = ratelimit(LocalVar%PC_PitComT, LocalVar%PC_PitComT_Last, CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
         LocalVar%PC_PitComT_Last = LocalVar%PC_PitComT
 
-        ! Combine and saturate all individual pitch commands:
-        ! Filter to emulate pitch actuator
+        ! Combine and saturate all individual pitch commands in software
         DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
             LocalVar%PitCom(K) = LocalVar%PC_PitComT + LocalVar%FA_PitCom(K) 
             LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the pitch satauration limits
-            LocalVar%PitCom(K) = LocalVar%PC_PitComT + LocalVar%IPC_PitComF(K)                                          ! Add IPC
-            LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), CntrPar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the absolute pitch angle limits
+            LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%IPC_PitComF(K)                                          ! Add IPC
+            LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the absolute pitch angle limits
             LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), LocalVar%BlPitch(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
         END DO
 
@@ -119,12 +118,33 @@ CONTAINS
             ENDIF
         ENDIF
 
+        ! Place pitch actuator here, so it can be used with or without open-loop
+        DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
+            IF (CntrPar%PA_Mode > 0) THEN
+                IF (CntrPar%PA_Mode == 1) THEN
+                    LocalVar%PitComAct(K) = LPFilter(LocalVar%PitCom(K), LocalVar%DT, CntrPar%PA_CornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+                ELSE IF (CntrPar%PA_Mode == 2) THEN
+                    LocalVar%PitComAct(K) = SecLPFilter(LocalVar%PitCom(K),LocalVar%DT,CntrPar%PA_CornerFreq,CntrPar%PA_Damping,LocalVar%FP,LocalVar%iStatus,LocalVar%restart,objInst%instSecLPF)
+                END IF  
+            ELSE
+                LocalVar%PitComAct(K) = LocalVar%PitCom(K)
+            ENDIF
+        END DO
+
+        ! Hardware saturation: using CntrPar%PC_MinPit
+        DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
+            ! Saturate the pitch command using the overall (hardware) limit
+            LocalVar%PitComAct(K) = saturate(LocalVar%PitComAct(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)
+            ! Saturate the overall command of blade K using the pitch rate limit
+            LocalVar%PitComAct(K) = ratelimit(LocalVar%PitComAct(K), LocalVar%BlPitch(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
+        END DO
+
         ! Command the pitch demanded from the last
         ! call to the controller (See Appendix A of Bladed User's Guide):
-        avrSWAP(42) = LocalVar%PitCom(1)    ! Use the command angles of all blades if using individual pitch
-        avrSWAP(43) = LocalVar%PitCom(2)    ! "
-        avrSWAP(44) = LocalVar%PitCom(3)    ! "
-        avrSWAP(45) = LocalVar%PitCom(1)    ! Use the command angle of blade 1 if using collective pitch
+        avrSWAP(42) = LocalVar%PitComAct(1)    ! Use the command angles of all blades if using individual pitch
+        avrSWAP(43) = LocalVar%PitComAct(2)    ! "
+        avrSWAP(44) = LocalVar%PitComAct(3)    ! "
+        avrSWAP(45) = LocalVar%PitComAct(1)    ! Use the command angle of blade 1 if using collective pitch
 
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN

@@ -97,6 +97,9 @@ ControlParameters:
       allocatable: True
     
     # Tower fore-aft damping
+    TD_Mode:
+      <<: *integer
+      description: Tower damper mode (0- no tower damper, 1- feed back translational nacelle accelleration to pitch angle
     FA_HPFCornerFreq:
       <<: *real
       description: Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]
@@ -422,6 +425,17 @@ ControlParameters:
       allocatable: True
       dimension: (:,:)
       description: Open loop channels in timeseries
+
+    # Pitch actuator
+    PA_Mode:
+      <<: *integer
+      description: Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
+    PA_CornerFreq:
+      <<: *real
+      description: Pitch actuator bandwidth/cut-off frequency [rad/s]
+    PA_Damping:
+      <<: *real
+      description: Pitch actuator damping ratio [-, unused if PA_Mode = 1]
     
     # Calculated
     PC_RtTq99:
@@ -768,6 +782,10 @@ LocalVariables:
     PitCom:                  
       <<: *real 
       description: Commanded pitch of each blade the last time the controller was called [rad].
+      size: 3
+    PitComAct:                  
+      <<: *real 
+      description: Actuated pitch of each blade the last time the controller was called [rad].
       size: 3
     SS_DelOmegaF:                 
       <<: *real 
