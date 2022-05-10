@@ -202,7 +202,7 @@ if __name__ == "__main__":
             }
         r.sweep_mode    = None
         r.save_dir      = '/Users/dzalkind/Tools/ROSCO/outputs'
-        r.control_sweep_fcn = cl.simp_step
+        r.control_sweep_fcn = cl.sweep_pitch_act
         r.control_sweep_opts = {
             'act_bw': np.array([0.25,0.5,1,10]) * np.pi * 2
         }

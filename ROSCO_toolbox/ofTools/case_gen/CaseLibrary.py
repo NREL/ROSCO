@@ -123,7 +123,7 @@ def power_curve(**wind_case_opts):
     # Constant wind speed, multiple wind speeds, define below
 
     # Runtime
-    T_max   = 200.
+    T_max   = 400.
 
     if 'U' in wind_case_opts:
         U = wind_case_opts['U']
@@ -356,6 +356,7 @@ def user_hh(**wind_case_opts):
     case_inputs[("InflowWind","Filename_Uni")] = {'vals':wind_case_opts['wind_filenames'], 'group':1}
 
     return case_inputs
+    
 ##############################################################################################
 #
 #   Control sweep cases
@@ -554,7 +555,6 @@ def sweep_ps_percent(start_group, **control_sweep_opts):
         
     #     control_case_inputs = sweep_pc_mode(omega,zeta)
     #     case_inputs.update(control_case_inputs)
-
 
 
 
