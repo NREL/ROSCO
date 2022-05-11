@@ -1633,9 +1633,9 @@ class InputReader_OpenFAST(InputReader_Common):
         # Get number of F0 terms [If NBodyMod=1, one size 6*NBody x 1 vector; if NBodyMod>1, NBody size 6 x 1 vectors]
         NBody = self.fst_vt['HydroDyn']['NBody']
         if self.fst_vt['HydroDyn']['NBodyMod'] == 1:
-            self.fst_vt['HydroDyn']['AddF0']         = np.array([float(f.readline().strip().split()[0]) for i in range(6*NBody)])
+            self.fst_vt['HydroDyn']['AddF0']         = [float(f.readline().strip().split()[0]) for i in range(6*NBody)]
         elif self.fst_vt['HydroDyn']['NBodyMod'] > 1:
-            self.fst_vt['HydroDyn']['AddF0']         = np.array([[float(idx) for idx in f.readline().strip().split()[:NBody]] for i in range(6)])
+            self.fst_vt['HydroDyn']['AddF0']         = [[float(idx) for idx in f.readline().strip().split()[:NBody]] for i in range(6)]
         else:
             raise Exception("Invalid value for fst_vt['HydroDyn']['NBodyMod']")
 
