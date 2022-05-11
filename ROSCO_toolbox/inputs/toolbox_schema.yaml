@@ -321,6 +321,11 @@ properties:
                 minimum: 0
                 description: Flap controller time constant for integral gain
                 unit: s
+            max_torque_factor:                     
+                type: number
+                minimum: 0
+                default: 1.1
+                description: Maximum torque = rated torque * max_torque_factor
             IPC_Kp1p:                     
                 type: number
                 minimum: 0
