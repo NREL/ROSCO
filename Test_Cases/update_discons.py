@@ -34,12 +34,13 @@ for tuning_yaml in tune_to_test_map:
     controller      = ROSCO_controller.Controller(controller_params)
 
     # Load turbine data from OpenFAST and rotor performance text file
+    yaml_dir = os.path.dirname(os.path.join(tune_dir,tuning_yaml))  # files relative to tuning yaml
     turbine.load_from_fast(
         path_params['FAST_InputFile'],
-        os.path.join(tune_dir,path_params['FAST_directory']),
+        os.path.join(yaml_dir,path_params['FAST_directory']),
         dev_branch=True,
         rot_source='txt',
-        txt_filename=os.path.join(tune_dir,path_params['rotor_performance_filename'])
+        txt_filename=os.path.join(yaml_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
         )
 
     # Tune controller 
