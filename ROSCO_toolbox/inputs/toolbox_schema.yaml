@@ -436,7 +436,389 @@ properties:
                 default: 0.707
                 minimum: 0
 
-
+            DISCON:
+                type: object
+                description: These are pass-through parameters for the DISCON.IN file.  Use with caution.
+                default: {}
+                properties:
+                    LoggingLevel:
+                        type: number
+                        description: {0- write no debug files, 1- write standard output .dbg-file, 2- write standard output .dbg-file and complete avrSWAP-array .dbg2-file}
+                    F_LPFType:
+                        type: number
+                        description: 1- first-order low-pass filter, 2- second-order low-pass filter (currently filters generator speed and pitch control signals
+                    F_NotchType:
+                        type: number
+                        description: Notch on the measured generator speed and/or tower fore-aft motion (for floating) {0- disable, 1- generator speed, 2- tower-top fore-aft motion, 3- generator speed and tower-top fore-aft motion}
+                    IPC_ControlMode:
+                        type: number
+                        description: Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {0- off, 1- 1P reductions, 2- 1P+2P reductions}
+                    VS_ControlMode:
+                        type: number
+                        description: Generator torque control mode in above rated conditions {0- constant torque, 1- constant power, 2- TSR tracking PI control with constant torque, 3- TSR tracking PI control with constant power}
+                    PC_ControlMode:
+                        type: number
+                        description: Blade pitch control mode {0- No pitch, fix to fine pitch, 1- active PI blade pitch control}
+                    Y_ControlMode:
+                        type: number
+                        description: Yaw control mode {0- no yaw control, 1- yaw rate control, 2- yaw-by-IPC}
+                    SS_Mode:
+                        type: number
+                        description: Setpoint Smoother mode {0- no setpoint smoothing, 1- introduce setpoint smoothing}
+                    WE_Mode:
+                        type: number
+                        description: Wind speed estimator mode {0- One-second low pass filtered hub height wind speed, 1- Immersion and Invariance Estimator, 2- Extended Kalman Filter}
+                    PS_Mode:
+                        type: number
+                        description: Pitch saturation mode {0- no pitch saturation, 1- implement pitch saturation}
+                    SD_Mode:
+                        type: number
+                        description: Shutdown mode {0- no shutdown procedure, 1- pitch to max pitch at shutdown}
+                    Fl_Mode:
+                        type: number
+                        description: Floating specific feedback mode {0- no nacelle velocity feedback, 1- feed back translational velocity, 2- feed back rotational veloicty}
+                    Flp_Mode:
+                        type: number
+                        description: Flap control mode {0- no flap control, 1- steady state flap angle, 2- Proportional flap control}
+                    F_LPFCornerFreq:
+                        type: number
+                        description: Corner frequency (-3dB point) in the low-pass filters, 
+                        units: rad/s
+                    F_LPFDamping:
+                        type: number
+                        description: Damping coefficient {used only when F_FilterType = 2} [-]
+                    F_NotchCornerFreq:
+                        type: number
+                        description: Natural frequency of the notch filter, 
+                        units: rad/s
+                    F_NotchBetaNumDen:
+                        type: array
+                        items:
+                            type: number
+                        description: Two notch damping values (numerator and denominator, resp) - determines the width and depth of the notch, [-]
+                    F_SSCornerFreq:
+                        type: number
+                        description: Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother, 
+                        units: rad/s.
+                    F_WECornerFreq:
+                        type: number
+                        description: Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate 
+                        units: rad/s.
+                    F_FlCornerFreq:
+                        type: array
+                        items:
+                            type: number
+                        description: Natural frequency and damping in the second order low pass filter of the tower-top fore-aft motion for floating feedback control 
+                        units: rad/s
+                    F_FlHighPassFreq:
+                        type: number
+                        description: Natural frequency of first-order high-pass filter for nacelle fore-aft motion 
+                        units: rad/s
+                    F_FlpCornerFreq:
+                        type: array
+                        items:
+                            type: number
+                        description: Corner frequency and damping in the second order low pass filter of the blade root bending moment for flap control 
+                        units: rad/s
+                    PC_GS_n:
+                        type: number
+                        description: Amount of gain-scheduling table entries
+                    PC_GS_angles:
+                        type: array
+                        items:
+                            type: number
+                        description: Gain-schedule table- pitch angles 
+                        units: rad
+                    PC_GS_KP:
+                        type: array
+                        items:
+                            type: number
+                        description: Gain-schedule table- pitch controller kp gains 
+                        units: s
+                    PC_GS_KI:
+                        type: array
+                        items:
+                            type: number
+                        description: Gain-schedule table- pitch controller ki gains 
+                    PC_GS_KD:
+                        type: array
+                        items:
+                            type: number
+                        description: Gain-schedule table- pitch controller kd gains
+                    PC_GS_TF:
+                        type: array
+                        items:
+                            type: number
+                        description: Gain-schedule table- pitch controller tf gains (derivative filter)
+                    PC_MaxPit:
+                        type: number
+                        description: Maximum physical pitch limit, 
+                        units: rad
+                    PC_MinPit:
+                        type: number
+                        description: Minimum physical pitch limit, 
+                        units: rad
+                    PC_MaxRat:
+                        type: number
+                        description: Maximum pitch rate (in absolute value) in pitch controller
+                        units: rad/s.
+                    PC_MinRat:
+                        type: number
+                        description: Minimum pitch rate (in absolute value) in pitch controller
+                        units: rad/s.
+                    PC_RefSpd:
+                        type: number
+                        description: Desired (reference) HSS speed for pitch controller
+                        units: rad/s.
+                    PC_FinePit:
+                        type: number
+                        description: Record 5- Below-rated pitch angle set-point
+                        units: rad
+                    PC_Switch:
+                        type: number
+                        description: Angle above lowest minimum pitch angle for switch
+                        units: rad
+                    IPC_IntSat:
+                        type: number
+                        description: Integrator saturation (maximum signal amplitude contribution to pitch from IPC)
+                        units: rad
+                    IPC_KP:
+                        type: array
+                        items:
+                            type: number
+                        description: Proportional gain for the individual pitch controller- first parameter for 1P reductions, second for 2P reductions, [-]
+                    IPC_KI:
+                        type: array
+                        items:
+                            type: number
+                        description: Integral gain for the individual pitch controller- first parameter for 1P reductions, second for 2P reductions, [-]
+                    IPC_aziOffset:
+                        type: array
+                        items:
+                            type: number
+                        description: Phase offset added to the azimuth angle for the individual pitch controller
+                        units: rad
+                    IPC_CornerFreqAct:
+                        type: number
+                        description: Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal (0- Disable)
+                        units: rad/s
+                    VS_GenEff:
+                        type: number
+                        description: Generator efficiency mechanical power -> electrical power, should match the efficiency defined in the generator properties
+                        units: percent
+                    VS_ArSatTq:
+                        type: number
+                        description: Above rated generator torque PI control saturation
+                        units: Nm
+                    VS_MaxRat:
+                        type: number
+                        description: Maximum torque rate (in absolute value) in torque controller
+                        units: Nm/s
+                    VS_MaxTq:
+                        type: number
+                        description: Maximum generator torque in Region 3 (HSS side)
+                        units: Nm
+                    VS_MinTq:
+                        type: number
+                        description: Minimum generator torque (HSS side)
+                        units: Nm
+                    VS_MinOMSpd:
+                        type: number
+                        description: Minimum generator speed 
+                        units: rad/s
+                    VS_Rgn2K:
+                        type: number
+                        description: Generator torque constant in Region 2 (HSS side)
+                        units: Nm/(rad/s)^2
+                    VS_RtPwr:
+                        type: number
+                        description: Wind turbine rated power 
+                        units: W
+                    VS_RtTq:
+                        type: number
+                        description: Rated torque
+                        units: Nm
+                    VS_RefSpd:
+                        type: number
+                        description: Rated generator speed 
+                        units: rad/s
+                    VS_n:
+                        type: number
+                        description: Number of generator PI torque controller gains
+                    VS_KP:
+                        type: number
+                        description: Proportional gain for generator PI torque controller. (Only used in the transitional 2.5 region if VS_ControlMode =/ 2)
+                    VS_KI:
+                        type: number
+                        description: Integral gain for generator PI torque controller  (Only used in the transitional 2.5 region if VS_ControlMode =/ 2)
+                        units: s
+                    VS_TSRopt:
+                        type: number
+                        description: Power-maximizing region 2 tip-speed-ratio 
+                        units: rad
+                    SS_VSGain:
+                        type: number
+                        description: Variable speed torque controller setpoint smoother gain
+                    SS_PCGain:
+                        type: number
+                        description: Collective pitch controller setpoint smoother gain
+                    WE_BladeRadius:
+                        type: number
+                        description: Blade length (distance from hub center to blade tip)
+                        units: m
+                    WE_CP_n:
+                        type: number
+                        description: Amount of parameters in the Cp array
+                    WE_CP:
+                        type: array
+                        items:
+                            type: number
+                        description: Parameters that define the parameterized CP(lambda) function
+                    WE_Gamma:
+                        type: number
+                        description: Adaption gain of the wind speed estimator algorithm 
+                        units: m/rad
+                    WE_GearboxRatio:
+                        type: number
+                        description: Gearbox ratio, >=1
+                    WE_Jtot:
+                        type: number
+                        description: Total drivetrain inertia, including blades, hub and casted generator inertia to LSS
+                        units: kg m^2
+                    WE_RhoAir:
+                        type: number
+                        description: Air density
+                        units: kg m^-3
+                    PerfFileName:
+                        type: string
+                        description: File containing rotor performance tables (Cp,Ct,Cq) (absolute path or relative to this file)
+                    PerfTableSize:
+                        type: number
+                        description: Size of rotor performance tables, first number refers to number of blade pitch angles, second number referse to number of tip-speed ratios
+                    WE_FOPoles_N:
+                        type: number
+                        description: Number of first-order system poles used in EKF
+                    WE_FOPoles_v:
+                        type: array
+                        items:
+                            type: number
+                        description: Wind speeds corresponding to first-order system poles 
+                        units: m/s
+                    WE_FOPoles:
+                        type: array
+                        items:
+                            type: number
+                        description: First order system poles
+                        units: 1/s
+                    Y_ErrThresh:
+                        type: number
+                        description: Yaw error threshold. Turbine begins to yaw when it passes this
+                        units: rad^2 s
+                    Y_IPC_IntSat:
+                        type: number
+                        description: Integrator saturation (maximum signal amplitude contribution to pitch from yaw-by-IPC)
+                        units: rad
+                    Y_IPC_n:
+                        type: number
+                        description: Number of controller gains (yaw-by-IPC)
+                    Y_IPC_KP:
+                        type: number
+                        description: Yaw-by-IPC proportional controller gain Kp
+                    Y_IPC_KI:
+                        type: number
+                        description: Yaw-by-IPC integral controller gain Ki
+                    Y_IPC_omegaLP:
+                        type: number
+                        description: Low-pass filter corner frequency for the Yaw-by-IPC controller to filtering the yaw alignment error
+                        units: rad/s.
+                    Y_IPC_zetaLP:
+                        type: number
+                        description: Low-pass filter damping factor for the Yaw-by-IPC controller to filtering the yaw alignment error.
+                    Y_MErrSet:
+                        type: number
+                        description: Yaw alignment error, set point 
+                        units: rad
+                    Y_omegaLPFast:
+                        type: number
+                        description: Corner frequency fast low pass filter, 1.0 
+                        units: rad/s
+                    Y_omegaLPSlow:
+                        type: number
+                        description: Corner frequency slow low pass filter, 1/60 
+                        units: rad/s
+                    Y_Rate:
+                        type: number
+                        description: Yaw rate 
+                        units: rad/s
+                    FA_KI:
+                        type: number
+                        description: Integral gain for the fore-aft tower damper controller, -1 = off / >0 = on 
+                        units: rad s/m
+                    FA_HPFCornerFreq:
+                        type: number
+                        description: Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal
+                        units: rad/s
+                    FA_IntSat:
+                        type: number
+                        description: Integrator saturation (maximum signal amplitude contribution to pitch from FA damper)
+                        units: rad
+                    PS_BldPitchMin_N:
+                        type: number
+                        description: Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)
+                    PS_WindSpeeds:
+                        type: array
+                        items:
+                            type: number
+                        description: Wind speeds corresponding to minimum blade pitch angles
+                        units: m/s
+                    PS_BldPitchMin:
+                        type: array
+                        items:
+                            type: number
+                        description: Minimum blade pitch angles
+                        units: rad
+                    SD_MaxPit:
+                        type: number
+                        description: Maximum blade pitch angle to initiate shutdown
+                        units: rad
+                    SD_CornerFreq:
+                        type: number
+                        description: Cutoff Frequency for first order low-pass filter for blade pitch angle
+                        units: rad/s
+                    Fl_Kp:
+                        type: number
+                        description: Nacelle velocity proportional feedback gain 
+                        units: s
+                    Flp_Angle:
+                        type: number
+                        description: Initial or steady state flap angle 
+                        units: rad
+                    Flp_Kp:
+                        type: number
+                        description: Blade root bending moment proportional gain for flap control
+                        units: s
+                    Flp_Ki:
+                        type: number
+                        description: Flap displacement integral gain for flap control
+                    Flp_MaxPit:
+                        type: number
+                        description: Maximum (and minimum) flap pitch angle
+                        units: rad
+                    OL_Filename:
+                        type: string
+                        description: Input file with open loop timeseries (absolute path or relative to this file)
+                    Ind_Breakpoint:
+                        type: number
+                        description: The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)
+                    Ind_BldPitch:
+                        type: number
+                        description: The column in OL_Filename that contains the blade pitch input in rad
+                    Ind_GenTq:
+                        type: number
+                        description: The column in OL_Filename that contains the generator torque in Nm
+                    Ind_YawRate:
+                        type: number
+                        description: The column in OL_Filename that contains the generator torque in Nm
 
     linmodel_tuning:
         type: object
