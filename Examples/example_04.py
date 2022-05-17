@@ -34,11 +34,12 @@ turbine         = ROSCO_turbine.Turbine(turbine_params)
 controller      = ROSCO_controller.Controller(controller_params)
 
 # Load turbine data from OpenFAST and rotor performance text file
+cp_filename = os.path.join(tune_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
 turbine.load_from_fast(
     path_params['FAST_InputFile'],
     os.path.join(tune_dir,path_params['FAST_directory']),
     dev_branch=True,
-    rot_source='txt',txt_filename=os.path.join(tune_dir,path_params['rotor_performance_filename'])
+    rot_source='txt',txt_filename= cp_filename
     )
 
 # Tune controller 
@@ -46,7 +47,10 @@ controller.tune_controller(turbine)
 
 # Write parameter input file
 param_file = os.path.join(this_dir,'DISCON.IN')
-write_DISCON(turbine,controller,param_file=param_file, txt_filename=os.path.join(tune_dir,path_params['rotor_performance_filename']))
+write_DISCON(turbine,controller,
+param_file=param_file, 
+txt_filename=cp_filename
+)
 
 # Plot gain schedule
 fig, ax = plt.subplots(2,2,constrained_layout=True,sharex=True)
