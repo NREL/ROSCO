@@ -495,6 +495,11 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['PA_CornerFreq']   = controller.PA_CornerFreq
     DISCON_dict['PA_Damping']      = controller.PA_Damping
 
+    # Add pass through here
+    for param, value in controller.controller_params['DISCON'].items():
+        DISCON_dict[param] = value
+
+
     return DISCON_dict
 
 
