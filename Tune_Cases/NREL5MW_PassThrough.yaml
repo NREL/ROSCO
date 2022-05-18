@@ -58,7 +58,7 @@ controller_params:
     VS_MaxTq: 44170.325
     PC_GS_n: 2
     PC_GS_angles: [0, 0.4]
-    PC_GS_KP: [-.02, -0.003, -0.003]
-    PC_GS_KI: [-.008, -.002, -.002]
+    PC_GS_KP: [-.02, -0.003]
+    PC_GS_KI: [-.008, -.002]
     PC_GS_KD: [0, 0]
     PC_GS_TF: [0, 0] 

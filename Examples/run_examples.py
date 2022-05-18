@@ -18,7 +18,8 @@ all_scripts = [
     'example_11',
     'example_12',
     'example_13',
-    'example_14'
+    'example_14',
+    'example_15',
 ]
 
 def execute_script(fscript):
