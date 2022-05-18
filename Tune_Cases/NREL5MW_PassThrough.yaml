@@ -25,7 +25,7 @@ turbine_params:
 #------------------------------- CONTROLLER PARAMETERS ----------------------------------
 controller_params:
   # Controller flags 
-  LoggingLevel:       1                     # {0: write no debug files, 1: write standard output .dbg-file, 2: write standard output .dbg-file and complete avrSWAP-array .dbg2-file
+  LoggingLevel:       2                     # {0: write no debug files, 1: write standard output .dbg-file, 2: write standard output .dbg-file and complete avrSWAP-array .dbg2-file
   F_LPFType:          1                     # {1: first-order low-pass filter, 2: second-order low-pass filter}, [rad/s] (currently filters generator speed and pitch control signals)
   F_NotchType:        0                     # Notch filter on generator speed and/or tower fore-aft motion (for floating) {0: disable, 1: generator speed, 2: tower-top fore-aft motion, 3: generator speed and tower-top fore-aft motion}
   IPC_ControlMode:    0                     # Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {0: off, 1: 1P reductions, 2: 1P+2P reductions}
@@ -53,5 +53,12 @@ controller_params:
     IPC_ControlMode: 2
     IPC_Vramp: [10,14]
     IPC_IntSat: 0.2
-    IPC_KI: [1.e-7, 0]
+    IPC_KI: [1.e-8, 0]
     IPC_aziOffset: [0.5236,0]
+    VS_MaxTq: 44170.325
+    PC_GS_n: 2
+    PC_GS_angles: [0, 0.4]
+    PC_GS_KP: [-.02, -0.003, -0.003]
+    PC_GS_KI: [-.008, -.002, -.002]
+    PC_GS_KD: [0, 0]
+    PC_GS_TF: [0, 0] 
