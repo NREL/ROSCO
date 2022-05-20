@@ -34,7 +34,7 @@ def set_channels():
                                "NcIMUTAxs", "NcIMUTAys", "NcIMUTAzs", "NcIMURAxs", "NcIMURAys", "NcIMURAzs", \
                                 "NacYaw", "Wind1VelX", "Wind1VelY", "Wind1VelZ", "LSSTipMxa","LSSTipMya",\
                                    "LSSTipMza","LSSTipMxs","LSSTipMys","LSSTipMzs","LSShftFys","LSShftFzs", \
-                                       "TipRDxr", "TipRDyr", "TipRDzr","RtVAvgxh"]:
+                                       "TipRDxr", "TipRDyr", "TipRDzr","RtVAvgxh","RtAeroFxh"]:
         channels[var] = True
     return channels
 
@@ -73,6 +73,7 @@ def base_op_case():
     case_inputs[("Fst","OutFileFmt")]        = {'vals':[3], 'group':0}
     
     # DOFs
+    case_inputs[("ElastoDyn","GenDOF")]      = {'vals':['True'], 'group':0} 
     if False:
         case_inputs[("ElastoDyn","YawDOF")]      = {'vals':['True'], 'group':0}
         case_inputs[("ElastoDyn","FlapDOF1")]    = {'vals':['False'], 'group':0}
@@ -146,20 +147,39 @@ def simp_step(**wind_case_opts):
     # Set up cases for FIW-JIP project
     # 3.x in controller tuning register
 
-    # Default Runtime
-    T_max   = 300.
+    if 'T_Max' in wind_case_opts:
+        T_max = wind_case_opts['T_Max']
+    else:
+        # Default Runtime
+        T_max   = 300.
+
+    if 'U_start' in wind_case_opts:
+        U_start = wind_case_opts['U_start']
+    else:
+        # Default Runtime
+        U_start   = [16]
+
+    if 'U_end' in wind_case_opts:
+        U_end = wind_case_opts['U_end']
+    else:
+        # Default Runtime
+        U_end   = [17]
+
+    if 'T_step' in wind_case_opts:
+        T_step = wind_case_opts['T_step']
+    else:
+        # Default Runtime
+        T_step   = 150
 
     # Step Wind Setup
 
     # Make Default step wind object
     hh_step = HH_StepFile()
     hh_step.t_max = T_max
-    hh_step.t_step = 150
-    hh_step.wind_directory = run_dir
+    hh_step.t_step = T_step
+    hh_step.wind_directory = wind_case_opts['wind_dir']
 
     # Run conditions
-    U_start     = [16]
-    U_end       = [17]
     step_wind_files = []
 
     for u_s,u_e in zip(U_start,U_end):
@@ -174,7 +194,6 @@ def simp_step(**wind_case_opts):
     case_inputs = base_op_case()
     # simulation settings
     case_inputs[("Fst","TMax")] = {'vals':[T_max], 'group':0}
-    case_inputs[("Fst","OutFileFmt")]        = {'vals':[2], 'group':0}
     # case_inputs[("Fst","DT")]        = {'vals':[1/80], 'group':0}
     
     # wind inflow
@@ -290,7 +309,54 @@ def steps(**wind_case_opts):
 
     return case_inputs
 
+def turb_bts(**wind_case_opts):
+    '''
+     Turbulent wind input from bts file
+     Expected inputs:
+        TMax            TODO: someday make all TMaxs TMax
+        wind_inputs (list of string wind inputs filenames)
+    '''
 
+    if 'TMax' in wind_case_opts:
+        TMax = wind_case_opts['TMax']
+    else:
+        TMax = 720
+
+    if 'wind_filenames' not in wind_case_opts:
+        raise Exception('Define wind_filenames when using turb_bts case generator')
+
+    # wind inflow
+    case_inputs = base_op_case()
+    case_inputs[("Fst","TMax")] = {'vals':[TMax], 'group':0}
+    case_inputs[("InflowWind","WindType")] = {'vals':[3], 'group':0}
+    case_inputs[("InflowWind","FileName_BTS")] = {'vals':wind_case_opts['wind_filenames'], 'group':1}
+
+    return case_inputs
+
+def user_hh(**wind_case_opts):
+    '''
+     Uniform, hub-height wind file
+     Expected inputs:
+        TMax            TODO: someday make all TMaxs TMax
+        wind_inputs (list of string wind inputs filenames)
+    '''
+
+    if 'TMax' in wind_case_opts:
+        TMax = wind_case_opts['TMax']
+    else:
+        TMax = 720
+
+    if 'wind_filenames' not in wind_case_opts:
+        raise Exception('Define wind_filenames when using turb_bts case generator')
+
+    # wind inflow
+    case_inputs = base_op_case()
+    case_inputs[("Fst","TMax")] = {'vals':[TMax], 'group':0}
+    case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
+    case_inputs[("InflowWind","Filename_Uni")] = {'vals':wind_case_opts['wind_filenames'], 'group':1}
+
+    return case_inputs
+    
 ##############################################################################################
 #
 #   Control sweep cases
@@ -355,7 +421,75 @@ def sweep_pitch_act(start_group, **control_sweep_opts):
     case_inputs_control[('DISCON_in','PA_CornerFreq')] = {'vals': act_bw.tolist(), 'group': start_group}
 
     return case_inputs_control
- 
+
+def sweep_ipc_gains(start_group, **control_sweep_opts):
+    case_inputs_control = {}
+
+    kis = np.linspace(0,3,6).tolist()
+    # kis = [0.,0.6,1.2,1.8,2.4,3.]
+    KIs = [[ki * 1e-8,0.] for ki in kis]
+    case_inputs_control[('DISCON_in','IPC_ControlMode')] = {'vals': [1], 'group': 0}
+    # case_inputs_control[('DISCON_in','IPC_KI')] = {'vals': [[0.,0.],[1e-8,0.]], 'group': start_group}
+    case_inputs_control[('DISCON_in','IPC_KI')] = {'vals': KIs, 'group': start_group}
+    case_inputs_control[('DISCON_in','IPC_aziOffset')] = {'vals': [[0.0,0]], 'group': 0}
+    case_inputs_control[('DISCON_in','IPC_IntSat')] = {'vals': [0.2618], 'group': 0}
+
+    # [-0.5236,-0.43633,-0.34907,-0.2618,-0.17453,-0.087266           0    0.087266     0.17453      0.2618     0.34907     0.43633      0.5236     0.61087     0.69813      0.7854'
+
+    return case_inputs_control
+
+def sweep_fad_gains(start_group, **control_sweep_opts):
+    case_inputs_control = {}
+    g = np.array([0.,0.5,1.,1.5,2.0,2.5,3.0,3.5,4.0,5.0])
+    case_inputs_control[('DISCON_in','TD_Mode')] = {'vals': [1], 'group': start_group}
+    case_inputs_control[('DISCON_in','FA_KI')] = {'vals': (g*0.0175).tolist(), 'group': start_group+1}
+    case_inputs_control[('DISCON_in','FA_HPFCornerFreq')] = {'vals': [0.1], 'group': start_group}
+    case_inputs_control[('DISCON_in','FA_IntSat')] = {'vals': [0.2618], 'group': start_group}
+
+    # [-0.5236,-0.43633,-0.34907,-0.2618,-0.17453,-0.087266           0    0.087266     0.17453      0.2618     0.34907     0.43633      0.5236     0.61087     0.69813      0.7854'
+
+    return case_inputs_control
+
+def sweep_ps_percent(start_group, **control_sweep_opts):
+        case_inputs_control = {}
+        
+        # Set sweep limits here
+        ps_perc = np.linspace(.7,1,num=8,endpoint=True).tolist()
+        
+        # load default params          
+        control_param_yaml  = control_sweep_opts['tuning_yaml']
+        inps                = load_rosco_yaml(control_param_yaml)
+        path_params         = inps['path_params']
+        turbine_params      = inps['turbine_params']
+        controller_params   = inps['controller_params']
+
+        # make default controller, turbine objects for ROSCO_toolbox
+        turbine             = ROSCO_turbine.Turbine(turbine_params)
+        turbine.load_from_fast( path_params['FAST_InputFile'],path_params['FAST_directory'], dev_branch=True)
+
+        controller          = ROSCO_controller.Controller(controller_params)
+
+        # tune default controller
+        controller.tune_controller(turbine)
+
+        # Loop through and make min pitch tables
+        ps_ws = []
+        ps_mp = []
+        m_ps  = []  # flattened (omega,zeta) pairs
+        for p in ps_perc:
+            controller.ps_percent = p
+            controller.tune_controller(turbine)
+            m_ps.append(controller.ps_min_bld_pitch)
+            ps_ws.append(controller.v)
+
+        # add control gains to case_list
+        # case_inputs_control[('meta','ps_perc')]          = {'vals': ps_perc, 'group': start_group}
+        case_inputs_control[('DISCON_in', 'PS_BldPitchMin')] = {'vals': m_ps, 'group': start_group}
+        case_inputs_control[('DISCON_in', 'PS_WindSpeeds')] = {'vals': ps_ws, 'group': start_group}
+
+        return case_inputs_control
+
+
 #  def sweep_pc_mode(cont_yaml,omega=np.linspace(.05,.35,8,endpoint=True).tolist(),zeta=[1.5],group=2):
     
     
@@ -423,39 +557,6 @@ def sweep_pitch_act(start_group, **control_sweep_opts):
     #     case_inputs.update(control_case_inputs)
 
 
-    # elif tune == 'ps_perc':
-    #     # Set sweep limits here
-    #     ps_perc = np.linspace(.75,1,num=8,endpoint=True).tolist()
-        
-    #     # load default params          
-    #     weis_dir            = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    #     control_param_yaml  = os.path.join(weis_dir,'examples/OpenFAST_models/CT15MW-spar/ServoData/IEA15MW-CT-spar.yaml')
-    #     inps                = yaml.safe_load(open(control_param_yaml))
-    #     path_params         = inps['path_params']
-    #     turbine_params      = inps['turbine_params']
-    #     controller_params   = inps['controller_params']
-
-    #     # make default controller, turbine objects for ROSCO_toolbox
-    #     turbine             = ROSCO_turbine.Turbine(turbine_params)
-    #     turbine.load_from_fast( path_params['FAST_InputFile'],path_params['FAST_directory'], dev_branch=True)
-
-    #     controller          = ROSCO_controller.Controller(controller_params)
-
-    #     # tune default controller
-    #     controller.tune_controller(turbine)
-
-    #     # Loop through and make min pitch tables
-    #     ps_ws = []
-    #     ps_mp = []
-    #     m_ps  = []  # flattened (omega,zeta) pairs
-    #     for p in ps_perc:
-    #         controller.ps_percent = p
-    #         controller.tune_controller(turbine)
-    #         m_ps.append(controller.ps_min_bld_pitch)
-
-    #     # add control gains to case_list
-    #     case_inputs[('meta','ps_perc')]          = {'vals': ps_perc, 'group': 2}
-    #     case_inputs[('DISCON_in', 'PS_BldPitchMin')] = {'vals': m_ps, 'group': 2}
 
     # elif tune == 'max_tq':
     #     case_inputs[('DISCON_in','VS_MaxTq')] = {'vals': [19624046.66639, 1.5*19624046.66639], 'group': 3}

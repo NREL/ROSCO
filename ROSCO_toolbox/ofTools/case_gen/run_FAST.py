@@ -62,9 +62,10 @@ class run_FAST_ROSCO():
         controller      = ROSCO_controller.Controller(controller_params)
 
         # Load turbine data from OpenFAST and rotor performance text file
-        cp_filename = os.path.join(tune_case_dir,path_params['rotor_performance_filename'])
+        cp_filename = os.path.join(path_params['FAST_directory'],path_params['rotor_performance_filename'])
+        tune_yaml_dir = os.path.split(self.tuning_yaml)[0]
         turbine.load_from_fast(path_params['FAST_InputFile'], \
-            os.path.join(tune_case_dir,path_params['FAST_directory']), \
+            os.path.join(tune_yaml_dir,path_params['FAST_directory']), \
             dev_branch=True,rot_source='txt',\
             txt_filename=cp_filename)
 
@@ -168,7 +169,7 @@ class run_FAST_ROSCO():
 if __name__ == "__main__":
 
     # Simulation config
-    sim_config = 7
+    sim_config = 11
     
     r = run_FAST_ROSCO()
 
@@ -206,6 +207,57 @@ if __name__ == "__main__":
             'act_bw': np.array([0.25,0.5,1,10]) * np.pi * 2
         }
 
+        r.n_cores = 4
+
+    elif sim_config == 8:
+
+        # RAAW IPC set up
+        r.tuning_yaml   = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/ROSCO/RAAW_rosco_BD.yaml'
+        r.wind_case_fcn = cl.power_curve
+        r.wind_case_opts    = {
+            'U': [16],
+            }
+        r.save_dir      = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/outputs/IPC_play'
+        r.control_sweep_fcn = cl.sweep_ipc_gains
+
+    elif sim_config == 9:
+
+        # RAAW FAD set up
+        r.tuning_yaml   = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/ROSCO/RAAW_rosco_BD.yaml'
+        r.wind_case_fcn = cl.simp_step
+        r.wind_case_opts    = {
+            'U_start': [13],
+            'U_end': [15],
+            'wind_dir': '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/outputs/FAD_play'
+            }
+        r.save_dir      = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/outputs/FAD_play'
+        r.control_sweep_fcn = cl.sweep_fad_gains
+        r.n_cores = 8
+
+    elif sim_config == 10:
+
+        # RAAW FAD set up
+        r.tuning_yaml   = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/ROSCO/RAAW_rosco_BD.yaml'
+        r.wind_case_fcn = cl.turb_bts
+        r.wind_case_opts    = {
+            'TMax': 720,
+            'wind_filenames': ['/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW_IPC/wind/RAAW_NTM_U12.000000_Seed1693606511.0.bts']
+            }
+        r.save_dir      = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/outputs/PS_BD'
+        r.control_sweep_fcn = cl.sweep_ps_percent
+        r.n_cores = 8
+
+    elif sim_config == 11:
+
+        # RAAW FAD set up
+        r.tuning_yaml   = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/ROSCO/RAAW_rosco_BD.yaml'
+        r.wind_case_fcn = cl.user_hh
+        r.wind_case_opts    = {
+            'TMax': 1000.,
+            'wind_filenames': ['/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/Performance/GE_P3_WindStep.asc']
+            }
+        r.save_dir      = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/outputs/PS_steps'
+        r.control_sweep_fcn = cl.sweep_ps_percent
         r.n_cores = 4
 
     else:

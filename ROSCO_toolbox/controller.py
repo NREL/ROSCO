@@ -186,6 +186,8 @@ class Controller():
         Ng = turbine.Ng                         # Gearbox ratio (-)
         rated_rotor_speed = turbine.rated_rotor_speed               # Rated rotor speed (rad/s)
 
+        # ------------- Saturation Limits --------------- #
+        turbine.max_torque = turbine.rated_torque * self.controller_params['max_torque_factor']
 
         # -------------Define Operation Points ------------- #
         TSR_rated = rated_rotor_speed*R/turbine.v_rated  # TSR at rated
