@@ -341,6 +341,8 @@ def read_type(param):
         f90type = 'LOGICAL'
     elif param['type'] == 'c_integer':
         f90type = 'INTEGER(C_INT)'
+    elif param['type'] == 'c_float':
+        f90type = 'INTEGER(C_FLOAT)'
     elif param['type'] == 'c_pointer':
         f90type = 'TYPE(C_PTR)'
     elif param['type'] == 'c_intptr_t':

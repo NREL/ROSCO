@@ -25,6 +25,7 @@ USE             :: Controllers
 USE             :: Constants
 USE             :: Filters
 USE             :: Functions
+USE             :: ExtControl
 USE             :: ROSCO_IO
 
 IMPLICIT NONE
@@ -77,6 +78,13 @@ CALL ReadAvrSWAP(avrSWAP, LocalVar)
 
 ! Set Control Parameters
 CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, ErrVar)
+
+! Call external controller, if desired
+IF (CntrPar%Ext_Mode > 0) THEN
+    CALL ExtController(avrSWAP, CntrPar, LocalVar, ErrVar)
+END IF
+
+! Overwrite with ROSCO, where desired
 
 ! Filter signals
 CALL PreFilterMeasuredSignals(CntrPar, LocalVar, DebugVar, objInst, ErrVar)

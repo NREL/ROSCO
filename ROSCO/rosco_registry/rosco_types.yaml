@@ -30,6 +30,11 @@ default_types:
     description: 
     size: 0
     equals: 
+  c_float: &c_float
+    type: c_float
+    description: 
+    size: 0
+    equals: 
   c_pointer: &c_pointer
     type: c_pointer
     description: 
@@ -436,6 +441,23 @@ ControlParameters:
     PA_Damping:
       <<: *real
       description: Pitch actuator damping ratio [-, unused if PA_Mode = 1]
+
+    # External Control
+    Ext_Mode:
+      <<: *integer
+      description: External control mode (0 - not used, 1 - call external control library)
+    DLL_FileName:
+      <<: *character
+      description: File name of external dynamic library
+      length: 1024
+    DLL_InFile:
+      <<: *character
+      description: Name of input file called by dynamic library (DISCON.IN, e.g.)
+      length: 1024
+    DLL_ProcName:
+      <<: *character
+      description: Process name of subprocess called in DLL_Filename (Usually DISCON)
+      length: 1024
     
     # Calculated
     PC_RtTq99:
@@ -1002,6 +1024,9 @@ ErrorVariables:
   aviFAIL: 
     <<: *c_integer
     description: 'A flag used to indicate the success of this DLL call set as follows: 0 if the DLL call was successful, >0 if the DLL call was successful but cMessage should be issued as a warning messsage, <0 if the DLL call was unsuccessful or for any other reason the simulation is to be stopped at this point with cMessage as the error message.'
+  ErrStat: 
+    <<: *c_integer
+    description: An error status flag used by OpenFAST processes
   ErrMsg: 
     <<: *character      
     description: a Fortran version of the C string argument (not considered an array here) [subtract 1 for the C null-character]
@@ -1030,3 +1055,9 @@ ExtDLL_Type:
     size: 3
     length: 1024
     description: The name of the procedure in the DLL that will be called.
+
+ExtControlType:
+  avrSWAP:
+    <<: *c_float
+    description: The swap array- used to pass data to and from the DLL controller [see Bladed DLL documentation]
+    allocatable: True

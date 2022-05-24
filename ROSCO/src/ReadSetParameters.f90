@@ -255,6 +255,7 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_Mode',accINFILE(1),CntrPar%Flp_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'OL_Mode',accINFILE(1),CntrPar%OL_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PA_Mode',accINFILE(1),CntrPar%PA_Mode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Ext_Mode',accINFILE(1),CntrPar%Ext_Mode,ErrVar)
 
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
@@ -400,6 +401,12 @@ CONTAINS
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
         CALL ParseInput(UnControllerParameters,CurLine,'PA_CornerFreq',accINFILE(1),CntrPar%PA_CornerFreq,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PA_Damping',accINFILE(1),CntrPar%PA_Damping,ErrVar)
+
+        !------------ External control interface ------------
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(UnControllerParameters,CurLine,'DLL_FileName',accINFILE(1),CntrPar%DLL_FileName,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'DLL_InFile',accINFILE(1),CntrPar%DLL_InFile,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'DLL_ProcName',accINFILE(1),CntrPar%DLL_ProcName,ErrVar)
 
         ! Fix Paths (add relative paths if called from another dir)
         IF (PathIsRelative(CntrPar%PerfFileName)) CntrPar%PerfFileName = TRIM(PriPath)//TRIM(CntrPar%PerfFileName)
