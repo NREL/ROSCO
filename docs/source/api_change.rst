@@ -9,24 +9,43 @@ The changes are tabulated according to the line number, and flag name.
 The line number corresponds to the resulting line number after all changes are implemented.
 Thus, be sure to implement each in order so that subsequent line numbers are correct.
 
-
-ROSCO v2.4.1 to ROSCO `develop`
+2.5.0 to ROSCO develop
 -------------------------------
-Two filter parameters were added to 
-- change the high pass filter in the floating feedback module
-- change the low pass filter of the wind speed estimator signal that is used in torque control
-
-Open loop contro inputs, users must specify:
-- The open loop input filename, an example can be found in Examples/Example_OL_Input.dat
-- Indices (columns) of values specified in OL_Filename
+IPC
+- A wind speed based soft cut-in using a sigma interpolation is added for the IPC controller
 
 ====== =================    ======================================================================================================================================================================================================
-Added in ROSCO develop
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Line    Flag Name           Example Value
+====== =================    ======================================================================================================================================================================================================
+19     TD_Mode              0                    ! TD_Mode           - Tower damper mode {0: no tower damper, 1: feed back translational nacelle accelleration to pitch angle}
+21     PA_Mode              0                    ! PA_Mode           - Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
+49     IPC_Vramp            9.120000  11.400000  ! IPC_Vramp	- Start and end wind speeds for cut-in ramp function. First entry: IPC inactive, second entry: IPC fully active. [m/s]
+====== =================    ======================================================================================================================================================================================================
+
+
+ROSCO v2.4.1 to ROSCO v2.5.0
+-------------------------------
+Two filter parameters were added to 
+
+- change the high pass filter in the floating feedback module
+
+- change the low pass filter of the wind speed estimator signal that is used in torque control
+
+Open loop control inputs, users must specify:
+
+- The open loop input filename, an example can be found in Examples/Example_OL_Input.dat
+
+- Indices (columns) of values specified in OL_Filename
+
+IPC
+- Proportional Control capabilities were added, 1P and 2P gains should be specified
+
+====== =================    ======================================================================================================================================================================================================
 Line    Flag Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
 27     F_WECornerFreq       0.20944             ! F_WECornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s].
 29     F_FlHighPassFreq     0.01000             ! F_FlHighPassFreq  - Natural frequency of first-order high-pass filter for nacelle fore-aft motion [rad/s].
+50     IPC_KP               0.000000  0.000000  ! IPC_KP			- Proportional gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions, [-]
 125    OL_Filename          "14_OL_Input.dat"   ! OL_Filename       - Input file with open loop timeseries (absolute path or relative to this file)
 126    Ind_Breakpoint       1                   ! Ind_Breakpoint    - The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)
 127    Ind_BldPitch         2                   ! Ind_BldPitch      - The column in OL_Filename that contains the blade pitch input in rad

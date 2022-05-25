@@ -179,13 +179,7 @@ Please follow the following steps to install the ROSCO tool-chain. You should do
     conda create -y --name rosco-env python=3.8
     conda activate rosco-env
 
-2. Install WISDEM
-    
-.. code-block:: bash
-
-    conda install -y wisdem
-
-3. Clone and Install the ROSCO toolbox with ROSCO
+2. Clone and Install the ROSCO toolbox with ROSCO
     
 .. code-block:: bash
 
@@ -193,9 +187,10 @@ Please follow the following steps to install the ROSCO tool-chain. You should do
     cd ROSCO
     conda install compilers # (Mac/Linux only)
     conda install m2w64-toolchain libpython # (Windows only)
+    conda install -y wisdem
     python setup.py install --compile-rosco 
 
-4. Clone and Install the ROSCO toolbox without ROSCO
+3. Clone and Install the ROSCO toolbox without ROSCO
     
 .. code-block:: bash
 

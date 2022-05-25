@@ -251,8 +251,10 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'PS_Mode',accINFILE(1),CntrPar%PS_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'SD_Mode',accINFILE(1),CntrPar%SD_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'FL_Mode',accINFILE(1),CntrPar%FL_Mode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'TD_Mode',accINFILE(1),CntrPar%TD_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_Mode',accINFILE(1),CntrPar%Flp_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'OL_Mode',accINFILE(1),CntrPar%OL_Mode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PA_Mode',accINFILE(1),CntrPar%PA_Mode,ErrVar)
 
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
@@ -288,7 +290,9 @@ CONTAINS
 
         !------------------- IPC CONSTANTS -----------------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine) 
+        CALL ParseAry(UnControllerParameters, CurLine, 'IPC_Vramp', CntrPar%IPC_Vramp, 2, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'IPC_IntSat',accINFILE(1),CntrPar%IPC_IntSat,ErrVar)
+        CALL ParseAry(UnControllerParameters, CurLine, 'IPC_KP', CntrPar%IPC_KP, 2, accINFILE(1), ErrVar )
         CALL ParseAry(UnControllerParameters, CurLine, 'IPC_KI', CntrPar%IPC_KI, 2, accINFILE(1), ErrVar )
         CALL ParseAry(UnControllerParameters, CurLine, 'IPC_aziOffset', CntrPar%IPC_aziOffset, 2, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'IPC_CornerFreqAct',accINFILE(1),CntrPar%IPC_CornerFreqAct,ErrVar)
@@ -390,6 +394,12 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'Ind_BldPitch',accINFILE(1),CntrPar%Ind_BldPitch,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Ind_GenTq',accINFILE(1),CntrPar%Ind_GenTq,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Ind_YawRate',accINFILE(1),CntrPar%Ind_YawRate,ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+
+        !------------ Pitch Actuator Inputs ------------
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(UnControllerParameters,CurLine,'PA_CornerFreq',accINFILE(1),CntrPar%PA_CornerFreq,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PA_Damping',accINFILE(1),CntrPar%PA_Damping,ErrVar)
 
         ! Fix Paths (add relative paths if called from another dir)
         IF (PathIsRelative(CntrPar%PerfFileName)) CntrPar%PerfFileName = TRIM(PriPath)//TRIM(CntrPar%PerfFileName)
@@ -398,7 +408,7 @@ CONTAINS
         ! Read open loop input, if desired
         IF (CntrPar%OL_Mode == 1) THEN
             OL_String = ''      ! Display string
-            OL_Count  = 0
+            OL_Count  = 1
             IF (CntrPar%Ind_BldPitch > 0) THEN
                 OL_String   = TRIM(OL_String)//' BldPitch '
                 OL_Count    = OL_Count + 1
@@ -500,7 +510,7 @@ CONTAINS
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
-        ALLOCATE(PerfData%Ct_mat(CntrPar%PerfTableSize(1),CntrPar%PerfTableSize(2)))
+        ALLOCATE(PerfData%Ct_mat(CntrPar%PerfTableSize(2),CntrPar%PerfTableSize(1)))
         DO i = 1,CntrPar%PerfTableSize(2)
             READ(UnPerfParameters, *) PerfData%Ct_mat(i,:) ! Read Ct table
         END DO
@@ -508,7 +518,7 @@ CONTAINS
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
-        ALLOCATE(PerfData%Cq_mat(CntrPar%PerfTableSize(1),CntrPar%PerfTableSize(2)))
+        ALLOCATE(PerfData%Cq_mat(CntrPar%PerfTableSize(2),CntrPar%PerfTableSize(1)))
         DO i = 1,CntrPar%PerfTableSize(2)
             READ(UnPerfParameters, *) PerfData%Cq_mat(i,:) ! Read Cq table
         END DO
@@ -544,9 +554,9 @@ CONTAINS
         !------- DEBUG ------------------------------------------------------------
 
         ! LoggingLevel
-        IF ((CntrPar%LoggingLevel < 0) .OR. (CntrPar%LoggingLevel > 2)) THEN
+        IF ((CntrPar%LoggingLevel < 0) .OR. (CntrPar%LoggingLevel > 3)) THEN
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'LoggingLevel must be 0, 1, or 2.'
+            ErrVar%ErrMsg  = 'LoggingLevel must be 0 - 3.'
         ENDIF
 
         !------- CONTROLLER FLAGS -------------------------------------------------
@@ -629,11 +639,15 @@ CONTAINS
         ENDIF
 
         ! Flp_Mode
-        IF ((CntrPar%Flp_Mode < 0) .OR. (CntrPar%Flp_Mode > 2)) THEN
+        IF ((CntrPar%Flp_Mode < 0) .OR. (CntrPar%Flp_Mode > 3)) THEN
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'Flp_Mode must be 0, 1, or 2.'
+            ErrVar%ErrMsg  = 'Flp_Mode must be 0, 1, 2, or 3.'
         ENDIF
 
+        IF ((CntrPar%IPC_ControlMode > 0) .AND. (CntrPar%Flp_Mode > 0)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg   = 'ROSCO does not currently support IPC_ControlMode and Flp_Mode > 0'
+        ENDIF
         !------- FILTERS ----------------------------------------------------------
         
         ! F_LPFCornerFreq
@@ -769,6 +783,16 @@ CONTAINS
         IF (CntrPar%IPC_KI(2) < 0.0)  THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'IPC_KI(2) must be zero or greater than zero.'
+        ENDIF
+
+        IF (CntrPar%IPC_KI(1) < 0.0)  THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'IPC_KP(1) must be zero or greater than zero.'
+        ENDIF
+        
+        IF (CntrPar%IPC_KI(2) < 0.0)  THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'IPC_KP(2) must be zero or greater than zero.'
         ENDIF
 
         !------- VS TORQUE CONTROL ------------------------------------------------
@@ -956,6 +980,22 @@ CONTAINS
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg = 'All open loop control indices must be greater than zero'
         ENDIF
+
+        ! --- Pitch Actuator ---
+        IF (CntrPar%PA_Mode > 0) THEN
+            IF ((CntrPar%PA_Mode < 0) .OR. (CntrPar%PA_Mode < 2)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'PA_Mode must be 0, 1, or 2'
+            END IF
+            IF (CntrPar%PA_CornerFreq < 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'PA_CornerFreq must be greater than 0'
+            END IF
+            IF (CntrPar%PA_Damping < 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'PA_Damping must be greater than 0'
+            END IF
+        END IF
             
 
         
@@ -1667,15 +1707,12 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Channels,
     CHARACTER(1024)                                         :: Line              ! Temp variable for reading whole line from file
     INTEGER(IntKi)                                          :: NumComments
     INTEGER(IntKi)                                          :: NumDataLines
-    INTEGER(IntKi)                                          :: NumCols 
-    REAL(DbKi)                                              :: TmpData(NumChannels+1)  ! Temp variable for reading all columns from a line
+    REAL(DbKi)                                              :: TmpData(NumChannels)  ! Temp variable for reading all columns from a line
     CHARACTER(15)                                           :: NumString
 
     INTEGER(IntKi)                                          :: I,J
 
-    CHARACTER(*),               PARAMETER                   :: RoutineName = 'ReadControlParameterFileSub'
-
-    NumCols             = NumChannels + 1
+    CHARACTER(*),               PARAMETER                   :: RoutineName = 'Read_OL_Input'
 
     !-------------------------------------------------------------------------------------------------
     ! Read from input file, borrowed (read: copied) from (Open)FAST team...thanks!
@@ -1701,7 +1738,6 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Channels,
         
         ELSE
             ! Do all the stuff!
-
             !-------------------------------------------------------------------------------------------------
             ! Find the number of comment lines
             !-------------------------------------------------------------------------------------------------
@@ -1724,12 +1760,12 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Channels,
 
             NumDataLines = 0
 
-            READ(LINE,*,IOSTAT=IOS) ( TmpData(I), I=1,NumCols ) ! this line was read when we were figuring out the comment lines; let's make sure it contains
+            READ(LINE,*,IOSTAT=IOS) ( TmpData(I), I=1,NumChannels ) ! this line was read when we were figuring out the comment lines; let's make sure it contains
 
             DO WHILE (IOS == 0)  ! read the rest of the file (until an error occurs)
                 NumDataLines = NumDataLines + 1
                 
-                READ(Unit_OL_Input,*,IOSTAT=IOS) ( TmpData(I), I=1,NumCols )
+                READ(Unit_OL_Input,*,IOSTAT=IOS) ( TmpData(I), I=1,NumChannels )
             
             END DO !WHILE
         
@@ -1757,14 +1793,13 @@ SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Channels,
                 READ(Unit_OL_Input,'( A )',IOSTAT=IOS) LINE
             END DO !I
         
-
             !-------------------------------------------------------------------------------------------------
             ! Read the data arrays
             !-------------------------------------------------------------------------------------------------
         
             DO I=1,NumDataLines
             
-                READ(Unit_OL_Input,*,IOSTAT=IOS) ( TmpData(J), J=1,NumCols )
+                READ(Unit_OL_Input,*,IOSTAT=IOS) ( TmpData(J), J=1,NumChannels )
 
                 IF (IOS > 0) THEN
                     CLOSE(Unit_OL_Input)

@@ -176,7 +176,11 @@ class Turbine():
         self.NumBl              = fast.fst_vt['ElastoDyn']['NumBl']
         self.TowerHt            = fast.fst_vt['ElastoDyn']['TowerHt']
         self.shearExp           = 0.2  #HARD CODED FOR NOW
+        if 'default' in str(fast.fst_vt['AeroDyn15']['AirDens']):
+            fast.fst_vt['AeroDyn15']['AirDens'] = 1.225
         self.rho                = fast.fst_vt['AeroDyn15']['AirDens']
+        if 'default' in str(fast.fst_vt['AeroDyn15']['KinVisc']):
+            fast.fst_vt['AeroDyn15']['KinVisc'] = 1.460e-5
         self.mu                 = fast.fst_vt['AeroDyn15']['KinVisc']
         self.Ng                 = fast.fst_vt['ElastoDyn']['GBRatio']
         self.GenEff             = fast.fst_vt['ServoDyn']['GenEff']
@@ -191,7 +195,6 @@ class Turbine():
         self.yaw = 0.0
         self.J = self.rotor_inertia + self.generator_inertia * self.Ng**2
         self.rated_torque = self.rated_power/(self.GenEff/100*self.rated_rotor_speed*self.Ng)
-        self.max_torque = self.rated_torque * 1.1
         self.rotor_radius = self.TipRad
         # self.omega_dt = np.sqrt(self.DTTorSpr/self.J)
 
@@ -226,8 +229,8 @@ class Turbine():
             self.TSR_operational = self.Cp.TSR_opt
 
         # Pull out some floating-related data
-        wave_tp = fast.fst_vt['HydroDyn']['WaveTp'] 
         try:
+            wave_tp = fast.fst_vt['HydroDyn']['WaveTp'] 
             self.wave_peak_period = 1/wave_tp       # Will work if HydroDyn exists and a peak period is defined...
         except:
             self.wave_peak_period = 0.0             # Set as 0.0 when HydroDyn doesn't exist (fixed bottom)
@@ -255,7 +258,7 @@ class Turbine():
         
         # Generate the look-up tables, mesh the grid and flatten the arrays for cc_rotor aerodynamic analysis
         TSR_initial = np.arange(2, 15,0.5)
-        pitch_initial = np.arange(-5,25,0.5)
+        pitch_initial = np.arange(-5,31,1.)
         pitch_initial_rad = pitch_initial * deg2rad
         ws_array = np.ones_like(TSR_initial) * self.v_rated # evaluate at rated wind speed
         omega_array = (TSR_initial * ws_array / self.rotor_radius) * RadSec2rpm
@@ -506,16 +509,11 @@ class Turbine():
 
         # Create CC-Blade Rotor
         r0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlSpn']) 
-        chord0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlChord'])
-        theta0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlTwist'])
+        chord = np.array(self.fast.fst_vt['AeroDynBlade']['BlChord'])
+        theta = np.array(self.fast.fst_vt['AeroDynBlade']['BlTwist'])
         # -- Adjust for Aerodyn15
         r = r0 + self.Rhub
-        chord_intfun = interpolate.interp1d(r0,chord0, bounds_error=None, fill_value='extrapolate', kind='zero')
-        chord = chord_intfun(r)
-        theta_intfun = interpolate.interp1d(r0,theta0, bounds_error=None, fill_value='extrapolate', kind='zero')
-        theta = theta_intfun(r)
         af_idx = np.array(self.fast.fst_vt['AeroDynBlade']['BlAFID']).astype(int) - 1 #Reset to 0 index
-        AFNames = self.fast.fst_vt['AeroDyn15']['AFNames']   
 
         # Read OpenFAST Airfoil data, assumes AeroDyn > v15.03 and associated polars > v1.01
         af_dict = {}

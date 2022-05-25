@@ -137,32 +137,42 @@ class output_processing():
                 Time = fast_out['Time']
                 myleg.append(fast_out['meta']['name'])
                 if len(channels) > 1:  # Multiple channels
-                    for axj, channel in zip(axes, channels):
-                        try:
-                            # plot
-                            axj.plot(Time, fast_out[channel])
-                            # label
-                            unit_idx = fast_out['meta']['channels'].index(channel)
-                            axj.set_ylabel('{:^} \n ({:^})'.format(
-                                channel,
-                                fast_out['meta']['attribute_units'][unit_idx]))
-                            axj.grid(True)
-                        except:
-                            print('{} is not available as an output channel.'.format(channel))
+                    for axj, channel_tup in zip(axes, channels):
+                        if not isinstance(channel_tup, tuple):
+                            channel_tup = (channel_tup,)
+                        for cidx, channel in enumerate(channel_tup):
+                            try:
+                                # plot
+                                axj.plot(Time, fast_out[channel])
+                                # label
+                                unit_idx = fast_out['meta']['channels'].index(channel)
+                            except:
+                                print('{} is not available as an output channel.'.format(channel))
+                        axj.set_ylabel('{:^} \n ({:^})'.format(
+                            '\n'.join(channel_tup),
+                            fast_out['meta']['attribute_units'][unit_idx]))
+                        axj.grid(True)
                     axes[0].set_title(case)
                     
                 else:                       # Single channel
-                    try:
-                        # plot
-                        axes.plot(Time, fast_out[channel])
-                        # label
+                    if not isinstance(channels[0], tuple):
+                        channel_tup = (channels[0],)
+                    else:
+                        channel_tup = channels[0]
+                    for cidx, channel in enumerate(channel_tup):
+                        try:
+                            # plot
+                            axes.plot(Time, fast_out[channel])
+                            # label
+                            channel.replace(' ','\n')
+                            axes.grid(True)
+                            axes.set_title(case)
+                        except:
+                            print('{} is not available as an output channel.'.format(channel))
                         axes.set_ylabel('{:^} \n ({:^})'.format(
-                            channel,
+                            '\n'.join(channel_tup),
                             fast_out['meta']['attribute_units'][unit_idx]))
-                        axes.grid(True)
-                        axes.set_title(case)
-                    except:
-                        print('{} is not available as an output channel.'.format(channel))
+                
                 plt.legend(myleg, loc='upper center', bbox_to_anchor=(
                     0.5, 0.0), borderaxespad=2, ncol=len(fastout))
 

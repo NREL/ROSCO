@@ -52,10 +52,14 @@ def run_example():
     controller = ROSCO_controller.Controller(controller_params)
     turbine.load_from_fast(
         path_params['FAST_InputFile'],
-        os.path.join(tune_dir, path_params['FAST_directory']),
+        os.path.join(this_dir, path_params['FAST_directory']),
         dev_branch=True,
-        rot_source='txt', txt_filename=os.path.join(tune_dir, path_params['rotor_performance_filename'])
-    )
+        rot_source='txt', txt_filename=os.path.join(this_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
+        )
+
+    # Fix path params for robust setup
+    path_params['FAST_directory'] = os.path.join(this_dir, path_params['FAST_directory'])
+
     controller.tune_controller(turbine)
     k_float = controller.Kp_float
 
@@ -73,6 +77,8 @@ def run_example():
     options['ROSCO_options'] = ROSCO_options
     options['path_options'] = path_options
     options['opt_options'] = opt_options
+
+    options['linturb_options']['linfile_path'] = os.path.join(this_dir, options['linturb_options']['linfile_path'])
 
     # Run robust scheduling
     sd = rsched_driver(options)

@@ -14,3 +14,5 @@ Examples:
 10. Tune a controller for distributed aerodynamic control.
 11. Generate simplified linear models, save the parameters to a file.
 12. Run robust controller tuning
+13. Tune and run a controller with IPC
+14. Tune a controller with OpenLoop control commands inputs
