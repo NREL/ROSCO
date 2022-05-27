@@ -819,6 +819,16 @@ properties:
                     Ind_YawRate:
                         type: number
                         description: The column in OL_Filename that contains the generator torque in Nm
+                    DLL_FileName:
+                        type: string
+                        description: Name/location of the dynamic library {.dll [Windows] or .so [Linux]} in the Bladed-DLL format
+                    DLL_InFile:
+                        type: string
+                        description: Name of input file sent to the DLL
+                    DLL_ProcName:
+                        type: string
+                        description: Name of procedure in DLL to be called
+                        default: DISCON
 
     linmodel_tuning:
         type: object

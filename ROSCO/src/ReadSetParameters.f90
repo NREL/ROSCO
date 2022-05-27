@@ -401,6 +401,7 @@ CONTAINS
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
         CALL ParseInput(UnControllerParameters,CurLine,'PA_CornerFreq',accINFILE(1),CntrPar%PA_CornerFreq,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PA_Damping',accINFILE(1),CntrPar%PA_Damping,ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
 
         !------------ External control interface ------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
