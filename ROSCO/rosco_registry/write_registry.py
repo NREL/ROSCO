@@ -342,7 +342,14 @@ def read_type(param):
     elif param['type'] == 'c_integer':
         f90type = 'INTEGER(C_INT)'
     elif param['type'] == 'c_float':
-        f90type = 'INTEGER(C_FLOAT)'
+        f90type = 'REAL(C_FLOAT)'
+        if param['allocatable']:
+            if param['dimension']:
+                f90type += ', DIMENSION{}, ALLOCATABLE'.format(param['dimension'])
+            else:
+                f90type += ', DIMENSION(:), ALLOCATABLE'
+        elif param['dimension']:
+            f90type += ', DIMENSION{}'.format(param['dimension'])
     elif param['type'] == 'c_pointer':
         f90type = 'TYPE(C_PTR)'
     elif param['type'] == 'c_intptr_t':

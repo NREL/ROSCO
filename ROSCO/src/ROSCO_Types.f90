@@ -318,7 +318,7 @@ TYPE, PUBLIC :: ExtDLL_Type
 END TYPE ExtDLL_Type
 
 TYPE, PUBLIC :: ExtControlType
-    INTEGER(C_FLOAT)              :: avrSWAP                     ! The swap array- used to pass data to and from the DLL controller [see Bladed DLL documentation]
+    REAL(C_FLOAT), DIMENSION(:), ALLOCATABLE     :: avrSWAP                     ! The swap array- used to pass data to and from the DLL controller [see Bladed DLL documentation]
 END TYPE ExtControlType
 
 END MODULE ROSCO_Types

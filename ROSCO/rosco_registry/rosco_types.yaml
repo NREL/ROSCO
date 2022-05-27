@@ -1061,3 +1061,4 @@ ExtControlType:
     <<: *c_float
     description: The swap array- used to pass data to and from the DLL controller [see Bladed DLL documentation]
     allocatable: True
+    dimension: (:)
