@@ -81,7 +81,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! Flp_Mode          - Flap control mode {{0: no flap control, 1: steady state flap angle, 2: Proportional flap control, 2: Cyclic (1P) flap control}}\n'.format(int(rosco_vt['Flp_Mode'])))
     file.write('{0:<12d}        ! OL_Mode           - Open loop control mode {{0: no open loop control, 1: open loop control vs. time, 2: open loop control vs. wind speed}}\n'.format(int(rosco_vt['OL_Mode'])))
     file.write('{0:<12d}        ! PA_Mode           - Pitch actuator mode {{0 - not used, 1 - first order filter, 2 - second order filter}}\n'.format(int(rosco_vt['PA_Mode'])))
-    file.write('{0:<12d}        ! Ext_Mode          - External control mode {{0 - not used, 1 - call external dynamic library}}\n'.format(int(rosco_vt['PA_Mode'])))
+    file.write('{0:<12d}        ! Ext_Mode          - External control mode {{0 - not used, 1 - call external dynamic library}}\n'.format(int(rosco_vt['Ext_Mode'])))
     file.write('\n')
     file.write('!------- FILTERS ----------------------------------------------------------\n') 
     file.write('{:<13.5f}       ! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [rad/s]\n'.format(rosco_vt['F_LPFCornerFreq'])) 
@@ -390,6 +390,8 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['TD_Mode']          = int(controller.TD_Mode)
     DISCON_dict['Flp_Mode']         = int(controller.Flp_Mode)
     DISCON_dict['OL_Mode']          = int(controller.OL_Mode)
+    DISCON_dict['PA_Mode']          = int(controller.PA_Mode)
+    DISCON_dict['Ext_Mode']         = int(controller.Ext_Mode)
     # ------- FILTERS -------
     DISCON_dict['F_LPFCornerFreq']	    = turbine.bld_edgewise_freq * 1/4
     DISCON_dict['F_LPFDamping']		    = controller.F_LPFDamping

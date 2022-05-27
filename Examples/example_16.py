@@ -3,6 +3,8 @@
 Run openfast with ROSCO and external control interface
 -------------------------------------
 
+IEA-15MW will call NREL-5MW controller and read control inputs
+
 '''
 
 import os, platform
