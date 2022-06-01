@@ -470,7 +470,7 @@ CONTAINS
         TYPE(ErrorVariables),       INTENT(INOUT)   :: ErrVar
         
         ! Local variables
-        INTEGER(IntKi), PARAMETER                       :: UnPerfParameters = 89
+        INTEGER(IntKi)                                  :: UnPerfParameters
         INTEGER(IntKi)                                  :: i ! iteration index
 
         INTEGER(IntKi)                                  :: CurLine 
@@ -478,7 +478,7 @@ CONTAINS
         REAL(DbKi), DIMENSION(:), ALLOCATABLE          :: TmpPerf
 
         CurLine = 1
-
+        CALL GetNewUnit(UnPerfParameters, ErrVar)
         OPEN(unit=UnPerfParameters, file=TRIM(CntrPar%PerfFileName), status='old', action='read') ! Should put input file into DISCON.IN
         
         ! ----------------------- Axis Definitions ------------------------
