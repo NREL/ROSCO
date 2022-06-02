@@ -1,7 +1,8 @@
 default_types: 
   integer: &integer
     type: integer
-    description: 
+    description:
+    dimension: 
     allocatable: False
     equals: 
     size: 0
@@ -402,7 +403,9 @@ ControlParameters:
       description: The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)
     Ind_BldPitch:
       <<: *integer
-      description: The column in OL_Filename that contains the blade pitch input in rad
+      description: The columns in OL_Filename that contains the blade pitch inputs (1,2,3) in rad
+      # dimension: (3)
+      allocatable: True
     Ind_GenTq:
       <<: *integer
       description: The column in OL_Filename that contains the generator torque in Nm
@@ -413,10 +416,18 @@ ControlParameters:
       <<: *real
       allocatable: True
       description: Open loop breakpoints in timeseries
-    OL_BldPitch:
+    OL_BldPitch1:
       <<: *real
       allocatable: True
-      description: Open blade pitch timeseries
+      description: Open blade pitch 1 timeseries
+    OL_BldPitch2:
+      <<: *real
+      allocatable: True
+      description: Open blade pitch 2 timeseries
+    OL_BldPitch3:
+      <<: *real
+      allocatable: True
+      description: Open blade pitch 3 timeseries
     OL_GenTq:
       <<: *real
       allocatable: True

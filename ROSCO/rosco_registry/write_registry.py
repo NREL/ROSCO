@@ -326,6 +326,8 @@ def read_type(param):
         f90type = 'INTEGER(IntKi)'
         if param['allocatable']:
             f90type += ', DIMENSION(:), ALLOCATABLE'
+        elif param['dimension']:
+            f90type += ', DIMENSION{}'.format(param['dimension'])
     elif param['type'] == 'real':
         f90type = 'REAL(DbKi)'
         if param['allocatable']:

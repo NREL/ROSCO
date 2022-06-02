@@ -322,7 +322,7 @@ CONTAINS
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg = RoutineName//':A fatal error occurred when parsing data from "' &
                                 //TRIM( FileName )//'".'//NewLine//  &
-                                ' >> The "'//TRIM( AryName )//'" array was not assigned valid REAL values on line #' &
+                                ' >> The "'//TRIM( AryName )//'" array was not assigned valid INTEGER values on line #' &
                                 //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
                                 //'    "'//TRIM( Line )//'"' 
                 RETURN
@@ -449,7 +449,7 @@ CONTAINS
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg = RoutineName//':A fatal error occurred when parsing data from "' &
                             //TRIM( FileName )//'".'//NewLine//  &
-                            ' >> The "'//TRIM( AryName )//'" array was not assigned valid REAL values on line #' &
+                            ' >> The "'//TRIM( AryName )//'" array was not assigned valid INTEGER values on line #' &
                             //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
                             //'    "'//TRIM( Line )//'"' 
             RETURN

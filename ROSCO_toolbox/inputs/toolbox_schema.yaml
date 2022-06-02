@@ -418,18 +418,24 @@ properties:
                         description: Index (column, 1-indexed) of breakpoint (time) in open loop index
                         type: number
                         default: 1
+                        minimum: 0
                     OL_Ind_BldPitch:
-                        description: Index (column, 1-indexed) of breakpoint (time) in open loop index
-                        type: number
-                        default: 0
+                        description: Indices (columns, 1-indexed) of pitch (1,2,3) inputs in open loop input
+                        type: array
+                        items:
+                            type: number
+                            minimum: 0
+                        default: [0, 0, 0]
                     OL_Ind_GenTq:
-                        description: Index (column, 1-indexed) of breakpoint (time) in open loop index
+                        description: Index (column, 1-indexed) of generator torque in open loop input
                         type: number
                         default: 0
+                        minimum: 0
                     OL_Ind_YawRate:
-                        description: Index (column, 1-indexed) of breakpoint (time) in open loop index
+                        description: Index (column, 1-indexed) of nacelle yaw in open loop input
                         type: number
                         default: 0
+                        minimum: 0
             PA_CornerFreq:
                 type: number
                 description: Pitch actuator natural frequency [rad/s]

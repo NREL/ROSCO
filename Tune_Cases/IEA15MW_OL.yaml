@@ -51,7 +51,7 @@ controller_params:
   open_loop:
     flag: True
     OL_Ind_Breakpoint: 1
-    OL_Ind_BldPitch: 2
+    OL_Ind_BldPitch: [2,2,2]
     filename: /Users/dzalkind/Downloads/pitch_LC2p2_4ROSCO.dat
     # dt: 0.05
     # t_max: 200

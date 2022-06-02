@@ -378,7 +378,7 @@ CONTAINS
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
         CALL ParseInput(UnControllerParameters,CurLine,'OL_Filename',accINFILE(1),CntrPar%OL_Filename,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Ind_Breakpoint',accINFILE(1),CntrPar%Ind_Breakpoint,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Ind_BldPitch',accINFILE(1),CntrPar%Ind_BldPitch,ErrVar)
+        CALL ParseAry(UnControllerParameters, CurLine, 'Ind_BldPitch', CntrPar%Ind_BldPitch, 3, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'Ind_GenTq',accINFILE(1),CntrPar%Ind_GenTq,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Ind_YawRate',accINFILE(1),CntrPar%Ind_YawRate,ErrVar)
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
@@ -403,9 +403,28 @@ CONTAINS
         IF (CntrPar%OL_Mode == 1) THEN
             OL_String = ''      ! Display string
             OL_Count  = 1
-            IF (CntrPar%Ind_BldPitch > 0) THEN
-                OL_String   = TRIM(OL_String)//' BldPitch '
+            IF (CntrPar%Ind_BldPitch(1) > 0) THEN
+                OL_String   = TRIM(OL_String)//' BldPitch1 '
                 OL_Count    = OL_Count + 1
+            ENDIF
+
+            IF (CntrPar%Ind_BldPitch(2) > 0) THEN
+                OL_String   = TRIM(OL_String)//' BldPitch2 '
+                ! If there are duplicate indices, don't increment OL_Count
+                IF (.NOT. ((CntrPar%Ind_BldPitch(2) == CntrPar%Ind_BldPitch(1)) .OR. &
+                   (CntrPar%Ind_BldPitch(2) == CntrPar%Ind_BldPitch(3)))) THEN
+                    OL_Count    = OL_Count + 1
+                    PRINT *, "HERE"
+                ENDIF
+            ENDIF
+
+            IF (CntrPar%Ind_BldPitch(3) > 0) THEN
+                OL_String   = TRIM(OL_String)//' BldPitch3 '
+                ! If there are duplicate indices, don't increment OL_Count
+                IF (.NOT. ((CntrPar%Ind_BldPitch(3) == CntrPar%Ind_BldPitch(1)) .OR. &
+                   (CntrPar%Ind_BldPitch(3) == CntrPar%Ind_BldPitch(2)))) THEN
+                    OL_Count    = OL_Count + 1
+                ENDIF
             ENDIF
 
             IF (CntrPar%Ind_GenTq > 0) THEN
@@ -423,8 +442,17 @@ CONTAINS
 
             CntrPar%OL_Breakpoints = CntrPar%OL_Channels(:,CntrPar%Ind_Breakpoint)
 
-            IF (CntrPar%Ind_BldPitch > 0) THEN
-                CntrPar%OL_BldPitch = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch)
+            ! Set OL Inputs based on indices
+            IF (CntrPar%Ind_BldPitch(1) > 0) THEN
+                CntrPar%OL_BldPitch1 = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch(1))
+            ENDIF
+
+            IF (CntrPar%Ind_BldPitch(2) > 0) THEN
+                CntrPar%OL_BldPitch2 = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch(2))
+            ENDIF
+
+            IF (CntrPar%Ind_BldPitch(3) > 0) THEN
+                CntrPar%OL_BldPitch3 = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch(3))
             ENDIF
 
             IF (CntrPar%Ind_GenTq > 0) THEN
@@ -968,7 +996,9 @@ CONTAINS
 
         ! --- Open loop control ---
         IF (((CntrPar%Ind_Breakpoint) < 0) .OR. &
-        (CntrPar%Ind_BldPitch < 0) .OR. &
+        (CntrPar%Ind_BldPitch(1) < 0) .OR. &
+        (CntrPar%Ind_BldPitch(2) < 0) .OR. &
+        (CntrPar%Ind_BldPitch(3) < 0) .OR. &
         (CntrPar%Ind_GenTq < 0) .OR. &
         (CntrPar%Ind_YawRate < 0)) THEN
             ErrVar%aviFAIL = -1
