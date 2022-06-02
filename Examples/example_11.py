@@ -46,7 +46,7 @@ turbine.load_from_fast(
   os.path.join(this_dir,path_params['FAST_directory']),
   dev_branch=True,
   rot_source='txt',
-  txt_filename=os.path.join(tune_dir,path_params['rotor_performance_filename'])
+  txt_filename=os.path.join(tune_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
   )
 
 # Tune controller 

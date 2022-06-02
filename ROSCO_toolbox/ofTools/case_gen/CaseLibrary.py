@@ -149,26 +149,22 @@ def simp_step(**wind_case_opts):
 
     if 'T_Max' in wind_case_opts:
         T_max = wind_case_opts['T_Max']
-    else:
-        # Default Runtime
+    else: #default
         T_max   = 300.
 
     if 'U_start' in wind_case_opts:
         U_start = wind_case_opts['U_start']
-    else:
-        # Default Runtime
+    else: #default
         U_start   = [16]
 
     if 'U_end' in wind_case_opts:
         U_end = wind_case_opts['U_end']
-    else:
-        # Default Runtime
+    else: #default
         U_end   = [17]
 
     if 'T_step' in wind_case_opts:
         T_step = wind_case_opts['T_step']
-    else:
-        # Default Runtime
+    else: #default
         T_step   = 150
 
     # Step Wind Setup
