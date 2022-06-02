@@ -11,14 +11,15 @@ IMPLICIT NONE
 
 CONTAINS
 
-SUBROUTINE WriteRestartFile(LocalVar, CntrPar, objInst, RootName, size_avcOUTNAME)
+SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_avcOUTNAME)
     TYPE(LocalVariables), INTENT(IN)                :: LocalVar
     TYPE(ControlParameters), INTENT(INOUT)          :: CntrPar
     TYPE(ObjectInstances), INTENT(INOUT)            :: objInst
+    TYPE(ErrorVariables), INTENT(INOUT)             :: ErrVar
     INTEGER(IntKi), INTENT(IN)                      :: size_avcOUTNAME
     CHARACTER(size_avcOUTNAME-1), INTENT(IN)        :: RootName 
     
-    INTEGER(IntKi), PARAMETER    :: Un = 87             ! I/O unit for pack/unpack (checkpoint & restart)
+    INTEGER(IntKi)               :: Un                  ! I/O unit for pack/unpack (checkpoint & restart)
     INTEGER(IntKi)               :: I                   ! Generic index.
     CHARACTER(128)               :: InFile              ! Input checkpoint file
     INTEGER(IntKi)               :: ErrStat
@@ -27,6 +28,7 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, objInst, RootName, size_avcOUTNAM
 
     WRITE(n_t_global, '(I0.0)' ) NINT(LocalVar%Time/LocalVar%DT)
     InFile = RootName(1:size_avcOUTNAME-5)//TRIM( n_t_global )//'.RO.chkp'
+    CALL GetNewUnit(Un, ErrVar)
     OPEN(unit=Un, FILE=TRIM(InFile), STATUS='UNKNOWN', FORM='UNFORMATTED' , ACCESS='STREAM', IOSTAT=ErrStat, ACTION='WRITE' )
 
     IF ( ErrStat /= 0 ) THEN
@@ -199,7 +201,7 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
     INTEGER(IntKi), INTENT(IN)                      :: size_avcOUTNAME
     CHARACTER(size_avcOUTNAME-1), INTENT(IN)        :: RootName 
     
-    INTEGER(IntKi), PARAMETER    :: Un = 87             ! I/O unit for pack/unpack (checkpoint & restart)
+    INTEGER(IntKi)               :: Un                  ! I/O unit for pack/unpack (checkpoint & restart)
     INTEGER(IntKi)               :: I                   ! Generic index.
     CHARACTER(128)               :: InFile              ! Input checkpoint file
     INTEGER(IntKi)               :: ErrStat
@@ -208,6 +210,7 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
 
     WRITE(n_t_global, '(I0.0)' ) NINT(avrSWAP(2)/avrSWAP(3))
     InFile = RootName(1:size_avcOUTNAME-5)//TRIM( n_t_global )//'.RO.chkp'
+    CALL GetNewUnit(Un, ErrVar)
     OPEN(unit=Un, FILE=TRIM(InFile), STATUS='UNKNOWN', FORM='UNFORMATTED' , ACCESS='STREAM', IOSTAT=ErrStat, ACTION='READ' )
 
     IF ( ErrStat /= 0 ) THEN
@@ -376,20 +379,21 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
 END SUBROUTINE ReadRestartFile
 
  
-SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME)
+SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_avcOUTNAME)
 ! Debug routine, defines what gets printed to DEBUG.dbg if LoggingLevel = 1
 
     TYPE(ControlParameters), INTENT(IN) :: CntrPar
     TYPE(LocalVariables), INTENT(IN) :: LocalVar
     TYPE(DebugVariables), INTENT(IN) :: DebugVar
+    TYPE(ErrorVariables),       INTENT(INOUT)   :: ErrVar
 
     INTEGER(IntKi), INTENT(IN)      :: size_avcOUTNAME
     INTEGER(IntKi)                  :: I , nDebugOuts, nLocalVars   ! Generic index.
     CHARACTER(1), PARAMETER         :: Tab = CHAR(9)                ! The tab character.
     CHARACTER(29), PARAMETER        :: FmtDat = "(F20.5,TR5,99(ES20.5E2,TR5:))"   ! The format of the debugging data
-    INTEGER(IntKi), PARAMETER       :: UnDb = 85                    ! I/O unit for the debugging information
-    INTEGER(IntKi), PARAMETER       :: UnDb2 = 86                   ! I/O unit for the debugging information, avrSWAP
-    INTEGER(IntKi), PARAMETER       :: UnDb3 = 87                   ! I/O unit for the debugging information, avrSWAP
+    INTEGER(IntKi), SAVE            :: UnDb                         ! I/O unit for the debugging information
+    INTEGER(IntKi), SAVE            :: UnDb2                        ! I/O unit for the debugging information, avrSWAP
+    INTEGER(IntKi), SAVE            :: UnDb3                        ! I/O unit for the debugging information, avrSWAP
     REAL(ReKi), INTENT(INOUT)       :: avrSWAP(*)                   ! The swap array, used to pass data to, and receive data from, the DLL controller.
     CHARACTER(size_avcOUTNAME-1), INTENT(IN) :: RootName            ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
     CHARACTER(200)                  :: Version                      ! git version of ROSCO
@@ -524,6 +528,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME
     ! Initialize debug file
     IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN ! .TRUE. if we're on the first call to the DLL
         IF (CntrPar%LoggingLevel > 0) THEN
+            CALL GetNewUnit(UnDb, ErrVar)
             OPEN(unit=UnDb, FILE=RootName(1: size_avcOUTNAME-5)//'RO.dbg')
             WRITE(UnDb, *)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)
             WRITE(UnDb, '(99(a20,TR5:))') 'Time',   DebugOutStrings
@@ -531,6 +536,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME
         END IF
 
         IF (CntrPar%LoggingLevel > 1) THEN
+            CALL GetNewUnit(UnDb2, ErrVar)
             OPEN(unit=UnDb2, FILE=RootName(1: size_avcOUTNAME-5)//'RO.dbg2')
             WRITE(UnDb2, *)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)
             WRITE(UnDb2, '(99(a20,TR5:))') 'Time',   LocalVarOutStrings
@@ -538,6 +544,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME
         END IF
 
         IF (CntrPar%LoggingLevel > 2) THEN
+            CALL GetNewUnit(UnDb3, ErrVar)
             OPEN(unit=UnDb3, FILE=RootName(1: size_avcOUTNAME-5)//'RO.dbg3')
             WRITE(UnDb3,'(/////)')
             WRITE(UnDb3,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1, 85)
