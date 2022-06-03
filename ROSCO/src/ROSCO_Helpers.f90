@@ -662,6 +662,65 @@ SUBROUTINE GetPath ( GivenFil, PathName )
  RETURN
  END SUBROUTINE GetPath
 !=======================================================================
+!> Let's parse the root file name from the name of the given file.
+!! We'll count everything after the last period as the extension.
+!! Borrowed from NWTC_IO...thanks!
+
+   SUBROUTINE GetRoot ( GivenFil, RootName )
+
+      ! Argument declarations.
+
+   CHARACTER(*), INTENT(IN)     :: GivenFil                                     !< The name of the given file.
+   CHARACTER(*), INTENT(OUT)    :: RootName                                     !< The parsed root name of the given file.
+
+
+      ! Local declarations.
+
+   INTEGER                      :: I                                            ! DO index for character position.
+
+
+
+      ! Deal with a couple of special cases.
+
+   IF ( ( TRIM( GivenFil ) == "." ) .OR. (  TRIM( GivenFil ) == ".." ) )  THEN
+      RootName = TRIM( GivenFil )
+      RETURN
+   END IF
+
+
+      ! More-normal cases.
+
+   DO I=LEN_TRIM( GivenFil ),1,-1
+
+
+      IF ( GivenFil(I:I) == '.' )  THEN
+
+
+         IF ( I < LEN_TRIM( GivenFil ) ) THEN                   ! Make sure the index I is okay
+            IF ( INDEX( '\/', GivenFil(I+1:I+1)) == 0 ) THEN    ! Make sure we don't have the RootName in a different directory
+               RootName = GivenFil(:I-1)
+            ELSE
+               RootName = GivenFil                              ! This does not have a file extension
+            END IF
+         ELSE
+            IF ( I == 1 ) THEN
+               RootName = ''
+            ELSE
+               RootName = GivenFil(:I-1)
+            END IF
+         END IF
+
+         RETURN
+
+      END IF
+   END DO ! I
+
+   RootName =  GivenFil
+
+
+   RETURN
+   END SUBROUTINE GetRoot
+!=======================================================================
 !> This routine determines if the given file name is absolute or relative.
 !! We will consider an absolute path one that satisfies one of the
 !! following four criteria:

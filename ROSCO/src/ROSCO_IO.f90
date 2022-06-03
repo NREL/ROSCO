@@ -27,7 +27,7 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
     CHARACTER(128)               :: n_t_global          ! timestep number as a string
 
     WRITE(n_t_global, '(I0.0)' ) NINT(LocalVar%Time/LocalVar%DT)
-    InFile = RootName(1:size_avcOUTNAME-5)//TRIM( n_t_global )//'.RO.chkp'
+    InFile = TRIM(RootName)//TRIM( n_t_global )//'.RO.chkp'
     CALL GetNewUnit(Un, ErrVar)
     OPEN(unit=Un, FILE=TRIM(InFile), STATUS='UNKNOWN', FORM='UNFORMATTED' , ACCESS='STREAM', IOSTAT=ErrStat, ACTION='WRITE' )
 
@@ -209,7 +209,7 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
     CHARACTER(128)               :: n_t_global          ! timestep number as a string
 
     WRITE(n_t_global, '(I0.0)' ) NINT(avrSWAP(2)/avrSWAP(3))
-    InFile = RootName(1:size_avcOUTNAME-5)//TRIM( n_t_global )//'.RO.chkp'
+    InFile = TRIM(RootName)//TRIM( n_t_global )//'.RO.chkp'
     CALL GetNewUnit(Un, ErrVar)
     OPEN(unit=Un, FILE=TRIM(InFile), STATUS='UNKNOWN', FORM='UNFORMATTED' , ACCESS='STREAM', IOSTAT=ErrStat, ACTION='READ' )
 
@@ -529,7 +529,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN ! .TRUE. if we're on the first call to the DLL
         IF (CntrPar%LoggingLevel > 0) THEN
             CALL GetNewUnit(UnDb, ErrVar)
-            OPEN(unit=UnDb, FILE=RootName(1: size_avcOUTNAME-5)//'RO.dbg')
+            OPEN(unit=UnDb, FILE=TRIM(RootName)//'.RO.dbg')
             WRITE(UnDb, *)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)
             WRITE(UnDb, '(99(a20,TR5:))') 'Time',   DebugOutStrings
             WRITE(UnDb, '(99(a20,TR5:))') '(sec)',  DebugOutUnits
@@ -537,7 +537,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
 
         IF (CntrPar%LoggingLevel > 1) THEN
             CALL GetNewUnit(UnDb2, ErrVar)
-            OPEN(unit=UnDb2, FILE=RootName(1: size_avcOUTNAME-5)//'RO.dbg2')
+            OPEN(unit=UnDb2, FILE=TRIM(RootName)//'.RO.dbg2')
             WRITE(UnDb2, *)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)
             WRITE(UnDb2, '(99(a20,TR5:))') 'Time',   LocalVarOutStrings
             WRITE(UnDb2, '(99(a20,TR5:))')
@@ -545,7 +545,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
 
         IF (CntrPar%LoggingLevel > 2) THEN
             CALL GetNewUnit(UnDb3, ErrVar)
-            OPEN(unit=UnDb3, FILE=RootName(1: size_avcOUTNAME-5)//'RO.dbg3')
+            OPEN(unit=UnDb3, FILE=TRIM(RootName)//'.RO.dbg3')
             WRITE(UnDb3,'(/////)')
             WRITE(UnDb3,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1, 85)
             WRITE(UnDb3,'(A,85("'//Tab//'(-)"))')  '(s)'

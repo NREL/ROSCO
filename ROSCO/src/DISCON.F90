@@ -61,6 +61,7 @@ TYPE(ErrorVariables),           SAVE           :: ErrVar
 CHARACTER(*),                   PARAMETER      :: RoutineName = 'ROSCO'
 
 RootName = TRANSFER(avcOUTNAME, RootName)
+CALL GetRoot(RootName,RootName)
 !------------------------------------------------------------------------------------------------------------------------------
 ! Main control calculations
 !------------------------------------------------------------------------------------------------------------------------------
