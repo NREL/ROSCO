@@ -23,7 +23,7 @@ except ImportError:
 
 class LinearTurbineModel(object):
 
-    def __init__(self, lin_file_dir, lin_file_names, nlin=12, reduceStates=False, fromMat=False, lin_file=None, rm_hydro=False, load_parallel=False):
+    def __init__(self, lin_file_dir, lin_file_names, nlin=12, reduceStates=False, fromMat=False, fromPkl=False, mat_file=None, rm_hydro=False, load_parallel=False):
         '''
             inputs:    
                 lin_file_dir (string) - directory of linear file outputs from OpenFAST
@@ -35,7 +35,7 @@ class LinearTurbineModel(object):
                 rm_hydro (bool) - remove hydrodynamic states
                 load_parallel (bool) - run mbc3 usying multiprocessing
         '''
-        if not fromMat:
+        if not fromMat and not fromPkl:
 
             # Number of linearization cases or OpenFAST sims, different from nlin/NLinTimes in OpenFAST
             n_lin_cases = len(lin_file_names)
@@ -187,9 +187,56 @@ class LinearTurbineModel(object):
             # Trim the system
             self.trim_system(rm_azimuth=True, rm_hydro=rm_hydro)
 
+        elif fromPkl:
+            import pickle
+            if isinstance(lin_file_names, list):
+                print('list')
+                if len(lin_file_names) != 1:
+                    raise TypeError(
+                        'lin_file_names must be a string or list of length 1 to import matrices from a pickle.')
+                else:
+                    linfile = lin_file_names[0]
+            elif isinstance(lin_file_names, str):
+                linfile = lin_file_names
+            else: 
+                raise TypeError(
+                    'lin_file_names must be a string or list of length 1 to import matrices from a pickle.')
+
+            fname = os.path.join(lin_file_dir, linfile)
+            lin_mats = pickle.load(open(fname, 'rb'))[0]
+            print('Loading ABCD from ',fname)
+            self.A_ops = lin_mats['A']
+            self.B_ops = lin_mats['B']
+            self.C_ops = lin_mats['C']
+            self.D_ops = lin_mats['D']
+            self.x_ops = lin_mats['x_ops']
+            self.u_ops = lin_mats['u_ops']
+            self.y_ops = lin_mats['y_ops']
+            self.u_h = lin_mats['u_h']
+            self.omega_rpm = lin_mats['omega_rpm']
+            self.DescCntrlInpt = lin_mats['DescCntrlInpt']
+            self.DescStates = lin_mats['DescStates']
+            self.DescOutput = lin_mats['DescOutput']
+            self.StateDerivOrder = lin_mats['StateDerivOrder']
+            self.ind_fast_inps = lin_mats['ind_fast_inps']
+            self.ind_fast_outs = lin_mats['ind_fast_outs']
+
+            # Convert output RPM to rad/s
+            rpm_idx = np.flatnonzero(np.core.defchararray.find(self.DescOutput, 'rpm') > -1).tolist()
+            self.C_ops[rpm_idx, :, :] = rpm2radps(self.C_ops[rpm_idx, :, :])
+            self.DescOutput = [desc.replace('rpm', 'rad/s') for desc in self.DescOutput]
+            # Convert output deg to rad
+            deg_idx = np.flatnonzero(np.core.defchararray.find(self.DescOutput, 'deg') > -1).tolist()
+            self.C_ops[deg_idx, :, :] = deg2rad(self.C_ops[deg_idx, :, :])
+            self.DescOutput = [desc.replace('deg', 'rad') for desc in self.DescOutput]
+
+            # Other important things
+            self.n_lin_cases = lin_mats['A'].shape[2]
+            # Trim the system
+            self.trim_system(rm_azimuth=True, rm_hydro=rm_hydro)
 
         else:  # from matlab .mat file m
-            matDict = loadmat(lin_file)
+            matDict = loadmat(mat_file)
 
             # operating points
             # u_ops \in real(n_inps,n_ops)
