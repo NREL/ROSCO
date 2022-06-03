@@ -517,6 +517,9 @@ CONTAINS
             READ(UnPerfParameters, *) PerfData%Cq_mat(i,:) ! Read Cq table
         END DO
 
+        ! Close file
+        CLOSE(UnPerfParameters)
+
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN
             ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
