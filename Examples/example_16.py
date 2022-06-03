@@ -36,7 +36,6 @@ def main():
 
 
     # Ensure external control paths are okay
-    print('here')
     parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW_ExtInterface.yaml')
     run_dir = os.path.join(example_out_dir,'16_ExtInterface')
     os.makedirs(run_dir,exist_ok=True)
