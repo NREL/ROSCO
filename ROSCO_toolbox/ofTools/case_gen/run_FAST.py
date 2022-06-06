@@ -32,8 +32,11 @@ class run_FAST_ROSCO():
         self.wind_case_opts     = {}
         self.control_sweep_opts = {}
         self.control_sweep_fcn  = None
+        self.case_inputs        = {}
+        self.rosco_dll          = ''
         self.save_dir           = os.path.join(rosco_dir,'outputs')
         self.n_cores            = 1
+        self.base_name          = ''
 
     def run_FAST(self):
         # set up run directory
@@ -42,14 +45,16 @@ class run_FAST_ROSCO():
         else:
             sweep_name = 'base'
 
-        turbine_name = os.path.split(self.tuning_yaml)[-1].split('.')[0]
-        run_dir = os.path.join(self.save_dir,turbine_name,self.wind_case_fcn.__name__,sweep_name)
+        # Base name and run directory
+        if not self.base_name:
+            self.base_name = os.path.split(self.tuning_yaml)[-1].split('.')[0]
+        
+        run_dir = os.path.join(self.save_dir,self.base_name,self.wind_case_fcn.__name__,sweep_name)
 
         
         # Start with tuning yaml definition of controller
         if not os.path.isabs(self.tuning_yaml):
             self.tuning_yaml = os.path.join(tune_case_dir,self.tuning_yaml)
-
 
         # Load yaml file 
         inps = load_rosco_yaml(self.tuning_yaml)
@@ -87,17 +92,15 @@ class run_FAST_ROSCO():
         case_inputs = self.wind_case_fcn(**self.wind_case_opts)
         case_inputs.update(control_base_case)
 
-        # Specify rosco controller dylib
-        rosco_dll = '/Users/dzalkind/Tools/ROSCO/ROSCO/build/libdiscon.dylib' #'/Users/dzalkind/Tools/ROSCO_toolbox/ROSCO/build/libdiscon.dylib'
-
-        if not rosco_dll: # use WEIS ROSCO
-            run_dir1            = os.path.dirname( os.path.dirname( os.path.dirname( os.path.realpath(__file__) ) ) ) + os.sep
+        # Set up rosco_dll
+        if not self.rosco_dll: 
+            rosco_dir            = os.path.realpath(os.path.join(os.path.dirname(__file__),'../../..')) 
             if platform.system() == 'Windows':
-                rosco_dll = os.path.join(run_dir1, 'local/lib/libdiscon.dll')
+                rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.dll')
             elif platform.system() == 'Darwin':
-                rosco_dll = os.path.join(run_dir1, 'local/lib/libdiscon.dylib')
+                rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.dylib')
             else:
-                rosco_dll = os.path.join(run_dir1, 'local/lib/libdiscon.so')
+                rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.so')
 
         case_inputs[('ServoDyn','DLL_FileName')] = {'vals': [rosco_dll], 'group': 0}
 
@@ -110,9 +113,11 @@ class run_FAST_ROSCO():
         else:
             sweep_name = 'base'
 
+        # Add external user-defined case inputs
+        case_inputs.update(self.case_inputs)
             
         # Generate cases
-        case_list, case_name_list = CaseGen_General(case_inputs, dir_matrix=run_dir, namebase=turbine_name)
+        case_list, case_name_list = CaseGen_General(case_inputs, dir_matrix=run_dir, namebase=self.base_name)
         channels = cl.set_channels()
 
         # Management of parallelization, leave in for now
@@ -136,9 +141,6 @@ class run_FAST_ROSCO():
 
             # Run FAST cases
             fastBatch                   = runFAST_pywrapper_batch(FAST_ver='OpenFAST',dev_branch = True)
-            
-            # Select Turbine Model
-            model_dir                   = os.path.join(os.path.dirname( os.path.dirname( os.path.realpath(__file__) ) ), '01_aeroelasticse/OpenFAST_models')
 
             # FAST_directory (relative to Tune_Dir/)
             fastBatch.FAST_directory    = os.path.realpath(os.path.join(tune_case_dir,path_params['FAST_directory']))
