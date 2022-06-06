@@ -194,6 +194,7 @@ CONTAINS
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar                      ! Control parameter type
         
         INTEGER(IntKi)                                  :: UnControllerParameters  ! Unit number to open file
+        INTEGER(IntKi)                                  :: UnOpenLoop  ! Unit number to open file
         INTEGER(IntKi)                                  :: CurLine 
         ! INTEGER(IntKi), PARAMETER                       :: UnControllerParameters = 89  ! Unit number to open file
 
@@ -381,6 +382,8 @@ CONTAINS
         CALL ParseAry(UnControllerParameters, CurLine, 'Ind_BldPitch', CntrPar%Ind_BldPitch, 3, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'Ind_GenTq',accINFILE(1),CntrPar%Ind_GenTq,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Ind_YawRate',accINFILE(1),CntrPar%Ind_YawRate,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Ind_Azimuth',accINFILE(1),CntrPar%Ind_Azimuth,ErrVar)
+        CALL ParseAry(UnControllerParameters, CurLine, 'RP_Gains', CntrPar%RP_Gains, 3, accINFILE(1), ErrVar )
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
 
         !------------ Pitch Actuator Inputs ------------
@@ -400,7 +403,7 @@ CONTAINS
         IF (PathIsRelative(CntrPar%OL_Filename)) CntrPar%OL_Filename = TRIM(PriPath)//TRIM(CntrPar%OL_Filename)
         
         ! Read open loop input, if desired
-        IF (CntrPar%OL_Mode == 1) THEN
+        IF (CntrPar%OL_Mode > 0) THEN
             OL_String = ''      ! Display string
             OL_Count  = 1
             IF (CntrPar%Ind_BldPitch(1) > 0) THEN
@@ -414,7 +417,6 @@ CONTAINS
                 IF (.NOT. ((CntrPar%Ind_BldPitch(2) == CntrPar%Ind_BldPitch(1)) .OR. &
                    (CntrPar%Ind_BldPitch(2) == CntrPar%Ind_BldPitch(3)))) THEN
                     OL_Count    = OL_Count + 1
-                    PRINT *, "HERE"
                 ENDIF
             ENDIF
 
@@ -428,8 +430,12 @@ CONTAINS
             ENDIF
 
             IF (CntrPar%Ind_GenTq > 0) THEN
-                OL_String   = TRIM(OL_String)//' GenTq '
-                OL_Count    = OL_Count + 1
+                OL_Count    = OL_Count + 1  ! Read channel still, so we don't have issues
+                IF (CntrPar%OL_Mode == 2) THEN
+                    PRINT *, "ROSCO WARNING: Open-loop GenTq will be controlled in OL_Mode = 2, ignoring this column in open loop input"
+                ELSE
+                    OL_String   = TRIM(OL_String)//' GenTq '
+                ENDIF
             ENDIF
 
             IF (CntrPar%Ind_YawRate > 0) THEN
@@ -437,8 +443,16 @@ CONTAINS
                 OL_Count    = OL_Count + 1
             ENDIF
 
+            IF (CntrPar%Ind_Azimuth > 0) THEN
+                IF (CntrPar%OL_Mode == 2) THEN
+                    OL_String   = TRIM(OL_String)//' Azimuth '
+                    OL_Count    = OL_Count + 1
+                END IF
+            ENDIF
+
             PRINT *, 'ROSCO: Implementing open loop control for'//TRIM(OL_String)
-            CALL Read_OL_Input(CntrPar%OL_Filename,110_IntKi,OL_Count,CntrPar%OL_Channels, ErrVar)
+            CALL GetNewUnit(UnOpenLoop, ErrVar)
+            CALL Read_OL_Input(CntrPar%OL_Filename,UnOpenLoop,OL_Count,CntrPar%OL_Channels, ErrVar)
 
             CntrPar%OL_Breakpoints = CntrPar%OL_Channels(:,CntrPar%Ind_Breakpoint)
 
@@ -460,6 +474,10 @@ CONTAINS
             ENDIF
 
             IF (CntrPar%Ind_YawRate > 0) THEN
+                CntrPar%OL_YawRate = CntrPar%OL_Channels(:,CntrPar%Ind_YawRate)
+            ENDIF
+
+            IF (CntrPar%Ind_Azimuth > 0) THEN
                 CntrPar%OL_YawRate = CntrPar%OL_Channels(:,CntrPar%Ind_YawRate)
             ENDIF
         END IF

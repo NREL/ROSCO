@@ -412,6 +412,13 @@ ControlParameters:
     Ind_YawRate:
       <<: *integer
       description: The column in OL_Filename that contains the generator torque in Nm
+    Ind_Azimuth:
+      <<: *integer
+      description: The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
+    RP_Gains:
+      <<: *real
+      description: PID gains for rotor position control (used if OL_Mode = 2)
+      allocatable: True
     OL_Breakpoints:
       <<: *real
       allocatable: True

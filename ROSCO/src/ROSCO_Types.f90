@@ -108,6 +108,8 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: Ind_BldPitch                ! The columns in OL_Filename that contains the blade pitch inputs (1,2,3) in rad
     INTEGER(IntKi)                :: Ind_GenTq                   ! The column in OL_Filename that contains the generator torque in Nm
     INTEGER(IntKi)                :: Ind_YawRate                 ! The column in OL_Filename that contains the generator torque in Nm
+    INTEGER(IntKi)                :: Ind_Azimuth                 ! The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: RP_Gains                    ! PID gains for rotor position control (used if OL_Mode = 2)
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_Breakpoints              ! Open loop breakpoints in timeseries
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_BldPitch1                ! Open blade pitch 1 timeseries
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_BldPitch2                ! Open blade pitch 2 timeseries

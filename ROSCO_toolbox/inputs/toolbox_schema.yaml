@@ -492,6 +492,9 @@ properties:
                     Flp_Mode:
                         type: number
                         description: Flap control mode (0- no flap control, 1- steady state flap angle, 2- Proportional flap control)
+                    OL_Mode:
+                        type: number
+                        description: Open loop control mode (0 - no open-loop control, 1 - direct open loop control, 2 - rotor position control)
                     F_LPFCornerFreq:
                         type: number
                         description: Corner frequency (-3dB point) in the low-pass filters, 
@@ -821,7 +824,7 @@ properties:
                         description: Input file with open loop timeseries (absolute path or relative to this file)
                     Ind_Breakpoint:
                         type: number
-                        description: The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)
+                        description: The column in OL_Filename that contains the breakpoint (time if OL_Mode > 0)
                     Ind_BldPitch:
                         type: number
                         description: The column in OL_Filename that contains the blade pitch input in rad
@@ -831,6 +834,16 @@ properties:
                     Ind_YawRate:
                         type: number
                         description: The column in OL_Filename that contains the generator torque in Nm
+                    Ind_Azimuth:
+                        type: number
+                        description: The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
+                        default: 0
+                    RP_Gains:
+                        type: array
+                        description: PID gains for rotor position control (used if OL_Mode = 2)
+                        default: [0,0,0]
+                        items:
+                            type: number
                     DLL_FileName:
                         type: string
                         description: Name/location of the dynamic library {.dll [Windows] or .so [Linux]} in the Bladed-DLL format

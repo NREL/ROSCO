@@ -28,6 +28,8 @@ import numpy as np
 import subprocess
 import ROSCO_toolbox
 
+from wisdem.inputs import load_yaml
+
 # Some useful constants
 now = datetime.datetime.now()
 pi = np.pi
@@ -55,6 +57,10 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     # Get ROSCO var tree if not provided
     if not rosco_vt:
         rosco_vt = DISCON_dict(turbine, controller, txt_filename)
+
+    # Get input descriptions
+    input_schema = load_yaml(os.path.join(os.path.dirname(__file__),'inputs/toolbox_schema.yaml'))
+    discon_props = input_schema['properties']['controller_params']['properties']['DISCON']['properties']
 
     print('Writing new controller parameter file parameter file: %s.' % param_file)
     # Should be obvious what's going on here...
@@ -198,6 +204,8 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<3d} {0:<3d} {0:<3d}         ! Ind_BldPitch      - The columns in OL_Filename that contains the blade pitch (1,2,3) inputs in rad [array]\n'.format(int(rosco_vt['Ind_BldPitch'])))
     file.write('{0:<12d}        ! Ind_GenTq         - The column in OL_Filename that contains the generator torque in Nm\n'.format(int(rosco_vt['Ind_GenTq'])))
     file.write('{0:<12d}        ! Ind_YawRate       - The column in OL_Filename that contains the generator torque in Nm\n'.format(int(rosco_vt['Ind_YawRate'])))
+    file.write(f'{rosco_vt["Ind_Azimuth"]:<12d}        ! Ind_Azimuth - {discon_props["Ind_Azimuth"]["description"]}\n')
+    file.write('{}        ! {} - {}\n'.format(' '.join([f'{g:02.4f}' for g in rosco_vt["RP_Gains"]]),"RP_Gains",discon_props["RP_Gains"]["description"]))
     file.write('\n')
     file.write('!------- Pitch Actuator Model -----------------------------------------------------\n')
     file.write('{:<014.5f}        ! PA_CornerFreq     - Pitch actuator bandwidth/cut-off frequency [rad/s]\n'.format(rosco_vt['PA_CornerFreq']))
