@@ -1,0 +1,65 @@
+'''
+----------- Example_17 --------------
+Run ROSCO with rotor position control
+-------------------------------------
+
+Run a steady simulation, use the azimuth output as an input to the next steady simulation, with different ICs 
+
+'''
+
+import os, platform
+from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
+from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
+import shutil
+
+
+#directories
+this_dir            = os.path.dirname(os.path.abspath(__file__))
+rosco_dir         = os.path.dirname(this_dir)
+example_out_dir     = os.path.join(this_dir,'examples_out')
+os.makedirs(example_out_dir,exist_ok=True)
+
+if platform.system() == 'Windows':
+    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.dll'))
+elif platform.system() == 'Darwin':
+    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.dylib'))
+else:
+    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.so'))
+
+
+def main():
+
+    # Ensure external control paths are okay
+    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW.yaml')
+    run_dir = os.path.join(example_out_dir,'17_RotPos')
+    os.makedirs(run_dir,exist_ok=True)
+
+    # Case input for RotSpeed IC
+    case_inputs = {}
+    case_inputs[("ElastoDyn","RotSpeed")]    = {'vals':[5], 'group':0}
+    
+    # Steady simualtion with initial RotSpeed of 5 rpm
+    r = run_FAST_ROSCO()
+    r.tuning_yaml   = parameter_filename
+    r.wind_case_fcn = cl.power_curve
+    r.wind_case_opts    = {
+        'U': [16],
+        'T_max': 200
+        }
+    r.save_dir      = run_dir
+    r.case_inputs   = case_inputs
+    # r.run_FAST()
+
+    # Gather azimuth output
+    print('here')
+
+    # run again with slower IC
+    case_inputs[("ElastoDyn","RotSpeed")]    = {'vals':[4], 'group':0}
+    r.case_inputs   = case_inputs
+    r.base_name     = 'slow'
+    r.run_FAST()
+
+
+
+if __name__=="__main__":
+    main()
