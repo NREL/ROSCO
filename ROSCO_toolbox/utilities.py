@@ -201,7 +201,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('!------- Open Loop Control -----------------------------------------------------\n')
     file.write('"{}"            ! OL_Filename       - Input file with open loop timeseries (absolute path or relative to this file)\n'.format(rosco_vt['OL_Filename']))
     file.write('{0:<12d}        ! Ind_Breakpoint    - The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)\n'.format(int(rosco_vt['Ind_Breakpoint'])))
-    file.write('{0:<3d} {0:<3d} {0:<3d}         ! Ind_BldPitch      - The columns in OL_Filename that contains the blade pitch (1,2,3) inputs in rad [array]\n'.format(int(rosco_vt['Ind_BldPitch'])))
+    file.write('{}         ! Ind_BldPitch      - The columns in OL_Filename that contains the blade pitch (1,2,3) inputs in rad [array]\n'.format(' '.join([f'{ipb:3d}' for ipb in rosco_vt['Ind_BldPitch']])))
     file.write('{0:<12d}        ! Ind_GenTq         - The column in OL_Filename that contains the generator torque in Nm\n'.format(int(rosco_vt['Ind_GenTq'])))
     file.write('{0:<12d}        ! Ind_YawRate       - The column in OL_Filename that contains the generator torque in Nm\n'.format(int(rosco_vt['Ind_YawRate'])))
     file.write(f'{rosco_vt["Ind_Azimuth"]:<12d}        ! Ind_Azimuth - {discon_props["Ind_Azimuth"]["description"]}\n')
@@ -217,9 +217,6 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('"{}"            ! DLL_ProcName        - Name of procedure in DLL to be called (-) \n'.format(rosco_vt['DLL_ProcName']))    
     file.close()
     
-    # Write Open loop input
-    if rosco_vt['OL_Mode'] and hasattr(controller, 'OpenLoop'):
-        write_ol_control(controller)
 
 def read_DISCON(DISCON_filename):
     '''
@@ -501,11 +498,12 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['Flp_Ki']           = controller.Ki_flap[-1]
     DISCON_dict['Flp_MaxPit']       = controller.flp_maxpit
     # ------- Open Loop Control -------
-    DISCON_dict['OL_Filename']     = controller.OL_Filename
-    DISCON_dict['Ind_Breakpoint']  = controller.OL_Ind_Breakpoint
-    DISCON_dict['Ind_BldPitch']    = controller.OL_Ind_BldPitch
-    DISCON_dict['Ind_GenTq']       = controller.OL_Ind_GenTq
-    DISCON_dict['Ind_YawRate']     = controller.OL_Ind_YawRate
+    DISCON_dict['OL_Filename']     = controller.controller_params['open_loop']['filename']
+    DISCON_dict['Ind_Breakpoint']  = controller.controller_params['open_loop']['Ind_Breakpoint']
+    DISCON_dict['Ind_BldPitch']    = controller.controller_params['open_loop']['Ind_BldPitch']
+    DISCON_dict['Ind_GenTq']       = controller.controller_params['open_loop']['Ind_GenTq']
+    DISCON_dict['Ind_YawRate']     = controller.controller_params['open_loop']['Ind_YawRate']
+    DISCON_dict['Ind_Azimuth']     = controller.controller_params['open_loop']['Ind_Azimuth']
     # ------- Pitch Actuator -------
     DISCON_dict['PA_Mode']         = controller.PA_Mode
     DISCON_dict['PA_CornerFreq']   = controller.PA_CornerFreq

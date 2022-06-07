@@ -430,12 +430,8 @@ CONTAINS
             ENDIF
 
             IF (CntrPar%Ind_GenTq > 0) THEN
+                OL_String   = TRIM(OL_String)//' GenTq '
                 OL_Count    = OL_Count + 1  ! Read channel still, so we don't have issues
-                IF (CntrPar%OL_Mode == 2) THEN
-                    PRINT *, "ROSCO WARNING: Open-loop GenTq will be controlled in OL_Mode = 2, ignoring this column in open loop input"
-                ELSE
-                    OL_String   = TRIM(OL_String)//' GenTq '
-                ENDIF
             ENDIF
 
             IF (CntrPar%Ind_YawRate > 0) THEN
@@ -1021,6 +1017,16 @@ CONTAINS
         (CntrPar%Ind_YawRate < 0)) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg = 'All open loop control indices must be greater than zero'
+        ENDIF
+
+        IF (CntrPar%OL_Mode == 2) THEN
+            IF ((CntrPar%Ind_BldPitch(1) < 0) .OR. &
+            (CntrPar%Ind_BldPitch(2) < 0) .OR. &
+            (CntrPar%Ind_BldPitch(3) < 0) .OR. &
+            (CntrPar%Ind_GenTq < 0)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'If OL_Mode = 2, Ind_BldPitch and Ind_GenTq must be greater than zero'
+            ENDIF
         ENDIF
 
         ! --- Pitch Actuator ---

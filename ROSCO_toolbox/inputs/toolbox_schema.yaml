@@ -414,28 +414,31 @@ properties:
                         description: Filename of open loop input that ROSCO reads
                         type: string
                         default: unused
-                    OL_Ind_Breakpoint:
+                    Ind_Breakpoint:
                         description: Index (column, 1-indexed) of breakpoint (time) in open loop index
                         type: number
                         default: 1
                         minimum: 0
-                    OL_Ind_BldPitch:
+                    Ind_BldPitch:
                         description: Indices (columns, 1-indexed) of pitch (1,2,3) inputs in open loop input
                         type: array
                         items:
                             type: number
                             minimum: 0
                         default: [0, 0, 0]
-                    OL_Ind_GenTq:
+                    Ind_GenTq:
                         description: Index (column, 1-indexed) of generator torque in open loop input
                         type: number
                         default: 0
                         minimum: 0
-                    OL_Ind_YawRate:
+                    Ind_YawRate:
                         description: Index (column, 1-indexed) of nacelle yaw in open loop input
                         type: number
                         default: 0
                         minimum: 0
+                    Ind_Azimuth:
+                        type: number
+                        description: The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
             PA_CornerFreq:
                 type: number
                 description: Pitch actuator natural frequency [rad/s]
@@ -837,7 +840,6 @@ properties:
                     Ind_Azimuth:
                         type: number
                         description: The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
-                        default: 0
                     RP_Gains:
                         type: array
                         description: PID gains for rotor position control (used if OL_Mode = 2)

@@ -10,7 +10,10 @@ Run a steady simulation, use the azimuth output as an input to the next steady s
 import os, platform
 from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
 from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
-import shutil
+from ROSCO_toolbox.ofTools.fast_io import output_processing
+from ROSCO_toolbox.controller import OpenLoopControl
+import numpy as np
+
 
 
 #directories
@@ -50,13 +53,30 @@ def main():
     r.case_inputs   = case_inputs
     # r.run_FAST()
 
-    # Gather azimuth output
-    print('here')
+    # Gather azimuth, blade pitch, generator torque output
+    op = output_processing.output_processing()
+    fast_out = op.load_fast_out(os.path.join(example_out_dir,'17_RotPos/IEA15MW/power_curve/base/IEA15MW_0.outb'), tmin=0)
 
-    # run again with slower IC
+    olc = OpenLoopControl()
+    olc.ol_timeseries['time'] = fast_out[0]['Time']
+    olc.ol_timeseries['blade_pitch1'] = np.radians(fast_out[0]['BldPitch1'])
+    olc.ol_timeseries['blade_pitch2'] = np.radians(fast_out[0]['BldPitch2'])
+    olc.ol_timeseries['blade_pitch3'] = np.radians(fast_out[0]['BldPitch3'])
+    olc.ol_timeseries['generator_torque'] = fast_out[0]['GenTq'] * 1000
+    olc.ol_timeseries['azimuth'] = fast_out[0]['Azimuth']
+
+    # set up control_params for next run
+    open_loop = olc.write_input(os.path.join(run_dir,'ol_input.dat'))
+    controller_params = {}
+    controller_params['open_loop'] = open_loop
+    controller_params['OL_Mode'] = 2
+
+
+    # run again with slower IC and rotor position control
     case_inputs[("ElastoDyn","RotSpeed")]    = {'vals':[4], 'group':0}
     r.case_inputs   = case_inputs
-    r.base_name     = 'slow'
+    r.base_name     = 'rpc'
+    r.controller_params = controller_params
     r.run_FAST()
 
 
