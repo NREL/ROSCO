@@ -15,11 +15,21 @@ IPC
 - A wind speed based soft cut-in using a sigma interpolation is added for the IPC controller
 
 ====== =================    ======================================================================================================================================================================================================
-Line    Flag Name           Example Value
+Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
 19     TD_Mode              0                    ! TD_Mode           - Tower damper mode {0: no tower damper, 1: feed back translational nacelle accelleration to pitch angle}
 21     PA_Mode              0                    ! PA_Mode           - Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
+23     Ext_Mode             0                    ! Ext_Mode          - External control mode {0 - not used, 1 - call external dynamic library}
 49     IPC_Vramp            9.120000  11.400000  ! IPC_Vramp	- Start and end wind speeds for cut-in ramp function. First entry: IPC inactive, second entry: IPC fully active. [m/s]
+135    Empty Line           N/A
+136    PitchActSec          !------- Pitch Actuator Model -----------------------------------------------------
+136    PA_CornerFreq        3.140000000000        ! PA_CornerFreq     - Pitch actuator bandwidth/cut-off frequency [rad/s]
+136    PA_Damping           0.707000000000        ! PA_Damping        - Pitch actuator damping ratio [-, unused if PA_Mode = 1]
+139    DLL_FileName         
+139    DLL_FileName         !------- External Controller Interface -----------------------------------------------------
+139    DLL_FileName         "unused"            ! DLL_FileName        - Name/location of the dynamic library in the Bladed-DLL format
+139    DLL_FileName         "unused"            ! DLL_InFile          - Name of input file sent to the DLL (-)
+139    DLL_FileName         "DISCON"            ! DLL_ProcName        - Name of procedure in DLL to be called (-) 
 ====== =================    ======================================================================================================================================================================================================
 
 
@@ -41,8 +51,9 @@ IPC
 - Proportional Control capabilities were added, 1P and 2P gains should be specified
 
 ====== =================    ======================================================================================================================================================================================================
-Line    Flag Name           Example Value
+Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
+20     OL_Mode              0                   ! OL_Mode           - Open loop control mode {0: no open loop control, 1: open loop control vs. time, 2: open loop control vs. wind speed}
 27     F_WECornerFreq       0.20944             ! F_WECornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s].
 29     F_FlHighPassFreq     0.01000             ! F_FlHighPassFreq  - Natural frequency of first-order high-pass filter for nacelle fore-aft motion [rad/s].
 50     IPC_KP               0.000000  0.000000  ! IPC_KP			- Proportional gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions, [-]
