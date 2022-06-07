@@ -14,6 +14,12 @@ Thus, be sure to implement each in order so that subsequent line numbers are cor
 IPC
 - A wind speed based soft cut-in using a sigma interpolation is added for the IPC controller
 
+Pitch Actuator
+- A first or second order filter can be used to model a pitch actuator
+
+Exetrnal Control Interface
+- Call another control library from ROSCO
+
 ====== =================    ======================================================================================================================================================================================================
 Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
@@ -25,11 +31,11 @@ Line    Input Name           Example Value
 136    PitchActSec          !------- Pitch Actuator Model -----------------------------------------------------
 136    PA_CornerFreq        3.140000000000        ! PA_CornerFreq     - Pitch actuator bandwidth/cut-off frequency [rad/s]
 136    PA_Damping           0.707000000000        ! PA_Damping        - Pitch actuator damping ratio [-, unused if PA_Mode = 1]
-139    DLL_FileName         
-139    DLL_FileName         !------- External Controller Interface -----------------------------------------------------
-139    DLL_FileName         "unused"            ! DLL_FileName        - Name/location of the dynamic library in the Bladed-DLL format
-139    DLL_FileName         "unused"            ! DLL_InFile          - Name of input file sent to the DLL (-)
-139    DLL_FileName         "DISCON"            ! DLL_ProcName        - Name of procedure in DLL to be called (-) 
+139    Empty Line          
+140    ExtConSec            !------- External Controller Interface -----------------------------------------------------
+141    DLL_FileName         "unused"            ! DLL_FileName        - Name/location of the dynamic library in the Bladed-DLL format
+142    DLL_InFile           "unused"            ! DLL_InFile          - Name of input file sent to the DLL (-)
+143    DLL_ProcName         "DISCON"            ! DLL_ProcName        - Name of procedure in DLL to be called (-) 
 ====== =================    ======================================================================================================================================================================================================
 
 
