@@ -8,24 +8,28 @@ if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the build type: Debug RelWithDebInfo Release" FORCE)
 endif()
 
-option(ZMQ_CLIENT "Enable use of ZeroMQ client" off)
-
 message(STATUS "CMAKE_Fortran_COMPILER_ID = ${CMAKE_Fortran_COMPILER_ID}")
 if(APPLE OR UNIX)
-  # Enable .dll export
-  if (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -r8 -double-size 64 -cpp -lzmq -no-wrap-margin")
-  else()
-     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -ffree-line-length-0 -fdefault-real-8 -fdefault-double-8 -cpp -lzmq")  
-  endif()
+# Enable .dll export
+if (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
+set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -r8 -double-size 64 -cpp -no-wrap-margin")
+else()
+set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -ffree-line-length-0 -fdefault-real-8 -fdefault-double-8 -cpp")  
+endif()
 elseif (WIN32)
-  if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-    # Ensure static linking to avoid requiring Fortran runtime dependencies
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ffree-line-length-0 -static-libgcc -static-libgfortran -static -fdefault-real-8 -fdefault-double-8 -cpp -lzmq")
-  elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -libs:static -free -static -fpp -lzmq -real-size:64 -double-size:64")
+if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+# Ensure static linking to avoid requiring Fortran runtime dependencies
+set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ffree-line-length-0 -static-libgcc -static-libgfortran -static -fdefault-real-8 -fdefault-double-8 -cpp")
+elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
+set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -libs:static -free -static -fpp -real-size:64 -double-size:64")
 #     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} /ffree-line-length-0 /static-libgcc /static-libgfortran /static /fdefault-real-8 /fdefault-double-8 /cpp")
-  endif()
+endif()
+endif()
+
+# Enable ZMQ_Client if compiler flag is set
+option(ZMQ_CLIENT "Enable use of ZeroMQ client" off)
+if(ZMQ_Client)
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -lzmq")
 endif()
 
 
