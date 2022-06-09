@@ -19,6 +19,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: F_WECornerFreq              ! Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_FlCornerFreq              ! Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s].
     REAL(DbKi)                    :: F_FlHighPassFreq            ! Natural frequency of first-roder high-pass filter for nacelle fore-aft motion [rad/s].
+    REAL(DbKi)                    :: F_YawErr                    ! Corner low pass filter corner frequency for yaw controller [rad/s].
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_FlpCornerFreq             ! Corner frequency (-3dB point) in the second order low pass filter of the blade root bending moment for flap control [rad/s].
     INTEGER(IntKi)                :: TD_Mode                     ! Tower damper mode (0- no tower damper, 1- feed back translational nacelle accelleration to pitch angle
     REAL(DbKi)                    :: FA_HPFCornerFreq            ! Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]
@@ -77,17 +78,10 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: WE_FOPoles_v                ! Wind speeds corresponding to first-order system poles [m/s]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: WE_FOPoles                  ! First order system poles
     INTEGER(IntKi)                :: Y_ControlMode               ! Yaw control mode {0 - no yaw control, 1 - yaw rate control, 2 - yaw-by-IPC}
-    REAL(DbKi)                    :: Y_ErrThresh                 ! Error threshold [rad]. Turbine begins to yaw when it passes this. (104.71975512) -- 1.745329252
-    REAL(DbKi)                    :: Y_IPC_IntSat                ! Integrator saturation (maximum signal amplitude contrbution to pitch from yaw-by-IPC)
-    INTEGER(IntKi)                :: Y_IPC_n                     ! Number of controller gains (yaw-by-IPC)
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: Y_IPC_KP                    ! Yaw-by-IPC proportional controller gain Kp
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: Y_IPC_KI                    ! Yaw-by-IPC integral controller gain Ki
-    REAL(DbKi)                    :: Y_IPC_omegaLP               ! Low-pass filter corner frequency for the Yaw-by-IPC controller to filtering the yaw alignment error, [rad/s].
-    REAL(DbKi)                    :: Y_IPC_zetaLP                ! Low-pass filter damping factor for the Yaw-by-IPC controller to filtering the yaw alignment error, [-].
-    REAL(DbKi)                    :: Y_MErrSet                   ! Yaw alignment error, setpoint [rad]
-    REAL(DbKi)                    :: Y_omegaLPFast               ! Corner frequency fast low pass filter, 1.0 [Hz]
-    REAL(DbKi)                    :: Y_omegaLPSlow               ! Corner frequency slow low pass filter, 1/60 [Hz]
+    REAL(DbKi)                    :: Y_uSwitch                   ! Wind speed to switch between Y_ErrThresh. If zero, only the first value of Y_ErrThresh is used [rad]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: Y_ErrThresh                 ! Error threshold [rad]. Turbine begins to yaw when it passes this
     REAL(DbKi)                    :: Y_Rate                      ! Yaw rate [rad/s]
+    REAL(DbKi)                    :: Y_MErrSet                   ! Yaw alignment error, setpoint (for wake steering) [rad]
     INTEGER(IntKi)                :: PS_Mode                     ! Pitch saturation mode {0 - no peak shaving, 1 -  implement pitch saturation}
     INTEGER(IntKi)                :: PS_BldPitchMin_N            ! Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PS_WindSpeeds               ! Wind speeds corresponding to minimum blade pitch angles [m/s]
@@ -184,7 +178,8 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: VS_GenPwr                   ! Generator power [W]
     REAL(DbKi)                    :: GenSpeed                    ! Generator speed (HSS) [rad/s]
     REAL(DbKi)                    :: RotSpeed                    ! Rotor speed (LSS) [rad/s]
-    REAL(DbKi)                    :: Y_M                         ! Yaw direction [rad]
+    REAL(DbKi)                    :: NacHeading                  ! Nacelle heading of the turbine w.r.t. north [deg]
+    REAL(DbKi)                    :: NacVane                     ! Nacelle vane angle [deg]
     REAL(DbKi)                    :: HorWindV                    ! Hub height wind speed m/s
     REAL(DbKi)                    :: rootMOOP(3)                 ! Blade root bending moment [Nm]
     REAL(DbKi)                    :: rootMOOPF(3)                ! Filtered Blade root bending moment [Nm]
@@ -240,11 +235,6 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: WE_VwI                      ! Integrated wind speed quantity for estimation [m/s]
     REAL(DbKi)                    :: WE_VwIdot                   ! Differentiated integrated wind speed quantity for estimation [m/s]
     REAL(DbKi)                    :: VS_LastGenTrqF              ! Differentiated integrated wind speed quantity for estimation [m/s]
-    REAL(DbKi)                    :: Y_AccErr                    ! Accumulated yaw error [rad].
-    REAL(DbKi)                    :: Y_ErrLPFFast                ! Filtered yaw error by fast low pass filter [rad].
-    REAL(DbKi)                    :: Y_ErrLPFSlow                ! Filtered yaw error by slow low pass filter [rad].
-    REAL(DbKi)                    :: Y_MErr                      ! Measured yaw error, measured + setpoint [rad].
-    REAL(DbKi)                    :: Y_YawEndT                   ! Yaw end time [s]. Indicates the time up until which yaw is active with a fixed rate
     LOGICAL                       :: SD                          ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None
@@ -296,6 +286,11 @@ TYPE, PUBLIC :: DebugVariables
     REAL(DbKi)                    :: axisYaw_1P                  ! Yaw component of coleman transformation, 1P
     REAL(DbKi)                    :: axisTilt_2P                 ! Tilt component of coleman transformation, 2P
     REAL(DbKi)                    :: axisYaw_2P                  ! Yaw component of coleman transformation, 2P
+    REAL(DbKi)                    :: YawRateCom                  ! Commanded yaw rate [rad/s].
+    REAL(DbKi)                    :: NacHeadingTarget            ! Target nacelle heading [rad].
+    REAL(DbKi)                    :: NacVaneOffset               ! Nacelle vane angle with offset [rad].
+    REAL(DbKi)                    :: Yaw_err                     ! Yaw error [rad].
+    REAL(DbKi)                    :: YawState                    ! State of yaw controller
 END TYPE DebugVariables
 
 TYPE, PUBLIC :: ErrorVariables
@@ -311,5 +306,14 @@ TYPE, PUBLIC :: ExtDLL_Type
     CHARACTER(1024)               :: FileName                    ! The name of the DLL file including the full path to the current working directory.
     CHARACTER(1024)               :: ProcName(3) = ""            ! The name of the procedure in the DLL that will be called.
 END TYPE ExtDLL_Type
+
+TYPE, PUBLIC :: ZMQ_Variables
+    LOGICAL                       :: ZMQ_Flag                    ! Flag if we're using zeroMQ at all (0-False, 1-True)
+    CHARACTER(256)                :: ZMQ_CommAddress             ! Comm Address to zeroMQ client
+    INTEGER(IntKi)                :: ZMQ_UpdateFreq              ! Integer for zeromq update frequency
+    INTEGER(IntKi)                :: ZMQ_UpdateCounter           ! Integer for zeromq update frequency/counter
+    INTEGER(IntKi)                :: ZMQ_YawCntrl                ! Flag for zeromq yaw control (0-off, 1-on}
+    REAL(DbKi)                    :: Yaw_Offset                  ! Yaw offsety command, [rad]
+END TYPE ZMQ_Variables
 
 END MODULE ROSCO_Types

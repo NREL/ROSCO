@@ -36,9 +36,6 @@ CONTAINS
         REAL(DbKi)                                      :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
         REAL(DbKi)                                      :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
 
-        ! ----- Calculate yaw misalignment error -----
-        LocalVar%Y_MErr = LocalVar%Y_M + CntrPar%Y_MErrSet ! Yaw-alignment error
-        
         ! ----- Pitch controller speed and power error -----
         ! Implement setpoint smoothing
         IF (LocalVar%SS_DelOmegaF < 0) THEN

@@ -26,6 +26,7 @@ USE             :: Constants
 USE             :: Filters
 USE             :: Functions
 USE             :: ROSCO_IO
+USE             :: ZeroMQInterface
 
 IMPLICIT NONE
 ! Enable .dll export
@@ -56,6 +57,7 @@ TYPE(ObjectInstances),          SAVE           :: objInst
 TYPE(PerformanceData),          SAVE           :: PerfData
 TYPE(DebugVariables),           SAVE           :: DebugVar
 TYPE(ErrorVariables),           SAVE           :: ErrVar
+TYPE(ZMQ_Variables),            SAVE           :: zmqVar
 
 CHARACTER(*),                   PARAMETER      :: RoutineName = 'ROSCO'
 
@@ -66,17 +68,17 @@ RootName = TRANSFER(avcOUTNAME, RootName)
 
 ! Check for restart
 IF ( (NINT(avrSWAP(1)) == -9) .AND. (aviFAIL >= 0))  THEN ! Read restart files
-    CALL ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootName, SIZE(avcOUTNAME), ErrVar)
+    CALL ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootName, SIZE(avcOUTNAME), zmqVar, ErrVar)
     IF ( CntrPar%LoggingLevel > 0 ) THEN
         CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, SIZE(avcOUTNAME))
     END IF 
 END IF
 
 ! Read avrSWAP array into derived types/variables
-CALL ReadAvrSWAP(avrSWAP, LocalVar)
+CALL ReadAvrSWAP(avrSWAP, LocalVar, zmqVar)
 
 ! Set Control Parameters
-CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, ErrVar)
+CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, zmqVar, ErrVar)
 
 ! Filter signals
 CALL PreFilterMeasuredSignals(CntrPar, LocalVar, DebugVar, objInst, ErrVar)
@@ -84,6 +86,9 @@ CALL PreFilterMeasuredSignals(CntrPar, LocalVar, DebugVar, objInst, ErrVar)
 IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAIL >= 0))  THEN  ! Only compute control calculations if no error has occurred and we are not on the last time step
     IF ((LocalVar%iStatus == -8) .AND. (ErrVar%aviFAIL >= 0))  THEN ! Write restart files
         CALL WriteRestartFile(LocalVar, CntrPar, objInst, RootName, SIZE(avcOUTNAME))    
+    ENDIF
+    IF (zmqVar%ZMQ_Flag) THEN
+        CALL UpdateZeroMQ(LocalVar, zmqVar, ErrVar)
     ENDIF
     
     CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
@@ -94,7 +99,7 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
     CALL PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
     
     IF (CntrPar%Y_ControlMode > 0) THEN
-        CALL YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
+        CALL YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, zmqVar, DebugVar, ErrVar)
     END IF
     
     IF (CntrPar%Flp_Mode > 0) THEN
