@@ -60,6 +60,7 @@ class Controller():
         self.PS_Mode            = controller_params['PS_Mode']
         self.SD_Mode            = controller_params['SD_Mode']
         self.Fl_Mode            = controller_params['Fl_Mode']
+        self.TD_Mode            = controller_params['TD_Mode']
         self.Flp_Mode           = controller_params['Flp_Mode']
 
         # Necessary parameters
@@ -147,6 +148,11 @@ class Controller():
                 raise Exception(f'Open-loop control set up, but the open loop file {self.OL_Filename} does not exist')
             
 
+        # Pitch actuator parameters
+        self.PA_Mode = controller_params['PA_Mode']
+        self.PA_CornerFreq = controller_params['PA_CornerFreq']
+        self.PA_Damping = controller_params['PA_Damping']
+
         # Save controller_params for later (direct passthrough)
         self.controller_params = controller_params
 
@@ -180,6 +186,8 @@ class Controller():
         Ng = turbine.Ng                         # Gearbox ratio (-)
         rated_rotor_speed = turbine.rated_rotor_speed               # Rated rotor speed (rad/s)
 
+        # ------------- Saturation Limits --------------- #
+        turbine.max_torque = turbine.rated_torque * self.controller_params['max_torque_factor']
 
         # -------------Define Operation Points ------------- #
         TSR_rated = rated_rotor_speed*R/turbine.v_rated  # TSR at rated
