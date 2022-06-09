@@ -88,7 +88,7 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
         CALL WriteRestartFile(LocalVar, CntrPar, objInst, RootName, SIZE(avcOUTNAME))    
     ENDIF
     IF (zmqVar%ZMQ_Flag) THEN
-        CALL UpdateZeroMQ(LocalVar, zmqVar, ErrVar)
+        CALL UpdateZeroMQ(LocalVar, CntrPar, zmqVar, ErrVar)
     ENDIF
     
     CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)

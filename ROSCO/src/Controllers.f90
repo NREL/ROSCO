@@ -289,7 +289,7 @@ CONTAINS
             ENDIF
             
             ! Compute/apply offset
-            IF (zmqVar%ZMQ_YawCntrl == 1) THEN
+            IF (CntrPar%ZMQ_Mode == 1) THEN
                 NacVaneOffset = zmqVar%Yaw_Offset
             ELSE
                 NacVaneOffset = CntrPar%Y_MErrSet ! (deg) # Offset from setpoint

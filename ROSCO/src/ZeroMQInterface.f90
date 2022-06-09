@@ -4,12 +4,13 @@ module ZeroMQInterface
     ! 
 
 CONTAINS
-    SUBROUTINE UpdateZeroMQ(LocalVar, zmqVar, ErrVar)
-        USE ROSCO_Types, ONLY : LocalVariables, ZMQ_Variables, ErrorVariables
+    SUBROUTINE UpdateZeroMQ(LocalVar, CntrPar, zmqVar, ErrVar)
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ZMQ_Variables, ErrorVariables
         IMPLICIT NONE
-        TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
-        TYPE(ZMQ_Variables), INTENT(INOUT)  :: zmqVar
-        TYPE(ErrorVariables), INTENT(INOUT) :: ErrVar
+        TYPE(LocalVariables),    INTENT(INOUT) :: LocalVar
+        TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
+        TYPE(ZMQ_Variables),     INTENT(INOUT) :: zmqVar
+        TYPE(ErrorVariables),    INTENT(INOUT) :: ErrVar
 
         character(256) :: zmq_address
         real(C_DOUBLE) :: setpoints(5)
@@ -57,9 +58,9 @@ CONTAINS
 #else
             ! Add RoutineName to error message
             ErrVar%aviFAIL = -1
-            IF (zmqVar%ZMQ_YawCntrl > 0) THEN
+            IF (CntrPar%ZMQ_Mode > 0) THEN
                 ErrVar%ErrMsg = " >> The ZeroMQ client has not been properly installed, " &
-                                //"please install it to use ZMQ_YawCntrl == 1."
+                                //"please install it to use ZMQ_Mode > 0."
                 ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
             ENDIF
 #endif

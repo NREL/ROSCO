@@ -197,7 +197,7 @@ CONTAINS
             ENDIF
             
             ! Check if we're using zeromq
-            IF (zmqVar%ZMQ_YawCntrl == 1) THEN ! add .OR. statements as more functionality is built in
+            IF (CntrPar%ZMQ_Mode == 1) THEN ! add .OR. statements as more functionality is built in
                 zmqVar%ZMQ_Flag = .TRUE.
             ENDIF
 
@@ -262,7 +262,7 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_Mode',accINFILE(1),CntrPar%Flp_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'OL_Mode',accINFILE(1),CntrPar%OL_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PA_Mode',accINFILE(1),CntrPar%PA_Mode,ErrVar)
-
+		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_Mode',accINFILE(1), CntrPar%ZMQ_Mode,ErrVar)
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !----------------- FILTER CONSTANTS ---------------------
@@ -405,7 +405,6 @@ CONTAINS
 
         !------------ ZeroMQ ------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_YawCntrl',accINFILE(1), zmqVar%ZMQ_YawCntrl,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_CommAddress',accINFILE(1), zmqVar%ZMQ_CommAddress,ErrVar)
 		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_updateFreq',accINFILE(1), zmqVar%ZMQ_UpdateFreq,ErrVar)
 		zmqVar%ZMQ_UpdateCounter = 99999999 ! Initialize as very large number
@@ -450,6 +449,9 @@ CONTAINS
                 CntrPar%OL_YawRate = CntrPar%OL_Channels(:,CntrPar%Ind_YawRate)
             ENDIF
         END IF
+
+        ! Convert yaw rate to deg/s
+        CntrPar%Y_Rate = CntrPar%Y_Rate * R2D
 
         ! Debugging outputs (echo someday)
         ! write(400,*) CntrPar%OL_YawRate

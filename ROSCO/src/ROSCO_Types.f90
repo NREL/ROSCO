@@ -77,7 +77,7 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: WE_FOPoles_N                ! Number of first-order system poles used in EKF
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: WE_FOPoles_v                ! Wind speeds corresponding to first-order system poles [m/s]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: WE_FOPoles                  ! First order system poles
-    INTEGER(IntKi)                :: Y_ControlMode               ! Yaw control mode {0 - no yaw control, 1 - yaw rate control, 2 - yaw-by-IPC}
+    INTEGER(IntKi)                :: Y_ControlMode               ! Yaw control mode {0 - no yaw control, 1 - yaw rate control}
     REAL(DbKi)                    :: Y_uSwitch                   ! Wind speed to switch between Y_ErrThresh. If zero, only the first value of Y_ErrThresh is used [rad]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: Y_ErrThresh                 ! Error threshold [rad]. Turbine begins to yaw when it passes this
     REAL(DbKi)                    :: Y_Rate                      ! Yaw rate [rad/s]
@@ -110,6 +110,7 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: PA_Mode                     ! Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
     REAL(DbKi)                    :: PA_CornerFreq               ! Pitch actuator bandwidth/cut-off frequency [rad/s]
     REAL(DbKi)                    :: PA_Damping                  ! Pitch actuator damping ratio [-, unused if PA_Mode = 1]
+    INTEGER(IntKi)                :: ZMQ_Mode                    ! Flag for ZeroMQ (0-off, 1-yaw}
     REAL(DbKi)                    :: PC_RtTq99                   ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(DbKi)                    :: VS_MaxOMTq                  ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(DbKi)                    :: VS_MinOMTq                  ! Minimum torque at the beginning of the below-rated region 2, [Nm]
@@ -312,7 +313,6 @@ TYPE, PUBLIC :: ZMQ_Variables
     CHARACTER(256)                :: ZMQ_CommAddress             ! Comm Address to zeroMQ client
     INTEGER(IntKi)                :: ZMQ_UpdateFreq              ! Integer for zeromq update frequency
     INTEGER(IntKi)                :: ZMQ_UpdateCounter           ! Integer for zeromq update frequency/counter
-    INTEGER(IntKi)                :: ZMQ_YawCntrl                ! Flag for zeromq yaw control (0-off, 1-on}
     REAL(DbKi)                    :: Yaw_Offset                  ! Yaw offsety command, [rad]
 END TYPE ZMQ_Variables
 

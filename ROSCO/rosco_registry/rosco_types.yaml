@@ -298,7 +298,7 @@ ControlParameters:
     # Yaw Controller
     Y_ControlMode:
       <<: *integer
-      description: Yaw control mode {0 - no yaw control, 1 - yaw rate control, 2 - yaw-by-IPC}
+      description: Yaw control mode {0 - no yaw control, 1 - yaw rate control}
     Y_uSwitch:
       <<: *real
       description: Wind speed to switch between Y_ErrThresh. If zero, only the first value of Y_ErrThresh is used [rad]
@@ -418,6 +418,10 @@ ControlParameters:
       <<: *real
       description: Pitch actuator damping ratio [-, unused if PA_Mode = 1]
     
+    # ZeroMQ
+    ZMQ_Mode:
+      <<: *integer
+      description: Flag for ZeroMQ (0-off, 1-yaw}
     # Calculated
     PC_RtTq99:
       <<: *real
@@ -1029,9 +1033,6 @@ ZMQ_Variables:
   ZMQ_UpdateCounter:
     <<: *integer
     description: Integer for zeromq update frequency/counter
-  ZMQ_YawCntrl:
-    <<: *integer
-    description: Flag for zeromq yaw control (0-off, 1-on}
   Yaw_Offset:
     <<: *real
     description: Yaw offsety command, [rad]
