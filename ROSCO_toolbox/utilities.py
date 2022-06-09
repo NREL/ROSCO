@@ -197,6 +197,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('!------- Pitch Actuator Model -----------------------------------------------------\n')
     file.write('{:<014.5f}        ! PA_CornerFreq     - Pitch actuator bandwidth/cut-off frequency [rad/s]\n'.format(rosco_vt['PA_CornerFreq']))
     file.write('{:<014.5f}        ! PA_Damping        - Pitch actuator damping ratio [-, unused if PA_Mode = 1]\n'.format(rosco_vt['PA_Damping']))
+    file.write('\n')
     file.write('!------- ZeroMQ Interface ---------------------------------------------------------\n')
     file.write('"{}"            ! ZMQ_CommAddress     - Communication address for ZMQ server \n'.format(rosco_vt['ZMQ_CommAddress']))
     file.write('{:<11d}         ! ZMQ_updateFreq      - Call ZeroMQ every [x] timesteps, [integer]\n'.format(int(rosco_vt['ZMQ_updateFreq'])))
