@@ -86,7 +86,7 @@ class ControllerInterface():
         self.avrSWAP[22]    = 0
 
 
-        # Code this as first casll
+        # Code this as first call
         self.avrSWAP[0] = 0
 
         # Put some values in
@@ -126,43 +126,53 @@ class ControllerInterface():
         self.avrSWAP = data
 
 
-    def call_controller(self,t,dt,pitch,torque,genspeed,geneff,rotspeed,ws,NacIMU_FA_Acc=0):
+    def call_controller(self, turbine_state, end=False): 
         '''
         Runs the controller. Passes current turbine state to the controller, and returns control inputs back
         
         Parameters:
         -----------
-        t: float
-           time, (s)
-        dt: float
-            timestep, (s)
-        pitch: float
-               blade pitch, (rad)
-        genspeed: float
-                  generator speed, (rad/s)
-        geneff: float
-                  generator efficiency, (rad/s)
-        rotspeed: float
-                  rotor speed, (rad/s)
-        ws: float
-            wind speed, (m/s)
-        NacIMU_FA_Acc : float
-            nacelle IMU accel. in the nodding dir. , (m/s**2)
-            default to 0 (fixed-bottom, simple 1-DOF sim does not include it, but OpenFAST linearizations do)
+        turbine_state: dict
+            t: float
+                time, (s)
+            dt: float
+                timestep, (s)
+            pitch: float
+                blade pitch, (rad)
+            genspeed: float
+                    generator speed, (rad/s)
+            geneff: float
+                    generator efficiency, (rad/s)
+            rotspeed: float
+                    rotor speed, (rad/s)
+            ws: float
+                wind speed, (m/s)
+            yaw: float, optional
+                nacelle yaw position (from north) (deg)
+            yawerr: float, optional
+                yaw misalignment, defined as the wind direction minus the yaw
+                position (deg)
         '''
 
         # Add states to avr
-        self.avrSWAP[1] = t
-        self.avrSWAP[2] = dt
-        self.avrSWAP[3] = pitch
-        self.avrSWAP[32] = pitch
-        self.avrSWAP[33] = pitch
-        self.avrSWAP[14] = genspeed*torque*geneff
-        self.avrSWAP[22] = torque
-        self.avrSWAP[19] = genspeed
-        self.avrSWAP[20] = rotspeed
-        self.avrSWAP[26] = ws
-        self.avrSWAP[82] = NacIMU_FA_Acc
+        self.avrSWAP[0] = turbine_state['iStatus']
+        self.avrSWAP[1] = turbine_state['t']
+        self.avrSWAP[2] = turbine_state['dt']
+        self.avrSWAP[3] =  turbine_state['bld_pitch']
+        self.avrSWAP[32] = turbine_state['bld_pitch']
+        self.avrSWAP[33] = turbine_state['bld_pitch']
+        self.avrSWAP[14] = turbine_state['gen_speed'] * turbine_state['gen_torque'] * turbine_state['gen_eff']
+        self.avrSWAP[22] = turbine_state['gen_torque']
+        self.avrSWAP[19] = turbine_state['gen_speed']
+        self.avrSWAP[20] = turbine_state['rot_speed']
+        self.avrSWAP[23] = turbine_state['Y_MeasErr']
+        self.avrSWAP[26] = turbine_state['ws']
+        self.avrSWAP[36] = turbine_state['Yaw_fromNorth']
+        try:
+            self.avrSWAP[82] = turbine_state['NacIMU_FA_Acc']
+        except KeyError:
+            self.avrSWAP[82] = 0
+
 
         # call controller
         self.call_discon()
@@ -170,8 +180,13 @@ class ControllerInterface():
         # return controller states
         self.pitch = self.avrSWAP[41]
         self.torque = self.avrSWAP[46]
+        self.nac_yawrate = self.avrSWAP[47]
 
-        return(self.torque,self.pitch)
+        if end:
+            print('LAST TIMESETP OF SIM')
+            self.avrSWAP[0] = -1
+
+        return(self.torque,self.pitch,self.nac_yawrate)
 
     def show_control_values(self):
         '''
