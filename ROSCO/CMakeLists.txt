@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
-project(ROSCO VERSION 2.5.0 LANGUAGES Fortran)
+project(ROSCO VERSION 2.5.0 LANGUAGES Fortran C)
 
 set(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/ftnmods")
 
@@ -8,20 +8,21 @@ if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the build type: Debug RelWithDebInfo Release" FORCE)
 endif()
 
+option(ZMQ_CLIENT "Enable use of ZeroMQ client" off)
+
 message(STATUS "CMAKE_Fortran_COMPILER_ID = ${CMAKE_Fortran_COMPILER_ID}")
 if(APPLE OR UNIX)
   # Enable .dll export
   if (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -r8 -double-size 64 -cpp -no-wrap-margin")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -r8 -double-size 64 -cpp -lzmq -no-wrap-margin")
   else()
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -ffree-line-length-0 -fdefault-real-8 -fdefault-double-8 -cpp")
-  endif()
+     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -ffree-line-length-0 -fdefault-real-8 -fdefault-double-8 -cpp -lzmq")  endif()
 elseif (WIN32)
   if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
     # Ensure static linking to avoid requiring Fortran runtime dependencies
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ffree-line-length-0 -static-libgcc -static-libgfortran -static -fdefault-real-8 -fdefault-double-8 -cpp")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ffree-line-length-0 -static-libgcc -static-libgfortran -static -fdefault-real-8 -fdefault-double-8 -cpp -lzmq")
   elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -libs:static -free -static -fpp -real-size:64 -double-size:64")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -libs:static -free -static -fpp -lzmq -real-size:64 -double-size:64")
 #     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} /ffree-line-length-0 /static-libgcc /static-libgfortran /static /fdefault-real-8 /fdefault-double-8 /cpp")
   endif()
 endif()
@@ -37,6 +38,7 @@ set(SOURCES
     src/Functions.f90
     src/ReadSetParameters.f90
     src/ROSCO_IO.f90
+    src/ZeroMQInterface.f90
 )
 
 if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
@@ -61,7 +63,38 @@ else (NWTC_SYS_FILE)
 endif (NWTC_SYS_FILE)
 
 # Library
+if(ZMQ_CLIENT)
+	# Find ZeroMQ installation
+	find_package(PkgConfig)
+	pkg_check_modules(PC_ZeroMQ libzmq)
+	find_path(ZeroMQ_INCLUDE_DIR
+			NAMES zmq.h
+			PATHS ${PC_ZeroMQ_INCLUDE_DIRS}
+			)
+	find_library(ZeroMQ_LIBRARY
+			NAMES zmq
+			PATHS ${PC_ZeroMQ_LIBRARY_DIRS}
+			)
+	include_directories(${ZeroMQ_INCLUDE_DIR})
+
+
+	# Compile C-based ZeroMQ client as object library
+	add_compile_options(-I${ZeroMQ_INCLUDE_DIR} -l${ZeroMQ_LIBRARY} -fPIC)
+	add_library(zmq_client OBJECT ../src/zmq_client.c)
+
+	# Add definition
+	add_definitions(-DZMQ_CLIENT="TRUE")
+    set(SOURCES ${SOURCES}
+	$<TARGET_OBJECTS:zmq_client>)
+endif()
+
 add_library(discon SHARED ${SOURCES})
+
+if(ZMQ_CLIENT)
+	target_include_directories(discon PUBLIC ${ZeroMQ_INCLUDE_DIR})
+	target_link_libraries(discon PUBLIC ${ZeroMQ_LIBRARY})
+endif()
+
 
 install(TARGETS discon
   EXPORT "${CMAKE_PROJECT_NAME}Libraries"
