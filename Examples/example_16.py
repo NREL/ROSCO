@@ -179,7 +179,7 @@ class turbine_zmq_server():
 
 
 def run_zmq():
-    s = turbine_zmq_server(network_address="tcp://*:5555", timeout=30.0, verbose=True)
+    s = turbine_zmq_server(network_address="tcp://*:5555", timeout=10.0, verbose=True)
     while True:
         #  Get latest measurements from ROSCO
         measurements = s.get_measurements()
@@ -220,7 +220,7 @@ def sim_rosco():
     if platform.system() == 'Windows':
         lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.dll')
     elif platform.system() == 'Darwin':
-        lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.dylib')
+        lib_name = os.path.join(this_dir, '../ROSCO/build-zmq/libdiscon.dylib')
     else:
         lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.so')
 

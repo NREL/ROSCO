@@ -1,8 +1,8 @@
 import os
 import unittest
-import sys
 from time import time
 import importlib
+import platform 
 
 all_scripts = [
     'example_01',
@@ -20,6 +20,7 @@ all_scripts = [
     'example_13',
     'example_14',
     'example_15',
+    'example_16', #zmq example - only executes on unix 
 ]
 
 def execute_script(fscript):
@@ -49,12 +50,13 @@ class TestExamples(unittest.TestCase):
 
     def test_all_scripts(self):
         for ks, s in enumerate(all_scripts):
-            with self.subTest(f"Running: {s}", i=ks):
-                try:
-                    execute_script(s)
-                    self.assertTrue(True)
-                except:
-                    self.assertEqual(s, "Success")    
+            if not platform.system() == 'Windows' and s=='example_16':
+                with self.subTest(f"Running: {s}", i=ks):
+                    try:
+                        execute_script(s)
+                        self.assertTrue(True)
+                    except:
+                        self.assertEqual(s, "Success")    
 
 
 def suite():

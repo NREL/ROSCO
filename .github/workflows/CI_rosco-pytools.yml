@@ -110,11 +110,24 @@ jobs:
           cd python-toolbox
           python -m pip install -e .
         
+      # Install ZeroMQ
+      - name: Install ZeroMQ
+        run: apt-get install libzmq3-de
 
       # Install ROSCO toolbox
       - name: Install ROSCO toolbox
         run: |
-          python setup.py install --compile-rosco
+          python setup.py install 
+
+      - name: Configure and Build ROSCO - unix
+        working-directory: ${{runner.workspace}}/ROSCO/ROSCO/build
+        run: |
+          cmake \
+            -DCMAKE_INSTALL_PREFIX:PATH=${{runner.workspace}}/ROSCO/ROSCO/install \
+            -DZMQ_CLIENT=ON
+            -DCMAKE_Fortran_COMPILER:STRING=${{env.FORTRAN_COMPILER}} \
+            ..
+          cmake --build . --target install
           
       # Install OpenFAST
       - name: Install OpenFAST
