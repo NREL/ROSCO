@@ -92,6 +92,9 @@ jobs:
           python-version: 3.8
           environment-file: environment.yml
 
+      # setup cmake
+      - name: Setup Workspace
+        run: cmake -E make_directory ${{runner.workspace}}/ROSCO/ROSCO/build
 
       # Install dependencies of ROSCO toolbox
       - name: Add dependencies ubuntu specific
