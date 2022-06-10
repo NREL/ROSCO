@@ -312,7 +312,15 @@ ControlParameters:
     Y_MErrSet:
       <<: *real
       description: Yaw alignment error, setpoint (for wake steering) [rad]
-    
+    Y_IPC_IntSat:
+      <<: *real
+      description: Integrator saturation (maximum signal amplitude contrbution to pitch from yaw-by-IPC)
+    Y_IPC_KP:
+      <<: *real
+      description: Yaw-by-IPC proportional controller gain Kp
+    Y_IPC_KI:
+      <<: *real
+      description: Yaw-by-IPC integral controller gain Ki
     # Pitch Saturation
     PS_Mode:
       <<: *integer

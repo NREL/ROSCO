@@ -159,6 +159,9 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{}! Y_ErrThresh    - Yaw error threshold. Turbine begins to yaw when it passes this. If Y_uSwitch is zero, only the first value is used. [deg].\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['Y_ErrThresh'][i]) for i in range(len(rosco_vt['F_FlCornerFreq'])))))
     file.write('{:<13.5f}       ! Y_Rate			- Yaw rate [rad/s]\n'.format(rosco_vt['Y_Rate']))
     file.write('{:<13.5f}       ! Y_MErrSet		- Integrator saturation (maximum signal amplitude contribution to pitch from yaw-by-IPC), [rad]\n'.format(rosco_vt['Y_MErrSet']))
+    file.write('{:<13.5f}       ! Y_IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from yaw-by-IPC), [rad]\n'.format(rosco_vt['Y_IPC_IntSat']))
+    file.write('{:<13.5f}       ! Y_IPC_KP			- Yaw-by-IPC proportional controller gain Kp\n'.format(rosco_vt['Y_IPC_KP']))
+    file.write('{:<13.5f}       ! Y_IPC_KI			- Yaw-by-IPC integral controller gain Ki\n'.format(rosco_vt['Y_IPC_KI']))
     file.write('\n')
     file.write('!------- TOWER FORE-AFT DAMPING -------------------------------------------\n')
     file.write('{:<13.5f}       ! FA_KI				- Integral gain for the fore-aft tower damper controller [rad s/m]\n'.format(rosco_vt['FA_KI'] ))
@@ -461,6 +464,9 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['Y_ErrThresh']  = [4.0, 8.0] # NJA: hard coding these params right now b/c we can just use the DISCON pass-through if needed
     DISCON_dict['Y_Rate']       = 0.0087 #0.5 deg/s
     DISCON_dict['Y_MErrSet']    = 0.0
+    DISCON_dict['Y_IPC_IntSat'] = 0.0
+    DISCON_dict['Y_IPC_KP'] = 0.0
+    DISCON_dict['Y_IPC_KI'] = 0.0
     # ------- TOWER FORE-AFT DAMPING -------
     DISCON_dict['FA_KI']                = -1
     DISCON_dict['FA_HPFCornerFreq'] = 0.0

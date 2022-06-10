@@ -352,6 +352,9 @@ CONTAINS
         CALL ParseAry(UnControllerParameters, CurLine, 'Y_ErrThresh', CntrPar%Y_ErrThresh, 2, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'Y_Rate',accINFILE(1),CntrPar%Y_Rate,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Y_MErrSet',accINFILE(1),CntrPar%Y_MErrSet,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_IntSat',accINFILE(1),CntrPar%Y_IPC_IntSat,ErrVar)
+        CALL ParseInput(UnControllerParameters, CurLine,'Y_IPC_KP', accINFILE(1), CntrPar%Y_IPC_KP, ErrVar )
+        CALL ParseInput(UnControllerParameters, CurLine,'Y_IPC_KI', accINFILE(1), CntrPar%Y_IPC_KI, ErrVar )
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !------------ FORE-AFT TOWER DAMPER CONSTANTS ------------

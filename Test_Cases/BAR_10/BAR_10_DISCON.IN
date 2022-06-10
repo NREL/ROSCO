@@ -1,5 +1,5 @@
 ! Controller parameter input file for the BAR_10 wind turbine
-!    - File written using ROSCO version 2.5.0 controller tuning logic on 06/09/22
+!    - File written using ROSCO version 2.5.0 controller tuning logic on 06/10/22
 
 !------- DEBUG ------------------------------------------------------------
 1                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}
@@ -96,6 +96,9 @@
 4.000000  8.000000  ! Y_ErrThresh    - Yaw error threshold. Turbine begins to yaw when it passes this. If Y_uSwitch is zero, only the first value is used. [deg].
 0.00870             ! Y_Rate			- Yaw rate [rad/s]
 0.00000             ! Y_MErrSet		- Integrator saturation (maximum signal amplitude contribution to pitch from yaw-by-IPC), [rad]
+0.00000             ! Y_IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from yaw-by-IPC), [rad]
+0.00000             ! Y_IPC_KP			- Yaw-by-IPC proportional controller gain Kp
+0.00000             ! Y_IPC_KI			- Yaw-by-IPC integral controller gain Ki
 
 !------- TOWER FORE-AFT DAMPING -------------------------------------------
 -1.00000            ! FA_KI				- Integral gain for the fore-aft tower damper controller [rad s/m]

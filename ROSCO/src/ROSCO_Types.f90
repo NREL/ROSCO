@@ -82,6 +82,9 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: Y_ErrThresh                 ! Error threshold [rad]. Turbine begins to yaw when it passes this
     REAL(DbKi)                    :: Y_Rate                      ! Yaw rate [rad/s]
     REAL(DbKi)                    :: Y_MErrSet                   ! Yaw alignment error, setpoint (for wake steering) [rad]
+    REAL(DbKi)                    :: Y_IPC_IntSat                ! Integrator saturation (maximum signal amplitude contrbution to pitch from yaw-by-IPC)
+    REAL(DbKi)                    :: Y_IPC_KP                    ! Yaw-by-IPC proportional controller gain Kp
+    REAL(DbKi)                    :: Y_IPC_KI                    ! Yaw-by-IPC integral controller gain Ki
     INTEGER(IntKi)                :: PS_Mode                     ! Pitch saturation mode {0 - no peak shaving, 1 -  implement pitch saturation}
     INTEGER(IntKi)                :: PS_BldPitchMin_N            ! Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PS_WindSpeeds               ! Wind speeds corresponding to minimum blade pitch angles [m/s]
