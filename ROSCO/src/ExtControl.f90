@@ -46,11 +46,13 @@ MODULE ExtControl
 
 CONTAINS
 
-    SUBROUTINE ExtController(avrSWAP, CntrPar, LocalVar, ErrVar)
+    SUBROUTINE ExtController(avrSWAP, CntrPar, LocalVar, ExtDLL, ErrVar)
         ! Inputs
         TYPE(ControlParameters), INTENT(INOUT)      :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)         :: LocalVar
         TYPE(ErrorVariables), INTENT(INOUT)         :: ErrVar
+        TYPE(ExtControlType), INTENT(INOUT)         :: ExtDLL
+
 
         REAL(C_FLOAT), INTENT(INOUT)                   :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from the DLL controller.
 
@@ -70,7 +72,6 @@ CONTAINS
         CHARACTER(KIND=C_CHAR)                      :: avcOUTNAME(LEN_TRIM(ExtRootName)+1)   ! OUTNAME (Simulation RootName)
         CHARACTER(KIND=C_CHAR)                      :: avcMSG(LEN(ErrVar%ErrMsg)+1)                ! MESSA
 
-        TYPE(ExtControlType), SAVE                  :: ext_dll_data
 
         INTEGER(C_INT)                              :: aviFAIL                        ! A flag used to indicate the success of this DLL call set as follows: 0 if the DLL call was successful, >0 if the DLL call was successful but cMessage should be issued as a warning messsage, <0 if the DLL call was unsuccessful or for any other reason the simulation is to be stopped at this point with cMessage as the error message.
 
@@ -95,24 +96,23 @@ CONTAINS
             ! Load dynamic library, but first make sure that it's free
             ! CALL FreeDynamicLib(DLL_Ext, ErrVar%ErrStat, ErrVar%ErrMsg)
             CALL LoadDynamicLib(DLL_Ext, ErrVar%ErrStat, ErrVar%ErrMsg)
-            ALLOCATE(ext_dll_data%avrSWAP(max_avr_entries)) !(1:max_avr_entries)
+            ALLOCATE(ExtDLL%avrSWAP(max_avr_entries)) !(1:max_avr_entries)
 
             PRINT *, "Library loaded successfully"
 
         END IF
 
-        ! Set avrSWAP of external DLL
-        ext_dll_data%avrSWAP = avrSWAP(1:max_avr_entries)
+        ! Set avrSWAP of external DLL, inputs to external DLL
+        ExtDLL%avrSWAP = avrSWAP(1:max_avr_entries)
 
         ! Set some length parameters
-        ext_dll_data%avrSWAP(49) = LEN(avcMSG)  + 1                     !> * Record 49: Maximum number of characters in the "MESSAGE" argument (-) [size of ExtErrMsg argument plus 1 (we add one for the C NULL CHARACTER)]
-        ext_dll_data%avrSWAP(50) = LEN_TRIM(CntrPar%DLL_InFile) +1  !> * Record 50: Number of characters in the "INFILE"  argument (-) [trimmed length of ExtDLL_InFile parameter plus 1 (we add one for the C NULL CHARACTER)]
-        ext_dll_data%avrSWAP(51) = LEN_TRIM(ExtRootName)   +1  !> * Record 51: Number of characters in the "OUTNAME" argument (-) [trimmed length of ExtRootName parameter plus 1 (we add one for the C NULL CHARACTER)]
+        ExtDLL%avrSWAP(49) = LEN(avcMSG)  + 1                     !> * Record 49: Maximum number of characters in the "MESSAGE" argument (-) [size of ExtErrMsg argument plus 1 (we add one for the C NULL CHARACTER)]
+        ExtDLL%avrSWAP(50) = LEN_TRIM(CntrPar%DLL_InFile) +1  !> * Record 50: Number of characters in the "INFILE"  argument (-) [trimmed length of ExtDLL_InFile parameter plus 1 (we add one for the C NULL CHARACTER)]
+        ExtDLL%avrSWAP(51) = LEN_TRIM(ExtRootName)   +1  !> * Record 51: Number of characters in the "OUTNAME" argument (-) [trimmed length of ExtRootName parameter plus 1 (we add one for the C NULL CHARACTER)]
 
         ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
         CALL C_F_PROCPOINTER( DLL_Ext%ProcAddr(1), DLL_Legacy_Subroutine) 
-        CALL DLL_Legacy_Subroutine (ext_dll_data%avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) 
-        WRITE(421,*) "avcOUTNAME: ", avcOUTNAME
+        CALL DLL_Legacy_Subroutine (ExtDLL%avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) 
 
         ! Clean up DLL 
         ! CALL FreeDynamicLib(DLL_Ext, ErrVar%ErrStat, ErrVar%ErrMsg)

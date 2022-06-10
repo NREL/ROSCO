@@ -57,6 +57,8 @@ TYPE(ObjectInstances),          SAVE           :: objInst
 TYPE(PerformanceData),          SAVE           :: PerfData
 TYPE(DebugVariables),           SAVE           :: DebugVar
 TYPE(ErrorVariables),           SAVE           :: ErrVar
+TYPE(ExtControlType),           SAVE           :: ExtDLL
+
 
 CHARACTER(*),                   PARAMETER      :: RoutineName = 'ROSCO'
 
@@ -82,10 +84,10 @@ CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst,
 
 ! Call external controller, if desired
 IF (CntrPar%Ext_Mode > 0) THEN
-    CALL ExtController(avrSWAP, CntrPar, LocalVar, ErrVar)
+    CALL ExtController(avrSWAP, CntrPar, LocalVar, ExtDLL, ErrVar)
+    ! Data from external dll is in ExtDLL%avrSWAP, it's unused in the following code
 END IF
 
-! Overwrite with ROSCO, where desired
 
 ! Filter signals
 CALL PreFilterMeasuredSignals(CntrPar, LocalVar, DebugVar, objInst, ErrVar)

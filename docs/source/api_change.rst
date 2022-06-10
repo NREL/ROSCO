@@ -17,7 +17,7 @@ IPC
 Pitch Actuator
 - A first or second order filter can be used to model a pitch actuator
 
-Exetrnal Control Interface
+External Control Interface
 - Call another control library from ROSCO
 
 ====== =================    ======================================================================================================================================================================================================
