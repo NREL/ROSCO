@@ -1,5 +1,5 @@
 ! Controller parameter input file for the NREL-5MW wind turbine
-!    - File written using ROSCO version 2.5.0 controller tuning logic on 06/03/22
+!    - File written using ROSCO version 2.5.0 controller tuning logic on 06/13/22
 
 !------- DEBUG ------------------------------------------------------------
 1                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}
@@ -21,6 +21,7 @@
 0                   ! OL_Mode           - Open loop control mode {0: no open loop control, 1: open loop control vs. time, 2: open loop control vs. wind speed}
 0                   ! PA_Mode           - Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
 0                   ! Ext_Mode          - External control mode {0 - not used, 1 - call external dynamic library}
+0                   ! ZMQ_Mode          - Fuse ZeroMQ interaface {0: unused, 1: Yaw Control}
 
 !------- FILTERS ----------------------------------------------------------
 1.57080             ! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [rad/s]
@@ -138,3 +139,7 @@
 "unused"            ! DLL_FileName        - Name/location of the dynamic library in the Bladed-DLL format
 "unused"            ! DLL_InFile          - Name of input file sent to the DLL (-)
 "DISCON"            ! DLL_ProcName        - Name of procedure in DLL to be called (-) 
+
+!------- ZeroMQ Interface ---------------------------------------------------------
+"tcp://localhost:5555"            ! ZMQ_CommAddress     - Communication address for ZMQ server 
+161                 ! ZMQ_updateFreq      - Call ZeroMQ every [x] timesteps, [integer]

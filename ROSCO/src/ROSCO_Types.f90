@@ -113,11 +113,11 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: PA_Mode                     ! Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
     REAL(DbKi)                    :: PA_CornerFreq               ! Pitch actuator bandwidth/cut-off frequency [rad/s]
     REAL(DbKi)                    :: PA_Damping                  ! Pitch actuator damping ratio [-, unused if PA_Mode = 1]
-    INTEGER(IntKi)                :: ZMQ_Mode                    ! Flag for ZeroMQ (0-off, 1-yaw}
     INTEGER(IntKi)                :: Ext_Mode                    ! External control mode (0 - not used, 1 - call external control library)
     CHARACTER(1024)               :: DLL_FileName                ! File name of external dynamic library
     CHARACTER(1024)               :: DLL_InFile                  ! Name of input file called by dynamic library (DISCON.IN, e.g.)
     CHARACTER(1024)               :: DLL_ProcName                ! Process name of subprocess called in DLL_Filename (Usually DISCON)
+    INTEGER(IntKi)                :: ZMQ_Mode                    ! Flag for ZeroMQ (0-off, 1-yaw}
     REAL(DbKi)                    :: PC_RtTq99                   ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(DbKi)                    :: VS_MaxOMTq                  ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(DbKi)                    :: VS_MinOMTq                  ! Minimum torque at the beginning of the below-rated region 2, [Nm]
