@@ -25,6 +25,7 @@ USE             :: Controllers
 USE             :: Constants
 USE             :: Filters
 USE             :: Functions
+USE             :: ExtControl
 USE             :: ROSCO_IO
 
 IMPLICIT NONE
@@ -56,10 +57,13 @@ TYPE(ObjectInstances),          SAVE           :: objInst
 TYPE(PerformanceData),          SAVE           :: PerfData
 TYPE(DebugVariables),           SAVE           :: DebugVar
 TYPE(ErrorVariables),           SAVE           :: ErrVar
+TYPE(ExtControlType),           SAVE           :: ExtDLL
+
 
 CHARACTER(*),                   PARAMETER      :: RoutineName = 'ROSCO'
 
 RootName = TRANSFER(avcOUTNAME, RootName)
+CALL GetRoot(RootName,RootName)
 !------------------------------------------------------------------------------------------------------------------------------
 ! Main control calculations
 !------------------------------------------------------------------------------------------------------------------------------
@@ -68,7 +72,7 @@ RootName = TRANSFER(avcOUTNAME, RootName)
 IF ( (NINT(avrSWAP(1)) == -9) .AND. (aviFAIL >= 0))  THEN ! Read restart files
     CALL ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootName, SIZE(avcOUTNAME), ErrVar)
     IF ( CntrPar%LoggingLevel > 0 ) THEN
-        CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, SIZE(avcOUTNAME))
+        CALL Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, SIZE(avcOUTNAME))
     END IF 
 END IF
 
@@ -78,12 +82,19 @@ CALL ReadAvrSWAP(avrSWAP, LocalVar)
 ! Set Control Parameters
 CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, ErrVar)
 
+! Call external controller, if desired
+IF (CntrPar%Ext_Mode > 0) THEN
+    CALL ExtController(avrSWAP, CntrPar, LocalVar, ExtDLL, ErrVar)
+    ! Data from external dll is in ExtDLL%avrSWAP, it's unused in the following code
+END IF
+
+
 ! Filter signals
 CALL PreFilterMeasuredSignals(CntrPar, LocalVar, DebugVar, objInst, ErrVar)
 
 IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAIL >= 0))  THEN  ! Only compute control calculations if no error has occurred and we are not on the last time step
     IF ((LocalVar%iStatus == -8) .AND. (ErrVar%aviFAIL >= 0))  THEN ! Write restart files
-        CALL WriteRestartFile(LocalVar, CntrPar, objInst, RootName, SIZE(avcOUTNAME))    
+        CALL WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, SIZE(avcOUTNAME))    
     ENDIF
     
     CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
@@ -102,7 +113,7 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
     END IF
     
     IF ( CntrPar%LoggingLevel > 0 ) THEN
-        CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, SIZE(avcOUTNAME))
+        CALL Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, SIZE(avcOUTNAME))
     END IF 
     
 END IF

@@ -141,7 +141,7 @@ class run_FAST_ROSCO():
             model_dir                   = os.path.join(os.path.dirname( os.path.dirname( os.path.realpath(__file__) ) ), '01_aeroelasticse/OpenFAST_models')
 
             # FAST_directory (relative to Tune_Dir/)
-            fastBatch.FAST_directory    = os.path.realpath(os.path.join(tune_case_dir,path_params['FAST_directory']))
+            fastBatch.FAST_directory    = os.path.realpath(os.path.join(tune_yaml_dir,path_params['FAST_directory']))
             fastBatch.FAST_InputFile    = path_params['FAST_InputFile']        
             fastBatch.channels          = channels
             fastBatch.FAST_runDirectory = run_dir
