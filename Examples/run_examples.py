@@ -21,6 +21,7 @@ all_scripts = [
     'example_14',
     'example_15',
     'example_16',
+    'example_17',
 ]
 
 def execute_script(fscript):
