@@ -52,13 +52,11 @@ Line    Input Name           Example Value
 
 ====== =================    ======================================================================================================================================================================================================
 Removed Inputs:
-    |   `Y_IPC_n`
-    |   `Y_IPC_omegaLP`
-    |   `Y_IPC_zetaLP`
-    |   `Y_MErrSet`
-    |   `Y_omegaLPFast`
-    |   `Y_omegaLPSlow`
-    |   `Y_Rate`
+    |   ``Y_IPC_n``
+    |   ``Y_IPC_omegaLP``
+    |   ``Y_IPC_zetaLP``
+    |   ``Y_omegaLPFast``
+    |   ``Y_omegaLPSlow``
 
 ROSCO v2.4.1 to ROSCO v2.5.0
 -------------------------------
