@@ -20,24 +20,45 @@ Pitch Actuator
 External Control Interface
 - Call another control library from ROSCO
 
+ZeroMQ Interface
+- Communicate with an external routine via ZeroMQ. Only yaw control currently supported
+
 ====== =================    ======================================================================================================================================================================================================
 Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
 19     TD_Mode              0                    ! TD_Mode           - Tower damper mode {0: no tower damper, 1: feed back translational nacelle accelleration to pitch angle}
 21     PA_Mode              0                    ! PA_Mode           - Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
 23     Ext_Mode             0                    ! Ext_Mode          - External control mode {0 - not used, 1 - call external dynamic library}
+24     ZMQ_Mode             0                    ! ZMQ_Mode          - Fuse ZeroMQ interaface {0: unused, 1: Yaw Control}
+33     F_YawErr             0.17952              ! F_YawErr          - Low pass filter corner frequency for yaw controller [rad/s].
 49     IPC_Vramp            9.120000  11.400000  ! IPC_Vramp	- Start and end wind speeds for cut-in ramp function. First entry: IPC inactive, second entry: IPC fully active. [m/s]
-135    Empty Line           N/A
-136    PitchActSec          !------- Pitch Actuator Model -----------------------------------------------------
-136    PA_CornerFreq        3.140000000000        ! PA_CornerFreq     - Pitch actuator bandwidth/cut-off frequency [rad/s]
+96     Y_uSwitch            0.00000              ! Y_uSwitch		- Integrator saturation (maximum signal amplitude contribution to pitch from yaw-by-IPC), [rad]
+97     Y_ErrThresh          4.000000  8.000000   ! Y_ErrThresh    - Yaw error threshold. Turbine begins to yaw when it passes this. If Y_uSwitch is zero, only the first value is used. [deg].
+98     Y_Rate               0.00870              ! Y_Rate			- Yaw rate [rad/s]
+99     Y_MErrSet            0.00000              ! Y_MErrSet		- Integrator saturation (maximum signal amplitude contribution to pitch from yaw-by-IPC), [rad]
+133    Empty Line           N/A
+134    PitchActSec          !------- Pitch Actuator Model -----------------------------------------------------
+135    PA_CornerFreq        3.140000000000        ! PA_CornerFreq     - Pitch actuator bandwidth/cut-off frequency [rad/s]
 136    PA_Damping           0.707000000000        ! PA_Damping        - Pitch actuator damping ratio [-, unused if PA_Mode = 1]
-139    Empty Line          
-140    ExtConSec            !------- External Controller Interface -----------------------------------------------------
-141    DLL_FileName         "unused"            ! DLL_FileName        - Name/location of the dynamic library in the Bladed-DLL format
-142    DLL_InFile           "unused"            ! DLL_InFile          - Name of input file sent to the DLL (-)
-143    DLL_ProcName         "DISCON"            ! DLL_ProcName        - Name of procedure in DLL to be called (-) 
-====== =================    ======================================================================================================================================================================================================
+137    Empty Line          
+138    ExtConSec            !------- External Controller Interface -----------------------------------------------------
+139    DLL_FileName         "unused"            ! DLL_FileName        - Name/location of the dynamic library in the Bladed-DLL format
+140    DLL_InFile           "unused"            ! DLL_InFile          - Name of input file sent to the DLL (-)
+141    DLL_ProcName         "DISCON"            ! DLL_ProcName        - Name of procedure in DLL to be called (-) 
+142    Empty Line          
+143    ZeroMQSec            !------- ZeroMQ Interface ---------------------------------------------------------
+144    ZMQ_CommAddress      "tcp://localhost:5555"        ! ZMQ_CommAddress     - Communication address for ZMQ server 
+145    ZMQ_updateFreq        161                          ! ZMQ_updateFreq      - Call ZeroMQ every [x] timesteps, [integer]
 
+====== =================    ======================================================================================================================================================================================================
+Removed Inputs:
+    Y_IPC_n
+    Y_IPC_omegaLP 
+    Y_IPC_zetaLP
+    Y_MErrSet
+    Y_omegaLPFast
+    Y_omegaLPSlow
+    Y_Rate
 
 ROSCO v2.4.1 to ROSCO v2.5.0
 -------------------------------
