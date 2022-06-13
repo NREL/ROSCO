@@ -7,7 +7,7 @@ import operator
 from ROSCO_toolbox.ofTools.fast_io.FAST_vars import FstModel
 from ROSCO_toolbox.utilities import read_DISCON, load_from_txt
 from ROSCO_toolbox import turbine as ROSCO_turbine
-ROSCO = False
+ROSCO = True
 
 def readline_filterComments(f):
             read = True
