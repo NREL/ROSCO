@@ -1,3 +1,13 @@
+'''
+----------- Example_17 --------------
+Run ROSCO using the ROSCO toolbox control interface and execute communication with ZeroMQ
+-------------------------------------
+
+A demonstrator for ZeroMQ communication. Instead of using ROSCO with with control interface, 
+one could call ROSCO from OpenFAST, and communicate with ZeroMQ through that.
+'''
+
+
 import platform
 import os
 import matplotlib.pyplot as plt
