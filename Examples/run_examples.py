@@ -20,7 +20,7 @@ all_scripts = [
     'example_13',
     'example_14',
     'example_15',
-    'example_16', #zmq example - only executes on unix 
+    'example_16',
 ]
 
 def execute_script(fscript):
@@ -50,7 +50,7 @@ class TestExamples(unittest.TestCase):
 
     def test_all_scripts(self):
         for ks, s in enumerate(all_scripts):
-            if not platform.system() == 'Windows' and s=='example_16':
+            if not platform.system() == 'Windows' and s=='example_17':
                 with self.subTest(f"Running: {s}", i=ks):
                     try:
                         execute_script(s)

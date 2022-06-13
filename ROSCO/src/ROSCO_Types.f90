@@ -114,6 +114,10 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: PA_CornerFreq               ! Pitch actuator bandwidth/cut-off frequency [rad/s]
     REAL(DbKi)                    :: PA_Damping                  ! Pitch actuator damping ratio [-, unused if PA_Mode = 1]
     INTEGER(IntKi)                :: ZMQ_Mode                    ! Flag for ZeroMQ (0-off, 1-yaw}
+    INTEGER(IntKi)                :: Ext_Mode                    ! External control mode (0 - not used, 1 - call external control library)
+    CHARACTER(1024)               :: DLL_FileName                ! File name of external dynamic library
+    CHARACTER(1024)               :: DLL_InFile                  ! Name of input file called by dynamic library (DISCON.IN, e.g.)
+    CHARACTER(1024)               :: DLL_ProcName                ! Process name of subprocess called in DLL_Filename (Usually DISCON)
     REAL(DbKi)                    :: PC_RtTq99                   ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(DbKi)                    :: VS_MaxOMTq                  ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(DbKi)                    :: VS_MinOMTq                  ! Minimum torque at the beginning of the below-rated region 2, [Nm]
@@ -300,6 +304,7 @@ END TYPE DebugVariables
 TYPE, PUBLIC :: ErrorVariables
     INTEGER(IntKi)                :: size_avcMSG                 ! None
     INTEGER(C_INT)                :: aviFAIL                     ! A flag used to indicate the success of this DLL call set as follows: 0 if the DLL call was successful, >0 if the DLL call was successful but cMessage should be issued as a warning messsage, <0 if the DLL call was unsuccessful or for any other reason the simulation is to be stopped at this point with cMessage as the error message.
+    INTEGER(C_INT)                :: ErrStat                     ! An error status flag used by OpenFAST processes
     CHARACTER(:), ALLOCATABLE     :: ErrMsg                      ! a Fortran version of the C string argument (not considered an array here) [subtract 1 for the C null-character]
 END TYPE ErrorVariables
 
@@ -318,5 +323,9 @@ TYPE, PUBLIC :: ZMQ_Variables
     INTEGER(IntKi)                :: ZMQ_UpdateCounter           ! Integer for zeromq update frequency/counter
     REAL(DbKi)                    :: Yaw_Offset                  ! Yaw offsety command, [rad]
 END TYPE ZMQ_Variables
+
+TYPE, PUBLIC :: ExtControlType
+    REAL(C_FLOAT), DIMENSION(:), ALLOCATABLE     :: avrSWAP                     ! The swap array- used to pass data to and from the DLL controller [see Bladed DLL documentation]
+END TYPE ExtControlType
 
 END MODULE ROSCO_Types

@@ -198,4 +198,4 @@ jobs:
       - name: Run regression testing
         run: |
           cd ROSCO_testing
-          python regtest.py
+          python test_checkpoint.py

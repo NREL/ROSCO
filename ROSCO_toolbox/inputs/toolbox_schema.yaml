@@ -197,6 +197,12 @@ properties:
                 maximum: 2
                 default: 0
                 description: Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
+            Ext_Mode:           
+                type: number
+                minimum: 0
+                maximum: 1
+                default: 0
+                description: External control mode {{0 - not used, 1 - call external dynamic library}}
             U_pc:                       
                 type: array
                 description: List of wind speeds to schedule pitch control zeta and omega 
@@ -831,6 +837,18 @@ properties:
                     Ind_YawRate:
                         type: number
                         description: The column in OL_Filename that contains the generator torque in Nm
+                    DLL_FileName:
+                        type: string
+                        description: Name/location of the dynamic library {.dll [Windows] or .so [Linux]} in the Bladed-DLL format
+                        default: unused
+                    DLL_InFile:
+                        type: string
+                        description: Name of input file sent to the DLL
+                        default: unused
+                    DLL_ProcName:
+                        type: string
+                        description: Name of procedure in DLL to be called
+                        default: DISCON
 
     linmodel_tuning:
         type: object
