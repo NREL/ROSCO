@@ -101,11 +101,7 @@ jobs:
         if: false == contains( matrix.os, 'windows')
         run: |
           conda install -y wisdem
-      - name: Add dependencies windows specific
-        if: true == contains( matrix.os, 'windows')
-        run: |
-          conda install -y m2w64-toolchain libpython 
-          conda install -y wisdem
+
       - name: Add pyFAST dependency
         if: false == contains( matrix.os, 'windows')
         run: |
@@ -127,7 +123,7 @@ jobs:
         run: |
           cmake \
             -DCMAKE_INSTALL_PREFIX:PATH=${{runner.workspace}}/ROSCO/ROSCO/install \
-            -DZMQ_CLIENT=ON
+            -DZMQ_CLIENT=ON \
             -DCMAKE_Fortran_COMPILER:STRING=${{env.FORTRAN_COMPILER}} \
             ..
           cmake --build . --target install
