@@ -21,7 +21,7 @@ all_scripts = [
     'example_14',
     'example_15',
     'example_16',
-    'example_17',
+    'example_17', # NJA: only runs on unix in CI
 ]
 
 def execute_script(fscript):
@@ -51,13 +51,12 @@ class TestExamples(unittest.TestCase):
 
     def test_all_scripts(self):
         for ks, s in enumerate(all_scripts):
-            if not platform.system() == 'Windows' and s=='example_17':
-                with self.subTest(f"Running: {s}", i=ks):
-                    try:
-                        execute_script(s)
-                        self.assertTrue(True)
-                    except:
-                        self.assertEqual(s, "Success")    
+            with self.subTest(f"Running: {s}", i=ks):
+                try:
+                    execute_script(s)
+                    self.assertTrue(True)
+                except:
+                    self.assertEqual(s, "Success")    
 
 
 def suite():
