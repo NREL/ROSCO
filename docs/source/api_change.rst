@@ -46,8 +46,8 @@ Line    Input Name           Example Value
 141    DLL_ProcName         "DISCON"            ! DLL_ProcName        - Name of procedure in DLL to be called (-) 
 142    Empty Line          
 143    ZeroMQSec            !------- ZeroMQ Interface ---------------------------------------------------------
-144    ZMQ_CommAddress      "tcp://localhost:5555"        ! ZMQ_CommAddress     - Communication address for ZMQ server 
-145    ZMQ_updateFreq        161                          ! ZMQ_updateFreq      - Call ZeroMQ every [x] timesteps, [integer]
+144    ZMQ_CommAddress      "tcp://localhost:5555"     ! ZMQ_CommAddress     - Communication address for ZMQ server 
+145    ZMQ_UpdatePeriod     2                          ! ZMQ_UpdatePeriod    - Call ZeroMQ every [x] seconds, [s]
 ====== =================    ======================================================================================================================================================================================================
 
 ====== =================    ======================================================================================================================================================================================================

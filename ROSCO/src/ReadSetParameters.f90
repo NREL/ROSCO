@@ -26,14 +26,11 @@ MODULE ReadSetParameters
 CONTAINS
  ! -----------------------------------------------------------------------------------
     ! Read avrSWAP array passed from ServoDyn    
-    SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar, zmqVar)
+    SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar)
         USE ROSCO_Types, ONLY : LocalVariables, ZMQ_Variables
 
         REAL(ReKi), INTENT(INOUT) :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
-        TYPE(ZMQ_Variables),  INTENT(INOUT) :: zmqVar
-
-        real(C_DOUBLE), dimension(0:4) :: setpoints
 
         ! Load variables from calling program (See Appendix A of Bladed User's Guide):
         LocalVar%iStatus            = NINT(avrSWAP(1))
@@ -403,9 +400,8 @@ CONTAINS
 
         !------------ ZeroMQ ------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_CommAddress',accINFILE(1), zmqVar%ZMQ_CommAddress,ErrVar)
-		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_updateFreq',accINFILE(1), zmqVar%ZMQ_UpdateFreq,ErrVar)
-		zmqVar%ZMQ_UpdateCounter = 99999999 ! Initialize as very large number
+        CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_CommAddress',accINFILE(1), CntrPar%ZMQ_CommAddress,ErrVar)
+		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_UpdatePeriod',accINFILE(1), CntrPar%ZMQ_UpdatePeriod,ErrVar)
 
         ! Fix Paths (add relative paths if called from another dir)
         IF (PathIsRelative(CntrPar%PerfFileName)) CntrPar%PerfFileName = TRIM(PriPath)//TRIM(CntrPar%PerfFileName)

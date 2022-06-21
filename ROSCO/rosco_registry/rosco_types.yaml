@@ -452,6 +452,14 @@ ControlParameters:
     ZMQ_Mode:
       <<: *integer
       description: Flag for ZeroMQ (0-off, 1-yaw}
+    ZMQ_CommAddress:
+      <<: *character
+      length: 256
+      description: Comm Address to zeroMQ client
+    ZMQ_UpdatePeriod:
+      <<: *real
+      description: Integer for zeromq update frequency
+
     # Calculated
     PC_RtTq99:
       <<: *real
@@ -1056,16 +1064,6 @@ ZMQ_Variables:
   ZMQ_Flag:
     <<: *logical
     description: Flag if we're using zeroMQ at all (0-False, 1-True)
-  ZMQ_CommAddress:
-    <<: *character
-    length: 256
-    description: Comm Address to zeroMQ client
-  ZMQ_UpdateFreq:
-    <<: *integer
-    description: Integer for zeromq update frequency
-  ZMQ_UpdateCounter:
-    <<: *integer
-    description: Integer for zeromq update frequency/counter
   Yaw_Offset:
     <<: *real
     description: Yaw offsety command, [rad]

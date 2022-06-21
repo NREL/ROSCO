@@ -208,8 +208,8 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('"{}"            ! DLL_ProcName        - Name of procedure in DLL to be called (-) \n'.format(rosco_vt['DLL_ProcName']))    
     file.write('\n')
     file.write('!------- ZeroMQ Interface ---------------------------------------------------------\n')
-    file.write('"{}"            ! ZMQ_CommAddress     - Communication address for ZMQ server \n'.format(rosco_vt['ZMQ_CommAddress']))
-    file.write('{:<11d}         ! ZMQ_updateFreq      - Call ZeroMQ every [x] timesteps, [integer]\n'.format(int(rosco_vt['ZMQ_updateFreq'])))
+    file.write('"{}"            ! ZMQ_CommAddress     - Communication address for ZMQ server, [e.g. "tcp://localhost:5555"] \n'.format(rosco_vt['ZMQ_CommAddress']))
+    file.write('{:<11d}         ! ZMQ_UpdatePeriod    - Call ZeroMQ every [x] seconds, [s]\n'.format(int(rosco_vt['ZMQ_UpdatePeriod'])))
     file.close()
 
     # Write Open loop input
@@ -505,7 +505,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['PA_Damping']      = controller.PA_Damping
     # ------- Zero-MQ  ------- 
     DISCON_dict['ZMQ_CommAddress'] = "tcp://localhost:5555" 
-    DISCON_dict['ZMQ_updateFreq']  = 161
+    DISCON_dict['ZMQ_UpdatePeriod']  = 2
     # Add pass through here
     for param, value in controller.controller_params['DISCON'].items():
         DISCON_dict[param] = value

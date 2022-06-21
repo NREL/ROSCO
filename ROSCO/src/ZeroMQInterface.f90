@@ -29,11 +29,9 @@ CONTAINS
             end subroutine zmq_client
         end interface
 #endif
-		! Increment call counter by 1
-		zmqVar%ZMQ_UpdateCounter = zmqVar%ZMQ_UpdateCounter + 1
 		
 		! Communicate if threshold has been reached
-		IF (zmqVar%ZMQ_UpdateCounter .GE. zmqVar%ZMQ_UpdateFreq) THEN
+		IF (MODULO(LocalVar%Time, CntrPar%ZMQ_UpdatePeriod) == 0) THEN
 			! Collect measurements to be sent to ZeroMQ server
 			turbine_measurements(1) = LocalVar%iStatus
 			turbine_measurements(2) = LocalVar%Time
@@ -52,7 +50,7 @@ CONTAINS
 			turbine_measurements(15) = LocalVar%NacIMU_FA_Acc
 			turbine_measurements(16) = LocalVar%Azimuth
 
-			write (zmq_address, "(A,A)") TRIM(zmqVar%ZMQ_CommAddress), C_NULL_CHAR
+			write (zmq_address, "(A,A)") TRIM(CntrPar%ZMQ_CommAddress), C_NULL_CHAR
 #ifdef ZMQ_CLIENT
 			call zmq_client(zmq_address, turbine_measurements, setpoints)
 #else
@@ -72,7 +70,6 @@ CONTAINS
 			! write (*,*) "ZeroMQInterface: pitch 3 setpoint from ssc: ", setpoints(5)
 			zmqVar%Yaw_Offset = setpoints(2)
 			
-			zmqVar%ZMQ_UpdateCounter = 1
 		ENDIF
 
 

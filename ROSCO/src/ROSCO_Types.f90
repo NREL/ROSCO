@@ -118,6 +118,8 @@ TYPE, PUBLIC :: ControlParameters
     CHARACTER(1024)               :: DLL_InFile                  ! Name of input file called by dynamic library (DISCON.IN, e.g.)
     CHARACTER(1024)               :: DLL_ProcName                ! Process name of subprocess called in DLL_Filename (Usually DISCON)
     INTEGER(IntKi)                :: ZMQ_Mode                    ! Flag for ZeroMQ (0-off, 1-yaw}
+    CHARACTER(256)                :: ZMQ_CommAddress             ! Comm Address to zeroMQ client
+    REAL(DbKi)                    :: ZMQ_UpdatePeriod            ! Integer for zeromq update frequency
     REAL(DbKi)                    :: PC_RtTq99                   ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(DbKi)                    :: VS_MaxOMTq                  ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(DbKi)                    :: VS_MinOMTq                  ! Minimum torque at the beginning of the below-rated region 2, [Nm]
@@ -318,9 +320,6 @@ END TYPE ExtDLL_Type
 
 TYPE, PUBLIC :: ZMQ_Variables
     LOGICAL                       :: ZMQ_Flag                    ! Flag if we're using zeroMQ at all (0-False, 1-True)
-    CHARACTER(256)                :: ZMQ_CommAddress             ! Comm Address to zeroMQ client
-    INTEGER(IntKi)                :: ZMQ_UpdateFreq              ! Integer for zeromq update frequency
-    INTEGER(IntKi)                :: ZMQ_UpdateCounter           ! Integer for zeromq update frequency/counter
     REAL(DbKi)                    :: Yaw_Offset                  ! Yaw offsety command, [rad]
 END TYPE ZMQ_Variables
 

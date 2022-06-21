@@ -79,7 +79,7 @@ IF ( (NINT(avrSWAP(1)) == -9) .AND. (aviFAIL >= 0))  THEN ! Read restart files
 END IF
 
 ! Read avrSWAP array into derived types/variables
-CALL ReadAvrSWAP(avrSWAP, LocalVar, zmqVar)
+CALL ReadAvrSWAP(avrSWAP, LocalVar)
 
 ! Set Control Parameters
 CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, zmqVar, ErrVar)
