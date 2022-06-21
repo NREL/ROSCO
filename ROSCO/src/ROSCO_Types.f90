@@ -78,7 +78,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: WE_FOPoles_v                ! Wind speeds corresponding to first-order system poles [m/s]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: WE_FOPoles                  ! First order system poles
     INTEGER(IntKi)                :: Y_ControlMode               ! Yaw control mode {0 - no yaw control, 1 - yaw rate control}
-    REAL(DbKi)                    :: Y_uSwitch                   ! Wind speed to switch between Y_ErrThresh. If zero, only the first value of Y_ErrThresh is used [rad]
+    REAL(DbKi)                    :: Y_uSwitch                   ! Wind speed to switch between Y_ErrThresh. If zero, only the first value of Y_ErrThresh is used [m/s]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: Y_ErrThresh                 ! Error threshold [rad]. Turbine begins to yaw when it passes this
     REAL(DbKi)                    :: Y_Rate                      ! Yaw rate [rad/s]
     REAL(DbKi)                    :: Y_MErrSet                   ! Yaw alignment error, setpoint (for wake steering) [rad]

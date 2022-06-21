@@ -306,7 +306,7 @@ ControlParameters:
       description: Yaw control mode {0 - no yaw control, 1 - yaw rate control}
     Y_uSwitch:
       <<: *real
-      description: Wind speed to switch between Y_ErrThresh. If zero, only the first value of Y_ErrThresh is used [rad]
+      description: Wind speed to switch between Y_ErrThresh. If zero, only the first value of Y_ErrThresh is used [m/s]
     Y_ErrThresh:
       <<: *real
       description: Error threshold [rad]. Turbine begins to yaw when it passes this
