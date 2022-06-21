@@ -264,17 +264,17 @@ CONTAINS
         TYPE(ZMQ_Variables), INTENT(INOUT)  :: zmqVar
 
         ! Allocate Variables
-        REAL(8), SAVE :: NacVaneOffset                          ! For offset control
+        REAL(DbKi), SAVE :: NacVaneOffset                          ! For offset control
         INTEGER, SAVE :: YawState                               ! Yawing left(-1), right(1), or stopped(0)
-        REAL(8)       :: WindDir                                ! Instantaneous wind dind direction, equal to turbine nacelle heading plus the measured vane angle (deg)
-        REAL(8)       :: WindDirPlusOffset                     ! Instantaneous wind direction minus the assigned vane offset (deg)
-        REAL(8)       :: WindDirPlusOffsetCosF                 ! Time-filtered x-component of WindDirPlusOffset (deg)
-        REAL(8)       :: WindDirPlusOffsetSinF                 ! Time-filtered y-component of WindDirPlusOffset (deg)
-        REAL(8)       :: NacHeadingTarget                       ! Time-filtered wind direction minus the assigned vane offset (deg)
-        REAL(8), SAVE :: NacHeadingError                        ! Yaw error (deg)
-        REAL(8)       :: YawRateCom                             ! Commanded yaw rate (deg/s)
-        REAL(8)       :: deadband                               ! Allowable yaw error deadband (deg)
-        REAL(8)       :: Time                                   ! Current time
+        REAL(DbKi)       :: WindDir                                ! Instantaneous wind dind direction, equal to turbine nacelle heading plus the measured vane angle (deg)
+        REAL(DbKi)       :: WindDirPlusOffset                     ! Instantaneous wind direction minus the assigned vane offset (deg)
+        REAL(DbKi)       :: WindDirPlusOffsetCosF                 ! Time-filtered x-component of WindDirPlusOffset (deg)
+        REAL(DbKi)       :: WindDirPlusOffsetSinF                 ! Time-filtered y-component of WindDirPlusOffset (deg)
+        REAL(DbKi)       :: NacHeadingTarget                       ! Time-filtered wind direction minus the assigned vane offset (deg)
+        REAL(DbKi), SAVE :: NacHeadingError                        ! Yaw error (deg)
+        REAL(DbKi)       :: YawRateCom                             ! Commanded yaw rate (deg/s)
+        REAL(DbKi)       :: deadband                               ! Allowable yaw error deadband (deg)
+        REAL(DbKi)       :: Time                                   ! Current time
         INTEGER, SAVE :: Tidx                                   ! Index i: commanded yaw error is interpolated between i and i+1
         
         IF (CntrPar%Y_ControlMode == 1) THEN
