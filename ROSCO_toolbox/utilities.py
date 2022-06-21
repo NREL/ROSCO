@@ -208,7 +208,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('"{}"            ! DLL_ProcName        - Name of procedure in DLL to be called (-) \n'.format(rosco_vt['DLL_ProcName']))    
     file.write('\n')
     file.write('!------- ZeroMQ Interface ---------------------------------------------------------\n')
-    file.write('"{}"            ! ZMQ_CommAddress     - Communication address for ZMQ server, [e.g. "tcp://localhost:5555"] \n'.format(rosco_vt['ZMQ_CommAddress']))
+    file.write('"{}"            ! ZMQ_CommAddress     - Communication address for ZMQ server, (e.g. "tcp://localhost:5555") \n'.format(rosco_vt['ZMQ_CommAddress']))
     file.write('{:<11d}         ! ZMQ_UpdatePeriod    - Call ZeroMQ every [x] seconds, [s]\n'.format(int(rosco_vt['ZMQ_UpdatePeriod'])))
     file.close()
 
