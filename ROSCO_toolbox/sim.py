@@ -303,6 +303,7 @@ class Sim():
             turbine_state['rot_speed'] = rot_speed[i]
             turbine_state['Yaw_fromNorth'] = nac_yaw[i]
             turbine_state['Y_MeasErr'] = nac_yawerr[i-1]
+            
             # Call the controller
 
             gen_torque[i], bld_pitch[i], nac_yawrate[i] = self.controller_int.call_controller(turbine_state)

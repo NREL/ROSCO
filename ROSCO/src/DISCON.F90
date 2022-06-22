@@ -120,7 +120,8 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
     IF ( CntrPar%LoggingLevel > 0 ) THEN
         CALL Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, SIZE(avcOUTNAME))
     END IF 
-    
+ELSEIF ((LocalVar%iStatus == -1) .AND. (zmqVar%ZMQ_Flag)) THEN
+        CALL UpdateZeroMQ(LocalVar, CntrPar, zmqVar, ErrVar)
 END IF
 
 

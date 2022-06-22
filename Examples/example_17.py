@@ -22,8 +22,9 @@ import numpy as np
 import multiprocessing as mp
 
 def run_zmq():
+    connect_zmq = True
     s = turbine_zmq_server(network_address="tcp://*:5555", timeout=10.0, verbose=True)
-    while True:
+    while connect_zmq:
         #  Get latest measurements from ROSCO
         measurements = s.get_measurements()
 
@@ -34,10 +35,12 @@ def run_zmq():
         else:
             yaw_setpoint = 20.0
 
-        # Send new setpoints back to ROSCO
+            # Send new setpoints back to ROSCO
         s.send_setpoints(nacelleHeading=yaw_setpoint)
 
-    s.disconnect()
+        if measurements['iStatus'] == -1:
+            connect_zmq = False
+            s._disconnect()
 
 
 def sim_rosco():
@@ -63,7 +66,7 @@ def sim_rosco():
     if platform.system() == 'Windows':
         lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.dll')
     elif platform.system() == 'Darwin':
-        lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.dylib')
+        lib_name = os.path.join(this_dir, '../ROSCO/build-zmq/libdiscon.dylib')
     else:
         lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.so')
 

@@ -182,9 +182,8 @@ class ControllerInterface():
         self.torque = self.avrSWAP[46]
         self.nac_yawrate = self.avrSWAP[47]
 
-        if end:
-            print('LAST TIMESETP OF SIM')
-            self.avrSWAP[0] = -1
+        # if turbine_state['iStatus'] == -1:
+        #     self.avrSWAP[0] = -1
 
         return(self.torque,self.pitch,self.nac_yawrate)
 
