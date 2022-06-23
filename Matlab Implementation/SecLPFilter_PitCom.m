@@ -3,7 +3,6 @@ function [SecLPFilter_value] = SecLPFilter_PitCom(InputSignal, DT, CornerFreq, D
 %     Continuous Time Form:   H(s) = CornerFreq^2/(s^2 + 2*CornerFreq*Damp*s + CornerFreq^2)
 %     Discrete Time From:     H(z) = (b2_PC*z^2 + b1_PC*z + b0_PC) / (a2_PC*z^2 + a1_PC*z + a0_PC)
 
-% persistent a0_PC a1_PC a2_PC b0_PC b1_PC b2_PC 
 persistent OutputSignalLast1_PC OutputSignalLast2_PC InputSignalLast1_PC InputSignalLast2_PC 
 
     % Initialization
