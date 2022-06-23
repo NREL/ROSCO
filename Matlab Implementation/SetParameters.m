@@ -55,10 +55,8 @@ if (LocalVar.iStatus == 0)  % .TRUE. if we're on the first call to the DLL
         LocalVar.SD = 0;         %SBT- Assigned to zero, since this value is originally not initialized before it's call in ComputeVariablesSetpoints.m, line 47
         LocalVar.PC_MinPit = CntrPar.PC_MinPit; %SBT- Assigned to zero, since this value is originally not initialized before it's call in ComputeVariablesSetpoints.m, line 64
     end
-    
-    % Check validity of input parameters:
-%     [aviFAIL,~] =  Assert(LocalVar, CntrPar, avrSWAP);
 end
+ % Check validity of input parameters on every call
 [aviFAIL,~] =  Assert(LocalVar, CntrPar);
 abc = PerfData;
 end
