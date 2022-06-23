@@ -1,12 +1,6 @@
 % Read all constant control parameters from DISCON.IN parameter file
 function PerfData = ReadCpFile(CntrPar)
-% USE ROSCO_Types, ONLY : PerformanceData, ControlParameters
-% 
-% INTEGER(4), PARAMETER :: UnPerfParameters = 89
-% TYPE(PerformanceData), INTENT(INOUT) :: PerfData
-% TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
-% % Local variables
-% INTEGER(4)                  :: i % iteration index
+
 
 fileID = fopen(CntrPar.PerfFileName,'r'); % Read performance file from DISCON.IN
 
