@@ -10,8 +10,6 @@ end
     
     if ((FirstCall_PIC_Ar == 1) || logical(reset))
         ITerm_PIC_Ar = I0;
-        ITermLast_PIC_Ar = I0;
-
         FirstCall_PIC_Ar = 0;
         PIController_term = I0;
     else
@@ -19,8 +17,6 @@ end
         ITerm_PIC_Ar = ITerm_PIC_Ar + DT*ki*error;
         ITerm_PIC_Ar = saturate(ITerm_PIC_Ar, minValue, maxValue);
         PIController_term = saturate(PTerm + ITerm_PIC_Ar, minValue, maxValue);
-
-        ITermLast_PIC_Ar = ITerm_PIC_Ar;
     end
 
 end
