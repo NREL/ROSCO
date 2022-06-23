@@ -98,13 +98,11 @@ function [LocalVar,DebugVar] = WindSpeedEstimator(LocalVar, CntrPar, PerfData)
         DebugVar.WE_Vt = v_t;
         DebugVar.WE_lambda = lambda;
     else
-%         LocalVar.WE_Vw = LocalVar.HorWindV;
         % Define Variables
         F_WECornerFreq = 0.20944;  % Fix to 30 second time constant for now    
 
         % Filter wind speed at hub height as directly passed from OpenFAST
         LocalVar.WE_Vw_F = LPFilter_WE(LocalVar.HorWindV, LocalVar.DT, F_WECornerFreq, LocalVar.iStatus, false);
-%         disp(LocalVar.WE_Vw_F)
     end
      
 
