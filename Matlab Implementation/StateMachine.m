@@ -47,7 +47,7 @@ function [LocalVar] = StateMachine(CntrPar, LocalVar)
                 LocalVar.VS_State = 4 ;% Constant torque tracking
             end
         else
-            if CntrPar.VS_ControlMode ~= 2 %SBT - Not given in ROSCO, added to avoid error as LocalVar.VS_State is not used for VSMode = 2
+            if CntrPar.VS_ControlMode == 1 %SBT - Not given in ROSCO, added to avoid error as LocalVar.VS_State is not used for VSMode = 2 and 3
                 if (LocalVar.GenArTq >= CntrPar.VS_MaxOMTq*1.01)        % Region 2 1/2 - active PI torque control
                         LocalVar.VS_State = 3;                 
                 elseif ((LocalVar.GenSpeedF < CntrPar.VS_RefSpd) &&...
