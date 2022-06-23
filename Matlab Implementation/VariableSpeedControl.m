@@ -23,16 +23,11 @@ function [LocalVar] = VariableSpeedControl(CntrPar, LocalVar,WindNom,Wind,t)
         LocalVar.GenTq = PIController(LocalVar.VS_SpdErr, CntrPar.VS_KP(1), CntrPar.VS_KI(1), CntrPar.VS_MinTq, LocalVar.VS_MaxTq, LocalVar.DT, LocalVar.VS_LastGenTrq, false(1));
         LocalVar.GenTq = saturate(LocalVar.GenTq, CntrPar.VS_MinTq, LocalVar.VS_MaxTq);
         
-    % K*Omega^2 control law with PI torque control in transition regions
-    else %Else conditions not required for the current DISCON-Monopile.IN configuration
+    else 
         % Update PI loops for region 1.5 and 2.5 PI control
         LocalVar.GenArTq = PIController_ArTq(LocalVar.VS_SpdErrAr, CntrPar.VS_KP(1), CntrPar.VS_KI(1), CntrPar.VS_MaxOMTq, CntrPar.VS_ArSatTq, LocalVar.DT, CntrPar.VS_MaxOMTq, false);
         LocalVar.GenBrTq = PIController_BrTq(LocalVar.VS_SpdErrBr, CntrPar.VS_KP(1), CntrPar.VS_KI(1), CntrPar.VS_MinTq, CntrPar.VS_MinOMTq, LocalVar.DT, CntrPar.VS_MinOMTq, false);
-
-        % This step is given differently in ROSCO (as the two commands above-29,30) but in that combination, minValue > maxValue therefore modifying the command
-%         LocalVar.GenArTq = PIController_ArTq(LocalVar.VS_SpdErrAr, CntrPar.VS_KP(1), CntrPar.VS_KI(1), CntrPar.VS_ArSatTq, CntrPar.VS_MaxOMTq,  LocalVar.DT, CntrPar.VS_MaxOMTq, false);
-%         LocalVar.GenBrTq = PIController_BrTq(LocalVar.VS_SpdErrBr, CntrPar.VS_KP(1), CntrPar.VS_KI(1), CntrPar.VS_MinTq, CntrPar.VS_MinOMTq, LocalVar.DT, CntrPar.VS_MinOMTq, false);
-        
+       
         % The action
         if (LocalVar.VS_State == 1)  % Region 1.5
             LocalVar.GenTq = LocalVar.GenBrTq;
@@ -45,10 +40,6 @@ function [LocalVar] = VariableSpeedControl(CntrPar, LocalVar,WindNom,Wind,t)
         elseif (LocalVar.VS_State == 5)  % Region 3, constant power
             LocalVar.GenTq = CntrPar.VS_RtPwr/((CntrPar.VS_GenEff/100.0)*LocalVar.GenSpeedF);
         end
-        
-%         ad-hoc k*omega^2 law implementation as per baseline controller
-%         Servo = ServoDyn(); 
-%         [LocalVar.GenTq, ~,~, ~] = BaselineControllers( t, LocalVar.GenSpeed, LocalVar.BlPitch, Servo, WindNom, Wind );
         
         % Saturate
         LocalVar.GenTq = saturate(LocalVar.GenTq, CntrPar.VS_MinTq, CntrPar.VS_MaxTq);
