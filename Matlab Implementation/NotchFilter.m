@@ -3,22 +3,6 @@ function [NotchFilter_value] = NotchFilter(InputSignal, DT, omega, BetaNum, Beta
 %          Continuous Time Form: G(s) = (s^2 + 2*omega*betaNum*s + omega^2)/(s^2 + 2*omega*betaDen*s + omega^2)
 %          Discrete Time Form:   H(z) = (b2*z^2 +b1*z^2 + b0*z)/((z^2 +a1*z^2 + a0*z))
 
-%     REAL(8), INTENT(IN)     :: InputSignal
-%     REAL(8), INTENT(IN)     :: DT                       % time step [s]
-%     REAL(8), INTENT(IN)     :: omega                    % corner frequency [rad/s]
-%     REAL(8), INTENT(IN)     :: betaNum                  % Dampening constant in numerator of filter transfer function
-%     REAL(8), INTENT(IN)     :: betaDen                  % Dampening constant in denominator of filter transfer function
-%     INTEGER, INTENT(IN)     :: iStatus                  % A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
-%     INTEGER, INTENT(INOUT)  :: inst                     % Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
-%     LOGICAL(4), INTENT(IN)  :: reset                    % Reset the filter to the input signal
-    % Local
-%     REAL(8), DIMENSION(99), SAVE    :: K, b2, b1, b0, a1, a0    % Constant gain
-%     REAL(8), DIMENSION(99), SAVE    :: InputSignalLast1         % Input signal the last time this filter was called. Supports 99 separate instances.
-%     REAL(8), DIMENSION(99), SAVE    :: InputSignalLast2         % Input signal the next to last time this filter was called. Supports 99 separate instances.
-%     REAL(8), DIMENSION(99), SAVE    :: OutputSignalLast1        % Output signal the last time this filter was called. Supports 99 separate instances.
-%     REAL(8), DIMENSION(99), SAVE    :: OutputSignalLast2        % Output signal the next to last time this filter was called. Supports 99 separate instances.
-
-
 persistent a0 a1 b0 b1 b2 K InputSignalLast1 InputSignalLast2 OutputSignalLast1 OutputSignalLast2
 
     % Initialization
