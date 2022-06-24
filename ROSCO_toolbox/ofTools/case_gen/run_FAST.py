@@ -135,11 +135,8 @@ class run_FAST_ROSCO():
         if rank == 0:
 
             # Run FAST cases
-            fastBatch                   = runFAST_pywrapper_batch(FAST_ver='OpenFAST',dev_branch = True)
+            fastBatch                   = runFAST_pywrapper_batch()
             
-            # Select Turbine Model
-            model_dir                   = os.path.join(os.path.dirname( os.path.dirname( os.path.realpath(__file__) ) ), '01_aeroelasticse/OpenFAST_models')
-
             # FAST_directory (relative to Tune_Dir/)
             fastBatch.FAST_directory    = os.path.realpath(os.path.join(tune_yaml_dir,path_params['FAST_directory']))
             fastBatch.FAST_InputFile    = path_params['FAST_InputFile']        
