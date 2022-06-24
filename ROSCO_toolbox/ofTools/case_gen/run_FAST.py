@@ -88,7 +88,7 @@ class run_FAST_ROSCO():
         case_inputs.update(control_base_case)
 
         # Specify rosco controller dylib
-        rosco_dll = '/Users/dzalkind/Tools/ROSCO/ROSCO/build/libdiscon.dylib' #'/Users/dzalkind/Tools/ROSCO_toolbox/ROSCO/build/libdiscon.dylib'
+        rosco_dll = '' 
 
         if not rosco_dll: # use WEIS ROSCO
             run_dir1            = os.path.dirname( os.path.dirname( os.path.dirname( os.path.realpath(__file__) ) ) ) + os.sep
