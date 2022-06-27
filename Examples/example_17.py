@@ -98,7 +98,7 @@ def sim_rosco():
 
 
     # Load controller library
-    controller_int = ROSCO_ci.ControllerInterface(lib_name, param_filename=param_filename, sim_name='sim1')
+    controller_int = ROSCO_ci.ControllerInterface(lib_name, param_filename=param_filename, sim_name='sim-zmq')
 
     # Load the simulator
     sim = ROSCO_sim.Sim(turbine, controller_int)
@@ -118,18 +118,6 @@ def sim_rosco():
 
     # Run simulator and plot results
     sim.sim_ws_wd_series(t, ws, wd, rotor_rpm_init=4, make_plots=True)
-
-    # # Load controller library again to see if we deallocated properly
-    # controller_int = ROSCO_ci.ControllerInterface(
-    # controller_int = ROSCO_ci.ControllerInterface(
-    #     lib_name, param_filename=param_filename, sim_name='sim_2')
-
-    # # Run simulator again and plot results
-    # sim_2 = ROSCO_sim.Sim(turbine, controller_int)
-    # sim_2.sim_ws_series(t, ws, rotor_rpm_init=4)
-
-    # # Check if simulations are equal
-    # np.testing.assert_almost_equal(sim_1.gen_speed, sim_2.gen_speed)
 
     if False:
         plt.show()
