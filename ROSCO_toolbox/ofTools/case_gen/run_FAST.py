@@ -87,17 +87,16 @@ class run_FAST_ROSCO():
         case_inputs = self.wind_case_fcn(**self.wind_case_opts)
         case_inputs.update(control_base_case)
 
-        # Specify rosco controller dylib
-        rosco_dll = '' 
-
-        if not rosco_dll: # use WEIS ROSCO
-            run_dir1            = os.path.dirname( os.path.dirname( os.path.dirname( os.path.realpath(__file__) ) ) ) + os.sep
+        rosco_dll = ''
+        # Set up rosco_dll
+        if not rosco_dll: 
+            rosco_dir            = os.path.realpath(os.path.join(os.path.dirname(__file__),'../../..')) 
             if platform.system() == 'Windows':
-                rosco_dll = os.path.join(run_dir1, 'local/lib/libdiscon.dll')
+                rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.dll')
             elif platform.system() == 'Darwin':
-                rosco_dll = os.path.join(run_dir1, 'local/lib/libdiscon.dylib')
+                rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.dylib')
             else:
-                rosco_dll = os.path.join(run_dir1, 'local/lib/libdiscon.so')
+                rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.so')
 
         case_inputs[('ServoDyn','DLL_FileName')] = {'vals': [rosco_dll], 'group': 0}
 

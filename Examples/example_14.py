@@ -122,7 +122,7 @@ case_list, case_name_list = CaseGen_General(case_inputs, dir_matrix=run_dir, nam
 channels = set_channels()
 
 # Run FAST cases
-fastBatch                   = runFAST_pywrapper_batch(FAST_ver='OpenFAST',dev_branch = True)
+fastBatch                   = runFAST_pywrapper_batch()
 
 fastBatch.FAST_directory    = os.path.realpath(os.path.join(rosco_dir,'Tune_Cases',path_params['FAST_directory']))
 fastBatch.FAST_InputFile    = path_params['FAST_InputFile']        

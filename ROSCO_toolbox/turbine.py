@@ -391,7 +391,7 @@ class Turbine():
 
 
         # FAST details
-        fastBatch = runFAST_pywrapper.runFAST_pywrapper_batch(FAST_ver='OpenFAST', dev_branch=True)
+        fastBatch = runFAST_pywrapper.runFAST_pywrapper_batch()
         fastBatch.FAST_exe = openfast_path  # Path to executable
         fastBatch.FAST_InputFile = self.fast.FAST_InputFile
         fastBatch.FAST_directory = self.fast.FAST_directory
