@@ -66,7 +66,7 @@ def sim_rosco():
     if platform.system() == 'Windows':
         lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.dll')
     elif platform.system() == 'Darwin':
-        lib_name = os.path.join(this_dir, '../ROSCO/build-zmq/libdiscon.dylib')
+        lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.dylib')
     else:
         lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.so')
 
