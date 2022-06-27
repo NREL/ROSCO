@@ -15,7 +15,7 @@ import shutil
 
 #directories
 this_dir            = os.path.dirname(os.path.abspath(__file__))
-rosco_dir         = os.path.dirname(this_dir)
+rosco_dir           = os.path.dirname(this_dir)
 example_out_dir     = os.path.join(this_dir,'examples_out')
 os.makedirs(example_out_dir,exist_ok=True)
 
@@ -40,6 +40,14 @@ def main():
     run_dir = os.path.join(example_out_dir,'16_ExtInterface')
     os.makedirs(run_dir,exist_ok=True)
 
+    # Set DLL file and DISCON input dynamically (hard-coded in yaml)
+    controller_params = {}
+    controller_params['DISCON'] = {}
+    controller_params['OL_Mode'] = 2
+    controller_params['DISCON']['DLL_FileName'] =  copy_lib
+    controller_params['DISCON']['DLL_InFile'] =    os.path.join(rosco_dir,'Test_Cases/NREL-5MW/DISCON.IN')
+    controller_params['DISCON']['DLL_ProcName'] =  'DISCON'
+
     # RAAW FAD set up
     r = run_FAST_ROSCO()
     r.tuning_yaml   = parameter_filename
@@ -49,6 +57,7 @@ def main():
         'U_end': [15],
         'wind_dir': run_dir
         }
+    r.controller_params = controller_params
     r.save_dir      = run_dir
 
     r.run_FAST()

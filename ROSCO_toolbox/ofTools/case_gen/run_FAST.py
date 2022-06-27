@@ -37,6 +37,7 @@ class run_FAST_ROSCO():
         self.save_dir           = os.path.join(rosco_dir,'outputs')
         self.n_cores            = 1
         self.base_name          = ''
+        self.controller_params  = {}   
 
     def run_FAST(self):
         # set up run directory
@@ -61,6 +62,9 @@ class run_FAST_ROSCO():
         path_params         = inps['path_params']
         turbine_params      = inps['turbine_params']
         controller_params   = inps['controller_params']
+
+        # Update user-defined controller_params
+        controller_params.update(self.controller_params)
 
         # Instantiate turbine, controller, and file processing classes
         turbine         = ROSCO_turbine.Turbine(turbine_params)
