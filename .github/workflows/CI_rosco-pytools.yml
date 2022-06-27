@@ -91,14 +91,6 @@ jobs:
           auto-update-conda: true
           python-version: 3.8
           environment-file: environment.yml
-      
-      # Archive artifacts
-      - name: Archive production artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: ROSCO-artifacts
-          path: |
-            ROSCO
 
       # setup cmake
       - name: Setup Workspace
@@ -145,6 +137,14 @@ jobs:
           cd Examples
           python run_examples.py
 
+      # Archive artifacts
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ROSCO-artifacts
+          path: |
+            ${{runner.workspace}}
+            
   run_testing:
     name: Run Testing
     runs-on: ${{ matrix.os }}
