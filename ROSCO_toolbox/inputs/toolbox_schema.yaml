@@ -456,6 +456,7 @@ properties:
                         minimum: 0
                     Ind_Azimuth:
                         type: number
+                        default: 0
                         description: The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
             PA_CornerFreq:
                 type: number
@@ -471,7 +472,7 @@ properties:
 
             DISCON:
                 type: object
-                description: These are pass-through parameters for the DISCON.IN file.  Use with caution.
+                description: These are pass-through parameters for the DISCON.IN file.  Use with caution. Do not set defaults in schema.
                 default: {}
                 properties:
                     LoggingLevel:
