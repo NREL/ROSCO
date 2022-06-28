@@ -612,5 +612,46 @@ FUNCTION CurDate( )
     RETURN
     END FUNCTION CurDate
 
+!-------------------------------------------------------------------------------------------------------------------------------
+    FUNCTION unwrap(x, ErrVar) result(y)
+    ! Unwrap function
+    ! If difference between signal elements is < -pi, add 2 pi to reset of signal, and the opposite
+    ! Someday, generalize period and check difference is less than period/2
+        USE ROSCO_Types, ONLY : ErrorVariables
+        IMPLICIT NONE
+    
+        ! Inputs
+        TYPE(ErrorVariables), INTENT(INOUT) :: ErrVar
+        REAL(DbKi), DIMENSION(:), Intent(IN)  :: x
 
+        ! Output
+        REAL(DbKi), DIMENSION(SIZE(x)) :: y
+            
+        ! Local
+        INTEGER(IntKi) :: i
+
+        CHARACTER(*), PARAMETER                 :: RoutineName = 'unwrap'
+
+        y = x ! set initial
+        DO i = 2, SIZE(x)
+            if (y(i) - y(i-1) .LE. -PI) THEN
+                y(i:SIZE(x)) = y(i:SIZE(x)) + 2 * PI
+            elseif (y(i) - y(i-1) .GE. PI) THEN
+                y(i:SIZE(x)) = y(i:SIZE(x)) - 2 * PI
+            endif
+        ENDDO
+
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
+
+        ! Debug
+        ! write(400,*) x
+        ! write(401,*) y
+        
+    END FUNCTION unwrap
+
+
+!-------------------------------------------------------------------------------------------------------------------------------
 END MODULE Functions

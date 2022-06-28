@@ -474,7 +474,7 @@ CONTAINS
             ENDIF
 
             IF (CntrPar%Ind_Azimuth > 0) THEN
-                CntrPar%OL_YawRate = CntrPar%OL_Channels(:,CntrPar%Ind_YawRate)
+                CntrPar%OL_YawRate = Unwrap(CntrPar%OL_Channels(:,CntrPar%Ind_Azimuth),ErrVar)
             ENDIF
         END IF
 
