@@ -63,7 +63,7 @@ def main():
     olc.ol_timeseries['blade_pitch2'] = np.radians(fast_out[0]['BldPitch2'])
     olc.ol_timeseries['blade_pitch3'] = np.radians(fast_out[0]['BldPitch3'])
     olc.ol_timeseries['generator_torque'] = fast_out[0]['GenTq'] * 1000
-    olc.ol_timeseries['azimuth'] = fast_out[0]['Azimuth']
+    olc.ol_timeseries['azimuth'] = np.radians(fast_out[0]['Azimuth'])
 
     # set up control_params for next run
     open_loop = olc.write_input(os.path.join(run_dir,'ol_input.dat'))
