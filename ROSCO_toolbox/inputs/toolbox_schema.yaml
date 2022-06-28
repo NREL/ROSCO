@@ -191,6 +191,12 @@ properties:
                 maximum: 2
                 default: 0
                 description: Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
+            OL_Mode:           
+                type: number
+                minimum: 0
+                maximum: 1
+                default: 0
+                description: Open loop control mode {0- no open loop control, 1- open loop control}
             Ext_Mode:           
                 type: number
                 minimum: 0
