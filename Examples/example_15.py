@@ -28,7 +28,7 @@ def main():
     run_dir = os.path.join(example_out_dir,'15_PassThrough')
     os.makedirs(run_dir,exist_ok=True)
 
-    # RAAW FAD set up
+    # Step wind simulation
     r.tuning_yaml   = parameter_filename
     r.wind_case_fcn = cl.simp_step
     r.wind_case_opts    = {

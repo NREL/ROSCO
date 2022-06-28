@@ -64,6 +64,7 @@ class Controller():
         self.Flp_Mode           = controller_params['Flp_Mode']
         self.PA_Mode           = controller_params['PA_Mode']
         self.Ext_Mode           = controller_params['Ext_Mode']
+        self.ZMQ_Mode           = controller_params['ZMQ_Mode']
 
         # Necessary parameters
         self.U_pc = list_check(controller_params['U_pc'], return_bool=False)
@@ -129,6 +130,7 @@ class Controller():
         self.f_we_cornerfreq        = controller_params['filter_params']['f_we_cornerfreq']
         self.f_fl_highpassfreq      = controller_params['filter_params']['f_fl_highpassfreq']
         self.f_ss_cornerfreq        = controller_params['filter_params']['f_ss_cornerfreq']
+        self.f_yawerr               = controller_params['filter_params']['f_yawerr']
         self.f_sd_cornerfreq        = controller_params['filter_params']['f_sd_cornerfreq']
 
         # Open loop parameters: set up and error catching
