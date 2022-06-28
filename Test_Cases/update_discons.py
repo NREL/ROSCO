@@ -47,9 +47,13 @@ for tuning_yaml in tune_to_test_map:
     controller.tune_controller(turbine)
 
     # Write parameter input file
-    discon_in_file = os.path.join(test_dir,tune_to_test_map[tuning_yaml])
-    write_DISCON(
-        turbine,controller,
-        param_file=discon_in_file, 
-        txt_filename=path_params['rotor_performance_filename'].split('/')[-1]
-        )
+    if not isinstance(tune_to_test_map[tuning_yaml],list):
+        tune_to_test_map[tuning_yaml] = [tune_to_test_map[tuning_yaml]]
+
+    discon_in_files = [os.path.join(test_dir,f) for f in tune_to_test_map[tuning_yaml]]
+    for discon in discon_in_files: 
+        write_DISCON(
+            turbine,controller,
+            param_file=discon, 
+            txt_filename=path_params['rotor_performance_filename'].split('/')[-1]
+            )

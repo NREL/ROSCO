@@ -97,6 +97,9 @@ ControlParameters:
     F_FlHighPassFreq:
       <<: *real
       description: Natural frequency of first-roder high-pass filter for nacelle fore-aft motion [rad/s].
+    F_YawErr:
+      <<: *real
+      description: Corner low pass filter corner frequency for yaw controller [rad/s].
     F_FlpCornerFreq:
       <<: *real
       description: Corner frequency (-3dB point) in the second order low pass filter of the blade root bending moment for flap control [rad/s].
@@ -301,43 +304,29 @@ ControlParameters:
     # Yaw Controller
     Y_ControlMode:
       <<: *integer
-      description: Yaw control mode {0 - no yaw control, 1 - yaw rate control, 2 - yaw-by-IPC}
+      description: Yaw control mode {0 - no yaw control, 1 - yaw rate control}
+    Y_uSwitch:
+      <<: *real
+      description: Wind speed to switch between Y_ErrThresh. If zero, only the first value of Y_ErrThresh is used [m/s]
     Y_ErrThresh:
       <<: *real
-      description: Error threshold [rad]. Turbine begins to yaw when it passes this. (104.71975512) -- 1.745329252
-    Y_IPC_IntSat:
-      <<: *real
-      description: Integrator saturation (maximum signal amplitude contrbution to pitch from yaw-by-IPC)
-    Y_IPC_n:
-      <<: *integer
-      description: Number of controller gains (yaw-by-IPC)
-    Y_IPC_KP:
-      <<: *real
-      description: Yaw-by-IPC proportional controller gain Kp
+      description: Error threshold [rad]. Turbine begins to yaw when it passes this
       allocatable: True
-    Y_IPC_KI:
-      <<: *real
-      description: Yaw-by-IPC integral controller gain Ki
-      allocatable: True
-    Y_IPC_omegaLP:
-      <<: *real
-      description: Low-pass filter corner frequency for the Yaw-by-IPC controller to filtering the yaw alignment error, [rad/s].
-    Y_IPC_zetaLP:
-      <<: *real
-      description: Low-pass filter damping factor for the Yaw-by-IPC controller to filtering the yaw alignment error, [-].
-    Y_MErrSet:
-      <<: *real
-      description: Yaw alignment error, setpoint [rad]
-    Y_omegaLPFast:
-      <<: *real
-      description: Corner frequency fast low pass filter, 1.0 [Hz]
-    Y_omegaLPSlow:
-      <<: *real
-      description: Corner frequency slow low pass filter, 1/60 [Hz]
     Y_Rate:
       <<: *real
       description: Yaw rate [rad/s]
-    
+    Y_MErrSet:
+      <<: *real
+      description: Yaw alignment error, setpoint (for wake steering) [rad]
+    Y_IPC_IntSat:
+      <<: *real
+      description: Integrator saturation (maximum signal amplitude contrbution to pitch from yaw-by-IPC)
+    Y_IPC_KP:
+      <<: *real
+      description: Yaw-by-IPC proportional controller gain Kp
+    Y_IPC_KI:
+      <<: *real
+      description: Yaw-by-IPC integral controller gain Ki
     # Pitch Saturation
     PS_Mode:
       <<: *integer
@@ -477,6 +466,18 @@ ControlParameters:
       description: Process name of subprocess called in DLL_Filename (Usually DISCON)
       length: 1024
     
+    # ZeroMQ
+    ZMQ_Mode:
+      <<: *integer
+      description: Flag for ZeroMQ (0-off, 1-yaw}
+    ZMQ_CommAddress:
+      <<: *character
+      length: 256
+      description: Comm Address to zeroMQ client
+    ZMQ_UpdatePeriod:
+      <<: *real
+      description: Integer for zeromq update frequency
+
     # Calculated
     PC_RtTq99:
       <<: *real
@@ -697,9 +698,12 @@ LocalVariables:
     RotSpeed: 
       <<: *real 
       description: Rotor speed (LSS) [rad/s]
-    Y_M: 
+    NacHeading: 
       <<: *real 
-      description: Yaw direction [rad]
+      description:  Nacelle heading of the turbine w.r.t. north [deg]
+    NacVane: 
+      <<: *real 
+      description:  Nacelle vane angle [deg]
     HorWindV: 
       <<: *real 
       description: Hub height wind speed m/s
@@ -875,21 +879,6 @@ LocalVariables:
     VS_LastGenTrqF:               
       <<: *real 
       description: Differentiated integrated wind speed quantity for estimation [m/s]
-    Y_AccErr:                     
-      <<: *real 
-      description: Accumulated yaw error [rad].
-    Y_ErrLPFFast:                 
-      <<: *real 
-      description: Filtered yaw error by fast low pass filter [rad].
-    Y_ErrLPFSlow:                 
-      <<: *real 
-      description: Filtered yaw error by slow low pass filter [rad].
-    Y_MErr:                       
-      <<: *real 
-      description: Measured yaw error, measured + setpoint [rad].
-    Y_YawEndT:                    
-      <<: *real 
-      description: Yaw end time [s]. Indicates the time up until which yaw is active with a fixed rate
     SD:                           
       <<: *logical
       description: Shutdown, .FALSE. if inactive, .TRUE. if active
@@ -1035,6 +1024,21 @@ DebugVariables:
   axisYaw_2P:
     <<: *real
     description: Yaw component of coleman transformation, 2P
+  YawRateCom:
+    <<: *real
+    description: Commanded yaw rate [rad/s].
+  NacHeadingTarget:
+    <<: *real
+    description: Target nacelle heading [rad].
+  NacVaneOffset:
+    <<: *real
+    description: Nacelle vane angle with offset [rad].
+  Yaw_err:
+    <<: *real
+    description: Yaw error [rad].
+  YawState:
+    <<: *real
+    description: State of yaw controller
 
 ErrorVariables:
   size_avcMSG: 
@@ -1074,6 +1078,14 @@ ExtDLL_Type:
     length: 1024
     description: The name of the procedure in the DLL that will be called.
 
+ZMQ_Variables:
+  ZMQ_Flag:
+    <<: *logical
+    description: Flag if we're using zeroMQ at all (0-False, 1-True)
+  Yaw_Offset:
+    <<: *real
+    description: Yaw offsety command, [rad]
+    
 ExtControlType:
   avrSWAP:
     <<: *c_float

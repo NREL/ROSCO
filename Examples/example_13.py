@@ -10,8 +10,7 @@ In this example:
 
 '''
 # Python Modules
-import yaml, os, platform
-import numpy as np
+import os, platform
 import matplotlib.pyplot as plt
 
 # ROSCO toolbox modules 
@@ -85,7 +84,7 @@ channels['BldPitch2'] = True
 channels['BldPitch3'] = True
 
 # Run FAST cases
-fastBatch                   = runFAST_pywrapper_batch(FAST_ver='OpenFAST',dev_branch = True)
+fastBatch                   = runFAST_pywrapper_batch()
 
 fastBatch.FAST_directory    = os.path.realpath(os.path.join(rosco_dir,'Tune_Cases',path_params['FAST_directory']))
 fastBatch.FAST_InputFile    = path_params['FAST_InputFile']        

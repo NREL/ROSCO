@@ -27,11 +27,11 @@ CONTAINS
  ! -----------------------------------------------------------------------------------
     ! Read avrSWAP array passed from ServoDyn    
     SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar)
-        USE ROSCO_Types, ONLY : LocalVariables
+        USE ROSCO_Types, ONLY : LocalVariables, ZMQ_Variables
 
         REAL(ReKi), INTENT(INOUT) :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
-        
+
         ! Load variables from calling program (See Appendix A of Bladed User's Guide):
         LocalVar%iStatus            = NINT(avrSWAP(1))
         LocalVar%Time               = avrSWAP(2)
@@ -41,7 +41,7 @@ CONTAINS
         LocalVar%GenSpeed           = avrSWAP(20)
         LocalVar%RotSpeed           = avrSWAP(21)
         LocalVar%GenTqMeas          = avrSWAP(23)
-        LocalVar%Y_M                = avrSWAP(24)
+        LocalVar%NacVane            = avrSWAP(24) * R2D
         LocalVar%HorWindV           = avrSWAP(27)
         LocalVar%rootMOOP(1)        = avrSWAP(30)
         LocalVar%rootMOOP(2)        = avrSWAP(31)
@@ -71,18 +71,19 @@ CONTAINS
     END SUBROUTINE ReadAvrSWAP    
 ! -----------------------------------------------------------------------------------
     ! Define parameters for control actions
-    SUBROUTINE SetParameters(avrSWAP, accINFILE, size_avcMSG, CntrPar, LocalVar, objInst, PerfData, ErrVar)
+    SUBROUTINE SetParameters(avrSWAP, accINFILE, size_avcMSG, CntrPar, LocalVar, objInst, PerfData, zmqVar, ErrVar)
                 
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData, ErrorVariables
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData, ErrorVariables, ZMQ_Variables
         
         REAL(ReKi),                 INTENT(INOUT)   :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
         CHARACTER(C_CHAR),          INTENT(IN   )   :: accINFILE(NINT(avrSWAP(50)))     ! The name of the parameter input file
 
-        INTEGER(IntKi),                 INTENT(IN   )   :: size_avcMSG
+        INTEGER(IntKi),             INTENT(IN   )   :: size_avcMSG
         TYPE(ControlParameters),    INTENT(INOUT)   :: CntrPar
         TYPE(LocalVariables),       INTENT(INOUT)   :: LocalVar
         TYPE(ObjectInstances),      INTENT(INOUT)   :: objInst
         TYPE(PerformanceData),      INTENT(INOUT)   :: PerfData
+        TYPE(ZMQ_Variables),        INTENT(INOUT)   :: zmqVar
         TYPE(ErrorVariables),       INTENT(INOUT)   :: ErrVar
 
         
@@ -138,7 +139,7 @@ CONTAINS
             LocalVar%ACC_INFILE = accINFILE
 
             ! Read Control Parameter File
-            CALL ReadControlParameterFileSub(CntrPar, accINFILE, NINT(avrSWAP(50)),ErrVar)
+            CALL ReadControlParameterFileSub(CntrPar, zmqVar, accINFILE, NINT(avrSWAP(50)),ErrVar)
             ! If there's been an file reading error, don't continue
             ! Add RoutineName to error message
             IF (ErrVar%aviFAIL < 0) THEN
@@ -152,9 +153,7 @@ CONTAINS
         
             ! Initialize the SAVED variables:
             LocalVar%PitCom     = LocalVar%BlPitch ! This will ensure that the variable speed controller picks the correct control region and the pitch controller picks the correct gain on the first call
-            LocalVar%Y_AccErr   = 0.0  ! This will ensure that the accumulated yaw error starts at zero
-            LocalVar%Y_YawEndT  = -1.0 ! This will ensure that the initial yaw end time is lower than the actual time to prevent initial yawing
-            
+
             ! Wind speed estimator initialization
             LocalVar%WE_Vw      = LocalVar%HorWindV
             LocalVar%WE_VwI     = LocalVar%WE_Vw - CntrPar%WE_Gamma*LocalVar%RotSpeed
@@ -179,24 +178,30 @@ CONTAINS
                 ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
             ENDIF
             
+            ! Check if we're using zeromq
+            IF (CntrPar%ZMQ_Mode == 1) THEN ! add .OR. statements as more functionality is built in
+                zmqVar%ZMQ_Flag = .TRUE.
+            ENDIF
 
         ENDIF
     END SUBROUTINE SetParameters
     ! -----------------------------------------------------------------------------------
     ! Read all constant control parameters from DISCON.IN parameter file
-    SUBROUTINE ReadControlParameterFileSub(CntrPar, accINFILE, accINFILE_size,ErrVar)!, accINFILE_size)
+    SUBROUTINE ReadControlParameterFileSub(CntrPar, zmqVar, accINFILE, accINFILE_size,ErrVar)!, accINFILE_size)
         USE, INTRINSIC :: ISO_C_Binding
-        USE ROSCO_Types, ONLY : ControlParameters, ErrorVariables
+        USE ROSCO_Types, ONLY : ControlParameters, ErrorVariables, ZMQ_Variables
 
         INTEGER(IntKi)                                  :: accINFILE_size               ! size of DISCON input filename
         CHARACTER(accINFILE_size),  INTENT(IN   )       :: accINFILE(accINFILE_size)    ! DISCON input filename
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar                      ! Control parameter type
-        TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar                      ! Control parameter type
+        TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar                       ! Control parameter type
+        TYPE(ZMQ_Variables),        INTENT(INOUT)       :: zmqVar                       ! Control parameter type
         
         INTEGER(IntKi)                                  :: UnControllerParameters  ! Unit number to open file
         INTEGER(IntKi)                                  :: UnOpenLoop  ! Unit number to open file
+        TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar                      ! Control parameter type
+        
         INTEGER(IntKi)                                  :: CurLine 
-        ! INTEGER(IntKi), PARAMETER                       :: UnControllerParameters = 89  ! Unit number to open file
 
         CHARACTER(1024)                                 :: OL_String                    ! Open description loop string
         INTEGER(IntKi)                                  :: OL_Count                     ! Number of open loop channels
@@ -243,6 +248,7 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'OL_Mode',accINFILE(1),CntrPar%OL_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PA_Mode',accINFILE(1),CntrPar%PA_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Ext_Mode',accINFILE(1),CntrPar%Ext_Mode,ErrVar)
+		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_Mode',accINFILE(1), CntrPar%ZMQ_Mode,ErrVar)
 
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
@@ -254,6 +260,7 @@ CONTAINS
         CALL ParseAry(UnControllerParameters, CurLine, 'F_NotchBetaNumDen', CntrPar%F_NotchBetaNumDen, 2, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'F_SSCornerFreq',accINFILE(1),CntrPar%F_SSCornerFreq,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'F_WECornerFreq',accINFILE(1),CntrPar%F_WECornerFreq,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'F_YawErr',accINFILE(1),CntrPar%F_YawErr, ErrVar)
         CALL ParseAry(UnControllerParameters, CurLine, 'F_FlCornerFreq', CntrPar%F_FlCornerFreq, 2, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'F_FlHighPassFreq',accINFILE(1),CntrPar%F_FlHighPassFreq,ErrVar)
         CALL ParseAry(UnControllerParameters, CurLine, 'F_FlpCornerFreq', CntrPar%F_FlpCornerFreq, 2, accINFILE(1), ErrVar )
@@ -328,17 +335,13 @@ CONTAINS
 
         !-------------- YAW CONTROLLER CONSTANTS -----------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_ErrThresh',accINFILE(1),CntrPar%Y_ErrThresh,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_IntSat',accINFILE(1),CntrPar%Y_IPC_IntSat,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_n',accINFILE(1),CntrPar%Y_IPC_n,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'Y_IPC_KP', CntrPar%Y_IPC_KP, CntrPar%Y_IPC_n, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'Y_IPC_KI', CntrPar%Y_IPC_KI, CntrPar%Y_IPC_n, accINFILE(1), ErrVar )
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_omegaLP',accINFILE(1),CntrPar%Y_IPC_omegaLP,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_zetaLP',accINFILE(1),CntrPar%Y_IPC_zetaLP,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_MErrSet',accINFILE(1),CntrPar%Y_MErrSet,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_omegaLPFast',accINFILE(1),CntrPar%Y_omegaLPFast,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_omegaLPSlow',accINFILE(1),CntrPar%Y_omegaLPSlow,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_uSwitch',accINFILE(1),CntrPar%Y_uSwitch,ErrVar)
+        CALL ParseAry(UnControllerParameters, CurLine, 'Y_ErrThresh', CntrPar%Y_ErrThresh, 2, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'Y_Rate',accINFILE(1),CntrPar%Y_Rate,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_MErrSet',accINFILE(1),CntrPar%Y_MErrSet,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_IntSat',accINFILE(1),CntrPar%Y_IPC_IntSat,ErrVar)
+        CALL ParseInput(UnControllerParameters, CurLine,'Y_IPC_KP', accINFILE(1), CntrPar%Y_IPC_KP, ErrVar )
+        CALL ParseInput(UnControllerParameters, CurLine,'Y_IPC_KI', accINFILE(1), CntrPar%Y_IPC_KI, ErrVar )
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !------------ FORE-AFT TOWER DAMPER CONSTANTS ------------
@@ -392,11 +395,18 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'PA_Damping',accINFILE(1),CntrPar%PA_Damping,ErrVar)
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
 
+        
         !------------ External control interface ------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
         CALL ParseInput(UnControllerParameters,CurLine,'DLL_FileName',accINFILE(1),CntrPar%DLL_FileName,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'DLL_InFile',accINFILE(1),CntrPar%DLL_InFile,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'DLL_ProcName',accINFILE(1),CntrPar%DLL_ProcName,ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+
+        !------------ ZeroMQ ------------
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_CommAddress',accINFILE(1), CntrPar%ZMQ_CommAddress,ErrVar)
+		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_UpdatePeriod',accINFILE(1), CntrPar%ZMQ_UpdatePeriod,ErrVar)
 
         ! Fix Paths (add relative paths if called from another dir)
         IF (PathIsRelative(CntrPar%PerfFileName)) CntrPar%PerfFileName = TRIM(PriPath)//TRIM(CntrPar%PerfFileName)
@@ -478,6 +488,9 @@ CONTAINS
             ENDIF
         END IF
 
+        ! Convert yaw rate to deg/s
+        CntrPar%Y_Rate = CntrPar%Y_Rate * R2D
+
         ! Debugging outputs (echo someday)
         ! write(400,*) CntrPar%OL_YawRate
 
@@ -558,6 +571,9 @@ CONTAINS
         DO i = 1,CntrPar%PerfTableSize(2)
             READ(UnPerfParameters, *) PerfData%Cq_mat(i,:) ! Read Cq table
         END DO
+
+        ! Close file
+        CLOSE(UnPerfParameters)
 
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN
@@ -947,38 +963,18 @@ CONTAINS
             ErrVar%ErrMsg  = 'WE_FOPoles_v must be non-decreasing.'
         ENDIF
 
-
-
         ! ---- Yaw Control ----
         IF (CntrPar%Y_ControlMode > 0) THEN
-            IF (CntrPar%Y_IPC_omegaLP <= 0.0)  THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'Y_IPC_omegaLP must be greater than zero.'
-            ENDIF
-            
-            IF (CntrPar%Y_IPC_zetaLP <= 0.0)  THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'Y_IPC_zetaLP must be greater than zero.'
-            ENDIF
-            
-            IF (CntrPar%Y_ErrThresh <= 0.0)  THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'Y_ErrThresh must be greater than zero.'
-            ENDIF
-            
-            IF (CntrPar%Y_Rate <= 0.0)  THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'CntrPar%Y_Rate must be greater than zero.'
-            ENDIF
-            
-            IF (CntrPar%Y_omegaLPFast <= 0.0)  THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'Y_omegaLPFast must be greater than zero.'
-            ENDIF
-            
-            IF (CntrPar%Y_omegaLPSlow <= 0.0)  THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'Y_omegaLPSlow must be greater than zero.'
+            IF (CntrPar%Y_ControlMode == 1) THEN
+                IF (CntrPar%Y_ErrThresh(1) <= 0.0)  THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg  = 'Y_ErrThresh must be greater than zero.'
+                ENDIF
+
+                IF (CntrPar%Y_Rate <= 0.0)  THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg  = 'CntrPar%Y_Rate must be greater than zero.'
+                ENDIF
             ENDIF
         ENDIF
 

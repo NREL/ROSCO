@@ -144,10 +144,10 @@ class run_FAST_ROSCO():
         if rank == 0:
 
             # Run FAST cases
-            fastBatch                   = runFAST_pywrapper_batch(FAST_ver='OpenFAST',dev_branch = True)
-
+            fastBatch                   = runFAST_pywrapper_batch()
+            
             # FAST_directory (relative to Tune_Dir/)
-            fastBatch.FAST_directory    = os.path.realpath(os.path.join(tune_case_dir,path_params['FAST_directory']))
+            fastBatch.FAST_directory    = os.path.realpath(os.path.join(tune_yaml_dir,path_params['FAST_directory']))
             fastBatch.FAST_InputFile    = path_params['FAST_InputFile']        
             fastBatch.channels          = channels
             fastBatch.FAST_runDirectory = run_dir
