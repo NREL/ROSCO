@@ -89,13 +89,6 @@ IF (CntrPar%Ext_Mode > 0) THEN
     CALL ExtController(avrSWAP, CntrPar, LocalVar, ExtDLL, ErrVar)
     ! Data from external dll is in ExtDLL%avrSWAP, it's unused in the following code
 END IF
-
-
-! Call external controller, if desired
-IF (CntrPar%Ext_Mode > 0) THEN
-    CALL ExtController(avrSWAP, CntrPar, LocalVar, ErrVar)
-END IF
-
 ! Overwrite with ROSCO, where desired
 
 ! Filter signals

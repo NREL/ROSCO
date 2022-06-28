@@ -199,7 +199,6 @@ CONTAINS
         
         INTEGER(IntKi)                                  :: UnControllerParameters  ! Unit number to open file
         INTEGER(IntKi)                                  :: UnOpenLoop  ! Unit number to open file
-        TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar                      ! Control parameter type
         
         INTEGER(IntKi)                                  :: CurLine 
 
