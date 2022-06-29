@@ -682,6 +682,10 @@ piParams:
       <<: *real
       dimension: (99)
       description: Previous integrator term - second integrator
+    ELast:
+      <<: *real
+      dimension: (99)
+      description: Previous error term for derivative
 
 LocalVariables:
     iStatus: 
@@ -735,6 +739,9 @@ LocalVariables:
     AzError: 
       <<: *real 
       description: Azimuth error angle [rad]
+    GenTqAz: 
+      <<: *real 
+      description: Gen torque command due to azimuth error
     AzBuffer: 
       <<: *real 
       size: 2

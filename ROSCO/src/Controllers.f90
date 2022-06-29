@@ -57,7 +57,7 @@ CONTAINS
         LocalVar%PC_TF = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_TF, LocalVar%PC_PitComTF, ErrVar) ! TF gains (derivative filter) !NJA - need to clarify
         
         ! Compute the collective pitch command associated with the proportional and integral gains:
-        LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, LocalVar%PC_MinPit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%BlPitch(1), LocalVar%piP, LocalVar%restart, objInst%instPI)
+        LocalVar%PC_PitComT = PIDController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, 0.0_DbKi, 999.9_DbKi, LocalVar%PC_MinPit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%BlPitch(1), LocalVar%piP, LocalVar%restart, objInst, LocalVar)
         DebugVar%PC_PICommand = LocalVar%PC_PitComT
         ! Find individual pitch control contribution
         IF ((CntrPar%IPC_ControlMode >= 1) .OR. (CntrPar%Y_ControlMode == 2)) THEN
@@ -190,18 +190,6 @@ CONTAINS
             ! VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
             LocalVar%VS_MaxTq = CntrPar%VS_RtTq
         ENDIF
-
-        ! Azimuth error
-        LocalVar%AzBuffer(1) = LocalVar%AzBuffer(2)
-        LocalVar%AzBuffer(2) = LocalVar%Azimuth
-        LocalVar%AzBuffer = UNWRAP(LocalVar%AzBuffer, ErrVar)
-        LocalVar%AzUnwrapped = LocalVar%AzBuffer(2)
-
-        LocalVar%OL_Azimuth = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_Azimuth,LocalVar%Time,ErrVar)
-
-        LocalVar%AzError = LocalVar%OL_Azimuth - LocalVar%AzUnwrapped 
-        write(402,*) LocalVar%AzError
-
         
         ! Optimal Tip-Speed-Ratio tracking controller
         IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
@@ -211,14 +199,14 @@ CONTAINS
             END IF
 
             ! PI controller
-            LocalVar%GenTq = PIController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, LocalVar%VS_MaxTq, LocalVar%DT, LocalVar%VS_LastGenTrq, LocalVar%piP, LocalVar%restart, objInst%instPI)
+            LocalVar%GenTq = PIDController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), 0.0_DbKi, 999.9_DbKi, CntrPar%VS_MinTq, LocalVar%VS_MaxTq, LocalVar%DT, LocalVar%VS_LastGenTrq, LocalVar%piP, LocalVar%restart, objInst, LocalVar)
             LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, LocalVar%VS_MaxTq)
         
         ! K*Omega^2 control law with PI torque control in transition regions
         ELSE
             ! Update PI loops for region 1.5 and 2.5 PI control
-            LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_MaxOMTq, LocalVar%piP, LocalVar%restart, objInst%instPI)
-            LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, LocalVar%piP, LocalVar%restart, objInst%instPI)
+            LocalVar%GenArTq = PIDController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), 0.0_DbKi, 999.9_DbKi, CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_MaxOMTq, LocalVar%piP, LocalVar%restart, objInst, LocalVar)
+            LocalVar%GenBrTq = PIDController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), 0.0_DbKi, 999.9_DbKi, CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, LocalVar%piP, LocalVar%restart, objInst, LocalVar)
             
             ! The action
             IF (LocalVar%VS_State == 1) THEN ! Region 1.5
@@ -246,9 +234,28 @@ CONTAINS
         
         ! Open loop torque control
         IF ((CntrPar%OL_Mode > 0) .AND. (CntrPar%Ind_GenTq > 0)) THEN
+            ! Get current OL GenTq, applies for OL_Mode 1 and 2
             IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN
                 LocalVar%GenTq = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_GenTq,LocalVar%Time,ErrVar)
             ENDIF
+            
+            ! Azimuth tracking control
+            IF (CntrPar%OL_Mode == 2) THEN
+                
+                ! Push, pop and unwrap azimuth buffer 
+                LocalVar%AzBuffer(1) = LocalVar%AzBuffer(2)
+                LocalVar%AzBuffer(2) = LocalVar%Azimuth
+                LocalVar%AzBuffer = UNWRAP(LocalVar%AzBuffer, ErrVar)
+                LocalVar%AzUnwrapped = LocalVar%AzBuffer(2)
+
+                ! Current desired Azimuth, error
+                LocalVar%OL_Azimuth = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_Azimuth,LocalVar%Time,ErrVar)
+                LocalVar%AzError = LocalVar%OL_Azimuth - LocalVar%AzUnwrapped 
+
+                ! LocalVar%GenTqAz = PIDController
+
+            ENDIF
+
         ENDIF
 
         ! Reset the value of LocalVar%VS_LastGenTrq to the current values:
@@ -420,7 +427,7 @@ CONTAINS
         IF (CntrPar%Y_ControlMode == 2) THEN
             Y_MErr = wrap_360(LocalVar%NacHeading + LocalVar%NacVane)
             Y_MErrF = LPFilter(Y_MErr, LocalVar%DT, CntrPar%F_YawErr, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF)
-            Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP, CntrPar%Y_IPC_KI, -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
+            Y_MErrF_IPC = PIDController(Y_MErrF, CntrPar%Y_IPC_KP, CntrPar%Y_IPC_KI, 0.0_DbKi, 999.9_DbKi, -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst, LocalVar)
         ELSE
             axisYawF_1P = axisYaw_1P
             Y_MErrF = 0.0
@@ -435,12 +442,12 @@ CONTAINS
         
         ! Integrate the signal and multiply with the IPC gain
         IF ((CntrPar%IPC_ControlMode >= 1) .AND. (CntrPar%Y_ControlMode /= 2)) THEN
-            LocalVar%IPC_axisTilt_1P = PIController(axisTilt_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
-            LocalVar%IPC_axisYaw_1P = PIController(axisYawF_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+            LocalVar%IPC_axisTilt_1P = PIDController(axisTilt_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), 0.0_DbKi, 999.9_DbKi, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst, LocalVar) 
+            LocalVar%IPC_axisYaw_1P = PIDController(axisYawF_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), 0.0_DbKi, 999.9_DbKi, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst, LocalVar) 
             
             IF (CntrPar%IPC_ControlMode >= 2) THEN
-                LocalVar%IPC_axisTilt_2P = PIController(axisTilt_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
-                LocalVar%IPC_axisYaw_2P = PIController(axisYawF_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+                LocalVar%IPC_axisTilt_2P = PIDController(axisTilt_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), 0.0_DbKi, 999.9_DbKi, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst, LocalVar) 
+                LocalVar%IPC_axisYaw_2P = PIDController(axisYawF_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), 0.0_DbKi, 999.9_DbKi, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst, LocalVar) 
             END IF
         ELSE
             LocalVar%IPC_axisTilt_1P = 0.0
@@ -498,7 +505,7 @@ CONTAINS
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         
         ! Body
-        LocalVar%FA_AccHPFI = PIController(LocalVar%FA_AccHPF, 0.0_DbKi, CntrPar%FA_KI, -CntrPar%FA_IntSat, CntrPar%FA_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
+        LocalVar%FA_AccHPFI = PIDController(LocalVar%FA_AccHPF, 0.0_DbKi, CntrPar%FA_KI, 0.0_DbKi, 999.9_DbKi, -CntrPar%FA_IntSat, CntrPar%FA_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst, LocalVar)
         
         ! Store the fore-aft pitch contribution to LocalVar data type
         DO K = 1,LocalVar%NumBl
@@ -523,8 +530,8 @@ CONTAINS
         REAL(DbKi)                      :: NacIMU_FA_vel ! Tower fore-aft pitching velocity [rad/s]
         
         ! Calculate floating contribution to pitch command
-        FA_vel = PIController(LocalVar%FA_AccF, 0.0_DbKi, 1.0_DbKi, -100.0_DbKi , 100.0_DbKi ,LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) ! NJA: should never reach saturation limits....
-        NacIMU_FA_vel = PIController(LocalVar%NacIMU_FA_AccF, 0.0_DbKi, 1.0_DbKi, -100.0_DbKi , 100.0_DbKi ,LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) ! NJA: should never reach saturation limits....
+        FA_vel = PIDController(LocalVar%FA_AccF, 0.0_DbKi, 1.0_DbKi, 0.0_DbKi, 999.9_DbKi, -100.0_DbKi , 100.0_DbKi ,LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst, LocalVar) ! NJA: should never reach saturation limits....
+        NacIMU_FA_vel = PIDController(LocalVar%NacIMU_FA_AccF, 0.0_DbKi, 1.0_DbKi, 0.0_DbKi, 999.9_DbKi, -100.0_DbKi , 100.0_DbKi ,LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst, LocalVar) ! NJA: should never reach saturation limits....
         if (CntrPar%Fl_Mode == 1) THEN
             FloatingFeedback = (0.0_DbKi - FA_vel) * CntrPar%Fl_Kp !* LocalVar%PC_KP/maxval(CntrPar%PC_GS_KP)
         ELSEIF (CntrPar%Fl_Mode == 2) THEN
@@ -563,7 +570,7 @@ CONTAINS
                 LocalVar%Flp_Angle(3) = CntrPar%Flp_Angle
                 ! Initialize controller
                 IF (CntrPar%Flp_Mode == 2) THEN
-                    LocalVar%Flp_Angle(K) = PIIController(RootMyb_VelErr(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, 0.05, -CntrPar%Flp_MaxPit , CntrPar%Flp_MaxPit , LocalVar%DT, 0.0, LocalVar%piP, LocalVar%restart, objInst%instPI)
+                    LocalVar%Flp_Angle(K) = PIIController(RootMyb_VelErr(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, 0.05_DbKi, -CntrPar%Flp_MaxPit , CntrPar%Flp_MaxPit , LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
                 ENDIF
             
             ! Steady flap angle
@@ -576,7 +583,7 @@ CONTAINS
             ELSEIF (CntrPar%Flp_Mode == 2) THEN
                 DO K = 1,LocalVar%NumBl
                     ! Find flap angle command - includes an integral term to encourage zero flap angle
-                    LocalVar%Flp_Angle(K) = PIIController(-LocalVar%rootMOOPF(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, REAL(0.05,DbKi), -CntrPar%Flp_MaxPit , CntrPar%Flp_MaxPit , LocalVar%DT, 0.0, LocalVar%piP, LocalVar%restart, objInst%instPI)
+                    LocalVar%Flp_Angle(K) = PIIController(-LocalVar%rootMOOPF(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, 0.05_DbKi, -CntrPar%Flp_MaxPit , CntrPar%Flp_MaxPit , LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
                     ! Saturation Limits
                     LocalVar%Flp_Angle(K) = saturate(LocalVar%Flp_Angle(K), -CntrPar%Flp_MaxPit, CntrPar%Flp_MaxPit) * R2D
                 END DO
@@ -587,8 +594,8 @@ CONTAINS
                 CALL ColemanTransform(LocalVar%rootMOOPF, LocalVar%Azimuth, NP_1, axisTilt_1P, axisYaw_1P)
 
                 ! Apply PI control
-                Flp_axisTilt_1P = PIController(axisTilt_1P, CntrPar%Flp_Kp, CntrPar%Flp_Ki, -CntrPar%Flp_MaxPit, CntrPar%Flp_MaxPit, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
-                Flp_axisYaw_1P = PIController(axisYaw_1P, CntrPar%Flp_Kp, CntrPar%Flp_Ki, -CntrPar%Flp_MaxPit, CntrPar%Flp_MaxPit, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+                Flp_axisTilt_1P = PIDController(axisTilt_1P, CntrPar%Flp_Kp, CntrPar%Flp_Ki, 0.0_DbKi, 999.9_DbKi, -CntrPar%Flp_MaxPit, CntrPar%Flp_MaxPit, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst, LocalVar) 
+                Flp_axisYaw_1P = PIDController(axisYaw_1P, CntrPar%Flp_Kp, CntrPar%Flp_Ki, 0.0_DbKi, 999.9_DbKi, -CntrPar%Flp_MaxPit, CntrPar%Flp_MaxPit, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst, LocalVar) 
             
                 ! Pass direct and quadrature axis through the inverse Coleman transform to get the commanded pitch angles
                 CALL ColemanTransformInverse(Flp_axisTilt_1P, Flp_axisYaw_1P, LocalVar%Azimuth, NP_1, 0.0_DbKi, LocalVar%Flp_Angle)

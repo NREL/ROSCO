@@ -22,13 +22,14 @@
 !       interp1d: 1-d interpolation
 !       interp2d: 2-d interpolation
 !       matinv3: 3x3 matrix inverse
-!       PIController: implement a PI controller
+!       PIDController: implement a PID controller
 !       ratelimit: Rate limit signal
 !       saturate: Saturate signal
 
 MODULE Functions
 
 USE Constants
+USE Filters
 
 IMPLICIT NONE
 
@@ -67,8 +68,8 @@ CONTAINS
     END FUNCTION ratelimit
 
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(DbKi) FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, piP, reset, inst)
-        USE ROSCO_Types, ONLY : piParams
+    REAL(DbKi) FUNCTION PIDController(error, kp, ki, kd, tf, minValue, maxValue, DT, I0, piP, reset, objInst, LocalVar)
+        USE ROSCO_Types, ONLY : piParams, LocalVariables, ObjectInstances
 
     ! PI controller, with output saturation
 
@@ -77,34 +78,51 @@ CONTAINS
         REAL(DbKi),    INTENT(IN)         :: error
         REAL(DbKi),    INTENT(IN)         :: kp
         REAL(DbKi),    INTENT(IN)         :: ki
+        REAL(DbKi),    INTENT(IN)         :: kd
+        REAL(DbKi),    INTENT(IN)         :: tf
         REAL(DbKi),    INTENT(IN)         :: minValue
         REAL(DbKi),    INTENT(IN)         :: maxValue
         REAL(DbKi),    INTENT(IN)         :: DT
-        INTEGER(IntKi), INTENT(INOUT)      :: inst
-        REAL(DbKi),    INTENT(IN)         :: I0
-        TYPE(piParams), INTENT(INOUT)  :: piP
-        LOGICAL,    INTENT(IN)         :: reset     
+        TYPE(ObjectInstances),      INTENT(INOUT)   :: objInst  ! all object instances (PI, filters used here)
+        TYPE(LocalVariables),       INTENT(INOUT)   :: LocalVar
+
+        REAL(DbKi),    INTENT(IN)           :: I0
+        TYPE(piParams), INTENT(INOUT)       :: piP
+        LOGICAL,    INTENT(IN)              :: reset     
+        
         ! Allocate local variables
         INTEGER(IntKi)                      :: i                                            ! Counter for making arrays
-        REAL(DbKi)                         :: PTerm                                        ! Proportional term
+        REAL(DbKi)                          :: PTerm, DTerm                                 ! Proportional, deriv. terms
+        REAL(DbKi)                          :: EFilt                    ! Filtered error for derivative
 
         ! Initialize persistent variables/arrays, and set inital condition for integrator term
         IF (reset) THEN
-            piP%ITerm(inst) = I0
-            piP%ITermLast(inst) = I0
-            
-            PIController = I0
+            piP%ITerm(objInst%instPI) = I0
+            piP%ITermLast(objInst%instPI) = I0
+            piP%ELast(objInst%instPI) = 0_DbKi
+            PIDController = I0
         ELSE
+            ! Proportional
             PTerm = kp*error
-            piP%ITerm(inst) = piP%ITerm(inst) + DT*ki*error
-            piP%ITerm(inst) = saturate(piP%ITerm(inst), minValue, maxValue)
-            PIController = saturate(PTerm + piP%ITerm(inst), minValue, maxValue)
+            
+            ! Integrate and saturate
+            piP%ITerm(objInst%instPI) = piP%ITerm(objInst%instPI) + DT*ki*error
+            piP%ITerm(objInst%instPI) = saturate(piP%ITerm(objInst%instPI), minValue, maxValue)
+
+            ! Derivative (filtered)
+            EFilt = LPFilter(error, DT, tf, LocalVar%FP, LocalVar%iStatus, reset, objInst%instLPF)
+            DTerm = kd * (EFilt - piP%ELast(objInst%instPI)) / DT
+            
+            ! Saturate all
+            PIDController = saturate(PTerm + piP%ITerm(objInst%instPI), minValue, maxValue)
         
-            piP%ITermLast(inst) = piP%ITerm(inst)
+            ! Save lasts
+            piP%ITermLast(objInst%instPI) = piP%ITerm(objInst%instPI)
+            piP%ELast(objInst%instPI) = EFilt
         END IF
-        inst = inst + 1
+        objInst%instPI = objInst%instPI + 1
         
-    END FUNCTION PIController
+    END FUNCTION PIDController
 
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL(DbKi) FUNCTION PIIController(error, error2, kp, ki, ki2, minValue, maxValue, DT, I0, piP, reset, inst)

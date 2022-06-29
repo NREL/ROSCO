@@ -184,6 +184,7 @@ TYPE, PUBLIC :: piParams
     REAL(DbKi), DIMENSION(99)     :: ITermLast                   ! Previous integrator term
     REAL(DbKi), DIMENSION(99)     :: ITerm2                      ! Integrator term - second integrator
     REAL(DbKi), DIMENSION(99)     :: ITermLast2                  ! Previous integrator term - second integrator
+    REAL(DbKi), DIMENSION(99)     :: ELast                       ! Previous error term for derivative
 END TYPE piParams
 
 TYPE, PUBLIC :: LocalVariables
@@ -203,6 +204,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: OL_Azimuth                  ! Rotor aziumuth angle [rad]
     REAL(DbKi)                    :: AzUnwrapped                 ! Rotor aziumuth angle [rad]
     REAL(DbKi)                    :: AzError                     ! Azimuth error angle [rad]
+    REAL(DbKi)                    :: GenTqAz                     ! Gen torque command due to azimuth error
     REAL(DbKi)                    :: AzBuffer(2)                 ! Current and last rotor aziumuth angles [rad]
     INTEGER(IntKi)                :: NumBl                       ! Number of blades [-]
     REAL(DbKi)                    :: FA_Acc                      ! Tower fore-aft acceleration [m/s^2]
