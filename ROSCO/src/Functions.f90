@@ -661,12 +661,14 @@ FUNCTION CurDate( )
 
         y = x ! set initial
         DO i = 2, SIZE(x)
-            if (y(i) - y(i-1) .LE. -PI) THEN
+            DO while (y(i) - y(i-1) .LE. -PI)
                 y(i:SIZE(x)) = y(i:SIZE(x)) + 2 * PI
-            elseif (y(i) - y(i-1) .GE. PI) THEN
+            END DO
+
+            DO while (y(i) - y(i-1) .GE. PI)
                 y(i:SIZE(x)) = y(i:SIZE(x)) - 2 * PI
-            endif
-        ENDDO
+            END DO
+        END DO
 
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN

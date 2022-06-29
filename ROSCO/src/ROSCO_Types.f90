@@ -108,11 +108,12 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: Ind_Azimuth                 ! The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: RP_Gains                    ! PID gains for rotor position control (used if OL_Mode = 2)
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_Breakpoints              ! Open loop breakpoints in timeseries
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_BldPitch1                ! Open blade pitch 1 timeseries
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_BldPitch2                ! Open blade pitch 2 timeseries
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_BldPitch3                ! Open blade pitch 3 timeseries
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_GenTq                    ! Open generator torque timeseries
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_YawRate                  ! Open yaw rate timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_BldPitch1                ! Open loop blade pitch 1 timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_BldPitch2                ! Open loop blade pitch 2 timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_BldPitch3                ! Open loop blade pitch 3 timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_GenTq                    ! Open loop generator torque timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_YawRate                  ! Open loop yaw rate timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_Azimuth                  ! Open loop azimuth timeseries
     REAL(DbKi), DIMENSION(:,:), ALLOCATABLE     :: OL_Channels                 ! Open loop channels in timeseries
     INTEGER(IntKi)                :: PA_Mode                     ! Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
     REAL(DbKi)                    :: PA_CornerFreq               ! Pitch actuator bandwidth/cut-off frequency [rad/s]
@@ -199,6 +200,10 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: rootMOOPF(3)                ! Filtered Blade root bending moment [Nm]
     REAL(DbKi)                    :: BlPitch(3)                  ! Blade pitch [rad]
     REAL(DbKi)                    :: Azimuth                     ! Rotor aziumuth angle [rad]
+    REAL(DbKi)                    :: OL_Azimuth                  ! Rotor aziumuth angle [rad]
+    REAL(DbKi)                    :: AzUnwrapped                 ! Rotor aziumuth angle [rad]
+    REAL(DbKi)                    :: AzError                     ! Azimuth error angle [rad]
+    REAL(DbKi)                    :: AzBuffer(2)                 ! Current and last rotor aziumuth angles [rad]
     INTEGER(IntKi)                :: NumBl                       ! Number of blades [-]
     REAL(DbKi)                    :: FA_Acc                      ! Tower fore-aft acceleration [m/s^2]
     REAL(DbKi)                    :: NacIMU_FA_Acc               ! Tower fore-aft acceleration [rad/s^2]

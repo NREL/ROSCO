@@ -456,6 +456,10 @@ CONTAINS
             ENDIF
 
             PRINT *, 'ROSCO: Implementing open loop control for'//TRIM(OL_String)
+            IF (CntrPar%OL_Mode == 2) THEN
+                PRINT *, 'ROSCO: OL_Mode = 2 will change generator torque control for Azimuth tracking'
+            ENDIF
+
             CALL GetNewUnit(UnOpenLoop, ErrVar)
             CALL Read_OL_Input(CntrPar%OL_Filename,UnOpenLoop,OL_Count,CntrPar%OL_Channels, ErrVar)
 
@@ -483,7 +487,7 @@ CONTAINS
             ENDIF
 
             IF (CntrPar%Ind_Azimuth > 0) THEN
-                CntrPar%OL_YawRate = Unwrap(CntrPar%OL_Channels(:,CntrPar%Ind_Azimuth),ErrVar)
+                CntrPar%OL_Azimuth = Unwrap(CntrPar%OL_Channels(:,CntrPar%Ind_Azimuth),ErrVar)
             ENDIF
         END IF
 

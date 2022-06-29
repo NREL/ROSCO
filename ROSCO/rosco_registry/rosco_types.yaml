@@ -415,23 +415,27 @@ ControlParameters:
     OL_BldPitch1:
       <<: *real
       allocatable: True
-      description: Open blade pitch 1 timeseries
+      description: Open loop blade pitch 1 timeseries
     OL_BldPitch2:
       <<: *real
       allocatable: True
-      description: Open blade pitch 2 timeseries
+      description: Open loop blade pitch 2 timeseries
     OL_BldPitch3:
       <<: *real
       allocatable: True
-      description: Open blade pitch 3 timeseries
+      description: Open loop blade pitch 3 timeseries
     OL_GenTq:
       <<: *real
       allocatable: True
-      description: Open generator torque timeseries
+      description: Open loop generator torque timeseries
     OL_YawRate:
       <<: *real
       allocatable: True
-      description: Open yaw rate timeseries
+      description: Open loop yaw rate timeseries
+    OL_Azimuth:
+      <<: *real
+      allocatable: True
+      description: Open loop azimuth timeseries
     OL_Channels:
       <<: *real
       allocatable: True
@@ -722,6 +726,19 @@ LocalVariables:
     Azimuth: 
       <<: *real 
       description: Rotor aziumuth angle [rad]
+    OL_Azimuth: 
+      <<: *real 
+      description: Rotor aziumuth angle [rad]
+    AzUnwrapped: 
+      <<: *real 
+      description: Rotor aziumuth angle [rad]
+    AzError: 
+      <<: *real 
+      description: Azimuth error angle [rad]
+    AzBuffer: 
+      <<: *real 
+      size: 2
+      description: Current and last rotor aziumuth angles [rad]
     NumBl: 
       <<: *integer 
       description: Number of blades [-]

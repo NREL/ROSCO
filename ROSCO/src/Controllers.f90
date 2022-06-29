@@ -191,6 +191,18 @@ CONTAINS
             LocalVar%VS_MaxTq = CntrPar%VS_RtTq
         ENDIF
 
+        ! Azimuth error
+        LocalVar%AzBuffer(1) = LocalVar%AzBuffer(2)
+        LocalVar%AzBuffer(2) = LocalVar%Azimuth
+        LocalVar%AzBuffer = UNWRAP(LocalVar%AzBuffer, ErrVar)
+        LocalVar%AzUnwrapped = LocalVar%AzBuffer(2)
+
+        LocalVar%OL_Azimuth = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_Azimuth,LocalVar%Time,ErrVar)
+
+        LocalVar%AzError = LocalVar%OL_Azimuth - LocalVar%AzUnwrapped 
+        write(402,*) LocalVar%AzError
+
+        
         ! Optimal Tip-Speed-Ratio tracking controller
         IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
             ! Constant Power, update VS_MaxTq
