@@ -62,6 +62,7 @@ ROSCO also contains a method for distributed aerodynamic control (e.g., via trai
 The ROSCO toolbox also contains methods for working with OpenFAST linear models
 * :code:`example_11.py` exports a file of the parameters used for the simplified linear models used to tune ROSCO
 * :code:`example_12.py` shows how linear models generated using OpenFAST can be used to tune controllers with robust stability properties. 
+* :code:`example_13.py` shows the tuning procedure for IPC
 
 Running OpenFAST Simulations
 ----------------------------
@@ -83,6 +84,7 @@ Several example scripts are set up to quickly simulate ROSCO with OpenFAST:
 * :code:`example_06.py` loads a turbine, tunes a controller, and runs an OpenFAST simulation
 * :code:`example_08.py` loads the OpenFAST output files and plots the results
 * :code:`example_09.py` runs TurbSim, for generating turbulent wind inputs
+* :code:`example_14.py` runs an OpenFAST simulation with ROSCO providing open loop control inputs
 
 
 Testing ROSCO

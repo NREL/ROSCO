@@ -55,11 +55,12 @@ turbine         = turbine.load(os.path.join(example_out_dir,'01_NREL5MW_saved.p'
 # controller      = ROSCO_controller.Controller(controller_params)
 
 # Load turbine data from OpenFAST and rotor performance text file
+cp_filename = os.path.join(tune_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
 turbine.load_from_fast(
     path_params['FAST_InputFile'],
     os.path.join(tune_dir,path_params['FAST_directory']),
     dev_branch=True,
-    rot_source='txt',txt_filename=os.path.join(tune_dir,path_params['rotor_performance_filename'])
+    rot_source='txt',txt_filename=cp_filename
     )
 
 # Tune controller 
@@ -68,7 +69,11 @@ controller.tune_controller(turbine)
 
 # Write parameter input file
 param_filename = os.path.join(this_dir,'DISCON.IN')
-write_DISCON(turbine,controller,param_file=param_filename, txt_filename=os.path.join(tune_dir,path_params['rotor_performance_filename']))
+write_DISCON(
+  turbine,controller,
+  param_file=param_filename, 
+  txt_filename=cp_filename
+  )
 
 
 # Load controller library

@@ -61,7 +61,11 @@ class Controller():
         self.PS_Mode            = controller_params['PS_Mode']
         self.SD_Mode            = controller_params['SD_Mode']
         self.Fl_Mode            = controller_params['Fl_Mode']
+        self.TD_Mode            = controller_params['TD_Mode']
         self.Flp_Mode           = controller_params['Flp_Mode']
+        self.PA_Mode           = controller_params['PA_Mode']
+        self.Ext_Mode           = controller_params['Ext_Mode']
+        self.ZMQ_Mode           = controller_params['ZMQ_Mode']
 
         # Necessary parameters
         self.U_pc = list_check(controller_params['U_pc'], return_bool=False)
@@ -89,13 +93,16 @@ class Controller():
         self.Twr_ExclSpeed      = controller_params['Twr_ExclSpeed']
         self.Twr_ExclBand       = controller_params['Twr_ExclBand']
         
+        self.IPC_Vramp         = controller_params['IPC_Vramp']
+
         #  Optional parameters without defaults
         if self.Flp_Mode > 0:
             try:
-                self.zeta_flp   = controller_params['zeta_flp']
-                self.omega_flp  = controller_params['omega_flp']
+                self.flp_kp_norm = controller_params['flp_kp_norm']
+                self.flp_tau     = controller_params['flp_tau']
             except:
-                raise Exception('ROSCO_toolbox:controller: zeta_flp and omega_flp must be set if Flp_Mode > 0')
+                raise Exception(
+                    'ROSCO_toolbox:controller: flp_kp_norm and flp_tau must be set if Flp_Mode > 0')
 
         if self.Fl_Mode > 0:
             try:
@@ -127,6 +134,7 @@ class Controller():
         self.f_we_cornerfreq        = controller_params['filter_params']['f_we_cornerfreq']
         self.f_fl_highpassfreq      = controller_params['filter_params']['f_fl_highpassfreq']
         self.f_ss_cornerfreq        = controller_params['filter_params']['f_ss_cornerfreq']
+        self.f_yawerr               = controller_params['filter_params']['f_yawerr']
         self.f_sd_cornerfreq        = controller_params['filter_params']['f_sd_cornerfreq']
 
         # Open loop parameters: set up and error catching
@@ -147,6 +155,11 @@ class Controller():
             if not os.path.exists(self.OL_Filename):
                 raise Exception(f'Open-loop control set up, but the open loop file {self.OL_Filename} does not exist')
             
+
+        # Pitch actuator parameters
+        self.PA_Mode = controller_params['PA_Mode']
+        self.PA_CornerFreq = controller_params['PA_CornerFreq']
+        self.PA_Damping = controller_params['PA_Damping']
 
         # Save controller_params for later (direct passthrough)
         self.controller_params = controller_params
@@ -181,6 +194,8 @@ class Controller():
         Ng = turbine.Ng                         # Gearbox ratio (-)
         rated_rotor_speed = turbine.rated_rotor_speed               # Rated rotor speed (rad/s)
 
+        # ------------- Saturation Limits --------------- #
+        turbine.max_torque = turbine.rated_torque * self.controller_params['max_torque_factor']
 
         # -------------Define Operation Points ------------- #
         TSR_rated = rated_rotor_speed*R/turbine.v_rated  # TSR at rated
@@ -317,8 +332,13 @@ class Controller():
         else:
             self.sd_maxpit = pitch_op[-1]
 
+        # Set IPC ramp inputs if not already defined
+        if max(self.IPC_Vramp) == 0.0:
+            self.IPC_Vramp = [turbine.v_rated*0.8, turbine.v_rated]
+
         # Store some variables
         self.v              = v                                  # Wind speed (m/s)
+        self.v_above_rated  = v_above_rated
         self.v_below_rated  = v_below_rated
         self.pitch_op       = pitch_op
         self.pitch_op_pc    = pitch_op[-len(v_above_rated)+1:]
@@ -462,22 +482,13 @@ class Controller():
             C2[i] = integrate.trapz(0.5 * turbine.rho * turbine.chord * v_sec[0]**2 * turbine.span * Kcd * np.sin(phi))
             self.kappa[i]=C1[i]+C2[i]
 
-        # ------ Controller tuning -------
-        # Open loop blade response
-        zetaf  = turbine.bld_flapwise_damp
-        omegaf = turbine.bld_flapwise_freq
-        
-        # Desired Closed loop response
-        # zeta  = self.zeta_flp
-        # omega = 4.6/(ts*zeta)
-
         # PI Gains
-        if (self.zeta_flp == 0 or self.omega_flp == 0) or (not self.zeta_flp or not self.omega_flp):
-            sys.exit('ERROR! --- Zeta and Omega flap must be nonzero for Flp_Mode >= 1 ---')
+        if (self.flp_kp_norm == 0 or self.flp_tau == 0) or (not self.flp_kp_norm or not self.flp_tau):
+            raise ValueError('flp_kp_norm and flp_tau must be nonzero for Flp_Mode >= 1')
 
-        self.Kp_flap = (2*self.zeta_flp*self.omega_flp - 2*zetaf*omegaf)/(self.kappa*omegaf**2)
-        self.Ki_flap = (self.omega_flp**2 - omegaf**2)/(self.kappa*omegaf**2)
-        
+        self.Kp_flap = self.flp_kp_norm / self.kappa
+        self.Ki_flap = self.flp_kp_norm / self.kappa / self.flp_tau
+
 class ControllerBlocks():
     '''
     Class ControllerBlocks defines tuning parameters for additional controller features or "blocks"

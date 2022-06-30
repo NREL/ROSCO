@@ -66,7 +66,7 @@ def pc_closedloop(linturb, controller, u):
     Cs = interp_pitch_controller(controller, u)
 
     # Combine controller and plant
-    sys_cl = feedback(1, Cs*P)
+    sys_cl = feedback(Cs*P, 1)
 
     return sys_cl
 
@@ -107,7 +107,7 @@ def smargin(linturb, controller, u_eval):
     # except:
     sens_sys = pc_sensitivity(linturb, controller, u_eval)
     ol_sys = pc_openloop(linturb, controller, u_eval)
-
+    cl_sys = pc_closedloop(linturb, controller, u_eval)
     sp_plant = sp.signal.StateSpace(ol_sys.A, ol_sys.B, ol_sys.C, ol_sys.D)
     sp_sens = sp.signal.StateSpace(sens_sys.A, sens_sys.B, sens_sys.C, sens_sys.D)
 
@@ -137,7 +137,11 @@ def smargin(linturb, controller, u_eval):
             if nearest_nyquist < sm:
                 res = sp.optimize.minimize(nyquist_min, nearest_nyquist_freq, method='SLSQP', options={
                     'finite_diff_rel_step': 1e-8})
-                sm2 = min(abs(res.fun), abs(nearest_nyquist))
+                # Make sure this didn't fail
+                if res.status != 0:
+                    sm2 = nearest_nyquist
+                else:
+                    sm2 = min(abs(res.fun), abs(nearest_nyquist))
 
                 sm_list = [sm, sm2]
                 mag_list = [np.abs(sm_mag), np.abs(mag_at_min)]
@@ -146,7 +150,10 @@ def smargin(linturb, controller, u_eval):
         else:
             res = sp.optimize.minimize(nyquist_min, nearest_nyquist_freq, method='SLSQP',
                                        options={'finite_diff_rel_step': 1e-6})
-            sm = min(res.fun, nearest_nyquist)
+            if res.status != 0:
+                sm = nearest_nyquist
+            else:
+                sm = min(res.fun, nearest_nyquist)
 
 
 
@@ -172,10 +179,16 @@ def interp_plant(linturb, v, return_scipy=True):
     '''
 
     # Find interpolated plant on v
-    Ap = interp_matrix(linturb.u_h, linturb.A_ops, v)
-    Bp = interp_matrix(linturb.u_h, linturb.B_ops, v)
-    Cp = interp_matrix(linturb.u_h, linturb.C_ops, v)
-    Dp = interp_matrix(linturb.u_h, linturb.D_ops, v)
+    if np.shape(linturb.A_ops)[2] > 1:
+        Ap = interp_matrix(linturb.u_h, linturb.A_ops, v)
+        Bp = interp_matrix(linturb.u_h, linturb.B_ops, v)
+        Cp = interp_matrix(linturb.u_h, linturb.C_ops, v)
+        Dp = interp_matrix(linturb.u_h, linturb.D_ops, v)
+    else: 
+        Ap = np.squeeze(linturb.A_ops, axis=2)
+        Bp = np.squeeze(linturb.B_ops, axis=2)
+        Cp = np.squeeze(linturb.C_ops, axis=2)
+        Dp = np.squeeze(linturb.D_ops, axis=2)
 
     if return_scipy:
         P = sp.signal.StateSpace(Ap, Bp, Cp, Dp)

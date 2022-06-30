@@ -176,7 +176,11 @@ class Turbine():
         self.NumBl              = fast.fst_vt['ElastoDyn']['NumBl']
         self.TowerHt            = fast.fst_vt['ElastoDyn']['TowerHt']
         self.shearExp           = 0.2  #HARD CODED FOR NOW
+        if 'default' in str(fast.fst_vt['AeroDyn15']['AirDens']):
+            fast.fst_vt['AeroDyn15']['AirDens'] = 1.225
         self.rho                = fast.fst_vt['AeroDyn15']['AirDens']
+        if 'default' in str(fast.fst_vt['AeroDyn15']['KinVisc']):
+            fast.fst_vt['AeroDyn15']['KinVisc'] = 1.460e-5
         self.mu                 = fast.fst_vt['AeroDyn15']['KinVisc']
         self.Ng                 = fast.fst_vt['ElastoDyn']['GBRatio']
         self.GenEff             = fast.fst_vt['ServoDyn']['GenEff']
@@ -191,7 +195,6 @@ class Turbine():
         self.yaw = 0.0
         self.J = self.rotor_inertia + self.generator_inertia * self.Ng**2
         self.rated_torque = self.rated_power/(self.GenEff/100*self.rated_rotor_speed*self.Ng)
-        self.max_torque = self.rated_torque * 1.1
         self.rotor_radius = self.TipRad
         # self.omega_dt = np.sqrt(self.DTTorSpr/self.J)
 
@@ -226,8 +229,8 @@ class Turbine():
             self.TSR_operational = self.Cp.TSR_opt
 
         # Pull out some floating-related data
-        wave_tp = fast.fst_vt['HydroDyn']['WaveTp'] 
         try:
+            wave_tp = fast.fst_vt['HydroDyn']['WaveTp'] 
             self.wave_peak_period = 1/wave_tp       # Will work if HydroDyn exists and a peak period is defined...
         except:
             self.wave_peak_period = 0.0             # Set as 0.0 when HydroDyn doesn't exist (fixed bottom)
@@ -388,7 +391,7 @@ class Turbine():
 
 
         # FAST details
-        fastBatch = runFAST_pywrapper.runFAST_pywrapper_batch(FAST_ver='OpenFAST', dev_branch=True)
+        fastBatch = runFAST_pywrapper.runFAST_pywrapper_batch()
         fastBatch.FAST_exe = openfast_path  # Path to executable
         fastBatch.FAST_InputFile = self.fast.FAST_InputFile
         fastBatch.FAST_directory = self.fast.FAST_directory
@@ -656,10 +659,12 @@ class RotorPerformance():
         max_beta_id = self.pitch_initial_rad[max_ind[1]]
         max_tsr_id = self.TSR_initial[max_ind[0]]
 
-        P = plt.contourf(self.pitch_initial_rad * rad2deg, self.TSR_initial, self.performance_table, 
-                        levels=20)
+        cbarticks = np.linspace(0.0,self.performance_table.max(),20)
+
+        P = plt.contourf(self.pitch_initial_rad * rad2deg, self.TSR_initial, self.performance_table, cbarticks)
+                        # levels=20,vmin=0)
         plt.colorbar(format='%1.3f')
-        plt.title('Power Coefficient', fontsize=14, fontweight='bold')
+        # plt.title('Power Coefficient', fontsize=14, fontweight='bold')
         plt.xlabel('Pitch Angle [deg]', fontsize=14, fontweight='bold')
         plt.ylabel('TSR [-]', fontsize=14, fontweight='bold')
         plt.scatter(max_beta_id * rad2deg, max_tsr_id, color='red')

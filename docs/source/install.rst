@@ -22,7 +22,7 @@ Depending on what is needed, a user can choose to use just the ROSCO controller 
    * - :ref:`full_rosco`
      - Best for users who wish to both use the controller and leverage the tools in the ROSCO toolbox
    * - :ref:`cmake_compile`
-     - Best for users who need to re-compile the source code often, plan to use non-released versions of ROSCO (including modified source code), or who simply want to compile the controller themselves so they have the full code available locally.
+     - Best for users who need to re-compile the source code often, plan to use non-released versions of ROSCO (including modified source code), or who simply want to compile the controller themselves so they have the full code available locally. This is necessary for users who wish to use the :ref:`zmq_build`.
 
 .. _roscotoolbox_table:
 .. list-table:: Methods for Installing the ROSCO Toolbox
@@ -122,6 +122,18 @@ Once the CMake and the required compilers are downloaded, the following code can
 
 This will generate a file called :code:`libdiscon.so` (Linux), :code:`libdiscon.dylib` (Mac), or :code:`libdisscon.dll` (Windows) in the :code:`/ROSCO/install/lib` directory. 
 
+.. _zmq_build:
+
+ZeroMQ Interface
+.....................
+There is an option to interface ROSCO with external inputs using `ZeroMQ <https://zeromq.org/>`_. Currently, only externally commanded yaw offset inputs are supported, though this could easily be expanded if the need arises. 
+
+To use the ZeroMQ interface, the software must be downloaded following the `ZeroMQ download instructions <https://zeromq.org/download/>`_. Using CMake, ROSCO can then be compiled to enable this interface by using the :code:`ZMQ_CLIENT:ON` flag with the :code:`cmake` command in :ref:`cmake_compile`:
+
+.. code-block:: bash
+
+  cmake -DZMQ_CLIENT:ON ..
+
 .. _rosco_toolbox_install:
 
 Installing the ROSCO toolbox
@@ -179,13 +191,7 @@ Please follow the following steps to install the ROSCO tool-chain. You should do
     conda create -y --name rosco-env python=3.8
     conda activate rosco-env
 
-2. Install WISDEM
-    
-.. code-block:: bash
-
-    conda install -y wisdem
-
-3. Clone and Install the ROSCO toolbox with ROSCO
+2. Clone and Install the ROSCO toolbox with ROSCO
     
 .. code-block:: bash
 
@@ -193,9 +199,10 @@ Please follow the following steps to install the ROSCO tool-chain. You should do
     cd ROSCO
     conda install compilers # (Mac/Linux only)
     conda install m2w64-toolchain libpython # (Windows only)
+    conda install -y wisdem
     python setup.py install --compile-rosco 
 
-4. Clone and Install the ROSCO toolbox without ROSCO
+3. Clone and Install the ROSCO toolbox without ROSCO
     
 .. code-block:: bash
 
