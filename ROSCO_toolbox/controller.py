@@ -535,6 +535,7 @@ class ControllerBlocks():
                 Ct_max[i] = np.minimum( np.max(Ct_tsr), Ct_max[i])
 
             # Define minimum pitch angle
+            # - find min(\beta) so that Ct <= Ct_max and \beta > \beta_fine at each operational TSR
             f_pitch_min = interpolate.interp1d(Ct_tsr, turbine.pitch_initial_rad, kind='linear', bounds_error=False, fill_value=(turbine.pitch_initial_rad[0],turbine.pitch_initial_rad[-1]))
             pitch_min[i] = max(controller.min_pitch, f_pitch_min(Ct_max[i]))
 
@@ -576,6 +577,7 @@ class ControllerBlocks():
                 Cp_op = turbine.Cp.interp_surface(turbine.pitch_initial_rad,TSR_at_minspeed[i])
 
                 # Setup and run small optimization problem to find blade pitch angle that maximizes Cp at a given TSR
+                # - Finds \beta to satisfy max( Cp(\beta,TSR_op) )
                 f_pitch_min = interpolate.interp1d(turbine.pitch_initial_rad, -Cp_op, kind='quadratic', bounds_error=False, fill_value=(turbine.pitch_initial_rad[0],turbine.pitch_initial_rad[-1]))
                 res = optimize.minimize(f_pitch_min, 0.0)
                 min_pitch[i] = res.x[0]

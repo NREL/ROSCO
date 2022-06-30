@@ -592,6 +592,8 @@ class RotorPerformance():
         if len(self.max_ind[1]) > 1:
             print('ROSCO_toolbox Warning: repeated maximum values in a performance table and the last one @ pitch = {} rad. was taken...'.format(self.pitch_opt[-1]))
 
+        # Find TSR that maximizes Cx at fine pitch
+        # - TSR to satisfy: max( Cx(TSR, \beta_fine) ) = TSR_opt
         TSR_fine_ind = np.linspace(TSR_initial[0],TSR_initial[-1],int(TSR_initial[-1] - TSR_initial[0])*100) # Range of TSRs to interpolate accross
         f_TSR = interpolate.interp1d(TSR_initial,TSR_initial,bounds_error='False',kind='quadratic')          # interpolate function for Cp(tsr) values
         TSR_fine = f_TSR(TSR_fine_ind) # TSRs at fine pitch
