@@ -42,5 +42,5 @@ def update_discons(tune_to_test_map):
             write_DISCON(
                 turbine,controller,
                 param_file=discon, 
-                txt_filename=path_params['rotor_performance_filename'].split('/')[-1]
+                txt_filename=path_params['rotor_performance_filename']
                 )
