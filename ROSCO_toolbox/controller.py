@@ -223,8 +223,9 @@ class Controller():
         Ct_op       = np.empty(len(TSR_op))
 
         # ------------- Find Linearized State "Matrices" ------------- #
+        # At each operating point
         for i in range(len(TSR_op)):
-            # Find pitch angle as a function of expected operating CP for each TSR
+            # Find pitch angle as a function of expected operating CP for each TSR operating point
             Cp_TSR = np.ndarray.flatten(turbine.Cp.interp_surface(turbine.pitch_initial_rad, TSR_op[i]))     # all Cp values for a given tsr
             Cp_maxidx = Cp_TSR.argmax()    
             Cp_op[i] = np.clip(Cp_op[i], np.min(Cp_TSR[Cp_maxidx:]), np.max(Cp_TSR[Cp_maxidx:]))            # saturate Cp values to be on Cp surface                                                             # Find maximum Cp value for this TSR
@@ -259,9 +260,9 @@ class Controller():
         dCt_dbeta   = dCt_beta/np.diff(pitch_initial_rad)[0]
         dCt_dTSR    = dCt_TSR/np.diff(TSR_initial)[0]
         
-        # Linearized system derivatives
-        dtau_dbeta      = Ng/2*rho*Ar*R*(1/TSR_op)*dCp_dbeta*v**2
-        dtau_dlambda    = Ng/2*rho*Ar*R*v**2*(1/(TSR_op**2))*(dCp_dTSR*TSR_op - Cp_op)
+        # Linearized system derivatives, equations from https://wes.copernicus.org/articles/7/53/2022/wes-7-53-2022.pdf
+        dtau_dbeta      = Ng/2*rho*Ar*R*(1/TSR_op)*dCp_dbeta*v**2  # (26)
+        dtau_dlambda    = Ng/2*rho*Ar*R*v**2*(1/(TSR_op**2))*(dCp_dTSR*TSR_op - Cp_op)   # (7)
         dlambda_domega  = R/v/Ng
         dtau_domega     = dtau_dlambda*dlambda_domega
         dlambda_dv      = -(TSR_op/v)
@@ -429,7 +430,7 @@ class Controller():
                 a = loads['a']      # Axial induction factor
                 ap = loads['ap']    # Tangential induction factor
                  
-            # Relative windspeed
+            # Relative windspeed along blade span
             v_rel.append([np.sqrt(self.v[i]**2*(1-a)**2 + self.omega_op[i]**2*turbine.span**2*(1-ap)**2)])
             # Inflow wind direction
             phi_vec.append(self.pitch_op[i] + turbine.twist*deg2rad)
@@ -514,10 +515,12 @@ class ControllerBlocks():
         Ct_op = np.empty(len(controller.TSR_op),dtype='float64')
         Ct_max = np.empty(len(controller.TSR_op),dtype='float64')
 
-        # Find unshaved rotor thurst coefficients and associated rotor thrusts for i in len(controller.TSR_op):
+        # Find unshaved rotor thrust coefficients at each TSR
         for i in range(len(controller.TSR_op)):
             Ct_op[i] = turbine.Ct.interp_surface(controller.pitch_op[i],controller.TSR_op[i])
-            T = 0.5 * rho * A * controller.v**2 * Ct_op
+
+        # Thrust vs. wind speed    
+        T = 0.5 * rho * A * controller.v**2 * Ct_op
 
         # Define minimum max thrust and initialize pitch_min
         Tmax = controller.ps_percent * np.max(T)
@@ -563,6 +566,8 @@ class ControllerBlocks():
         '''
         # Find TSR associated with minimum rotor speed
         TSR_at_minspeed = (controller.pc_minspd) * turbine.rotor_radius / controller.v_below_rated
+        
+        # For each below rated wind speed operating point
         for i in range(len(TSR_at_minspeed)):
             if TSR_at_minspeed[i] > controller.TSR_op[i]:
                 controller.TSR_op[i] = TSR_at_minspeed[i]
@@ -570,7 +575,6 @@ class ControllerBlocks():
                 # Initialize some arrays
                 Cp_op = np.empty(len(turbine.pitch_initial_rad),dtype='float64')
                 min_pitch = np.empty(len(TSR_at_minspeed),dtype='float64')
-                
         
                 # ------- Find Cp-maximizing minimum pitch schedule ---------
                 # Cp coefficients at below-rated tip speed ratios
