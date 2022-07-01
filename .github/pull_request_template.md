@@ -20,7 +20,7 @@ TODO Items General:
 
 TODO Items API Change:
 - [ ] Update docs with API change
-- [ ] Run update_discons.py
+- [ ] Run update_rosco_discons.py in Test_Cases/
 - [ ] Update DISCON schema
 
 ## Github issues addressed, if one exists
