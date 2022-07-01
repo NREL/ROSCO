@@ -535,6 +535,7 @@ class ControllerBlocks():
             if T[i] > Tmax:
                 Ct_op[i] = Ct_max[i]
             else:
+                # TSR_below_rated = np.minimum(np.max(TSR_above_rated), TSR_below_rated)
                 Ct_max[i] = np.minimum( np.max(Ct_tsr), Ct_max[i])
 
             # Define minimum pitch angle
