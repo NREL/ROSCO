@@ -302,6 +302,7 @@ CONTAINS
         !------------------- IPC CONSTANTS -----------------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine) 
         CALL ParseAry(UnControllerParameters, CurLine, 'IPC_Vramp', CntrPar%IPC_Vramp, 2, accINFILE(1), ErrVar )
+        CALL ParseInput(UnControllerParameters,CurLine,'IPC_SatMode',accINFILE(1),CntrPar%IPC_SatMode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'IPC_IntSat',accINFILE(1),CntrPar%IPC_IntSat,ErrVar)
         CALL ParseAry(UnControllerParameters, CurLine, 'IPC_KP', CntrPar%IPC_KP, 2, accINFILE(1), ErrVar )
         CALL ParseAry(UnControllerParameters, CurLine, 'IPC_KI', CntrPar%IPC_KI, 2, accINFILE(1), ErrVar )
@@ -804,6 +805,11 @@ CONTAINS
         IF (CntrPar%IPC_CornerFreqAct < 0.0) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'Corner frequency of IPC actuator model must be positive, or set to 0 to disable.'
+        ENDIF
+
+        IF (CntrPar%IPC_SatMode < 0 .OR. CntrPar%IPC_SatMode > 2)  THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'IPC_SatMode must be 0, 1, or 2.'
         ENDIF
 
         IF (CntrPar%IPC_KI(1) < 0.0)  THEN

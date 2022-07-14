@@ -28,6 +28,7 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: IPC_ControlMode             ! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {0 - off, 1 - 1P reductions, 2 - 1P+2P reductions}
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: IPC_Vramp                   ! Wind speeds for IPC cut-in sigma function [m/s]
     REAL(DbKi)                    :: IPC_IntSat                  ! Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
+    INTEGER(IntKi)                :: IPC_SatMode                 ! IPC Saturation method (0 - no saturation, 1 - saturate by PC_MinPit, 2 - saturate by PS_BldPitchMin)
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: IPC_KP                      ! Integral gain for the individual pitch controller, [-].
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: IPC_KI                      ! Integral gain for the individual pitch controller, [-].
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: IPC_aziOffset               ! Phase offset added to the azimuth angle for the individual pitch controller, [rad].

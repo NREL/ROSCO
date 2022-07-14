@@ -606,6 +606,9 @@ properties:
                         type: number
                         description: Integrator saturation (maximum signal amplitude contribution to pitch from IPC)
                         units: rad
+                    IPC_SatMode:
+                        type: integer
+                        description: IPC Saturation method (0 - no saturation, 1 - saturate by PC_MinPit, 2 - saturate by PS_BldPitchMin)
                     IPC_KP:
                         type: array
                         items:

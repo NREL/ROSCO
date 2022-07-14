@@ -104,9 +104,18 @@ CONTAINS
             LocalVar%PitCom(K) = LocalVar%PC_PitComT + LocalVar%FA_PitCom(K) 
             LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the pitch satauration limits
             LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%IPC_PitComF(K)                                          ! Add IPC
-            LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the absolute pitch angle limits
+            
+            ! IPC saturation
+            IF (CntrPar%IPC_SatMode == 1) THEN
+                LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), CntrPar%PC_MinPit, CntrPar%PC_MaxPit)  
+                WRITE(400,*) CntrPar%IPC_SatMode, LocalVar%PitCom(K)
+            ELSEIF (CntrPar%IPC_SatMode == 2) THEN
+                LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)  
+            END IF
+
+            ! Rate limit                  
             LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL) ! Saturate the overall command of blade K using the pitch rate limit
-        END DO
+        END DO        END DO
 
         ! Open Loop control, use if
         !   Open loop mode active         Using OL blade pitch control      
