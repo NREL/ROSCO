@@ -140,7 +140,6 @@ def run_example():
     lv = lin_plotting(controller, turbine, linturb)
     xlim=ylim=[-1.5,1.5]
     lv.plot_nyquist(u, omega, k_float=k_float, xlim=xlim, ylim=ylim)
-    plt.show()
 
     if False:
         plt.show()
