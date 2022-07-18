@@ -67,6 +67,7 @@ class lin_plotting():
             parallel compensation feedback gain
         '''
         self.controller.omega_pc = omega
+        self.controller.U_pc = u
         self.controller.tune_controller(self.turbine)
         if k_float:
             linturb = add_pcomp(self.linturb, k_float)

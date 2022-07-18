@@ -124,7 +124,7 @@ def run_example():
     if False:
         plt.show()
     else:
-        plt.savefig(os.path.join(example_out_dir, '12_RobustSched.png'))
+        fig.savefig(os.path.join(example_out_dir, '12_RobustSched.png'))
 
     # ---- Plot nyquist ----
     # Re-load and trimlinturb for plotting
@@ -135,10 +135,11 @@ def run_example():
     u = 12
     omega = 0.1
     k_float = 0.0
+    controller.zeta_pc = controller.zeta_pc[0]
 
     # plot
     lv = lin_plotting(controller, turbine, linturb)
-    xlim=ylim=[-1.5,1.5]
+    xlim=ylim=[-2,2]
     lv.plot_nyquist(u, omega, k_float=k_float, xlim=xlim, ylim=ylim)
 
     if False:
