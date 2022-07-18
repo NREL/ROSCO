@@ -82,7 +82,7 @@ MODULE SysSubs
     
         IF( .NOT. C_ASSOCIATED(DLL%FileAddrX) ) THEN
         ErrStat = -1
-        WRITE(ErrMsg,'(I2)') BITS_IN_ADDR
+        ! WRITE(ErrMsg,'(I2)') BITS_IN_ADDR
         ErrMsg  = 'The dynamic library '//TRIM(DLL%FileName)//' could not be loaded. Check that the file '// &
                     'exists in the specified location and that it is compiled for '//TRIM(ErrMsg)//'-bit applications.'
         RETURN

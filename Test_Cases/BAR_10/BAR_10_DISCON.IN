@@ -1,5 +1,5 @@
 ! Controller parameter input file for the BAR_10 wind turbine
-!    - File written using ROSCO version 2.5.0 controller tuning logic on 05/25/22
+!    - File written using ROSCO version 2.5.0 controller tuning logic on 07/01/22
 
 !------- DEBUG ------------------------------------------------------------
 1                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}
@@ -18,8 +18,10 @@
 0                   ! Fl_Mode           - Floating specific feedback mode {0: no nacelle velocity feedback, 1: feed back translational velocity, 2: feed back rotational veloicty}
 0                   ! TD_Mode           - Tower damper mode {0: no tower damper, 1: feed back translational nacelle accelleration to pitch angle}
 2                   ! Flp_Mode          - Flap control mode {0: no flap control, 1: steady state flap angle, 2: Proportional flap control, 2: Cyclic (1P) flap control}
-0                   ! OL_Mode           - Open loop control mode {0: no open loop control, 1: open loop control vs. time, 2: open loop control vs. wind speed}
+0                   ! OL_Mode           - Open loop control mode {0: no open loop control, 1: open loop control vs. time}
 0                   ! PA_Mode           - Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
+0                   ! Ext_Mode          - External control mode {0 - not used, 1 - call external dynamic library}
+0                   ! ZMQ_Mode          - Fuse ZeroMQ interaface {0: unused, 1: Yaw Control}
 
 !------- FILTERS ----------------------------------------------------------
 0.81771             ! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [rad/s]
@@ -28,6 +30,7 @@
 0.000000  0.500000  ! F_NotchBetaNumDen	- Two notch damping values (numerator and denominator, resp) - determines the width and depth of the notch, [-]
 0.62830             ! F_SSCornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother, [rad/s].
 0.20944             ! F_WECornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s].
+0.17952             ! F_YawErr          - Low pass filter corner frequency for yaw controller [rad/s].
 0.000000  1.000000  ! F_FlCornerFreq    - Natural frequency and damping in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s, -].
 0.01042             ! F_FlHighPassFreq    - Natural frequency of first-order high-pass filter for nacelle fore-aft motion [rad/s].
 7.848030  1.000000  ! F_FlpCornerFreq   - Corner frequency and damping in the second order low pass filter of the blade root bending moment for flap control [rad/s, -].
@@ -90,17 +93,13 @@
 -0.00972164 -0.01031092 -0.01090020 -0.01148948 -0.01207877 -0.01266805 -0.01325733 -0.01384662 -0.01443590 -0.01502518 -0.01561447 -0.01620375 -0.01679303 -0.01738232 -0.01797160 -0.01856088 -0.01915016 -0.01973945 -0.02032873 -0.02091801 -0.02150730 -0.02209658 -0.02268586 -0.02327515 -0.02386443 -0.02445371 -0.02504300 -0.02563228 -0.02622156 -0.02378670 -0.02062296 -0.02541485 -0.03159105 -0.03849962 -0.04595997 -0.05389417 -0.06225884 -0.07101431 -0.08016995 -0.08970426 -0.09955610 -0.10976762 -0.12028100 -0.13120419 -0.14238799 -0.15383228 -0.16572504 -0.17783697 -0.19011487 -0.20289651 -0.21593424 -0.22919262 -0.24255457 -0.25635133 -0.27049546 -0.28482651 -0.29923376 -0.31380076 -0.32862514 -0.34372726               ! WE_FOPoles        - First order system poles [1/s]
 
 !------- YAW CONTROL ------------------------------------------------------
-0.13960             ! Y_ErrThresh		- Yaw error threshold. Turbine begins to yaw when it passes this. [rad^2 s]
+0.00000             ! Y_uSwitch		- Wind speed to switch between Y_ErrThresh. If zero, only the first value of Y_ErrThresh is used [m/s]
+4.000000  8.000000  ! Y_ErrThresh    - Yaw error threshold. Turbine begins to yaw when it passes this. If Y_uSwitch is zero, only the first value is used. [deg].
+0.00870             ! Y_Rate			- Yaw rate [rad/s]
+0.00000             ! Y_MErrSet		- Integrator saturation (maximum signal amplitude contribution to pitch from yaw-by-IPC), [rad]
 0.00000             ! Y_IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from yaw-by-IPC), [rad]
-1                   ! Y_IPC_n			- Number of controller gains (yaw-by-IPC)
 0.00000             ! Y_IPC_KP			- Yaw-by-IPC proportional controller gain Kp
 0.00000             ! Y_IPC_KI			- Yaw-by-IPC integral controller gain Ki
-0.20940             ! Y_IPC_omegaLP		- Low-pass filter corner frequency for the Yaw-by-IPC controller to filtering the yaw alignment error, [rad/s].
-1.00000             ! Y_IPC_zetaLP		- Low-pass filter damping factor for the Yaw-by-IPC controller to filtering the yaw alignment error, [-].
-0.00000             ! Y_MErrSet			- Yaw alignment error, set point [rad]
-0.20940             ! Y_omegaLPFast		- Corner frequency fast low pass filter, 1.0 [rad/s]
-0.10470             ! Y_omegaLPSlow		- Corner frequency slow low pass filter, 1/60 [rad/s]
-0.00520             ! Y_Rate			- Yaw rate [rad/s]
 
 !------- TOWER FORE-AFT DAMPING -------------------------------------------
 -1.00000            ! FA_KI				- Integral gain for the fore-aft tower damper controller [rad s/m]
@@ -135,3 +134,12 @@
 !------- Pitch Actuator Model -----------------------------------------------------
 3.140000000000        ! PA_CornerFreq     - Pitch actuator bandwidth/cut-off frequency [rad/s]
 0.707000000000        ! PA_Damping        - Pitch actuator damping ratio [-, unused if PA_Mode = 1]
+
+!------- External Controller Interface -----------------------------------------------------
+"unused"            ! DLL_FileName        - Name/location of the dynamic library in the Bladed-DLL format
+"unused"            ! DLL_InFile          - Name of input file sent to the DLL (-)
+"DISCON"            ! DLL_ProcName        - Name of procedure in DLL to be called (-) 
+
+!------- ZeroMQ Interface ---------------------------------------------------------
+"tcp://localhost:5555"            ! ZMQ_CommAddress     - Communication address for ZMQ server, (e.g. "tcp://localhost:5555") 
+2                   ! ZMQ_UpdatePeriod    - Call ZeroMQ every [x] seconds, [s]

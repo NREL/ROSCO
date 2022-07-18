@@ -391,7 +391,7 @@ class Turbine():
 
 
         # FAST details
-        fastBatch = runFAST_pywrapper.runFAST_pywrapper_batch(FAST_ver='OpenFAST', dev_branch=True)
+        fastBatch = runFAST_pywrapper.runFAST_pywrapper_batch()
         fastBatch.FAST_exe = openfast_path  # Path to executable
         fastBatch.FAST_InputFile = self.fast.FAST_InputFile
         fastBatch.FAST_directory = self.fast.FAST_directory
@@ -659,10 +659,12 @@ class RotorPerformance():
         max_beta_id = self.pitch_initial_rad[max_ind[1]]
         max_tsr_id = self.TSR_initial[max_ind[0]]
 
-        P = plt.contourf(self.pitch_initial_rad * rad2deg, self.TSR_initial, self.performance_table, 
-                        levels=20)
+        cbarticks = np.linspace(0.0,self.performance_table.max(),20)
+
+        P = plt.contourf(self.pitch_initial_rad * rad2deg, self.TSR_initial, self.performance_table, cbarticks)
+                        # levels=20,vmin=0)
         plt.colorbar(format='%1.3f')
-        plt.title('Power Coefficient', fontsize=14, fontweight='bold')
+        # plt.title('Power Coefficient', fontsize=14, fontweight='bold')
         plt.xlabel('Pitch Angle [deg]', fontsize=14, fontweight='bold')
         plt.ylabel('TSR [-]', fontsize=14, fontweight='bold')
         plt.scatter(max_beta_id * rad2deg, max_tsr_id, color='red')
