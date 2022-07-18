@@ -17,7 +17,8 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from ROSCO_toolbox.inputs.validation import load_rosco_yaml
-from ROSCO_toolbox.linear.robust_scheduling import rsched_driver
+from ROSCO_toolbox.linear.robust_scheduling import rsched_driver, load_linturb
+from ROSCO_toolbox.linear.lin_vis import lin_plotting
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox import controller as ROSCO_controller
 
@@ -124,5 +125,27 @@ def run_example():
         plt.show()
     else:
         plt.savefig(os.path.join(example_out_dir, '12_RobustSched.png'))
+
+    # ---- Plot nyquist ----
+    # Re-load and trimlinturb for plotting
+    linturb = load_linturb(options['linturb_options']['linfile_path'], load_parallel=True) # 
+    linturb.trim_system(desInputs=['collective'], desOutputs=['RtSpeed'])
+
+    # Plotting parameters
+    u = 12
+    omega = 0.1
+    k_float = 0.0
+
+    # plot
+    lv = lin_plotting(controller, turbine, linturb)
+    xlim=ylim=[-1.5,1.5]
+    lv.plot_nyquist(u, omega, k_float=k_float, xlim=xlim, ylim=ylim)
+    plt.show()
+
+    if False:
+        plt.show()
+    else:
+        plt.savefig(os.path.join(example_out_dir, '12_Nyquist.png'))
+
 if __name__ == '__main__':
     run_example()
