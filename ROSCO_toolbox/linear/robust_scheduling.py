@@ -1,5 +1,6 @@
 '''
 Methods for finding robust gain schedules
+- Implemented in the OpenMDAO framework
 '''
 
 import numpy as np
@@ -38,7 +39,7 @@ class RobustScheduling(om.ExplicitComponent):
                 'Error: omega_pc and zeta_pc must be scalars for robust controller tuning.')
 
         # Load ROSCO Turbine and Controller
-        if 'dict_inputs' in ROSCO_options.keys():  # Allow for turbine parameters to be passed in as a dictionary
+        if 'dict_inputs' in ROSCO_options.keys():  # Allow for turbine parameters to be passed in as a dictionary (from WEIS)
             dict_inputs = ROSCO_options['dict_inputs']
             # Define turbine based on inputs
             self.turbine = type('', (), {})()
@@ -79,7 +80,7 @@ class RobustScheduling(om.ExplicitComponent):
 
             self.controller = ROSCO_controller.Controller(ROSCO_options['controller_params'])
             self.controller.tune_controller(self.turbine)
-        else:
+        else: # otherwise define controller and turbine objection 
             self.controller, self.turbine = load_ROSCO(ROSCO_options['path_params'],
                                                        ROSCO_options['turbine_params'],
                                                        ROSCO_options['controller_params'])
@@ -101,6 +102,9 @@ class RobustScheduling(om.ExplicitComponent):
                         desc='Maximized controller bandwidth')
 
     def compute(self, inputs, outputs):
+        '''
+        Computes the stability margin for a given controller bandwidth (omega)
+        '''
         k_float = inputs['k_float'][0]
         if k_float:
             linturb = add_pcomp(self.linturb, k_float)
@@ -121,10 +125,14 @@ class RobustScheduling(om.ExplicitComponent):
 
 class rsched_driver():
     '''
-    A driver for scheduling robust controllers
+    A driver for scheduling robust controllers. 
+    Wrapper for the RobustScheduling OpenMDAO Explicit Component
+
+    - Example 12 shows how to use this
     '''
 
     def __init__(self, options):
+        # initialize options
         self.linturb_options = options['linturb_options']
         self.ROSCO_options = options['ROSCO_options']
         self.path_options = options['path_options']
@@ -136,6 +144,7 @@ class rsched_driver():
         self.output_dir = self.path_options['output_dir']
         self.output_name = self.path_options['output_name']
 
+        # setup levels, especially useful for DOEs
         if 'levels' in self.opt_options.keys():
             self.opt_options['levels'] = self.opt_options['levels']
         else:
@@ -162,9 +171,12 @@ class rsched_driver():
         else:
             self.om_problem = om.Problem()
 
+        # Add robust scheduling subsystem
         self.om_problem.model.add_subsystem('r_sched', RobustScheduling(linturb_options=self.linturb_options,
                                                                         ROSCO_options=self.ROSCO_options))
 
+        # Setup design of experiments or optimization problem. 
+        # - NJA: DOEs can only be done for one wind speed at a time
         if self.opt_options['driver'] == 'design_of_experiments':
             self.om_problem = self.init_doe(self.om_problem, levels=self.opt_options['levels'])
             if list_check(self.opt_options['windspeed']):
@@ -199,12 +211,8 @@ class rsched_driver():
             self.om_doe = self.om_problem
             self.om_doe = self.add_dv(self.om_doe, ['omega', 'k_float'])
         if self.opt_options['driver'] == 'optimization':
-            # self.om_doe = copy.deepcopy(self.om_problem)
-            # self.om_doe = self.add_dv(self.om_doe, ['omega'])
-
             self.om_opt = self.om_problem
             self.om_opt = self.add_dv(self.om_opt, ['omega', 'k_float'])
-            # self.om_opt = self.init_optimization(self.om_opt)
 
     def execute(self):
         '''
@@ -222,10 +230,12 @@ class rsched_driver():
             self.omegas = []
             self.k_floats = []
             self.sms = []
+
+            # Iterate optimization over each wind speed in opt_options
             for u in self.opt_options['windspeed']:
-                om0 = 0.1
+                om0 = 0.1 # Initial omega - hard coded
                 try_count = 0
-                while try_count < 3:
+                while try_count < 3:    # Allow this to try three times before failing. NJA: sometimes small initial condition changes can improve convergence
                     # Setup optimization
                     self.om_opt.set_val('r_sched.u_eval', u)
                     self.om_opt.set_val('r_sched.omega', om0)
@@ -240,10 +250,11 @@ class rsched_driver():
                     self.om_opt.cleanup()
 
                     if self.om_opt.driver.fail:
+                        # Restart with a new initial omega if the optimizer failed
                         try_count += 1
                         om0 = np.random.random_sample(1)*self.opt_options['omega'][-1]
                     else:
-                        try_count = 4
+                        try_count += 1
 
                 # save values
                 self.omegas.append(self.om_opt.get_val('r_sched.omega')[0])
@@ -251,6 +262,9 @@ class rsched_driver():
                 self.sms.append(self.om_opt.get_val('r_sched.sm')[0])
 
     def plot_schedule(self):
+        '''
+        Plots tuning value and stability margins w.r.t. wind speed
+        '''
         fig, ax = plt.subplots(3, 1, constrained_layout=True, sharex=True)
         ax[0].plot(self.opt_options['windspeed'], self.omegas)
         ax[0].set_ylabel('omega_pc')
@@ -265,7 +279,17 @@ class rsched_driver():
         plt.show()
 
     def add_dv(self, om_problem, opt_vars):
-        '''add design variables'''
+        '''
+        Add design variables to OM problem
+
+        Parameters:
+        -----------
+        om_problem: om.problem
+            RobustScheduling OpenMDAO problem 
+        opt_vars: list
+            Variables to optimize, e.g.:['omega', 'k_float']
+        
+        '''
 
         if 'omega' in opt_vars and list_check(self.opt_options['omega']):
             om_problem.model.add_design_var(
@@ -276,6 +300,7 @@ class rsched_driver():
                 'r_sched.k_float', lower=self.opt_options['k_float'][0], upper=self.opt_options['k_float'][1], ref=100)
 
         # Make sure design variables are stored appropriately in OM problem
+        #   - NJA: This is mostly needed for WEIS integration as a nested OpenMDAO problem
         om_problem.model._design_vars = om_problem.model._static_design_vars
 
         return om_problem
@@ -297,8 +322,6 @@ class rsched_driver():
         # om_problem.driver = om.DOEDriver(om.LatinHypercubeGenerator(samples=levels))
         # om_problem.driver = om.DOEDriver(om.UniformGenerator(num_samples=20))
         os.makedirs(self.output_dir, exist_ok=True)
-        # om_problem.driver.options['run_parallel'] = True
-        # om_problem.driver.options['procs_per_model'] = 1
         return om_problem
 
     @staticmethod
@@ -334,6 +357,23 @@ class rsched_driver():
 
 
 def load_DOE(doe_logs, outfile_name=None):
+    '''
+    Loads and processes doe log files
+    - OpenMDAO DOEs generate a large set of log files, this function collects them
+    
+    Parameters:
+    -----------
+    doe_logs: str,list
+        string (single) or list (multiple) of doe log file names
+    outfile_name: str, optional
+        name of output .csv file to save data
+
+    Returns:
+    --------
+    df: pd.DataFrame
+        Pandas dataframe containing collected DOE data
+
+    '''
     if isinstance(doe_logs, str):
         doe_logs = [doe_logs]
 
@@ -376,6 +416,7 @@ def load_DOE(doe_logs, outfile_name=None):
 
 
 def load_OMsql(log):
+    '''load OpenMDAO sql file'''
     print('loading {}'.format(log))
     cr = om.CaseReader(log)
     rec_data = {}
@@ -391,6 +432,16 @@ def load_OMsql(log):
 
 
 def load_linturb(linfile_path, load_parallel=False):
+    '''
+    Load linear turbine models
+    
+    Parameters:
+    -----------
+    linfile_path: string
+        Path to folder containing .lin files
+    load_parllel: bool
+        Load parallel True/False
+    '''
     # Parse openfast linearization filenames
     filenames = glob.glob(os.path.join(linfile_path, '*.lin'))
     linfiles = [os.path.split(file)[1] for file in filenames]
@@ -404,6 +455,18 @@ def load_linturb(linfile_path, load_parallel=False):
 
 
 def load_ROSCO(path_params, turbine_params, controller_params):
+    '''
+    Load ROSCO controller and turbine objects
+    
+    Parameters:
+    -----------
+    path_params: dict
+        Path parameters from tuning yaml
+    turbine_params: dict
+        Turbine parameters from tuning yaml
+    controller_params: dict
+        Controller parameters from tuning yaml
+    '''
     turbine = ROSCO_turbine.Turbine(turbine_params)
     controller = ROSCO_controller.Controller(controller_params)
 
@@ -415,7 +478,6 @@ def load_ROSCO(path_params, turbine_params, controller_params):
 
 
 if __name__ == '__main__':
-
     # Setup linear turbine paths
     linfile_path = os.path.join(os.path.dirname(os.path.dirname(
         os.path.dirname(os.path.abspath(__file__)))), 'Test_Cases', 'IEA-15-240-RWT-UMaineSemi', 'linearizations')

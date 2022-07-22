@@ -106,9 +106,6 @@ class Sim():
             ws = ws_array[i]
             wd = wd_array[i]
 
-            # ws_x = ws_array[i]*np.cos(wd_array[i] - yaw_angle)
-            # ws_y = ws_array[i]*np.sin(wd_array[i] - yaw_angle)
-
             # Load current Cq data
             tsr = rot_speed[i-1] * self.turbine.rotor_radius / ws
             cq = self.turbine.Cq.interp_surface(bld_pitch[i-1], tsr)
@@ -116,14 +113,11 @@ class Sim():
             # Update the turbine state
             #       -- 1DOF model: rotor speed and generator speed (scaled by Ng)
             aero_torque[i] = 0.5 * self.turbine.rho * (np.pi * R**3) * (cp/tsr) * ws**2
-            # aero_torque[i] = 0.5 * self.turbine.rho * (np.pi * R**2) * cq * R * ws**2
             rot_speed[i] = rot_speed[i-1] + (dt/self.turbine.J)*(aero_torque[i]
                                                                  * self.turbine.GenEff/100 - self.turbine.Ng * gen_torque[i-1])
             gen_speed[i] = rot_speed[i] * self.turbine.Ng
             #       -- Simple nacelle model
             nac_yawerr[i] = wd - nac_yaw[i-1]
-
-            # print('rot_speed = {}'.format(cp))
 
             # populate turbine state dictionary
             turbine_state = {}
@@ -142,7 +136,7 @@ class Sim():
             turbine_state['Yaw_fromNorth'] = nac_yaw[i]
             turbine_state['Y_MeasErr'] = nac_yawerr[i-1]
 
-            
+            # Define outputs
             gen_torque[i], bld_pitch[i], nac_yawrate[i] = self.controller_int.call_controller(turbine_state)
 
             # Calculate the power
