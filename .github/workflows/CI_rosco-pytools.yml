@@ -137,6 +137,12 @@ jobs:
           cd Examples
           python run_examples.py
 
+      # Test walkthrough notebook
+      - name: Test walkthrough notebook
+        run: |
+          cd Examples
+          treon ROSCO_walkthrough.ipynb
+
       # Archive artifacts
       - name: Archive production artifacts
         if: success() || failure()
