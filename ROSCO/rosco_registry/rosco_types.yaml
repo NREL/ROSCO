@@ -1006,6 +1006,7 @@ DebugVariables:
   axisYaw_2P:
     <<: *real
     description: Yaw component of coleman transformation, 2P
+
   YawRateCom:
     <<: *real
     description: Commanded yaw rate [rad/s].
