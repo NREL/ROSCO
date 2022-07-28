@@ -141,9 +141,9 @@ CONTAINS
 
         ! Command the pitch demanded from the last
         ! call to the controller (See Appendix A of Bladed User's Guide):
-        avrSWAP(42) = LocalVar%PitComAct(1)    ! Use the command angles of all blades if using individual pitch
-        avrSWAP(43) = LocalVar%PitComAct(2)    ! "
-        avrSWAP(44) = LocalVar%PitComAct(3)    ! "
+        avrSWAP(42) = LocalVar%PitComAct(1) +  CntrPar%PA_Error_Bl1   ! Use the command angles of all blades if using individual pitch
+        avrSWAP(43) = LocalVar%PitComAct(2) +  CntrPar%PA_Error_Bl2   ! "
+        avrSWAP(44) = LocalVar%PitComAct(3) +  CntrPar%PA_Error_Bl3   ! "
         avrSWAP(45) = LocalVar%PitComAct(1)    ! Use the command angle of blade 1 if using collective pitch
 
         ! Add RoutineName to error message

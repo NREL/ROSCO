@@ -437,6 +437,17 @@ ControlParameters:
       <<: *real
       description: Pitch actuator damping ratio [-, unused if PA_Mode = 1]
     
+    # Pitch actuator error
+    PA_Error_Bl1:
+      <<: *real
+      description: Pitch actuator error for blade 1 [rad/s]
+    PA_Error_Bl2:
+      <<: *real
+      description: Pitch actuator error for blade 2 [rad/s]
+    PA_Error_Bl3:
+      <<: *real
+      description: Pitch actuator error for blade 3 [rad/s]
+
     # Calculated
     PC_RtTq99:
       <<: *real

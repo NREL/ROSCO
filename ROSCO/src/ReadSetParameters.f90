@@ -400,6 +400,14 @@ CONTAINS
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
         CALL ParseInput(UnControllerParameters,CurLine,'PA_CornerFreq',accINFILE(1),CntrPar%PA_CornerFreq,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PA_Damping',accINFILE(1),CntrPar%PA_Damping,ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)  
+
+        !------------ Pitch Actuator Error ------------
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(UnControllerParameters,CurLine,'PA_Error_Bl1',accINFILE(1),CntrPar%PA_Error_Bl1,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PA_Error_Bl2',accINFILE(1),CntrPar%PA_Error_Bl2,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PA_Error_Bl3',accINFILE(1),CntrPar%PA_Error_Bl3,ErrVar)
+
 
         ! Fix Paths (add relative paths if called from another dir)
         IF (PathIsRelative(CntrPar%PerfFileName)) CntrPar%PerfFileName = TRIM(PriPath)//TRIM(CntrPar%PerfFileName)
