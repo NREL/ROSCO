@@ -139,11 +139,19 @@ CONTAINS
             LocalVar%PitComAct(K) = ratelimit(LocalVar%PitComAct(K), LocalVar%BlPitch(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
         END DO
 
+        ! Add pitch actuator error for blade K
+        IF (CntrPar%PE_Mode == 1) THEN
+            DO K = 1, LocalVar%NumBl
+                ! This assumes that the pitch actuator error overides the Hardware saturation
+                LocalVar%PitComAct(K) = LocalVar%PitComAct(K) + CntrPar%PE_Error_Bl(K)
+            END DO
+        END IF
+
         ! Command the pitch demanded from the last
         ! call to the controller (See Appendix A of Bladed User's Guide):
-        avrSWAP(42) = LocalVar%PitComAct(1) +  CntrPar%PA_Error_Bl1   ! Use the command angles of all blades if using individual pitch
-        avrSWAP(43) = LocalVar%PitComAct(2) +  CntrPar%PA_Error_Bl2   ! "
-        avrSWAP(44) = LocalVar%PitComAct(3) +  CntrPar%PA_Error_Bl3   ! "
+        avrSWAP(42) = LocalVar%PitComAct(1)    ! Use the command angles of all blades if using individual pitch
+        avrSWAP(43) = LocalVar%PitComAct(2)    ! "
+        avrSWAP(44) = LocalVar%PitComAct(3)    ! "
         avrSWAP(45) = LocalVar%PitComAct(1)    ! Use the command angle of blade 1 if using collective pitch
 
         ! Add RoutineName to error message

@@ -116,9 +116,8 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: PA_Mode                     ! Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
     REAL(DbKi)                    :: PA_CornerFreq               ! Pitch actuator bandwidth/cut-off frequency [rad/s]
     REAL(DbKi)                    :: PA_Damping                  ! Pitch actuator damping ratio [-, unused if PA_Mode = 1]
-    REAL(DbKi)                    :: PA_Error_Bl1                ! Pitch actuator error for blade 1 [rad/s]
-    REAL(DbKi)                    :: PA_Error_Bl2                ! Pitch actuator error for blade 2 [rad/s]
-    REAL(DbKi)                    :: PA_Error_Bl3                ! Pitch actuator error for blade 3 [rad/s]
+    INTEGER(IntKi)                :: PE_Mode                     ! Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
+    REAL(DbKi)                    :: PE_Error_Bl(3)              ! Pitch actuator error for blade 1-3 [rad/s]
     REAL(DbKi)                    :: PC_RtTq99                   ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(DbKi)                    :: VS_MaxOMTq                  ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(DbKi)                    :: VS_MinOMTq                  ! Minimum torque at the beginning of the below-rated region 2, [Nm]

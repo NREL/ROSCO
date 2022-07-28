@@ -255,6 +255,7 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_Mode',accINFILE(1),CntrPar%Flp_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'OL_Mode',accINFILE(1),CntrPar%OL_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PA_Mode',accINFILE(1),CntrPar%PA_Mode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PE_Mode',accINFILE(1),CntrPar%PE_Mode,ErrVar)
 
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
@@ -404,9 +405,9 @@ CONTAINS
 
         !------------ Pitch Actuator Error ------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters,CurLine,'PA_Error_Bl1',accINFILE(1),CntrPar%PA_Error_Bl1,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PA_Error_Bl2',accINFILE(1),CntrPar%PA_Error_Bl2,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PA_Error_Bl3',accINFILE(1),CntrPar%PA_Error_Bl3,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PE_Error_Bl1',accINFILE(1),CntrPar%PE_Error_Bl(1),ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PE_Error_Bl2',accINFILE(1),CntrPar%PE_Error_Bl(2),ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PE_Error_Bl3',accINFILE(1),CntrPar%PE_Error_Bl(3),ErrVar)
 
 
         ! Fix Paths (add relative paths if called from another dir)

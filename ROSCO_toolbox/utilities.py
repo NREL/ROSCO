@@ -81,6 +81,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! Flp_Mode          - Flap control mode {{0: no flap control, 1: steady state flap angle, 2: Proportional flap control, 2: Cyclic (1P) flap control}}\n'.format(int(rosco_vt['Flp_Mode'])))
     file.write('{0:<12d}        ! OL_Mode           - Open loop control mode {{0: no open loop control, 1: open loop control vs. time, 2: open loop control vs. wind speed}}\n'.format(int(rosco_vt['OL_Mode'])))
     file.write('{0:<12d}        ! PA_Mode           - Pitch actuator mode {{0 - not used, 1 - first order filter, 2 - second order filter}}\n'.format(int(rosco_vt['PA_Mode'])))
+    file.write('{0:<12d}        ! PE_Mode           - Pitch actuator error mode {{0 - not used, 1 - error on one or more blades}}\n'.format(int(rosco_vt['PE_Mode'])))
     file.write('\n')
     file.write('!------- FILTERS ----------------------------------------------------------\n') 
     file.write('{:<13.5f}       ! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [rad/s]\n'.format(rosco_vt['F_LPFCornerFreq'])) 
@@ -201,6 +202,11 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('!------- Pitch Actuator Model -----------------------------------------------------\n')
     file.write('{:<014.5f}        ! PA_CornerFreq     - Pitch actuator bandwidth/cut-off frequency [rad/s]\n'.format(rosco_vt['PA_CornerFreq']))
     file.write('{:<014.5f}        ! PA_Damping        - Pitch actuator damping ratio [-, unused if PA_Mode = 1]\n'.format(rosco_vt['PA_Damping']))
+    file.write('\n')
+    file.write('!------- Pitch Actuator Error -----------------------------------------------------\n')
+    file.write('{:<014.5f}        ! PE_Error_Bl1     - Pitch actuator error for blade 1 [rad]\n'.format(rosco_vt['PE_Error_bl(1)']))
+    file.write('{:<014.5f}        ! PE_Error_Bl2     - Pitch actuator error for blade 2 [rad]\n'.format(rosco_vt['PE_Error_bl(2)']))
+    file.write('{:<014.5f}        ! PE_Error_Bl3     - Pitch actuator error for blade 3 [rad]\n'.format(rosco_vt['PE_Error_bl(3)']))
     file.close()
     
     # Write Open loop input

@@ -438,15 +438,19 @@ ControlParameters:
       description: Pitch actuator damping ratio [-, unused if PA_Mode = 1]
     
     # Pitch actuator error
-    PA_Error_Bl1:
+    PE_Mode:
+      <<: *integer
+      description: Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
+    PE_Error_Bl:
       <<: *real
-      description: Pitch actuator error for blade 1 [rad/s]
-    PA_Error_Bl2:
-      <<: *real
-      description: Pitch actuator error for blade 2 [rad/s]
-    PA_Error_Bl3:
-      <<: *real
-      description: Pitch actuator error for blade 3 [rad/s]
+      description: Pitch actuator error for blade 1-3 [rad/s]
+      size: 3
+    # PA_Error_Bl2:
+    #   <<: *real
+    #   description: Pitch actuator error for blade 2 [rad/s]
+    # PA_Error_Bl3:
+    #   <<: *real
+    #   description: Pitch actuator error for blade 3 [rad/s]
 
     # Calculated
     PC_RtTq99:
