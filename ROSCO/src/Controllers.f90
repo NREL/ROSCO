@@ -139,11 +139,11 @@ CONTAINS
             LocalVar%PitComAct(K) = ratelimit(LocalVar%PitComAct(K), LocalVar%BlPitch(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
         END DO
 
-        ! Add pitch actuator error for blade K
-        IF (CntrPar%PE_Mode == 1) THEN
+        ! Add pitch actuator fault for blade K
+        IF (CntrPar%PF_Mode == 1) THEN
             DO K = 1, LocalVar%NumBl
-                ! This assumes that the pitch actuator error overides the Hardware saturation
-                LocalVar%PitComAct(K) = LocalVar%PitComAct(K) + CntrPar%PE_Error_Bl(K)
+                ! This assumes that the pitch actuator fault overides the Hardware saturation
+                LocalVar%PitComAct(K) = LocalVar%PitComAct(K) + CntrPar%PF_Offsets(K)
             END DO
         END IF
 
