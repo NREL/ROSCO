@@ -81,7 +81,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! Flp_Mode          - Flap control mode {{0: no flap control, 1: steady state flap angle, 2: Proportional flap control, 2: Cyclic (1P) flap control}}\n'.format(int(rosco_vt['Flp_Mode'])))
     file.write('{0:<12d}        ! OL_Mode           - Open loop control mode {{0: no open loop control, 1: open loop control vs. time}}\n'.format(int(rosco_vt['OL_Mode'])))
     file.write('{0:<12d}        ! PA_Mode           - Pitch actuator mode {{0 - not used, 1 - first order filter, 2 - second order filter}}\n'.format(int(rosco_vt['PA_Mode'])))
-    file.write('{0:<12d}        ! PE_Mode           - Pitch actuator error mode {{0 - not used, 1 - error on one or more blades}}\n'.format(int(rosco_vt['PE_Mode'])))
+    file.write('{0:<12d}        ! PF_Mode           - Pitch fault mode {{0 - not used, 1 - constant offset on one or more blades}}\n'.format(int(rosco_vt['PF_Mode'])))
     file.write('{0:<12d}        ! Ext_Mode          - External control mode {{0 - not used, 1 - call external dynamic library}}\n'.format(int(rosco_vt['Ext_Mode'])))
     file.write('{0:<12d}        ! ZMQ_Mode          - Fuse ZeroMQ interaface {{0: unused, 1: Yaw Control}}\n'.format(int(rosco_vt['ZMQ_Mode'])))
 
@@ -204,7 +204,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<014.5f}        ! PA_Damping        - Pitch actuator damping ratio [-, unused if PA_Mode = 1]\n'.format(rosco_vt['PA_Damping']))
     file.write('\n')
     file.write('!------- Pitch Actuator Error -----------------------------------------------------\n')
-    file.write('{}                ! PF_Offsets     - Wind speeds corresponding to minimum blade pitch angles [m/s]\n'.format(''.join('{:<4.4f} '.format(rosco_vt['PF_Offsets'][i]) for i in range(3))))
+    file.write('{}                ! PF_Offsets     - Constant blade pitch offsets for blades 1-3 [rad]\n'.format(''.join('{:<4.4f} '.format(rosco_vt['PF_Offsets'][i]) for i in range(3))))
     file.write('!------- External Controller Interface -----------------------------------------------------\n')
     file.write('"{}"            ! DLL_FileName        - Name/location of the dynamic library in the Bladed-DLL format\n'.format(rosco_vt['DLL_FileName']))
     file.write('"{}"            ! DLL_InFile          - Name of input file sent to the DLL (-)\n'.format(rosco_vt['DLL_InFile']))
@@ -508,7 +508,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['PA_CornerFreq']   = controller.PA_CornerFreq
     DISCON_dict['PA_Damping']      = controller.PA_Damping
     # ------- Pitch Actuator Fault -------
-    DISCON_dict['PF_Offsets']   = controller.PF_Offset_Bl1
+    DISCON_dict['PF_Offsets']       = [0.,0.,0.]
     # ------- Zero-MQ  ------- 
     DISCON_dict['ZMQ_CommAddress'] = "tcp://localhost:5555" 
     DISCON_dict['ZMQ_UpdatePeriod']  = 2

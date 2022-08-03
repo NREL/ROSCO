@@ -439,8 +439,6 @@ ControlParameters:
       <<: *real
       description: Pitch actuator fault offsets for blade 1-3 [rad/s]
       allocatable: True
-      description: Pitch actuator error for blade 1-3 [rad/s]
-      size: 3
     
     # External Control
     Ext_Mode:
