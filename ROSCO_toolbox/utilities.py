@@ -205,6 +205,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('\n')
     file.write('!------- Pitch Actuator Error -----------------------------------------------------\n')
     file.write('{}                ! PF_Offsets     - Constant blade pitch offsets for blades 1-3 [rad]\n'.format(''.join('{:<4.4f} '.format(rosco_vt['PF_Offsets'][i]) for i in range(3))))
+    file.write('\n')
     file.write('!------- External Controller Interface -----------------------------------------------------\n')
     file.write('"{}"            ! DLL_FileName        - Name/location of the dynamic library in the Bladed-DLL format\n'.format(rosco_vt['DLL_FileName']))
     file.write('"{}"            ! DLL_InFile          - Name of input file sent to the DLL (-)\n'.format(rosco_vt['DLL_InFile']))
