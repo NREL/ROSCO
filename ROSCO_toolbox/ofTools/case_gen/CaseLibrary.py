@@ -499,6 +499,7 @@ def sweep_ps_percent(start_group, **control_sweep_opts):
 
 def test_pitch_offset(start_group, **control_sweep_opts):
     case_inputs_control = {}
+    case_inputs_control[('DISCON_in','PF_Mode')] = {'vals': [1], 'group': start_group}
     case_inputs_control[('DISCON_in','PF_Offsets')] = {'vals': [[0,float(np.radians(2)),0]], 'group': start_group}
     return case_inputs_control
 
