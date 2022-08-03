@@ -245,7 +245,7 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_Mode',accINFILE(1),CntrPar%Flp_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'OL_Mode',accINFILE(1),CntrPar%OL_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PA_Mode',accINFILE(1),CntrPar%PA_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PE_Mode',accINFILE(1),CntrPar%PE_Mode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PF_Mode',accINFILE(1),CntrPar%PF_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Ext_Mode',accINFILE(1),CntrPar%Ext_Mode,ErrVar)
 		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_Mode',accINFILE(1), CntrPar%ZMQ_Mode,ErrVar)
 
@@ -394,9 +394,7 @@ CONTAINS
 
         !------------ Pitch Actuator Error ------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters,CurLine,'PE_Error_Bl1',accINFILE(1),CntrPar%PE_Error_Bl(1),ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PE_Error_Bl2',accINFILE(1),CntrPar%PE_Error_Bl(2),ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PE_Error_Bl3',accINFILE(1),CntrPar%PE_Error_Bl(3),ErrVar)
+        CALL ParseAry(UnControllerParameters, CurLine,'PF_Offsets', CntrPar%PF_Offsets, 3, accINFILE(1), ErrVar)
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
         
         !------------ External control interface ------------

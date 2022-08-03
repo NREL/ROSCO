@@ -204,9 +204,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<014.5f}        ! PA_Damping        - Pitch actuator damping ratio [-, unused if PA_Mode = 1]\n'.format(rosco_vt['PA_Damping']))
     file.write('\n')
     file.write('!------- Pitch Actuator Error -----------------------------------------------------\n')
-    file.write('{:<014.5f}        ! PE_Error_Bl1     - Pitch actuator error for blade 1 [rad]\n'.format(rosco_vt['PE_Error_bl(1)']))
-    file.write('{:<014.5f}        ! PE_Error_Bl2     - Pitch actuator error for blade 2 [rad]\n'.format(rosco_vt['PE_Error_bl(2)']))
-    file.write('{:<014.5f}        ! PE_Error_Bl3     - Pitch actuator error for blade 3 [rad]\n'.format(rosco_vt['PE_Error_bl(3)']))
+    file.write('{}                ! PF_Offsets     - Wind speeds corresponding to minimum blade pitch angles [m/s]\n'.format(''.join('{:<4.4f} '.format(rosco_vt['PF_Offsets'][i]) for i in range(3))))
     file.write('!------- External Controller Interface -----------------------------------------------------\n')
     file.write('"{}"            ! DLL_FileName        - Name/location of the dynamic library in the Bladed-DLL format\n'.format(rosco_vt['DLL_FileName']))
     file.write('"{}"            ! DLL_InFile          - Name of input file sent to the DLL (-)\n'.format(rosco_vt['DLL_InFile']))
@@ -398,6 +396,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['TD_Mode']          = int(controller.TD_Mode)
     DISCON_dict['Flp_Mode']         = int(controller.Flp_Mode)
     DISCON_dict['OL_Mode']          = int(controller.OL_Mode)
+    DISCON_dict['PF_Mode']          = int(controller.PF_Mode)
     DISCON_dict['PA_Mode']          = int(controller.PA_Mode)
     DISCON_dict['Ext_Mode']         = int(controller.Ext_Mode)
     DISCON_dict['ZMQ_Mode']         = int(controller.ZMQ_Mode)
@@ -508,6 +507,8 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['PA_Mode']         = controller.PA_Mode
     DISCON_dict['PA_CornerFreq']   = controller.PA_CornerFreq
     DISCON_dict['PA_Damping']      = controller.PA_Damping
+    # ------- Pitch Actuator Fault -------
+    DISCON_dict['PF_Offsets']   = controller.PF_Offset_Bl1
     # ------- Zero-MQ  ------- 
     DISCON_dict['ZMQ_CommAddress'] = "tcp://localhost:5555" 
     DISCON_dict['ZMQ_UpdatePeriod']  = 2
