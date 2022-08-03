@@ -11,14 +11,15 @@ IMPLICIT NONE
 
 CONTAINS
 
-SUBROUTINE WriteRestartFile(LocalVar, CntrPar, objInst, RootName, size_avcOUTNAME)
+SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_avcOUTNAME)
     TYPE(LocalVariables), INTENT(IN)                :: LocalVar
     TYPE(ControlParameters), INTENT(INOUT)          :: CntrPar
     TYPE(ObjectInstances), INTENT(INOUT)            :: objInst
+    TYPE(ErrorVariables), INTENT(INOUT)             :: ErrVar
     INTEGER(IntKi), INTENT(IN)                      :: size_avcOUTNAME
     CHARACTER(size_avcOUTNAME-1), INTENT(IN)        :: RootName 
     
-    INTEGER(IntKi), PARAMETER    :: Un = 87             ! I/O unit for pack/unpack (checkpoint & restart)
+    INTEGER(IntKi)               :: Un                  ! I/O unit for pack/unpack (checkpoint & restart)
     INTEGER(IntKi)               :: I                   ! Generic index.
     CHARACTER(128)               :: InFile              ! Input checkpoint file
     INTEGER(IntKi)               :: ErrStat
@@ -26,7 +27,8 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, objInst, RootName, size_avcOUTNAM
     CHARACTER(128)               :: n_t_global          ! timestep number as a string
 
     WRITE(n_t_global, '(I0.0)' ) NINT(LocalVar%Time/LocalVar%DT)
-    InFile = RootName(1:size_avcOUTNAME-5)//TRIM( n_t_global )//'.RO.chkp'
+    InFile = TRIM(RootName)//TRIM( n_t_global )//'.RO.chkp'
+    CALL GetNewUnit(Un, ErrVar)
     OPEN(unit=Un, FILE=TRIM(InFile), STATUS='UNKNOWN', FORM='UNFORMATTED' , ACCESS='STREAM', IOSTAT=ErrStat, ACTION='WRITE' )
 
     IF ( ErrStat /= 0 ) THEN
@@ -39,7 +41,8 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, objInst, RootName, size_avcOUTNAM
         WRITE( Un, IOSTAT=ErrStat) LocalVar%VS_GenPwr
         WRITE( Un, IOSTAT=ErrStat) LocalVar%GenSpeed
         WRITE( Un, IOSTAT=ErrStat) LocalVar%RotSpeed
-        WRITE( Un, IOSTAT=ErrStat) LocalVar%Y_M
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%NacHeading
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%NacVane
         WRITE( Un, IOSTAT=ErrStat) LocalVar%HorWindV
         WRITE( Un, IOSTAT=ErrStat) LocalVar%rootMOOP(1)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%rootMOOP(2)
@@ -113,11 +116,6 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, objInst, RootName, size_avcOUTNAM
         WRITE( Un, IOSTAT=ErrStat) LocalVar%WE_VwI
         WRITE( Un, IOSTAT=ErrStat) LocalVar%WE_VwIdot
         WRITE( Un, IOSTAT=ErrStat) LocalVar%VS_LastGenTrqF
-        WRITE( Un, IOSTAT=ErrStat) LocalVar%Y_AccErr
-        WRITE( Un, IOSTAT=ErrStat) LocalVar%Y_ErrLPFFast
-        WRITE( Un, IOSTAT=ErrStat) LocalVar%Y_ErrLPFSlow
-        WRITE( Un, IOSTAT=ErrStat) LocalVar%Y_MErr
-        WRITE( Un, IOSTAT=ErrStat) LocalVar%Y_YawEndT
         WRITE( Un, IOSTAT=ErrStat) LocalVar%SD
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Fl_PitCom
         WRITE( Un, IOSTAT=ErrStat) LocalVar%NACIMU_FA_AccF
@@ -189,17 +187,18 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, objInst, RootName, size_avcOUTNAM
 END SUBROUTINE WriteRestartFile
 
  
-SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootName, size_avcOUTNAME, ErrVar)
+SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootName, size_avcOUTNAME, zmqVar, ErrVar)
     TYPE(LocalVariables), INTENT(INOUT)             :: LocalVar
     TYPE(ControlParameters), INTENT(INOUT)          :: CntrPar
     TYPE(ObjectInstances), INTENT(INOUT)            :: objInst
     TYPE(PerformanceData), INTENT(INOUT)            :: PerfData
     TYPE(ErrorVariables), INTENT(INOUT)             :: ErrVar
+    TYPE(ZMQ_Variables), INTENT(INOUT)              :: zmqVar
     REAL(C_FLOAT), INTENT(IN)                       :: avrSWAP(*)
     INTEGER(IntKi), INTENT(IN)                      :: size_avcOUTNAME
     CHARACTER(size_avcOUTNAME-1), INTENT(IN)        :: RootName 
     
-    INTEGER(IntKi), PARAMETER    :: Un = 87             ! I/O unit for pack/unpack (checkpoint & restart)
+    INTEGER(IntKi)               :: Un                  ! I/O unit for pack/unpack (checkpoint & restart)
     INTEGER(IntKi)               :: I                   ! Generic index.
     CHARACTER(128)               :: InFile              ! Input checkpoint file
     INTEGER(IntKi)               :: ErrStat
@@ -207,7 +206,8 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
     CHARACTER(128)               :: n_t_global          ! timestep number as a string
 
     WRITE(n_t_global, '(I0.0)' ) NINT(avrSWAP(2)/avrSWAP(3))
-    InFile = RootName(1:size_avcOUTNAME-5)//TRIM( n_t_global )//'.RO.chkp'
+    InFile = TRIM(RootName)//TRIM( n_t_global )//'.RO.chkp'
+    CALL GetNewUnit(Un, ErrVar)
     OPEN(unit=Un, FILE=TRIM(InFile), STATUS='UNKNOWN', FORM='UNFORMATTED' , ACCESS='STREAM', IOSTAT=ErrStat, ACTION='READ' )
 
     IF ( ErrStat /= 0 ) THEN
@@ -220,7 +220,8 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%VS_GenPwr
         READ( Un, IOSTAT=ErrStat) LocalVar%GenSpeed
         READ( Un, IOSTAT=ErrStat) LocalVar%RotSpeed
-        READ( Un, IOSTAT=ErrStat) LocalVar%Y_M
+        READ( Un, IOSTAT=ErrStat) LocalVar%NacHeading
+        READ( Un, IOSTAT=ErrStat) LocalVar%NacVane
         READ( Un, IOSTAT=ErrStat) LocalVar%HorWindV
         READ( Un, IOSTAT=ErrStat) LocalVar%rootMOOP(1)
         READ( Un, IOSTAT=ErrStat) LocalVar%rootMOOP(2)
@@ -294,11 +295,6 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%WE_VwI
         READ( Un, IOSTAT=ErrStat) LocalVar%WE_VwIdot
         READ( Un, IOSTAT=ErrStat) LocalVar%VS_LastGenTrqF
-        READ( Un, IOSTAT=ErrStat) LocalVar%Y_AccErr
-        READ( Un, IOSTAT=ErrStat) LocalVar%Y_ErrLPFFast
-        READ( Un, IOSTAT=ErrStat) LocalVar%Y_ErrLPFSlow
-        READ( Un, IOSTAT=ErrStat) LocalVar%Y_MErr
-        READ( Un, IOSTAT=ErrStat) LocalVar%Y_YawEndT
         READ( Un, IOSTAT=ErrStat) LocalVar%SD
         READ( Un, IOSTAT=ErrStat) LocalVar%Fl_PitCom
         READ( Un, IOSTAT=ErrStat) LocalVar%NACIMU_FA_AccF
@@ -369,27 +365,28 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         Close ( Un )
     ENDIF
     ! Read Parameter files
-    CALL ReadControlParameterFileSub(CntrPar, LocalVar%ACC_INFILE, LocalVar%ACC_INFILE_SIZE, ErrVar)
+    CALL ReadControlParameterFileSub(CntrPar, zmqVar, LocalVar%ACC_INFILE, LocalVar%ACC_INFILE_SIZE, ErrVar)
     IF (CntrPar%WE_Mode > 0) THEN
         CALL READCpFile(CntrPar, PerfData, ErrVar)
     ENDIF
 END SUBROUTINE ReadRestartFile
 
  
-SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME)
+SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_avcOUTNAME)
 ! Debug routine, defines what gets printed to DEBUG.dbg if LoggingLevel = 1
 
     TYPE(ControlParameters), INTENT(IN) :: CntrPar
     TYPE(LocalVariables), INTENT(IN) :: LocalVar
     TYPE(DebugVariables), INTENT(IN) :: DebugVar
+    TYPE(ErrorVariables),       INTENT(INOUT)   :: ErrVar
 
     INTEGER(IntKi), INTENT(IN)      :: size_avcOUTNAME
     INTEGER(IntKi)                  :: I , nDebugOuts, nLocalVars   ! Generic index.
     CHARACTER(1), PARAMETER         :: Tab = CHAR(9)                ! The tab character.
     CHARACTER(29), PARAMETER        :: FmtDat = "(F20.5,TR5,99(ES20.5E2,TR5:))"   ! The format of the debugging data
-    INTEGER(IntKi), PARAMETER       :: UnDb = 85                    ! I/O unit for the debugging information
-    INTEGER(IntKi), PARAMETER       :: UnDb2 = 86                   ! I/O unit for the debugging information, avrSWAP
-    INTEGER(IntKi), PARAMETER       :: UnDb3 = 87                   ! I/O unit for the debugging information, avrSWAP
+    INTEGER(IntKi), SAVE            :: UnDb                         ! I/O unit for the debugging information
+    INTEGER(IntKi), SAVE            :: UnDb2                        ! I/O unit for the debugging information, avrSWAP
+    INTEGER(IntKi), SAVE            :: UnDb3                        ! I/O unit for the debugging information, avrSWAP
     REAL(ReKi), INTENT(INOUT)       :: avrSWAP(*)                   ! The swap array, used to pass data to, and receive data from, the DLL controller.
     CHARACTER(size_avcOUTNAME-1), INTENT(IN) :: RootName            ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
     CHARACTER(200)                  :: Version                      ! git version of ROSCO
@@ -399,7 +396,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME
     CHARACTER(15), ALLOCATABLE      :: LocalVarOutStrings(:)
     REAL(DbKi), ALLOCATABLE         :: LocalVarOutData(:)
  
-    nDebugOuts = 19
+    nDebugOuts = 24
     Allocate(DebugOutData(nDebugOuts))
     Allocate(DebugOutStrings(nDebugOuts))
     Allocate(DebugOutUnits(nDebugOuts))
@@ -422,10 +419,16 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME
     DebugOutData(17) = DebugVar%axisYaw_1P
     DebugOutData(18) = DebugVar%axisTilt_2P
     DebugOutData(19) = DebugVar%axisYaw_2P
+    DebugOutData(20) = DebugVar%YawRateCom
+    DebugOutData(21) = DebugVar%NacHeadingTarget
+    DebugOutData(22) = DebugVar%NacVaneOffset
+    DebugOutData(23) = DebugVar%Yaw_err
+    DebugOutData(24) = DebugVar%YawState
     DebugOutStrings = [CHARACTER(15) ::  'WE_Cp', 'WE_b', 'WE_w', 'WE_t', 'WE_Vm', & 
                                       'WE_Vt', 'WE_Vw', 'WE_lambda', 'PC_PICommand', 'GenSpeedF', & 
                                       'RotSpeedF', 'NacIMU_FA_AccF', 'FA_AccF', 'Fl_PitCom', 'PC_MinPit', & 
-                                      'axisTilt_1P', 'axisYaw_1P', 'axisTilt_2P', 'axisYaw_2P']
+                                      'axisTilt_1P', 'axisYaw_1P', 'axisTilt_2P', 'axisYaw_2P', 'YawRateCom', & 
+                                      'NacHeadingTarget', 'NacVaneOffset', 'Yaw_err', 'YawState']
     DebugOutUnits = [CHARACTER(15) ::  '[-]', '[-]', '[-]', '[-]', '[m/s]', & 
                                       '[m/s]', '[m/s]', '[rad]', '[rad]', '[rad/s]', & 
                                       '[rad/s]', '[rad/s]', '[m/s]', '[rad]', '[rad]', & 
@@ -524,21 +527,24 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, size_avcOUTNAME
     ! Initialize debug file
     IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN ! .TRUE. if we're on the first call to the DLL
         IF (CntrPar%LoggingLevel > 0) THEN
-            OPEN(unit=UnDb, FILE=RootName(1: size_avcOUTNAME-5)//'RO.dbg')
+            CALL GetNewUnit(UnDb, ErrVar)
+            OPEN(unit=UnDb, FILE=TRIM(RootName)//'.RO.dbg')
             WRITE(UnDb, *)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)
             WRITE(UnDb, '(99(a20,TR5:))') 'Time',   DebugOutStrings
             WRITE(UnDb, '(99(a20,TR5:))') '(sec)',  DebugOutUnits
         END IF
 
         IF (CntrPar%LoggingLevel > 1) THEN
-            OPEN(unit=UnDb2, FILE=RootName(1: size_avcOUTNAME-5)//'RO.dbg2')
+            CALL GetNewUnit(UnDb2, ErrVar)
+            OPEN(unit=UnDb2, FILE=TRIM(RootName)//'.RO.dbg2')
             WRITE(UnDb2, *)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)
             WRITE(UnDb2, '(99(a20,TR5:))') 'Time',   LocalVarOutStrings
             WRITE(UnDb2, '(99(a20,TR5:))')
         END IF
 
         IF (CntrPar%LoggingLevel > 2) THEN
-            OPEN(unit=UnDb3, FILE=RootName(1: size_avcOUTNAME-5)//'RO.dbg3')
+            CALL GetNewUnit(UnDb3, ErrVar)
+            OPEN(unit=UnDb3, FILE=TRIM(RootName)//'.RO.dbg3')
             WRITE(UnDb3,'(/////)')
             WRITE(UnDb3,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1, 85)
             WRITE(UnDb3,'(A,85("'//Tab//'(-)"))')  '(s)'

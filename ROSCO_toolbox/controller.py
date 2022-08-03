@@ -10,10 +10,11 @@
 # specific language governing permissions and limitations under the License.
 
 import numpy as np
-import sys, os
+import os
 import datetime
-from scipy import interpolate, gradient, integrate
+from scipy import interpolate, integrate
 from ROSCO_toolbox.utilities import list_check
+from scipy import optimize
 
 # Some useful constants
 now = datetime.datetime.now()
@@ -62,6 +63,9 @@ class Controller():
         self.Fl_Mode            = controller_params['Fl_Mode']
         self.TD_Mode            = controller_params['TD_Mode']
         self.Flp_Mode           = controller_params['Flp_Mode']
+        self.PA_Mode           = controller_params['PA_Mode']
+        self.Ext_Mode           = controller_params['Ext_Mode']
+        self.ZMQ_Mode           = controller_params['ZMQ_Mode']
 
         # Necessary parameters
         self.U_pc = list_check(controller_params['U_pc'], return_bool=False)
@@ -127,6 +131,7 @@ class Controller():
         self.f_we_cornerfreq        = controller_params['filter_params']['f_we_cornerfreq']
         self.f_fl_highpassfreq      = controller_params['filter_params']['f_fl_highpassfreq']
         self.f_ss_cornerfreq        = controller_params['filter_params']['f_ss_cornerfreq']
+        self.f_yawerr               = controller_params['filter_params']['f_yawerr']
         self.f_sd_cornerfreq        = controller_params['filter_params']['f_sd_cornerfreq']
 
         # Open loop parameters: set up and error catching
@@ -136,8 +141,6 @@ class Controller():
         
         if self.OL_Mode:
             ol_params               = controller_params['open_loop']
-            
-                
             self.OL_Ind_Breakpoint  = ol_params['OL_Ind_Breakpoint']
             self.OL_Ind_BldPitch    = ol_params['OL_Ind_BldPitch']
             self.OL_Ind_GenTq       = ol_params['OL_Ind_GenTq']
@@ -200,15 +203,14 @@ class Controller():
 
         # separate TSRs by operations regions
         TSR_below_rated = [min(turbine.TSR_operational, rated_rotor_speed*R/v) for v in v_below_rated] # below rated     
-        TSR_above_rated = rated_rotor_speed*R/v_above_rated                   # above rated
-        # TSR_below_rated = np.minimum(np.max(TSR_above_rated), TSR_below_rated)
-        TSR_op = np.concatenate((TSR_below_rated, TSR_above_rated))   # operational TSRs
+        TSR_above_rated = rated_rotor_speed*R/v_above_rated                     # above rated
+        TSR_op = np.concatenate((TSR_below_rated, TSR_above_rated))             # operational TSRs
 
         # Find expected operational Cp values
-        Cp_above_rated = turbine.Cp.interp_surface(0,TSR_above_rated[0])             # Cp during rated operation (not optimal). Assumes cut-in bld pitch to be 0
+        Cp_above_rated = turbine.Cp.interp_surface(0,TSR_above_rated[0])     # Cp during rated operation (not optimal). Assumes cut-in bld pitch to be 0
         Cp_op_br = np.ones(len(v_below_rated)) * turbine.Cp.max              # below rated
         Cp_op_ar = Cp_above_rated * (TSR_above_rated/TSR_rated)**3           # above rated
-        Cp_op = np.concatenate((Cp_op_br, Cp_op_ar))                # operational CPs to linearize around
+        Cp_op = np.concatenate((Cp_op_br, Cp_op_ar))                         # operational CPs to linearize around
         pitch_initial_rad = turbine.pitch_initial_rad
         TSR_initial = turbine.TSR_initial
 
@@ -221,22 +223,25 @@ class Controller():
         Ct_op       = np.empty(len(TSR_op))
 
         # ------------- Find Linearized State "Matrices" ------------- #
+        # At each operating point
         for i in range(len(TSR_op)):
-            # Find pitch angle as a function of expected operating CP for each TSR
+            # Find pitch angle as a function of expected operating CP for each TSR operating point
             Cp_TSR = np.ndarray.flatten(turbine.Cp.interp_surface(turbine.pitch_initial_rad, TSR_op[i]))     # all Cp values for a given tsr
             Cp_maxidx = Cp_TSR.argmax()    
-            Cp_op[i] = np.clip(Cp_op[i], np.min(Cp_TSR[Cp_maxidx:]), np.max(Cp_TSR[Cp_maxidx:])) # saturate Cp values to be on Cp surface                                                             # Find maximum Cp value for this TSR
-            f_cp_pitch = interpolate.interp1d(Cp_TSR[Cp_maxidx:],pitch_initial_rad[Cp_maxidx:])         # interpolate function for Cp(tsr) values
-            # expected operation blade pitch values
+            Cp_op[i] = np.clip(Cp_op[i], np.min(Cp_TSR[Cp_maxidx:]), np.max(Cp_TSR[Cp_maxidx:]))            # saturate Cp values to be on Cp surface                                                             # Find maximum Cp value for this TSR
+            f_cp_pitch = interpolate.interp1d(Cp_TSR[Cp_maxidx:],pitch_initial_rad[Cp_maxidx:])             # interpolate function for Cp(tsr) values
+            
+            # expected operational blade pitch values. Saturates by min_pitch if it exists
             if v[i] <= turbine.v_rated and isinstance(self.min_pitch, float): # Below rated & defined min_pitch
                 pitch_op[i] = min(self.min_pitch, f_cp_pitch(Cp_op[i]))
-            elif isinstance(self.min_pitch, float):
+            elif isinstance(self.min_pitch, float):                           # above rated & defined min_pitch
                 pitch_op[i] = max(self.min_pitch, f_cp_pitch(Cp_op[i]))             
-            else:
+            else:                                                             # no defined minimum pitch schedule
                 pitch_op[i] = f_cp_pitch(Cp_op[i])     
 
-            dCp_beta[i], dCp_TSR[i] = turbine.Cp.interp_gradient(pitch_op[i],TSR_op[i])       # gradients of Cp surface in Beta and TSR directions
-            dCt_beta[i], dCt_TSR[i] = turbine.Ct.interp_gradient(pitch_op[i],TSR_op[i])       # gradients of Cp surface in Beta and TSR directions
+            # Calculate Cp Surface gradients
+            dCp_beta[i], dCp_TSR[i] = turbine.Cp.interp_gradient(pitch_op[i],TSR_op[i]) 
+            dCt_beta[i], dCt_TSR[i] = turbine.Ct.interp_gradient(pitch_op[i],TSR_op[i]) 
         
             # Thrust
             Ct_TSR      = np.ndarray.flatten(turbine.Ct.interp_surface(turbine.pitch_initial_rad, TSR_op[i]))     # all Cp values for a given tsr
@@ -255,12 +260,11 @@ class Controller():
         dCt_dbeta   = dCt_beta/np.diff(pitch_initial_rad)[0]
         dCt_dTSR    = dCt_TSR/np.diff(TSR_initial)[0]
         
-        # Linearized system derivatives
-        dtau_dbeta      = Ng/2*rho*Ar*R*(1/TSR_op)*dCp_dbeta*v**2
-        dtau_dlambda    = Ng/2*rho*Ar*R*v**2*(1/(TSR_op**2))*(dCp_dTSR*TSR_op - Cp_op)
+        # Linearized system derivatives, equations from https://wes.copernicus.org/articles/7/53/2022/wes-7-53-2022.pdf
+        dtau_dbeta      = Ng/2*rho*Ar*R*(1/TSR_op)*dCp_dbeta*v**2  # (26)
+        dtau_dlambda    = Ng/2*rho*Ar*R*v**2*(1/(TSR_op**2))*(dCp_dTSR*TSR_op - Cp_op)   # (7)
         dlambda_domega  = R/v/Ng
         dtau_domega     = dtau_dlambda*dlambda_domega
-
         dlambda_dv      = -(TSR_op/v)
 
         Pi_beta         = 1/2 * rho * Ar * v**2 * dCt_dbeta
@@ -330,6 +334,7 @@ class Controller():
 
         # Store some variables
         self.v              = v                                  # Wind speed (m/s)
+        self.v_above_rated  = v_above_rated
         self.v_below_rated  = v_below_rated
         self.pitch_op       = pitch_op
         self.pitch_op_pc    = pitch_op[-len(v_above_rated)+1:]
@@ -413,23 +418,19 @@ class Controller():
         # Find blade aerodynamic coefficients
         v_rel = []
         phi_vec = []
-        alpha=[]
         for i, _ in enumerate(self.v):
             turbine.cc_rotor.induction_inflow=True
             # Axial and tangential inductions
             try: 
-                a, ap, alpha0, cl, cd = turbine.cc_rotor.distributedAeroLoads(
+                a, ap, _, _, _ = turbine.cc_rotor.distributedAeroLoads(
                                                 self.v[i], self.omega_op[i], self.pitch_op[i], 0.0)
             except ValueError:
-                loads, derivs = turbine.cc_rotor.distributedAeroLoads(
+                loads, _ = turbine.cc_rotor.distributedAeroLoads(
                                                 self.v[i], self.omega_op[i], self.pitch_op[i], 0.0)
-                a = loads['a']
-                ap = loads['ap']
-                alpha0 = loads['alpha']
-                cl = loads['Cl']
-                cd = loads['Cd']
+                a = loads['a']      # Axial induction factor
+                ap = loads['ap']    # Tangential induction factor
                  
-            # Relative windspeed
+            # Relative windspeed along blade span
             v_rel.append([np.sqrt(self.v[i]**2*(1-a)**2 + self.omega_op[i]**2*turbine.span**2*(1-ap)**2)])
             # Inflow wind direction
             phi_vec.append(self.pitch_op[i] + turbine.twist*deg2rad)
@@ -444,9 +445,11 @@ class Controller():
         Cdm = np.zeros(num_af)
         
         for i,section in enumerate(turbine.af_data):
-            # assume airfoil section as AOA of zero for slope calculations - for now
+            # assume airfoil section as AOA of zero for slope calculations
             a0_ind = section[0]['Alpha'].index(np.min(np.abs(section[0]['Alpha'])))
             # Coefficients 
+            #  - If the flap exists in this blade section, define Cx-plus,-minus,-neutral(0)
+            #  - IF teh flap does not exist in this blade section, Cx matrix is all the same value
             if section[0]['NumTabs'] == 3:  # sections with 3 flaps
                 Clm[i,] = section[0]['Cl'][a0_ind]
                 Cdm[i,] = section[0]['Cd'][a0_ind]
@@ -460,12 +463,12 @@ class Controller():
                 Cd0[i,] = Cdp[i,] = Cdm[i,] = section[0]['Cd'][a0_ind]
                 Ctrl = float(section[0]['Ctrl'])
 
-        # Find slopes
+        # Find lift and drag coefficient slopes w.r.t. flap angle
         Kcl = (Clp - Cl0)/( (Ctrl_flp-Ctrl)*deg2rad )
         Kcd = (Cdp - Cd0)/( (Ctrl_flp-Ctrl)*deg2rad )
 
         # Find integrated constants
-        self.kappa = np.zeros(len(v_rel))
+        self.kappa = np.zeros(len(v_rel))  # "flap efficacy term"
         C1 = np.zeros(len(v_rel))
         C2 = np.zeros(len(v_rel))
         for i, (v_sec,phi) in enumerate(zip(v_rel, phi_vec)):
@@ -476,7 +479,6 @@ class Controller():
         # PI Gains
         if (self.flp_kp_norm == 0 or self.flp_tau == 0) or (not self.flp_kp_norm or not self.flp_tau):
             raise ValueError('flp_kp_norm and flp_tau must be nonzero for Flp_Mode >= 1')
-
         self.Kp_flap = self.flp_kp_norm / self.kappa
         self.Ki_flap = self.flp_kp_norm / self.kappa / self.flp_tau
 
@@ -505,22 +507,20 @@ class ControllerBlocks():
         '''
 
         # Re-define Turbine Parameters for shorthand
-        J = turbine.J                           # Total rotor inertial (kg-m^2) 
-        rho = turbine.rho                       # Air density (kg/m^3)
-        R = turbine.rotor_radius                    # Rotor radius (m)
-        A = np.pi*R**2                         # Rotor area (m^2)
-        Ng = turbine.Ng                         # Gearbox ratio (-)
-        rated_rotor_speed = turbine.rated_rotor_speed               # Rated rotor speed (rad/s)
+        rho = turbine.rho             # Air density (kg/m^3)
+        R = turbine.rotor_radius      # Rotor radius (m)
+        A = np.pi*R**2                # Rotor area (m^2)
 
         # Initialize some arrays
         Ct_op = np.empty(len(controller.TSR_op),dtype='float64')
         Ct_max = np.empty(len(controller.TSR_op),dtype='float64')
-        beta_min = np.empty(len(controller.TSR_op),dtype='float64')
-        # Find unshaved rotor thurst coefficients and associated rotor thrusts
-        # for i in len(controller.TSR_op):
+
+        # Find unshaved rotor thrust coefficients at each TSR
         for i in range(len(controller.TSR_op)):
             Ct_op[i] = turbine.Ct.interp_surface(controller.pitch_op[i],controller.TSR_op[i])
-            T = 0.5 * rho * A * controller.v**2 * Ct_op
+
+        # Thrust vs. wind speed    
+        T = 0.5 * rho * A * controller.v**2 * Ct_op
 
         # Define minimum max thrust and initialize pitch_min
         Tmax = controller.ps_percent * np.max(T)
@@ -529,18 +529,21 @@ class ControllerBlocks():
         # Modify pitch_min if max thrust exceeds limits
         for i in range(len(controller.TSR_op)):
             # Find Ct values for operational TSR
-            # Ct_tsr = turbine.Ct.interp_surface(turbine.pitch_initial_rad, controller.TSR_op[i])
             Ct_tsr = turbine.Ct.interp_surface(turbine.pitch_initial_rad,controller.TSR_op[i])
             # Define max Ct values
             Ct_max[i] = Tmax/(0.5 * rho * A * controller.v[i]**2)
             if T[i] > Tmax:
                 Ct_op[i] = Ct_max[i]
             else:
+                # TSR_below_rated = np.minimum(np.max(TSR_above_rated), TSR_below_rated)
                 Ct_max[i] = np.minimum( np.max(Ct_tsr), Ct_max[i])
+
             # Define minimum pitch angle
+            # - find min(\beta) so that Ct <= Ct_max and \beta > \beta_fine at each operational TSR
             f_pitch_min = interpolate.interp1d(Ct_tsr, turbine.pitch_initial_rad, kind='linear', bounds_error=False, fill_value=(turbine.pitch_initial_rad[0],turbine.pitch_initial_rad[-1]))
             pitch_min[i] = max(controller.min_pitch, f_pitch_min(Ct_max[i]))
 
+        # Save to controller object
         controller.ps_min_bld_pitch = pitch_min
 
         # save some outputs for analysis or future work
@@ -552,9 +555,20 @@ class ControllerBlocks():
         self.T = T
 
     def min_pitch_saturation(self, controller, turbine):
-        
+        '''
+        Minimum pitch saturation in low wind speeds to maximize power capture
+
+        Parameters:
+        -----------
+        controller: class
+                    Controller class containing controller operational information
+        turbine: class
+                 Turbine class containing necessary wind turbine information for controller tuning
+        '''
         # Find TSR associated with minimum rotor speed
         TSR_at_minspeed = (controller.pc_minspd) * turbine.rotor_radius / controller.v_below_rated
+        
+        # For each below rated wind speed operating point
         for i in range(len(TSR_at_minspeed)):
             if TSR_at_minspeed[i] > controller.TSR_op[i]:
                 controller.TSR_op[i] = TSR_at_minspeed[i]
@@ -562,18 +576,16 @@ class ControllerBlocks():
                 # Initialize some arrays
                 Cp_op = np.empty(len(turbine.pitch_initial_rad),dtype='float64')
                 min_pitch = np.empty(len(TSR_at_minspeed),dtype='float64')
-                
         
-                # Find Cp-maximizing minimum pitch schedule
-                # Find Cp coefficients at below-rated tip speed ratios
+                # ------- Find Cp-maximizing minimum pitch schedule ---------
+                # Cp coefficients at below-rated tip speed ratios
                 Cp_op = turbine.Cp.interp_surface(turbine.pitch_initial_rad,TSR_at_minspeed[i])
-                Cp_max = max(Cp_op)
-                # f_pitch_min = interpolate.interp1d(Cp_op, -turbine.pitch_initial_rad, kind='quadratic', bounds_error=False, fill_value=(turbine.pitch_initial_rad[0],turbine.pitch_initial_rad[-1]))
+
+                # Setup and run small optimization problem to find blade pitch angle that maximizes Cp at a given TSR
+                # - Finds \beta to satisfy max( Cp(\beta,TSR_op) )
                 f_pitch_min = interpolate.interp1d(turbine.pitch_initial_rad, -Cp_op, kind='quadratic', bounds_error=False, fill_value=(turbine.pitch_initial_rad[0],turbine.pitch_initial_rad[-1]))
-                from scipy import optimize
                 res = optimize.minimize(f_pitch_min, 0.0)
                 min_pitch[i] = res.x[0]
-                # min_pitch[i] = f_pitch_min(Cp_max)
                 
                 # modify existing minimum pitch schedule
                 controller.ps_min_bld_pitch[i] = np.maximum(controller.ps_min_bld_pitch[i], min_pitch[i])
@@ -812,19 +824,28 @@ class OpenLoopControl(object):
         return open_loop
 
 
-# helper functions
-
+# ----------- Helper Functions -----------
 def sigma(tt,t0,t1,y0=0,y1=1):
     ''' 
     generates timeseries for a smooth transition from y0 to y1 from x0 to x1
 
-    inputs: tt - time indices
-            t0 - start time
-            t1 - end time
-            y0 - start output
-            y1 - end output
+    Parameters:
+    -----------
+    tt: List-like
+        time indices
+    t0: float
+        start time
+    t1: float
+        end time
+    y0: float
+        start output
+    y1: 
+        end output
 
-    outputs: yy - output timeseries corresponding to tt
+    Returns:
+    --------
+    yy: List-like
+        output timeseries corresponding to tt
     '''
 
     a3 = 2/(t0-t1)**3
@@ -849,14 +870,19 @@ def multi_sigma(xx,x_bp,y_bp):
 
     Parameters:
     -----------
-    xx : list of floats (-)
+    xx: list of floats (-)
             new sample points
-    x_bp : list of floats (-)
+    x_bp: list of floats (-)
             breakpoints
     y_bp : list of floats (-)
             function value at breakpoints
 
+    Returns:
+    --------
+    yy: List-like
+        output timeseries corresponding to tt
     '''
+    # initialize
     yy = np.zeros_like(xx)
 
     # interpolate sigma functions between all breakpoints

@@ -13,6 +13,16 @@ _Select the appropriate type(s) that describe this PR_
 - [ ] Maintenance update
 - [ ] Other (please describe)
 
+TODO Items General:
+- [ ] Add example/test for new feature
+- [ ] Update registry
+- [ ] Run testing
+
+TODO Items API Change:
+- [ ] Update docs with API change
+- [ ] Run update_rosco_discons.py in Test_Cases/
+- [ ] Update DISCON schema
+
 ## Github issues addressed, if one exists
 
 ## Examples/Testing, if applicable

@@ -18,35 +18,20 @@ MODULE ReadSetParameters
     USE Constants
     USE Functions
     USE SysSubs
+    USE ROSCO_Helpers
 
     IMPLICIT NONE
-
-    ! Global Variables
-    LOGICAL, PARAMETER     :: DEBUG_PARSING = .FALSE.      ! debug flag to output parsing information, set up Echo file later
-    
-    INTERFACE ParseInput                                                         ! Parses a character variable name and value from a string.
-        MODULE PROCEDURE ParseInput_Str                                             ! Parses a character string from a string.
-        MODULE PROCEDURE ParseInput_Dbl                                             ! Parses a double-precision REAL from a string.
-        MODULE PROCEDURE ParseInput_Int                                             ! Parses an INTEGER from a string.
-        ! MODULE PROCEDURE ParseInput_Log                                             ! Parses an LOGICAL from a string.
-    END INTERFACE
-
-    INTERFACE ParseAry                                                         ! Parse an array of numbers from a string.
-        MODULE PROCEDURE ParseDbAry                                             ! Parse an array of double-precision REAL values.
-        MODULE PROCEDURE ParseInAry                                             ! Parse an array of whole numbers.
-    END INTERFACE
-
 
 
 CONTAINS
  ! -----------------------------------------------------------------------------------
     ! Read avrSWAP array passed from ServoDyn    
     SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar)
-        USE ROSCO_Types, ONLY : LocalVariables
+        USE ROSCO_Types, ONLY : LocalVariables, ZMQ_Variables
 
         REAL(ReKi), INTENT(INOUT) :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
-        
+
         ! Load variables from calling program (See Appendix A of Bladed User's Guide):
         LocalVar%iStatus            = NINT(avrSWAP(1))
         LocalVar%Time               = avrSWAP(2)
@@ -56,7 +41,7 @@ CONTAINS
         LocalVar%GenSpeed           = avrSWAP(20)
         LocalVar%RotSpeed           = avrSWAP(21)
         LocalVar%GenTqMeas          = avrSWAP(23)
-        LocalVar%Y_M                = avrSWAP(24)
+        LocalVar%NacVane            = avrSWAP(24) * R2D
         LocalVar%HorWindV           = avrSWAP(27)
         LocalVar%rootMOOP(1)        = avrSWAP(30)
         LocalVar%rootMOOP(2)        = avrSWAP(31)
@@ -86,18 +71,19 @@ CONTAINS
     END SUBROUTINE ReadAvrSWAP    
 ! -----------------------------------------------------------------------------------
     ! Define parameters for control actions
-    SUBROUTINE SetParameters(avrSWAP, accINFILE, size_avcMSG, CntrPar, LocalVar, objInst, PerfData, ErrVar)
+    SUBROUTINE SetParameters(avrSWAP, accINFILE, size_avcMSG, CntrPar, LocalVar, objInst, PerfData, zmqVar, ErrVar)
                 
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData, ErrorVariables
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData, ErrorVariables, ZMQ_Variables
         
         REAL(ReKi),                 INTENT(INOUT)   :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
         CHARACTER(C_CHAR),          INTENT(IN   )   :: accINFILE(NINT(avrSWAP(50)))     ! The name of the parameter input file
 
-        INTEGER(IntKi),                 INTENT(IN   )   :: size_avcMSG
+        INTEGER(IntKi),             INTENT(IN   )   :: size_avcMSG
         TYPE(ControlParameters),    INTENT(INOUT)   :: CntrPar
         TYPE(LocalVariables),       INTENT(INOUT)   :: LocalVar
         TYPE(ObjectInstances),      INTENT(INOUT)   :: objInst
         TYPE(PerformanceData),      INTENT(INOUT)   :: PerfData
+        TYPE(ZMQ_Variables),        INTENT(INOUT)   :: zmqVar
         TYPE(ErrorVariables),       INTENT(INOUT)   :: ErrVar
 
         
@@ -153,7 +139,7 @@ CONTAINS
             LocalVar%ACC_INFILE = accINFILE
 
             ! Read Control Parameter File
-            CALL ReadControlParameterFileSub(CntrPar, accINFILE, NINT(avrSWAP(50)),ErrVar)
+            CALL ReadControlParameterFileSub(CntrPar, zmqVar, accINFILE, NINT(avrSWAP(50)),ErrVar)
             ! If there's been an file reading error, don't continue
             ! Add RoutineName to error message
             IF (ErrVar%aviFAIL < 0) THEN
@@ -167,9 +153,7 @@ CONTAINS
         
             ! Initialize the SAVED variables:
             LocalVar%PitCom     = LocalVar%BlPitch ! This will ensure that the variable speed controller picks the correct control region and the pitch controller picks the correct gain on the first call
-            LocalVar%Y_AccErr   = 0.0  ! This will ensure that the accumulated yaw error starts at zero
-            LocalVar%Y_YawEndT  = -1.0 ! This will ensure that the initial yaw end time is lower than the actual time to prevent initial yawing
-            
+
             ! Wind speed estimator initialization
             LocalVar%WE_Vw      = LocalVar%HorWindV
             LocalVar%WE_VwI     = LocalVar%WE_Vw - CntrPar%WE_Gamma*LocalVar%RotSpeed
@@ -194,22 +178,28 @@ CONTAINS
                 ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
             ENDIF
             
+            ! Check if we're using zeromq
+            IF (CntrPar%ZMQ_Mode == 1) THEN ! add .OR. statements as more functionality is built in
+                zmqVar%ZMQ_Flag = .TRUE.
+            ENDIF
 
         ENDIF
     END SUBROUTINE SetParameters
     ! -----------------------------------------------------------------------------------
     ! Read all constant control parameters from DISCON.IN parameter file
-    SUBROUTINE ReadControlParameterFileSub(CntrPar, accINFILE, accINFILE_size,ErrVar)!, accINFILE_size)
+    SUBROUTINE ReadControlParameterFileSub(CntrPar, zmqVar, accINFILE, accINFILE_size,ErrVar)!, accINFILE_size)
         USE, INTRINSIC :: ISO_C_Binding
-        USE ROSCO_Types, ONLY : ControlParameters, ErrorVariables
+        USE ROSCO_Types, ONLY : ControlParameters, ErrorVariables, ZMQ_Variables
 
         INTEGER(IntKi)                                  :: accINFILE_size               ! size of DISCON input filename
         CHARACTER(accINFILE_size),  INTENT(IN   )       :: accINFILE(accINFILE_size)    ! DISCON input filename
-        INTEGER(IntKi), PARAMETER                       :: UnControllerParameters = 89  ! Unit number to open file
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar                      ! Control parameter type
-        TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar                      ! Control parameter type
-
+        TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar                       ! Control parameter type
+        TYPE(ZMQ_Variables),        INTENT(INOUT)       :: zmqVar                       ! Control parameter type
+        
+        INTEGER(IntKi)                                  :: UnControllerParameters  ! Unit number to open file
         INTEGER(IntKi)                                  :: CurLine 
+        ! INTEGER(IntKi), PARAMETER                       :: UnControllerParameters = 89  ! Unit number to open file
 
         CHARACTER(1024)                                 :: OL_String                    ! Open description loop string
         INTEGER(IntKi)                                  :: OL_Count                     ! Number of open loop channels
@@ -223,7 +213,7 @@ CONTAINS
 
         ! Get primary path of DISCON.IN file (accINFILE(1) here)
         CALL GetPath( accINFILE(1), PriPath )     ! Input files will be relative to the path where the primary input file is located.
-
+        CALL GetNewUnit(UnControllerParameters, ErrVar)
         OPEN(unit=UnControllerParameters, file=accINFILE(1), status='old', action='read')
         
         !----------------------- HEADER ------------------------
@@ -256,6 +246,8 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'OL_Mode',accINFILE(1),CntrPar%OL_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PA_Mode',accINFILE(1),CntrPar%PA_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PE_Mode',accINFILE(1),CntrPar%PE_Mode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Ext_Mode',accINFILE(1),CntrPar%Ext_Mode,ErrVar)
+		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_Mode',accINFILE(1), CntrPar%ZMQ_Mode,ErrVar)
 
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
@@ -267,6 +259,7 @@ CONTAINS
         CALL ParseAry(UnControllerParameters, CurLine, 'F_NotchBetaNumDen', CntrPar%F_NotchBetaNumDen, 2, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'F_SSCornerFreq',accINFILE(1),CntrPar%F_SSCornerFreq,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'F_WECornerFreq',accINFILE(1),CntrPar%F_WECornerFreq,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'F_YawErr',accINFILE(1),CntrPar%F_YawErr, ErrVar)
         CALL ParseAry(UnControllerParameters, CurLine, 'F_FlCornerFreq', CntrPar%F_FlCornerFreq, 2, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'F_FlHighPassFreq',accINFILE(1),CntrPar%F_FlHighPassFreq,ErrVar)
         CALL ParseAry(UnControllerParameters, CurLine, 'F_FlpCornerFreq', CntrPar%F_FlpCornerFreq, 2, accINFILE(1), ErrVar )
@@ -341,17 +334,13 @@ CONTAINS
 
         !-------------- YAW CONTROLLER CONSTANTS -----------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_ErrThresh',accINFILE(1),CntrPar%Y_ErrThresh,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_IntSat',accINFILE(1),CntrPar%Y_IPC_IntSat,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_n',accINFILE(1),CntrPar%Y_IPC_n,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'Y_IPC_KP', CntrPar%Y_IPC_KP, CntrPar%Y_IPC_n, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'Y_IPC_KI', CntrPar%Y_IPC_KI, CntrPar%Y_IPC_n, accINFILE(1), ErrVar )
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_omegaLP',accINFILE(1),CntrPar%Y_IPC_omegaLP,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_zetaLP',accINFILE(1),CntrPar%Y_IPC_zetaLP,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_MErrSet',accINFILE(1),CntrPar%Y_MErrSet,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_omegaLPFast',accINFILE(1),CntrPar%Y_omegaLPFast,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_omegaLPSlow',accINFILE(1),CntrPar%Y_omegaLPSlow,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_uSwitch',accINFILE(1),CntrPar%Y_uSwitch,ErrVar)
+        CALL ParseAry(UnControllerParameters, CurLine, 'Y_ErrThresh', CntrPar%Y_ErrThresh, 2, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'Y_Rate',accINFILE(1),CntrPar%Y_Rate,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_MErrSet',accINFILE(1),CntrPar%Y_MErrSet,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_IntSat',accINFILE(1),CntrPar%Y_IPC_IntSat,ErrVar)
+        CALL ParseInput(UnControllerParameters, CurLine,'Y_IPC_KP', accINFILE(1), CntrPar%Y_IPC_KP, ErrVar )
+        CALL ParseInput(UnControllerParameters, CurLine,'Y_IPC_KI', accINFILE(1), CntrPar%Y_IPC_KI, ErrVar )
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !------------ FORE-AFT TOWER DAMPER CONSTANTS ------------
@@ -408,7 +397,19 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'PE_Error_Bl1',accINFILE(1),CntrPar%PE_Error_Bl(1),ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PE_Error_Bl2',accINFILE(1),CntrPar%PE_Error_Bl(2),ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PE_Error_Bl3',accINFILE(1),CntrPar%PE_Error_Bl(3),ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        
+        !------------ External control interface ------------
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(UnControllerParameters,CurLine,'DLL_FileName',accINFILE(1),CntrPar%DLL_FileName,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'DLL_InFile',accINFILE(1),CntrPar%DLL_InFile,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'DLL_ProcName',accINFILE(1),CntrPar%DLL_ProcName,ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
 
+        !------------ ZeroMQ ------------
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_CommAddress',accINFILE(1), CntrPar%ZMQ_CommAddress,ErrVar)
+		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_UpdatePeriod',accINFILE(1), CntrPar%ZMQ_UpdatePeriod,ErrVar)
 
         ! Fix Paths (add relative paths if called from another dir)
         IF (PathIsRelative(CntrPar%PerfFileName)) CntrPar%PerfFileName = TRIM(PriPath)//TRIM(CntrPar%PerfFileName)
@@ -451,6 +452,9 @@ CONTAINS
             ENDIF
         END IF
 
+        ! Convert yaw rate to deg/s
+        CntrPar%Y_Rate = CntrPar%Y_Rate * R2D
+
         ! Debugging outputs (echo someday)
         ! write(400,*) CntrPar%OL_YawRate
 
@@ -485,7 +489,7 @@ CONTAINS
         TYPE(ErrorVariables),       INTENT(INOUT)   :: ErrVar
         
         ! Local variables
-        INTEGER(IntKi), PARAMETER                       :: UnPerfParameters = 89
+        INTEGER(IntKi)                                  :: UnPerfParameters
         INTEGER(IntKi)                                  :: i ! iteration index
 
         INTEGER(IntKi)                                  :: CurLine 
@@ -493,7 +497,7 @@ CONTAINS
         REAL(DbKi), DIMENSION(:), ALLOCATABLE          :: TmpPerf
 
         CurLine = 1
-
+        CALL GetNewUnit(UnPerfParameters, ErrVar)
         OPEN(unit=UnPerfParameters, file=TRIM(CntrPar%PerfFileName), status='old', action='read') ! Should put input file into DISCON.IN
         
         ! ----------------------- Axis Definitions ------------------------
@@ -531,6 +535,9 @@ CONTAINS
         DO i = 1,CntrPar%PerfTableSize(2)
             READ(UnPerfParameters, *) PerfData%Cq_mat(i,:) ! Read Cq table
         END DO
+
+        ! Close file
+        CLOSE(UnPerfParameters)
 
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN
@@ -920,38 +927,18 @@ CONTAINS
             ErrVar%ErrMsg  = 'WE_FOPoles_v must be non-decreasing.'
         ENDIF
 
-
-
         ! ---- Yaw Control ----
         IF (CntrPar%Y_ControlMode > 0) THEN
-            IF (CntrPar%Y_IPC_omegaLP <= 0.0)  THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'Y_IPC_omegaLP must be greater than zero.'
-            ENDIF
-            
-            IF (CntrPar%Y_IPC_zetaLP <= 0.0)  THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'Y_IPC_zetaLP must be greater than zero.'
-            ENDIF
-            
-            IF (CntrPar%Y_ErrThresh <= 0.0)  THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'Y_ErrThresh must be greater than zero.'
-            ENDIF
-            
-            IF (CntrPar%Y_Rate <= 0.0)  THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'CntrPar%Y_Rate must be greater than zero.'
-            ENDIF
-            
-            IF (CntrPar%Y_omegaLPFast <= 0.0)  THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'Y_omegaLPFast must be greater than zero.'
-            ENDIF
-            
-            IF (CntrPar%Y_omegaLPSlow <= 0.0)  THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'Y_omegaLPSlow must be greater than zero.'
+            IF (CntrPar%Y_ControlMode == 1) THEN
+                IF (CntrPar%Y_ErrThresh(1) <= 0.0)  THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg  = 'Y_ErrThresh must be greater than zero.'
+                ENDIF
+
+                IF (CntrPar%Y_Rate <= 0.0)  THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg  = 'CntrPar%Y_Rate must be greater than zero.'
+                ENDIF
             ENDIF
         ENDIF
 
@@ -1032,798 +1019,4 @@ CONTAINS
 
     END SUBROUTINE CheckInputs
     
-    !=======================================================================
-    ! Parse integer input: read line, check that variable name is in line, handle errors
-    subroutine ParseInput_Int(Un, CurLine, VarName, FileName, Variable, ErrVar, CheckName)
-        USE ROSCO_Types, ONLY : ErrorVariables
-
-        CHARACTER(1024)                         :: Line
-        INTEGER(IntKi),             INTENT(IN   )   :: Un   ! Input file unit
-        CHARACTER(*),           INTENT(IN   )   :: VarName   ! Input file unit
-        CHARACTER(*),           INTENT(IN   )   :: FileName   ! Input file unit
-        INTEGER(IntKi),             INTENT(INOUT)   :: CurLine   ! Current line of input
-        TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
-        CHARACTER(20)                           :: Words       (2)               ! The two "words" parsed from the line
-
-        INTEGER(IntKi),             INTENT(INOUT)   :: Variable   ! Variable
-        INTEGER(IntKi)                              :: ErrStatLcl                    ! Error status local to this routine.
-        LOGICAL, OPTIONAL,      INTENT(IN   )   :: CheckName
-
-        LOGICAL                                 :: CheckName_
-
-        ! Figure out if we're checking the name, default to .TRUE.
-        CheckName_ = .TRUE.
-        if (PRESENT(CheckName)) CheckName_ = CheckName 
-
-        ! If we've already failed, don't read anything
-        IF (ErrVar%aviFAIL >= 0) THEN
-
-            ! Read the whole line as a string
-            READ(Un, '(A)') Line
-
-            ! Separate line string into 2 words
-            CALL GetWords ( Line, Words, 2 )  
-
-            ! Debugging: show what's being read, turn into Echo later
-            IF (DEBUG_PARSING) THEN
-                print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
-            END IF
-
-            ! Check that Variable Name is in Words
-            IF (CheckName_) THEN
-                CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
-            END IF
-
-            ! IF We haven't failed already
-            IF (ErrVar%aviFAIL >= 0) THEN        
-
-                ! Read the variable
-                READ (Words(1),*,IOSTAT=ErrStatLcl)  Variable
-                IF ( ErrStatLcl /= 0 )  THEN
-                    ErrVar%aviFAIL  = -1
-                    ErrVar%ErrMsg   =  NewLine//' >> A fatal error occurred when parsing data from "' &
-                        //TRIM( FileName )//'".'//NewLine//  &
-                        ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid INTEGER value on line #' &
-                        //TRIM( Int2LStr( CurLine ) )//'.'//NewLine//&
-                        ' >> The text being parsed was :'//NewLine//'    "'//TRIM( Line )//'"'
-                ENDIF
-
-            ENDIF   
-
-            ! Increment line counter
-            CurLine = CurLine + 1
-        END IF
-
-    END subroutine ParseInput_Int
-
-    !=======================================================================
-    ! Parse double input, this is a copy of ParseInput_Int and a change in the variable definitions
-    subroutine ParseInput_Dbl(Un, CurLine, VarName, FileName, Variable, ErrVar, CheckName)
-        USE ROSCO_Types, ONLY : ErrorVariables
-
-        CHARACTER(1024)                         :: Line
-        INTEGER(IntKi),             INTENT(IN   )   :: Un   ! Input file unit
-        CHARACTER(*),           INTENT(IN   )   :: VarName   ! Input file unit
-        CHARACTER(*),           INTENT(IN   )   :: FileName   ! Input file unit
-        INTEGER(IntKi),             INTENT(INOUT)   :: CurLine   ! Current line of input
-        TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
-        CHARACTER(20)                           :: Words       (2)               ! The two "words" parsed from the line
-        LOGICAL, OPTIONAL,      INTENT(IN   )   :: CheckName
-
-        REAL(DbKi),             INTENT(INOUT)      :: Variable   ! Variable
-        INTEGER(IntKi)                              :: ErrStatLcl                    ! Error status local to this routine.
-
-        LOGICAL                                 :: CheckName_
-
-        ! Figure out if we're checking the name, default to .TRUE.
-        CheckName_ = .TRUE.
-        if (PRESENT(CheckName)) CheckName_ = CheckName 
-
-        ! If we've already failed, don't read anything
-        IF (ErrVar%aviFAIL >= 0) THEN
-
-            ! Read the whole line as a string
-            READ(Un, '(A)') Line
-
-            ! Separate line string into 2 words
-            CALL GetWords ( Line, Words, 2 )  
-
-            ! Debugging: show what's being read, turn into Echo later
-            IF (DEBUG_PARSING) THEN
-            print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
-            END IF
-
-            ! Check that Variable Name is in Words
-            IF (CheckName_) THEN
-                CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
-            END IF
-
-            ! IF We haven't failed already
-            IF (ErrVar%aviFAIL >= 0) THEN        
-
-                ! Read the variable
-                READ (Words(1),*,IOSTAT=ErrStatLcl)  Variable
-                IF ( ErrStatLcl /= 0 )  THEN
-                    ErrVar%aviFAIL  = -1
-                    ErrVar%ErrMsg   =  NewLine//' >> A fatal error occurred when parsing data from "' &
-                        //TRIM( FileName )//'".'//NewLine//  &
-                        ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid INTEGER value on line #' &
-                        //TRIM( Int2LStr( CurLine ) )//'.'//NewLine//&
-                        ' >> The text being parsed was :'//NewLine//'    "'//TRIM( Line )//'"'
-                ENDIF
-
-            ENDIF   
-
-            ! Increment line counter
-            CurLine = CurLine + 1
-        END IF
-
-    END subroutine ParseInput_Dbl
-
-    !=======================================================================
-    ! Parse string input, this is a copy of ParseInput_Int and a change in the variable definitions
-    subroutine ParseInput_Str(Un, CurLine, VarName, FileName, Variable, ErrVar, CheckName)
-        USE ROSCO_Types, ONLY : ErrorVariables
-
-        CHARACTER(1024)                         :: Line
-        INTEGER(IntKi),             INTENT(IN   )   :: Un   ! Input file unit
-        CHARACTER(*),           INTENT(IN   )   :: VarName   ! Input file unit
-        CHARACTER(*),           INTENT(IN   )   :: FileName   ! Input file unit
-        INTEGER(IntKi),             INTENT(INOUT)   :: CurLine   ! Current line of input
-        TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
-        CHARACTER(200)                          :: Words       (2)               ! The two "words" parsed from the line
-        LOGICAL, OPTIONAL,      INTENT(IN   )   :: CheckName
-
-        CHARACTER(*),           INTENT(INOUT)   :: Variable   ! Variable
-        INTEGER(IntKi)                              :: ErrStatLcl                    ! Error status local to this routine.
-
-        LOGICAL                                 :: CheckName_
-
-        ! Figure out if we're checking the name, default to .TRUE.
-        CheckName_ = .TRUE.
-        if (PRESENT(CheckName)) CheckName_ = CheckName 
-
-        ! If we've already failed, don't read anything
-        IF (ErrVar%aviFAIL >= 0) THEN
-
-            ! Read the whole line as a string
-            READ(Un, '(A)') Line
-
-            ! Separate line string into 2 words
-            CALL GetWords ( Line, Words, 2 )  
-
-            ! Debugging: show what's being read, turn into Echo later
-            if (DEBUG_PARSING) THEN
-                print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
-            END IF
-
-            ! Check that Variable Name is in Words
-            IF (CheckName_) THEN
-                CALL ChkParseData ( Words, VarName, FileName, CurLine, ErrVar )
-            END IF
-
-            ! IF We haven't failed already
-            IF (ErrVar%aviFAIL >= 0) THEN        
-
-                ! Read the variable
-                READ (Words(1),'(A)',IOSTAT=ErrStatLcl)  Variable
-                IF ( ErrStatLcl /= 0 )  THEN
-                    ErrVar%aviFAIL  = -1
-                    ErrVar%ErrMsg   =  NewLine//' >> A fatal error occurred when parsing data from "' &
-                        //TRIM( FileName )//'".'//NewLine//  &
-                        ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid STRING value on line #' &
-                        //TRIM( Int2LStr( CurLine ) )//'.'//NewLine//&
-                        ' >> The text being parsed was :'//NewLine//'    "'//TRIM( Line )//'"'
-                ENDIF
-
-            ENDIF   
-
-            ! Increment line counter
-            CurLine = CurLine + 1
-        END IF
-
-    END subroutine ParseInput_Str
-
-!=======================================================================
-!> This subroutine parses the specified line of text for AryLen REAL values.
-!! Generate an error message if the value is the wrong type.
-!! Use ParseAry (nwtc_io::parseary) instead of directly calling a specific routine in the generic interface.   
-    SUBROUTINE ParseDbAry ( Un, LineNum, AryName, Ary, AryLen, FileName, ErrVar, CheckName )
-
-        USE ROSCO_Types, ONLY : ErrorVariables
-
-        ! Arguments declarations.
-        INTEGER(IntKi),             INTENT(IN   )   :: Un   ! Input file unit
-        INTEGER,                INTENT(IN   )   :: AryLen                        !< The length of the array to parse.
-
-        REAL(DbKi), ALLOCATABLE,   INTENT(INOUT)   :: Ary(:)            !< The array to receive the input values.
-
-        INTEGER(IntKi),             INTENT(INOUT)   :: LineNum                       !< The number of the line to parse.
-        CHARACTER(*),           INTENT(IN)      :: FileName                      !< The name of the file being parsed.
-
-
-        CHARACTER(*),           INTENT(IN   )   :: AryName                       !< The array name we are trying to fill.
-
-        TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
-
-        LOGICAL, OPTIONAL,      INTENT(IN   )   :: CheckName
-
-
-        ! Local declarations.
-
-        CHARACTER(1024)                         :: Line
-        INTEGER(IntKi)                              :: ErrStatLcl                    ! Error status local to this routine.
-        INTEGER(IntKi)                              :: i
-
-        CHARACTER(200), ALLOCATABLE             :: Words_Ary       (:)               ! The array "words" parsed from the line.
-        CHARACTER(1024)                         :: Debug_String 
-        CHARACTER(*), PARAMETER                 :: RoutineName = 'ParseDbAry'
-        LOGICAL                                 :: CheckName_
-
-        ! Figure out if we're checking the name, default to .TRUE.
-        CheckName_ = .TRUE.
-        if (PRESENT(CheckName)) CheckName_ = CheckName 
-
-        ! If we've already failed, don't read anything
-        IF (ErrVar%aviFAIL >= 0) THEN
-            ! Read the whole line as a string
-            READ(Un, '(A)') Line
-
-            ! Allocate array and handle errors
-            ALLOCATE ( Ary(AryLen) , STAT=ErrStatLcl )
-            IF ( ErrStatLcl /= 0 ) THEN
-                IF ( ALLOCATED(Ary) ) THEN
-                    ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg = RoutineName//':Error allocating memory for the '//TRIM( AryName )//' array; array was already allocated.'
-                ELSE
-                    ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg = RoutineName//':Error allocating memory for '//TRIM(Int2LStr( AryLen ))//' characters in the '//TRIM( AryName )//' array.'
-                END IF
-            END IF
-        
-            ! Allocate words array
-            ALLOCATE ( Words_Ary( AryLen + 1 ) , STAT=ErrStatLcl )
-            IF ( ErrStatLcl /= 0 )  THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = RoutineName//':Fatal error allocating memory for the Words array.'
-                CALL Cleanup()
-                RETURN
-            ENDIF
-
-            ! Separate line string into AryLen + 1 words, should include variable name
-            CALL GetWords ( Line, Words_Ary, AryLen + 1 )  
-
-            ! Debug Output
-            IF (DEBUG_PARSING) THEN
-                Debug_String = ''
-                DO i = 1,AryLen+1
-                    Debug_String = TRIM(Debug_String)//TRIM(Words_Ary(i))
-                    IF (i < AryLen + 1) THEN
-                        Debug_String = TRIM(Debug_String)//','
-                    END IF
-                END DO
-                print *, 'Read: '//TRIM(Debug_String)//' on line ', LineNum
-            END IF
-
-            ! Check that Variable Name is at the end of Words, will also check length of array
-            IF (CheckName_) THEN
-                CALL ChkParseData ( Words_Ary(AryLen:AryLen+1), AryName, FileName, LineNum, ErrVar )
-            END IF
-        
-            ! Read array
-            READ (Line,*,IOSTAT=ErrStatLcl)  Ary
-            IF ( ErrStatLcl /= 0 )  THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = RoutineName//':A fatal error occurred when parsing data from "' &
-                                //TRIM( FileName )//'".'//NewLine//  &
-                                ' >> The "'//TRIM( AryName )//'" array was not assigned valid REAL values on line #' &
-                                //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
-                                //'    "'//TRIM( Line )//'"' 
-                RETURN
-                CALL Cleanup()         
-            ENDIF
-
-        !  IF ( PRESENT(UnEc) )  THEN
-        !     IF ( UnEc > 0 )  WRITE (UnEc,'(A)')  TRIM( FileInfo%Lines(LineNum) )
-        !  END IF
-
-            LineNum = LineNum + 1
-            CALL Cleanup()
-        ENDIF
-
-        RETURN
-
-        !=======================================================================
-        CONTAINS
-        !=======================================================================
-            SUBROUTINE Cleanup ( )
-
-                ! This subroutine cleans up the parent routine before exiting.
-
-                ! Deallocate the Words array if it had been allocated.
-
-                IF ( ALLOCATED( Words_Ary ) ) DEALLOCATE( Words_Ary )
-
-
-                RETURN
-
-            END SUBROUTINE Cleanup
-
-  END SUBROUTINE ParseDbAry
-
-  !=======================================================================
-!> This subroutine parses the specified line of text for AryLen INTEGER values.
-!! Generate an error message if the value is the wrong type.
-!! Use ParseAry (nwtc_io::parseary) instead of directly calling a specific routine in the generic interface.   
-  SUBROUTINE ParseInAry ( Un, LineNum, AryName, Ary, AryLen, FileName, ErrVar, CheckName )
-
-    USE ROSCO_Types, ONLY : ErrorVariables
-
-    ! Arguments declarations.
-    INTEGER(IntKi),             INTENT(IN   )   :: Un   ! Input file unit
-    INTEGER,                INTENT(IN   )   :: AryLen                        !< The length of the array to parse.
-
-    INTEGER(IntKi), ALLOCATABLE,   INTENT(INOUT)   :: Ary(:)            !< The array to receive the input values.
-
-    INTEGER(IntKi),             INTENT(INOUT)   :: LineNum                       !< The number of the line to parse.
-    CHARACTER(*),           INTENT(IN)      :: FileName                      !< The name of the file being parsed.
-
-
-    CHARACTER(*),           INTENT(IN   )   :: AryName                       !< The array name we are trying to fill.
-
-    TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
-
-    LOGICAL, OPTIONAL,      INTENT(IN   )   :: CheckName
-
-    ! Local declarations.
-
-    CHARACTER(1024)                         :: Line
-    INTEGER(IntKi)                              :: ErrStatLcl                    ! Error status local to this routine.
-    INTEGER(IntKi)                              :: i
-
-    CHARACTER(200), ALLOCATABLE             :: Words_Ary       (:)               ! The array "words" parsed from the line.
-    CHARACTER(1024)                         :: Debug_String 
-    CHARACTER(*), PARAMETER                 :: RoutineName = 'ParseInAry'
-
-    LOGICAL                                 :: CheckName_
-
-    ! Figure out if we're checking the name, default to .TRUE.
-    CheckName_ = .TRUE.
-    if (PRESENT(CheckName)) CheckName_ = CheckName    
-
-    ! If we've already failed, don't read anything
-    IF (ErrVar%aviFAIL >= 0) THEN
-        ! Read the whole line as a string
-        READ(Un, '(A)') Line
-
-        ! Allocate array and handle errors
-        ALLOCATE ( Ary(AryLen) , STAT=ErrStatLcl )
-        IF ( ErrStatLcl /= 0 ) THEN
-            IF ( ALLOCATED(Ary) ) THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = RoutineName//':Error allocating memory for the '//TRIM( AryName )//' array; array was already allocated.'
-            ELSE
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = RoutineName//':Error allocating memory for '//TRIM(Int2LStr( AryLen ))//' characters in the '//TRIM( AryName )//' array.'
-            END IF
-        END IF
-    
-        ! Allocate words array
-        ALLOCATE ( Words_Ary( AryLen + 1 ) , STAT=ErrStatLcl )
-        IF ( ErrStatLcl /= 0 )  THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg = RoutineName//':Fatal error allocating memory for the Words array.'
-            CALL Cleanup()
-            RETURN
-        ENDIF
-
-        ! Separate line string into AryLen + 1 words, should include variable name
-        CALL GetWords ( Line, Words_Ary, AryLen + 1 )  
-
-        ! Debug Output
-        IF (DEBUG_PARSING) THEN
-            Debug_String = ''
-            DO i = 1,AryLen+1
-                Debug_String = TRIM(Debug_String)//TRIM(Words_Ary(i))
-                IF (i < AryLen + 1) THEN
-                    Debug_String = TRIM(Debug_String)//','
-                END IF
-            END DO
-            print *, 'Read: '//TRIM(Debug_String)//' on line ', LineNum
-        END IF
-
-        ! Check that Variable Name is at the end of Words, will also check length of array
-        IF (CheckName_) THEN
-            CALL ChkParseData ( Words_Ary(AryLen:AryLen+1), AryName, FileName, LineNum, ErrVar )
-        END IF
-    
-        ! Read array
-        READ (Line,*,IOSTAT=ErrStatLcl)  Ary
-        IF ( ErrStatLcl /= 0 )  THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg = RoutineName//':A fatal error occurred when parsing data from "' &
-                            //TRIM( FileName )//'".'//NewLine//  &
-                            ' >> The "'//TRIM( AryName )//'" array was not assigned valid REAL values on line #' &
-                            //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
-                            //'    "'//TRIM( Line )//'"' 
-            RETURN
-            CALL Cleanup()         
-        ENDIF
-
-    !  IF ( PRESENT(UnEc) )  THEN
-    !     IF ( UnEc > 0 )  WRITE (UnEc,'(A)')  TRIM( FileInfo%Lines(LineNum) )
-    !  END IF
-
-        LineNum = LineNum + 1
-        CALL Cleanup()
-    ENDIF
-
-    RETURN
-
-    !=======================================================================
-    CONTAINS
-    !=======================================================================
-        SUBROUTINE Cleanup ( )
-
-            ! This subroutine cleans up the parent routine before exiting.
-
-            ! Deallocate the Words array if it had been allocated.
-
-            IF ( ALLOCATED( Words_Ary ) ) DEALLOCATE( Words_Ary )
-
-
-            RETURN
-
-        END SUBROUTINE Cleanup
-
-END SUBROUTINE ParseInAry
-
-!=======================================================================
- !> This subroutine checks the data to be parsed to make sure it finds
-    !! the expected variable name and an associated value.
-SUBROUTINE ChkParseData ( Words, ExpVarName, FileName, FileLineNum, ErrVar )
-
-    USE ROSCO_Types, ONLY : ErrorVariables
-
-
-        ! Arguments declarations.
-    TYPE(ErrorVariables),         INTENT(INOUT)          :: ErrVar   ! Current line of input
-
-    INTEGER(IntKi), INTENT(IN)             :: FileLineNum                   !< The number of the line in the file being parsed.
-    INTEGER(IntKi)                        :: NameIndx                      !< The index into the Words array that points to the variable name.
-
-    CHARACTER(*),   INTENT(IN)             :: ExpVarName                    !< The expected variable name.
-    CHARACTER(*),   INTENT(IN)             :: Words       (2)               !< The two words to be parsed from the line.
-
-    CHARACTER(*),   INTENT(IN)             :: FileName                      !< The name of the file being parsed.
-
-
-        ! Local declarations.
-
-    CHARACTER(20)                          :: ExpUCVarName                  ! The uppercase version of ExpVarName.
-    CHARACTER(20)                          :: FndUCVarName                  ! The uppercase version of the word being tested.
-
-
-
-
-        ! Convert the found and expected names to uppercase.
-
-    FndUCVarName = Words(1)
-    ExpUCVarName = ExpVarName
-
-    CALL Conv2UC ( FndUCVarName )
-    CALL Conv2UC ( ExpUCVarName )
-
-    ! See which word is the variable name.  Generate an error if it is the first
-        
-    IF ( TRIM( FndUCVarName ) == TRIM( ExpUCVarName ) )  THEN
-        NameIndx = 1
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg = ' >> A fatal error occurred when parsing data from "'//TRIM( FileName ) &
-                            //'".'//NewLine//' >> The variable "'//TRIM( Words(1) )//'" was not assigned a valid value on line #' &
-                            //TRIM( Int2LStr( FileLineNum ) )//'.' 
-        RETURN
-    ELSE
-        FndUCVarName = Words(2)
-        CALL Conv2UC ( FndUCVarName )
-        IF ( TRIM( FndUCVarName ) == TRIM( ExpUCVarName ) )  THEN
-        NameIndx = 2
-        ELSE
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg = ' >> A fatal error occurred when parsing data from "'//TRIM( FileName ) &
-                            //'".'//NewLine//' >> The variable "'//TRIM( ExpVarName )//'" was not assigned a valid value on line #' &
-                            //TRIM( Int2LStr( FileLineNum ) )//'.' 
-        RETURN
-        ENDIF
-    ENDIF
-
-
-END SUBROUTINE ChkParseData 
-
-!=======================================================================
-subroutine ReadEmptyLine(Un,CurLine)
-    INTEGER(IntKi),         INTENT(IN   )          :: Un   ! Input file unit
-    INTEGER(IntKi),         INTENT(INOUT)          :: CurLine   ! Current line of input
-
-    CHARACTER(1024)                            :: Line
-
-    READ(Un, '(A)') Line
-    CurLine = CurLine + 1
-
-END subroutine ReadEmptyLine
-
-!=======================================================================
-!> This subroutine is used to get the NumWords "words" from a line of text.
-!! It uses spaces, tabs, commas, semicolons, single quotes, and double quotes ("whitespace")
-!! as word separators. If there aren't NumWords in the line, the remaining array elements will remain empty.
-!! Use CountWords (nwtc_io::countwords) to count the number of words in a line.
-SUBROUTINE GetWords ( Line, Words, NumWords )
-
-    ! Argument declarations.
-
-    INTEGER, INTENT(IN)          :: NumWords                                     !< The number of words to look for.
-
-    CHARACTER(*), INTENT(IN)     :: Line                                         !< The string to search.
-    CHARACTER(*), INTENT(OUT)    :: Words(NumWords)                              !< The array of found words.
-
-
-        ! Local declarations.
-
-    INTEGER                      :: Ch                                           ! Character position within the string.
-    INTEGER                      :: IW                                           ! Word index.
-    INTEGER                      :: NextWhite                                    ! The location of the next whitespace in the string.
-    CHARACTER(1), PARAMETER       :: Tab      = CHAR( 9 ) 
-
-
-
-        ! Let's prefill the array with blanks.
-
-    DO IW=1,NumWords
-        Words(IW) = ' '
-    END DO ! IW
-
-
-        ! Let's make sure we have text on this line.
-
-    IF ( LEN_TRIM( Line ) == 0 )  RETURN
-
-
-        ! Parse words separated by any combination of spaces, tabs, commas,
-        ! semicolons, single quotes, and double quotes ("whitespace").
-
-    Ch = 0
-    IW = 0
-
-    DO
-
-        NextWhite = SCAN( Line(Ch+1:) , ' ,!;''"'//Tab )
-
-        IF ( NextWhite > 1 )  THEN
-
-        IW        = IW + 1
-        Words(IW) = Line(Ch+1:Ch+NextWhite-1)
-
-        IF ( IW == NumWords )  EXIT
-
-        Ch = Ch + NextWhite
-
-        ELSE IF ( NextWhite == 1 )  THEN
-
-        Ch = Ch + 1
-
-        CYCLE
-
-        ELSE
-
-        EXIT
-
-        END IF
-
-    END DO
-
-
-    RETURN
-END SUBROUTINE GetWords
-!=======================================================================
-!> Let's parse the path name from the name of the given file.
-!! We'll count everything before (and including) the last "\" or "/".
-SUBROUTINE GetPath ( GivenFil, PathName )
-
-    ! Argument declarations.
-
- CHARACTER(*), INTENT(IN)     :: GivenFil                                     !< The name of the given file.
- CHARACTER(*), INTENT(OUT)    :: PathName                                     !< The path name of the given file (based solely on the GivenFil text string).
-
-
-    ! Local declarations.
-
- INTEGER                      :: I                                            ! DO index for character position.
-
-
-    ! Look for path separators
-
- I = INDEX( GivenFil, '\', BACK=.TRUE. )
- I = MAX( I, INDEX( GivenFil, '/', BACK=.TRUE. ) )
-
- IF ( I == 0 ) THEN
-    ! we don't have a path specified, return '.'
-    PathName = '.'//PathSep
- ELSE
-    PathName = GivenFil(:I)
- END IF
-
-
- RETURN
- END SUBROUTINE GetPath
-!=======================================================================
-!> This routine determines if the given file name is absolute or relative.
-!! We will consider an absolute path one that satisfies one of the
-!! following four criteria:
-!!     1. It contains ":/"
-!!     2. It contains ":\"
-!!     3. It starts with "/"
-!!     4. It starts with "\"
-!!   
-!! All others are considered relative.
- FUNCTION PathIsRelative ( GivenFil )
-
-    ! Argument declarations.
-
- CHARACTER(*), INTENT(IN)     :: GivenFil                                            !< The name of the given file.
- LOGICAL                      :: PathIsRelative                                      !< The function return value
-
- 
-
-    ! Determine if file name begins with an absolute path name or if it is relative 
-    !    note that Doxygen has serious issues if you use the single quote instead of  
-    !    double quote characters in the strings below:
-
- PathIsRelative = .FALSE.
-
- IF ( ( INDEX( GivenFil, ":/") == 0 ) .AND. ( INDEX( GivenFil, ":\") == 0 ) ) THEN   ! No drive is specified (by ":\" or ":/")
-
-    IF ( INDEX( "/\", GivenFil(1:1) ) == 0 ) THEN                                    ! The file name doesn't start with "\" or "/"
-
-       PathIsRelative = .TRUE.
-
-    END IF
-
- END IF
-
- RETURN
- END FUNCTION PathIsRelative
-!=======================================================================
-! ------------------------------------------------------
-    ! Read Open Loop Control Inputs
-    ! 
-    ! Timeseries or lookup tables of the form
-    ! index (time or wind speed)   channel_1 \t channel_2 \t channel_3 ...
-    ! This could be used to read any group of data of unspecified length ...
-SUBROUTINE Read_OL_Input(OL_InputFileName, Unit_OL_Input, NumChannels, Channels, ErrVar)
-
-    USE ROSCO_Types, ONLY : ErrorVariables
-
-    CHARACTER(1024), INTENT(IN)                             :: OL_InputFileName    ! DISCON input filename
-    INTEGER(IntKi), INTENT(IN)                              :: Unit_OL_Input 
-    INTEGER(IntKi), INTENT(IN)                              :: NumChannels     ! Number of open loop channels being defined
-    ! REAL(DbKi), INTENT(OUT), DIMENSION(:), ALLOCATABLE      :: Breakpoints    ! Breakpoints of open loop Channels
-    REAL(DbKi), INTENT(OUT), DIMENSION(:,:), ALLOCATABLE    :: Channels         ! Open loop channels
-    TYPE(ErrorVariables),         INTENT(INOUT)          :: ErrVar   ! Current line of input
-
-
-    LOGICAL                                                 :: FileExists
-    INTEGER                                                 :: IOS                                                 ! I/O status of OPEN.
-    CHARACTER(1024)                                         :: Line              ! Temp variable for reading whole line from file
-    INTEGER(IntKi)                                          :: NumComments
-    INTEGER(IntKi)                                          :: NumDataLines
-    REAL(DbKi)                                              :: TmpData(NumChannels)  ! Temp variable for reading all columns from a line
-    CHARACTER(15)                                           :: NumString
-
-    INTEGER(IntKi)                                          :: I,J
-
-    CHARACTER(*),               PARAMETER                   :: RoutineName = 'Read_OL_Input'
-
-    !-------------------------------------------------------------------------------------------------
-    ! Read from input file, borrowed (read: copied) from (Open)FAST team...thanks!
-    !-------------------------------------------------------------------------------------------------
-
-    !-------------------------------------------------------------------------------------------------
-    ! Open the file for reading
-    !-------------------------------------------------------------------------------------------------
-
-    INQUIRE (FILE = OL_InputFileName, EXIST = FileExists)
-
-    IF ( .NOT. FileExists) THEN
-        ErrVar%aviFAIL = -1
-        ErrVar%ErrMsg = TRIM(OL_InputFileName)// ' does not exist'
-
-    ELSE
-
-        OPEN( Unit_OL_Input, FILE=TRIM(OL_InputFileName), STATUS='OLD', FORM='FORMATTED', IOSTAT=IOS, ACTION='READ' )
-
-        IF (IOS /= 0) THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg = 'Cannot open '//TRIM(OL_InputFileName)
-        
-        ELSE
-            ! Do all the stuff!
-            !-------------------------------------------------------------------------------------------------
-            ! Find the number of comment lines
-            !-------------------------------------------------------------------------------------------------
-
-            LINE = '!'                          ! Initialize the line for the DO WHILE LOOP
-            NumComments = -1                    ! the last line we read is not a comment, so we'll initialize this to -1 instead of 0
-
-            DO WHILE ( (INDEX( LINE, '!' ) > 0) .OR. (INDEX( LINE, '#' ) > 0) .OR. (INDEX( LINE, '%' ) > 0) ) ! Lines containing "!" are treated as comment lines
-                NumComments = NumComments + 1
-                
-                READ(Unit_OL_Input,'( A )',IOSTAT=IOS) LINE
-
-                ! NWTC_IO has some error catching here that we'll skip for now
-        
-            END DO !WHILE
-
-            !-------------------------------------------------------------------------------------------------
-            ! Find the number of data lines
-            !-------------------------------------------------------------------------------------------------
-
-            NumDataLines = 0
-
-            READ(LINE,*,IOSTAT=IOS) ( TmpData(I), I=1,NumChannels ) ! this line was read when we were figuring out the comment lines; let's make sure it contains
-
-            DO WHILE (IOS == 0)  ! read the rest of the file (until an error occurs)
-                NumDataLines = NumDataLines + 1
-                
-                READ(Unit_OL_Input,*,IOSTAT=IOS) ( TmpData(I), I=1,NumChannels )
-            
-            END DO !WHILE
-        
-        
-            IF (NumDataLines < 1) THEN
-                WRITE (NumString,'(I11)')  NumComments
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = 'Error: '//TRIM(NumString)//' comment lines were found in the uniform wind file, '// &
-                            'but the first data line does not contain the proper format.'
-                CLOSE(Unit_OL_Input)
-            END IF
-
-            !-------------------------------------------------------------------------------------------------
-            ! Allocate arrays for the uniform wind data
-            !-------------------------------------------------------------------------------------------------
-            ALLOCATE(Channels(NumDataLines,NumChannels))
-
-            !-------------------------------------------------------------------------------------------------
-            ! Rewind the file (to the beginning) and skip the comment lines
-            !-------------------------------------------------------------------------------------------------
-
-            REWIND( Unit_OL_Input )
-
-            DO I=1,NumComments
-                READ(Unit_OL_Input,'( A )',IOSTAT=IOS) LINE
-            END DO !I
-        
-            !-------------------------------------------------------------------------------------------------
-            ! Read the data arrays
-            !-------------------------------------------------------------------------------------------------
-        
-            DO I=1,NumDataLines
-            
-                READ(Unit_OL_Input,*,IOSTAT=IOS) ( TmpData(J), J=1,NumChannels )
-
-                IF (IOS > 0) THEN
-                    CLOSE(Unit_OL_Input)
-                END IF
-
-                Channels(I,:)        = TmpData
-        
-            END DO !I     
-        END IF
-    END IF
-
-    IF (ErrVar%aviFAIL < 0) THEN
-        ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
-    ENDIF
-
-END SUBROUTINE Read_OL_Input
-
 END MODULE ReadSetParameters

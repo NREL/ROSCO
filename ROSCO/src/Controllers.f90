@@ -253,60 +253,119 @@ CONTAINS
 
     END SUBROUTINE VariableSpeedControl
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
+    SUBROUTINE YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, zmqVar, DebugVar, ErrVar)
         ! Yaw rate controller
         !       Y_ControlMode = 0, No yaw control
-        !       Y_ControlMode = 1, Simple yaw rate control using yaw drive
-        !       Y_ControlMode = 2, Yaw by IPC (accounted for in IPC subroutine)
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, ErrorVariables
+        !       Y_ControlMode = 1, Yaw rate control using yaw drive
+
+        ! TODO: Lots of R2D->D2R, this should be cleaned up.
+        ! TODO: The constant offset implementation is sort of circular here as a setpoint is already being defined in SetVariablesSetpoints. This could also use cleanup
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables, ZMQ_Variables
     
-        REAL(ReKi),                 INTENT(INOUT)       :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
-        TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
-        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
-        TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
-        TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
+        REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
+    
+        TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
+        TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
+        TYPE(DebugVariables), INTENT(INOUT)       :: DebugVar
+        TYPE(ErrorVariables), INTENT(INOUT)       :: ErrVar
+        TYPE(ZMQ_Variables), INTENT(INOUT)  :: zmqVar
 
-        CHARACTER(*),               PARAMETER           :: RoutineName = 'YawRateControl'
-
-        
-        !..............................................................................................................................
-        ! Yaw control
-        !..............................................................................................................................
+        ! Allocate Variables
+        REAL(DbKi), SAVE :: NacVaneOffset                          ! For offset control
+        INTEGER, SAVE :: YawState                               ! Yawing left(-1), right(1), or stopped(0)
+        REAL(DbKi)       :: WindDir                                ! Instantaneous wind dind direction, equal to turbine nacelle heading plus the measured vane angle (deg)
+        REAL(DbKi)       :: WindDirPlusOffset                     ! Instantaneous wind direction minus the assigned vane offset (deg)
+        REAL(DbKi)       :: WindDirPlusOffsetCosF                 ! Time-filtered x-component of WindDirPlusOffset (deg)
+        REAL(DbKi)       :: WindDirPlusOffsetSinF                 ! Time-filtered y-component of WindDirPlusOffset (deg)
+        REAL(DbKi)       :: NacHeadingTarget                       ! Time-filtered wind direction minus the assigned vane offset (deg)
+        REAL(DbKi), SAVE :: NacHeadingError                        ! Yaw error (deg)
+        REAL(DbKi)       :: YawRateCom                             ! Commanded yaw rate (deg/s)
+        REAL(DbKi)       :: deadband                               ! Allowable yaw error deadband (deg)
+        REAL(DbKi)       :: Time                                   ! Current time
+        INTEGER, SAVE :: Tidx                                   ! Index i: commanded yaw error is interpolated between i and i+1
         
         IF (CntrPar%Y_ControlMode == 1) THEN
-            avrSWAP(29) = 0                                      ! Yaw control parameter: 0 = yaw rate control
-            IF (LocalVar%Time >= LocalVar%Y_YawEndT) THEN        ! Check if the turbine is currently yawing
-                avrSWAP(48) = 0.0                                ! Set yaw rate to zero
-            
-                LocalVar%Y_ErrLPFFast = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPFast, LocalVar%FP, LocalVar%iStatus, .FALSE., objInst%instLPF)        ! Fast low pass filtered yaw error with a frequency of 1
-                LocalVar%Y_ErrLPFSlow = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPSlow, LocalVar%FP, LocalVar%iStatus, .FALSE., objInst%instLPF)        ! Slow low pass filtered yaw error with a frequency of 1/60
-            
-                LocalVar%Y_AccErr = LocalVar%Y_AccErr + LocalVar%DT*SIGN(LocalVar%Y_ErrLPFFast**2, LocalVar%Y_ErrLPFFast)    ! Integral of the fast low pass filtered yaw error
-            
-                IF (ABS(LocalVar%Y_AccErr) >= CntrPar%Y_ErrThresh) THEN                                   ! Check if accumulated error surpasses the threshold
-                    LocalVar%Y_YawEndT = ABS(LocalVar%Y_ErrLPFSlow/CntrPar%Y_Rate) + LocalVar%Time        ! Yaw to compensate for the slow low pass filtered error
-                END IF
-            ELSE
-                avrSWAP(48) = SIGN(CntrPar%Y_Rate, LocalVar%Y_MErr)        ! Set yaw rate to predefined yaw rate, the sign of the error is copied to the rate
-                LocalVar%Y_ErrLPFFast = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPFast, LocalVar%FP, LocalVar%iStatus, .TRUE., objInst%instLPF)        ! Fast low pass filtered yaw error with a frequency of 1
-                LocalVar%Y_ErrLPFSlow = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPSlow, LocalVar%FP, LocalVar%iStatus, .TRUE., objInst%instLPF)        ! Slow low pass filtered yaw error with a frequency of 1/60
-                LocalVar%Y_AccErr = 0.0    ! "
-            END IF
-        END IF
 
-        ! If using open loop yaw rate control, overwrite controlled output
-        ! Open loop torque control
-        IF ((CntrPar%OL_Mode == 1) .AND. (CntrPar%Ind_YawRate > 0)) THEN
-            IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN
-                avrSWAP(48) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_YawRate,LocalVar%Time, ErrVar)
+            ! Compass wind directions in degrees
+            WindDir = wrap_360(LocalVar%NacHeading + LocalVar%NacVane)
+            
+            ! Initialize
+            IF (LocalVar%iStatus == 0) THEN
+                YawState = 0
+                Tidx = 1
             ENDIF
-        ENDIF
+            
+            ! Compute/apply offset
+            IF (CntrPar%ZMQ_Mode == 1) THEN
+                NacVaneOffset = zmqVar%Yaw_Offset
+            ELSE
+                NacVaneOffset = CntrPar%Y_MErrSet ! (deg) # Offset from setpoint
+            ENDIF
 
-        ! Add RoutineName to error message
-        IF (ErrVar%aviFAIL < 0) THEN
-            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
-        ENDIF
+            ! Update filtered wind direction
+            WindDirPlusOffset = wrap_360(WindDir + NacVaneOffset) ! (deg)
+            WindDirPlusOffsetCosF = LPFilter(cos(WindDirPlusOffset*D2R), LocalVar%DT, CntrPar%F_YawErr, LocalVar%FP, LocalVar%iStatus, .FALSE., objInst%instLPF) ! (-)
+            WindDirPlusOffsetSinF = LPFilter(sin(WindDirPlusOffset*D2R), LocalVar%DT, CntrPar%F_YawErr, LocalVar%FP, LocalVar%iStatus, .FALSE., objInst%instLPF) ! (-)
+            NacHeadingTarget = wrap_360(atan2(WindDirPlusOffsetSinF, WindDirPlusOffsetCosF) * R2D) ! (deg)
 
+            ! ---- Now get into the guts of the control ----
+            ! Yaw error
+            NacHeadingError = wrap_180(NacHeadingTarget - LocalVar%NacHeading)
+			
+            ! Check for deadband
+            IF (LocalVar%WE_Vw_F .le. CntrPar%Y_uSwitch) THEN
+                deadband = CntrPar%Y_ErrThresh(1)
+            ELSE
+                deadband = CntrPar%Y_ErrThresh(2)
+            ENDIF
+
+            ! yawing right
+            IF (YawState == 1) THEN 
+                IF (NacHeadingError .le. 0) THEN
+                    ! stop yawing
+                    YawRateCom = 0.0
+                    YawState = 0 
+                ELSE
+                    ! persist
+                    LocalVar%NacHeading = wrap_360(LocalVar%NacHeading + CntrPar%Y_Rate*LocalVar%DT)
+                    YawRateCom = CntrPar%Y_Rate
+                    YawState = 1 
+                ENDIF
+            ! yawing left
+            ELSEIF (YawState == -1) THEN 
+                IF (NacHeadingError .ge. 0) THEN
+                    ! stop yawing
+                    YawRateCom = 0.0
+                    YawState = 0 
+                ELSE
+                    ! persist
+                    LocalVar%NacHeading = wrap_360(LocalVar%NacHeading - CntrPar%Y_Rate*LocalVar%DT)
+                    YawRateCom = -CntrPar%Y_Rate
+                    YawState = -1 
+                ENDIF
+            ! Initiate yaw if outside yaw error threshold
+            ELSE
+                IF (NacHeadingError .gt. deadband) THEN
+                    YawState = 1 ! yaw right
+                ENDIF
+
+                IF (NacHeadingError .lt. -deadband) THEN
+                    YawState = -1 ! yaw left
+                ENDIF
+
+                YawRateCom = 0.0 ! if YawState is not 0, start yawing on the next time step
+            ENDIF
+
+            ! Output yaw rate command in rad/s
+            avrSWAP(48) = YawRateCom * D2R
+
+            ! Save for debug
+            DebugVar%YawRateCom       = YawRateCom
+            DebugVar%NacHeadingTarget = NacHeadingTarget
+            DebugVar%NacVaneOffset    = NacVaneOffset
+            DebugVar%YawState         = YawState
+        END IF
     END SUBROUTINE YawRateControl
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE IPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
@@ -328,7 +387,7 @@ CONTAINS
         REAL(DbKi)                  :: axisTilt_1P, axisYaw_1P, axisYawF_1P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
         REAL(DbKi)                  :: axisTilt_2P, axisYaw_2P, axisYawF_2P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
         REAL(DbKi)                  :: axisYawIPC_1P                           ! IPC contribution with yaw-by-IPC component
-        REAL(DbKi)                  :: Y_MErrF, Y_MErrF_IPC                    ! Unfiltered and filtered yaw alignment error [rad]
+        REAL(DbKi)                  :: Y_MErr, Y_MErrF, Y_MErrF_IPC            ! Unfiltered and filtered yaw alignment error [rad]
         
         CHARACTER(*),               PARAMETER           :: RoutineName = 'IPC'
 
@@ -339,8 +398,9 @@ CONTAINS
 
         ! High-pass filter the MBC yaw component and filter yaw alignment error, and compute the yaw-by-IPC contribution
         IF (CntrPar%Y_ControlMode == 2) THEN
-            Y_MErrF = SecLPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_IPC_omegaLP, CntrPar%Y_IPC_zetaLP, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF)
-            Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP(1), CntrPar%Y_IPC_KI(1), -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
+            Y_MErr = wrap_360(LocalVar%NacHeading + LocalVar%NacVane)
+            Y_MErrF = LPFilter(Y_MErr, LocalVar%DT, CntrPar%F_YawErr, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF)
+            Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP, CntrPar%Y_IPC_KI, -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
         ELSE
             axisYawF_1P = axisYaw_1P
             Y_MErrF = 0.0
