@@ -83,7 +83,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! PA_Mode           - Pitch actuator mode {{0 - not used, 1 - first order filter, 2 - second order filter}}\n'.format(int(rosco_vt['PA_Mode'])))
     file.write('{0:<12d}        ! PF_Mode           - Pitch fault mode {{0 - not used, 1 - constant offset on one or more blades}}\n'.format(int(rosco_vt['PF_Mode'])))
     file.write('{0:<12d}        ! Ext_Mode          - External control mode {{0 - not used, 1 - call external dynamic library}}\n'.format(int(rosco_vt['Ext_Mode'])))
-    file.write('{0:<12d}        ! ZMQ_Mode          - Fuse ZeroMQ interaface {{0: unused, 1: Yaw Control}}\n'.format(int(rosco_vt['ZMQ_Mode'])))
+    file.write('{0:<12d}        ! ZMQ_Mode          - Fuse ZeroMQ interface {{0: unused, 1: Yaw Control}}\n'.format(int(rosco_vt['ZMQ_Mode'])))
 
     file.write('\n')
     file.write('!------- FILTERS ----------------------------------------------------------\n') 
