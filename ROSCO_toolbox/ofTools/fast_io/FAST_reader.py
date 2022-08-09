@@ -1630,7 +1630,15 @@ class InputReader_OpenFAST(InputReader_Common):
 
         # PLATFORM ADDITIONAL STIFFNESS AND DAMPING
         f.readline()
-        self.fst_vt['HydroDyn']['AddF0']         = np.array([[float(idx) for idx in f.readline().strip().split()[0]] for i in range(6)])
+        # Get number of F0 terms [If NBodyMod=1, one size 6*NBody x 1 vector; if NBodyMod>1, NBody size 6 x 1 vectors]
+        NBody = self.fst_vt['HydroDyn']['NBody']
+        if self.fst_vt['HydroDyn']['NBodyMod'] == 1:
+            self.fst_vt['HydroDyn']['AddF0']         = [float(f.readline().strip().split()[0]) for i in range(6*NBody)]
+        elif self.fst_vt['HydroDyn']['NBodyMod'] > 1:
+            self.fst_vt['HydroDyn']['AddF0']         = [[float(idx) for idx in f.readline().strip().split()[:NBody]] for i in range(6)]
+        else:
+            raise Exception("Invalid value for fst_vt['HydroDyn']['NBodyMod']")
+
         self.fst_vt['HydroDyn']['AddCLin']       = np.array([[float(idx) for idx in f.readline().strip().split()[:6]] for i in range(6)])
         self.fst_vt['HydroDyn']['AddBLin']       = np.array([[float(idx) for idx in f.readline().strip().split()[:6]] for i in range(6)])
         self.fst_vt['HydroDyn']['AddBQuad']      = np.array([[float(idx) for idx in f.readline().strip().split()[:6]] for i in range(6)])
@@ -1920,7 +1928,7 @@ class InputReader_OpenFAST(InputReader_Common):
         self.fst_vt['SubDyn']['Nmodes']    = int_read(f.readline().split()[0])
         self.fst_vt['SubDyn']['JDampings'] = int_read(f.readline().split()[0])
         self.fst_vt['SubDyn']['GuyanDampMod'] = int_read(f.readline().split()[0])
-        self.fst_vt['SubDyn']['RayleighDamp'] = [float(m.replace(',','')) for m in f.readline().split()[:2]]
+        self.fst_vt['SubDyn']['RayleighDamp'] = [float(m) for m in f.readline().strip().replace(',','').split()[:2]]
         self.fst_vt['SubDyn']['GuyanDampSize'] = int_read(f.readline().split()[0])
         self.fst_vt['SubDyn']['GuyanDamp'] = np.array([[float(idx) for idx in f.readline().strip().split()[:6]] for i in range(self.fst_vt['SubDyn']['GuyanDampSize'])])
         f.readline()

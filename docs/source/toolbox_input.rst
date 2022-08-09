@@ -9,7 +9,7 @@ ROSCO_Toolbox tuning .yaml
 Definition of inputs for ROSCO tuning procedure
 
 
-/Users/dzalkind/Tools/ROSCO/ROSCO_toolbox/inputs/toolbox_schema.
+toolbox_schema.
 
 
 
@@ -201,6 +201,15 @@ controller_params
     *Minimum* = 0    *Maximum* = 1
 
 
+:code:`TD_Mode` : Float
+    Tower damper mode (0- no tower damper, 1- feed back translational
+    nacelle accelleration to pitch angle
+
+    *Default* = 0
+
+    *Minimum* = 0    *Maximum* = 1
+
+
 :code:`Fl_Mode` : Float
     Floating specific feedback mode (0- no nacelle velocity feedback,
     1 - nacelle velocity feedback, 2 - nacelle pitching acceleration
@@ -228,6 +237,32 @@ controller_params
     *Default* = 0
 
     *Minimum* = 0    *Maximum* = 2
+
+
+:code:`ZMQ_Mode` : Float
+    ZMQ Mode (0 - ZMQ Inteface, 1 - ZMQ for yaw control)
+
+    *Default* = 0
+
+    *Minimum* = 0    *Maximum* = 1
+
+
+:code:`PA_Mode` : Float
+    Pitch actuator mode {0 - not used, 1 - first order filter, 2 -
+    second order filter}
+
+    *Default* = 0
+
+    *Minimum* = 0    *Maximum* = 2
+
+
+:code:`Ext_Mode` : Float
+    External control mode {{0 - not used, 1 - call external dynamic
+    library}}
+
+    *Default* = 0
+
+    *Minimum* = 0    *Maximum* = 1
 
 
 :code:`U_pc` : Array of Floats
@@ -363,6 +398,13 @@ controller_params
 
     *Minimum* = 0
 
+:code:`max_torque_factor` : Float
+    Maximum torque = rated torque * max_torque_factor
+
+    *Default* = 1.1
+
+    *Minimum* = 0
+
 :code:`IPC_Kp1p` : Float, s
     Proportional gain for IPC, 1P [s]
 
@@ -390,6 +432,13 @@ controller_params
     *Default* = 0.0
 
     *Minimum* = 0
+
+:code:`IPC_Vramp` : Array of Floats
+    wind speeds for IPC cut-in sigma function [m/s]
+
+    *Default* = [0.0, 0.0]
+
+    *Minimum* = 0.0
 
 
 
@@ -430,6 +479,13 @@ filter_params
     smoother [rad/s]
 
     *Default* = 0.6283
+
+    *Minimum* = 0
+
+:code:`f_yawerr` : Float, rad/s
+    Low pass filter corner frequency for yaw controller [rad/
+
+    *Default* = 0.17952
 
     *Minimum* = 0
 
@@ -474,6 +530,384 @@ open_loop
     Index (column, 1-indexed) of breakpoint (time) in open loop index
 
     *Default* = 0
+
+:code:`PA_CornerFreq` : Float, rad/s
+    Pitch actuator natural frequency [rad/s]
+
+    *Default* = 3.14
+
+    *Minimum* = 0
+
+:code:`PA_Damping` : Float
+    Pitch actuator damping ratio [-]
+
+    *Default* = 0.707
+
+    *Minimum* = 0
+
+
+
+DISCON
+########################################
+
+
+These are pass-through parameters for the DISCON.IN file.  Use with caution.
+
+:code:`LoggingLevel` : Float
+    (0- write no debug files, 1- write standard output .dbg-file, 2-
+    write standard output .dbg-file and complete avrSWAP-array
+    .dbg2-file)
+
+:code:`F_LPFType` : Float
+    1- first-order low-pass filter, 2- second-order low-pass filter
+    (currently filters generator speed and pitch control signals
+
+:code:`F_NotchType` : Float
+    Notch on the measured generator speed and/or tower fore-aft motion
+    (for floating) (0- disable, 1- generator speed, 2- tower-top fore-
+    aft motion, 3- generator speed and tower-top fore-aft motion)
+
+:code:`IPC_ControlMode` : Float
+    Turn Individual Pitch Control (IPC) for fatigue load reductions
+    (pitch contribution) (0- off, 1- 1P reductions, 2- 1P+2P
+    reductions)
+
+:code:`VS_ControlMode` : Float
+    Generator torque control mode in above rated conditions (0-
+    constant torque, 1- constant power, 2- TSR tracking PI control
+    with constant torque, 3- TSR tracking PI control with constant
+    power)
+
+:code:`PC_ControlMode` : Float
+    Blade pitch control mode (0- No pitch, fix to fine pitch, 1-
+    active PI blade pitch control)
+
+:code:`Y_ControlMode` : Float
+    Yaw control mode (0- no yaw control, 1- yaw rate control, 2- yaw-
+    by-IPC)
+
+:code:`SS_Mode` : Float
+    Setpoint Smoother mode (0- no setpoint smoothing, 1- introduce
+    setpoint smoothing)
+
+:code:`WE_Mode` : Float
+    Wind speed estimator mode (0- One-second low pass filtered hub
+    height wind speed, 1- Immersion and Invariance Estimator, 2-
+    Extended Kalman Filter)
+
+:code:`PS_Mode` : Float
+    Pitch saturation mode (0- no pitch saturation, 1- implement pitch
+    saturation)
+
+:code:`SD_Mode` : Float
+    Shutdown mode (0- no shutdown procedure, 1- pitch to max pitch at
+    shutdown)
+
+:code:`Fl_Mode` : Float
+    Floating specific feedback mode (0- no nacelle velocity feedback,
+    1- feed back translational velocity, 2- feed back rotational
+    veloicty)
+
+:code:`Flp_Mode` : Float
+    Flap control mode (0- no flap control, 1- steady state flap angle,
+    2- Proportional flap control)
+
+:code:`F_LPFCornerFreq` : Float, rad/s
+    Corner frequency (-3dB point) in the low-pass filters,
+
+:code:`F_LPFDamping` : Float
+    Damping coefficient (used only when F_FilterType = 2 [-]
+
+:code:`F_NotchCornerFreq` : Float, rad/s
+    Natural frequency of the notch filter,
+
+:code:`F_NotchBetaNumDen` : Array of Floats
+    Two notch damping values (numerator and denominator, resp) -
+    determines the width and depth of the notch, [-]
+
+:code:`F_SSCornerFreq` : Float, rad/s.
+    Corner frequency (-3dB point) in the first order low pass filter
+    for the setpoint smoother,
+
+:code:`F_WECornerFreq` : Float, rad/s.
+    Corner frequency (-3dB point) in the first order low pass filter
+    for the wind speed estimate
+
+:code:`F_FlCornerFreq` : Array of Floats
+    Natural frequency and damping in the second order low pass filter
+    of the tower-top fore-aft motion for floating feedback control
+
+:code:`F_FlHighPassFreq` : Float, rad/s
+    Natural frequency of first-order high-pass filter for nacelle
+    fore-aft motion
+
+:code:`F_FlpCornerFreq` : Array of Floats
+    Corner frequency and damping in the second order low pass filter
+    of the blade root bending moment for flap control
+
+:code:`PC_GS_n` : Float
+    Amount of gain-scheduling table entries
+
+:code:`PC_GS_angles` : Array of Floats
+    Gain-schedule table- pitch angles
+
+:code:`PC_GS_KP` : Array of Floats
+    Gain-schedule table- pitch controller kp gains
+
+:code:`PC_GS_KI` : Array of Floats
+    Gain-schedule table- pitch controller ki gains
+
+:code:`PC_GS_KD` : Array of Floats
+    Gain-schedule table- pitch controller kd gains
+
+:code:`PC_GS_TF` : Array of Floats
+    Gain-schedule table- pitch controller tf gains (derivative filter)
+
+:code:`PC_MaxPit` : Float, rad
+    Maximum physical pitch limit,
+
+:code:`PC_MinPit` : Float, rad
+    Minimum physical pitch limit,
+
+:code:`PC_MaxRat` : Float, rad/s.
+    Maximum pitch rate (in absolute value) in pitch controller
+
+:code:`PC_MinRat` : Float, rad/s.
+    Minimum pitch rate (in absolute value) in pitch controller
+
+:code:`PC_RefSpd` : Float, rad/s.
+    Desired (reference) HSS speed for pitch controller
+
+:code:`PC_FinePit` : Float, rad
+    Record 5- Below-rated pitch angle set-point
+
+:code:`PC_Switch` : Float, rad
+    Angle above lowest minimum pitch angle for switch
+
+:code:`IPC_IntSat` : Float, rad
+    Integrator saturation (maximum signal amplitude contribution to
+    pitch from IPC)
+
+:code:`IPC_KP` : Array of Floats
+    Proportional gain for the individual pitch controller- first
+    parameter for 1P reductions, second for 2P reductions, [-]
+
+:code:`IPC_KI` : Array of Floats
+    Integral gain for the individual pitch controller- first parameter
+    for 1P reductions, second for 2P reductions, [-]
+
+:code:`IPC_aziOffset` : Array of Floats
+    Phase offset added to the azimuth angle for the individual pitch
+    controller
+
+:code:`IPC_CornerFreqAct` : Float, rad/s
+    Corner frequency of the first-order actuators model, to induce a
+    phase lag in the IPC signal (0- Disable)
+
+:code:`VS_GenEff` : Float, percent
+    Generator efficiency mechanical power -> electrical power, should
+    match the efficiency defined in the generator properties
+
+:code:`VS_ArSatTq` : Float, Nm
+    Above rated generator torque PI control saturation
+
+:code:`VS_MaxRat` : Float, Nm/s
+    Maximum torque rate (in absolute value) in torque controller
+
+:code:`VS_MaxTq` : Float, Nm
+    Maximum generator torque in Region 3 (HSS side)
+
+:code:`VS_MinTq` : Float, Nm
+    Minimum generator torque (HSS side)
+
+:code:`VS_MinOMSpd` : Float, rad/s
+    Minimum generator speed
+
+:code:`VS_Rgn2K` : Float, Nm/(rad/s)^2
+    Generator torque constant in Region 2 (HSS side)
+
+:code:`VS_RtPwr` : Float, W
+    Wind turbine rated power
+
+:code:`VS_RtTq` : Float, Nm
+    Rated torque
+
+:code:`VS_RefSpd` : Float, rad/s
+    Rated generator speed
+
+:code:`VS_n` : Float
+    Number of generator PI torque controller gains
+
+:code:`VS_KP` : Float
+    Proportional gain for generator PI torque controller. (Only used
+    in the transitional 2.5 region if VS_ControlMode =/ 2)
+
+:code:`VS_KI` : Float, s
+    Integral gain for generator PI torque controller  (Only used in
+    the transitional 2.5 region if VS_ControlMode =/ 2)
+
+:code:`VS_TSRopt` : Float, rad
+    Power-maximizing region 2 tip-speed-ratio
+
+:code:`SS_VSGain` : Float
+    Variable speed torque controller setpoint smoother gain
+
+:code:`SS_PCGain` : Float
+    Collective pitch controller setpoint smoother gain
+
+:code:`WE_BladeRadius` : Float, m
+    Blade length (distance from hub center to blade tip)
+
+:code:`WE_CP_n` : Float
+    Amount of parameters in the Cp array
+
+:code:`WE_CP` : Array of Floats
+    Parameters that define the parameterized CP(lambda) function
+
+:code:`WE_Gamma` : Float, m/rad
+    Adaption gain of the wind speed estimator algorithm
+
+:code:`WE_GearboxRatio` : Float
+    Gearbox ratio, >=1
+
+:code:`WE_Jtot` : Float, kg m^2
+    Total drivetrain inertia, including blades, hub and casted
+    generator inertia to LSS
+
+:code:`WE_RhoAir` : Float, kg m^-3
+    Air density
+
+:code:`PerfFileName` : String
+    File containing rotor performance tables (Cp,Ct,Cq) (absolute path
+    or relative to this file)
+
+:code:`PerfTableSize` : Float
+    Size of rotor performance tables, first number refers to number of
+    blade pitch angles, second number referse to number of tip-speed
+    ratios
+
+:code:`WE_FOPoles_N` : Float
+    Number of first-order system poles used in EKF
+
+:code:`WE_FOPoles_v` : Array of Floats
+    Wind speeds corresponding to first-order system poles
+
+:code:`WE_FOPoles` : Array of Floats
+    First order system poles
+
+:code:`Y_ErrThresh` : Float, rad^2 s
+    Yaw error threshold. Turbine begins to yaw when it passes this
+
+:code:`Y_IPC_IntSat` : Float, rad
+    Integrator saturation (maximum signal amplitude contribution to
+    pitch from yaw-by-IPC)
+
+:code:`Y_IPC_n` : Float
+    Number of controller gains (yaw-by-IPC)
+
+:code:`Y_IPC_KP` : Float
+    Yaw-by-IPC proportional controller gain Kp
+
+:code:`Y_IPC_KI` : Float
+    Yaw-by-IPC integral controller gain Ki
+
+:code:`Y_IPC_omegaLP` : Float, rad/s.
+    Low-pass filter corner frequency for the Yaw-by-IPC controller to
+    filtering the yaw alignment error
+
+:code:`Y_IPC_zetaLP` : Float
+    Low-pass filter damping factor for the Yaw-by-IPC controller to
+    filtering the yaw alignment error.
+
+:code:`Y_MErrSet` : Float, rad
+    Yaw alignment error, set point
+
+:code:`Y_omegaLPFast` : Float, rad/s
+    Corner frequency fast low pass filter, 1.0
+
+:code:`Y_omegaLPSlow` : Float, rad/s
+    Corner frequency slow low pass filter, 1/60
+
+:code:`Y_Rate` : Float, rad/s
+    Yaw rate
+
+:code:`FA_KI` : Float, rad s/m
+    Integral gain for the fore-aft tower damper controller, -1 = off /
+    >0 = on
+
+:code:`FA_HPFCornerFreq` : Float, rad/s
+    Corner frequency (-3dB point) in the high-pass filter on the fore-
+    aft acceleration signal
+
+:code:`FA_IntSat` : Float, rad
+    Integrator saturation (maximum signal amplitude contribution to
+    pitch from FA damper)
+
+:code:`PS_BldPitchMin_N` : Float
+    Number of values in minimum blade pitch lookup table (should equal
+    number of values in PS_WindSpeeds and PS_BldPitchMin)
+
+:code:`PS_WindSpeeds` : Array of Floats
+    Wind speeds corresponding to minimum blade pitch angles
+
+:code:`PS_BldPitchMin` : Array of Floats
+    Minimum blade pitch angles
+
+:code:`SD_MaxPit` : Float, rad
+    Maximum blade pitch angle to initiate shutdown
+
+:code:`SD_CornerFreq` : Float, rad/s
+    Cutoff Frequency for first order low-pass filter for blade pitch
+    angle
+
+:code:`Fl_Kp` : Float, s
+    Nacelle velocity proportional feedback gain
+
+:code:`Flp_Angle` : Float, rad
+    Initial or steady state flap angle
+
+:code:`Flp_Kp` : Float, s
+    Blade root bending moment proportional gain for flap control
+
+:code:`Flp_Ki` : Float
+    Flap displacement integral gain for flap control
+
+:code:`Flp_MaxPit` : Float, rad
+    Maximum (and minimum) flap pitch angle
+
+:code:`OL_Filename` : String
+    Input file with open loop timeseries (absolute path or relative to
+    this file)
+
+:code:`Ind_Breakpoint` : Float
+    The column in OL_Filename that contains the breakpoint (time if
+    OL_Mode = 1)
+
+:code:`Ind_BldPitch` : Float
+    The column in OL_Filename that contains the blade pitch input in
+    rad
+
+:code:`Ind_GenTq` : Float
+    The column in OL_Filename that contains the generator torque in Nm
+
+:code:`Ind_YawRate` : Float
+    The column in OL_Filename that contains the generator torque in Nm
+
+:code:`DLL_FileName` : String
+    Name/location of the dynamic library {.dll [Windows] or .so
+    [Linux]} in the Bladed-DLL format
+
+    *Default* = unused
+
+:code:`DLL_InFile` : String
+    Name of input file sent to the DLL
+
+    *Default* = unused
+
+:code:`DLL_ProcName` : String
+    Name of procedure in DLL to be called
+
+    *Default* = DISCON
 
 
 

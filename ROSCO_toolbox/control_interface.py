@@ -9,10 +9,10 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
-from ctypes import byref, cdll, c_int, POINTER, c_float, c_char_p, c_double, create_string_buffer, c_int32, c_void_p
+from ctypes import byref, cdll, POINTER, c_float, c_char_p, c_double, create_string_buffer, c_int32, c_void_p
 import numpy as np
-from numpy.ctypeslib import ndpointer
 import platform, ctypes
+import zmq
 
 # Some useful constants
 deg2rad = np.deg2rad(1)
@@ -85,8 +85,7 @@ class ControllerInterface():
         # Torque initial condition
         self.avrSWAP[22]    = 0
 
-
-        # Code this as first casll
+        # Code this as first call
         self.avrSWAP[0] = 0
 
         # Put some values in
@@ -98,7 +97,6 @@ class ControllerInterface():
         # Initialize DISCON and related
         self.aviFAIL = c_int32() # 1
         self.accINFILE = self.param_name.encode('utf-8')
-        # self.avcOUTNAME = create_string_buffer(1000) # 'DEMO'.encode('utf-8')
         self.avcOUTNAME = (self.sim_name + '.RO.dbg').encode('utf-8')
         self.avcMSG = create_string_buffer(1000)
         self.discon.DISCON.argtypes = [POINTER(c_float), POINTER(c_int32), c_char_p, c_char_p, c_char_p] # (all defined by ctypes)
@@ -106,7 +104,7 @@ class ControllerInterface():
         # Run DISCON
         self.call_discon()
 
-        # Code as not first run
+        # Code as not first run now that DISCON has been initialized
         self.avrSWAP[0] = 1
 
 
@@ -126,43 +124,52 @@ class ControllerInterface():
         self.avrSWAP = data
 
 
-    def call_controller(self,t,dt,pitch,torque,genspeed,geneff,rotspeed,ws,NacIMU_FA_Acc=0):
+    def call_controller(self, turbine_state, end=False): 
         '''
         Runs the controller. Passes current turbine state to the controller, and returns control inputs back
         
         Parameters:
         -----------
-        t: float
-           time, (s)
-        dt: float
-            timestep, (s)
-        pitch: float
-               blade pitch, (rad)
-        genspeed: float
-                  generator speed, (rad/s)
-        geneff: float
-                  generator efficiency, (rad/s)
-        rotspeed: float
-                  rotor speed, (rad/s)
-        ws: float
-            wind speed, (m/s)
-        NacIMU_FA_Acc : float
-            nacelle IMU accel. in the nodding dir. , (m/s**2)
-            default to 0 (fixed-bottom, simple 1-DOF sim does not include it, but OpenFAST linearizations do)
+        turbine_state: dict
+            t: float
+                time, (s)
+            dt: float
+                timestep, (s)
+            pitch: float
+                blade pitch, (rad)
+            genspeed: float
+                    generator speed, (rad/s)
+            geneff: float
+                    generator efficiency, (rad/s)
+            rotspeed: float
+                    rotor speed, (rad/s)
+            ws: float
+                wind speed, (m/s)
+            yaw: float, optional
+                nacelle yaw position (from north) (deg)
+            yawerr: float, optional
+                yaw misalignment, defined as the wind direction minus the yaw
+                position (deg)
         '''
 
         # Add states to avr
-        self.avrSWAP[1] = t
-        self.avrSWAP[2] = dt
-        self.avrSWAP[3] = pitch
-        self.avrSWAP[32] = pitch
-        self.avrSWAP[33] = pitch
-        self.avrSWAP[14] = genspeed*torque*geneff
-        self.avrSWAP[22] = torque
-        self.avrSWAP[19] = genspeed
-        self.avrSWAP[20] = rotspeed
-        self.avrSWAP[26] = ws
-        self.avrSWAP[82] = NacIMU_FA_Acc
+        self.avrSWAP[0] = turbine_state['iStatus']
+        self.avrSWAP[1] = turbine_state['t']
+        self.avrSWAP[2] = turbine_state['dt']
+        self.avrSWAP[3] =  turbine_state['bld_pitch']
+        self.avrSWAP[32] = turbine_state['bld_pitch']
+        self.avrSWAP[33] = turbine_state['bld_pitch']
+        self.avrSWAP[14] = turbine_state['gen_speed'] * turbine_state['gen_torque'] * turbine_state['gen_eff']
+        self.avrSWAP[22] = turbine_state['gen_torque']
+        self.avrSWAP[19] = turbine_state['gen_speed']
+        self.avrSWAP[20] = turbine_state['rot_speed']
+        self.avrSWAP[23] = turbine_state['Y_MeasErr']
+        self.avrSWAP[26] = turbine_state['ws']
+        self.avrSWAP[36] = turbine_state['Yaw_fromNorth']
+        try:
+            self.avrSWAP[82] = turbine_state['NacIMU_FA_Acc']
+        except KeyError:
+            self.avrSWAP[82] = 0
 
         # call controller
         self.call_discon()
@@ -170,8 +177,9 @@ class ControllerInterface():
         # return controller states
         self.pitch = self.avrSWAP[41]
         self.torque = self.avrSWAP[46]
+        self.nac_yawrate = self.avrSWAP[47]
 
-        return(self.torque,self.pitch)
+        return(self.torque,self.pitch,self.nac_yawrate)
 
     def show_control_values(self):
         '''
@@ -254,3 +262,204 @@ class ControllerInterface():
         dlclose(handle)
 
         del self.discon
+
+
+class farm_zmq_server():
+    def __init__(self, network_addresses=["tcp://*:5555", "tcp://*:5556"],
+                 identifiers=None, timeout=600.0, verbose=False):
+        """Python implementation for communicating with multiple instances
+        of the ROSCO ZeroMQ interface. This is useful for SOWFA and FAST.Farm
+        simulations in which multiple turbines are running in real time.
+        Args:
+            network_addresses (str, optional): List with the network addresses
+            used to communicate with the desired instances of ROSCO.
+            identifiers (iteratible, optional): List of strings denoting the
+            turbine identification string, e.g., ["WTG-01", "WTG-02"].
+            If left unspecified, will simple name the turbines "0" to
+            nturbs - 1.
+            timeout (float, optional): Seconds to wait for a message from
+            the ZeroMQ server before timing out. Defaults to 600.0.
+            verbose (bool, optional): Print to console. Defaults to False.
+        """
+        self.network_addresses = network_addresses
+        self.verbose = verbose
+        self.nturbs = len(self.network_addresses)
+
+        if identifiers is None:
+            identifiers = ["%d" % i for i in range(self.nturbs)]
+
+        # Initialize ZeroMQ servers
+        self.zmq_servers = [None for _ in range(self.nturbs)]
+        for ti, address in enumerate(self.network_addresses):
+            self.zmq_servers[ti] = turbine_zmq_server(
+                network_address=address,
+                identifier=identifiers[ti],
+                timeout=timeout,
+                verbose=verbose)
+
+    def get_measurements(self):
+        '''
+        Get measurements from zmq servers
+        '''
+        measurements = [None for _ in range(self.nturbs)]
+        for ti in range(self.nturbs):
+            measurements[ti] = self.zmq_servers[ti].get_measurements()
+        return measurements
+
+    def send_setpoints(self, genTorques=None, nacelleHeadings=None,
+                       bladePitchAngles=None):
+        '''
+        Send setpoints to DLL via zmq server for farm level controls
+
+        Parameters:
+        -----------
+        genTorques: List
+            List of generator torques of length self.nturbs
+        nacelleHeadings: List
+            List of nacelle headings of length self.nturbs
+        bladePitchAngles: List
+            List of blade pitch angles of length self.nturbs
+        '''
+        # Default choices if unspecified
+        if genTorques is None:
+            genTorques = [0.0] * self.nturbs
+        if nacelleHeadings is None:
+            nacelleHeadings = [0.0] * self.nturbs
+        if bladePitchAngles is None:
+            bladePitchAngles = [[0.0, 0.0, 0.0]] * self.nturbs
+
+        # Send setpoints
+        for ti in range(self.nturbs):
+            self.zmq_servers[ti].send_setpoints(
+                genTorque=genTorques[ti],
+                nacelleHeading=nacelleHeadings[ti],
+                bladePitch=bladePitchAngles[ti]
+            )
+
+
+class turbine_zmq_server():
+    def __init__(self, network_address="tcp://*:5555", identifier="0",
+                 timeout=600.0, verbose=False):
+        """Python implementation of the ZeroMQ server side for the ROSCO
+        ZeroMQ wind farm control interface. This class makes it easy for
+        users to receive measurements from ROSCO and then send back control
+        setpoints (generator torque, nacelle heading and/or blade pitch
+        angles).
+        Args:
+            network_address (str, optional): The network address to
+            communicate over with the desired instance of ROSCO. Note that,
+            if running a wind farm simulation in SOWFA or FAST.Farm, there
+            are multiple instances of ROSCO and each of these instances
+            needs to communicate over a unique port. Also, for each of those
+            instances, you will need an instance of zmq_server. This variable
+            Defaults to "tcp://*:5555".
+            identifier (str, optional): Turbine identifier. Defaults to "0".
+            timeout (float, optional): Seconds to wait for a message from
+            the ZeroMQ server before timing out. Defaults to 600.0.
+            verbose (bool, optional): Print to console. Defaults to False.
+        """
+        self.network_address = network_address
+        self.identifier = identifier
+        self.timeout = timeout
+        self.verbose = verbose
+        self._connect()
+
+    def _connect(self):
+        '''
+        Connect to zmq server
+        '''
+        address = self.network_address
+
+        # Connect socket
+        context = zmq.Context()
+        self.socket = context.socket(zmq.REP)
+        self.socket.setsockopt(zmq.LINGER, 0)
+        self.socket.bind(address)
+
+        if self.verbose:
+            print("[%s] Successfully established connection with %s" % (self.identifier, address))
+
+    def _disconnect(self):
+        '''
+        Disconnect from zmq server
+        '''
+        self.socket.close()
+        context = zmq.Context()
+        context.term()
+
+    def get_measurements(self):
+        '''
+        Receive measurements from ROSCO .dll
+        '''
+        if self.verbose:
+            print("[%s] Waiting to receive measurements from ROSCO..." % (self.identifier))
+
+        # Initialize a poller for timeouts
+        poller = zmq.Poller()
+        poller.register(self.socket, zmq.POLLIN)
+        timeout_ms = int(self.timeout * 1000)
+        if poller.poll(timeout_ms):
+            # Receive measurements over network protocol
+            message_in = self.socket.recv_string()
+        else:
+            raise IOError("[%s] Connection to '%s' timed out."
+                          % (self.identifier, self.network_address))
+
+        # Convert to individual strings and then to floats
+        measurements = message_in
+        measurements = measurements.replace('\x00', '').split(',')
+        measurements = [float(m) for m in measurements]
+
+        # Convert to a measurement dict
+        measurements = dict({
+            'iStatus': measurements[0],
+            'Time': measurements[1],
+            'VS_MechGenPwr':  measurements[2],
+            'VS_GenPwr': measurements[3],
+            'GenSpeed': measurements[4],
+            'RotSpeed': measurements[5],
+            'GenTqMeas': measurements[6],
+            'NacelleHeading': measurements[7],
+            'NacelleVane': measurements[8],
+            'HorWindV': measurements[9],
+            'rootMOOP1': measurements[10],
+            'rootMOOP2': measurements[11],
+            'rootMOOP3': measurements[12],
+            'FA_Acc': measurements[13],
+            'NacIMU_FA_Acc': measurements[14],
+            'Azimuth': measurements[15],
+        })
+
+        if self.verbose:
+            print('[%s] Measurements received:' % self.identifier, measurements)
+
+        return measurements
+
+    def send_setpoints(self, genTorque=0.0, nacelleHeading=0.0,
+                       bladePitch=[0.0, 0.0, 0.0]):
+        '''
+        Send setpoints to ROSCO .dll ffor individual turbine control
+
+        Parameters:
+        -----------
+        genTorques: float
+            Generator torque setpoint
+        nacelleHeadings: float
+            Nacelle heading setpoint
+        bladePitchAngles: List (len=3)
+            Blade pitch angle setpoint
+        '''
+        # Create a message with setpoints to send to ROSCO
+        message_out = b"%016.5f, %016.5f, %016.5f, %016.5f, %016.5f" % (
+            genTorque, nacelleHeading, bladePitch[0], bladePitch[1],
+            bladePitch[2])
+
+        #  Send reply back to client
+        if self.verbose:
+            print("[%s] Sending setpoint string to ROSCO: %s." % (self.identifier, message_out))
+
+        # Send control setpoints over network protocol
+        self.socket.send(message_out)
+
+        if self.verbose:
+            print("[%s] Setpoints sent successfully." % self.identifier)

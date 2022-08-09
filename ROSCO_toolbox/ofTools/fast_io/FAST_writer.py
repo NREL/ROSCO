@@ -875,7 +875,7 @@ class InputWriter_OpenFAST(InputWriter_Common):
         self.write_AeroDyn15Polar()
         
         # Generate AeroDyn v15 airfoil coordinates
-        if self.fst_vt['AeroDyn15']['af_data'][1][0]['NumCoords'] != 0:
+        if self.fst_vt['AeroDyn15']['af_data'][1][0]['NumCoords'] != '0':
             self.write_AeroDyn15Coord()
         
         if self.fst_vt['AeroDyn15']['WakeMod'] == 3:
@@ -1465,7 +1465,10 @@ class InputWriter_OpenFAST(InputWriter_Common):
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['SumQTF'], 'SumQTF', "- Full summation -frequency 2nd-order forces computed with full QTF          {0: None; [10, 11, or 12]: WAMIT file to use}\n"))
         f.write('---------------------- PLATFORM ADDITIONAL STIFFNESS AND DAMPING  --------------\n')
         for j in range(6):
-            ln = '{:14}   '.format(self.fst_vt['HydroDyn']['AddF0'][j][0])
+            if type(self.fst_vt['HydroDyn']['AddF0'][j]) == float:
+                ln = '{:14}   '.format(self.fst_vt['HydroDyn']['AddF0'][j])  
+            elif type(self.fst_vt['HydroDyn']['AddF0'][j]) == list:
+                ln = '{:14}   '.format(' '.join([f'{val}' for val in self.fst_vt['HydroDyn']['AddF0'][j]]))
             if j == 0:
                 ln = ln + 'AddF0    - Additional preload (N, N-m) [If NBodyMod=1, one size 6*NBody x 1 vector; if NBodyMod>1, NBody size 6 x 1 vectors]\n'
             else:

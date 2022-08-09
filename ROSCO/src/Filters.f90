@@ -137,30 +137,47 @@ CONTAINS
 
     END FUNCTION HPFilter
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(DbKi) FUNCTION NotchFilterSlopes(InputSignal, DT, CornerFreq, Damp, FP, iStatus, reset, inst)
+    REAL(DbKi) FUNCTION NotchFilterSlopes(InputSignal, DT, CornerFreq, Damp, FP, iStatus, reset, inst, Moving)
     ! Discrete time inverted Notch Filter with descending slopes, G = CornerFreq*s/(Damp*s^2+CornerFreq*s+Damp*CornerFreq^2)
         USE ROSCO_Types, ONLY : FilterParameters
         TYPE(FilterParameters),       INTENT(INOUT)       :: FP 
 
-        REAL(DbKi), INTENT(IN)     :: InputSignal
-        REAL(DbKi), INTENT(IN)     :: DT                       ! time step [s]
-        REAL(DbKi), INTENT(IN)     :: CornerFreq               ! corner frequency [rad/s]
-        REAL(DbKi), INTENT(IN)     :: Damp                     ! Dampening constant
-        INTEGER(IntKi), INTENT(IN)     :: iStatus                  ! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
-        INTEGER(IntKi), INTENT(INOUT)  :: inst                     ! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
-        LOGICAL(4), INTENT(IN)  :: reset                    ! Reset the filter to the input signal
+        REAL(DbKi), INTENT(IN)                  :: InputSignal
+        REAL(DbKi), INTENT(IN)                  :: DT               ! time step [s]
+        REAL(DbKi), INTENT(IN)                  :: CornerFreq       ! corner frequency [rad/s]
+        REAL(DbKi), INTENT(IN)                  :: Damp             ! Dampening constant
+        INTEGER(IntKi), INTENT(IN)              :: iStatus          ! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
+        INTEGER(IntKi), INTENT(INOUT)           :: inst             ! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
+        LOGICAL(4), INTENT(IN)                  :: reset            ! Reset the filter to the input signal
+        LOGICAL, OPTIONAL,  INTENT(IN)          :: Moving           ! Moving CornerFreq flag
 
+        LOGICAL                                 :: Moving_          ! Local version
+        REAL(DbKi)                              :: CornerFreq_          ! Local version
+
+        Moving_ = .FALSE.
+        IF (PRESENT(Moving)) Moving_ = Moving   
+
+        ! Saturate Corner Freq at 0
+        IF (CornerFreq < 0) THEN 
+            CornerFreq_ = 0
+        ELSE
+            CornerFreq_ = CornerFreq
+        ENDIF
+        
         ! Initialization
         IF ((iStatus == 0) .OR. reset) THEN
             FP%nfs_OutputSignalLast1(inst)  = InputSignal
             FP%nfs_OutputSignalLast2(inst)  = InputSignal
             FP%nfs_InputSignalLast1(inst)   = InputSignal
             FP%nfs_InputSignalLast2(inst)   = InputSignal
-            FP%nfs_b2(inst) = 2.0 * DT * CornerFreq
+        ENDIF
+
+        IF ((iStatus == 0) .OR. reset .OR. Moving_) THEN
+            FP%nfs_b2(inst) = 2.0 * DT * CornerFreq_
             FP%nfs_b0(inst) = -FP%nfs_b2(inst)
-            FP%nfs_a2(inst) = Damp*DT**2.0*CornerFreq**2.0 + 2.0*DT*CornerFreq + 4.0*Damp
-            FP%nfs_a1(inst) = 2.0*Damp*DT**2.0*CornerFreq**2.0 - 8.0*Damp
-            FP%nfs_a0(inst) = Damp*DT**2.0*CornerFreq**2.0 - 2*DT*CornerFreq + 4.0*Damp
+            FP%nfs_a2(inst) = Damp*DT**2.0*CornerFreq_**2.0 + 2.0*DT*CornerFreq_ + 4.0*Damp
+            FP%nfs_a1(inst) = 2.0*Damp*DT**2.0*CornerFreq_**2.0 - 8.0*Damp
+            FP%nfs_a0(inst) = Damp*DT**2.0*CornerFreq_**2.0 - 2*DT*CornerFreq_ + 4.0*Damp
         ENDIF
 
         NotchFilterSlopes = 1.0/FP%nfs_a2(inst) * (FP%nfs_b2(inst)*InputSignal + FP%nfs_b0(inst)*FP%nfs_InputSignalLast1(inst) &
@@ -270,7 +287,8 @@ CONTAINS
         ! Blade root bending moment for IPC
         DO K = 1,LocalVar%NumBl
             IF ((CntrPar%IPC_ControlMode > 0) .OR. (CntrPar%Flp_Mode == 3)) THEN
-                LocalVar%RootMOOPF(K) = NotchFilterSlopes(LocalVar%rootMOOP(K), LocalVar%DT, LocalVar%RotSpeedF, 0.7_DbKi, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotchSlopes)
+                ! Moving inverted notch at rotor speed to isolate 1P
+                LocalVar%RootMOOPF(K) = NotchFilterSlopes(LocalVar%rootMOOP(K), LocalVar%DT, LocalVar%RotSpeedF, 0.7_DbKi, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotchSlopes, .TRUE.)
             ELSEIF ( CntrPar%Flp_Mode == 2 ) THEN
                 ! Filter Blade root bending moments
                 LocalVar%RootMOOPF(K) = SecLPFilter(LocalVar%rootMOOP(K),LocalVar%DT, CntrPar%F_FlpCornerFreq(1), CntrPar%F_FlpCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart,objInst%instSecLPF)
