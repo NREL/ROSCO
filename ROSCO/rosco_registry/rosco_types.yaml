@@ -105,9 +105,9 @@ ControlParameters:
       allocatable: True
     
     # Tower fore-aft damping
-    Twr_ControlMode:
+    Twr_Mode:
       <<: *integer
-      description: Tower Fore-Aft control mode {0 - no fore-aft control, 1 -Frequency exclusion zone, 2 - Tower fore-aft damping}
+      description: Tower Fore-Aft control mode {0 - no fore-aft control, 1 - Tower fore-aft damping, 2 -Frequency exclusion zone, 3- Options 1 and 2}
     Twr_ExclSpeed:
       <<: *real
       description: Rotor speed for exclusion [LSS] [rad/s]
@@ -115,9 +115,6 @@ ControlParameters:
       <<: *real
       description: One-half of the total frequency exclusion band. Torque controller reference will be Twr_ExclFreq +/- Twr_ExlBand [rad/s]
     
-    Twr_Mode:
-      <<: *integer
-      description: Tower damper mode (0- no tower damper, 1- feed back translational nacelle accelleration to pitch angle
     FA_HPFCornerFreq:
       <<: *real
       description: Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]

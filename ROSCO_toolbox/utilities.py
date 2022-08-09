@@ -387,7 +387,6 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['VS_ControlMode']	= int(controller.VS_ControlMode)
     DISCON_dict['PC_ControlMode']   = int(controller.PC_ControlMode)
     DISCON_dict['Y_ControlMode']	= int(controller.Y_ControlMode)
-    DISCON_dict['Twr_ControlMode']	= int(controller.Twr_ControlMode)
     DISCON_dict['SS_Mode']          = int(controller.SS_Mode)
     DISCON_dict['WE_Mode']          = int(controller.WE_Mode)
     DISCON_dict['PS_Mode']          = int(controller.PS_Mode > 0)

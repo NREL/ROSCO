@@ -53,7 +53,7 @@ CONTAINS
         IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
             VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
             DebugVar%VS_RefSpeed = VS_RefSpd
-            IF (CntrPar%Twr_ControlMode == 1) THEN
+            IF ((CntrPar%Twr_Mode == 2) .OR. (CntrPar%Twr_Mode == 3)) THEN
                 CALL RefSpeedExclusion(VS_RefSpd, LocalVar, CntrPar, DebugVar)
             END IF
             VS_RefSpd = saturate(VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)

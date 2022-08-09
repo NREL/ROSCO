@@ -56,7 +56,6 @@ class Controller():
         self.VS_ControlMode     = controller_params['VS_ControlMode']
         self.PC_ControlMode     = controller_params['PC_ControlMode']
         self.Y_ControlMode      = controller_params['Y_ControlMode']
-        self.Twr_ControlMode    = controller_params['Twr_ControlMode']
         self.SS_Mode            = controller_params['SS_Mode']
         self.WE_Mode            = controller_params['WE_Mode']
         self.PS_Mode            = controller_params['PS_Mode']

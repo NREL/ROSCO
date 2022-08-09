@@ -137,12 +137,6 @@ properties:
                 maximum: 2
                 default: 0
                 description: Yaw control mode (0- no yaw control, 1- yaw rate control, 2- yaw-by-IPC)
-            Twr_ControlMode:      
-                type: number
-                minimum: 0
-                maximum: 2
-                default: 0
-                description: Tower control mode (0 - no fore-aft control, 1 - Frequency exclusion zone, 2 - Tower fore-aft damping)
             SS_Mode:            
                 type: number
                 minimum: 0
@@ -172,7 +166,7 @@ properties:
                 minimum: 0
                 maximum: 1
                 default: 0
-                description: Tower damper mode (0- no tower damper, 1- feed back translational nacelle accelleration to pitch angle
+                description: Tower damper mode (0- no tower damper, 1- feed back translational nacelle accelleration to pitch angle, 2 - Frequency avoidance, 3 - Options 1 and 2
             Fl_Mode:            
                 type: number
                 minimum: 0
