@@ -85,7 +85,6 @@ class ControllerInterface():
         # Torque initial condition
         self.avrSWAP[22]    = 0
 
-
         # Code this as first call
         self.avrSWAP[0] = 0
 
@@ -98,7 +97,6 @@ class ControllerInterface():
         # Initialize DISCON and related
         self.aviFAIL = c_int32() # 1
         self.accINFILE = self.param_name.encode('utf-8')
-        # self.avcOUTNAME = create_string_buffer(1000) # 'DEMO'.encode('utf-8')
         self.avcOUTNAME = (self.sim_name + '.RO.dbg').encode('utf-8')
         self.avcMSG = create_string_buffer(1000)
         self.discon.DISCON.argtypes = [POINTER(c_float), POINTER(c_int32), c_char_p, c_char_p, c_char_p] # (all defined by ctypes)
@@ -106,7 +104,7 @@ class ControllerInterface():
         # Run DISCON
         self.call_discon()
 
-        # Code as not first run
+        # Code as not first run now that DISCON has been initialized
         self.avrSWAP[0] = 1
 
 
@@ -173,7 +171,6 @@ class ControllerInterface():
         except KeyError:
             self.avrSWAP[82] = 0
 
-
         # call controller
         self.call_discon()
 
@@ -181,9 +178,6 @@ class ControllerInterface():
         self.pitch = self.avrSWAP[41]
         self.torque = self.avrSWAP[46]
         self.nac_yawrate = self.avrSWAP[47]
-
-        # if turbine_state['iStatus'] == -1:
-        #     self.avrSWAP[0] = -1
 
         return(self.torque,self.pitch,self.nac_yawrate)
 
@@ -304,6 +298,9 @@ class farm_zmq_server():
                 verbose=verbose)
 
     def get_measurements(self):
+        '''
+        Get measurements from zmq servers
+        '''
         measurements = [None for _ in range(self.nturbs)]
         for ti in range(self.nturbs):
             measurements[ti] = self.zmq_servers[ti].get_measurements()
@@ -312,6 +309,18 @@ class farm_zmq_server():
     def send_setpoints(self, genTorques=None, nacelleHeadings=None,
                        bladePitchAngles=None):
 
+        '''
+        Send setpoints to DLL via zmq server for farm level controls
+
+        Parameters:
+        -----------
+        genTorques: List
+            List of generator torques of length self.nturbs
+        nacelleHeadings: List
+            List of nacelle headings of length self.nturbs
+        bladePitchAngles: List
+            List of blade pitch angles of length self.nturbs
+        '''
         # Default choices if unspecified
         if genTorques is None:
             genTorques = [0.0] * self.nturbs
@@ -357,6 +366,9 @@ class turbine_zmq_server():
         self._connect()
 
     def _connect(self):
+        '''
+        Connect to zmq server
+        '''
         address = self.network_address
 
         # Connect socket
@@ -369,11 +381,17 @@ class turbine_zmq_server():
             print("[%s] Successfully established connection with %s" % (self.identifier, address))
 
     def _disconnect(self):
+        '''
+        Disconnect from zmq server
+        '''
         self.socket.close()
         context = zmq.Context()
         context.term()
 
     def get_measurements(self):
+        '''
+        Receive measurements from ROSCO .dll
+        '''
         if self.verbose:
             print("[%s] Waiting to receive measurements from ROSCO..." % (self.identifier))
 
@@ -390,7 +408,6 @@ class turbine_zmq_server():
 
         # Convert to individual strings and then to floats
         measurements = message_in
-        # measurements = bytes.decode(message_in)
         measurements = measurements.replace('\x00', '').split(',')
         measurements = [float(m) for m in measurements]
 
@@ -421,6 +438,18 @@ class turbine_zmq_server():
 
     def send_setpoints(self, genTorque=0.0, nacelleHeading=0.0,
                        bladePitch=[0.0, 0.0, 0.0]):
+        '''
+        Send setpoints to ROSCO .dll ffor individual turbine control
+
+        Parameters:
+        -----------
+        genTorques: float
+            Generator torque setpoint
+        nacelleHeadings: float
+            Nacelle heading setpoint
+        bladePitchAngles: List (len=3)
+            Blade pitch angle setpoint
+        '''
         # Create a message with setpoints to send to ROSCO
         message_out = b"%016.5f, %016.5f, %016.5f, %016.5f, %016.5f" % (
             genTorque, nacelleHeading, bladePitch[0], bladePitch[1],

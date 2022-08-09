@@ -114,6 +114,7 @@ ControlParameters:
     Twr_ExclBand:
       <<: *real
       description: One-half of the total frequency exclusion band. Torque controller reference will be Twr_ExclFreq +/- Twr_ExlBand [rad/s]
+    
     TD_Mode:
       <<: *integer
       description: Tower damper mode (0- no tower damper, 1- feed back translational nacelle accelleration to pitch angle

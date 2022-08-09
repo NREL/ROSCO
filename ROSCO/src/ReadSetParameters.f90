@@ -431,27 +431,16 @@ CONTAINS
 
             PRINT *, 'ROSCO: Implementing open loop control for'//TRIM(OL_String)
             CALL Read_OL_Input(CntrPar%OL_Filename,110_IntKi,OL_Count,CntrPar%OL_Channels, ErrVar)
-            PRINT *, "Finished reading OL_Input"
-
-            PRINT *, "CntrPar%Ind_Breakpoint: ", CntrPar%Ind_Breakpoint
 
             CntrPar%OL_Breakpoints = CntrPar%OL_Channels(:,CntrPar%Ind_Breakpoint)
-
-            PRINT *, "CntrPar%Ind_BldPitch: ", CntrPar%Ind_BldPitch
 
             IF (CntrPar%Ind_BldPitch > 0) THEN
                 CntrPar%OL_BldPitch = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch)
             ENDIF
 
-            PRINT *, "CntrPar%Ind_GenTq: ", CntrPar%Ind_GenTq
-
-
             IF (CntrPar%Ind_GenTq > 0) THEN
                 CntrPar%OL_GenTq = CntrPar%OL_Channels(:,CntrPar%Ind_GenTq)
             ENDIF
-
-            PRINT *, "CntrPar%Ind_YawRate: ", CntrPar%Ind_YawRate
-
 
             IF (CntrPar%Ind_YawRate > 0) THEN
                 CntrPar%OL_YawRate = CntrPar%OL_Channels(:,CntrPar%Ind_YawRate)
