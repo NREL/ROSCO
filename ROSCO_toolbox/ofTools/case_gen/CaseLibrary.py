@@ -441,7 +441,7 @@ def sweep_ipc_gains(start_group, **control_sweep_opts):
 def sweep_fad_gains(start_group, **control_sweep_opts):
     case_inputs_control = {}
     g = np.array([0.,0.5,1.,1.5,2.0,2.5,3.0,3.5,4.0,5.0])
-    case_inputs_control[('DISCON_in','TD_Mode')] = {'vals': [1], 'group': start_group}
+    case_inputs_control[('DISCON_in','Twr_Mode')] = {'vals': [1], 'group': start_group}
     case_inputs_control[('DISCON_in','FA_KI')] = {'vals': (g*0.0175).tolist(), 'group': start_group+1}
     case_inputs_control[('DISCON_in','FA_HPFCornerFreq')] = {'vals': [0.1], 'group': start_group}
     case_inputs_control[('DISCON_in','FA_IntSat')] = {'vals': [0.2618], 'group': start_group}

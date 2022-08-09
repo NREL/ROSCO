@@ -167,7 +167,7 @@ properties:
                 maximum: 1
                 default: 0
                 description: Shutdown mode (0- no shutdown procedure, 1- pitch to max pitch at shutdown)
-            TD_Mode:            
+            Twr_Mode:            
                 type: number
                 minimum: 0
                 maximum: 1
