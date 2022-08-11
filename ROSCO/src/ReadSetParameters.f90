@@ -26,11 +26,15 @@ MODULE ReadSetParameters
 CONTAINS
  ! -----------------------------------------------------------------------------------
     ! Read avrSWAP array passed from ServoDyn    
-    SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar)
+    SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar, CntrPar)
         USE ROSCO_Types, ONLY : LocalVariables, ZMQ_Variables
 
         REAL(ReKi), INTENT(INOUT) :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
+        TYPE(ControlParameters), INTENT(IN) :: CntrPar
+
+        ! Allocate Variables:
+        INTEGER(IntKi)                                  :: K            ! Index used for looping through blades.
 
         ! Load variables from calling program (See Appendix A of Bladed User's Guide):
         LocalVar%iStatus            = NINT(avrSWAP(1))
@@ -57,9 +61,19 @@ CONTAINS
             LocalVar%BlPitch(2) = avrSWAP(33)
             LocalVar%BlPitch(3) = avrSWAP(34)
         ELSE
-            LocalVar%BlPitch(1) = LocalVar%PitCom(1)
-            LocalVar%BlPitch(2) = LocalVar%PitCom(2)
-            LocalVar%BlPitch(3) = LocalVar%PitCom(3)      
+            
+            ! Subtract pitch actuator fault for blade K - This in a sense would make the controller blind to the pitch fault
+            IF (CntrPar%PF_Mode == 1) THEN
+                DO K = 1, LocalVar%NumBl
+                    ! This assumes that the pitch actuator fault is hardware fault
+                    LocalVar%BlPitch(K) = LocalVar%PitCom(K) - CntrPar%PF_Offsets(K)
+                END DO
+            ELSE
+                LocalVar%BlPitch(1) = LocalVar%PitCom(1)
+                LocalVar%BlPitch(2) = LocalVar%PitCom(2)
+                LocalVar%BlPitch(3) = LocalVar%PitCom(3)      
+            END IF
+
         ENDIF
 
         IF (LocalVar%iStatus == 0) THEN
