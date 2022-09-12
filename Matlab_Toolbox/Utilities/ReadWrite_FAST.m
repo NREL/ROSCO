@@ -44,7 +44,7 @@ SD_dllP                 = ROSCO2Matlab(SD_dllFile,2);
 PerfFileName            = GetFASTPar(SD_dllP,'PerfFileName');
 
 % Cp Surface
-Cx                      = Pre_LoadRotPerf(fullfile(fast.FAST_directory,PerfFileName(2:end-1)));
+Cx                      = Pre_LoadRotPerf(fullfile(PerfFileName(2:end-1)));
 
 
 %% Write Outputs
