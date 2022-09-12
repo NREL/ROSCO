@@ -140,7 +140,7 @@ class Sim():
             gen_torque[i], bld_pitch[i], nac_yawrate[i] = self.controller_int.call_controller(turbine_state)
 
             # Calculate the power
-            gen_power[i] = gen_speed[i] * gen_torque[i]
+            gen_power[i] = gen_speed[i] * gen_torque[i] * self.turbine.GenEff / 100
 
             # Calculate the nacelle position
             nac_yaw[i] = nac_yaw[i-1] + nac_yawrate[i] * dt
