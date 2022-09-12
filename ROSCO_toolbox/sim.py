@@ -181,7 +181,7 @@ class Sim():
                 ax.grid()
                 ax = axarr[3]
                 ax.plot(self.t_array, self.gen_power/1000)
-                ax.set_ylabel('Gen Power (W)')
+                ax.set_ylabel('Gen Power (kW)')
                 ax.grid()
                 ax = axarr[4]
                 ax.plot(self.t_array, self.bld_pitch*rad2deg)
