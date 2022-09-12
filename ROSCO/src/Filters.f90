@@ -236,6 +236,47 @@ CONTAINS
 
     END FUNCTION NotchFilter
 !-------------------------------------------------------------------------------------------------------------------------------
+    REAL(DbKi) FUNCTION MovingAvgFilter(InputSignal, DT, FilterTime, MA, iStatus, reset)
+    !  Moving Average filter
+        USE ROSCO_Types, ONLY : MovingAvgParameters
+        TYPE(MovingAvgParameters),       INTENT(INOUT)       :: MA 
+
+        REAL(DbKi), INTENT(IN)         :: InputSignal
+        REAL(DbKi), INTENT(IN)         :: DT                       ! time step [s]
+        REAL(DbKi), INTENT(IN)         :: FilterTime               ! corner frequency [rad/s]
+        INTEGER(IntKi), INTENT(IN)      :: iStatus                  ! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
+        ! INTEGER(IntKi), INTENT(INOUT)   :: inst                     ! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
+        LOGICAL(4), INTENT(IN)      :: reset                    ! Reset the filter to the input signal
+
+        INTEGER(IntKi)              :: I, N_buffer 
+        REAL(DbKi)                  :: Sum
+
+        ! Initialization
+        N_buffer = INT(FilterTime/DT)
+        IF ((iStatus == 0) .OR. reset) THEN   
+            ALLOCATE(MA%buffer(N_buffer))
+            DO I=1,size(MA%buffer)
+                MA%buffer(I) = InputSignal
+            ENDDO
+        ENDIF
+
+        ! Push and pop buffer
+        DO I=2,size(MA%buffer)
+            MA%buffer(I-1) = MA%buffer(I)
+        END DO
+        MA%buffer(size(MA%buffer)) = InputSignal
+
+        ! Take average
+        Sum = 0.0
+        DO I=1,size(MA%buffer)
+            Sum = Sum + MA%buffer(I)
+        END DO
+
+        MovingAvgFilter = Sum / FLOAT(N_buffer)
+
+    END FUNCTION MovingAvgFilter
+
+!-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE PreFilterMeasuredSignals(CntrPar, LocalVar, DebugVar, objInst, ErrVar)
     ! Prefilter measured wind turbine signals to separate the filtering from the actual control actions
 
