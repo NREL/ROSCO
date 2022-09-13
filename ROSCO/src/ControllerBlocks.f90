@@ -24,58 +24,68 @@ IMPLICIT NONE
 CONTAINS
 ! -----------------------------------------------------------------------------------
     ! Calculate setpoints for primary control actions    
-    SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+    SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar, objInst, ErrVar)
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, ErrorVariables
         USE Constants
         ! Allocate variables
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
         TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
+        TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
 
-        REAL(DbKi)                                      :: VS_RefSpd        ! Referece speed for variable speed torque controller, [rad/s] 
-        REAL(DbKi)                                      :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
-        REAL(DbKi)                                      :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
 
         ! ----- Pitch controller speed and power error -----
+        
+        ! Power reference tracking rotor speed
+        IF (CntrPar%PRC_Mode == 1) THEN
+            LocalVar%PC_RefSpd = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_RotorSpeeds,LocalVar%WE_Vw_F,ErrVar) * CntrPar%WE_GearboxRatio
+        ENDIF
+        
         ! Implement setpoint smoothing
         IF (LocalVar%SS_DelOmegaF < 0) THEN
-            PC_RefSpd = CntrPar%PC_RefSpd - LocalVar%SS_DelOmegaF
+            LocalVar%PC_RefSpd = LocalVar%PC_RefSpd - LocalVar%SS_DelOmegaF
         ELSE
-            PC_RefSpd = CntrPar%PC_RefSpd
+            LocalVar%PC_RefSpd = LocalVar%PC_RefSpd
         ENDIF
 
-        LocalVar%PC_SpdErr = PC_RefSpd - LocalVar%GenSpeedF            ! Speed error
+        ! Compute error for pitch controller
+        LocalVar%PC_SpdErr = LocalVar%PC_RefSpd - LocalVar%GenSpeedF            ! Speed error
         LocalVar%PC_PwrErr = CntrPar%VS_RtPwr - LocalVar%VS_GenPwr             ! Power error
         
         ! ----- Torque controller reference errors -----
         ! Define VS reference generator speed [rad/s]
         IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
-            VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
-            VS_RefSpd = saturate(VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
+            LocalVar%VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
+            LocalVar%VS_RefSpd = saturate(LocalVar%VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
         ELSE
-            VS_RefSpd = CntrPar%VS_RefSpd
+            LocalVar%VS_RefSpd = CntrPar%VS_RefSpd
         ENDIF 
+
+        ! Implement power reference rotor speed (overwrites above), convert to generator speed
+        IF (CntrPar%PRC_Mode == 1) THEN
+            LocalVar%VS_RefSpd = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_RotorSpeeds,LocalVar%WE_Vw_F,ErrVar) * CntrPar%WE_GearboxRatio
+        ENDIF
         
         ! Implement setpoint smoothing
         IF (LocalVar%SS_DelOmegaF > 0) THEN
-            VS_RefSpd = VS_RefSpd - LocalVar%SS_DelOmegaF
+            LocalVar%VS_RefSpd = LocalVar%VS_RefSpd - LocalVar%SS_DelOmegaF
         ENDIF
 
         ! Force zero torque in shutdown mode
         IF (LocalVar%SD) THEN
-            VS_RefSpd = CntrPar%VS_MinOMSpd
+            LocalVar%VS_RefSpd = CntrPar%VS_MinOMSpd
         ENDIF
 
         ! Force minimum rotor speed
-        VS_RefSpd = max(VS_RefSpd, CntrPar%VS_MinOmSpd)
+        LocalVar%VS_RefSpd = max(LocalVar%VS_RefSpd, CntrPar%VS_MinOmSpd)
 
-        ! TSR-tracking reference error
+        ! TSR-tracking reference error or PRC reference tracking error
         IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
-            LocalVar%VS_SpdErr = VS_RefSpd - LocalVar%GenSpeedF
+            LocalVar%VS_SpdErr = LocalVar%VS_RefSpd - LocalVar%GenSpeedF
         ENDIF
 
         ! Define transition region setpoint errors
-        LocalVar%VS_SpdErrAr = VS_RefSpd - LocalVar%GenSpeedF               ! Current speed error - Region 2.5 PI-control (Above Rated)
+        LocalVar%VS_SpdErrAr = LocalVar%VS_RefSpd - LocalVar%GenSpeedF               ! Current speed error - Region 2.5 PI-control (Above Rated)
         LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd - LocalVar%GenSpeedF     ! Current speed error - Region 1.5 PI-control (Below Rated)
         
         ! Region 3 minimum pitch angle for state machine

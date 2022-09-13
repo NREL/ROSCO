@@ -680,6 +680,22 @@ properties:
                     SS_PCGain:
                         type: number
                         description: Collective pitch controller setpoint smoother gain
+                    PRC_Mode:
+                        type: number
+                        description: Power reference tracking mode, 0- use standard rotor speed set points, 1- use PRC rotor speed setpoints
+                    PRC_WindSpeeds:
+                        type: array
+                        items:
+                            type: number
+                        description: Array of wind speeds used in rotor speed vs. wind speed lookup table
+                    PRC_RotorSpeeds:
+                        type: array
+                        items:
+                            type: number
+                        description: Array of rotor speeds corresponding to PRC_WindSpeeds
+                    PRC_n:
+                        type: number
+                        description: Number of elements in PRC_WindSpeeds and PRC_RotorSpeeds array
                     WE_BladeRadius:
                         type: number
                         description: Blade length (distance from hub center to blade tip)

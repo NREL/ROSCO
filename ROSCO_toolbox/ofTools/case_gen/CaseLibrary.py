@@ -134,7 +134,10 @@ def power_curve(**wind_case_opts):
     else: # default
         # Run conditions
         U = np.arange(4,14.5,.5).tolist()
-        U = np.linspace(9.5,12,num=16)
+        U = np.linspace(3,25,num=16)
+
+    if 'T_max' in wind_case_opts:
+        T_max = wind_case_opts['T_max']
 
 
     case_inputs = base_op_case()
@@ -472,7 +475,7 @@ def sweep_ps_percent(start_group, **control_sweep_opts):
 
         # make default controller, turbine objects for ROSCO_toolbox
         turbine             = ROSCO_turbine.Turbine(turbine_params)
-        turbine.load_from_fast( path_params['FAST_InputFile'],path_params['FAST_directory'], dev_branch=True)
+        turbine.load_from_fast( path_params['FAST_InputFile'],path_params['FAST_directory'], dev_branch=True)  #TODO: this is not working with relative paths in yaml
 
         controller          = ROSCO_controller.Controller(controller_params)
 

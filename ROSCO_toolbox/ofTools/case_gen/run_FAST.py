@@ -179,7 +179,7 @@ class run_FAST_ROSCO():
 if __name__ == "__main__":
 
     # Simulation config
-    sim_config = 11
+    sim_config = 14
     
     r = run_FAST_ROSCO()
 
@@ -269,6 +269,32 @@ if __name__ == "__main__":
         r.save_dir      = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/outputs/PS_steps'
         r.control_sweep_fcn = cl.sweep_ps_percent
         r.n_cores = 4
+
+    elif sim_config == 12:
+
+        # RAAW FAD set up
+        r.tuning_yaml   = '/Users/dzalkind/Projects/BAR/BAR_Designs/BAR_USC/WEIS/ROSCO_BAR_USC.yaml'
+        r.wind_case_fcn = cl.turb_bts
+        r.wind_case_opts    = {
+            'TMax': 720,
+            'wind_filenames': ['/Users/dzalkind/Tools/WEIS-1/outputs/02_loads/wind/IEA15_NTM_U7.000000_Seed1501552846.0.bts']
+            }
+        r.save_dir      = '/Users/dzalkind/Projects/BAR/BAR_Designs/BAR_USC'
+        # r.control_sweep_fcn = cl.sweep_ps_percent
+        r.n_cores = 1
+
+    elif sim_config == 14:
+
+        # RAAW FAD set up
+        r.tuning_yaml   = '/Users/dzalkind/Tools/ROSCO/Tune_Cases/IEA15MW_PRC.yaml'
+        r.wind_case_fcn = cl.power_curve
+        r.wind_case_opts    = {
+            # 'U': [16],
+            'T_max': 200
+            }
+        r.save_dir      = '/Users/dzalkind/Tools/ROSCO/outputs/PRC_2'
+        # r.control_sweep_fcn = cl.sweep_ps_percent
+        r.n_cores = 8
 
     else:
         raise Exception('This simulation configuration is not supported.')

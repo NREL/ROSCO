@@ -237,6 +237,7 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'PC_ControlMode',accINFILE(1),CntrPar%PC_ControlMode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Y_ControlMode',accINFILE(1),CntrPar%Y_ControlMode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'SS_Mode',accINFILE(1),CntrPar%SS_Mode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PRC_Mode',accINFILE(1),CntrPar%PRC_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'WE_Mode',accINFILE(1),CntrPar%WE_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PS_Mode',accINFILE(1),CntrPar%PS_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'SD_Mode',accINFILE(1),CntrPar%SD_Mode,ErrVar)
@@ -313,6 +314,13 @@ CONTAINS
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
         CALL ParseInput(UnControllerParameters,CurLine,'SS_VSGain',accINFILE(1),CntrPar%SS_VSGain,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'SS_PCGain',accINFILE(1),CntrPar%SS_PCGain,ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine) 
+
+        !------------ POWER REFERENCE TRACKING SETPOINTS --------------
+        CALL ReadEmptyLine(UnControllerParameters,CurLine) 
+        CALL ParseInput(UnControllerParameters,CurLine,'PRC_n',accINFILE(1),CntrPar%PRC_n,ErrVar)
+        CALL ParseAry(UnControllerParameters, CurLine, 'PRC_WindSpeeds', CntrPar%PRC_WindSpeeds, CntrPar%PRC_n, accINFILE(1), ErrVar )
+        CALL ParseAry(UnControllerParameters, CurLine, 'PRC_RotorSpeeds', CntrPar%PRC_RotorSpeeds, CntrPar%PRC_n, accINFILE(1), ErrVar )
         CALL ReadEmptyLine(UnControllerParameters,CurLine) 
 
         !------------ WIND SPEED ESTIMATOR CONTANTS --------------
@@ -866,6 +874,10 @@ CONTAINS
         IF (CntrPar%SS_PCGain < 0.0) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'SS_PCGain must be greater than zero.'
+        ENDIF
+
+        IF (CntrPar%PRC_Mode > 0) THEN
+            PRINT *, "Note: PRC Mode = ", CntrPar%PRC_Mode, ", which will ignore VS_RefSpeed, VS_TSRopt, and PC_RefSpeed"
         ENDIF
         
         !------- WIND SPEED ESTIMATOR ---------------------------------------------
