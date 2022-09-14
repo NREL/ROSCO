@@ -324,7 +324,7 @@ TYPE, PUBLIC :: ZMQ_Variables
 END TYPE ZMQ_Variables
 
 TYPE, PUBLIC :: ExtControlType
-    REAL(C_FLOAT), DIMENSION(:), ALLOCATABLE     :: avrSWAP                     ! The swap array- used to pass data to and from the DLL controller [see Bladed DLL documentation]
+    REAL(ReKi), DIMENSION(:), ALLOCATABLE     :: avrSWAP                     ! The swap array- used to pass data to and from the DLL controller [see Bladed DLL documentation]
 END TYPE ExtControlType
 
 END MODULE ROSCO_Types
