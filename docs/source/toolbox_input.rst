@@ -9,7 +9,7 @@ ROSCO_Toolbox tuning .yaml
 Definition of inputs for ROSCO tuning procedure
 
 
-/Users/dzalkind/Tools/ROSCO/ROSCO_toolbox/inputs/toolbox_schema.
+toolbox_schema.
 
 
 
@@ -239,6 +239,14 @@ controller_params
     *Minimum* = 0    *Maximum* = 2
 
 
+:code:`ZMQ_Mode` : Float
+    ZMQ Mode (0 - ZMQ Inteface, 1 - ZMQ for yaw control)
+
+    *Default* = 0
+
+    *Minimum* = 0    *Maximum* = 1
+
+
 :code:`PA_Mode` : Float
     Pitch actuator mode {0 - not used, 1 - first order filter, 2 -
     second order filter}
@@ -246,6 +254,15 @@ controller_params
     *Default* = 0
 
     *Minimum* = 0    *Maximum* = 2
+
+
+:code:`Ext_Mode` : Float
+    External control mode {{0 - not used, 1 - call external dynamic
+    library}}
+
+    *Default* = 0
+
+    *Minimum* = 0    *Maximum* = 1
 
 
 :code:`U_pc` : Array of Floats
@@ -462,6 +479,13 @@ filter_params
     smoother [rad/s]
 
     *Default* = 0.6283
+
+    *Minimum* = 0
+
+:code:`f_yawerr` : Float, rad/s
+    Low pass filter corner frequency for yaw controller [rad/
+
+    *Default* = 0.17952
 
     *Minimum* = 0
 
@@ -868,6 +892,22 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
 
 :code:`Ind_YawRate` : Float
     The column in OL_Filename that contains the generator torque in Nm
+
+:code:`DLL_FileName` : String
+    Name/location of the dynamic library {.dll [Windows] or .so
+    [Linux]} in the Bladed-DLL format
+
+    *Default* = unused
+
+:code:`DLL_InFile` : String
+    Name of input file sent to the DLL
+
+    *Default* = unused
+
+:code:`DLL_ProcName` : String
+    Name of procedure in DLL to be called
+
+    *Default* = DISCON
 
 
 

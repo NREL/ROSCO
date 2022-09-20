@@ -179,7 +179,7 @@ class run_FAST_ROSCO():
 if __name__ == "__main__":
 
     # Simulation config
-    sim_config = 8
+    sim_config = 11
     
     r = run_FAST_ROSCO()
 

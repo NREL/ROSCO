@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
-project(ROSCO VERSION 2.5.0 LANGUAGES Fortran C)
+project(ROSCO VERSION 2.6.0 LANGUAGES Fortran C)
 
 set(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/ftnmods")
 
