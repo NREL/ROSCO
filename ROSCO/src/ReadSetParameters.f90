@@ -66,12 +66,12 @@ CONTAINS
             IF (CntrPar%PF_Mode == 1) THEN
                 DO K = 1, LocalVar%NumBl
                     ! This assumes that the pitch actuator fault is hardware fault
-                    LocalVar%BlPitch(K) = LocalVar%PitCom(K) - CntrPar%PF_Offsets(K)
+                    LocalVar%BlPitch(K) = LocalVar%PitComAct(K) - CntrPar%PF_Offsets(K) ! why is PitCom used and not PitComAct??
                 END DO
             ELSE
-                LocalVar%BlPitch(1) = LocalVar%PitCom(1)
-                LocalVar%BlPitch(2) = LocalVar%PitCom(2)
-                LocalVar%BlPitch(3) = LocalVar%PitCom(3)      
+                LocalVar%BlPitch(1) = LocalVar%PitComAct(1)
+                LocalVar%BlPitch(2) = LocalVar%PitComAct(2)
+                LocalVar%BlPitch(3) = LocalVar%PitComAct(3)      
             END IF
 
         ENDIF
