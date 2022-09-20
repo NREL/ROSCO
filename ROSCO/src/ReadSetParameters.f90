@@ -406,7 +406,7 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'PA_Damping',accINFILE(1),CntrPar%PA_Damping,ErrVar)
         CALL ReadEmptyLine(UnControllerParameters,CurLine)  
 
-        !------------ Pitch Actuator Error ------------
+        !------------ Pitch Actuator Faults ------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
         CALL ParseAry(UnControllerParameters, CurLine,'PF_Offsets', CntrPar%PF_Offsets, 3, accINFILE(1), ErrVar)
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
