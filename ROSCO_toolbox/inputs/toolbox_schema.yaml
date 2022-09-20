@@ -855,6 +855,12 @@ properties:
                         type: string
                         description: Name of procedure in DLL to be called
                         default: DISCON
+                    PF_Offsets:
+                        type: array
+                        items:
+                            type: number
+                        description: Pitch angle offsets for each blade (array with length of 3)
+                        units: rad
 
     linmodel_tuning:
         type: object
