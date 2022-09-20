@@ -1,9 +1,9 @@
 '''
------------ Example_16 ------------------------
+----------- Example_18 ------------------------
 Run openfast with ROSCO and pitch offset faults
 -----------------------------------------------
 
-IEA-15MW will call NREL-5MW controller and read control inputs
+Set up and run simulation with pitch offsets, check outputs
 
 '''
 
@@ -40,8 +40,8 @@ def main():
     controller_params['PF_Mode'] = 1    # Set pitch fault mode to pitch offsets
     controller_params['DISCON'] = {}
 
-    pitch2_offset = 1
-    pitch3_offset = -2
+    pitch2_offset = 1       # deg
+    pitch3_offset = -2      # deg
     controller_params['DISCON']['PF_Offsets'] =  [0.,float(np.radians(pitch2_offset)),float(np.radians(pitch3_offset))]
 
     # simulation set up
@@ -64,19 +64,8 @@ def main():
 
 
     # Check pitch offsets
-    cases = {}
-    cases['Baseline'] = ['Wind1VelX', 'BldPitch1', 'GenTq', 'RotSpeed']
-    # cases['Rotor'] = ['BldPitch1', 'GenTq', 'GenPwr']
-    # cases['Platform Motion'] = ['PtfmSurge', 'PtfmSway', 'PtfmHeave', 'PtfmPitch','PtfmRoll','PtfmYaw']
-
     filenames = [os.path.join(run_dir,'IEA15MW/simp_step/base/IEA15MW_0.outb')]
-
-
-    # Instantiate fast_IO
     fast_out = output_processing.output_processing()
-    # Can also do:
-    # fast_out = output_processing.output_processing(filenames=filenames, cases=cases)
-    # fast_out.plot_fast_out()
 
     # Load and plot
     fastout = fast_out.load_fast_out(filenames)
