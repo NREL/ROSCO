@@ -1016,7 +1016,13 @@ CONTAINS
         
         IF (NINT(avrSWAP(28)) == 0 .AND. ((CntrPar%IPC_ControlMode > 0) .OR. (CntrPar%Y_ControlMode > 1))) THEN
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'IPC enabled, but Ptch_Cntrl in ServoDyn has a value of 0. Set it to 1.'
+            ErrVar%ErrMsg  = 'IPC enabled, but Ptch_Cntrl in ServoDyn has a value of 0. Set it to 1 for individual pitch control.'
+        ENDIF
+
+        ! PF_Mode = 1
+        IF (NINT(avrSWAP(28)) == 0 .AND. (CntrPar%PF_Mode == 1)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'Pitch offset fault enabled (PF_Mode = 1), but Ptch_Cntrl in ServoDyn has a value of 0. Set it to 1 for individual pitch control.'
         ENDIF
 
         ! DT
