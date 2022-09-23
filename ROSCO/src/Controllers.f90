@@ -96,7 +96,7 @@ CONTAINS
         
         ! Saturate collective pitch commands:
         LocalVar%PC_PitComT = saturate(LocalVar%PC_PitComT, LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
-        LocalVar%PC_PitComT = ratelimit(LocalVar%PC_PitComT, LocalVar%PC_PitComT_Last, CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
+        LocalVar%PC_PitComT = ratelimit(LocalVar%PC_PitComT, CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL) ! Saturate the overall command of blade K using the pitch rate limit
         LocalVar%PC_PitComT_Last = LocalVar%PC_PitComT
 
         ! Combine and saturate all individual pitch commands in software
@@ -105,7 +105,7 @@ CONTAINS
             LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the pitch satauration limits
             LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%IPC_PitComF(K)                                          ! Add IPC
             LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the absolute pitch angle limits
-            LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), LocalVar%BlPitch(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
+            LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL) ! Saturate the overall command of blade K using the pitch rate limit
         END DO
 
         ! Open Loop control, use if
@@ -136,7 +136,7 @@ CONTAINS
             ! Saturate the pitch command using the overall (hardware) limit
             LocalVar%PitComAct(K) = saturate(LocalVar%PitComAct(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)
             ! Saturate the overall command of blade K using the pitch rate limit
-            LocalVar%PitComAct(K) = ratelimit(LocalVar%PitComAct(K), LocalVar%BlPitch(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT) ! Saturate the overall command of blade K using the pitch rate limit
+            LocalVar%PitComAct(K) = ratelimit(LocalVar%PitComAct(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL) ! Saturate the overall command of blade K using the pitch rate limit
         END DO
 
         ! Add pitch actuator fault for blade K
@@ -153,6 +153,8 @@ CONTAINS
         avrSWAP(43) = LocalVar%PitComAct(2)    ! "
         avrSWAP(44) = LocalVar%PitComAct(3)    ! "
         avrSWAP(45) = LocalVar%PitComAct(1)    ! Use the command angle of blade 1 if using collective pitch
+
+        LocalVar%PitComAct_Last = LocalVar%PitComAct
 
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN
@@ -230,7 +232,7 @@ CONTAINS
         LocalVar%GenTq = MIN(LocalVar%GenTq, CntrPar%VS_MaxTq)                    ! Saturate the command using the maximum torque limit
         
         ! Saturate the commanded torque using the torque rate limit:
-        LocalVar%GenTq = ratelimit(LocalVar%GenTq, LocalVar%VS_LastGenTrq, -CntrPar%VS_MaxRat, CntrPar%VS_MaxRat, LocalVar%DT)    ! Saturate the command using the torque rate limit
+        LocalVar%GenTq = ratelimit(LocalVar%GenTq, -CntrPar%VS_MaxRat, CntrPar%VS_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL)    ! Saturate the command using the torque rate limit
         
         ! Open loop torque control
         IF ((CntrPar%OL_Mode == 1) .AND. (CntrPar%Ind_GenTq > 0)) THEN

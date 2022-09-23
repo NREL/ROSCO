@@ -652,6 +652,12 @@ FilterParameters:
       dimension: (99)
       description: Notch filter denominator coefficient 0  
 
+rlParams:
+    LastSignal:
+      <<: *real
+      dimension: (99)
+      description: Last input signal
+
 piParams:
     ITerm:
       <<: *real
@@ -820,7 +826,7 @@ LocalVariables:
       size: 3
     PitComAct:                  
       <<: *real 
-      description: Actuated pitch of each blade the last time the controller was called [rad].
+      description: Actuated pitch command of each blade [rad].
       size: 3
     SS_DelOmegaF:                 
       <<: *real 
@@ -911,6 +917,10 @@ LocalVariables:
       <<: *derived_type
       id: piParams
       description: PI parameters derived type
+    rlP:
+      <<: *derived_type
+      id: rlParams
+      description: Rate limiter parameters derived type
 
 ObjectInstances:
   instLPF:
@@ -931,6 +941,9 @@ ObjectInstances:
   instPI:
     <<: *integer
     description: PI controller instance
+  instRL:
+    <<: *integer
+    description: Rate limiter instance
 
 PerformanceData:
   TSR_vec:

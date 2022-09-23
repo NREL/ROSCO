@@ -120,6 +120,7 @@ CONTAINS
         objInst%instNotchSlopes = 1
         objInst%instNotch       = 1
         objInst%instPI          = 1
+        objInst%instRL          = 1
         
         ! Set unused outputs to zero (See Appendix A of Bladed User's Guide):
         avrSWAP(35) = 1.0 ! Generator contactor status: 1=main (high speed) variable-speed generator

@@ -176,6 +176,10 @@ TYPE, PUBLIC :: FilterParameters
     REAL(DbKi), DIMENSION(99)     :: nf_a0                       ! Notch filter denominator coefficient 0
 END TYPE FilterParameters
 
+TYPE, PUBLIC :: rlParams
+    REAL(DbKi), DIMENSION(99)     :: LastSignal                  ! Last input signal
+END TYPE rlParams
+
 TYPE, PUBLIC :: piParams
     REAL(DbKi), DIMENSION(99)     :: ITerm                       ! Integrator term
     REAL(DbKi), DIMENSION(99)     :: ITermLast                   ! Previous integrator term
@@ -230,7 +234,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: IPC_KP(2)                   ! Proportional gain for IPC, after ramp [-]
     INTEGER(IntKi)                :: PC_State                    ! State of the pitch control system
     REAL(DbKi)                    :: PitCom(3)                   ! Commanded pitch of each blade the last time the controller was called [rad].
-    REAL(DbKi)                    :: PitComAct(3)                ! Actuated pitch of each blade the last time the controller was called [rad].
+    REAL(DbKi)                    :: PitComAct(3)                ! Actuated pitch command of each blade [rad].
     REAL(DbKi)                    :: SS_DelOmegaF                ! Filtered setpoint shifting term defined in setpoint smoother [rad/s].
     REAL(DbKi)                    :: TestType                    ! Test variable, no use
     REAL(DbKi)                    :: VS_MaxTq                    ! Maximum allowable generator torque [Nm].
@@ -259,6 +263,7 @@ TYPE, PUBLIC :: LocalVariables
     TYPE(WE)                      :: WE                          ! Wind speed estimator parameters derived type
     TYPE(FilterParameters)        :: FP                          ! Filter parameters derived type
     TYPE(piParams)                :: piP                         ! PI parameters derived type
+    TYPE(rlParams)                :: rlP                         ! Rate limiter parameters derived type
 END TYPE LocalVariables
 
 TYPE, PUBLIC :: ObjectInstances
@@ -268,6 +273,7 @@ TYPE, PUBLIC :: ObjectInstances
     INTEGER(IntKi)                :: instNotchSlopes             ! Notch filter slopes instance
     INTEGER(IntKi)                :: instNotch                   ! Notch filter instance
     INTEGER(IntKi)                :: instPI                      ! PI controller instance
+    INTEGER(IntKi)                :: instRL                      ! Rate limiter instance
 END TYPE ObjectInstances
 
 TYPE, PUBLIC :: PerformanceData
