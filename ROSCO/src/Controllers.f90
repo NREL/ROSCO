@@ -154,8 +154,6 @@ CONTAINS
         avrSWAP(44) = LocalVar%PitComAct(3)    ! "
         avrSWAP(45) = LocalVar%PitComAct(1)    ! Use the command angle of blade 1 if using collective pitch
 
-        LocalVar%PitComAct_Last = LocalVar%PitComAct
-
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN
             ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
