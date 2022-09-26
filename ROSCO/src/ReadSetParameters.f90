@@ -26,11 +26,15 @@ MODULE ReadSetParameters
 CONTAINS
  ! -----------------------------------------------------------------------------------
     ! Read avrSWAP array passed from ServoDyn    
-    SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar)
+    SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar, CntrPar)
         USE ROSCO_Types, ONLY : LocalVariables, ZMQ_Variables
 
         REAL(ReKi), INTENT(INOUT) :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
+        TYPE(ControlParameters), INTENT(IN) :: CntrPar
+
+        ! Allocate Variables:
+        INTEGER(IntKi)                                  :: K            ! Index used for looping through blades.
 
         ! Load variables from calling program (See Appendix A of Bladed User's Guide):
         LocalVar%iStatus            = NINT(avrSWAP(1))
@@ -57,9 +61,19 @@ CONTAINS
             LocalVar%BlPitch(2) = avrSWAP(33)
             LocalVar%BlPitch(3) = avrSWAP(34)
         ELSE
-            LocalVar%BlPitch(1) = LocalVar%PitCom(1)
-            LocalVar%BlPitch(2) = LocalVar%PitCom(2)
-            LocalVar%BlPitch(3) = LocalVar%PitCom(3)      
+            
+            ! Subtract pitch actuator fault for blade K - This in a sense would make the controller blind to the pitch fault
+            IF (CntrPar%PF_Mode == 1) THEN
+                DO K = 1, LocalVar%NumBl
+                    ! This assumes that the pitch actuator fault is hardware fault
+                    LocalVar%BlPitch(K) = LocalVar%PitComAct(K) - CntrPar%PF_Offsets(K) ! why is PitCom used and not PitComAct??
+                END DO
+            ELSE
+                LocalVar%BlPitch(1) = LocalVar%PitComAct(1)
+                LocalVar%BlPitch(2) = LocalVar%PitComAct(2)
+                LocalVar%BlPitch(3) = LocalVar%PitComAct(3)      
+            END IF
+
         ENDIF
 
         IF (LocalVar%iStatus == 0) THEN
@@ -106,6 +120,7 @@ CONTAINS
         objInst%instNotchSlopes = 1
         objInst%instNotch       = 1
         objInst%instPI          = 1
+        objInst%instRL          = 1
         
         ! Set unused outputs to zero (See Appendix A of Bladed User's Guide):
         avrSWAP(35) = 1.0 ! Generator contactor status: 1=main (high speed) variable-speed generator
@@ -245,6 +260,7 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_Mode',accINFILE(1),CntrPar%Flp_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'OL_Mode',accINFILE(1),CntrPar%OL_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PA_Mode',accINFILE(1),CntrPar%PA_Mode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'PF_Mode',accINFILE(1),CntrPar%PF_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Ext_Mode',accINFILE(1),CntrPar%Ext_Mode,ErrVar)
 		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_Mode',accINFILE(1), CntrPar%ZMQ_Mode,ErrVar)
 
@@ -389,6 +405,11 @@ CONTAINS
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
         CALL ParseInput(UnControllerParameters,CurLine,'PA_CornerFreq',accINFILE(1),CntrPar%PA_CornerFreq,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PA_Damping',accINFILE(1),CntrPar%PA_Damping,ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)  
+
+        !------------ Pitch Actuator Faults ------------
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseAry(UnControllerParameters, CurLine,'PF_Offsets', CntrPar%PF_Offsets, 3, accINFILE(1), ErrVar)
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
         
         !------------ External control interface ------------
@@ -996,7 +1017,13 @@ CONTAINS
         
         IF (NINT(avrSWAP(28)) == 0 .AND. ((CntrPar%IPC_ControlMode > 0) .OR. (CntrPar%Y_ControlMode > 1))) THEN
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'IPC enabled, but Ptch_Cntrl in ServoDyn has a value of 0. Set it to 1.'
+            ErrVar%ErrMsg  = 'IPC enabled, but Ptch_Cntrl in ServoDyn has a value of 0. Set it to 1 for individual pitch control.'
+        ENDIF
+
+        ! PF_Mode = 1
+        IF (NINT(avrSWAP(28)) == 0 .AND. (CntrPar%PF_Mode == 1)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'Pitch offset fault enabled (PF_Mode = 1), but Ptch_Cntrl in ServoDyn has a value of 0. Set it to 1 for individual pitch control.'
         ENDIF
 
         ! DT

@@ -176,12 +176,14 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%piP%ITermLast
         WRITE( Un, IOSTAT=ErrStat) LocalVar%piP%ITerm2
         WRITE( Un, IOSTAT=ErrStat) LocalVar%piP%ITermLast2
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%rlP%LastSignal
         WRITE( Un, IOSTAT=ErrStat) objInst%instLPF
         WRITE( Un, IOSTAT=ErrStat) objInst%instSecLPF
         WRITE( Un, IOSTAT=ErrStat) objInst%instHPF
         WRITE( Un, IOSTAT=ErrStat) objInst%instNotchSlopes
         WRITE( Un, IOSTAT=ErrStat) objInst%instNotch
         WRITE( Un, IOSTAT=ErrStat) objInst%instPI
+        WRITE( Un, IOSTAT=ErrStat) objInst%instRL
         Close ( Un )
     ENDIF
 END SUBROUTINE WriteRestartFile
@@ -356,12 +358,14 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%piP%ITermLast
         READ( Un, IOSTAT=ErrStat) LocalVar%piP%ITerm2
         READ( Un, IOSTAT=ErrStat) LocalVar%piP%ITermLast2
+        READ( Un, IOSTAT=ErrStat) LocalVar%rlP%LastSignal
         READ( Un, IOSTAT=ErrStat) objInst%instLPF
         READ( Un, IOSTAT=ErrStat) objInst%instSecLPF
         READ( Un, IOSTAT=ErrStat) objInst%instHPF
         READ( Un, IOSTAT=ErrStat) objInst%instNotchSlopes
         READ( Un, IOSTAT=ErrStat) objInst%instNotch
         READ( Un, IOSTAT=ErrStat) objInst%instPI
+        READ( Un, IOSTAT=ErrStat) objInst%instRL
         Close ( Un )
     ENDIF
     ! Read Parameter files
