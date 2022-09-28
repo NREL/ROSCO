@@ -12,6 +12,13 @@ default_types:
     size: 0                # Use this if the type IS an array (size:3 --> REAL(8), BldPitch(3))
     allocatable: False
     equals: 
+  float: &float
+    type: float
+    description: 
+    dimension:             # Use this if a higher-dimensional allocatable array (dimension:(:,:) --> REAL(8), DIMESION(:,:), ALLOCATABLE)
+    size: 0                # Use this if the type IS an array (size:3 --> REAL(8), BldPitch(3))
+    allocatable: False
+    equals: 
   character: &character
     type: character
     description: 
@@ -1093,7 +1100,7 @@ ZMQ_Variables:
     
 ExtControlType:
   avrSWAP:
-    <<: *c_float
+    <<: *float
     description: The swap array- used to pass data to and from the DLL controller [see Bladed DLL documentation]
     allocatable: True
     dimension: (:)

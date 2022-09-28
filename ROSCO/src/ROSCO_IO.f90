@@ -196,7 +196,7 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
     TYPE(PerformanceData), INTENT(INOUT)            :: PerfData
     TYPE(ErrorVariables), INTENT(INOUT)             :: ErrVar
     TYPE(ZMQ_Variables), INTENT(INOUT)              :: zmqVar
-    REAL(C_FLOAT), INTENT(IN)                       :: avrSWAP(*)
+    REAL(ReKi), INTENT(IN)                          :: avrSWAP(*)
     INTEGER(IntKi), INTENT(IN)                      :: size_avcOUTNAME
     CHARACTER(size_avcOUTNAME-1), INTENT(IN)        :: RootName 
     

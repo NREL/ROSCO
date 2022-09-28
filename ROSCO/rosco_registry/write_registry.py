@@ -125,7 +125,7 @@ def write_roscoio(yfile):
     file.write("    TYPE(PerformanceData), INTENT(INOUT)            :: PerfData\n")
     file.write("    TYPE(ErrorVariables), INTENT(INOUT)             :: ErrVar\n")
     file.write("    TYPE(ZMQ_Variables), INTENT(INOUT)              :: zmqVar\n")
-    file.write("    REAL(C_FLOAT), INTENT(IN)                       :: avrSWAP(*)\n")
+    file.write("    REAL(ReKi), INTENT(IN)                          :: avrSWAP(*)\n")
     file.write("    INTEGER(IntKi), INTENT(IN)                      :: size_avcOUTNAME\n")
     file.write("    CHARACTER(size_avcOUTNAME-1), INTENT(IN)        :: RootName \n")
     file.write("    \n")
@@ -329,6 +329,15 @@ def read_type(param):
             f90type += ', DIMENSION(:), ALLOCATABLE'
     elif param['type'] == 'real':
         f90type = 'REAL(DbKi)'
+        if param['allocatable']:
+            if param['dimension']:
+                f90type += ', DIMENSION{}, ALLOCATABLE'.format(param['dimension'])
+            else:
+                f90type += ', DIMENSION(:), ALLOCATABLE'
+        elif param['dimension']:
+            f90type += ', DIMENSION{}'.format(param['dimension'])
+    elif param['type'] == 'float':
+        f90type = 'REAL(ReKi)'
         if param['allocatable']:
             if param['dimension']:
                 f90type += ', DIMENSION{}, ALLOCATABLE'.format(param['dimension'])
