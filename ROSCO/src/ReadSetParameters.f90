@@ -46,8 +46,8 @@ CONTAINS
         LocalVar%rootMOOP(1)        = avrSWAP(30)
         LocalVar%rootMOOP(2)        = avrSWAP(31)
         LocalVar%rootMOOP(3)        = avrSWAP(32)
-        LocalVar%FA_Acc             = avrSWAP(53)
-        LocalVar%NacIMU_FA_Acc      = avrSWAP(83)
+        LocalVar%FA_Acc             = avrSWAP(53)       ! Translational
+        LocalVar%NacIMU_FA_Acc      = avrSWAP(83)       ! Rotational    
         LocalVar%Azimuth            = avrSWAP(60)
         LocalVar%NumBl              = NINT(avrSWAP(61))
 

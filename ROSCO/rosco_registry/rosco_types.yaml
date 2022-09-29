@@ -871,6 +871,10 @@ LocalVariables:
       <<: *real 
     FA_AccF:
       <<: *real 
+    FA_vel:
+      <<: *real
+    NacIMU_FA_vel:
+      <<: *real 
     Flp_Angle:
       <<: *real 
       description: Flap Angle (rad)
