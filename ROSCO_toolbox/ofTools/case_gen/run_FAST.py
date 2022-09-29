@@ -38,6 +38,7 @@ class run_FAST_ROSCO():
         self.n_cores            = 1
         self.base_name          = ''
         self.controller_params  = {}   
+        self.openfast_exe       = 'openfast'
 
     def run_FAST(self):
         # set up run directory
@@ -154,7 +155,7 @@ class run_FAST_ROSCO():
             fastBatch.case_list         = case_list
             fastBatch.case_name_list    = case_name_list
             fastBatch.debug_level       = 2
-            fastBatch.FAST_exe          = 'openfast'
+            fastBatch.FAST_exe          = self.openfast_exe
 
             if MPI:
                 fastBatch.run_mpi(comm_map_down)
