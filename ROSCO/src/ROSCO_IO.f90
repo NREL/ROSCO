@@ -426,18 +426,18 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     DebugOutData(20) = DebugVar%YawRateCom
     DebugOutData(21) = DebugVar%NacHeadingTarget
     DebugOutData(22) = DebugVar%NacVaneOffset
-    DebugOutData(23) = DebugVar%Yaw_err
+    DebugOutData(23) = DebugVar%Yaw_Err
     DebugOutData(24) = DebugVar%YawState
     DebugOutStrings = [CHARACTER(15) ::  'WE_Cp', 'WE_b', 'WE_w', 'WE_t', 'WE_Vm', & 
                                       'WE_Vt', 'WE_Vw', 'WE_lambda', 'PC_PICommand', 'GenSpeedF', & 
                                       'RotSpeedF', 'NacIMU_FA_AccF', 'FA_AccF', 'Fl_PitCom', 'PC_MinPit', & 
                                       'axisTilt_1P', 'axisYaw_1P', 'axisTilt_2P', 'axisYaw_2P', 'YawRateCom', & 
-                                      'NacHeadingTarget', 'NacVaneOffset', 'Yaw_err', 'YawState']
+                                      'NacHeadingTarget', 'NacVaneOffset', 'Yaw_Err', 'YawState']
     DebugOutUnits = [CHARACTER(15) ::  '[-]', '[-]', '[-]', '[-]', '[m/s]', & 
                                       '[m/s]', '[m/s]', '[rad]', '[rad]', '[rad/s]', & 
                                       '[rad/s]', '[rad/s]', '[m/s]', '[rad]', '[rad]', & 
                                       '', '', '', '', '[rad/s]', & 
-                                      '[rad]', '[rad]', '[rad]', '']
+                                      '[deg]', '[deg]', '[deg]', '']
     nLocalVars = 69
     Allocate(LocalVarOutData(nLocalVars))
     Allocate(LocalVarOutStrings(nLocalVars))
