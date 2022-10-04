@@ -181,6 +181,10 @@ TYPE, PUBLIC :: piParams
     REAL(DbKi), DIMENSION(99)     :: ITermLast2                  ! Previous integrator term - second integrator
 END TYPE piParams
 
+TYPE, PUBLIC :: MovingAvgParameters
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: buffer                      ! Buffer of moving average inputs
+END TYPE MovingAvgParameters
+
 TYPE, PUBLIC :: LocalVariables
     INTEGER(IntKi)                :: iStatus                     ! Initialization status
     REAL(DbKi)                    :: Time                        ! Time [s]
@@ -249,6 +253,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None
     REAL(DbKi)                    :: FA_AccF                     ! None
+    REAL(DbKi)                    :: FA_AccAvg                   ! None
     REAL(DbKi)                    :: FA_vel                      ! None
     REAL(DbKi)                    :: NacIMU_FA_vel               ! None
     REAL(DbKi)                    :: Flp_Angle(3)                ! Flap Angle (rad)
@@ -258,6 +263,7 @@ TYPE, PUBLIC :: LocalVariables
     LOGICAL                       :: restart                     ! Restart flag
     TYPE(WE)                      :: WE                          ! Wind speed estimator parameters derived type
     TYPE(FilterParameters)        :: FP                          ! Filter parameters derived type
+    TYPE(MovingAvgParameters)     :: MA                          ! Moving average parameters derived type
     TYPE(piParams)                :: piP                         ! PI parameters derived type
 END TYPE LocalVariables
 

@@ -280,13 +280,15 @@ CONTAINS
     SUBROUTINE PreFilterMeasuredSignals(CntrPar, LocalVar, DebugVar, objInst, ErrVar)
     ! Prefilter measured wind turbine signals to separate the filtering from the actual control actions
 
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, DebugVariables, ObjectInstances, ErrorVariables
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, DebugVariables, ObjectInstances, ErrorVariables, MovingAvgParameters
         
         TYPE(ControlParameters), INTENT(INOUT)      :: CntrPar
         TYPE(LocalVariables),    INTENT(INOUT)      :: LocalVar
         TYPE(DebugVariables),    INTENT(INOUT)      :: DebugVar
         TYPE(ObjectInstances),   INTENT(INOUT)      :: objInst
         TYPE(ErrorVariables),   INTENT(INOUT)       :: ErrVar
+
+        TYPE(MovingAvgParameters), SAVE           :: MA_Acc
         INTEGER(IntKi) :: K  ! Integer used to loop through turbine blades
 
         ! If there's an error, don't even try to run
@@ -311,10 +313,13 @@ CONTAINS
         IF (CntrPar%Fl_Mode > 0) THEN
             ! Force to start at 0
             LocalVar%NacIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
-            LocalVar%FA_AccF = SecLPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
+            LocalVar%FA_AccAvg = MovingAvgFilter(LocalVar%FA_Acc,LocalVar%DT,10.0_DbKi,MA_Acc,LocalVar%iStatus,LocalVar%restart)
+            LocalVar%FA_AccF = LocalVar%FA_Acc - LocalVar%FA_AccAvg
+            LocalVar%FA_AccF = SecLPFilter(LocalVar%FA_AccF, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
             LocalVar%NacIMU_FA_AccF = HPFilter(LocalVar%NacIMU_FA_AccF, LocalVar%DT, CntrPar%F_FlHighPassFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF) 
             LocalVar%FA_AccF = HPFilter(LocalVar%FA_AccF, LocalVar%DT, CntrPar%F_FlHighPassFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF) 
             
+
             IF (CntrPar%F_NotchType >= 2) THEN
                 LocalVar%NACIMU_FA_AccF = NotchFilter(LocalVar%NacIMU_FA_AccF, LocalVar%DT, CntrPar%F_NotchCornerFreq, CntrPar%F_NotchBetaNumDen(1), CntrPar%F_NotchBetaNumDen(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch) ! Fixed Damping
                 LocalVar%FA_AccF = NotchFilter(LocalVar%FA_AccF, LocalVar%DT, CntrPar%F_NotchCornerFreq, CntrPar%F_NotchBetaNumDen(1), CntrPar%F_NotchBetaNumDen(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch) ! Fixed Damping

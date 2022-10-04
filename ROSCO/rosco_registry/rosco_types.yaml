@@ -661,6 +661,13 @@ piParams:
       dimension: (99)
       description: Previous integrator term - second integrator
 
+MovingAvgParameters:
+    buffer:
+      <<: *real
+      allocatable: True
+      description: Buffer of moving average inputs
+
+
 LocalVariables:
     iStatus: 
       <<: *integer 
@@ -871,6 +878,8 @@ LocalVariables:
       <<: *real 
     FA_AccF:
       <<: *real 
+    FA_AccAvg:
+      <<: *real 
     FA_vel:
       <<: *real
     NacIMU_FA_vel:
@@ -902,6 +911,10 @@ LocalVariables:
       <<: *derived_type
       id: FilterParameters
       description: Filter parameters derived type
+    MA:
+      <<: *derived_type
+      id: MovingAvgParameters
+      description: Moving average parameters derived type
     piP:
       <<: *derived_type
       id: piParams
