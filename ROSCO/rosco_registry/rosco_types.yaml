@@ -1034,13 +1034,13 @@ DebugVariables:
     description: Commanded yaw rate [rad/s].
   NacHeadingTarget:
     <<: *real
-    description: Target nacelle heading [rad].
+    description: Target nacelle heading [deg].
   NacVaneOffset:
     <<: *real
-    description: Nacelle vane angle with offset [rad].
-  Yaw_err:
+    description: Nacelle vane angle with offset [deg].
+  Yaw_Err:
     <<: *real
-    description: Yaw error [rad].
+    description: Yaw error [deg].
   YawState:
     <<: *real
     description: State of yaw controller
