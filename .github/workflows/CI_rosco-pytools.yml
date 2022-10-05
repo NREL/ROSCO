@@ -92,34 +92,44 @@ jobs:
           python-version: 3.8
           environment-file: environment.yml
 
+      # setup cmake
+      - name: Setup Workspace
+        run: cmake -E make_directory ${{runner.workspace}}/ROSCO/ROSCO/build
 
       # Install dependencies of ROSCO toolbox
       - name: Add dependencies ubuntu specific
-        if: false == contains( matrix.os, 'windows')
         run: |
           conda install -y wisdem
-      - name: Add dependencies windows specific
-        if: true == contains( matrix.os, 'windows')
-        run: |
-          conda install -y m2w64-toolchain libpython 
-          conda install -y wisdem
+
       - name: Add pyFAST dependency
-        if: false == contains( matrix.os, 'windows')
         run: |
           git clone http://github.com/OpenFAST/python-toolbox
           cd python-toolbox
           python -m pip install -e .
         
+      # Install ZeroMQ
+      - name: Install ZeroMQ
+        run: sudo apt-get install libzmq3-dev
 
       # Install ROSCO toolbox
       - name: Install ROSCO toolbox
         run: |
-          python setup.py install --compile-rosco
+          python setup.py develop 
+
+      - name: Configure and Build ROSCO - unix
+        working-directory: ${{runner.workspace}}/ROSCO/ROSCO/build
+        run: |
+          cmake \
+            -DCMAKE_INSTALL_PREFIX:PATH=${{runner.workspace}}/ROSCO/ROSCO/install \
+            -DZMQ_CLIENT=ON \
+            -DCMAKE_Fortran_COMPILER:STRING=${{env.FORTRAN_COMPILER}} \
+            ..
+          cmake --build . --target install
           
       # Install OpenFAST
       - name: Install OpenFAST
         run: |
-          conda install openfast==3.1.0
+          conda install openfast==3.2.0
           
       # Run examples
       - name: Run examples
@@ -127,6 +137,21 @@ jobs:
           cd Examples
           python run_examples.py
 
+      # Test walkthrough notebook
+      - name: Test walkthrough notebook
+        run: |
+          cd Examples
+          treon ROSCO_walkthrough.ipynb
+
+      # Archive artifacts
+      - name: Archive production artifacts
+        if: success() || failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: ROSCO-artifacts
+          path: |
+            ${{runner.workspace}}
+            
   run_testing:
     name: Run Testing
     runs-on: ${{ matrix.os }}
@@ -156,8 +181,7 @@ jobs:
 
 
       # Install dependencies of ROSCO toolbox
-      - name: Add dependencies ubuntu specific
-        if: false == contains( matrix.os, 'windows')
+      - name: Add dependencies
         run: |
           conda install -y wisdem
         
@@ -165,12 +189,12 @@ jobs:
       # Install ROSCO toolbox
       - name: Install ROSCO toolbox
         run: |
-          python setup.py develop --compile-rosco
+          python setup.py install --compile-rosco
           
       # Install OpenFAST
       - name: Install OpenFAST
         run: |
-          conda install openfast==3.1.0
+          conda install openfast==3.2.0
 
       # Run ROSCO Testing
       - name: Run ROSCO testing
@@ -182,4 +206,4 @@ jobs:
       - name: Run regression testing
         run: |
           cd ROSCO_testing
-          python regtest.py
+          python test_checkpoint.py

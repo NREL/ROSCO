@@ -99,7 +99,11 @@ def base_op_case():
     case_inputs[('ServoDyn', 'SpdGenOn')] = {'vals': [0.], 'group': 0}
     case_inputs[('ServoDyn', 'TimGenOn')] = {'vals': [0.], 'group': 0}
     case_inputs[('ServoDyn', 'GenModel')] = {'vals': [1], 'group': 0}
-    
+
+    case_inputs[('ServoDyn', 'VSContrl')] = {'vals': [5], 'group': 0}
+    case_inputs[('ServoDyn', 'PCMode')] = {'vals': [5], 'group': 0}
+    case_inputs[('ServoDyn', 'HSSBrMode')] = {'vals': [5], 'group': 0}
+    case_inputs[('ServoDyn', 'YCMode')] = {'vals': [5], 'group': 0}    
 
     # AeroDyn
     case_inputs[("AeroDyn15", "WakeMod")] = {'vals': [1], 'group': 0}
@@ -149,26 +153,22 @@ def simp_step(**wind_case_opts):
 
     if 'T_Max' in wind_case_opts:
         T_max = wind_case_opts['T_Max']
-    else:
-        # Default Runtime
+    else: #default
         T_max   = 300.
 
     if 'U_start' in wind_case_opts:
         U_start = wind_case_opts['U_start']
-    else:
-        # Default Runtime
+    else: #default
         U_start   = [16]
 
     if 'U_end' in wind_case_opts:
         U_end = wind_case_opts['U_end']
-    else:
-        # Default Runtime
+    else: #default
         U_end   = [17]
 
     if 'T_step' in wind_case_opts:
         T_step = wind_case_opts['T_step']
-    else:
-        # Default Runtime
+    else: #default
         T_step   = 150
 
     # Step Wind Setup
@@ -450,6 +450,13 @@ def sweep_fad_gains(start_group, **control_sweep_opts):
 
     return case_inputs_control
 
+def sweep_max_torque(start_group, **control_sweep_opts):
+    case_inputs_control = {}
+    max_torque = np.array([1.,1.05,1.1,1.15,1.2]) * 18651.96057000 
+    case_inputs_control[('DISCON_in','VS_MaxTq')] = {'vals': max_torque, 'group': start_group}
+
+    return case_inputs_control
+
 def sweep_ps_percent(start_group, **control_sweep_opts):
         case_inputs_control = {}
         
@@ -488,6 +495,15 @@ def sweep_ps_percent(start_group, **control_sweep_opts):
         case_inputs_control[('DISCON_in', 'PS_WindSpeeds')] = {'vals': ps_ws, 'group': start_group}
 
         return case_inputs_control
+
+
+def test_pitch_offset(start_group, **control_sweep_opts):
+    case_inputs_control = {}
+    case_inputs_control[('DISCON_in','PF_Mode')] = {'vals': [1], 'group': start_group}
+    case_inputs_control[('DISCON_in','PF_Offsets')] = {'vals': [[0,float(np.radians(2)),0]], 'group': start_group}
+    return case_inputs_control
+
+
 
 
 #  def sweep_pc_mode(cont_yaml,omega=np.linspace(.05,.35,8,endpoint=True).tolist(),zeta=[1.5],group=2):

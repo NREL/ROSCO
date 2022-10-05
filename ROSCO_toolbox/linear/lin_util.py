@@ -66,7 +66,7 @@ def pc_closedloop(linturb, controller, u):
     Cs = interp_pitch_controller(controller, u)
 
     # Combine controller and plant
-    sys_cl = feedback(1, Cs*P)
+    sys_cl = feedback(Cs*P, 1)
 
     return sys_cl
 
@@ -102,21 +102,33 @@ def pc_sensitivity(linturb, controller, u):
     return sens
 
 def smargin(linturb, controller, u_eval):
-    # try:
-    #     k_float = inputs[1]
-    # except:
+    '''
+    Calculates the stability margin for an open-loop system
+
+    linturb: object
+        LinearTurbineModel object
+    controller: object
+        ROSCO toolbox controller object
+    u_eval: float
+        wind speed to evaluate system at
+    '''
+
+    # Find standard transfer functions
     sens_sys = pc_sensitivity(linturb, controller, u_eval)
     ol_sys = pc_openloop(linturb, controller, u_eval)
-
+    # Convert to state space
     sp_plant = sp.signal.StateSpace(ol_sys.A, ol_sys.B, ol_sys.C, ol_sys.D)
     sp_sens = sp.signal.StateSpace(sens_sys.A, sens_sys.B, sens_sys.C, sens_sys.D)
 
+    # Minimum distance to the critical point on the nyquist diagram
     def nyquist_min(om): return np.abs(sp.signal.freqresp(sp_plant, w=om)[1] + 1.)
+    # Maximum value of sensitivity function
     def sens_min(om): return -sp.signal.bode(sp_sens, w=om)[1]
 
     with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        # Find first local maxima in sensitivity function
+        warnings.simplefilter("ignore") # NJA: Lots of scipy errors because of poorly posed state matrices - ignore them
+        
+        # Find first local maximum in bode magnitude of the sensitivity function
         ws, m, _ = sp.signal.bode(sp_sens, n=100000)
         m0 = m[0]
         m1 = m[1]
@@ -128,27 +140,44 @@ def smargin(linturb, controller, u_eval):
             i += 1
             w0 = ws[i]
 
+        # --- Find important magnitudes and related frequencies with just the sampled values ---
+        #    # NJA - optimization is run in the next "step" to fine tune these values further
+        # magnitude of sensitivity function at first local maximum
         sm_mag = sp.signal.freqresp(sp_plant, w=w0)[1]
         sm = np.sqrt((1 - np.abs(sm_mag.real))**2 + sm_mag.imag**2)
+        # magnitude and frequency of distance to critical point on nyquist
         nearest_nyquist = nyquist_min(ws).min()
         nearest_nyquist_freq = ws[nyquist_min(ws).argmin()]
         mag_at_min = sp.signal.freqresp(sp_plant, w=nearest_nyquist_freq)[1]
+
+        # If any poles of the sensitivity function are unstable, solve an optimization problem on the Nyquist trajectory
+        # to minimize the distance to the critical point over all frequencies. Start the gradient-based optimization at
+        # the nearest value calculated in the sweep above
+        #: NJA - optimization is done to reduce precision errors 
         if any(sp_sens.poles > 0):
             if nearest_nyquist < sm:
                 res = sp.optimize.minimize(nyquist_min, nearest_nyquist_freq, method='SLSQP', options={
                     'finite_diff_rel_step': 1e-8})
-                sm2 = min(abs(res.fun), abs(nearest_nyquist))
+                # Make sure this didn't fail
+                if res.status != 0:
+                    # if optimization failed, just use the closest value from the initial sweep
+                    sm2 = nearest_nyquist
+                else:
+                    sm2 = min(abs(res.fun), abs(nearest_nyquist))
 
+                # Dubious error catching because of strange nyquist shapes in unstable systems
                 sm_list = [sm, sm2]
                 mag_list = [np.abs(sm_mag), np.abs(mag_at_min)]
                 sm = sm_list[np.argmax(mag_list)]
-            sm *= -1  # Flip sign because it's unstable
-        else:
+            sm *= -1  # Flip sign to have a "negative sensitivity margin" because it's unstable
+        else: # system is stable
             res = sp.optimize.minimize(nyquist_min, nearest_nyquist_freq, method='SLSQP',
                                        options={'finite_diff_rel_step': 1e-6})
-            sm = min(res.fun, nearest_nyquist)
-
-
+            if res.status != 0:
+                 # if optimization failed, just use the closest value from the initial sweep
+                sm = nearest_nyquist
+            else:
+                sm = min(res.fun, nearest_nyquist)
 
     return sm
 
@@ -172,10 +201,16 @@ def interp_plant(linturb, v, return_scipy=True):
     '''
 
     # Find interpolated plant on v
-    Ap = interp_matrix(linturb.u_h, linturb.A_ops, v)
-    Bp = interp_matrix(linturb.u_h, linturb.B_ops, v)
-    Cp = interp_matrix(linturb.u_h, linturb.C_ops, v)
-    Dp = interp_matrix(linturb.u_h, linturb.D_ops, v)
+    if np.shape(linturb.A_ops)[2] > 1:
+        Ap = interp_matrix(linturb.u_h, linturb.A_ops, v)
+        Bp = interp_matrix(linturb.u_h, linturb.B_ops, v)
+        Cp = interp_matrix(linturb.u_h, linturb.C_ops, v)
+        Dp = interp_matrix(linturb.u_h, linturb.D_ops, v)
+    else: 
+        Ap = np.squeeze(linturb.A_ops, axis=2)
+        Bp = np.squeeze(linturb.B_ops, axis=2)
+        Cp = np.squeeze(linturb.C_ops, axis=2)
+        Dp = np.squeeze(linturb.D_ops, axis=2)
 
     if return_scipy:
         P = sp.signal.StateSpace(Ap, Bp, Cp, Dp)
@@ -234,6 +269,7 @@ def add_pcomp(linturb, k_float):
         Modified linturb with parallel compensation term included
     '''
 
+    # Find relevant state and input indices
     state_str = 'derivative of 1st tower fore-aft'
     state_idx = np.flatnonzero(np.core.defchararray.find(
         linturb.DescStates, state_str) > -1).tolist()
@@ -241,8 +277,10 @@ def add_pcomp(linturb, k_float):
     input_idx = np.flatnonzero(np.core.defchararray.find(
         linturb.DescCntrlInpt, input_str) > -1).tolist()
 
+    # Modify linear system to be \dot{x} = (A+B_fK)x + Bu, 
+    #   - B_fKx accounts for parallel compensation in the linear system
     K = np.zeros((linturb.B_ops.shape[1], linturb.A_ops.shape[1], linturb.A_ops.shape[2]))
-    K[input_idx, state_idx, :] = -k_float # NJA: negative to account of OF linearization sign conventions
+    K[input_idx, state_idx, :] = -k_float # NJA: negative to account for OpenFAST linearization sign conventions
 
     linturb2 = copy.copy(linturb)
     linturb2.A_ops = linturb.A_ops + linturb.B_ops * K

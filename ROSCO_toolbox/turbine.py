@@ -151,18 +151,36 @@ class Turbine():
             txt_filename: str, optional
                           filename for *.txt, only used if rot_source='txt'
         """
+        # Use weis if it exists
         if use_weis:
             from weis.aeroelasticse.FAST_reader import InputReader_OpenFAST
         else:
             from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
 
+        # Load OpenFAST model using the FAST_reader
         print('Loading FAST model: %s ' % FAST_InputFile)
         self.TurbineName = FAST_InputFile.strip('.fst')
         fast = self.fast = InputReader_OpenFAST()
         fast.FAST_InputFile = FAST_InputFile
         fast.FAST_directory = FAST_directory
-        fast.execute()
 
+        fast.read_MainInput()
+        fast.read_ElastoDyn()
+
+        
+        fast.read_AeroDyn15()
+
+        fast.read_ServoDyn()
+        fast.read_DISCON_in()
+    
+        
+        if fast.fst_vt['Fst']['CompHydro'] == 1: # SubDyn not yet implimented
+            fast.read_HydroDyn()
+
+        # fast.read_AeroDyn15()
+        # fast.execute()
+
+        # Use Performance tables if defined, otherwise use defaults
         if txt_filename:
             self.rotor_performance_filename = txt_filename
         else:
@@ -175,7 +193,7 @@ class Turbine():
         self.hubHt              = fast.fst_vt['ElastoDyn']['TowerHt'] + fast.fst_vt['ElastoDyn']['Twr2Shft']
         self.NumBl              = fast.fst_vt['ElastoDyn']['NumBl']
         self.TowerHt            = fast.fst_vt['ElastoDyn']['TowerHt']
-        self.shearExp           = 0.2  #HARD CODED FOR NOW
+        self.shearExp           = 0.2  #NOTE: HARD CODED 
         if 'default' in str(fast.fst_vt['AeroDyn15']['AirDens']):
             fast.fst_vt['AeroDyn15']['AirDens'] = 1.225
         self.rho                = fast.fst_vt['AeroDyn15']['AirDens']
@@ -196,7 +214,6 @@ class Turbine():
         self.J = self.rotor_inertia + self.generator_inertia * self.Ng**2
         self.rated_torque = self.rated_power/(self.GenEff/100*self.rated_rotor_speed*self.Ng)
         self.rotor_radius = self.TipRad
-        # self.omega_dt = np.sqrt(self.DTTorSpr/self.J)
 
         # Load blade information
         self.load_blade_info()
@@ -267,18 +284,14 @@ class Turbine():
         pitch_flat = pitch_mesh.flatten()
         omega_mesh, _ = np.meshgrid(omega_array, pitch_initial)
         omega_flat = omega_mesh.flatten()
-        # tsr_flat = (omega_flat * rpm2RadSec * self.rotor_radius)  / ws_flat
 
 
         # Get values from cc-blade
         print('Running CCBlade aerodynamic analysis, this may take a minute...')
-        try: # wisde/master as of Nov 9, 2020
-            _, _, _, _, CP, CT, CQ, CM = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
-        except(ValueError): # wisdem/dev as of Nov 9, 2020
-            outputs, derivs = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
-            CP = outputs['CP']
-            CT = outputs['CT']
-            CQ = outputs['CQ']
+        outputs, derivs = self.cc_rotor.evaluate(ws_flat, omega_flat, pitch_flat, coefficients=True)
+        CP = outputs['CP']
+        CT = outputs['CT']
+        CQ = outputs['CQ']
         print('CCBlade aerodynamic analysis run successfully.')
 
         # Reshape Cp, Ct and Cq
@@ -321,8 +334,7 @@ class Turbine():
             from ROSCO_toolbox.ofTools.case_gen import runFAST_pywrapper, CaseGen_General
             from ROSCO_toolbox.ofTools.util import FileTools
         # Load pCrunch tools
-        from pCrunch import pdTools, Processing
-
+        from pCrunch import Processing
 
         # setup values for surface
         v0 = self.v_rated + 2
@@ -391,7 +403,7 @@ class Turbine():
 
 
         # FAST details
-        fastBatch = runFAST_pywrapper.runFAST_pywrapper_batch(FAST_ver='OpenFAST', dev_branch=True)
+        fastBatch = runFAST_pywrapper.runFAST_pywrapper_batch()
         fastBatch.FAST_exe = openfast_path  # Path to executable
         fastBatch.FAST_InputFile = self.fast.FAST_InputFile
         fastBatch.FAST_directory = self.fast.FAST_directory
@@ -595,14 +607,15 @@ class RotorPerformance():
         if len(self.max_ind[1]) > 1:
             print('ROSCO_toolbox Warning: repeated maximum values in a performance table and the last one @ pitch = {} rad. was taken...'.format(self.pitch_opt[-1]))
 
-        TSR_ind = np.arange(0,len(TSR_initial))
-        TSR_fine_ind = np.linspace(TSR_initial[0],TSR_initial[-1],int(TSR_initial[-1] - TSR_initial[0])*100)
-        f_TSR = interpolate.interp1d(TSR_initial,TSR_initial,bounds_error='False',kind='quadratic')    # interpolate function for Cp(tsr) values
-        TSR_fine = f_TSR(TSR_fine_ind)
-        f_performance = interpolate.interp1d(TSR_initial,performance_beta_max,bounds_error='False',kind='quadratic')    # interpolate function for Cp(tsr) values
-        performance_fine = f_performance(TSR_fine_ind)
-        performance_max_ind = np.where(performance_fine == np.max(performance_fine))
-        self.TSR_opt = float(TSR_fine[performance_max_ind[0]])
+        # Find TSR that maximizes Cx at fine pitch
+        # - TSR to satisfy: max( Cx(TSR, \beta_fine) ) = TSR_opt
+        TSR_fine_ind = np.linspace(TSR_initial[0],TSR_initial[-1],int(TSR_initial[-1] - TSR_initial[0])*100) # Range of TSRs to interpolate accross
+        f_TSR = interpolate.interp1d(TSR_initial,TSR_initial,bounds_error='False',kind='quadratic')          # interpolate function for Cp(tsr) values
+        TSR_fine = f_TSR(TSR_fine_ind) # TSRs at fine pitch
+        f_performance = interpolate.interp1d(TSR_initial,performance_beta_max,bounds_error='False',kind='quadratic')    # interpolate function for Cx(tsr) values
+        performance_fine = f_performance(TSR_fine_ind) # Cx values at fine pitch
+        performance_max_ind = np.where(performance_fine == np.max(performance_fine)) # Find max performance at fine pitch
+        self.TSR_opt = float(TSR_fine[performance_max_ind[0]])  # TSR to maximize Cx at fine pitch
 
     def interp_surface(self,pitch,TSR):
         '''
@@ -659,10 +672,12 @@ class RotorPerformance():
         max_beta_id = self.pitch_initial_rad[max_ind[1]]
         max_tsr_id = self.TSR_initial[max_ind[0]]
 
-        P = plt.contourf(self.pitch_initial_rad * rad2deg, self.TSR_initial, self.performance_table, 
-                        levels=20)
+        cbarticks = np.linspace(0.0,self.performance_table.max(),20)
+
+        P = plt.contourf(self.pitch_initial_rad * rad2deg, self.TSR_initial, self.performance_table, cbarticks)
+                        # levels=20,vmin=0)
         plt.colorbar(format='%1.3f')
-        plt.title('Power Coefficient', fontsize=14, fontweight='bold')
+        # plt.title('Power Coefficient', fontsize=14, fontweight='bold')
         plt.xlabel('Pitch Angle [deg]', fontsize=14, fontweight='bold')
         plt.ylabel('TSR [-]', fontsize=14, fontweight='bold')
         plt.scatter(max_beta_id * rad2deg, max_tsr_id, color='red')
