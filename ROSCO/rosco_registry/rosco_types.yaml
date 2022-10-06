@@ -723,6 +723,9 @@ LocalVariables:
       <<: *real
       description: Blade pitch [rad]
       size: 3
+    BlPitchC: 
+      <<: *real
+      description: Mean (collective) blade pitch [rad]
     Azimuth: 
       <<: *real 
       description: Rotor aziumuth angle [rad]
