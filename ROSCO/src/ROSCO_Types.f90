@@ -200,6 +200,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: rootMOOP(3)                 ! Blade root bending moment [Nm]
     REAL(DbKi)                    :: rootMOOPF(3)                ! Filtered Blade root bending moment [Nm]
     REAL(DbKi)                    :: BlPitch(3)                  ! Blade pitch [rad]
+    REAL(DbKi)                    :: BlPitchC                    ! Mean (collective) blade pitch [rad]
     REAL(DbKi)                    :: Azimuth                     ! Rotor aziumuth angle [rad]
     INTEGER(IntKi)                :: NumBl                       ! Number of blades [-]
     REAL(DbKi)                    :: FA_Acc                      ! Tower fore-aft acceleration [m/s^2]

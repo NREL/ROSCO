@@ -71,10 +71,12 @@ CONTAINS
             ELSE
                 LocalVar%BlPitch(1) = LocalVar%PitComAct(1)
                 LocalVar%BlPitch(2) = LocalVar%PitComAct(2)
-                LocalVar%BlPitch(3) = LocalVar%PitComAct(3)      
+                LocalVar%BlPitch(3) = LocalVar%PitComAct(3)     
             END IF
 
         ENDIF
+
+        LocalVar%BlPitchC = (1 / REAL(LocalVar%NumBl)) * (LocalVar%BlPitch(1) + LocalVar%BlPitch(2) + LocalVar%BlPitch(3)) 
 
         IF (LocalVar%iStatus == 0) THEN
             LocalVar%restart = .True.

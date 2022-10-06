@@ -593,42 +593,6 @@ CONTAINS
         
     END FUNCTION sigma
 
-!-------------------------------------------------------------------------------------------------------------------------------
-    REAL(DbKi) FUNCTION sigma(x, x0, x1, y0, y1, ErrVar)
-    ! Generic sigma function
-        USE ROSCO_Types, ONLY : ErrorVariables
-        IMPLICIT NONE
-    
-        ! Inputs
-        TYPE(ErrorVariables), INTENT(INOUT) :: ErrVar
-
-        REAL(DbKi), Intent(IN)  :: x, x0, x1
-        REAL(DbKi), Intent(IN)  :: y0, y1
-            
-        ! Local
-        REAL(DbKi) :: a3, a2, a1, a0
-
-        CHARACTER(*), PARAMETER                 :: RoutineName = 'sigma'
-
-        a3 = 2/(x0-x1)**3
-        a2 = -3*(x0+x1)/(x0-x1)**3
-        a1 = 6*x1*x0/(x0-x1)**3
-        a0 = (x0-3*x1)*x0**2/(x0-x1)**3
-
-        IF (x < x0) THEN
-            sigma = y0
-        ELSEIF (x > x1) THEN
-            sigma = y1
-        ELSE
-            sigma = (a3*x**3 + a2*x**2 + a1*x + a0)*(y1-y0) + y0
-        ENDIF 
-
-        ! Add RoutineName to error message
-        IF (ErrVar%aviFAIL < 0) THEN
-            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
-        ENDIF
-        
-    END FUNCTION sigma
 
 
 !-------------------------------------------------------------------------------------------------------------------------------
