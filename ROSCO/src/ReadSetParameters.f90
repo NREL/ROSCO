@@ -807,9 +807,9 @@ CONTAINS
             ErrVar%ErrMsg  = 'Corner frequency of IPC actuator model must be positive, or set to 0 to disable.'
         ENDIF
 
-        IF (CntrPar%IPC_SatMode < 0 .OR. CntrPar%IPC_SatMode > 2)  THEN
+        IF (CntrPar%IPC_SatMode < 0 .OR. CntrPar%IPC_SatMode > 3)  THEN
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'IPC_SatMode must be 0, 1, or 2.'
+            ErrVar%ErrMsg  = 'IPC_SatMode must be 0, 1, 2, or 3.'
         ENDIF
 
         IF (CntrPar%IPC_KI(1) < 0.0)  THEN

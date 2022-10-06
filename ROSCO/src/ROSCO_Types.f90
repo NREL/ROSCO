@@ -234,6 +234,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: IPC_AxisYaw_2P              ! Integral of quadrature, 2P
     REAL(DbKi)                    :: IPC_KI(2)                   ! Integral gain for IPC, after ramp [-]
     REAL(DbKi)                    :: IPC_KP(2)                   ! Proportional gain for IPC, after ramp [-]
+    REAL(DbKi)                    :: IPC_IntSat                  ! Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
     INTEGER(IntKi)                :: PC_State                    ! State of the pitch control system
     REAL(DbKi)                    :: PitCom(3)                   ! Commanded pitch of each blade the last time the controller was called [rad].
     REAL(DbKi)                    :: PitComAct(3)                ! Actuated pitch command of each blade [rad].

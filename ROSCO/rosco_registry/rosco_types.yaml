@@ -830,6 +830,9 @@ LocalVariables:
       <<: *real
       description: Proportional gain for IPC, after ramp [-]
       size: 2
+    IPC_IntSat:
+      <<: *real
+      description: Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
     PC_State:                     
       <<: *integer 
       description: State of the pitch control system
