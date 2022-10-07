@@ -121,8 +121,10 @@ def read_scada(scada_file,mbc=False):
 def main():
 
     # Ensure external control paths are okay
+    wind_bin = 981
     parameter_filename = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/ROSCO/RAAW_rosco_BD.yaml'
-    run_dir = os.path.join(example_out_dir,'19_RotPos_SCADA_0')
+    run_dir = os.path.join(example_out_dir,'19_RotPos_SCADA_17')
+    gains = -1800 * np.array([12,1.2,120])
     os.makedirs(run_dir,exist_ok=True)
 
     # Case input for RotSpeed IC
@@ -162,7 +164,7 @@ def main():
         olc.ol_timeseries['azimuth'] = np.radians(fast_out[0]['Azimuth'])
     else:
         # print('here')
-        scada_file = '/Users/dzalkind/Box/EXT - RAAW data sharing/GE Proprietary/Data Assimilation (Mid-Fidelity)/Historical Data/v31/_Diagnostics/_GeneralDiagnostic/_TurbineConditions_Timeseries_Bin762.csv'
+        scada_file = f'/Users/dzalkind/Box/EXT - RAAW data sharing/GE Proprietary/Data Assimilation (Mid-Fidelity)/Historical Data/v31/_Diagnostics/_GeneralDiagnostic/_TurbineConditions_Timeseries_Bin{wind_bin}.csv'
         df = read_scada(scada_file)
                 
         # Simple integrate
@@ -189,7 +191,7 @@ def main():
     controller_params['OL_Mode'] = 2
     controller_params['PA_Mode'] = 0
     controller_params['DISCON'] = {}
-    controller_params['DISCON']['RP_Gains'] = -3e4 * np.array([1,1e-1,1e1])
+    controller_params['DISCON']['RP_Gains'] = gains
     controller_params['DISCON']['PC_MinPit'] = np.radians(-20)
 
 
@@ -199,12 +201,14 @@ def main():
     r.base_name     = 'rpc'
     r.wind_case_opts    = {
         'TMax': 150,
-        'wind_filenames': ['/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/wind/bin762-turbsim.bts']
+        'wind_filenames': [f'/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/wind/bin{wind_bin}-turbsim.bts']
         }
     # Set initial conditions
     r.case_inputs = {}
     r.case_inputs[("ElastoDyn","RotSpeed")]      = {'vals':[df.RotSpd[0]], 'group':0}
     r.case_inputs[("ElastoDyn","Azimuth")]      = {'vals':[np.degrees(int_RotSpeed[0])], 'group':0}
+    r.case_inputs[("ServoDyn","Ptch_Cntrl")]      = {'vals':[1], 'group':0}
+
     r.controller_params = controller_params
     r.openfast_exe = '/Users/dzalkind/opt/anaconda3/envs/rosco-env2/bin/openfast'
     r.run_FAST()

@@ -137,11 +137,10 @@ CONTAINS
             piP%ITerm(objInst%instPI) = saturate(piP%ITerm(objInst%instPI), minValue, maxValue)
 
             ! Derivative (filtered)
-            EFilt = LPFilter(error, DT, tf, LocalVar%FP, LocalVar%iStatus, reset, objInst%instLPF)
             DTerm = kd * (EFilt - piP%ELast(objInst%instPI)) / DT
             
             ! Saturate all
-            PIDController = saturate(PTerm + piP%ITerm(objInst%instPI), minValue, maxValue)
+            PIDController = saturate(PTerm + piP%ITerm(objInst%instPI) + DTerm, minValue, maxValue)
         
             ! Save lasts
             piP%ITermLast(objInst%instPI) = piP%ITerm(objInst%instPI)
