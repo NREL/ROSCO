@@ -556,6 +556,20 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
         100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')
     END IF
 
+    ! Process DebugOutData, LocalVarOutData
+    ! Remove very small numbers that cause ******** outputs
+    DO I = 1,SIZE(DebugOutData)
+        IF (ABS(DebugOutData(I)) < 1E-10) THEN
+            DebugOutData(I) = 0
+        END IF
+    END DO
+    
+    DO I = 1,SIZE(LocalVarOutData)
+        IF (ABS(LocalVarOutData(I)) < 1E-10) THEN
+            LocalVarOutData(I) = 0
+        END IF
+    END DO
+    
     ! Write debug files
     IF(CntrPar%LoggingLevel > 0) THEN
         WRITE (UnDb, FmtDat)  LocalVar%Time, DebugOutData
