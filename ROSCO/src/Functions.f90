@@ -49,21 +49,40 @@ CONTAINS
     END FUNCTION saturate
     
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(DbKi) FUNCTION ratelimit(inputSignal, inputSignalPrev, minRate, maxRate, DT)
+    REAL(DbKi) FUNCTION ratelimit(inputSignal, minRate, maxRate, DT, reset, rlP, inst)
     ! Saturates inputValue. Makes sure it is not smaller than minValue and not larger than maxValue
+        USE ROSCO_Types, ONLY : rlParams
+
+        
         IMPLICIT NONE
 
-        REAL(DbKi), INTENT(IN)     :: inputSignal
-        REAL(DbKi), INTENT(IN)     :: inputSignalPrev
-        REAL(DbKi), INTENT(IN)     :: minRate
-        REAL(DbKi), INTENT(IN)     :: maxRate
-        REAL(DbKi), INTENT(IN)     :: DT
+        REAL(DbKi), INTENT(IN)          :: inputSignal
+        REAL(DbKi), INTENT(IN)          :: minRate
+        REAL(DbKi), INTENT(IN)          :: maxRate
+        REAL(DbKi), INTENT(IN)          :: DT
+        LOGICAL,    INTENT(IN)         :: reset  
+        TYPE(rlParams), INTENT(INOUT)   :: rlP
+        INTEGER(IntKi), INTENT(INOUT)   :: inst
+
         ! Local variables
         REAL(DbKi)                 :: rate
 
-        rate = (inputSignal - inputSignalPrev)/DT                       ! Signal rate (unsaturated)
-        rate = saturate(rate, minRate, maxRate)                 ! Saturate the signal rate
-        ratelimit = inputSignalPrev + rate*DT                       ! Saturate the overall command using the rate limit
+        IF (reset) THEN
+            rlP%LastSignal(inst) = inputSignal
+            ratelimit = inputSignal
+            
+        ELSE
+            rate = (inputSignal - rlP%LastSignal(inst))/DT                       ! Signal rate (unsaturated)
+            rate = saturate(rate, minRate, maxRate)                 ! Saturate the signal rate
+
+            ratelimit = rlP%LastSignal(inst) + rate*DT  
+
+            rlP%LastSignal(inst) = ratelimit
+
+        ENDIF
+
+        ! Increment instance
+        inst = inst + 1                     ! Saturate the overall command using the rate limit
 
     END FUNCTION ratelimit
 
@@ -591,6 +610,7 @@ CONTAINS
         ENDIF
         
     END FUNCTION sigma
+
 
 
 !-------------------------------------------------------------------------------------------------------------------------------

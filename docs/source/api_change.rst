@@ -9,7 +9,24 @@ The changes are tabulated according to the line number, and flag name.
 The line number corresponds to the resulting line number after all changes are implemented.
 Thus, be sure to implement each in order so that subsequent line numbers are correct.
 
-2.5.0 to ROSCO develop
+2.6.0 to develop
+-------------------------------
+Pitch Faults
+- Constant pitch actuator offsets (PF_Mode = 1)
+
+====== =================    ======================================================================================================================================================================================================
+New in ROSCO develop
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Line    Input Name           Example Value
+====== =================    ======================================================================================================================================================================================================
+23     PF_Mode              0                   ! PF_Mode           - Pitch fault mode {0 - not used, 1 - constant offset on one or more blades}
+139    PF_Section           !------- Pitch Actuator Faults ---------------------------------------------------------
+140    PF_Offsets           0.00000000 0.00000000 0.00000000                 ! PF_Offsets     - Constant blade pitch offsets for blades 1-3 [rad]
+141    Empty Line          
+====== =================    ======================================================================================================================================================================================================
+
+
+2.5.0 to 2.6.0
 -------------------------------
 IPC
 - A wind speed based soft cut-in using a sigma interpolation is added for the IPC controller
@@ -23,17 +40,20 @@ External Control Interface
 ZeroMQ Interface
 - Communicate with an external routine via ZeroMQ. Only yaw control currently supported
 
+Updated yaw control
+- Filter wind direction with deadband, and yaw until direction error changes signs (https://iopscience.iop.org/article/10.1088/1742-6596/1037/3/032011)
+
 ====== =================    ======================================================================================================================================================================================================
-New in ROSCO develop
+New in ROSCO 2.6.0
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
 19     TD_Mode              0                    ! TD_Mode           - Tower damper mode {0: no tower damper, 1: feed back translational nacelle accelleration to pitch angle}
-21     PA_Mode              0                    ! PA_Mode           - Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
+22     PA_Mode              0                    ! PA_Mode           - Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
 23     Ext_Mode             0                    ! Ext_Mode          - External control mode {0 - not used, 1 - call external dynamic library}
 24     ZMQ_Mode             0                    ! ZMQ_Mode          - Fuse ZeroMQ interaface {0: unused, 1: Yaw Control}
 33     F_YawErr             0.17952              ! F_YawErr          - Low pass filter corner frequency for yaw controller [rad/s].
-49     IPC_Vramp            9.120000  11.400000  ! IPC_Vramp	     - Start and end wind speeds for cut-in ramp function. First entry: IPC inactive, second entry: IPC fully active. [m/s]
+54     IPC_Vramp            9.120000  11.400000  ! IPC_Vramp	     - Start and end wind speeds for cut-in ramp function. First entry: IPC inactive, second entry: IPC fully active. [m/s]
 96     Y_uSwitch            0.00000              ! Y_uSwitch		 - Wind speed to switch between Y_ErrThresh. If zero, only the first value of Y_ErrThresh is used [m/s]
 133    Empty Line           N/A
 134    PitchActSec          !------- Pitch Actuator Model -----------------------------------------------------
@@ -51,17 +71,17 @@ Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
 
 ====== =================    ======================================================================================================================================================================================================
-Modified in ROSCO develop
+Modified in ROSCO 2.6.0
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
-97     Y_ErrThresh          4.000000  8.000000   ! Y_ErrThresh    - Yaw error threshold. Turbine begins to yaw when it passes this. If Y_uSwitch is zero, only the first value is used. [deg].
+97     Y_ErrThresh          4.000000  8.000000   ! Y_ErrThresh    - Yaw error threshold/deadband. Turbine begins to yaw when it passes this. If Y_uSwitch is zero, only the first value is used. [deg].
 98     Y_Rate               0.00870              ! Y_Rate			- Yaw rate [rad/s]
 99     Y_MErrSet            0.00000              ! Y_MErrSet		- Integrator saturation (maximum signal amplitude contribution to pitch from yaw-by-IPC), [rad]
 ====== =================    ======================================================================================================================================================================================================
 
 ====== =================    ======================================================================================================================================================================================================
-Removed in ROSCO develop
+Removed in ROSCO 2.6.0
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
@@ -75,16 +95,11 @@ Line    Input Name           Example Value
 ROSCO v2.4.1 to ROSCO v2.5.0
 -------------------------------
 Two filter parameters were added to 
-
-
 - change the high pass filter in the floating feedback module
-
 - change the low pass filter of the wind speed estimator signal that is used in torque control
 
 Open loop control inputs, users must specify:
-
 - The open loop input filename, an example can be found in Examples/Example_OL_Input.dat
-
 - Indices (columns) of values specified in OL_Filename
 
 IPC

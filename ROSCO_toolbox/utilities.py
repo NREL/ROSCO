@@ -87,8 +87,9 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! Flp_Mode          - Flap control mode {{0: no flap control, 1: steady state flap angle, 2: Proportional flap control, 2: Cyclic (1P) flap control}}\n'.format(int(rosco_vt['Flp_Mode'])))
     file.write('{0:<12d}        ! OL_Mode           - Open loop control mode {{0: no open loop control, 1: open loop control vs. time}}\n'.format(int(rosco_vt['OL_Mode'])))
     file.write('{0:<12d}        ! PA_Mode           - Pitch actuator mode {{0 - not used, 1 - first order filter, 2 - second order filter}}\n'.format(int(rosco_vt['PA_Mode'])))
+    file.write('{0:<12d}        ! PF_Mode           - Pitch fault mode {{0 - not used, 1 - constant offset on one or more blades}}\n'.format(int(rosco_vt['PF_Mode'])))
     file.write('{0:<12d}        ! Ext_Mode          - External control mode {{0 - not used, 1 - call external dynamic library}}\n'.format(int(rosco_vt['Ext_Mode'])))
-    file.write('{0:<12d}        ! ZMQ_Mode          - Fuse ZeroMQ interaface {{0: unused, 1: Yaw Control}}\n'.format(int(rosco_vt['ZMQ_Mode'])))
+    file.write('{0:<12d}        ! ZMQ_Mode          - Fuse ZeroMQ interface {{0: unused, 1: Yaw Control}}\n'.format(int(rosco_vt['ZMQ_Mode'])))
 
     file.write('\n')
     file.write('!------- FILTERS ----------------------------------------------------------\n') 
@@ -121,7 +122,8 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('\n')
     file.write('!------- INDIVIDUAL PITCH CONTROL -----------------------------------------\n')
     file.write('{}! IPC_Vramp		- Start and end wind speeds for cut-in ramp function. First entry: IPC inactive, second entry: IPC fully active. [m/s]\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['IPC_Vramp'][i]) for i in range(len(rosco_vt['IPC_Vramp'])))))
-    file.write('{:<13.1f}       ! IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from IPC), [rad]\n'.format(rosco_vt['IPC_IntSat'])) # Hardcode to 5 degrees
+    file.write('{:<11d}         ! IPC_SatMode		- IPC Saturation method (0 - no saturation (except by PC_MinPit), 1 - saturate by PS_BldPitchMin, 2 - saturate sotfly (full IPC cycle) by PC_MinPit, 3 - saturate softly by PS_BldPitchMin)\n'.format(int(rosco_vt['IPC_SatMode']))) # Hardcode to 5 degrees
+    file.write('{:<13.1f}       ! IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from IPC), [rad]\n'.format(rosco_vt['IPC_IntSat'])) 
     file.write('{}! IPC_KP			- Proportional gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions, [-]\n'.format(''.join('{:<4.3e} '.format(rosco_vt['IPC_KP'][i]) for i in range(len(rosco_vt['IPC_KP'])))))
     file.write('{}! IPC_KI			- Integral gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions, [-]\n'.format(''.join('{:<4.3e} '.format(rosco_vt['IPC_KI'][i]) for i in range(len(rosco_vt['IPC_KI'])))))
     file.write('{}! IPC_aziOffset		- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. \n'.format(''.join('{:<4.6f}  '.format(rosco_vt['IPC_aziOffset'][i]) for i in range(len(rosco_vt['IPC_aziOffset'])))))
@@ -163,7 +165,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('\n')
     file.write('!------- YAW CONTROL ------------------------------------------------------\n')
     file.write('{:<13.5f}       ! Y_uSwitch		- Wind speed to switch between Y_ErrThresh. If zero, only the first value of Y_ErrThresh is used [m/s]\n'.format(rosco_vt['Y_uSwitch']))
-    file.write('{}! Y_ErrThresh    - Yaw error threshold. Turbine begins to yaw when it passes this. If Y_uSwitch is zero, only the first value is used. [deg].\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['Y_ErrThresh'][i]) for i in range(len(rosco_vt['F_FlCornerFreq'])))))
+    file.write('{}! Y_ErrThresh    - Yaw error threshold/deadband. Turbine begins to yaw when it passes this. If Y_uSwitch is zero, only the first value is used. [deg].\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['Y_ErrThresh'][i]) for i in range(len(rosco_vt['F_FlCornerFreq'])))))
     file.write('{:<13.5f}       ! Y_Rate			- Yaw rate [rad/s]\n'.format(rosco_vt['Y_Rate']))
     file.write('{:<13.5f}       ! Y_MErrSet		- Integrator saturation (maximum signal amplitude contribution to pitch from yaw-by-IPC), [rad]\n'.format(rosco_vt['Y_MErrSet']))
     file.write('{:<13.5f}       ! Y_IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from yaw-by-IPC), [rad]\n'.format(rosco_vt['Y_IPC_IntSat']))
@@ -209,6 +211,9 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('!------- Pitch Actuator Model -----------------------------------------------------\n')
     file.write('{:<014.5f}        ! PA_CornerFreq     - Pitch actuator bandwidth/cut-off frequency [rad/s]\n'.format(rosco_vt['PA_CornerFreq']))
     file.write('{:<014.5f}        ! PA_Damping        - Pitch actuator damping ratio [-, unused if PA_Mode = 1]\n'.format(rosco_vt['PA_Damping']))
+    file.write('\n')
+    file.write('!------- Pitch Actuator Faults -----------------------------------------------------\n')
+    file.write('{}                ! PF_Offsets     - Constant blade pitch offsets for blades 1-3 [rad]\n'.format(''.join('{:<10.8f} '.format(rosco_vt['PF_Offsets'][i]) for i in range(3))))
     file.write('\n')
     file.write('!------- External Controller Interface -----------------------------------------------------\n')
     file.write('"{}"            ! DLL_FileName        - Name/location of the dynamic library in the Bladed-DLL format\n'.format(rosco_vt['DLL_FileName']))
@@ -401,6 +406,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['TD_Mode']          = int(controller.TD_Mode)
     DISCON_dict['Flp_Mode']         = int(controller.Flp_Mode)
     DISCON_dict['OL_Mode']          = int(controller.OL_Mode)
+    DISCON_dict['PF_Mode']          = int(controller.PF_Mode)
     DISCON_dict['PA_Mode']          = int(controller.PA_Mode)
     DISCON_dict['Ext_Mode']         = int(controller.Ext_Mode)
     DISCON_dict['ZMQ_Mode']         = int(controller.ZMQ_Mode)
@@ -440,6 +446,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     # ------- INDIVIDUAL PITCH CONTROL -------
     DISCON_dict['IPC_Vramp']        = controller.IPC_Vramp
     DISCON_dict['IPC_IntSat']		= 0.2618
+    DISCON_dict['IPC_SatMode']		= 2
     DISCON_dict['IPC_KP']           = [controller.Kp_ipc1p, controller.Kp_ipc2p]
     DISCON_dict['IPC_KI']           = [controller.Ki_ipc1p, controller.Ki_ipc2p]
     DISCON_dict['IPC_aziOffset']	= [0.0, 0.0]
@@ -512,9 +519,12 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['PA_Mode']         = controller.PA_Mode
     DISCON_dict['PA_CornerFreq']   = controller.PA_CornerFreq
     DISCON_dict['PA_Damping']      = controller.PA_Damping
+    # ------- Pitch Actuator Fault -------
+    DISCON_dict['PF_Offsets']       = [0.,0.,0.]
     # ------- Zero-MQ  ------- 
     DISCON_dict['ZMQ_CommAddress'] = "tcp://localhost:5555" 
     DISCON_dict['ZMQ_UpdatePeriod']  = 2
+    
     # Add pass through here
     for param, value in controller.controller_params['DISCON'].items():
         DISCON_dict[param] = value

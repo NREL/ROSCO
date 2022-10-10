@@ -16,8 +16,8 @@ function Pl_FastPlots(varargin)
 %% Cases to plot
 % Switches to turn on/off some categories of plots. Cases are defined in
 % the next section
-plsw.MI = 1;                    % MI, Main Inputs
-plsw.DTO = 1;                   % DTO, Drivetrain Outputs     
+plsw.MI = 0;                    % MI, Main Inputs
+plsw.DTO = 0;                   % DTO, Drivetrain Outputs     
 plsw.B1 = 1;                    % B1, Baseline1
 plsw.PD = 1;                    % PD, Primary Dynamics
 plsw.RO = 0;                    % RO, Rotor Performance Outputs
@@ -29,8 +29,8 @@ cases = fieldnames(plsw);
 
 %% Plot Cases
 % Everything defined here should have a switch above
-pc.MI = {'Wind1VelX', 'BldPitch1', 'GenTq','GenSpeed','Azimuth','RootMyc1'};
-pc.DTO = {'GenPwr', 'RotSpeed', 'GenSpeed','Azimuth'};
+pc.MI = {'Wind1VelX', 'BldPitch1', 'GenTq'};
+pc.DTO = {'GenPwr', 'RotSpeed', 'GenSpeed'};
 pc.B1 = {'Wind1VelX', 'BldPitch1', 'GenTq', 'RotSpeed', 'GenPwr'};
 pc.PD = {'BldPitch1', 'GenTq', 'GenSpeed'};
 pc.RO = {'RtTSR','RtAeroCp'};

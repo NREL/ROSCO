@@ -13,6 +13,13 @@ default_types:
     size: 0                # Use this if the type IS an array (size:3 --> REAL(8), BldPitch(3))
     allocatable: False
     equals: 
+  float: &float
+    type: float
+    description: 
+    dimension:             # Use this if a higher-dimensional allocatable array (dimension:(:,:) --> REAL(8), DIMESION(:,:), ALLOCATABLE)
+    size: 0                # Use this if the type IS an array (size:3 --> REAL(8), BldPitch(3))
+    allocatable: False
+    equals: 
   character: &character
     type: character
     description: 
@@ -130,6 +137,9 @@ ControlParameters:
     IPC_IntSat:
       <<: *real
       description: Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
+    IPC_SatMode:
+      <<: *integer
+      description: IPC Saturation method (0 - no saturation, 1 - saturate by PC_MinPit, 2 - saturate by PS_BldPitchMin)
     IPC_KP:
       <<: *real
       description: Integral gain for the individual pitch controller, [-].
@@ -470,6 +480,32 @@ ControlParameters:
       description: Process name of subprocess called in DLL_Filename (Usually DISCON)
       length: 1024
     
+    # Pitch actuator error
+    PF_Mode:
+      <<: *integer
+      description: Pitch actuator fault mode {0 - not used, 1 - offsets on one or more blades}
+    PF_Offsets:
+      <<: *real
+      description: Pitch actuator fault offsets for blade 1-3 [rad/s]
+      allocatable: True
+    
+    # External Control
+    Ext_Mode:
+      <<: *integer
+      description: External control mode (0 - not used, 1 - call external control library)
+    DLL_FileName:
+      <<: *character
+      description: File name of external dynamic library
+      length: 1024
+    DLL_InFile:
+      <<: *character
+      description: Name of input file called by dynamic library (DISCON.IN, e.g.)
+      length: 1024
+    DLL_ProcName:
+      <<: *character
+      description: Process name of subprocess called in DLL_Filename (Usually DISCON)
+      length: 1024
+    
     # ZeroMQ
     ZMQ_Mode:
       <<: *integer
@@ -665,6 +701,12 @@ FilterParameters:
       dimension: (99)
       description: Notch filter denominator coefficient 0  
 
+rlParams:
+    LastSignal:
+      <<: *real
+      dimension: (99)
+      description: Last input signal
+
 piParams:
     ITerm:
       <<: *real
@@ -727,6 +769,9 @@ LocalVariables:
       <<: *real
       description: Blade pitch [rad]
       size: 3
+    BlPitchC: 
+      <<: *real
+      description: Mean (collective) blade pitch [rad]
     Azimuth: 
       <<: *real 
       description: Rotor aziumuth angle [rad]
@@ -844,6 +889,9 @@ LocalVariables:
       <<: *real
       description: Proportional gain for IPC, after ramp [-]
       size: 2
+    IPC_IntSat:
+      <<: *real
+      description: Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
     PC_State:                     
       <<: *integer 
       description: State of the pitch control system
@@ -853,7 +901,7 @@ LocalVariables:
       size: 3
     PitComAct:                  
       <<: *real 
-      description: Actuated pitch of each blade the last time the controller was called [rad].
+      description: Actuated pitch command of each blade [rad].
       size: 3
     SS_DelOmegaF:                 
       <<: *real 
@@ -944,6 +992,10 @@ LocalVariables:
       <<: *derived_type
       id: piParams
       description: PI parameters derived type
+    rlP:
+      <<: *derived_type
+      id: rlParams
+      description: Rate limiter parameters derived type
 
 ObjectInstances:
   instLPF:
@@ -964,6 +1016,9 @@ ObjectInstances:
   instPI:
     <<: *integer
     description: PI controller instance
+  instRL:
+    <<: *integer
+    description: Rate limiter instance
 
 PerformanceData:
   TSR_vec:
@@ -1064,6 +1119,22 @@ DebugVariables:
     <<: *real
     description: State of yaw controller
 
+  YawRateCom:
+    <<: *real
+    description: Commanded yaw rate [rad/s].
+  NacHeadingTarget:
+    <<: *real
+    description: Target nacelle heading [rad].
+  NacVaneOffset:
+    <<: *real
+    description: Nacelle vane angle with offset [rad].
+  Yaw_err:
+    <<: *real
+    description: Yaw error [rad].
+  YawState:
+    <<: *real
+    description: State of yaw controller
+
 ErrorVariables:
   size_avcMSG: 
     <<: *integer
@@ -1112,7 +1183,7 @@ ZMQ_Variables:
     
 ExtControlType:
   avrSWAP:
-    <<: *c_float
+    <<: *float
     description: The swap array- used to pass data to and from the DLL controller [see Bladed DLL documentation]
     allocatable: True
     dimension: (:)

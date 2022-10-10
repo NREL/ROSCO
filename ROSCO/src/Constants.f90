@@ -14,7 +14,7 @@
 MODULE Constants
     USE, INTRINSIC  :: ISO_C_Binding
     
-    Character(*), PARAMETER     :: rosco_version = 'v2.5.0'             ! ROSCO version	
+    Character(*), PARAMETER     :: rosco_version = 'v2.6.0'             ! ROSCO version	
     INTEGER, PARAMETER                  :: DbKi             = C_DOUBLE            !< Default kind for double floating-point numbers
     INTEGER, PARAMETER                  :: ReKi             = C_FLOAT             !< Default kind for single floating-point numbers
     INTEGER, PARAMETER                  :: IntKi            = C_INT               !< Default kind for integer numbers

@@ -227,8 +227,8 @@ if __name__ == "__main__":
         r.wind_case_opts    = {
             'U': [16],
             }
-        r.save_dir      = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/outputs/IPC_play'
-        r.control_sweep_fcn = cl.sweep_ipc_gains
+        r.save_dir      = '/Users/dzalkind/Tools/ROSCO/outputs/offset_test'
+        r.control_sweep_fcn = cl.test_pitch_offset
 
     elif sim_config == 9:
 
