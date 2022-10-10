@@ -489,23 +489,6 @@ ControlParameters:
       description: Pitch actuator fault offsets for blade 1-3 [rad/s]
       allocatable: True
     
-    # External Control
-    Ext_Mode:
-      <<: *integer
-      description: External control mode (0 - not used, 1 - call external control library)
-    DLL_FileName:
-      <<: *character
-      description: File name of external dynamic library
-      length: 1024
-    DLL_InFile:
-      <<: *character
-      description: Name of input file called by dynamic library (DISCON.IN, e.g.)
-      length: 1024
-    DLL_ProcName:
-      <<: *character
-      description: Process name of subprocess called in DLL_Filename (Usually DISCON)
-      length: 1024
-    
     # ZeroMQ
     ZMQ_Mode:
       <<: *integer
@@ -1103,22 +1086,6 @@ DebugVariables:
   axisYaw_2P:
     <<: *real
     description: Yaw component of coleman transformation, 2P
-  YawRateCom:
-    <<: *real
-    description: Commanded yaw rate [rad/s].
-  NacHeadingTarget:
-    <<: *real
-    description: Target nacelle heading [rad].
-  NacVaneOffset:
-    <<: *real
-    description: Nacelle vane angle with offset [rad].
-  Yaw_err:
-    <<: *real
-    description: Yaw error [rad].
-  YawState:
-    <<: *real
-    description: State of yaw controller
-
   YawRateCom:
     <<: *real
     description: Commanded yaw rate [rad/s].

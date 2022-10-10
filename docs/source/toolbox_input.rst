@@ -265,6 +265,15 @@ controller_params
     *Minimum* = 0    *Maximum* = 1
 
 
+:code:`OL_Mode` : Float
+    Open loop control mode {0- no open loop control, 1- open loop
+    control}
+
+    *Default* = 0
+
+    *Minimum* = 0    *Maximum* = 1
+
+
 :code:`Ext_Mode` : Float
     External control mode {{0 - not used, 1 - call external dynamic
     library}}
@@ -520,23 +529,38 @@ open_loop
 
     *Default* = unused
 
-:code:`OL_Ind_Breakpoint` : Float
+:code:`Ind_Breakpoint` : Float
     Index (column, 1-indexed) of breakpoint (time) in open loop index
 
     *Default* = 1
 
-:code:`OL_Ind_BldPitch` : Float
-    Index (column, 1-indexed) of breakpoint (time) in open loop index
+    *Minimum* = 0
+
+:code:`Ind_BldPitch` : Array of Floats
+    Indices (columns, 1-indexed) of pitch (1,2,3) inputs in open loop
+    input
+
+    *Default* = [0, 0, 0]
+
+    *Minimum* = 0
+
+:code:`Ind_GenTq` : Float
+    Index (column, 1-indexed) of generator torque in open loop input
 
     *Default* = 0
 
-:code:`OL_Ind_GenTq` : Float
-    Index (column, 1-indexed) of breakpoint (time) in open loop index
+    *Minimum* = 0
+
+:code:`Ind_YawRate` : Float
+    Index (column, 1-indexed) of nacelle yaw in open loop input
 
     *Default* = 0
 
-:code:`OL_Ind_YawRate` : Float
-    Index (column, 1-indexed) of breakpoint (time) in open loop index
+    *Minimum* = 0
+
+:code:`Ind_Azimuth` : Float
+    The column in OL_Filename that contains the desired azimuth
+    position in rad (used if OL_Mode = 2)
 
     *Default* = 0
 
@@ -560,7 +584,7 @@ DISCON
 ########################################
 
 
-These are pass-through parameters for the DISCON.IN file.  Use with caution.
+These are pass-through parameters for the DISCON.IN file.  Use with caution. Do not set defaults in schema.
 
 :code:`LoggingLevel` : Float
     (0- write no debug files, 1- write standard output .dbg-file, 2-
@@ -620,6 +644,10 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
 :code:`Flp_Mode` : Float
     Flap control mode (0- no flap control, 1- steady state flap angle,
     2- Proportional flap control)
+
+:code:`OL_Mode` : Float
+    Open loop control mode (0 - no open-loop control, 1 - direct open
+    loop control, 2 - rotor position control)
 
 :code:`F_LPFCornerFreq` : Float, rad/s
     Corner frequency (-3dB point) in the low-pass filters,
@@ -696,6 +724,10 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
 :code:`IPC_IntSat` : Float, rad
     Integrator saturation (maximum signal amplitude contribution to
     pitch from IPC)
+
+:code:`IPC_SatMode` : Integer
+    IPC Saturation method (0 - no saturation, 1 - saturate by
+    PC_MinPit, 2 - saturate by PS_BldPitchMin)
 
 :code:`IPC_KP` : Array of Floats
     Proportional gain for the individual pitch controller- first
@@ -890,7 +922,7 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
 
 :code:`Ind_Breakpoint` : Float
     The column in OL_Filename that contains the breakpoint (time if
-    OL_Mode = 1)
+    OL_Mode > 0)
 
 :code:`Ind_BldPitch` : Float
     The column in OL_Filename that contains the blade pitch input in
@@ -901,6 +933,15 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
 
 :code:`Ind_YawRate` : Float
     The column in OL_Filename that contains the generator torque in Nm
+
+:code:`Ind_Azimuth` : Float
+    The column in OL_Filename that contains the desired azimuth
+    position in rad (used if OL_Mode = 2)
+
+:code:`RP_Gains` : Array of Floats
+    PID gains for rotor position control (used if OL_Mode = 2)
+
+    *Default* = [0, 0, 0]
 
 :code:`DLL_FileName` : String
     Name/location of the dynamic library {.dll [Windows] or .so

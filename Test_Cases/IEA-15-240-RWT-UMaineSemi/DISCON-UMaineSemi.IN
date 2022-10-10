@@ -1,5 +1,5 @@
 ! Controller parameter input file for the IEA-15-240-RWT-UMaineSemi wind turbine
-!    - File written using ROSCO version 2.6.0 controller tuning logic on 10/06/22
+!    - File written using ROSCO version 2.6.0 controller tuning logic on 10/10/22
 
 !------- DEBUG ------------------------------------------------------------
 2                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}
@@ -128,10 +128,12 @@
 
 !------- Open Loop Control -----------------------------------------------------
 "unused"            ! OL_Filename       - Input file with open loop timeseries (absolute path or relative to this file)
-0                   ! Ind_Breakpoint    - The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)
-0                   ! Ind_BldPitch      - The column in OL_Filename that contains the blade pitch input in rad
+1                   ! Ind_Breakpoint    - The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)
+  0   0   0         ! Ind_BldPitch      - The columns in OL_Filename that contains the blade pitch (1,2,3) inputs in rad [array]
 0                   ! Ind_GenTq         - The column in OL_Filename that contains the generator torque in Nm
 0                   ! Ind_YawRate       - The column in OL_Filename that contains the generator torque in Nm
+0                   ! Ind_Azimuth - The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
+0.0000 0.0000 0.0000        ! RP_Gains - PID gains for rotor position control (used if OL_Mode = 2)
 
 !------- Pitch Actuator Model -----------------------------------------------------
 1.570800000000        ! PA_CornerFreq     - Pitch actuator bandwidth/cut-off frequency [rad/s]
