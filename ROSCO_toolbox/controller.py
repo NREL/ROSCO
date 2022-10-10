@@ -140,10 +140,10 @@ class Controller():
         
         if self.OL_Mode:
             ol_params               = controller_params['open_loop']
-            self.OL_Ind_Breakpoint  = ol_params['OL_Ind_Breakpoint']
-            self.OL_Ind_BldPitch    = ol_params['OL_Ind_BldPitch']
-            self.OL_Ind_GenTq       = ol_params['OL_Ind_GenTq']
-            self.OL_Ind_YawRate     = ol_params['OL_Ind_YawRate']
+            self.OL_Ind_Breakpoint  = ol_params['Ind_Breakpoint']
+            self.OL_Ind_BldPitch    = ol_params['Ind_BldPitch']
+            self.OL_Ind_GenTq       = ol_params['Ind_GenTq']
+            self.OL_Ind_YawRate     = ol_params['Ind_YawRate']
 
             # Check that file exists because we won't write it
             if not os.path.exists(controller_params['open_loop']['filename']):

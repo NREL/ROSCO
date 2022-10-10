@@ -34,7 +34,7 @@ def main():
 
     # Ensure external control paths are okay
     parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW.yaml')
-    run_dir = os.path.join(example_out_dir,'17_RotPos')
+    run_dir = os.path.join(example_out_dir,'19_RotPos')
     os.makedirs(run_dir,exist_ok=True)
 
     # Case input for RotSpeed IC
@@ -55,7 +55,7 @@ def main():
 
     # Gather azimuth, blade pitch, generator torque output
     op = output_processing.output_processing()
-    fast_out = op.load_fast_out(os.path.join(example_out_dir,'17_RotPos/IEA15MW/power_curve/base/IEA15MW_0.outb'), tmin=0)
+    fast_out = op.load_fast_out(os.path.join(example_out_dir,'19_RotPos/IEA15MW/power_curve/base/IEA15MW_0.outb'), tmin=0)
 
     olc = OpenLoopControl()
     olc.ol_timeseries['time'] = fast_out[0]['Time']
