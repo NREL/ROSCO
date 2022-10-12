@@ -114,11 +114,14 @@ CONTAINS
         REAL(DbKi)                          :: PTerm, DTerm                                 ! Proportional, deriv. terms
         REAL(DbKi)                          :: EFilt                    ! Filtered error for derivative
 
+        ! Always filter error
+        EFilt = LPFilter(error, DT, tf, LocalVar%FP, LocalVar%iStatus, reset, objInst%instLPF)
+
         ! Initialize persistent variables/arrays, and set inital condition for integrator term
         IF (reset) THEN
             piP%ITerm(objInst%instPI) = I0
             piP%ITermLast(objInst%instPI) = I0
-            piP%ELast(objInst%instPI) = 0_DbKi
+            piP%ELast(objInst%instPI) = 0.0_DbKi
             PIDController = I0
         ELSE
             ! Proportional

@@ -266,7 +266,8 @@ CONTAINS
                 LocalVar%OL_Azimuth = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_Azimuth,LocalVar%Time,ErrVar)
                 LocalVar%AzError = LocalVar%OL_Azimuth - LocalVar%AzUnwrapped 
 
-                ! LocalVar%GenTqAz = PIDController
+                LocalVar%GenTqAz = PIDController(LocalVar%AzError, CntrPar%RP_Gains(1), CntrPar%RP_Gains(2), CntrPar%RP_Gains(3), 2.0_DbKi, -LocalVar%VS_MaxTq * 2, LocalVar%VS_MaxTq * 2, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst, LocalVar)
+                LocalVar%GenTq = LocalVar%GenTq + LocalVar%GenTqAz
 
             ENDIF
 

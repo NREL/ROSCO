@@ -40,6 +40,12 @@ def main():
     # Case input for RotSpeed IC
     case_inputs = {}
     case_inputs[("ElastoDyn","RotSpeed")]    = {'vals':[5], 'group':0}
+    case_inputs[("ElastoDyn","PtfmSgDOF")]    = {'vals':['False'], 'group':0}
+    case_inputs[("ElastoDyn","PtfmSwDOF")]    = {'vals':['False'], 'group':0}
+    case_inputs[("ElastoDyn","PtfmHvDOF")]    = {'vals':['False'], 'group':0}
+    case_inputs[("ElastoDyn","PtfmRDOF")]    = {'vals':['False'], 'group':0}
+    case_inputs[("ElastoDyn","PtfmPDOF")]    = {'vals':['False'], 'group':0}
+    case_inputs[("ElastoDyn","PtfmYDOF")]    = {'vals':['False'], 'group':0}
     
     # Steady simualtion with initial RotSpeed of 5 rpm
     r = run_FAST_ROSCO()
@@ -53,7 +59,8 @@ def main():
     r.case_inputs   = case_inputs
     # r.run_FAST()
 
-    # Gather azimuth, blade pitch, generator torque output
+    # Gather azimuth, blade p
+    # itch, generator torque output
     op = output_processing.output_processing()
     fast_out = op.load_fast_out(os.path.join(example_out_dir,'19_RotPos/IEA15MW/power_curve/base/IEA15MW_0.outb'), tmin=0)
 
@@ -70,6 +77,9 @@ def main():
     controller_params = {}
     controller_params['open_loop'] = open_loop
     controller_params['OL_Mode'] = 2
+    controller_params['PA_Mode'] = 0
+    controller_params['DISCON'] = {}
+    controller_params['DISCON']['RP_Gains'] = [-3e7,-3e6,-3e8]
 
 
     # run again with slower IC and rotor position control
