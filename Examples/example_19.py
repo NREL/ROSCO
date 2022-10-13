@@ -34,7 +34,7 @@ def main():
 
     # Ensure external control paths are okay
     parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW.yaml')
-    run_dir = os.path.join(example_out_dir,'19_RotPos')
+    run_dir = os.path.join(example_out_dir,'19_RotPos_Turb_0')
     os.makedirs(run_dir,exist_ok=True)
 
     # Case input for RotSpeed IC
@@ -50,10 +50,10 @@ def main():
     # Steady simualtion with initial RotSpeed of 5 rpm
     r = run_FAST_ROSCO()
     r.tuning_yaml   = parameter_filename
-    r.wind_case_fcn = cl.power_curve
+    r.wind_case_fcn = cl.turb_bts
     r.wind_case_opts    = {
-        'U': [16],
-        'T_max': 200
+        'TMax': 300,
+        'wind_filenames': ['/Users/dzalkind/Tools/WEIS-1/outputs/02_RAAW_TurbOff/wind/IEA15_NTM_U8.000000_Seed123.0.bts']
         }
     r.save_dir      = run_dir
     r.case_inputs   = case_inputs
@@ -62,8 +62,8 @@ def main():
     # Gather azimuth, blade p
     # itch, generator torque output
     op = output_processing.output_processing()
-    fast_out = op.load_fast_out(os.path.join(example_out_dir,'19_RotPos/IEA15MW/power_curve/base/IEA15MW_0.outb'), tmin=0)
-
+    fast_out = op.load_fast_out(os.path.join(example_out_dir,'19_RotPos_Turb_0/IEA15MW/turb_bts/base/IEA15MW_0.outb'), tmin=0)
+    
     olc = OpenLoopControl()
     olc.ol_timeseries['time'] = fast_out[0]['Time']
     olc.ol_timeseries['blade_pitch1'] = np.radians(fast_out[0]['BldPitch1'])
@@ -83,9 +83,13 @@ def main():
 
 
     # run again with slower IC and rotor position control
-    case_inputs[("ElastoDyn","RotSpeed")]    = {'vals':[4], 'group':0}
+    # case_inputs[("ElastoDyn","RotSpeed")]    = {'vals':[4], 'group':0}
     r.case_inputs   = case_inputs
     r.base_name     = 'rpc'
+    r.wind_case_opts    = {
+        'TMax': 300,
+        'wind_filenames': ['/Users/dzalkind/Tools/WEIS-1/outputs/02_RAAW_TurbOff/wind/IEA15_NTM_U8.500000_Seed123.0.bts']
+        }
     r.controller_params = controller_params
     r.run_FAST()
 
