@@ -936,10 +936,16 @@ class InputReader_OpenFAST(InputReader_Common):
         self.fst_vt['AeroDyn14']['TLModel'] = f.readline().split()[0]
         self.fst_vt['AeroDyn14']['HLModel'] = f.readline().split()[0]
         self.fst_vt['AeroDyn14']['TwrShad'] = f.readline().split()[0]
-        self.fst_vt['AeroDyn14']['TwrPotent'] = bool_read(f.readline().split()[0])
-        self.fst_vt['AeroDyn14']['TwrShadow'] = bool_read(f.readline().split()[0])
-        self.fst_vt['AeroDyn14']['TwrFile'] = f.readline().split()[0].replace('"','').replace("'",'')
-        self.fst_vt['AeroDyn14']['CalcTwrAero'] = bool_read(f.readline().split()[0])
+        
+        if self.fst_vt['AeroDyn14']['TwrShad'] == "NEWTOWER": #w tower influence
+            self.fst_vt['AeroDyn14']['TwrPotent'] = bool_read(f.readline().split()[0])
+            self.fst_vt['AeroDyn14']['TwrShadow'] = bool_read(f.readline().split()[0])
+            self.fst_vt['AeroDyn14']['TwrFile'] = f.readline().split()[0].replace('"','').replace("'",'')
+            self.fst_vt['AeroDyn14']['CalcTwrAero'] = bool_read(f.readline().split()[0])
+        else: #w/o tower influence
+            self.fst_vt['AeroDyn14']['ShadHWid'] = float_read(f.readline().split()[0])
+            self.fst_vt['AeroDyn14']['T_Shad_Refpt'] = float_read(f.readline().split()[0])
+            
         self.fst_vt['AeroDyn14']['AirDens'] = float_read(f.readline().split()[0])
         self.fst_vt['AeroDyn14']['KinVisc'] = float_read(f.readline().split()[0])
         self.fst_vt['AeroDyn14']['DTAero'] = float_read(f.readline().split()[0])
@@ -973,11 +979,12 @@ class InputReader_OpenFAST(InputReader_Common):
 
         # create airfoil objects
         self.fst_vt['AeroDynBlade']['af_data'] = []
-        for i in range(self.fst_vt['AeroDynBlade']['NumFoil']):
-             self.fst_vt['AeroDynBlade']['af_data'].append(self.read_AeroDyn14Polar(os.path.join(self.FAST_directory,self.fst_vt['AeroDyn14']['FoilNm'][i])))
+        for i in range(self.fst_vt['AeroDyn14']['NumFoil']):
+             self.fst_vt['AeroDynBlade']['af_data'].append(self.read_AeroDyn14Polar(os.path.join(self.FAST_directory,self.fst_vt['Fst']['AeroFile_path'],self.fst_vt['AeroDyn14']['FoilNm'][i])))
 
         # tower
-        self.read_AeroDyn14Tower()
+        if self.fst_vt['AeroDyn14']['TwrShad'] == "NEWTOWER":
+            self.read_AeroDyn14Tower()
 
     def read_AeroDyn14Tower(self):
         # AeroDyn v14.04 Tower
