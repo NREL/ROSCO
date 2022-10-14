@@ -46,10 +46,13 @@ CONTAINS
         LocalVar%rootMOOP(1)        = avrSWAP(30)
         LocalVar%rootMOOP(2)        = avrSWAP(31)
         LocalVar%rootMOOP(3)        = avrSWAP(32)
-        LocalVar%FA_Acc             = avrSWAP(53)  + 0.5     ! Translational
         LocalVar%NacIMU_FA_Acc      = avrSWAP(83)       ! Rotational    
         LocalVar%Azimuth            = avrSWAP(60)
         LocalVar%NumBl              = NINT(avrSWAP(61))
+        LocalVar%PtfmPitchR          = avrSWAP(1005)
+        LocalVar%FA_Acc             = avrSWAP(53)
+        LocalVar%FA_AccG             = avrSWAP(53)  +  9.8 * sin(LocalVar%PtfmPitchR)  ! Translational
+
 
         ! --- NJA: usually feedback back the previous pitch command helps for numerical stability, sometimes it does not...
         IF (LocalVar%iStatus == 0) THEN

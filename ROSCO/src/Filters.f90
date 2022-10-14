@@ -313,8 +313,14 @@ CONTAINS
         IF (CntrPar%Fl_Mode > 0) THEN
             ! Force to start at 0
             LocalVar%NacIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
-            LocalVar%FA_AccAvg = MovingAvgFilter(LocalVar%FA_Acc,LocalVar%DT,10.0_DbKi,MA_Acc,LocalVar%iStatus,LocalVar%restart)
-            LocalVar%FA_AccF = LocalVar%FA_Acc - LocalVar%FA_AccAvg
+            
+            ! Gravity filtering
+            LocalVar%FA_AccAvg = MovingAvgFilter(LocalVar%FA_AccG,LocalVar%DT,12.0_DbKi,MA_Acc,LocalVar%iStatus,LocalVar%restart)
+            ! LocalVar%FA_AccGF = LocalVar%FA_Acc - LocalVar%FA_AccAvg
+            LocalVar%FA_AccGF = SecLPFilter(LocalVar%FA_AccGF, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
+            LocalVar%FA_AccGF = HPFilter(LocalVar%FA_AccGF, LocalVar%DT, CntrPar%F_FlHighPassFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF) 
+
+            ! Original filtering
             LocalVar%FA_AccF = SecLPFilter(LocalVar%FA_AccF, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
             LocalVar%NacIMU_FA_AccF = HPFilter(LocalVar%NacIMU_FA_AccF, LocalVar%DT, CntrPar%F_FlHighPassFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF) 
             LocalVar%FA_AccF = HPFilter(LocalVar%FA_AccF, LocalVar%DT, CntrPar%F_FlHighPassFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF) 

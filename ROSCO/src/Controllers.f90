@@ -484,7 +484,7 @@ CONTAINS
     !       Fl_Mode = 0, No feedback
     !       Fl_Mode = 1, Proportional feedback of nacelle velocity (translational)
     !       Fl_Mode = 2, Proportional feedback of nacelle velocity (rotational)
-        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances, MovingAvgParameters
         IMPLICIT NONE
         ! Inputs
         TYPE(ControlParameters), INTENT(IN)     :: CntrPar
@@ -493,10 +493,18 @@ CONTAINS
         ! Allocate Variables 
         REAL(DbKi)                      :: FA_vel ! Tower fore-aft velocity [m/s]
         REAL(DbKi)                      :: NacIMU_FA_vel ! Tower fore-aft pitching velocity [rad/s]
+        TYPE(MovingAvgParameters), SAVE           :: MA_Vel
+
         
         ! Calculate floating contribution to pitch command
         LocalVar%FA_vel = PIController(LocalVar%FA_AccF, 0.0_DbKi, 1.0_DbKi, -100.0_DbKi , 100.0_DbKi ,LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) ! NJA: should never reach saturation limits....
         LocalVar%NacIMU_FA_vel = PIController(LocalVar%NacIMU_FA_AccF, 0.0_DbKi, 1.0_DbKi, -100.0_DbKi , 100.0_DbKi ,LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) ! NJA: should never reach saturation limits....
+        
+        ! Gravity velocity
+        LocalVar%FA_velG = PIController(LocalVar%FA_AccGF, 0.0_DbKi, 1.0_DbKi, -100.0_DbKi , 100.0_DbKi ,LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) ! NJA: should never reach saturation limits....
+        LocalVar%FA_VelAvg = MovingAvgFilter(LocalVar%FA_vel,LocalVar%DT,12.0_DbKi,MA_Vel,LocalVar%iStatus,LocalVar%restart)
+        LocalVar%FA_VelG = LocalVar%FA_vel - LocalVar%FA_VelAvg
+        
         if (CntrPar%Fl_Mode == 1) THEN
             FloatingFeedback = (0.0_DbKi - LocalVar%FA_vel) * CntrPar%Fl_Kp !* LocalVar%PC_KP/maxval(CntrPar%PC_GS_KP)
         ELSEIF (CntrPar%Fl_Mode == 2) THEN

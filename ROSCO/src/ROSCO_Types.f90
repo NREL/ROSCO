@@ -193,6 +193,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: GenSpeed                    ! Generator speed (HSS) [rad/s]
     REAL(DbKi)                    :: RotSpeed                    ! Rotor speed (LSS) [rad/s]
     REAL(DbKi)                    :: NacHeading                  ! Nacelle heading of the turbine w.r.t. north [deg]
+    REAL(DbKi)                    :: PtfmPitchR                  ! Platform pitch [deg]
     REAL(DbKi)                    :: NacVane                     ! Nacelle vane angle [deg]
     REAL(DbKi)                    :: HorWindV                    ! Hub height wind speed m/s
     REAL(DbKi)                    :: rootMOOP(3)                 ! Blade root bending moment [Nm]
@@ -201,6 +202,8 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: Azimuth                     ! Rotor aziumuth angle [rad]
     INTEGER(IntKi)                :: NumBl                       ! Number of blades [-]
     REAL(DbKi)                    :: FA_Acc                      ! Tower fore-aft acceleration [m/s^2]
+    REAL(DbKi)                    :: FA_AccG                     ! Tower fore-aft acceleration [m/s^2]
+    REAL(DbKi)                    :: FA_AccGF                    ! Tower fore-aft acceleration [m/s^2]
     REAL(DbKi)                    :: NacIMU_FA_Acc               ! Tower fore-aft acceleration [rad/s^2]
     REAL(DbKi)                    :: FA_AccHPF                   ! High-pass filtered fore-aft acceleration [m/s^2]
     REAL(DbKi)                    :: FA_AccHPFI                  ! Tower velocity, high-pass filtered and integrated fore-aft acceleration [m/s]
@@ -250,11 +253,14 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: WE_VwIdot                   ! Differentiated integrated wind speed quantity for estimation [m/s]
     REAL(DbKi)                    :: VS_LastGenTrqF              ! Differentiated integrated wind speed quantity for estimation [m/s]
     LOGICAL                       :: SD                          ! Shutdown, .FALSE. if inactive, .TRUE. if active
-    REAL(DbKi)                    :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
+    REAL(DbKi)                    :: Fl_PitCom                   ! None
+    REAL(DbKi)                    :: Fl_PitComG                  ! None
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None
     REAL(DbKi)                    :: FA_AccF                     ! None
     REAL(DbKi)                    :: FA_AccAvg                   ! None
+    REAL(DbKi)                    :: FA_VelAvg                   ! None
     REAL(DbKi)                    :: FA_vel                      ! None
+    REAL(DbKi)                    :: FA_velG                     ! None
     REAL(DbKi)                    :: NacIMU_FA_vel               ! None
     REAL(DbKi)                    :: Flp_Angle(3)                ! Flap Angle (rad)
     REAL(DbKi)                    :: RootMyb_Last(3)             ! Last blade root bending moment (Nm)

@@ -690,6 +690,9 @@ LocalVariables:
     NacHeading: 
       <<: *real 
       description:  Nacelle heading of the turbine w.r.t. north [deg]
+    PtfmPitchR: 
+      <<: *real 
+      description:  Platform pitch [deg]
     NacVane: 
       <<: *real 
       description:  Nacelle vane angle [deg]
@@ -715,6 +718,12 @@ LocalVariables:
       <<: *integer 
       description: Number of blades [-]
     FA_Acc:                       
+      <<: *real 
+      description: Tower fore-aft acceleration [m/s^2]
+    FA_AccG:                       
+      <<: *real 
+      description: Tower fore-aft acceleration [m/s^2]
+    FA_AccGF:                       
       <<: *real 
       description: Tower fore-aft acceleration [m/s^2]
     NacIMU_FA_Acc:                       
@@ -873,14 +882,19 @@ LocalVariables:
       description: Shutdown, .FALSE. if inactive, .TRUE. if active
     Fl_PitCom:                           
       <<: *real 
-      description: Shutdown, .FALSE. if inactive, .TRUE. if active
+    Fl_PitComG:                           
+      <<: *real 
     NACIMU_FA_AccF:
       <<: *real 
     FA_AccF:
       <<: *real 
     FA_AccAvg:
       <<: *real 
+    FA_VelAvg:
+      <<: *real 
     FA_vel:
+      <<: *real
+    FA_velG:
       <<: *real
     NacIMU_FA_vel:
       <<: *real 
