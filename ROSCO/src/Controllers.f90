@@ -257,6 +257,11 @@ CONTAINS
             IF (CntrPar%OL_Mode == 2) THEN
                 
                 ! Push, pop and unwrap azimuth buffer 
+                ! Initialize
+                IF (LocalVar%iStatus == 0) THEN
+                    LocalVar%AzBuffer(1) = LocalVar%Azimuth
+                    LocalVar%AzBuffer(2) = LocalVar%Azimuth
+                ENDIF
                 LocalVar%AzBuffer(1) = LocalVar%AzBuffer(2)
                 LocalVar%AzBuffer(2) = LocalVar%Azimuth
                 LocalVar%AzBuffer = UNWRAP(LocalVar%AzBuffer, ErrVar)
