@@ -123,11 +123,11 @@ CONTAINS
                 ENDIF
 
                 IF (CntrPar%Ind_BldPitch(2) > 0) THEN
-                    LocalVar%PitCom(2) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch1,LocalVar%Time, ErrVar)
+                    LocalVar%PitCom(2) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch2,LocalVar%Time, ErrVar)
                 ENDIF
 
                 IF (CntrPar%Ind_BldPitch(3) > 0) THEN
-                    LocalVar%PitCom(3) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch1,LocalVar%Time, ErrVar)
+                    LocalVar%PitCom(3) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch3,LocalVar%Time, ErrVar)
                 ENDIF
             ENDIF
         ENDIF
