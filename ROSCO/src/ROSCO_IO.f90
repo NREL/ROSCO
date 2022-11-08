@@ -432,8 +432,8 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     DebugOutUnits = [CHARACTER(15) ::  '[-]', '[-]', '[-]', '[-]', '[m/s]', & 
                                       '[m/s]', '[m/s]', '[rad]', '[rad]', '[rad/s]', & 
                                       '[rad/s]', '[rad/s]', '[m/s]', '[rad]', '[rad]', & 
-                                      '', '', '', '', '[rad/s]', & 
-                                      '[rad]', '[rad]', '[rad]', '']
+                                      '[N/A]', '[N/A]', '[N/A]', '[N/A]', '[rad/s]', & 
+                                      '[rad]', '[rad]', '[rad]', '[N/A]']
     nLocalVars = 69
     Allocate(LocalVarOutData(nLocalVars))
     Allocate(LocalVarOutStrings(nLocalVars))

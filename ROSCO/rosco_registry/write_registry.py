@@ -221,12 +221,15 @@ def write_roscoio(yfile):
     file.write('    DebugOutUnits = [CHARACTER(15) :: ')
     counter = 0
     for unit in dbg_units:
+        # Give dummy unit if not defined
+        if not unit:
+            unit = '[N/A]'
         counter += 1
         if counter == len(dbg_units):
-            file.write(" '{}'".format(unit))
+            file.write(" '{}'".format(unit))    # last line
         else:
             file.write(" '{}',".format(unit))
-        if (counter % 5 == 0):
+        if (counter % 5 == 0):      # group in groups of 5
             file.write(' & \n                                     ')
     file.write(']\n')
 
