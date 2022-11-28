@@ -48,7 +48,7 @@ def main():
     controller_params['DISCON']['DLL_InFile'] =    os.path.join(rosco_dir,'Test_Cases/NREL-5MW/DISCON.IN')
     controller_params['DISCON']['DLL_ProcName'] =  'DISCON'
 
-    # RAAW FAD set up
+    # simulation set up
     r = run_FAST_ROSCO()
     r.tuning_yaml   = parameter_filename
     r.wind_case_fcn = cl.simp_step

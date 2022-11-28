@@ -197,6 +197,12 @@ properties:
                 maximum: 2
                 default: 0
                 description: Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
+            PF_Mode:           
+                type: number
+                minimum: 0
+                maximum: 1
+                default: 0
+                description: Pitch fault mode {0 - not used, 1 - constant offset on one or more blades}
             Ext_Mode:           
                 type: number
                 minimum: 0
@@ -849,6 +855,12 @@ properties:
                         type: string
                         description: Name of procedure in DLL to be called
                         default: DISCON
+                    PF_Offsets:
+                        type: array
+                        items:
+                            type: number
+                        description: Pitch angle offsets for each blade (array with length of 3)
+                        units: rad
 
     linmodel_tuning:
         type: object
