@@ -1,5 +1,5 @@
 ! Controller parameter input file for the NREL-5MW wind turbine
-!    - File written using ROSCO version 2.6.0 controller tuning logic on 10/04/22
+!    - File written using ROSCO version 2.6.0 controller tuning logic on 11/29/22
 
 !------- DEBUG ------------------------------------------------------------
 1                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}
@@ -94,8 +94,8 @@
 -0.01638154 -0.01796321 -0.01954487 -0.02112654 -0.02270820 -0.02428987 -0.02587154 -0.02745320 -0.02903487 -0.03061653 -0.03219820 -0.03377987 -0.03536153 -0.03694320 -0.03852486 -0.04010653 -0.04168820 -0.04326986 -0.04485153 -0.04643319 -0.04801486 -0.04959652 -0.05117819 -0.05275986 -0.05434152 -0.05592319 -0.05758373 -0.05882656 -0.06845507 -0.05992890 0.02094683 0.01327182 0.00285485 -0.00935731 -0.02210773 -0.03573037 -0.04990222 -0.06404904 -0.07899629 -0.09463190 -0.10954192 -0.12525205 -0.14168652 -0.15843395 -0.17415061 -0.19052486 -0.20780146 -0.22581018 -0.24373777 -0.26010871 -0.27706767 -0.29551708 -0.31430599 -0.33428552 -0.35420853 -0.37183729 -0.38936451 -0.40828911 -0.42758878 -0.44818175               ! WE_FOPoles        - First order system poles [1/s]
 
 !------- YAW CONTROL ------------------------------------------------------
-0.00000             ! Y_uSwitch		- Wind speed to switch between Y_ErrThresh. If zero, only the second value of Y_ErrThresh is used [m/s]
-4.000000  8.000000  ! Y_ErrThresh    - Yaw error threshold/deadbands. Turbine begins to yaw when it passes this. If Y_uSwitch is zero, only the second value is used. [deg].
+0.00000             ! Y_uSwitch		- Wind speed to switch between Y_ErrThresh. If zero, only the first value of Y_ErrThresh is used [m/s]
+4.000000  8.000000  ! Y_ErrThresh    - Yaw error threshold/deadband. Turbine begins to yaw when it passes this. If Y_uSwitch is zero, only the first value is used. [deg].
 0.00870             ! Y_Rate			- Yaw rate [rad/s]
 0.00000             ! Y_MErrSet		- Integrator saturation (maximum signal amplitude contribution to pitch from yaw-by-IPC), [rad]
 0.00000             ! Y_IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from yaw-by-IPC), [rad]
