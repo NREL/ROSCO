@@ -426,18 +426,18 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     DebugOutData(20) = DebugVar%YawRateCom
     DebugOutData(21) = DebugVar%NacHeadingTarget
     DebugOutData(22) = DebugVar%NacVaneOffset
-    DebugOutData(23) = DebugVar%Yaw_err
+    DebugOutData(23) = DebugVar%Yaw_Err
     DebugOutData(24) = DebugVar%YawState
     DebugOutStrings = [CHARACTER(15) ::  'WE_Cp', 'WE_b', 'WE_w', 'WE_t', 'WE_Vm', & 
                                       'WE_Vt', 'WE_Vw', 'WE_lambda', 'PC_PICommand', 'GenSpeedF', & 
                                       'RotSpeedF', 'NacIMU_FA_AccF', 'FA_AccF', 'Fl_PitCom', 'PC_MinPit', & 
                                       'axisTilt_1P', 'axisYaw_1P', 'axisTilt_2P', 'axisYaw_2P', 'YawRateCom', & 
-                                      'NacHeadingTarget', 'NacVaneOffset', 'Yaw_err', 'YawState']
+                                      'NacHeadingTarget', 'NacVaneOffset', 'Yaw_Err', 'YawState']
     DebugOutUnits = [CHARACTER(15) ::  '[-]', '[-]', '[-]', '[-]', '[m/s]', & 
                                       '[m/s]', '[m/s]', '[rad]', '[rad]', '[rad/s]', & 
                                       '[rad/s]', '[rad/s]', '[m/s]', '[rad]', '[rad]', & 
-                                      '[N/A]', '[N/A]', '[N/A]', '[N/A]', '[rad/s]', & 
-                                      '[rad]', '[rad]', '[rad]', '[N/A]']
+                                      '', '', '', '', '[rad/s]', & 
+                                      '[deg]', '[deg]', '[deg]', '']
     nLocalVars = 69
     Allocate(LocalVarOutData(nLocalVars))
     Allocate(LocalVarOutStrings(nLocalVars))
@@ -556,6 +556,20 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
         100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')
     END IF
 
+    ! Process DebugOutData, LocalVarOutData
+    ! Remove very small numbers that cause ******** outputs
+    DO I = 1,SIZE(DebugOutData)
+        IF (ABS(DebugOutData(I)) < 1E-10) THEN
+            DebugOutData(I) = 0
+        END IF
+    END DO
+    
+    DO I = 1,SIZE(LocalVarOutData)
+        IF (ABS(LocalVarOutData(I)) < 1E-10) THEN
+            LocalVarOutData(I) = 0
+        END IF
+    END DO
+    
     ! Write debug files
     IF(CntrPar%LoggingLevel > 0) THEN
         WRITE (UnDb, FmtDat)  LocalVar%Time, DebugOutData
