@@ -76,7 +76,7 @@ CONTAINS
 
         ENDIF
 
-        IF (LocalVar%iStatus == 0) THEN
+        IF (LocalVar%iStatus == 0) THEN     ! TODO: Technically, LocalVar%Time > 0, too, but this restart is in many places as a reset
             LocalVar%restart = .True.
         ELSE
             LocalVar%restart = .False.

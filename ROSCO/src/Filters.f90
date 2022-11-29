@@ -302,8 +302,12 @@ CONTAINS
         ! Filtering the tower fore-aft acceleration signal 
         IF (CntrPar%Fl_Mode > 0) THEN
             ! Force to start at 0
-            LocalVar%NacIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF, 0.0_DbKi) ! Fixed Damping
-            LocalVar%FA_AccF = SecLPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF, 0.0_DbKi) ! Fixed Damping
+            IF (LocalVar%iStatus == 0 .AND. LocalVar%Time == 0) THEN
+                LocalVar%NacIMU_FA_Acc = 0
+                LocalVar%FA_Acc = 0
+            ENDIF 
+            LocalVar%NacIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
+            LocalVar%FA_AccF = SecLPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
             LocalVar%NacIMU_FA_AccF = HPFilter(LocalVar%NacIMU_FA_AccF, LocalVar%DT, CntrPar%F_FlHighPassFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF) 
             LocalVar%FA_AccF = HPFilter(LocalVar%FA_AccF, LocalVar%DT, CntrPar%F_FlHighPassFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF) 
             
