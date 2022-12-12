@@ -46,10 +46,10 @@ jobs:
           FC: gfortran
           
 
-      # - name: Add dependencies macOS specific
-      #   if: true == contains( matrix.os, 'macOS')
-      #   run: |
-      #     conda install compilers
+      - name: Add dependencies macOS specific
+        if: true == contains( matrix.os, 'macOS')
+        run: |
+          conda install compilers
 
       # Install ROSCO toolbox
       - name: Install ROSCO toolbox on Windows

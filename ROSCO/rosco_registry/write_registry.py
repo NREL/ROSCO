@@ -221,12 +221,15 @@ def write_roscoio(yfile):
     file.write('    DebugOutUnits = [CHARACTER(15) :: ')
     counter = 0
     for unit in dbg_units:
+        # Give dummy unit if not defined
+        if not unit:
+            unit = '[N/A]'
         counter += 1
         if counter == len(dbg_units):
-            file.write(" '{}'".format(unit))
+            file.write(" '{}'".format(unit))    # last line
         else:
             file.write(" '{}',".format(unit))
-        if (counter % 5 == 0):
+        if (counter % 5 == 0):      # group in groups of 5
             file.write(' & \n                                     ')
     file.write(']\n')
 
@@ -293,6 +296,20 @@ def write_roscoio(yfile):
     file.write("        100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')\n")
     file.write("    END IF\n")
     file.write("\n")
+    file.write("    ! Process DebugOutData, LocalVarOutData\n")
+    file.write("    ! Remove very small numbers that cause ******** outputs\n")
+    file.write("    DO I = 1,SIZE(DebugOutData)\n")
+    file.write("        IF (ABS(DebugOutData(I)) < 1E-10) THEN\n")
+    file.write("            DebugOutData(I) = 0\n")
+    file.write("        END IF\n")
+    file.write("    END DO\n")
+    file.write("    \n")
+    file.write("    DO I = 1,SIZE(LocalVarOutData)\n")
+    file.write("        IF (ABS(LocalVarOutData(I)) < 1E-10) THEN\n")
+    file.write("            LocalVarOutData(I) = 0\n")
+    file.write("        END IF\n")
+    file.write("    END DO\n")
+    file.write("    \n")
     file.write("    ! Write debug files\n")
     file.write("    IF(CntrPar%LoggingLevel > 0) THEN\n")
     file.write("        WRITE (UnDb, FmtDat)  LocalVar%Time, DebugOutData\n")
