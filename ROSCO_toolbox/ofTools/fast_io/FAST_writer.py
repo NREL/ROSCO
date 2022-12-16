@@ -1,10 +1,12 @@
-import os, sys, copy, random, time
+import os
+import copy
+import random
+import time
 import operator
-import yaml
 import numpy as np
 from functools import reduce
 
-from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_Common, InputReader_OpenFAST, InputReader_FAST7
+from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
 from ROSCO_toolbox.ofTools.fast_io.FAST_vars import FstModel
 
 from ROSCO_toolbox.utilities import write_rotor_performance, write_DISCON
@@ -38,31 +40,15 @@ def int_default_out(val):
 def get_dict(vartree, branch):
     return reduce(operator.getitem, branch, vartree)
 
-class InputWriter_Common(object):
-    """ Methods for writing input files that are (relatively) unchanged across FAST versions."""
+class InputWriter_OpenFAST(object):
+    """ Methods to write OpenFAST input files."""
 
-    def __init__(self, **kwargs):
+    def __init__(self):
 
-        self.FAST_ver = 'OPENFAST'
         self.FAST_namingOut = None    #Master FAST file
         self.FAST_runDirectory = None #Output directory
-        self.fst_vt = FstModel
+        self.fst_vt = {}
         self.fst_update = {}
-
-        # Optional population class attributes from key word arguments
-        for (k, w) in kwargs.items():
-            try:
-                setattr(self, k, w)
-            except:
-                pass
-
-        super(InputWriter_Common, self).__init__()
-
-    def write_yaml(self):
-        self.FAST_yamlfile = os.path.join(self.FAST_runDirectory, self.FAST_namingOut+'.yaml')
-        f = open(self.FAST_yamlfile, "w")
-        yaml.dump(self.fst_vt, f)
-
 
     def update(self, fst_update={}):
         """ Change fast variables based on the user supplied values """
@@ -101,160 +87,6 @@ class InputWriter_Common(object):
 
             # set fast variables to update values
             loop_dict(self.fst_update, [])
-
-
-    def write_ElastoDynBlade(self):
-
-        self.fst_vt['ElastoDyn']['BldFile1'] = self.FAST_namingOut + '_ElastoDyn_blade.dat'
-        self.fst_vt['ElastoDyn']['BldFile2'] = self.fst_vt['ElastoDyn']['BldFile1']
-        self.fst_vt['ElastoDyn']['BldFile3'] = self.fst_vt['ElastoDyn']['BldFile1']
-        blade_file = os.path.join(self.FAST_runDirectory,self.fst_vt['ElastoDyn']['BldFile1'])
-        f = open(blade_file, 'w')
-
-        f.write('------- ELASTODYN V1.00.* INDIVIDUAL BLADE INPUT FILE --------------------------\n')
-        f.write('Generated with AeroElasticSE FAST driver\n')
-        f.write('---------------------- BLADE PARAMETERS ----------------------------------------\n')
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['NBlInpSt'], 'NBlInpSt', '- Number of blade input stations (-)\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFlDmp1'], 'BldFlDmp1', '- Blade flap mode #1 structural damping in percent of critical (%)\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFlDmp2'], 'BldFlDmp2', '- Blade flap mode #2 structural damping in percent of critical (%)\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldEdDmp1'], 'BldEdDmp1', '- Blade edge mode #1 structural damping in percent of critical (%)\n'))
-        f.write('---------------------- BLADE ADJUSTMENT FACTORS --------------------------------\n')
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['FlStTunr1'], 'FlStTunr1', '- Blade flapwise modal stiffness tuner, 1st mode (-)\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['FlStTunr2'], 'FlStTunr2', '- Blade flapwise modal stiffness tuner, 2nd mode (-)\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['AdjBlMs'], 'AdjBlMs', '- Factor to adjust blade mass density (-)\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['AdjFlSt'], 'AdjFlSt', '- Factor to adjust blade flap stiffness (-)\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['AdjEdSt'], 'AdjEdSt', '- Factor to adjust blade edge stiffness (-)\n'))
-        f.write('---------------------- DISTRIBUTED BLADE PROPERTIES ----------------------------\n')
-        f.write('    BlFract      PitchAxis      StrcTwst       BMassDen        FlpStff        EdgStff\n')
-        f.write('      (-)           (-)          (deg)          (kg/m)         (Nm^2)         (Nm^2)\n')
-        BlFract   = self.fst_vt['ElastoDynBlade']['BlFract']
-        PitchAxis = self.fst_vt['ElastoDynBlade']['PitchAxis']
-        StrcTwst  = self.fst_vt['ElastoDynBlade']['StrcTwst']
-        BMassDen  = self.fst_vt['ElastoDynBlade']['BMassDen']
-        FlpStff   = self.fst_vt['ElastoDynBlade']['FlpStff']
-        EdgStff   = self.fst_vt['ElastoDynBlade']['EdgStff']
-        for BlFracti, PitchAxisi, StrcTwsti, BMassDeni, FlpStffi, EdgStffi in zip(BlFract, PitchAxis, StrcTwst, BMassDen, FlpStff, EdgStff):
-            f.write('{: 2.15e} {: 2.15e} {: 2.15e} {: 2.15e} {: 2.15e} {: 2.15e}\n'.format(BlFracti, PitchAxisi, StrcTwsti, BMassDeni, FlpStffi, EdgStffi))
-        f.write('---------------------- BLADE MODE SHAPES ---------------------------------------\n')
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFl1Sh'][0], 'BldFl1Sh(2)', '- Flap mode 1, coeff of x^2\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFl1Sh'][1], 'BldFl1Sh(3)', '-            , coeff of x^3\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFl1Sh'][2], 'BldFl1Sh(4)', '-            , coeff of x^4\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFl1Sh'][3], 'BldFl1Sh(5)', '-            , coeff of x^5\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFl1Sh'][4], 'BldFl1Sh(6)', '-            , coeff of x^6\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFl2Sh'][0], 'BldFl2Sh(2)', '- Flap mode 2, coeff of x^2\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFl2Sh'][1], 'BldFl2Sh(3)', '-            , coeff of x^3\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFl2Sh'][2], 'BldFl2Sh(4)', '-            , coeff of x^4\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFl2Sh'][3], 'BldFl2Sh(5)', '-            , coeff of x^5\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFl2Sh'][4], 'BldFl2Sh(6)', '-            , coeff of x^6\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldEdgSh'][0], 'BldEdgSh(2)', '- Edge mode 1, coeff of x^2\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldEdgSh'][1], 'BldEdgSh(3)', '-            , coeff of x^3\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldEdgSh'][2], 'BldEdgSh(4)', '-            , coeff of x^4\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldEdgSh'][3], 'BldEdgSh(5)', '-            , coeff of x^5\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldEdgSh'][4], 'BldEdgSh(6)', '-            , coeff of x^6\n'))      
-         
-        f.close()
-
-
-    def write_ElastoDynTower(self):
-
-        self.fst_vt['ElastoDyn']['TwrFile'] = self.FAST_namingOut + '_ElastoDyn_tower.dat'
-        tower_file = os.path.join(self.FAST_runDirectory,self.fst_vt['ElastoDyn']['TwrFile'])
-        f = open(tower_file, 'w')
-
-        f.write('------- ELASTODYN V1.00.* TOWER INPUT FILE -------------------------------------\n')
-        f.write('Generated with AeroElasticSE FAST driver\n')
-        f.write('---------------------- TOWER PARAMETERS ----------------------------------------\n')
-        if self.FAST_ver.lower() == 'fast7':
-            f.write('---\n')
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['NTwInpSt'],  'NTwInpSt', '- Number of input stations to specify tower geometry\n'))
-        if self.FAST_ver.lower() == 'fast7':
-            f.write('{:}\n'.format(self.fst_vt['ElastoDynTower']['CalcTMode']))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwrFADmp1'], 'TwrFADmp(1)', '- Tower 1st fore-aft mode structural damping ratio (%)\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwrFADmp2'], 'TwrFADmp(2)', '- Tower 2nd fore-aft mode structural damping ratio (%)\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwrSSDmp1'], 'TwrSSDmp(1)', '- Tower 1st side-to-side mode structural damping ratio (%)\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwrSSDmp2'], 'TwrSSDmp(2)', '- Tower 2nd side-to-side mode structural damping ratio (%)\n'))
-        f.write('---------------------- TOWER ADJUSTMUNT FACTORS --------------------------------\n')
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['FAStTunr1'], 'FAStTunr(1)', '- Tower fore-aft modal stiffness tuner, 1st mode (-)\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['FAStTunr2'], 'FAStTunr(2)', '- Tower fore-aft modal stiffness tuner, 2nd mode (-)\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['SSStTunr1'], 'SSStTunr(1)', '- Tower side-to-side stiffness tuner, 1st mode (-)\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['SSStTunr2'], 'SSStTunr(2)', '- Tower side-to-side stiffness tuner, 2nd mode (-)\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['AdjTwMa'], 'AdjTwMa', '- Factor to adjust tower mass density (-)\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['AdjFASt'], 'AdjFASt', '- Factor to adjust tower fore-aft stiffness (-)\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['AdjSSSt'], 'AdjSSSt', '- Factor to adjust tower side-to-side stiffness (-)\n'))
-        f.write('---------------------- DISTRIBUTED TOWER PROPERTIES ----------------------------\n')
-        f.write('  HtFract       TMassDen         TwFAStif       TwSSStif\n')
-        f.write('   (-)           (kg/m)           (Nm^2)         (Nm^2)\n')
-        HtFract   = self.fst_vt['ElastoDynTower']['HtFract']
-        TMassDen  = self.fst_vt['ElastoDynTower']['TMassDen']
-        TwFAStif  = self.fst_vt['ElastoDynTower']['TwFAStif']
-        TwSSStif  = self.fst_vt['ElastoDynTower']['TwSSStif']
-        if self.FAST_ver.lower() == 'fast7':
-            gs = self.fst_vt['ElastoDynTower']['TwGJStif']
-            es = self.fst_vt['ElastoDynTower']['TwEAStif']
-            fi = self.fst_vt['ElastoDynTower']['TwFAIner']
-            si = self.fst_vt['ElastoDynTower']['TwSSIner']
-            fo = self.fst_vt['ElastoDynTower']['TwFAcgOf']
-            so = self.fst_vt['ElastoDynTower']['TwSScgOf']
-            for a1, a2, a3, a4, a5, a6, a7, a8, a9, a10 in zip(HtFract, TMassDen, TwFAStif, TwSSStif, gs, es, fi, si, fo, so):
-                f.write('{:.9e}\t{:.9e}\t{:.9e}\t{:.9e}\t{:.9e}\t{:.9e}\t{:.9e}\t{:.9e}\t{:.9e}\t{:.9e}\n'.\
-                format(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10))  
-        else:
-            for HtFracti, TMassDeni, TwFAStifi, TwSSStifi in zip(HtFract, TMassDen, TwFAStif, TwSSStif):
-                f.write('{: 2.15e} {: 2.15e} {: 2.15e} {: 2.15e}\n'.format(HtFracti, TMassDeni, TwFAStifi, TwSSStifi))
-        f.write('---------------------- TOWER FORE-AFT MODE SHAPES ------------------------------\n')
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwFAM1Sh'][0], 'TwFAM1Sh(2)', '- Mode 1, coefficient of x^2 term\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwFAM1Sh'][1], 'TwFAM1Sh(3)', '-       , coefficient of x^3 term\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwFAM1Sh'][2], 'TwFAM1Sh(4)', '-       , coefficient of x^4 term\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwFAM1Sh'][3], 'TwFAM1Sh(5)', '-       , coefficient of x^5 term\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwFAM1Sh'][4], 'TwFAM1Sh(6)', '-       , coefficient of x^6 term\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwFAM2Sh'][0], 'TwFAM2Sh(2)', '- Mode 2, coefficient of x^2 term\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwFAM2Sh'][1], 'TwFAM2Sh(3)', '-       , coefficient of x^3 term\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwFAM2Sh'][2], 'TwFAM2Sh(4)', '-       , coefficient of x^4 term\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwFAM2Sh'][3], 'TwFAM2Sh(5)', '-       , coefficient of x^5 term\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwFAM2Sh'][4], 'TwFAM2Sh(6)', '-       , coefficient of x^6 term\n'))
-        f.write('---------------------- TOWER SIDE-TO-SIDE MODE SHAPES --------------------------\n')
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwSSM1Sh'][0], 'TwSSM1Sh(2)', '- Mode 1, coefficient of x^2 term\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwSSM1Sh'][1], 'TwSSM1Sh(3)', '-       , coefficient of x^3 term\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwSSM1Sh'][2], 'TwSSM1Sh(4)', '-       , coefficient of x^4 term\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwSSM1Sh'][3], 'TwSSM1Sh(5)', '-       , coefficient of x^5 term\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwSSM1Sh'][4], 'TwSSM1Sh(6)', '-       , coefficient of x^6 term\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwSSM2Sh'][0], 'TwSSM2Sh(2)', '- Mode 2, coefficient of x^2 term\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwSSM2Sh'][1], 'TwSSM2Sh(3)', '-       , coefficient of x^3 term\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwSSM2Sh'][2], 'TwSSM2Sh(4)', '-       , coefficient of x^4 term\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwSSM2Sh'][3], 'TwSSM2Sh(5)', '-       , coefficient of x^5 term\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwSSM2Sh'][4], 'TwSSM2Sh(6)', '-       , coefficient of x^6 term\n'))
-        
-        f.close()
-
-    def write_AeroDyn14Polar(self, filename, a_i):
-        # AeroDyn v14 Airfoil Polar Input File
-
-        f = open(filename, 'w')
-        f.write('AeroDyn airfoil file, Aerodyn v14.04 formatting\n')
-        f.write('Generated with AeroElasticSE FAST driver\n')
-
-        f.write('{:9d}\t{:}'.format(self.fst_vt['AeroDynBlade']['af_data'][a_i]['number_tables'], 'Number of airfoil tables in this file\n'))
-        for i in range(self.fst_vt['AeroDynBlade']['af_data'][a_i]['number_tables']):
-            param = self.fst_vt['AeroDynBlade']['af_data'][a_i]['af_tables'][i]
-            f.write('{:9g}\t{:}'.format(i, 'Table ID parameter\n'))
-            f.write('{: f}\t{:}'.format(param['StallAngle'], 'Stall angle (deg)\n'))
-            f.write('{: f}\t{:}'.format(0, 'No longer used, enter zero\n'))
-            f.write('{: f}\t{:}'.format(0, 'No longer used, enter zero\n'))
-            f.write('{: f}\t{:}'.format(0, 'No longer used, enter zero\n'))
-            f.write('{: f}\t{:}'.format(param['ZeroCn'], 'Angle of attack for zero Cn for linear Cn curve (deg)\n'))
-            f.write('{: f}\t{:}'.format(param['CnSlope'], 'Cn slope for zero lift for linear Cn curve (1/rad)\n'))
-            f.write('{: f}\t{:}'.format(param['CnPosStall'], 'Cn at stall value for positive angle of attack for linear Cn curve\n'))
-            f.write('{: f}\t{:}'.format(param['CnNegStall'], 'Cn at stall value for negative angle of attack for linear Cn curve\n'))
-            f.write('{: f}\t{:}'.format(param['alphaCdMin'], 'Angle of attack for minimum CD (deg)\n'))
-            f.write('{: f}\t{:}'.format(param['CdMin'], 'Minimum CD value\n'))
-            if param['cm']:
-                for a, cl, cd, cm in zip(param['alpha'], param['cl'], param['cd'], param['cm']):
-                    f.write('{: 6e}  {: 6e}  {: 6e}  {: 6e}\n'.format(a, cl, cd, cm))
-            else:
-                for a, cl, cd in zip(param['alpha'], param['cl'], param['cd']):
-                    f.write('{: 6e}  {: 6e}  {: 6e}\n'.format(a, cl, cd))
-        
-        f.close()
 
     def get_outlist(self, vartree_head, channel_list=[]):
         """ Loop through a list of output channel names, recursively find values set to True in the nested outlist dict """
@@ -312,9 +144,6 @@ class InputWriter_Common(object):
             var = var.replace(' ', '')
             loop_dict(self.fst_vt['outlist'], var, val, [])
 
-
-class InputWriter_OpenFAST(InputWriter_Common):
-
     def execute(self):
         
         if not os.path.exists(self.FAST_runDirectory):
@@ -330,9 +159,14 @@ class InputWriter_OpenFAST(InputWriter_Common):
         elif self.fst_vt['Fst']['CompAero'] == 2:
             self.write_AeroDyn15()
         
-        if 'DISCON_in' in self.fst_vt and ROSCO:
-            self.write_DISCON_in()
-        self.write_ServoDyn()
+        if self.fst_vt['Fst']['CompServo'] == 1:
+            if 'DISCON_in' in self.fst_vt and ROSCO:
+                self.write_DISCON_in()
+            self.write_ServoDyn()
+            for i_TStC, TStC in enumerate(self.fst_vt['TStC']):
+                self.write_StC(TStC,self.fst_vt['ServoDyn']['TStCfiles'][i_TStC])
+            for i_SStC, SStC in enumerate(self.fst_vt['SStC']):
+                self.write_StC(SStC,self.fst_vt['ServoDyn']['SStCfiles'][i_SStC])
         
         if self.fst_vt['Fst']['CompHydro'] == 1:
             self.write_HydroDyn()
@@ -347,7 +181,6 @@ class InputWriter_OpenFAST(InputWriter_Common):
             self.write_BeamDyn()
 
         self.write_MainInput()
-
 
     def write_MainInput(self):
         # Main FAST v8.16-v8.17 Input File
@@ -560,9 +393,9 @@ class InputWriter_OpenFAST(InputWriter_Common):
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDyn']['DecFact'], 'DecFact', '- Decimation factor for tabular output {1: output every time step} (-) (currently unused)\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDyn']['NTwGages'], 'NTwGages', '- Number of tower nodes that have strain gages for output [0 to 9] (-)\n'))  
         if self.fst_vt['ElastoDyn']['TwrGagNd'] != 0:
-            f.write('{:<22} {:<11} {:}'.format(', '.join(self.fst_vt['ElastoDyn']['TwrGagNd']), 'TwrGagNd', '- List of tower nodes that have strain gages [1 to TwrNodes] (-) [unused if NTwGages=0]\n'))
+            f.write('{:<22} {:<11} {:}'.format(', '.join(['%d'%i for i in self.fst_vt['ElastoDyn']['TwrGagNd']]), 'TwrGagNd', '- List of tower nodes that have strain gages [1 to TwrNodes] (-) [unused if NTwGages=0]\n'))
         else:
-            f.write('{:<22} {:<11} {:}'.format(0, 'TwrGagNd', '- List of tower nodes that have strain gages [1 to TwrNodes] (-) [unused if NTwGages=0]\n'))
+            f.write('{:<22} {:<11} {:}'.format('', 'TwrGagNd', '- List of tower nodes that have strain gages [1 to TwrNodes] (-) [unused if NTwGages=0]\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDyn']['NBlGages'], 'NBlGages', '- Number of blade nodes that have strain gages for output [0 to 9] (-)\n'))
         if self.fst_vt['ElastoDyn']['BldGagNd'] != 0:
             f.write('{:<22} {:<11} {:}'.format(', '.join(['%d'%i for i in self.fst_vt['ElastoDyn']['BldGagNd']]), 'BldGagNd', '- List of blade nodes that have strain gages [1 to BldNodes] (-) [unused if NBlGages=0]\n'))
@@ -580,6 +413,112 @@ class InputWriter_OpenFAST(InputWriter_Common):
         f.write('---------------------------------------------------------------------------------------\n')
         f.close()
 
+    def write_ElastoDynBlade(self):
+
+        self.fst_vt['ElastoDyn']['BldFile1'] = self.FAST_namingOut + '_ElastoDyn_blade.dat'
+        self.fst_vt['ElastoDyn']['BldFile2'] = self.fst_vt['ElastoDyn']['BldFile1']
+        self.fst_vt['ElastoDyn']['BldFile3'] = self.fst_vt['ElastoDyn']['BldFile1']
+        blade_file = os.path.join(self.FAST_runDirectory,self.fst_vt['ElastoDyn']['BldFile1'])
+        f = open(blade_file, 'w')
+
+        f.write('------- ELASTODYN V1.00.* INDIVIDUAL BLADE INPUT FILE --------------------------\n')
+        f.write('Generated with AeroElasticSE FAST driver\n')
+        f.write('---------------------- BLADE PARAMETERS ----------------------------------------\n')
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['NBlInpSt'], 'NBlInpSt', '- Number of blade input stations (-)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFlDmp1'], 'BldFlDmp1', '- Blade flap mode #1 structural damping in percent of critical (%)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFlDmp2'], 'BldFlDmp2', '- Blade flap mode #2 structural damping in percent of critical (%)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldEdDmp1'], 'BldEdDmp1', '- Blade edge mode #1 structural damping in percent of critical (%)\n'))
+        f.write('---------------------- BLADE ADJUSTMENT FACTORS --------------------------------\n')
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['FlStTunr1'], 'FlStTunr1', '- Blade flapwise modal stiffness tuner, 1st mode (-)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['FlStTunr2'], 'FlStTunr2', '- Blade flapwise modal stiffness tuner, 2nd mode (-)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['AdjBlMs'], 'AdjBlMs', '- Factor to adjust blade mass density (-)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['AdjFlSt'], 'AdjFlSt', '- Factor to adjust blade flap stiffness (-)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['AdjEdSt'], 'AdjEdSt', '- Factor to adjust blade edge stiffness (-)\n'))
+        f.write('---------------------- DISTRIBUTED BLADE PROPERTIES ----------------------------\n')
+        f.write('    BlFract      PitchAxis      StrcTwst       BMassDen        FlpStff        EdgStff\n')
+        f.write('      (-)           (-)          (deg)          (kg/m)         (Nm^2)         (Nm^2)\n')
+        BlFract   = self.fst_vt['ElastoDynBlade']['BlFract']
+        PitchAxis = self.fst_vt['ElastoDynBlade']['PitchAxis']
+        StrcTwst  = self.fst_vt['ElastoDynBlade']['StrcTwst']
+        BMassDen  = self.fst_vt['ElastoDynBlade']['BMassDen']
+        FlpStff   = self.fst_vt['ElastoDynBlade']['FlpStff']
+        EdgStff   = self.fst_vt['ElastoDynBlade']['EdgStff']
+        for BlFracti, PitchAxisi, StrcTwsti, BMassDeni, FlpStffi, EdgStffi in zip(BlFract, PitchAxis, StrcTwst, BMassDen, FlpStff, EdgStff):
+            f.write('{: 2.15e} {: 2.15e} {: 2.15e} {: 2.15e} {: 2.15e} {: 2.15e}\n'.format(BlFracti, PitchAxisi, StrcTwsti, BMassDeni, FlpStffi, EdgStffi))
+        f.write('---------------------- BLADE MODE SHAPES ---------------------------------------\n')
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFl1Sh'][0], 'BldFl1Sh(2)', '- Flap mode 1, coeff of x^2\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFl1Sh'][1], 'BldFl1Sh(3)', '-            , coeff of x^3\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFl1Sh'][2], 'BldFl1Sh(4)', '-            , coeff of x^4\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFl1Sh'][3], 'BldFl1Sh(5)', '-            , coeff of x^5\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFl1Sh'][4], 'BldFl1Sh(6)', '-            , coeff of x^6\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFl2Sh'][0], 'BldFl2Sh(2)', '- Flap mode 2, coeff of x^2\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFl2Sh'][1], 'BldFl2Sh(3)', '-            , coeff of x^3\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFl2Sh'][2], 'BldFl2Sh(4)', '-            , coeff of x^4\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFl2Sh'][3], 'BldFl2Sh(5)', '-            , coeff of x^5\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldFl2Sh'][4], 'BldFl2Sh(6)', '-            , coeff of x^6\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldEdgSh'][0], 'BldEdgSh(2)', '- Edge mode 1, coeff of x^2\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldEdgSh'][1], 'BldEdgSh(3)', '-            , coeff of x^3\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldEdgSh'][2], 'BldEdgSh(4)', '-            , coeff of x^4\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldEdgSh'][3], 'BldEdgSh(5)', '-            , coeff of x^5\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynBlade']['BldEdgSh'][4], 'BldEdgSh(6)', '-            , coeff of x^6\n'))      
+         
+        f.close()
+
+    def write_ElastoDynTower(self):
+
+        self.fst_vt['ElastoDyn']['TwrFile'] = self.FAST_namingOut + '_ElastoDyn_tower.dat'
+        tower_file = os.path.join(self.FAST_runDirectory,self.fst_vt['ElastoDyn']['TwrFile'])
+        f = open(tower_file, 'w')
+
+        f.write('------- ELASTODYN V1.00.* TOWER INPUT FILE -------------------------------------\n')
+        f.write('Generated with AeroElasticSE FAST driver\n')
+        f.write('---------------------- TOWER PARAMETERS ----------------------------------------\n')
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['NTwInpSt'],  'NTwInpSt', '- Number of input stations to specify tower geometry\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwrFADmp1'], 'TwrFADmp(1)', '- Tower 1st fore-aft mode structural damping ratio (%)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwrFADmp2'], 'TwrFADmp(2)', '- Tower 2nd fore-aft mode structural damping ratio (%)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwrSSDmp1'], 'TwrSSDmp(1)', '- Tower 1st side-to-side mode structural damping ratio (%)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwrSSDmp2'], 'TwrSSDmp(2)', '- Tower 2nd side-to-side mode structural damping ratio (%)\n'))
+        f.write('---------------------- TOWER ADJUSTMUNT FACTORS --------------------------------\n')
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['FAStTunr1'], 'FAStTunr(1)', '- Tower fore-aft modal stiffness tuner, 1st mode (-)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['FAStTunr2'], 'FAStTunr(2)', '- Tower fore-aft modal stiffness tuner, 2nd mode (-)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['SSStTunr1'], 'SSStTunr(1)', '- Tower side-to-side stiffness tuner, 1st mode (-)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['SSStTunr2'], 'SSStTunr(2)', '- Tower side-to-side stiffness tuner, 2nd mode (-)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['AdjTwMa'], 'AdjTwMa', '- Factor to adjust tower mass density (-)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['AdjFASt'], 'AdjFASt', '- Factor to adjust tower fore-aft stiffness (-)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['AdjSSSt'], 'AdjSSSt', '- Factor to adjust tower side-to-side stiffness (-)\n'))
+        f.write('---------------------- DISTRIBUTED TOWER PROPERTIES ----------------------------\n')
+        f.write('  HtFract       TMassDen         TwFAStif       TwSSStif\n')
+        f.write('   (-)           (kg/m)           (Nm^2)         (Nm^2)\n')
+        HtFract   = self.fst_vt['ElastoDynTower']['HtFract']
+        TMassDen  = self.fst_vt['ElastoDynTower']['TMassDen']
+        TwFAStif  = self.fst_vt['ElastoDynTower']['TwFAStif']
+        TwSSStif  = self.fst_vt['ElastoDynTower']['TwSSStif']
+        for HtFracti, TMassDeni, TwFAStifi, TwSSStifi in zip(HtFract, TMassDen, TwFAStif, TwSSStif):
+            f.write('{: 2.15e} {: 2.15e} {: 2.15e} {: 2.15e}\n'.format(HtFracti, TMassDeni, TwFAStifi, TwSSStifi))
+        f.write('---------------------- TOWER FORE-AFT MODE SHAPES ------------------------------\n')
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwFAM1Sh'][0], 'TwFAM1Sh(2)', '- Mode 1, coefficient of x^2 term\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwFAM1Sh'][1], 'TwFAM1Sh(3)', '-       , coefficient of x^3 term\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwFAM1Sh'][2], 'TwFAM1Sh(4)', '-       , coefficient of x^4 term\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwFAM1Sh'][3], 'TwFAM1Sh(5)', '-       , coefficient of x^5 term\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwFAM1Sh'][4], 'TwFAM1Sh(6)', '-       , coefficient of x^6 term\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwFAM2Sh'][0], 'TwFAM2Sh(2)', '- Mode 2, coefficient of x^2 term\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwFAM2Sh'][1], 'TwFAM2Sh(3)', '-       , coefficient of x^3 term\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwFAM2Sh'][2], 'TwFAM2Sh(4)', '-       , coefficient of x^4 term\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwFAM2Sh'][3], 'TwFAM2Sh(5)', '-       , coefficient of x^5 term\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwFAM2Sh'][4], 'TwFAM2Sh(6)', '-       , coefficient of x^6 term\n'))
+        f.write('---------------------- TOWER SIDE-TO-SIDE MODE SHAPES --------------------------\n')
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwSSM1Sh'][0], 'TwSSM1Sh(2)', '- Mode 1, coefficient of x^2 term\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwSSM1Sh'][1], 'TwSSM1Sh(3)', '-       , coefficient of x^3 term\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwSSM1Sh'][2], 'TwSSM1Sh(4)', '-       , coefficient of x^4 term\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwSSM1Sh'][3], 'TwSSM1Sh(5)', '-       , coefficient of x^5 term\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwSSM1Sh'][4], 'TwSSM1Sh(6)', '-       , coefficient of x^6 term\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwSSM2Sh'][0], 'TwSSM2Sh(2)', '- Mode 2, coefficient of x^2 term\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwSSM2Sh'][1], 'TwSSM2Sh(3)', '-       , coefficient of x^3 term\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwSSM2Sh'][2], 'TwSSM2Sh(4)', '-       , coefficient of x^4 term\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwSSM2Sh'][3], 'TwSSM2Sh(5)', '-       , coefficient of x^5 term\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ElastoDynTower']['TwSSM2Sh'][4], 'TwSSM2Sh(6)', '-       , coefficient of x^6 term\n'))
+        
+        f.close()
 
     def write_BeamDyn(self):
         self.fst_vt['Fst']['BDBldFile(1)'] = self.FAST_namingOut + '_BeamDyn.dat'
@@ -660,8 +599,8 @@ class InputWriter_OpenFAST(InputWriter_Common):
     def write_BeamDynBlade(self):
 
         # bd_blade_file = self.fst_vt['BeamDyn']['BldFile']
-        bd_blade_file = os.path.abspath(os.path.join(self.FAST_runDirectory, self.FAST_namingOut + '_BeamDyn_Blade.dat'))
-        self.fst_vt['BeamDyn']['BldFile'] = bd_blade_file
+        self.fst_vt['BeamDyn']['BldFile'] = self.FAST_namingOut + '_BeamDyn_Blade.dat'
+        bd_blade_file = os.path.abspath(os.path.join(self.FAST_runDirectory, self.fst_vt['BeamDyn']['BldFile']))
         f = open(bd_blade_file, 'w')
 
         f.write('------- BEAMDYN V1.00.* INDIVIDUAL BLADE INPUT FILE --------------------------\n')
@@ -755,116 +694,7 @@ class InputWriter_OpenFAST(InputWriter_Common):
         f.write('---------------------------------------------------------------------------------------\n')
 
         f.close()
-
-    # def WndWindWriter(self, wndfile):
-
-    #     wind_file = os.path.join(self.FAST_runDirectory,wndfile)
-    #     f = open(wind_file, 'w')
-
-    #     for i in range(self.fst_vt['wnd_wind']['TimeSteps']):
-    #         f.write('{: 2.15e}\t{: 2.15e}\t{: 2.15e}\t{: 2.15e}\t{: 2.15e}\t{: 2.15e}\t{: 2.15e}\t{: 2.15e}\n'.format(\
-    #                   self.fst_vt['wnd_wind']['Time'][i], self.fst_vt['wnd_wind']['HorSpd'][i], self.fst_vt['wnd_wind']['WindDir'][i],\
-    #                   self.fst_vt['wnd_wind']['VerSpd'][i], self.fst_vt['wnd_wind']['HorShr'][i],\
-    #                   self.fst_vt['wnd_wind']['VerShr'][i], self.fst_vt['wnd_wind']['LnVShr'][i], self.fst_vt['wnd_wind']['GstSpd'][i]))
-
-    #     f.close()
-
-
-    def write_AeroDyn14(self):
-
-        # ======= Airfoil Files ========
-        # make directory for airfoil files
-        if not os.path.isdir(os.path.join(self.FAST_runDirectory,'AeroData')):
-            try:
-                os.mkdir(os.path.join(self.FAST_runDirectory,'AeroData'))
-            except:
-                try:
-                    time.sleep(random.random())
-                    if not os.path.isdir(os.path.join(self.FAST_runDirectory,'AeroData')):
-                        os.mkdir(os.path.join(self.FAST_runDirectory,'AeroData'))
-                except:
-                    print("Error tring to make '%s'!"%os.path.join(self.FAST_runDirectory,'AeroData'))
-
-        # create write airfoil objects to files
-        for i in range(self.fst_vt['AeroDyn14']['NumFoil']):
-             af_name = os.path.join(self.FAST_runDirectory, 'AeroData', 'Airfoil' + str(i) + '.dat')
-             self.fst_vt['AeroDyn14']['FoilNm'][i]  = os.path.join('AeroData', 'Airfoil' + str(i) + '.dat')
-             self.write_AeroDyn14Polar(af_name, i)
-
-        self.fst_vt['Fst']['AeroFile'] = self.FAST_namingOut + '_AeroDyn14.dat'
-        ad_file = os.path.join(self.FAST_runDirectory,self.fst_vt['Fst']['AeroFile'])
-        f = open(ad_file,'w')
-
-        # create Aerodyn Tower
-        self.write_AeroDyn14Tower()
-
-        # ======= Aerodyn Input File ========
-        f.write('AeroDyn v14.04.* INPUT FILE\n\n')
-        
-        # f.write('{:}\n'.format(self.fst_vt['aerodyn']['SysUnits']))
-        f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['StallMod']))        
-        
-        f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['UseCm']))
-        f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['InfModel']))
-        f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['IndModel']))
-        f.write('{: 2.15e}\n'.format(self.fst_vt['AeroDyn14']['AToler']))
-        f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['TLModel']))
-        f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['HLModel']))
-        f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['TwrShad']))  
   
-        f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['TwrPotent']))  
-  
-        f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['TwrShadow']))
-        f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['TwrFile']))
-        f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['CalcTwrAero']))  
-  
-        f.write('{: 2.15e}\n'.format(self.fst_vt['AeroDyn14']['AirDens']))  
-  
-        f.write('{: 2.15e}\n'.format(self.fst_vt['AeroDyn14']['KinVisc']))  
-  
-        f.write('{:2}\n'.format(self.fst_vt['AeroDyn14']['DTAero']))        
-        
-
-        f.write('{:2}\n'.format(self.fst_vt['AeroDynBlade']['NumFoil']))
-        for i in range (self.fst_vt['AeroDynBlade']['NumFoil']):
-            f.write('"{:}"\n'.format(self.fst_vt['AeroDynBlade']['FoilNm'][i]))
-
-        f.write('{:2}\n'.format(self.fst_vt['AeroDynBlade']['BldNodes']))
-        rnodes = self.fst_vt['AeroDynBlade']['RNodes']
-        twist = self.fst_vt['AeroDynBlade']['AeroTwst']
-        drnodes = self.fst_vt['AeroDynBlade']['DRNodes']
-        chord = self.fst_vt['AeroDynBlade']['Chord']
-        nfoil = self.fst_vt['AeroDynBlade']['NFoil']
-        prnelm = self.fst_vt['AeroDynBlade']['PrnElm']
-        f.write('Nodal properties\n')
-        for r, t, dr, c, a, p in zip(rnodes, twist, drnodes, chord, nfoil, prnelm):
-            f.write('{: 2.15e}\t{: 2.15e}\t{: 2.15e}\t{: 2.15e}\t{:5}\t{:}\n'.format(r, t, dr, c, a, p))
-
-        f.close()        
-
-    def write_AeroDyn14Tower(self):
-        # AeroDyn v14.04 Tower
-        self.fst_vt['AeroDyn14']['TwrFile'] = self.FAST_namingOut + '_AeroDyn14_tower.dat'
-        filename = os.path.join(self.FAST_runDirectory, self.fst_vt['AeroDyn14']['TwrFile'])
-        f = open(filename, 'w')
-
-        f.write('AeroDyn tower file, Aerodyn v14.04 formatting\n')
-        f.write('Generated with AeroElasticSE FAST driver\n')
-        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDynTower']['NTwrHt'], 'NTwrHt', '- Number of tower input height stations listed (-)\n'))
-        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDynTower']['NTwrRe'], 'NTwrRe', '- Number of tower Re values (-)\n'))
-        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDynTower']['NTwrCD'], 'NTwrCD', '- Number of tower CD columns (-) Note: For current versions, this MUST be 1\n'))
-        f.write('{: 2.15e} {:<11} {:}'.format(self.fst_vt['AeroDynTower']['Tower_Wake_Constant'], 'Tower_Wake_Constant', '- Tower wake constant (-) {0.0: full potential flow, 0.1: Bak model}\n'))
-        f.write('---------------------- DISTRIBUTED TOWER PROPERTIES ----------------------------\n')
-        f.write('TwrHtFr  TwrWid  NTwrCDCol\n')
-        for HtFr, Wid, CDId in zip(self.fst_vt['AeroDynTower']['TwrHtFr'], self.fst_vt['AeroDynTower']['TwrWid'], self.fst_vt['AeroDynTower']['NTwrCDCol']):
-            f.write('{: 2.15e}  {: 2.15e}   {:d}\n'.format(HtFr, Wid, int(CDId)))
-        f.write('---------------------- Re v CD PROPERTIES --------------------------------------\n')
-        f.write('TwrRe  '+ '  '.join(['TwrCD%d'%(i+1) for i in range(self.fst_vt['AeroDynTower']['NTwrCD'])]) +'\n')
-        for Re, CD in zip(self.fst_vt['AeroDynTower']['TwrRe'], self.fst_vt['AeroDynTower']['TwrCD']):
-            f.write('% 2.15e' %Re + '   '.join(['% 2.15e'%cdi for cdi in CD]) + '\n')
-        
-        f.close()
-        
     def write_AeroDyn15(self):
         # AeroDyn v15.03
 
@@ -879,6 +709,8 @@ class InputWriter_OpenFAST(InputWriter_Common):
             self.write_AeroDyn15Coord()
         
         if self.fst_vt['AeroDyn15']['WakeMod'] == 3:
+            if self.fst_vt['AeroDyn15']['AFAeroMod'] == 2:
+                raise Exception('OLAF is called with unsteady airfoil aerodynamics, but OLAF currently only supports AFAeroMod == 1')
             self.write_OLAF()
 
         # Generate AeroDyn v15.03 input file
@@ -906,7 +738,7 @@ class InputWriter_OpenFAST(InputWriter_Common):
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['SpdSound'], 'SpdSound', '- Speed of sound (m/s)\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['Patm'], 'Patm', '- Atmospheric pressure (Pa) [used only when CavitCheck=True]\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['Pvap'], 'Pvap', '- Vapour pressure of fluid (Pa) [used only when CavitCheck=True]\n'))
-        f.write('======  Blade-Element/Momentum Theory Options  ====================================================== [used only when WakeMod=1]\n')
+        f.write('======  Blade-Element/Momentum Theory Options  ====================================================== [unused when WakeMod=0 or 3]\n')
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['SkewMod'], 'SkewMod', '- Type of skewed-wake correction model (switch) {1=uncoupled, 2=Pitt/Peters, 3=coupled} [unused when WakeMod=0 or 3]\n'))
         f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['SkewModFactor'], 'SkewModFactor', '- Constant used in Pitt/Peters skewed wake model {or "default" is 15/32*pi} (-) [used only when SkewMod=2; unused when WakeMod=0 or 3]\n'))
         f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['TipLoss'], 'TipLoss', '- Use the Prandtl tip-loss model? (flag) [unused when WakeMod=0 or 3]\n'))
@@ -916,7 +748,7 @@ class InputWriter_OpenFAST(InputWriter_Common):
         f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['TIDrag'], 'TIDrag', '- Include the drag term in the tangential-induction calculation? (flag) [unused when WakeMod=0,3 or TanInd=FALSE]\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['IndToler'], 'IndToler', '- Convergence tolerance for BEMT nonlinear solve residual equation {or "default"} (-) [unused when WakeMod=0 or 3]\n'))
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['MaxIter'], 'MaxIter', '- Maximum number of iteration steps (-) [unused when WakeMod=0]\n'))
-        f.write('======  Dynamic Blade-Element/Momentum Theory Options  ====================================================== [used only when WakeMod=1]\n')
+        f.write('======  Dynamic Blade-Element/Momentum Theory Options  ====================================================== [used only when WakeMod=2]\n')
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['DBEMT_Mod'], 'DBEMT_Mod', '- Type of dynamic BEMT (DBEMT) model {1=constant tau1, 2=time-dependent tau1} (-) [used only when WakeMod=2]\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['tau1_const'], 'tau1_const', '- Time constant for DBEMT (s) [used only when WakeMod=2 and DBEMT_Mod=1]\n'))
         f.write('======  OLAF -- cOnvecting LAgrangian Filaments (Free Vortex Wake) Theory Options  ================== [used only when WakeMod=3]\n')
@@ -1027,7 +859,7 @@ class InputWriter_OpenFAST(InputWriter_Common):
             f.write('! ------------------------------------------------------------------------------\n')
             f.write('{:<22}   {:<11} {:}'.format(self.fst_vt['AeroDyn15']['af_data'][afi][0]['InterpOrd'], 'InterpOrd', '! Interpolation order to use for quasi-steady table lookup {1=linear; 3=cubic spline; "default"} [default=3]\n'))
             f.write('{:<22}   {:<11} {:}'.format(self.fst_vt['AeroDyn15']['af_data'][afi][0]['NonDimArea'], 'NonDimArea', '! The non-dimensional area of the airfoil (area/chord^2) (set to 1.0 if unsure or unneeded)\n'))
-            if self.fst_vt['AeroDyn15']['af_data'][1][0]['NumCoords'] != '0':
+            if self.fst_vt['AeroDyn15']['af_data'][afi][0]['NumCoords'] != '0':
                 f.write('@"{:}_AF{:02d}_Coords.txt"       {:<11} {:}'.format(self.FAST_namingOut, afi, 'NumCoords', '! The number of coordinates in the airfoil shape file. Set to zero if coordinates not included.\n'))
             else:
                 f.write('{:<22d}       {:<11} {:}'.format(0, 'NumCoords', '! The number of coordinates in the airfoil shape file. Set to zero if coordinates not included.\n'))
@@ -1041,8 +873,7 @@ class InputWriter_OpenFAST(InputWriter_Common):
                 num_tab = len(self.fst_vt['AeroDyn15']['af_data'][afi])
             elif self.fst_vt['AeroDyn15']['AFTabMod'] == 3:
                 # for tab_orig in range(self.fst_vt['AeroDyn15']['af_data'][afi][0]['NumTabs'] - 1):
-                if len(self.fst_vt['AeroDyn15']['af_data'][afi]) > 1 and \
-                    self.fst_vt['AeroDyn15']['af_data'][afi][0]['Ctrl'] == self.fst_vt['AeroDyn15']['af_data'][afi][1]['Ctrl']:                    
+                if self.fst_vt['AeroDyn15']['af_data'][afi][0]['Ctrl'] == self.fst_vt['AeroDyn15']['af_data'][afi][1]['Ctrl']:
                     num_tab = 1  # assume that all Ctrl angles of the flaps are identical if the first two are -> no flaps!
                 else:
                     num_tab = self.fst_vt['AeroDyn15']['af_data'][afi][0]['NumTabs']
@@ -1166,6 +997,134 @@ class InputWriter_OpenFAST(InputWriter_Common):
                 f.write(' '.join(['{: 2.14e}'.format(val) for val in row])+'\n')
             f.close()
 
+    def write_AeroDyn14(self):
+
+        # ======= Airfoil Files ========
+        # make directory for airfoil files
+        if not os.path.isdir(os.path.join(self.FAST_runDirectory,'AeroData')):
+            try:
+                os.mkdir(os.path.join(self.FAST_runDirectory,'AeroData'))
+            except:
+                try:
+                    time.sleep(random.random())
+                    if not os.path.isdir(os.path.join(self.FAST_runDirectory,'AeroData')):
+                        os.mkdir(os.path.join(self.FAST_runDirectory,'AeroData'))
+                except:
+                    print("Error tring to make '%s'!"%os.path.join(self.FAST_runDirectory,'AeroData'))
+
+        # create write airfoil objects to files
+        for i in range(self.fst_vt['AeroDyn14']['NumFoil']):
+             af_name = os.path.join(self.FAST_runDirectory, 'AeroData', 'Airfoil' + str(i) + '.dat')
+             self.fst_vt['AeroDyn14']['FoilNm'][i]  = os.path.join('AeroData', 'Airfoil' + str(i) + '.dat')
+             self.write_AeroDyn14Polar(af_name, i)
+
+        self.fst_vt['Fst']['AeroFile'] = self.FAST_namingOut + '_AeroDyn14.dat'
+        ad_file = os.path.join(self.FAST_runDirectory,self.fst_vt['Fst']['AeroFile'])
+        f = open(ad_file,'w')
+
+        # create Aerodyn Tower
+        if self.fst_vt['AeroDyn14']['TwrShad'] > 0:
+            self.write_AeroDyn14Tower()
+
+        # ======= Aerodyn Input File ========
+        f.write('AeroDyn v14.04.* INPUT FILE\n\n')
+        
+        # f.write('{:}\n'.format(self.fst_vt['aerodyn']['SysUnits']))
+        f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['StallMod']))        
+        
+        f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['UseCm']))
+        f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['InfModel']))
+        f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['IndModel']))
+        f.write('{: 2.15e}\n'.format(self.fst_vt['AeroDyn14']['AToler']))
+        f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['TLModel']))
+        f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['HLModel']))
+        f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['TwrShad']))  
+        if self.fst_vt['AeroDyn14']['TwrShad'] > 0:
+            f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['TwrPotent']))  
+            f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['TwrShadow']))
+            f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['TwrFile']))
+            f.write('{:}\n'.format(self.fst_vt['AeroDyn14']['CalcTwrAero']))  
+        else:
+            f.write('{: 2.15e}\n'.format(self.fst_vt['AeroDyn14']['ShadHWid']))
+            f.write('{: 2.15e}\n'.format(self.fst_vt['AeroDyn14']['T_Shad_Refpt']))
+  
+        f.write('{: 2.15e}\n'.format(self.fst_vt['AeroDyn14']['AirDens']))  
+  
+        f.write('{: 2.15e}\n'.format(self.fst_vt['AeroDyn14']['KinVisc']))  
+  
+        f.write('{:2}\n'.format(self.fst_vt['AeroDyn14']['DTAero']))        
+        
+
+        f.write('{:2}\n'.format(self.fst_vt['AeroDyn14']['NumFoil']))
+        for i in range (self.fst_vt['AeroDyn14']['NumFoil']):
+            f.write('"{:}"\n'.format(self.fst_vt['AeroDyn14']['FoilNm'][i]))
+
+        f.write('{:2}\n'.format(self.fst_vt['AeroDynBlade']['BldNodes']))
+        rnodes = self.fst_vt['AeroDynBlade']['RNodes']
+        twist = self.fst_vt['AeroDynBlade']['AeroTwst']
+        drnodes = self.fst_vt['AeroDynBlade']['DRNodes']
+        chord = self.fst_vt['AeroDynBlade']['Chord']
+        nfoil = self.fst_vt['AeroDynBlade']['NFoil']
+        prnelm = self.fst_vt['AeroDynBlade']['PrnElm']
+        f.write('Nodal properties\n')
+        for r, t, dr, c, a, p in zip(rnodes, twist, drnodes, chord, nfoil, prnelm):
+            f.write('{: 2.15e}\t{: 2.15e}\t{: 2.15e}\t{: 2.15e}\t{:5}\t{:}\n'.format(r, t, dr, c, a, p))
+
+        f.close()        
+
+    def write_AeroDyn14Tower(self):
+        # AeroDyn v14.04 Tower
+        self.fst_vt['AeroDyn14']['TwrFile'] = self.FAST_namingOut + '_AeroDyn14_tower.dat'
+        filename = os.path.join(self.FAST_runDirectory, self.fst_vt['AeroDyn14']['TwrFile'])
+        f = open(filename, 'w')
+
+        f.write('AeroDyn tower file, Aerodyn v14.04 formatting\n')
+        f.write('Generated with AeroElasticSE FAST driver\n')
+        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDynTower']['NTwrHt'], 'NTwrHt', '- Number of tower input height stations listed (-)\n'))
+        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDynTower']['NTwrRe'], 'NTwrRe', '- Number of tower Re values (-)\n'))
+        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDynTower']['NTwrCD'], 'NTwrCD', '- Number of tower CD columns (-) Note: For current versions, this MUST be 1\n'))
+        f.write('{: 2.15e} {:<11} {:}'.format(self.fst_vt['AeroDynTower']['Tower_Wake_Constant'], 'Tower_Wake_Constant', '- Tower wake constant (-) {0.0: full potential flow, 0.1: Bak model}\n'))
+        f.write('---------------------- DISTRIBUTED TOWER PROPERTIES ----------------------------\n')
+        f.write('TwrHtFr  TwrWid  NTwrCDCol\n')
+        for HtFr, Wid, CDId in zip(self.fst_vt['AeroDynTower']['TwrHtFr'], self.fst_vt['AeroDynTower']['TwrWid'], self.fst_vt['AeroDynTower']['NTwrCDCol']):
+            f.write('{: 2.15e}  {: 2.15e}   {:d}\n'.format(HtFr, Wid, int(CDId)))
+        f.write('---------------------- Re v CD PROPERTIES --------------------------------------\n')
+        f.write('TwrRe  '+ '  '.join(['TwrCD%d'%(i+1) for i in range(self.fst_vt['AeroDynTower']['NTwrCD'])]) +'\n')
+        for Re, CD in zip(self.fst_vt['AeroDynTower']['TwrRe'], self.fst_vt['AeroDynTower']['TwrCD']):
+            f.write('% 2.15e' %Re + '   '.join(['% 2.15e'%cdi for cdi in CD]) + '\n')
+        
+        f.close()
+
+    def write_AeroDyn14Polar(self, filename, a_i):
+        # AeroDyn v14 Airfoil Polar Input File
+
+        f = open(filename, 'w')
+        f.write('AeroDyn airfoil file, Aerodyn v14.04 formatting\n')
+        f.write('Generated with AeroElasticSE FAST driver\n')
+
+        f.write('{:9d}\t{:}'.format(self.fst_vt['AeroDynBlade']['af_data'][a_i]['number_tables'], 'Number of airfoil tables in this file\n'))
+        for i in range(self.fst_vt['AeroDynBlade']['af_data'][a_i]['number_tables']):
+            param = self.fst_vt['AeroDynBlade']['af_data'][a_i]['af_tables'][i]
+            f.write('{:9g}\t{:}'.format(i, 'Table ID parameter\n'))
+            f.write('{: f}\t{:}'.format(param['StallAngle'], 'Stall angle (deg)\n'))
+            f.write('{: f}\t{:}'.format(0, 'No longer used, enter zero\n'))
+            f.write('{: f}\t{:}'.format(0, 'No longer used, enter zero\n'))
+            f.write('{: f}\t{:}'.format(0, 'No longer used, enter zero\n'))
+            f.write('{: f}\t{:}'.format(param['ZeroCn'], 'Angle of attack for zero Cn for linear Cn curve (deg)\n'))
+            f.write('{: f}\t{:}'.format(param['CnSlope'], 'Cn slope for zero lift for linear Cn curve (1/rad)\n'))
+            f.write('{: f}\t{:}'.format(param['CnPosStall'], 'Cn at stall value for positive angle of attack for linear Cn curve\n'))
+            f.write('{: f}\t{:}'.format(param['CnNegStall'], 'Cn at stall value for negative angle of attack for linear Cn curve\n'))
+            f.write('{: f}\t{:}'.format(param['alphaCdMin'], 'Angle of attack for minimum CD (deg)\n'))
+            f.write('{: f}\t{:}'.format(param['CdMin'], 'Minimum CD value\n'))
+            if param['cm']:
+                for a, cl, cd, cm in zip(param['alpha'], param['cl'], param['cd'], param['cm']):
+                    f.write('{: 6e}  {: 6e}  {: 6e}  {: 6e}\n'.format(a, cl, cd, cm))
+            else:
+                for a, cl, cd in zip(param['alpha'], param['cl'], param['cd']):
+                    f.write('{: 6e}  {: 6e}  {: 6e}\n'.format(a, cl, cd))
+        
+        f.close()
+
     def write_OLAF(self):
 
         olaf_file = os.path.join(self.FAST_runDirectory, self.FAST_namingOut + '_OLAF.dat')
@@ -1193,7 +1152,7 @@ class InputWriter_OpenFAST(InputWriter_Common):
         f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['FWShedVorticity'], 'FWShedVorticity','Include shed vorticity in the far wake {default: false}\n'))
         f.write('------------------- WAKE REGULARIZATIONS AND DIFFUSION -----------------------------------------\n')
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['DiffusionMethod'], 'DiffusionMethod','Diffusion method to account for viscous effects {0: None, 1: Core Spreading, "default": 0}\n'))
-        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['RegDeterMethod'], 'RegDeterMethod','Method to determine the regularization parameters {0:  Manual, 1: Optimized, default: 0 }\n'))
+        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['RegDeterMethod'], 'RegDeterMethod','Method to determine the regularization parameters {0: Constant, 1: Optimized, 2: Chord-scaled, 3: dr-scaled, default: 0 }\n'))
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['RegFunction'], 'RegFunction','Viscous diffusion function {0: None, 1: Rankine, 2: LambOseen, 3: Vatistas, 4: Denominator, "default": 3} (switch)\n'))
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['WakeRegMethod'], 'WakeRegMethod','Wake regularization method {1: Constant, 2: Stretching, 3: Age, default: 1} (switch)\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['WakeRegFactor'], 'WakeRegFactor','Wake regularization factor (m)\n'))
@@ -1410,7 +1369,14 @@ class InputWriter_OpenFAST(InputWriter_Common):
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveDT'], 'WaveDT', '- Time step for incident wave calculations     (sec) [unused when WaveMod=0; 0.1<=WaveDT<=1.0 recommended; determines WaveOmegaMax=Pi/WaveDT in the IFFT]\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveHs'], 'WaveHs', '- Significant wave height of incident waves (meters) [used only when WaveMod=1, 2, or 3]\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveTp'], 'WaveTp', '- Peak-spectral period of incident waves       (sec) [used only when WaveMod=1 or 2]\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WavePkShp'], 'WavePkShp', '- Peak-shape parameter of incident wave spectrum (-) or DEFAULT (string) [used only when WaveMod=2; use 1.0 for Pierson-Moskowitz]\n'))
+        if isinstance(self.fst_vt['HydroDyn']['WavePkShp'], float):
+            if self.fst_vt['HydroDyn']['WavePkShp'] == 0.:
+                WavePkShp = 'Default'
+            else: 
+                WavePkShp = self.fst_vt['HydroDyn']['WavePkShp']
+        else:
+            WavePkShp = self.fst_vt['HydroDyn']['WavePkShp']
+        f.write('{:<22} {:<11} {:}'.format(WavePkShp, 'WavePkShp', '- Peak-shape parameter of incident wave spectrum (-) or DEFAULT (string) [used only when WaveMod=2; use 1.0 for Pierson-Moskowitz]\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WvLowCOff'], 'WvLowCOff', '- Low  cut-off frequency or lower frequency limit of the wave spectrum beyond which the wave spectrum is zeroed (rad/s) [unused when WaveMod=0, 1, or 6]\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WvHiCOff'], 'WvHiCOff', '- High cut-off frequency or upper frequency limit of the wave spectrum beyond which the wave spectrum is zeroed (rad/s) [unused when WaveMod=0, 1, or 6]\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveDir'], 'WaveDir', '- Incident wave propagation heading direction                         (degrees) [unused when WaveMod=0 or 6]\n'))
@@ -1419,7 +1385,13 @@ class InputWriter_OpenFAST(InputWriter_Common):
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveNDir'], 'WaveNDir', '- Number of wave directions                                           (-)       [only used when WaveMod=2,3, or 4 and WaveDirMod=1; odd number only]\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveDirRange'], 'WaveDirRange', '- Range of wave directions (full range: WaveDir +/- 1/2*WaveDirRange) (degrees) [only used when WaveMod=2,3,or 4 and WaveDirMod=1]\n'))
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveSeed1'], 'WaveSeed(1)', '- First  random seed of incident waves [-2147483648 to 2147483647]    (-)       [unused when WaveMod=0, 5, or 6]\n'))
-        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveSeed2'], 'WaveSeed(2)', '- Second random seed of incident waves [-2147483648 to 2147483647]    (-)       [unused when WaveMod=0, 5, or 6]\n'))
+        
+        try:
+            seed2 = int(self.fst_vt['HydroDyn']['WaveSeed2'])
+            f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveSeed2'], 'WaveSeed(2)', '- Second random seed of incident waves [-2147483648 to 2147483647]    (-)       [unused when WaveMod=0, 5, or 6]\n'))
+        except ValueError:
+            f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveSeed2'], 'WaveSeed(2)', '- Second random seed of incident waves [-2147483648 to 2147483647]    (-)       [unused when WaveMod=0, 5, or 6] for intrinsic pRNG, or an alternative pRNG: "RanLux"\n'))
+            
         f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveNDAmp'], 'WaveNDAmp', '- Flag for normally distributed amplitudes                            (flag)    [only used when WaveMod=2, 3, or 4]\n'))
         f.write('{:<22} {:<11} {:}'.format('"'+self.fst_vt['HydroDyn']['WvKinFile']+'"', 'WvKinFile', '- Root name of externally generated wave data file(s)        (quoted string)    [used only when WaveMod=5 or 6]\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['NWaveElev'], 'NWaveElev', '- Number of points where the incident wave elevations can be computed (-)       [maximum of 9 output locations]\n'))
@@ -1517,7 +1489,7 @@ class InputWriter_OpenFAST(InputWriter_Common):
             f.write(" ".join(ln) + '\n')
         f.write('---------------------- MEMBER JOINTS -------------------------------------------\n')
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['NJoints'], 'NJoints', '- Number of joints (-)   [must be exactly 0 or at least 2]\n'))
-        f.write(" ".join(['{:^11s}'.format(i) for i in ['JointID', 'Jointxi', 'Jointyi', 'Jointzi', 'JointAxID', 'JointOvrlp']])+'   [JointOvrlp= 0: do nothing at joint, 1: eliminate overlaps by calculating super member]\n')
+        f.write(" ".join(['{:^11s}'.format(i) for i in ['JointID', 'Jointxi', 'Jointyi', 'Jointzi', 'JointAxID', 'JointOvrlp']])+'  ! [JointOvrlp= 0: do nothing at joint, 1: eliminate overlaps by calculating super member]\n')
         f.write(" ".join(['{:^11s}'.format(i) for i in ['(-)', '(m)', '(m)', '(m)', '(-)', '(switch)']])+'\n')
         for i in range(self.fst_vt['HydroDyn']['NJoints']):
             ln = []
@@ -1609,7 +1581,7 @@ class InputWriter_OpenFAST(InputWriter_Common):
             f.write(" ".join(ln) + '\n')
         f.write('-------------------- MEMBERS -------------------------------------------------\n')
         f.write('{:<11d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['NMembers'], 'NMembers', '- Number of members (-)\n'))
-        f.write(" ".join(['{:^11s}'.format(i) for i in ['MemberID', 'MJointID1', 'MJointID2', 'MPropSetID1', 'MPropSetID2', 'MDivSize', 'MCoefMod', 'PropPot']])+'   [MCoefMod=1: use simple coeff table, 2: use depth-based coeff table, 3: use member-based coeff table] [ PropPot/=0 if member is modeled with potential-flow theory]\n')
+        f.write(" ".join(['{:^11s}'.format(i) for i in ['MemberID', 'MJointID1', 'MJointID2', 'MPropSetID1', 'MPropSetID2', 'MDivSize', 'MCoefMod', 'PropPot']])+' !  [MCoefMod=1: use simple coeff table, 2: use depth-based coeff table, 3: use member-based coeff table] [ PropPot/=0 if member is modeled with potential-flow theory]\n')
         f.write(" ".join(['{:^11s}'.format(i) for i in ['(-)', '(-)', '(-)', '(-)', '(-)', '(m)', '(switch)', '(flag)']])+'\n')
         for i in range(self.fst_vt['HydroDyn']['NMembers']):
             ln = []
@@ -1693,10 +1665,10 @@ class InputWriter_OpenFAST(InputWriter_Common):
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['SubDyn']['Nmodes'], 'Nmodes', '- Number of internal modes to retain (ignored if CBMod=False). If Nmodes=0 --> Guyan Reduction.\n'))
         
         JDampings = self.fst_vt['SubDyn']['JDampings']
-        if isinstance(JDampings, int):
+        if isinstance(JDampings, float):
             f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SubDyn']['JDampings'], 'JDampings', '- Damping Ratios for each retained mode (% of critical) If Nmodes>0, list Nmodes structural damping ratios for each retained mode (% of critical), or a single damping ratio to be applied to all retained modes. (last entered value will be used for all remaining modes).\n'))
-        else:
-            f.write('{:<22} {:<11} {:}'.format(", ".join(self.fst_vt['SubDyn']['JDampings']), 'JDampings', '- Damping Ratios for each retained mode (% of critical) If Nmodes>0, list Nmodes structural damping ratios for each retained mode (% of critical), or a single damping ratio to be applied to all retained modes. (last entered value will be used for all remaining modes).\n'))
+        else: # list of floats
+            f.write('{:<22} {:<11} {:}'.format(", ".join([f'{d:f}' for d in self.fst_vt['SubDyn']['JDampings']]), 'JDampings', '- Damping Ratios for each retained mode (% of critical) If Nmodes>0, list Nmodes structural damping ratios for each retained mode (% of critical), or a single damping ratio to be applied to all retained modes. (last entered value will be used for all remaining modes).\n'))
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['SubDyn']['GuyanDampMod'], 'GuyanDampMod', '- Guyan damping {0=none, 1=Rayleigh Damping, 2=user specified 6x6 matrix}.\n'))
         f.write('{:<10}, {:<10} {:<11} {:}'.format(self.fst_vt['SubDyn']['RayleighDamp'][0], self.fst_vt['SubDyn']['RayleighDamp'][1], 'RayleighDamp', '- Mass and stiffness proportional damping  coefficients (Rayleigh Damping) [only if GuyanDampMod=1].\n'))
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['SubDyn']['GuyanDampSize'], 'GuyanDampSize', '- Guyan damping matrix (6x6) [only if GuyanDampMod=2].\n'))
@@ -1726,7 +1698,7 @@ class InputWriter_OpenFAST(InputWriter_Common):
             f.write(" ".join(ln) + '\n')        
         f.write('------------------- BASE REACTION JOINTS: 1/0 for Locked/Free DOF @ each Reaction Node ---------------------\n')
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['SubDyn']['NReact'], 'NReact', '- Number of Joints with reaction forces; be sure to remove all rigid motion DOFs of the structure  (else det([K])=[0])\n'))
-        f.write(" ".join(['{:^11s}'.format(i) for i in ['RJointID', 'RctTDXss', 'RctTDYss', 'RctTDZss', 'RctRDXss', 'RctRDYss', 'RctRDZss','SSIfile']])+' [Global Coordinate System]\n')
+        f.write(" ".join(['{:^11s}'.format(i) for i in ['RJointID', 'RctTDXss', 'RctTDYss', 'RctTDZss', 'RctRDXss', 'RctRDYss', 'RctRDZss','SSIfile']])+' ! [Global Coordinate System]\n')
         f.write(" ".join(['{:^11s}'.format(i) for i in ['(-)', '(flag)', '(flag)', '(flag)', '(flag)', '(flag)', '(flag)', '(string)']])+'\n')
         for i in range(self.fst_vt['SubDyn']['NReact']):
             ln = []
@@ -1741,7 +1713,7 @@ class InputWriter_OpenFAST(InputWriter_Common):
             f.write(" ".join(ln) + '\n')
         f.write('------- INTERFACE JOINTS: 1/0 for Locked (to the TP)/Free DOF @each Interface Joint (only Locked-to-TP implemented thus far (=rigid TP)) ---------\n')
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['SubDyn']['NInterf'], 'NInterf', '- Number of interface joints locked to the Transition Piece (TP):  be sure to remove all rigid motion dofs\n'))
-        f.write(" ".join(['{:^11s}'.format(i) for i in ['IJointID', 'ItfTDXss', 'ItfTDYss', 'ItfTDZss', 'ItfRDXss', 'ItfRDYss', 'ItfRDZss']])+' [Global Coordinate System]\n')
+        f.write(" ".join(['{:^11s}'.format(i) for i in ['IJointID', 'ItfTDXss', 'ItfTDYss', 'ItfTDZss', 'ItfRDXss', 'ItfRDYss', 'ItfRDZss']])+' ! [Global Coordinate System]\n')
         f.write(" ".join(['{:^11s}'.format(i) for i in ['(-)', '(flag)', '(flag)', '(flag)', '(flag)', '(flag)', '(flag)']])+'\n')
         for i in range(self.fst_vt['SubDyn']['NInterf']):
             ln = []
@@ -1864,7 +1836,7 @@ class InputWriter_OpenFAST(InputWriter_Common):
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SubDyn']['OutSFmt'], 'OutSFmt', '- Output format for header strings in the <rootname>.SD.out file\n'))
         f.write('------------------------- MEMBER OUTPUT LIST ------------------------------------------\n')
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['SubDyn']['NMOutputs'], 'NMOutputs', '- Number of members whose forces/displacements/velocities/accelerations will be output (-) [Must be <= 9].\n'))
-        f.write(" ".join(['{:^11s}'.format(i) for i in ['MemberID', 'NOutCnt', 'NodeCnt']])+'[NOutCnt=how many nodes to get output for [< 10]; NodeCnt are local ordinal numbers from the start of the member, and must be >=1 and <= NDiv+1] If NMOutputs=0 leave blank as well.\n')
+        f.write(" ".join(['{:^11s}'.format(i) for i in ['MemberID', 'NOutCnt', 'NodeCnt']])+' ! [NOutCnt=how many nodes to get output for [< 10]; NodeCnt are local ordinal numbers from the start of the member, and must be >=1 and <= NDiv+1] If NMOutputs=0 leave blank as well.\n')
         f.write(" ".join(['{:^11s}'.format(i) for i in ['(-)','(-)','(-)']])+'\n')
         for i in range(self.fst_vt['SubDyn']['NMOutputs']):
             ln = []
@@ -2016,350 +1988,145 @@ class InputWriter_OpenFAST(InputWriter_Common):
         f.write('END\n')
         f.write('------------------------- need this line --------------------------------------\n')
 
-        f.close()        
-
-class InputWriter_FAST7(InputWriter_Common):
-
-    def execute(self):
+        f.close()
         
-        if not os.path.exists(self.FAST_runDirectory):
-            os.makedirs(self.FAST_runDirectory)
-
-        # self.write_WindWnd()
-        self.write_ElastoDynBlade()
-        self.write_ElastoDynTower()
-        self.write_AeroDyn_FAST7()
-
-        self.write_MainInput()
-
-    def write_MainInput(self):
-
-        self.FAST_InputFileOut = os.path.join(self.FAST_runDirectory, self.FAST_namingOut+'.fst')
-        ofh = open(self.FAST_InputFileOut, 'w')
-
-        # FAST Inputs
-        ofh.write('---\n')
-        ofh.write('---\n')
-        ofh.write('{:}\n'.format(self.fst_vt['description']))
-        ofh.write('---\n')
-        ofh.write('---\n')
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['Echo']))
-        ofh.write('{:3}\n'.format(self.fst_vt['Fst7']['ADAMSPrep']))
-        ofh.write('{:3}\n'.format(self.fst_vt['Fst7']['AnalMode']))
-        ofh.write('{:3}\n'.format(self.fst_vt['Fst7']['NumBl']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TMax']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['DT']))
-        ofh.write('---\n')
-        ofh.write('{:3}\n'.format(self.fst_vt['Fst7']['YCMode']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TYCOn']))
-        ofh.write('{:3}\n'.format(self.fst_vt['Fst7']['PCMode']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TPCOn']))
-        ofh.write('{:3}\n'.format(self.fst_vt['Fst7']['VSContrl']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['VS_RtGnSp']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['VS_RtTq']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['VS_Rgn2K']))
-        ofh.write('{:.5e}\n'.format(self.fst_vt['Fst7']['VS_SlPc']))
-        ofh.write('{:3}\n'.format(self.fst_vt['Fst7']['GenModel']))
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['GenTiStr']))
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['GenTiStp']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['SpdGenOn']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TimGenOn']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TimGenOf']))
-        ofh.write('{:3}\n'.format(self.fst_vt['Fst7']['HSSBrMode']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['THSSBrDp']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TiDynBrk']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TTpBrDp1']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TTpBrDp2']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TTpBrDp3']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TBDepISp1']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TBDepISp2']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TBDepISp3']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TYawManS']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TYawManE']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['NacYawF']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TPitManS1']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TPitManS2']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TPitManS3']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TPitManE1']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TPitManE2']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TPitManE3']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['BlPitch1']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['BlPitch2']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['BlPitch3']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['B1PitchF1']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['B1PitchF2']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['B1PitchF3']))
-        ofh.write('---\n')
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['Gravity']))
-        ofh.write('---\n')
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['FlapDOF1']))
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['FlapDOF2']))
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['EdgeDOF']))
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['TeetDOF']))
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['DrTrDOF']))
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['GenDOF']))
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['YawDOF']))
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['TwFADOF1']))
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['TwFADOF2']))
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['TwSSDOF1']))
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['TwSSDOF2']))
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['CompAero']))
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['CompNoise']))
-        ofh.write('---\n')
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['OoPDefl']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['IPDefl']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TeetDefl']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['Azimuth']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['RotSpeed']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['NacYaw']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TTDspFA']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TTDspSS']))
-        ofh.write('---\n')
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TipRad']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['HubRad']))
-        ofh.write('{:3}\n'.format(self.fst_vt['Fst7']['PSpnElN']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['UndSling']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['HubCM']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['OverHang']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['NacCMxn']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['NacCMyn']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['NacCMzn']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TowerHt']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['Twr2Shft']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TwrRBHt']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['ShftTilt']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['Delta3']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['PreCone(1)']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['PreCone(2)']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['PreCone(3)']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['AzimB1Up']))
-        ofh.write('---\n')
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['YawBrMass']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['NacMass']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['HubMass']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TipMass(1)']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TipMass(2)']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TipMass(3)']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['NacYIner']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['GenIner']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['HubIner']))
-        ofh.write('---\n')
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['GBoxEff']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['GenEff']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['GBRatio']))
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['GBRevers']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['HSSBrTqF']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['HSSBrDT']))
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['DynBrkFi']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['DTTorSpr']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['DTTorDmp']))
-        ofh.write('---\n')
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['SIG_SlPc']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['SIG_SySp']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['SIG_RtTq']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['SIG_PORt']))
-        ofh.write('---\n')
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TEC_Freq']))
-        ofh.write('{:5}\n'.format(self.fst_vt['Fst7']['TEC_NPol']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TEC_SRes']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TEC_RRes']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TEC_VLL']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TEC_SLR']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TEC_RLR']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TEC_MR']))
-        ofh.write('---\n')
-        ofh.write('{:3}\n'.format(self.fst_vt['Fst7']['PtfmModel']))
-        ofh.write('"{:}"\n'.format(self.fst_vt['Fst7']['PtfmFile']))
-        ofh.write('---\n')
-        ofh.write('{:3}\n'.format(self.fst_vt['Fst7']['TwrNodes']))
-        ofh.write('"{:}"\n'.format(self.fst_vt['Fst7']['TwrFile']))
-        ofh.write('---\n')
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['YawSpr']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['YawDamp']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['YawNeut']))
-        ofh.write('---\n')
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['Furling']))
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['FurlFile']))
-        ofh.write('---\n') 
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['TeetMod']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TeetDmpP']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TeetDmp']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TeetCDmp']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TeetSStP']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TeetHStP']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TeetSSSp']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TeetHSSp']))
-        ofh.write('---\n')
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TBDrConN']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TBDrConD']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TpBrDT']))
-        ofh.write('---\n')
-        ofh.write('"{:}"\n'.format(self.fst_vt['Fst7']['BldFile1']))
-        ofh.write('"{:}"\n'.format(self.fst_vt['Fst7']['BldFile2']))
-        ofh.write('"{:}"\n'.format(self.fst_vt['Fst7']['BldFile3']))
-        ofh.write('---\n') 
-        ofh.write('"{:}"\n'.format(self.fst_vt['Fst7']['ADFile']))
-        ofh.write('---\n')
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['NoiseFile']))
-        ofh.write('---\n')
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['ADAMSFile']))
-        ofh.write('---\n')
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['LinFile']))
-        ofh.write('---\n')
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['SumPrint']))
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['OutFileFmt']))
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['TabDelim']))
-        ofh.write('{:}\n'.format(self.fst_vt['Fst7']['OutFmt']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['TStart']))
-        ofh.write('{:3}\n'.format(self.fst_vt['Fst7']['DecFact']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['SttsTime']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['NcIMUxn']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['NcIMUyn']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['NcIMUzn']))
-        ofh.write('{:.9f}\n'.format(self.fst_vt['Fst7']['ShftGagL']))
-        ofh.write('{:3}\n'.format(self.fst_vt['Fst7']['NTwGages']))
-        for i in range(self.fst_vt['Fst7']['NTwGages']-1):
-            ofh.write('{:3}, '.format(self.fst_vt['Fst7']['TwrGagNd'][i]))
-        ofh.write('{:3}\n'.format(self.fst_vt['Fst7']['TwrGagNd'][-1]))
-        ofh.write('{:3}\n'.format(self.fst_vt['Fst7']['NBlGages']))
-        for i in range(self.fst_vt['Fst7']['NBlGages']-1):
-            ofh.write('{:3}, '.format(self.fst_vt['Fst7']['BldGagNd'][i]))
-        ofh.write('{:3}\n'.format(self.fst_vt['Fst7']['BldGagNd'][-1]))
-    
-        # Outlist
-        ofh.write('Outlist\n')
-        outlist = self.get_outlist(self.fst_vt['outlist7'], ['OutList'])
-        for channel_list in outlist:
-            for i in range(len(channel_list)):
-                f.write('"' + channel_list[i] + '"\n')
-        ofh.write('END\n')
-        ofh.close()
         
-        ofh.close()
+    def write_StC(self,StC_vt,StC_filename):
 
-    def write_AeroDyn_FAST7(self):
-        if not os.path.isdir(os.path.join(self.FAST_runDirectory,'AeroData')):
-            os.mkdir(os.path.join(self.FAST_runDirectory,'AeroData'))
-
-        # create airfoil objects
-        for i in range(self.fst_vt['AeroDyn14']['NumFoil']):
-             af_name = os.path.join(self.FAST_runDirectory, 'AeroData', 'Airfoil' + str(i) + '.dat')
-             self.fst_vt['AeroDyn14']['FoilNm'][i]  = os.path.join('AeroData', 'Airfoil' + str(i) + '.dat')
-             self.write_AeroDyn14Polar(af_name, i)
-
-        self.fst_vt['Fst7']['ADFile'] = self.FAST_namingOut + '_AeroDyn.dat'
-        ad_file = os.path.join(self.FAST_runDirectory,self.fst_vt['Fst7']['ADFile'])
-        ofh = open(ad_file,'w')
+        stc_file = os.path.join(self.FAST_runDirectory, StC_filename)
+        f = open(stc_file, 'w')
         
-        ofh.write('Aerodyn input file for FAST\n')
+        f.write('------- STRUCTURAL CONTROL (StC) INPUT FILE ----------------------------\n')
+        f.write('Generated with AeroElasticSE FAST driver within WEIS\n')
         
-        ofh.write('{:}\n'.format(self.fst_vt['AeroDyn14']['SysUnits']))
-        ofh.write('{:}\n'.format(self.fst_vt['AeroDyn14']['StallMod']))        
+        f.write('---------------------- SIMULATION CONTROL --------------------------------------\n')
+        f.write('{!s:<22} {:<11} {:}'.format(StC_vt['Echo'], 'Echo', '- Echo input data to "<rootname>.SD.ech" (flag)\n'))
         
-        ofh.write('{:}\n'.format(self.fst_vt['AeroDyn14']['UseCm']))
-        ofh.write('{:}\n'.format(self.fst_vt['AeroDyn14']['InfModel']))
-        ofh.write('{:}\n'.format(self.fst_vt['AeroDyn14']['IndModel']))
-        ofh.write('{:.3f}\n'.format(self.fst_vt['AeroDyn14']['AToler']))
-        ofh.write('{:}\n'.format(self.fst_vt['AeroDyn14']['TLModel']))
-        ofh.write('{:}\n'.format(self.fst_vt['AeroDyn14']['HLModel']))
-        ofh.write('"{:}"\n'.format(self.fst_vt['AeroDyn14']['WindFile']))
-        ofh.write('{:f}\n'.format(self.fst_vt['AeroDyn14']['HH']))  
-  
-        ofh.write('{:.1f}\n'.format(self.fst_vt['AeroDyn14']['TwrShad']))  
-  
-        ofh.write('{:.1f}\n'.format(self.fst_vt['AeroDyn14']['ShadHWid']))  
-  
-        ofh.write('{:.1f}\n'.format(self.fst_vt['AeroDyn14']['T_Shad_Refpt']))  
-  
-        ofh.write('{:.3f}\n'.format(self.fst_vt['AeroDyn14']['AirDens']))  
-  
-        ofh.write('{:.9f}\n'.format(self.fst_vt['AeroDyn14']['KinVisc']))  
-  
-        ofh.write('{:2}\n'.format(self.fst_vt['AeroDyn14']['DTAero']))        
+        f.write('---------------------- StC DEGREES OF FREEDOM ----------------------------------\n')
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_DOF_MODE'], 'StC_DOF_MODE', '- DOF mode (switch) {0: No StC or TLCD DOF; 1: StC_X_DOF, StC_Y_DOF, and/or StC_Z_DOF (three independent StC DOFs); 2: StC_XY_DOF (Omni-Directional StC); 3: TLCD; 4: Prescribed force/moment time series}\n'))
+        f.write('{!s:<22} {:<11} {:}'.format(StC_vt['StC_X_DOF'], 'StC_X_DOF', '- DOF on or off for StC X (flag) [Used only when StC_DOF_MODE=1]\n'))
+        f.write('{!s:<22} {:<11} {:}'.format(StC_vt['StC_Y_DOF'], 'StC_Y_DOF', '- DOF on or off for StC Y (flag) [Used only when StC_DOF_MODE=1]\n'))
+        f.write('{!s:<22} {:<11} {:}'.format(StC_vt['StC_Z_DOF'], 'StC_Z_DOF', '- DOF on or off for StC Z (flag) [Used only when StC_DOF_MODE=1]\n'))
         
+        f.write('---------------------- StC LOCATION ------------------------------------------- [relative to the reference origin of component attached to]\n')
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_P_X'], 'StC_P_X', '- At rest X position of StC (m)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_P_Y'], 'StC_P_Y', '- At rest Y position of StC (m)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_P_Z'], 'StC_P_Z', '- At rest Z position of StC (m)\n'))
+        
+        f.write('---------------------- StC INITIAL CONDITIONS --------------------------------- [used only when StC_DOF_MODE=1 or 2]\n')
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_X_DSP'], 'StC_X_DSP', '- StC X initial displacement (m) [relative to at rest position]\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Y_DSP'], 'StC_Y_DSP', '- StC Y initial displacement (m) [relative to at rest position]\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Z_DSP'], 'StC_Z_DSP', '- StC Z initial displacement (m) [relative to at rest position; used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]\n'))
+        f.write('{!s:<22} {:<11} {:}'.format(StC_vt['StC_Z_PreLd'], 'StC_Z_PreLd', '- StC Z pre-load (N) {"gravity" to offset for gravity load; "none" or 0 to turn off} [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]\n'))
+        
+        f.write('---------------------- StC CONFIGURATION -------------------------------------- [used only when StC_DOF_MODE=1 or 2]\n')
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_X_PSP'], 'StC_X_PSP', '- Positive stop position (maximum X mass displacement) (m)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_X_NSP'], 'StC_X_NSP', '- Negative stop position (minimum X mass displacement) (m)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Y_PSP'], 'StC_Y_PSP', '- Positive stop position (maximum Y mass displacement) (m)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Y_NSP'], 'StC_Y_NSP', '- Negative stop position (minimum Y mass displacement) (m)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Z_PSP'], 'StC_Z_PSP', '- Positive stop position (maximum Z mass displacement) (m) [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Z_NSP'], 'StC_Z_NSP', '- Negative stop position (minimum Z mass displacement) (m) [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]\n'))
+        
+        f.write('---------------------- StC MASS, STIFFNESS, & DAMPING ------------------------- [used only when StC_DOF_MODE=1 or 2]\n')
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_X_M'], 'StC_X_M', '- StC X mass (kg) [must equal StC_Y_M for StC_DOF_MODE = 2]\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Y_M'], 'StC_Y_M', '- StC Y mass (kg) [must equal StC_X_M for StC_DOF_MODE = 2]\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Z_M'], 'StC_Z_M', '- StC Z mass (kg) [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_XY_M'], 'StC_XY_M', '- StC Z mass (kg) [used only when StC_DOF_MODE=2]\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_X_K'], 'StC_X_K', '- StC X stiffness (N/m)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Y_K'], 'StC_Y_K', '- StC Y stiffness (N/m)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Z_K'], 'StC_Z_K', '- StC Z stiffness (N/m) [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_X_C'], 'StC_X_C', '- StC X damping (N/(m/s))\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Y_C'], 'StC_Y_C', '- StC Y damping (N/(m/s))\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Z_C'], 'StC_Z_C', '- StC Z damping (N/(m/s)) [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_X_KS'], 'StC_X_KS', '- Stop spring X stiffness (N/m)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Y_KS'], 'StC_Y_KS', '- Stop spring Y stiffness (N/m)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Z_KS'], 'StC_Z_KS', '- Stop spring Z stiffness (N/m) [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_X_CS'], 'StC_X_CS', '- Stop spring X damping (N/(m/s))\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Y_CS'], 'StC_Y_CS', '- Stop spring Y damping (N/(m/s))\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Z_CS'], 'StC_Z_CS', '- Stop spring Z damping (N/(m/s)) [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]\n'))
+        
+        f.write('---------------------- StC USER-DEFINED SPRING FORCES ------------------------- [used only when StC_DOF_MODE=1 or 2]\n')
+        f.write('{!s:<22} {:<11} {:}'.format(StC_vt['Use_F_TBL'], 'Use_F_TBL', '- Use spring force from user-defined table (flag)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['NKInpSt'], 'NKInpSt', '- Number of spring force input stations\n'))
+        
+        f.write('---------------------- StC SPRING FORCES TABLE -------------------------------- [used only when StC_DOF_MODE=1 or 2]\n')
+        f.write('X                F_X               Y              F_Y              Z              F_Z\n')
+        f.write('(m)               (N)              (m)             (N)             (m)             (N)\n')
+        table = StC_vt['SpringForceTable']
+        for x, f_x, y, f_y, z, f_z in zip(table['X'],table['F_X'],table['Y'],table['F_Y'],table['Z'],table['F_Z']):
+            row = [x, f_x, y, f_y, z, f_z]
+            f.write(' '.join(['{: 2.8e}'.format(val) for val in row])+'\n')
+        
+        f.write('---------------------- StructCtrl CONTROL -------------------------------------------- [used only when StC_DOF_MODE=1 or 2]\n')
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_CMODE'],     'StC_CMODE',        '- Control mode (switch) {0:none; 1: Semi-Active Control Mode; 2: Active Control Mode}\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_CChan'],     'StC_CChan',        '- Control mode (switch) {0:none; 1: Semi-Active Control Mode; 2: Active Control Mode}\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_SA_MODE'],   'StC_SA_MODE',      '- Semi-Active control mode {1: velocity-based ground hook control; 2: Inverse velocity-based ground hook control; 3: displacement-based ground hook control 4: Phase difference Algorithm with Friction Force 5: Phase difference Algorithm with Damping Force} (-)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_X_C_HIGH'],  'StC_X_C_HIGH',     '- StC X high damping for ground hook control\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_X_C_LOW'],   'StC_X_C_LOW',      '- StC X low damping for ground hook control\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Y_C_HIGH'],  'StC_Y_C_HIGH',     '- StC Y high damping for ground hook control\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Y_C_LOW'],   'StC_Y_C_LOW',      '- StC Y low damping for ground hook control\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Z_C_HIGH'],  'StC_Z_C_HIGH',     '- StC Z high damping for ground hook control [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Z_C_LOW'],   'StC_Z_C_LOW',      '- StC Z low damping for ground hook control  [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_X_C_BRAKE'], 'StC_X_C_BRAKE',    '- StC X high damping for braking the StC (Don''t use it now. should be zero)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Y_C_BRAKE'], 'StC_Y_C_BRAKE',    '- StC Y high damping for braking the StC (Don''t use it now. should be zero)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['StC_Z_C_BRAKE'], 'StC_Z_C_BRAKE',    '- StC Z high damping for braking the StC (Don''t use it now. should be zero) [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]\n'))
 
-        ofh.write('{:2}\n'.format(self.fst_vt['AeroDyn14']['NumFoil']))
-        for i in range (self.fst_vt['AeroDyn14']['NumFoil']):
-            ofh.write('"{:}"\n'.format(self.fst_vt['AeroDyn14']['FoilNm'][i]))
+        f.write('---------------------- TLCD --------------------------------------------------- [used only when StC_DOF_MODE=3]\n')
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['L_X'], 'L_X', '- X TLCD total length (m)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['B_X'], 'B_X', '- X TLCD horizontal length (m)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['area_X'], 'area_X', '- X TLCD cross-sectional area of vertical column (m^2)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['area_ratio_X'], 'area_ratio_X', '- X TLCD cross-sectional area ratio (vertical column area divided by horizontal column area) (-)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['headLossCoeff_X'], 'headLossCoeff_X', '- X TLCD head loss coeff (-)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['rho_X'], 'rho_X', '- X TLCD liquid density (kg/m^3)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['L_Y'], 'L_Y', '- Y TLCD total length (m)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['B_Y'], 'B_Y', '- Y TLCD horizontal length (m)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['area_Y'], 'area_Y', '- Y TLCD cross-sectional area of vertical column (m^2)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['area_ratio_Y'], 'area_ratio_Y', '- Y TLCD cross-sectional area ratio (vertical column area divided by horizontal column area) (-)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['headLossCoeff_Y'], 'headLossCoeff_Y', '- Y TLCD head loss coeff (-)\n'))
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['rho_Y'], 'rho_Y', '- Y TLCD liquid density (kg/m^3)\n'))
+        
+        f.write('---------------------- PRESCRIBED TIME SERIES --------------------------------- [used only when StC_DOF_MODE=4]\n')
+        f.write('{:<22} {:<11} {:}'.format(StC_vt['PrescribedForcesCoord'], 'PrescribedForcesCoord',    '- Prescribed forces are in global or local coordinates (switch) {1: global; 2: local}\n'))
+        f.write('{!s:<22} {:<11} {:}'.format(StC_vt['PrescribedForcesFile'], 'PrescribedForcesFile', '- Time series force and moment (7 columns of time, FX, FY, FZ, MX, MY, MZ)\n'))
+        f.write('-------------------------------------------------------------------------------\n')
 
-        ofh.write('{:2}\n'.format(self.fst_vt['AeroDynBlade']['BldNodes']))
-        rnodes = self.fst_vt['AeroDynBlade']['RNodes']
-        twist = self.fst_vt['AeroDynBlade']['AeroTwst']
-        drnodes = self.fst_vt['AeroDynBlade']['DRNodes']
-        chord = self.fst_vt['AeroDynBlade']['Chord']
-        nfoil = self.fst_vt['AeroDynBlade']['NFoil']
-        prnelm = self.fst_vt['AeroDynBlade']['PrnElm']
-        ofh.write('Nodal properties\n')
-        for r, t, dr, c, a, p in zip(rnodes, twist, drnodes, chord, nfoil, prnelm):
-            ofh.write('{: 2.15e}\t{:.3f}\t{:.4f}\t{:.3f}\t{:5}\t{:}\n'.format(r, t, dr, c, a, p))
-
-        ofh.close()
-
-
+        f.close()
 
 if __name__=="__main__":
-
-    FAST_ver   = 'openfast'
-    read_yaml  = False
 
     fst_update = {}
     fst_update['Fst', 'TMax'] = 20.
     fst_update['AeroDyn15', 'TwrAero'] = False
 
+    examples_dir = os.path.dirname( os.path.dirname( os.path.dirname( os.path.realpath(__file__) ) ) ) + os.sep
 
-    if read_yaml:
-        fast = InputReader_Common(FAST_ver=FAST_ver)
-        fast.FAST_yamlfile = 'temp/OpenFAST/test.yaml'
-        fast.read_yaml()
-
-    if FAST_ver.lower() == 'fast7':
-        if not read_yaml:
-            fast = InputReader_FAST7(FAST_ver=FAST_ver)
-            fast.FAST_InputFile = 'Test16.fst'   # FAST input file (ext=.fst)
-            fast.FAST_directory = 'C:/Users/egaertne/WT_Codes/models/FAST_v7.02.00d-bjj/CertTest/'   # Path to fst directory files
-            fast.execute()
-        
-        fastout = InputWriter_FAST7(FAST_ver=FAST_ver)
-        fastout.fst_vt = fast.fst_vt
-        fastout.FAST_runDirectory = 'temp/FAST7'
-        fastout.FAST_namingOut = 'test'
-        fastout.execute()
-
-    elif FAST_ver.lower() == 'fast8':
-        if not read_yaml:
-            fast = InputReader_OpenFAST(FAST_ver=FAST_ver)
-            fast.FAST_InputFile = 'NREL5MW_onshore.fst'   # FAST input file (ext=.fst)
-            fast.FAST_directory = 'C:/Users/egaertne/WT_Codes/models/FAST_v8.16.00a-bjj/ref/5mw_onshore/'   # Path to fst directory files
-            fast.execute()
-        
-        fastout = InputWriter_OpenFAST(FAST_ver=FAST_ver)
-        fastout.fst_vt = fast.fst_vt
-        fastout.FAST_runDirectory = 'temp/FAST8'
-        fastout.FAST_namingOut = 'test'
-        fastout.execute()
-
-    elif FAST_ver.lower() == 'openfast':
-        if not read_yaml:
-            fast = InputReader_OpenFAST(FAST_ver=FAST_ver)
-            # fast.FAST_InputFile = '5MW_Land_DLL_WTurb.fst'   # FAST input file (ext=.fst)
-            # fast.FAST_directory = 'C:/Users/egaertne/WT_Codes/models/openfast/glue-codes/fast/5MW_Land_DLL_WTurb'   # Path to fst directory files
-            
-            # fast.FAST_InputFile = "5MW_OC4Jckt_DLL_WTurb_WavesIrr_MGrowth.fst"
-            # fast.FAST_directory = 'C:/Users/egaertne/WT_Codes/models/openfast-dev/r-test/glue-codes/openfast/5MW_OC4Jckt_DLL_WTurb_WavesIrr_MGrowth'
-
-            fast.FAST_InputFile = '5MW_OC3Spar_DLL_WTurb_WavesIrr.fst'   # FAST input file (ext=.fst)
-            fast.FAST_directory = 'C:/Users/egaertne/WT_Codes/models/openfast-dev/r-test/glue-codes/openfast/5MW_OC3Spar_DLL_WTurb_WavesIrr'   # Path to fst directory files
-
-            fast.execute()
-        
-        fastout = InputWriter_OpenFAST(FAST_ver=FAST_ver)
-        fastout.fst_vt = fast.fst_vt
-        fastout.FAST_runDirectory = 'temp/OpenFAST'
-        fastout.FAST_namingOut = 'test'
-        fastout.update(fst_update=fst_update)
-        fastout.execute()
+    # Read the model
+    fast = InputReader_OpenFAST()
+    fast.FAST_InputFile = 'IEA-15-240-RWT-UMaineSemi.fst'   # FAST input file (ext=.fst)
+    fast.FAST_directory = os.path.join(examples_dir, 'examples', '01_aeroelasticse',
+                                                     'OpenFAST_models', 'IEA-15-240-RWT',
+                                                     'IEA-15-240-RWT-UMaineSemi')   # Path to fst directory files
+    fast.execute()
     
-    fastout.write_yaml()
+    # Write out the model
+    fastout = InputWriter_OpenFAST()
+    fastout.fst_vt = fast.fst_vt
+    fastout.FAST_runDirectory = 'temp/OpenFAST'
+    fastout.FAST_namingOut = 'iea15'
+    fastout.update(fst_update=fst_update)
+    fastout.execute()
 
-    
+    # import pickle
+    # with open('fst_vt.pkl','rb') as f:
+    #     fst_vt = pickle.load(f)
+
+    # fastout = InputWriter_OpenFAST()
+    # fastout.FAST_runDirectory = 'none'
+
+    # fst_vt['TStC'][0]['NKInpSt']      = 2
+
+    # for i_TStC, TStC in enumerate(fst_vt['TStC']):
+    #     fastout.write_StC(TStC,fst_vt['ServoDyn']['TStCfiles'][i_TStC])
+    # print('here')
+
 
