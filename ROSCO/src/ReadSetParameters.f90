@@ -84,6 +84,13 @@ CONTAINS
             LocalVar%restart = .False.
         ENDIF
 
+        ! Increment timestep counter
+        IF (LocalVar%iStatus == 0 .AND. LocalVar%Time == 0) THEN
+            LocalVar%n_DT = 0
+        ELSE
+            LocalVar%n_DT = LocalVar%n_DT + 1
+        ENDIF
+
     END SUBROUTINE ReadAvrSWAP    
 ! -----------------------------------------------------------------------------------
     ! Define parameters for control actions
@@ -156,7 +163,7 @@ CONTAINS
             LocalVar%ACC_INFILE = accINFILE
 
             ! Read Control Parameter File
-            CALL ReadControlParameterFileSub(CntrPar, zmqVar, accINFILE, NINT(avrSWAP(50)),ErrVar)
+            CALL ReadControlParameterFileSub(CntrPar, LocalVar, zmqVar, accINFILE, NINT(avrSWAP(50)),ErrVar)
             ! If there's been an file reading error, don't continue
             ! Add RoutineName to error message
             IF (ErrVar%aviFAIL < 0) THEN
@@ -204,15 +211,16 @@ CONTAINS
     END SUBROUTINE SetParameters
     ! -----------------------------------------------------------------------------------
     ! Read all constant control parameters from DISCON.IN parameter file
-    SUBROUTINE ReadControlParameterFileSub(CntrPar, zmqVar, accINFILE, accINFILE_size,ErrVar)!, accINFILE_size)
+    SUBROUTINE ReadControlParameterFileSub(CntrPar, LocalVar, zmqVar, accINFILE, accINFILE_size,ErrVar)!, accINFILE_size)
         USE, INTRINSIC :: ISO_C_Binding
-        USE ROSCO_Types, ONLY : ControlParameters, ErrorVariables, ZMQ_Variables
+        USE ROSCO_Types, ONLY : ControlParameters, ErrorVariables, ZMQ_Variables, LocalVariables
 
         INTEGER(IntKi)                                  :: accINFILE_size               ! size of DISCON input filename
         CHARACTER(accINFILE_size),  INTENT(IN   )       :: accINFILE(accINFILE_size)    ! DISCON input filename
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar                      ! Control parameter type
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar                       ! Control parameter type
         TYPE(ZMQ_Variables),        INTENT(INOUT)       :: zmqVar                       ! Control parameter type
+        TYPE(LocalVariables),        INTENT(INOUT)       :: LocalVar                       ! Control parameter type
         
         INTEGER(IntKi)                                  :: UnControllerParameters  ! Unit number to open file
         INTEGER(IntKi)                                  :: UnOpenLoop  ! Unit number to open file
@@ -244,7 +252,8 @@ CONTAINS
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         CALL ParseInput(UnControllerParameters,CurLine,'LoggingLevel',accINFILE(1),CntrPar%LoggingLevel,ErrVar)
-
+        CALL ParseInputWDefault(UnControllerParameters,CurLine,'DT_Out',accINFILE(1),CntrPar%DT_Out,LocalVar%DT,ErrVar)
+                        ! (Un, LineNum, ExpVarName, FileName, Var, VarDefault, ErrVar, CheckName=CheckName)
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !----------------- CONTROLLER FLAGS ---------------------
@@ -617,8 +626,8 @@ CONTAINS
         IMPLICIT NONE
     
         ! Inputs
-        TYPE(ControlParameters),    INTENT(IN   )       :: CntrPar
-        TYPE(LocalVariables),       INTENT(IN   )       :: LocalVar
+        TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
         INTEGER(IntKi),                 INTENT(IN   )       :: size_avcMSG
         REAL(ReKi),              INTENT(IN   )       :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
@@ -638,6 +647,23 @@ CONTAINS
             ErrVar%ErrMsg  = 'LoggingLevel must be 0 - 3.'
         ENDIF
 
+        ! DT_Out
+        CntrPar%n_DT_Out = NINT(CntrPar%DT_Out / LocalVar%DT)
+
+        IF (CntrPar%DT_Out .le. 0) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'DT_Out must be greater than 0'
+        ENDIF
+
+        IF (CntrPar%DT_Out < LocalVar%DT) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'DT_Out must be greater than or equal to DT in OpenFAST'
+        ENDIF
+
+        IF (ABS(CntrPar%DT_out - Localvar%DT * CntrPar%n_DT_Out) > 0.001_DbKi) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'DT_Out must be a factor of DT in OpenFAST'
+        ENDIF
         !------- CONTROLLER FLAGS -------------------------------------------------
 
         ! F_LPFType

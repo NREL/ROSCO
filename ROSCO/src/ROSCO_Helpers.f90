@@ -31,6 +31,12 @@ MODULE ROSCO_Helpers
         ! MODULE PROCEDURE ParseInput_Log                                             ! Parses an LOGICAL from a string.
     END INTERFACE
 
+    INTERFACE ParseInputWDefault                                                         ! Parses a character variable name and value from a string.
+        ! MODULE PROCEDURE ParseInputWDefault_Str                                             ! Parses a character string from a string.
+        MODULE PROCEDURE ParseInputWDefault_Dbl                                             ! Parses a double-precision REAL from a string.
+        ! MODULE PROCEDURE ParseInputWDefault_Int                                             ! Parses an INTEGER from a string.
+    END INTERFACE
+
     INTERFACE ParseAry                                                         ! Parse an array of numbers from a string.
         MODULE PROCEDURE ParseDbAry                                             ! Parse an array of double-precision REAL values.
         MODULE PROCEDURE ParseInAry                                             ! Parse an array of whole numbers.
@@ -165,6 +171,66 @@ CONTAINS
         END IF
 
     END subroutine ParseInput_Dbl
+
+    !=======================================================================
+    !> \copydoc nwtc_io::parsechvarwdefault
+    SUBROUTINE ParseInputWDefault_Dbl ( Un, LineNum, ExpVarName, FileName, Var, VarDefault, ErrVar, CheckName )
+            !  ParseInput_Dbl(Un, CurLine, VarName, FileName, Variable, ErrVar, CheckName)
+            ! Arguments declarations.
+
+        USE ROSCO_Types, ONLY : ErrorVariables
+
+        INTEGER(IntKi), INTENT(INOUT)          :: LineNum                       ! The number of the line to parse.
+
+
+        REAL(DbKi), INTENT(OUT)                :: Var                           ! The single-precision REAL variable to receive the input value.
+        REAL(DbKi),   INTENT(IN)               :: VarDefault                    ! The single-precision REAL used as the default.
+        TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
+        CHARACTER(*),   INTENT(IN)             :: ExpVarName                    ! The expected variable name.
+        CHARACTER(*),           INTENT(IN   )   :: FileName   ! Input file unit
+        LOGICAL, OPTIONAL,      INTENT(IN   )   :: CheckName
+
+
+        INTEGER(IntKi),             INTENT(IN   )   :: Un   ! Input file unit
+
+
+            ! Local declarations.
+
+        INTEGER(IntKi)                         :: ErrStatLcl                    ! Error status local to this routine.
+
+        CHARACTER(*), PARAMETER                :: RoutineName = 'ParseInputWDefault_Dbl'
+        CHARACTER(20)                          :: defaultStr
+
+        LOGICAL                                 :: CheckName_
+
+        
+        ! Figure out if we're checking the name, default to .TRUE.
+        CheckName_ = .TRUE.
+        if (PRESENT(CheckName)) CheckName_ = CheckName 
+
+        ! First parse this as a string
+        CALL ParseInput ( Un, LineNum, ExpVarName, FileName, defaultStr, ErrVar, CheckName_ )
+            ! TODO: figure out error handling
+            ! CALL SetErrStat(ErrStatLcl, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+            ! IF (ErrStat >= AbortErrLev) RETURN
+        CALL Conv2UC( defaultStr )
+        IF ( INDEX(defaultStr, "DEFAULT" ) /= 1 ) THEN ! If it's not "default", read this variable
+            READ (defaultStr, *,IOSTAT=ErrStatLcl)  Var
+            ! PRINT *, "Non-default detected: ", defaultStr
+            ! PRINT *, "Var: ", Var
+            
+            ! Less robust than OpenFAST version, which reads the whole file in line by line and parses it from memory
+            ! LineNum = LineNum - 1  ! back up a line
+            ! CALL ParseInput ( Un, LineNum, ExpVarName, FileName, Var, ErrVar, CheckName_ )
+
+                ! CALL SetErrStat( ErrStatLcl, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+        ELSE
+            Var = VarDefault  ! "DEFAULT" value
+        END IF             
+        
+        RETURN
+    END SUBROUTINE ParseInputWDefault_Dbl
+    !=======================================================================
 
     !=======================================================================
     ! Parse string input, this is a copy of ParseInput_Int and a change in the variable definitions

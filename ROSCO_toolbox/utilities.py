@@ -70,6 +70,9 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('\n')
     file.write('!------- DEBUG ------------------------------------------------------------\n')
     file.write('{0:<12d}        ! LoggingLevel		- {{0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}}\n'.format(int(rosco_vt['LoggingLevel'])))
+    if isinstance(rosco_vt['DT_Out'],float):
+        rosco_vt['DT_Out'] = str(rosco_vt['DT_Out'])
+    file.write('{}              ! DT_Out    		- {{Time step to output .dbg* files, or DEFAULT to match sampling period of OpenFAST}}\n'.format(rosco_vt['DT_Out']))
     file.write('\n')
     file.write('!------- CONTROLLER FLAGS -------------------------------------------------\n')
     file.write('{0:<12d}        ! F_LPFType			- {{1: first-order low-pass filter, 2: second-order low-pass filter}}, [rad/s] (currently filters generator speed and pitch control signals\n'.format(int(rosco_vt['F_LPFType'])))
@@ -391,6 +394,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict = {}
     # ------- DEBUG -------
     DISCON_dict['LoggingLevel']	    = int(controller.LoggingLevel)
+    DISCON_dict['DT_Out']	        = 'DEFAULT'
     # ------- CONTROLLER FLAGS -------
     DISCON_dict['F_LPFType']	    = int(controller.F_LPFType)
     DISCON_dict['F_NotchType']		= int(controller.F_NotchType)

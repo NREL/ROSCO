@@ -9,6 +9,8 @@ IMPLICIT NONE
 
 TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: LoggingLevel                ! 0 - write no debug files, 1 - write standard output .dbg-file, 2 - write standard output .dbg-file and complete avrSWAP-array .dbg2-file
+    REAL(DbKi)                    :: DT_Out                      ! Output time step
+    INTEGER(IntKi)                :: n_DT_Out                    ! output every this many steps
     INTEGER(IntKi)                :: F_LPFType                   ! Low pass filter on the rotor and generator speed {1 - first-order low-pass filter, 2 - second-order low-pass filter}, [rad/s]
     INTEGER(IntKi)                :: F_NotchType                 ! Notch on the measured generator speed {0 - disable, 1 - enable}
     REAL(DbKi)                    :: F_LPFCornerFreq             ! Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
@@ -198,6 +200,9 @@ TYPE, PUBLIC :: LocalVariables
     INTEGER(IntKi)                :: iStatus                     ! Initialization status
     REAL(DbKi)                    :: Time                        ! Time [s]
     REAL(DbKi)                    :: DT                          ! Time step [s]
+    LOGICAL                       :: WriteThisStep               ! Write an output line this time step
+    INTEGER(IntKi)                :: n_DT                        ! number of timesteps since start
+    REAL(DbKi)                    :: Time_Last                   ! Last time [s]
     REAL(DbKi)                    :: VS_GenPwr                   ! Generator power [W]
     REAL(DbKi)                    :: GenSpeed                    ! Generator speed (HSS) [rad/s]
     REAL(DbKi)                    :: RotSpeed                    ! Rotor speed (LSS) [rad/s]
