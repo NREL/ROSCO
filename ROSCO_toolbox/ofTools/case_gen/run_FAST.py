@@ -10,6 +10,7 @@ from ROSCO_toolbox.ofTools.case_gen.CaseGen_General     import CaseGen_General
 from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
 from wisdem.commonse.mpi_tools              import MPI
 import sys, os, platform
+import collections.abc
 import numpy as np
 from ROSCO_toolbox import utilities as ROSCO_utilities
 from ROSCO_toolbox.inputs.validation import load_rosco_yaml
@@ -21,6 +22,15 @@ from ROSCO_toolbox import turbine as ROSCO_turbine
 this_dir        = os.path.dirname(os.path.abspath(__file__))
 tune_case_dir   = os.path.realpath(os.path.join(this_dir,'../../../Tune_Cases'))
 rosco_dir       = os.path.realpath(os.path.join(this_dir,'../../..'))
+
+# https://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth
+def update_deep(d, u):
+    for k, v in u.items():
+        if isinstance(v, collections.abc.Mapping):
+            d[k] = update_deep(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
 
 class run_FAST_ROSCO():
 
@@ -65,7 +75,7 @@ class run_FAST_ROSCO():
         controller_params   = inps['controller_params']
 
         # Update user-defined controller_params
-        controller_params.update(self.controller_params)
+        update_deep(controller_params,self.controller_params)
 
         # Instantiate turbine, controller, and file processing classes
         turbine         = ROSCO_turbine.Turbine(turbine_params)
