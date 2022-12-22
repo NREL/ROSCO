@@ -182,17 +182,17 @@ Full ROSCO Installation
 
 We recommend using the full ROSCO tool-chain. This allows for full use of the provided functions along with the developed python packages and controller code, 
 
-Please follow the following steps to install the ROSCO tool-chain. You should do step 3 *or* 4. If you simply want to install the ROSCO toolbox without the controller, do step 3. If you would like to install the ROSCO toolbox and compile the controller simultaneously, do step 4. 
+Please follow the following steps to install the ROSCO tool-chain. You should do step 2 *or* 3. If you simply want to install the ROSCO toolbox without the controller, do step 3. If you would like to install the ROSCO toolbox and compile the controller simultaneously, do step 2. 
 
 1. Create a conda environment for ROSCO
 
 .. code-block:: bash
 
-    conda config --add channels conda-forge
-    conda create -y --name rosco-env python=3.8
-    conda activate rosco-env
+    conda config --add channels conda-forge # (Enable Conda-forge Channel For Conda Package Manager)
+    conda create -y --name rosco-env python=3.8 # (Create a new environment named "rosco-env" that contains Python 3.8)
+    conda activate rosco-env # (Activate your "rosco-env" environment)
 
-2. Clone and Install the ROSCO toolbox with ROSCO
+2. Clone and Install the ROSCO toolbox with ROSCO controller
     
 .. code-block:: bash
 
@@ -204,7 +204,7 @@ Please follow the following steps to install the ROSCO tool-chain. You should do
     conda install -y wisdem=3.5.0  
     python setup.py install --compile-rosco 
 
-3. Clone and Install the ROSCO toolbox without ROSCO
+3. Clone and Install the ROSCO toolbox without ROSCO controller
     
 .. code-block:: bash
 
