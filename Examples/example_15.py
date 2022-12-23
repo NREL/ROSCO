@@ -37,6 +37,7 @@ def main():
         'wind_dir': run_dir
         }
     r.save_dir      = run_dir
+    r.rosco_dir     = rosco_dir
 
     r.run_FAST()
 

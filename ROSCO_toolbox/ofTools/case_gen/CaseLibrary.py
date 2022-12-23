@@ -175,6 +175,9 @@ def simp_step(**wind_case_opts):
     else: #default
         T_step   = 150
 
+    # Wind directory, default is run_dir
+    wind_case_opts['wind_dir'] = wind_case_opts.get('wind_dir',wind_case_opts['run_dir'])
+
     # Step Wind Setup
 
     # Make Default step wind object
