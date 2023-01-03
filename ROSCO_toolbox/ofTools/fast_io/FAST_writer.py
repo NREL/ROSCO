@@ -1994,6 +1994,17 @@ class InputWriter_OpenFAST(InputWriter_Common):
             ln.append('{:^11d}'.format(self.fst_vt['MoorDyn']['NumSegs'][i]))
             ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['Outputs'][i]))
             f.write(" ".join(ln) + '\n')
+
+        if self.fst_vt['MoorDyn']['ChannelID']: # There are control inputs
+            f.write('---------------------- CONTROL ---------------------------------------\n')
+            f.write(" ".join(['{:^11s}'.format(i) for i in ['ChannelID', 'Line(s)']])+'\n')
+            f.write(" ".join(['{:^11s}'.format(i) for i in ['()', '(,)']])+'\n')
+            for i_line in range(len(self.fst_vt['MoorDyn']['ChannelID'])):
+                ln = []
+                ln.append('{:^11d}'.format(self.fst_vt['MoorDyn']['ChannelID'][i_line]))
+                ln.append(','.join(self.fst_vt['MoorDyn']['Lines_Control'][i_line]))
+                f.write(" ".join(ln) + '\n')
+
         f.write('---------------------- SOLVER OPTIONS ---------------------------------------\n')
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['MoorDyn']['dtM'], 'dtM', '- time step to use in mooring integration (s)\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['MoorDyn']['kbot'], 'kbot', '- bottom stiffness (Pa/m)\n'))

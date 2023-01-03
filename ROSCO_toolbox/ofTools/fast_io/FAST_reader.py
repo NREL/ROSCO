@@ -2324,6 +2324,29 @@ class InputReader_OpenFAST(InputReader_Common):
             self.fst_vt['MoorDyn']['Outputs'].append(str(data_line[6]))
             data_line = f.readline().strip().split()
 
+        # read optional control inputs, there are other optional MoorDyn sections/inputs
+        self.fst_vt['MoorDyn']['ChannelID'] = []
+        self.fst_vt['MoorDyn']['Lines_Control'] = []
+        if 'CONTROL' in [dl.upper() for dl in data_line]:
+            f.readline()
+            f.readline()
+            data_line = f.readline().strip().split()
+            while data_line[0][:3] != '---': # OpenFAST searches for ---, so we'll do the same
+                self.fst_vt['MoorDyn']['ChannelID'].append(int(data_line[0]))
+                # Line(s) is a list of mooring lines, spaces are allowed between commas
+                control_lines = []
+                for lines in data_line[1:]:
+                    for line in lines.split(','):
+                        control_lines.append(line.strip(','))
+
+                # Spaces show up in control_lines as '', remove them all
+                while '' in control_lines:
+                    control_lines.remove('')
+
+                self.fst_vt['MoorDyn']['Lines_Control'].append(control_lines)
+                data_line = f.readline().strip().split()
+
+        # Solver options, there are a few more optional MoorDyn inputs that can be added line 'CONTROL'
         self.fst_vt['MoorDyn']['dtM']       = float_read(f.readline().split()[0])
         self.fst_vt['MoorDyn']['kbot']      = float_read(f.readline().split()[0])
         self.fst_vt['MoorDyn']['cbot']      = float_read(f.readline().split()[0])
