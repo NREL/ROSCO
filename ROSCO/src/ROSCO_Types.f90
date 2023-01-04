@@ -115,6 +115,8 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: PA_Mode                     ! Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
     REAL(DbKi)                    :: PA_CornerFreq               ! Pitch actuator bandwidth/cut-off frequency [rad/s]
     REAL(DbKi)                    :: PA_Damping                  ! Pitch actuator damping ratio [-, unused if PA_Mode = 1]
+    INTEGER(IntKi)                :: PF_Mode                     ! Pitch actuator fault mode {0 - not used, 1 - offsets on one or more blades}
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PF_Offsets                  ! Pitch actuator fault offsets for blade 1-3 [rad/s]
     INTEGER(IntKi)                :: Ext_Mode                    ! External control mode (0 - not used, 1 - call external control library)
     CHARACTER(1024)               :: DLL_FileName                ! File name of external dynamic library
     CHARACTER(1024)               :: DLL_InFile                  ! Name of input file called by dynamic library (DISCON.IN, e.g.)
@@ -176,6 +178,10 @@ TYPE, PUBLIC :: FilterParameters
     REAL(DbKi), DIMENSION(99)     :: nf_a0                       ! Notch filter denominator coefficient 0
 END TYPE FilterParameters
 
+TYPE, PUBLIC :: rlParams
+    REAL(DbKi), DIMENSION(99)     :: LastSignal                  ! Last input signal
+END TYPE rlParams
+
 TYPE, PUBLIC :: piParams
     REAL(DbKi), DIMENSION(99)     :: ITerm                       ! Integrator term
     REAL(DbKi), DIMENSION(99)     :: ITermLast                   ! Previous integrator term
@@ -230,7 +236,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: IPC_KP(2)                   ! Proportional gain for IPC, after ramp [-]
     INTEGER(IntKi)                :: PC_State                    ! State of the pitch control system
     REAL(DbKi)                    :: PitCom(3)                   ! Commanded pitch of each blade the last time the controller was called [rad].
-    REAL(DbKi)                    :: PitComAct(3)                ! Actuated pitch of each blade the last time the controller was called [rad].
+    REAL(DbKi)                    :: PitComAct(3)                ! Actuated pitch command of each blade [rad].
     REAL(DbKi)                    :: SS_DelOmegaF                ! Filtered setpoint shifting term defined in setpoint smoother [rad/s].
     REAL(DbKi)                    :: TestType                    ! Test variable, no use
     REAL(DbKi)                    :: VS_MaxTq                    ! Maximum allowable generator torque [Nm].
@@ -260,6 +266,7 @@ TYPE, PUBLIC :: LocalVariables
     TYPE(WE)                      :: WE                          ! Wind speed estimator parameters derived type
     TYPE(FilterParameters)        :: FP                          ! Filter parameters derived type
     TYPE(piParams)                :: piP                         ! PI parameters derived type
+    TYPE(rlParams)                :: rlP                         ! Rate limiter parameters derived type
 END TYPE LocalVariables
 
 TYPE, PUBLIC :: ObjectInstances
@@ -269,6 +276,7 @@ TYPE, PUBLIC :: ObjectInstances
     INTEGER(IntKi)                :: instNotchSlopes             ! Notch filter slopes instance
     INTEGER(IntKi)                :: instNotch                   ! Notch filter instance
     INTEGER(IntKi)                :: instPI                      ! PI controller instance
+    INTEGER(IntKi)                :: instRL                      ! Rate limiter instance
 END TYPE ObjectInstances
 
 TYPE, PUBLIC :: PerformanceData
@@ -302,9 +310,9 @@ TYPE, PUBLIC :: DebugVariables
     REAL(DbKi)                    :: VS_RefSpeed_Excl            ! Torque controller reference speed after exclusion zone shift
     REAL(DbKi)                    :: VS_RefSpeed                 ! Torque controller reference speed
     REAL(DbKi)                    :: YawRateCom                  ! Commanded yaw rate [rad/s].
-    REAL(DbKi)                    :: NacHeadingTarget            ! Target nacelle heading [rad].
-    REAL(DbKi)                    :: NacVaneOffset               ! Nacelle vane angle with offset [rad].
-    REAL(DbKi)                    :: Yaw_err                     ! Yaw error [rad].
+    REAL(DbKi)                    :: NacHeadingTarget            ! Target nacelle heading [deg].
+    REAL(DbKi)                    :: NacVaneOffset               ! Nacelle vane angle with offset [deg].
+    REAL(DbKi)                    :: Yaw_Err                     ! Yaw error [deg].
     REAL(DbKi)                    :: YawState                    ! State of yaw controller
 END TYPE DebugVariables
 
@@ -329,7 +337,7 @@ TYPE, PUBLIC :: ZMQ_Variables
 END TYPE ZMQ_Variables
 
 TYPE, PUBLIC :: ExtControlType
-    REAL(C_FLOAT), DIMENSION(:), ALLOCATABLE     :: avrSWAP                     ! The swap array- used to pass data to and from the DLL controller [see Bladed DLL documentation]
+    REAL(ReKi), DIMENSION(:), ALLOCATABLE     :: avrSWAP                     ! The swap array- used to pass data to and from the DLL controller [see Bladed DLL documentation]
 END TYPE ExtControlType
 
 END MODULE ROSCO_Types

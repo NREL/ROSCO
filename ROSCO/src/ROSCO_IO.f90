@@ -177,12 +177,14 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%piP%ITermLast
         WRITE( Un, IOSTAT=ErrStat) LocalVar%piP%ITerm2
         WRITE( Un, IOSTAT=ErrStat) LocalVar%piP%ITermLast2
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%rlP%LastSignal
         WRITE( Un, IOSTAT=ErrStat) objInst%instLPF
         WRITE( Un, IOSTAT=ErrStat) objInst%instSecLPF
         WRITE( Un, IOSTAT=ErrStat) objInst%instHPF
         WRITE( Un, IOSTAT=ErrStat) objInst%instNotchSlopes
         WRITE( Un, IOSTAT=ErrStat) objInst%instNotch
         WRITE( Un, IOSTAT=ErrStat) objInst%instPI
+        WRITE( Un, IOSTAT=ErrStat) objInst%instRL
         Close ( Un )
     ENDIF
 END SUBROUTINE WriteRestartFile
@@ -195,7 +197,7 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
     TYPE(PerformanceData), INTENT(INOUT)            :: PerfData
     TYPE(ErrorVariables), INTENT(INOUT)             :: ErrVar
     TYPE(ZMQ_Variables), INTENT(INOUT)              :: zmqVar
-    REAL(C_FLOAT), INTENT(IN)                       :: avrSWAP(*)
+    REAL(ReKi), INTENT(IN)                          :: avrSWAP(*)
     INTEGER(IntKi), INTENT(IN)                      :: size_avcOUTNAME
     CHARACTER(size_avcOUTNAME-1), INTENT(IN)        :: RootName 
     
@@ -358,12 +360,14 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%piP%ITermLast
         READ( Un, IOSTAT=ErrStat) LocalVar%piP%ITerm2
         READ( Un, IOSTAT=ErrStat) LocalVar%piP%ITermLast2
+        READ( Un, IOSTAT=ErrStat) LocalVar%rlP%LastSignal
         READ( Un, IOSTAT=ErrStat) objInst%instLPF
         READ( Un, IOSTAT=ErrStat) objInst%instSecLPF
         READ( Un, IOSTAT=ErrStat) objInst%instHPF
         READ( Un, IOSTAT=ErrStat) objInst%instNotchSlopes
         READ( Un, IOSTAT=ErrStat) objInst%instNotch
         READ( Un, IOSTAT=ErrStat) objInst%instPI
+        READ( Un, IOSTAT=ErrStat) objInst%instRL
         Close ( Un )
     ENDIF
     ! Read Parameter files
@@ -421,26 +425,22 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     DebugOutData(17) = DebugVar%axisYaw_1P
     DebugOutData(18) = DebugVar%axisTilt_2P
     DebugOutData(19) = DebugVar%axisYaw_2P
-    DebugOutData(20) = DebugVar%VS_RefSpeed_Excl
-    DebugOutData(21) = DebugVar%VS_RefSpeed
-    DebugOutData(22) = DebugVar%YawRateCom
-    DebugOutData(23) = DebugVar%NacHeadingTarget
-    DebugOutData(24) = DebugVar%NacVaneOffset
-    DebugOutData(25) = DebugVar%Yaw_err
-    DebugOutData(26) = DebugVar%YawState
+    DebugOutData(20) = DebugVar%YawRateCom
+    DebugOutData(21) = DebugVar%NacHeadingTarget
+    DebugOutData(22) = DebugVar%NacVaneOffset
+    DebugOutData(23) = DebugVar%Yaw_Err
+    DebugOutData(24) = DebugVar%YawState
     DebugOutStrings = [CHARACTER(15) ::  'WE_Cp', 'WE_b', 'WE_w', 'WE_t', 'WE_Vm', & 
                                       'WE_Vt', 'WE_Vw', 'WE_lambda', 'PC_PICommand', 'GenSpeedF', & 
                                       'RotSpeedF', 'NacIMU_FA_AccF', 'FA_AccF', 'Fl_PitCom', 'PC_MinPit', & 
-                                      'axisTilt_1P', 'axisYaw_1P', 'axisTilt_2P', 'axisYaw_2P', 'VS_RefSpeed_Excl', & 
-                                      'VS_RefSpeed', 'YawRateCom', 'NacHeadingTarget', 'NacVaneOffset', 'Yaw_err', & 
-                                      'YawState']
+                                      'axisTilt_1P', 'axisYaw_1P', 'axisTilt_2P', 'axisYaw_2P', 'YawRateCom', & 
+                                      'NacHeadingTarget', 'NacVaneOffset', 'Yaw_Err', 'YawState']
     DebugOutUnits = [CHARACTER(15) ::  '[-]', '[-]', '[-]', '[-]', '[m/s]', & 
                                       '[m/s]', '[m/s]', '[rad]', '[rad]', '[rad/s]', & 
                                       '[rad/s]', '[rad/s]', '[m/s]', '[rad]', '[rad]', & 
-                                      '', '', '', '', '', & 
-                                      '', '[rad/s]', '[rad]', '[rad]', '[rad]', & 
-                                      '']
-    nLocalVars = 70
+                                      '[N/A]', '[N/A]', '[N/A]', '[N/A]', '[rad/s]', & 
+                                      '[deg]', '[deg]', '[deg]', '[N/A]']
+    nLocalVars = 69
     Allocate(LocalVarOutData(nLocalVars))
     Allocate(LocalVarOutStrings(nLocalVars))
     LocalVarOutData(1) = LocalVar%iStatus
@@ -560,6 +560,20 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
         100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')
     END IF
 
+    ! Process DebugOutData, LocalVarOutData
+    ! Remove very small numbers that cause ******** outputs
+    DO I = 1,SIZE(DebugOutData)
+        IF (ABS(DebugOutData(I)) < 1E-10) THEN
+            DebugOutData(I) = 0
+        END IF
+    END DO
+    
+    DO I = 1,SIZE(LocalVarOutData)
+        IF (ABS(LocalVarOutData(I)) < 1E-10) THEN
+            LocalVarOutData(I) = 0
+        END IF
+    END DO
+    
     ! Write debug files
     IF(CntrPar%LoggingLevel > 0) THEN
         WRITE (UnDb, FmtDat)  LocalVar%Time, DebugOutData

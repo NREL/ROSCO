@@ -11,6 +11,9 @@ Thus, be sure to implement each in order so that subsequent line numbers are cor
 
 2.6.0 to develop
 -------------------------------
+Pitch Faults
+- Constant pitch actuator offsets (PF_Mode = 1)
+
 Rotor speed exclusion zone
 - Use the generator torque control to avoid rotor speeds when Twr_Mode = 2 or 3.  The torque 
 control reference speed will avoid Twr_ExclSpeed +/- Twr_ExclBand
@@ -23,6 +26,10 @@ Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
 19     TD_Mode              0                    ! TD_Mode           - Tower damper mode {0: no tower damper, 1: feed back translational nacelle accelleration to pitch angle}
 22     PA_Mode              0                    ! PA_Mode           - Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
+23     PF_Mode              0                   ! PF_Mode           - Pitch fault mode {0 - not used, 1 - constant offset on one or more blades}
+139    PF_Section           !------- Pitch Actuator Faults ---------------------------------------------------------
+140    PF_Offsets           0.00000000 0.00000000 0.00000000                 ! PF_Offsets     - Constant blade pitch offsets for blades 1-3 [rad]
+141    Empty Line          
 ====== =================    ======================================================================================================================================================================================================
 
 ====== =================    ======================================================================================================================================================================================================

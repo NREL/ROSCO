@@ -209,8 +209,13 @@ class ControllerInterface():
         extra_libs = []
 
         if OS == "Windows":  # pragma: Windows
-            _dlclose = ctypes.windll.kernel32.FreeLibrary
-            dlclose = lambda handle: 0 if _dlclose(handle) else 1
+            try:
+                _dlclose = ctypes.windll.kernel32.FreeLibrary
+                dlclose = lambda handle: 0 if _dlclose(handle) else 1
+            except:
+                kernel32 = ctypes.WinDLL('kernel32',use_last_error=True)
+                kernel32.FreeLibrary.argtypes = [ctypes.wintypes.HMODULE]
+                dlclose = lambda handle: 0 if kernel32.FreeLibrary(handle) else 1
             # There's some controversy as to whether this DLL is guaranteed to exist.
             # It always has so far but isn't documented. However, MinGW assumes that it
             # is so, should this DLL be removed, then we have much bigger problems than
