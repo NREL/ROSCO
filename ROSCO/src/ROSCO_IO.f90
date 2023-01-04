@@ -425,22 +425,26 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     DebugOutData(17) = DebugVar%axisYaw_1P
     DebugOutData(18) = DebugVar%axisTilt_2P
     DebugOutData(19) = DebugVar%axisYaw_2P
-    DebugOutData(20) = DebugVar%YawRateCom
-    DebugOutData(21) = DebugVar%NacHeadingTarget
-    DebugOutData(22) = DebugVar%NacVaneOffset
-    DebugOutData(23) = DebugVar%Yaw_Err
-    DebugOutData(24) = DebugVar%YawState
+    DebugOutData(20) = DebugVar%VS_RefSpeed_Excl
+    DebugOutData(21) = DebugVar%VS_RefSpeed
+    DebugOutData(22) = DebugVar%YawRateCom
+    DebugOutData(23) = DebugVar%NacHeadingTarget
+    DebugOutData(24) = DebugVar%NacVaneOffset
+    DebugOutData(25) = DebugVar%Yaw_Err
+    DebugOutData(26) = DebugVar%YawState
     DebugOutStrings = [CHARACTER(15) ::  'WE_Cp', 'WE_b', 'WE_w', 'WE_t', 'WE_Vm', & 
                                       'WE_Vt', 'WE_Vw', 'WE_lambda', 'PC_PICommand', 'GenSpeedF', & 
                                       'RotSpeedF', 'NacIMU_FA_AccF', 'FA_AccF', 'Fl_PitCom', 'PC_MinPit', & 
-                                      'axisTilt_1P', 'axisYaw_1P', 'axisTilt_2P', 'axisYaw_2P', 'YawRateCom', & 
-                                      'NacHeadingTarget', 'NacVaneOffset', 'Yaw_Err', 'YawState']
+                                      'axisTilt_1P', 'axisYaw_1P', 'axisTilt_2P', 'axisYaw_2P', 'VS_RefSpeed_Excl', & 
+                                      'VS_RefSpeed', 'YawRateCom', 'NacHeadingTarget', 'NacVaneOffset', 'Yaw_Err', & 
+                                      'YawState']
     DebugOutUnits = [CHARACTER(15) ::  '[-]', '[-]', '[-]', '[-]', '[m/s]', & 
                                       '[m/s]', '[m/s]', '[rad]', '[rad]', '[rad/s]', & 
                                       '[rad/s]', '[rad/s]', '[m/s]', '[rad]', '[rad]', & 
-                                      '[N/A]', '[N/A]', '[N/A]', '[N/A]', '[rad/s]', & 
-                                      '[deg]', '[deg]', '[deg]', '[N/A]']
-    nLocalVars = 69
+                                      '[N/A]', '[N/A]', '[N/A]', '[N/A]', '[N/A]', & 
+                                      '[N/A]', '[rad/s]', '[deg]', '[deg]', '[deg]', & 
+                                      '[N/A]']
+    nLocalVars = 70
     Allocate(LocalVarOutData(nLocalVars))
     Allocate(LocalVarOutStrings(nLocalVars))
     LocalVarOutData(1) = LocalVar%iStatus
