@@ -214,6 +214,11 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('!------- ZeroMQ Interface ---------------------------------------------------------\n')
     file.write('"{}"            ! ZMQ_CommAddress     - Communication address for ZMQ server, (e.g. "tcp://localhost:5555") \n'.format(rosco_vt['ZMQ_CommAddress']))
     file.write('{:<11d}         ! ZMQ_UpdatePeriod    - Call ZeroMQ every [x] seconds, [s]\n'.format(int(rosco_vt['ZMQ_UpdatePeriod'])))
+    file.write('\n')
+    file.write('!------- Cable Control ---------------------------------------------------------\n')
+    file.write('{:<11d}         ! CC_Group_N		- Number of cable control groups\n'.format(len(rosco_vt['CC_GroupIndex']])))
+    file.write('{:^11s}         ! CC_GroupIndex		- Start index for each cable control group, corresponds to deltaL in .SrvD.sum\n'.format(' '.join([f'{ind:d}' for ind in rosco_vt['CC_GroupIndex']])))
+
     file.close()
 
     # Write Open loop input
@@ -513,6 +518,8 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     # ------- Zero-MQ  ------- 
     DISCON_dict['ZMQ_CommAddress'] = "tcp://localhost:5555" 
     DISCON_dict['ZMQ_UpdatePeriod']  = 2
+    # -------- Cable Control
+    DISCON_dict['CC_GroupIndex']  = [0]
     
     # Add pass through here
     for param, value in controller.controller_params['DISCON'].items():

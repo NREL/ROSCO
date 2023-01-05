@@ -861,6 +861,11 @@ properties:
                             type: number
                         description: Pitch angle offsets for each blade (array with length of 3)
                         units: rad
+                    CC_GroupIndex:
+                        type: array
+                        items:
+                            type: number
+                        description: First index for cable control group, should correspond to deltaL
 
     linmodel_tuning:
         type: object

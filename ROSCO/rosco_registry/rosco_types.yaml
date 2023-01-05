@@ -476,6 +476,11 @@ ControlParameters:
       <<: *real
       description: Integer for zeromq update frequency
 
+    CC_GroupIndex:
+      <<: *integer
+      description: Cable control group indices
+      allocatable: True
+
     # Calculated
     PC_RtTq99:
       <<: *real

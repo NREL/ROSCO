@@ -222,7 +222,10 @@ CONTAINS
 
         CHARACTER(1024)                                 :: PriPath        ! Path name of the primary DISCON file
 
-
+        CHARACTER(2048)                                 :: TmpLine        ! Path name of the primary DISCON file
+        INTEGER(IntKi)                                  :: NumLines, IOS, I_LINE
+        CHARACTER(2048), DIMENSION(:), ALLOCATABLE      :: FileLines
+        
         CHARACTER(*),               PARAMETER           :: RoutineName = 'ReadControlParameterFileSub'
 
         CurLine = 1
@@ -424,6 +427,29 @@ CONTAINS
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
         CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_CommAddress',accINFILE(1), CntrPar%ZMQ_CommAddress,ErrVar)
 		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_UpdatePeriod',accINFILE(1), CntrPar%ZMQ_UpdatePeriod,ErrVar)
+
+        !------------- Cable Control ----- OPTIONAL STARTS here
+
+        ! Rewind file and read all lines to get the number of lines
+        REWIND( UnControllerParameters )
+        NumLines = 0
+        IOS = 0
+        DO WHILE (IOS == 0)  ! read the rest of the file (until an error occurs)
+            NumLines = NumLines + 1
+            READ(UnControllerParameters,'(A)',IOSTAT=IOS) TmpLine        
+        END DO !WHILE
+
+        ALLOCATE(FileLines(NumLines))
+        REWIND( UnControllerParameters )
+
+        DO I_LINE = 1,NumLines
+            READ(UnControllerParameters,'(A)',IOSTAT=IOS) FileLines(I_LINE)
+        END DO
+
+        CALL ParseAry(FileLines, CurLine,'CC_GroupIndex', CntrPar%CC_GroupIndex, 2, accINFILE(1), ErrVar)
+        PRINT *, "CntrPar%CC_GroupIndex: ", CntrPar%CC_GroupIndex
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         ! Fix Paths (add relative paths if called from another dir)
         IF (PathIsRelative(CntrPar%PerfFileName)) CntrPar%PerfFileName = TRIM(PriPath)//TRIM(CntrPar%PerfFileName)
