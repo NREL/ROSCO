@@ -208,7 +208,13 @@ properties:
                 minimum: 0
                 maximum: 1
                 default: 0
-                description: External control mode {{0 - not used, 1 - call external dynamic library}}
+                description: External control mode [0 - not used, 1 - call external dynamic library]
+            CC_Mode:           
+                type: number
+                minimum: 0
+                maximum: 1
+                default: 0
+                description: Cable Control mode [0- unused, 1- User defined, 2- Position control]
             U_pc:                       
                 type: array
                 description: List of wind speeds to schedule pitch control zeta and omega 
@@ -861,11 +867,16 @@ properties:
                             type: number
                         description: Pitch angle offsets for each blade (array with length of 3)
                         units: rad
+                    CC_Group_N:
+                        type: number
+                        description: Number of cable control groups
+                        default: 0
                     CC_GroupIndex:
                         type: array
                         items:
                             type: number
                         description: First index for cable control group, should correspond to deltaL
+                        default: [0]
 
     linmodel_tuning:
         type: object

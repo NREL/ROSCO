@@ -267,6 +267,7 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'PF_Mode',accINFILE(1),CntrPar%PF_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Ext_Mode',accINFILE(1),CntrPar%Ext_Mode,ErrVar)
 		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_Mode',accINFILE(1), CntrPar%ZMQ_Mode,ErrVar)
+		CALL ParseInput(UnControllerParameters,CurLine,'CC_Mode',accINFILE(1), CntrPar%ZMQ_Mode,ErrVar)
 
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 

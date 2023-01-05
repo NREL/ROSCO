@@ -27,6 +27,7 @@ import os
 import numpy as np
 import subprocess
 import ROSCO_toolbox
+from wisdem.inputs import load_yaml
 
 # Some useful constants
 now = datetime.datetime.now()
@@ -56,6 +57,21 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     if not rosco_vt:
         rosco_vt = DISCON_dict(turbine, controller, txt_filename)
 
+    # Get input descriptions from input schema
+    fname_schema = os.path.join(os.path.dirname(__file__),'inputs/toolbox_schema.yaml')
+    sch = load_yaml(fname_schema)
+    
+    # mode descriptions in main controller_params, might not be needed
+    mode_descriptions = {}
+    for input, props in sch['properties']['controller_params']['properties'].items():
+        if 'description' in props:
+            mode_descriptions[input] = props['description']
+
+    input_descriptions = {}
+    for input, props in sch['properties']['controller_params']['properties']['DISCON']['properties'].items():
+        if 'description' in props:
+            input_descriptions[input] = props['description']
+
     print('Writing new controller parameter file parameter file: %s.' % param_file)
     # Should be obvious what's going on here...
     file = open(param_file,'w')
@@ -84,6 +100,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! PF_Mode           - Pitch fault mode {{0 - not used, 1 - constant offset on one or more blades}}\n'.format(int(rosco_vt['PF_Mode'])))
     file.write('{0:<12d}        ! Ext_Mode          - External control mode {{0 - not used, 1 - call external dynamic library}}\n'.format(int(rosco_vt['Ext_Mode'])))
     file.write('{0:<12d}        ! ZMQ_Mode          - Fuse ZeroMQ interface {{0: unused, 1: Yaw Control}}\n'.format(int(rosco_vt['ZMQ_Mode'])))
+    file.write('{:<12d}         ! CC_Mode           - {}\n'.format(int(rosco_vt['CC_Mode']),mode_descriptions['CC_Mode']))
 
     file.write('\n')
     file.write('!------- FILTERS ----------------------------------------------------------\n') 
@@ -216,8 +233,8 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<11d}         ! ZMQ_UpdatePeriod    - Call ZeroMQ every [x] seconds, [s]\n'.format(int(rosco_vt['ZMQ_UpdatePeriod'])))
     file.write('\n')
     file.write('!------- Cable Control ---------------------------------------------------------\n')
-    file.write('{:<11d}         ! CC_Group_N		- Number of cable control groups\n'.format(len(rosco_vt['CC_GroupIndex']])))
-    file.write('{:^11s}         ! CC_GroupIndex		- Start index for each cable control group, corresponds to deltaL in .SrvD.sum\n'.format(' '.join([f'{ind:d}' for ind in rosco_vt['CC_GroupIndex']])))
+    file.write('{:<11d}         ! CC_Group_N		- {}\n'.format(len(rosco_vt['CC_GroupIndex']), input_descriptions['CC_Group_N']))
+    file.write('{:^11s}         ! CC_GroupIndex     - {}\n'.format(' '.join([f'{ind:d}' for ind in rosco_vt['CC_GroupIndex']]), input_descriptions['CC_GroupIndex']))
 
     file.close()
 
@@ -406,6 +423,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['PA_Mode']          = int(controller.PA_Mode)
     DISCON_dict['Ext_Mode']         = int(controller.Ext_Mode)
     DISCON_dict['ZMQ_Mode']         = int(controller.ZMQ_Mode)
+    DISCON_dict['CC_Mode']          = int(controller.CC_Mode)
     # ------- FILTERS -------
     DISCON_dict['F_LPFCornerFreq']	    = turbine.bld_edgewise_freq * 1/4
     DISCON_dict['F_LPFDamping']		    = controller.F_LPFDamping
