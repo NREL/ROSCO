@@ -116,6 +116,11 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
     IF (CntrPar%Flp_Mode > 0) THEN
         CALL FlapControl(avrSWAP, CntrPar, LocalVar, objInst)
     END IF
+
+    ! Cable contro;
+    IF (CntrPar%CC_Mode > 0) THEN
+        CALL CableControl(avrSWAP,CntrPar,LocalVar)
+    END IF
     
     IF ( CntrPar%LoggingLevel > 0 ) THEN
         CALL Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, SIZE(avcOUTNAME))

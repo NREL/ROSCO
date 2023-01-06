@@ -584,4 +584,55 @@ CONTAINS
             RETURN
         ENDIF
     END SUBROUTINE FlapControl
+
+!-------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE CableControl(avrSWAP, CntrPar, LocalVar)
+        ! Cable controller
+        !       CC_Mode = 0, No cable control, this code not executed
+        !       CC_Mode = 1, User-defined cable control
+        !       CC_Mode = 2, Position control, not yet implemented
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+    
+        REAL(ReKi), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
+    
+        TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
+        
+        ! Internal Variables
+        
+        IF (CntrPar%CC_Mode == 1) THEN
+            ! User defined control
+
+            ! step input for example
+            ! IF (LocalVar%Time > 100) THEN
+            !     ! Shorten first group by 1 m
+            !     avrSWAP(CntrPar%CC_GroupIndex(1)) = -10
+
+            !     IF (LocalVar%Time > 150) THEN
+            !         avrSWAP(CntrPar%CC_GroupIndex(1)) = 0
+            !     END IF
+
+
+            ! END IF
+
+            IF (LocalVar%Time > 200) THEN
+                ! Shorten first group by 1 m/s for 10 sec
+                avrSWAP(CntrPar%CC_GroupIndex(1) + 1) = - 1
+
+
+                IF (LocalVar%Time > 300) THEN
+                    avrSWAP(CntrPar%CC_GroupIndex(1) + 1) = 0
+                END IF
+
+
+            END IF
+
+
+
+        END IF
+
+
+
+    END SUBROUTINE CableControl
+!-------------------------------------------------------------------------------------------------------------------------------
 END MODULE Controllers

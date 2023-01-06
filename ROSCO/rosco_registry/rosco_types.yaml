@@ -476,6 +476,15 @@ ControlParameters:
       <<: *real
       description: Integer for zeromq update frequency
 
+    # Cable control 
+    CC_Mode:
+      <<: *integer
+      description: Flag for ZeroMQ (0-off, 1-yaw}
+
+    CC_Group_N:
+      <<: *integer
+      description: Number of cable control groups
+
     CC_GroupIndex:
       <<: *integer
       description: Cable control group indices

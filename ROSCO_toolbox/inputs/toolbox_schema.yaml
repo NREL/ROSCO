@@ -99,7 +99,7 @@ properties:
                 type: number
                 description: 0- write no debug files, 1- write standard output .dbg-file, 2- write standard output .dbg-file and complete avrSWAP-array .dbg2-file
                 minimum: 0
-                maximum: 2
+                maximum: 3
                 default: 1
             F_LPFType:
                 type: number

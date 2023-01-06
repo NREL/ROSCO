@@ -267,7 +267,7 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'PF_Mode',accINFILE(1),CntrPar%PF_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Ext_Mode',accINFILE(1),CntrPar%Ext_Mode,ErrVar)
 		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_Mode',accINFILE(1), CntrPar%ZMQ_Mode,ErrVar)
-		CALL ParseInput(UnControllerParameters,CurLine,'CC_Mode',accINFILE(1), CntrPar%ZMQ_Mode,ErrVar)
+		CALL ParseInput(UnControllerParameters,CurLine,'CC_Mode',accINFILE(1), CntrPar%CC_Mode,ErrVar)
 
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
@@ -428,8 +428,14 @@ CONTAINS
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
         CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_CommAddress',accINFILE(1), CntrPar%ZMQ_CommAddress,ErrVar)
 		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_UpdatePeriod',accINFILE(1), CntrPar%ZMQ_UpdatePeriod,ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
 
-        !------------- Cable Control ----- OPTIONAL STARTS here
+        !------------- Cable Control ----- 
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(UnControllerParameters, CurLine,'CC_Group_N', accINFILE(1), CntrPar%CC_Group_N, ErrVar)
+
+        
+        !  OPTIONAL STARTS here
 
         ! Rewind file and read all lines to get the number of lines
         REWIND( UnControllerParameters )
@@ -447,7 +453,7 @@ CONTAINS
             READ(UnControllerParameters,'(A)',IOSTAT=IOS) FileLines(I_LINE)
         END DO
 
-        CALL ParseAry(FileLines, CurLine,'CC_GroupIndex', CntrPar%CC_GroupIndex, 2, accINFILE(1), ErrVar)
+        CALL ParseAry(FileLines, CurLine,'CC_GroupIndex', CntrPar%CC_GroupIndex, CntrPar%CC_Group_N, accINFILE(1), ErrVar)
         PRINT *, "CntrPar%CC_GroupIndex: ", CntrPar%CC_GroupIndex
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1032,6 +1038,11 @@ CONTAINS
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg = 'PA_Damping must be greater than 0'
             END IF
+        END IF
+
+        IF ((CntrPar%CC_Mode < 0) .OR. (CntrPar%CC_Mode > 1)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg = 'CC_Mode must be 0 or 1'
         END IF
             
 

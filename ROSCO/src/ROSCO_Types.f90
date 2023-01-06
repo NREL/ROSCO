@@ -122,6 +122,8 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: ZMQ_Mode                    ! Flag for ZeroMQ (0-off, 1-yaw}
     CHARACTER(256)                :: ZMQ_CommAddress             ! Comm Address to zeroMQ client
     REAL(DbKi)                    :: ZMQ_UpdatePeriod            ! Integer for zeromq update frequency
+    INTEGER(IntKi)                :: CC_Mode                     ! Flag for ZeroMQ (0-off, 1-yaw}
+    INTEGER(IntKi)                :: CC_Group_N                  ! Number of cable control groups
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: CC_GroupIndex               ! Cable control group indices
     REAL(DbKi)                    :: PC_RtTq99                   ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(DbKi)                    :: VS_MaxOMTq                  ! Maximum torque at the end of the below-rated region 2, [Nm]

@@ -395,6 +395,13 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     CHARACTER(size_avcOUTNAME-1), INTENT(IN) :: RootName            ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
     CHARACTER(200)                  :: Version                      ! git version of ROSCO
     CHARACTER(15), ALLOCATABLE      :: DebugOutStrings(:), DebugOutUnits(:)
+
+    ! Avr output writing
+    INTEGER(IntKi), SAVE, DIMENSION(:), ALLOCATABLE     :: avrIndices
+    INTEGER(IntKi)                  :: avrBaseLength = 85
+    INTEGER(IntKi)                  :: Ind
+    CHARACTER(100)                  :: avrFmt
+
     REAL(DbKi), ALLOCATABLE         :: DebugOutData(:)
  
     CHARACTER(15), ALLOCATABLE      :: LocalVarOutStrings(:)
@@ -543,13 +550,31 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
         END IF
 
         IF (CntrPar%LoggingLevel > 2) THEN
+            ! Set avrIndices, start with basic indices
+            Allocate(avrIndices(avrBaseLength))
+            DO Ind = 1, avrBaseLength
+                avrIndices(Ind) = Ind
+            END DO
+
+            ! Cable control indices
+            IF (CntrPar%CC_Mode > 0) THEN
+                DO Ind = 1, SIZE(CntrPar%CC_GroupIndex)
+                    Call AddToList(avrIndices,CntrPar%CC_GroupIndex(Ind))
+                    Call AddToList(avrIndices,CntrPar%CC_GroupIndex(Ind)+1)
+                END DO
+            END IF
+
+            ! Format string
+            avrFmt = '(A21,'//TRIM(Int2LStr(SIZE(avrIndices)))//'(TR12,"'//'AvrSWAP(",I4,")"))'
+
             CALL GetNewUnit(UnDb3, ErrVar)
             OPEN(unit=UnDb3, FILE=TRIM(RootName)//'.RO.dbg3')
             WRITE(UnDb3,'(/////)')
-            WRITE(UnDb3,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1, 85)
-            WRITE(UnDb3,'(A,85("'//Tab//'(-)"))')  '(s)'
+            WRITE(UnDb3,avrFmt)  'LocalVar%Time ', (avrIndices)
+            WRITE(UnDb3,'(A21,'//TRIM(Int2LStr(SIZE(avrIndices)))//'(TR22,"(-)"))')  '(s)'
         END IF
     END IF
+
         ! Print simulation status, every 10 seconds
     IF (MODULO(LocalVar%Time, 10.0_DbKi) == 0) THEN
         WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0, LocalVar%WE_Vw
@@ -580,7 +605,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     END IF
 
     IF(CntrPar%LoggingLevel > 2) THEN
-        WRITE (UnDb3, FmtDat)    LocalVar%Time, avrSWAP(1: 85)
+        WRITE (UnDb3, FmtDat)    LocalVar%Time, avrSWAP(avrIndices)
     END IF
 
 END SUBROUTINE Debug
