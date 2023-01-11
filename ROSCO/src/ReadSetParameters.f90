@@ -235,6 +235,24 @@ CONTAINS
         CALL GetPath( accINFILE(1), PriPath )     ! Input files will be relative to the path where the primary input file is located.
         CALL GetNewUnit(UnControllerParameters, ErrVar)
         OPEN(unit=UnControllerParameters, file=accINFILE(1), status='old', action='read')
+
+        ! Read all lines, first get the number of lines
+        NumLines = 0
+        IOS = 0
+        DO WHILE (IOS == 0)  ! read the rest of the file (until an error occurs)
+            NumLines = NumLines + 1
+            READ(UnControllerParameters,'(A)',IOSTAT=IOS) TmpLine        
+        END DO !WHILE
+
+        ALLOCATE(FileLines(NumLines))
+        REWIND( UnControllerParameters )
+
+        DO I_LINE = 1,NumLines
+            READ(UnControllerParameters,'(A)',IOSTAT=IOS) FileLines(I_LINE)
+        END DO
+
+        ! Rewind and read normal way until we're ready for all optional inputs
+        REWIND( UnControllerParameters )
         
         !----------------------- HEADER ------------------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
@@ -434,28 +452,8 @@ CONTAINS
         !------------- Cable Control ----- 
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
         CALL ParseInput(UnControllerParameters, CurLine,'CC_Group_N', accINFILE(1), CntrPar%CC_Group_N, ErrVar)
-
-        
-        !  OPTIONAL STARTS here
-
-        ! Rewind file and read all lines to get the number of lines
-        REWIND( UnControllerParameters )
-        NumLines = 0
-        IOS = 0
-        DO WHILE (IOS == 0)  ! read the rest of the file (until an error occurs)
-            NumLines = NumLines + 1
-            READ(UnControllerParameters,'(A)',IOSTAT=IOS) TmpLine        
-        END DO !WHILE
-
-        ALLOCATE(FileLines(NumLines))
-        REWIND( UnControllerParameters )
-
-        DO I_LINE = 1,NumLines
-            READ(UnControllerParameters,'(A)',IOSTAT=IOS) FileLines(I_LINE)
-        END DO
-
-        CALL ParseAry(FileLines, CurLine,'CC_GroupIndex', CntrPar%CC_GroupIndex, CntrPar%CC_Group_N, accINFILE(1), ErrVar)
-        PRINT *, "CntrPar%CC_GroupIndex: ", CntrPar%CC_GroupIndex
+        CALL ParseAry(UnControllerParameters, CurLine,'CC_GroupIndex', CntrPar%CC_GroupIndex, CntrPar%CC_Group_N, accINFILE(1), ErrVar)
+        CALL ParseInput(UnControllerParameters, CurLine,'CC_ActTau', accINFILE(1), CntrPar%CC_ActTau, ErrVar)
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
