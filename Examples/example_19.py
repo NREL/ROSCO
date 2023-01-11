@@ -34,7 +34,7 @@ def main():
 
     # Input yaml and output directory
     parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW.yaml')
-    run_dir = os.path.join(example_out_dir,'19_TRA_2')
+    run_dir = os.path.join(example_out_dir,'19_TRA_4')
     os.makedirs(run_dir,exist_ok=True)
     
     # Set DISCON input dynamically through yaml/dict
@@ -45,6 +45,8 @@ def main():
     controller_params['DISCON'] = {}
     controller_params['DISCON']['Twr_ExclSpeed'] = 5.5 * rpm2RadSec
     controller_params['DISCON']['Twr_ExclBand'] = 1 * rpm2RadSec
+    controller_params['DISCON']['Twr_GainFactor'] = [2., 4.]
+    controller_params['DISCON']['Twr_GainTau'] = 10
 
     # simulation set up
     r = run_FAST_ROSCO()

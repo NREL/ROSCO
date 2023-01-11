@@ -124,6 +124,9 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%NACIMU_FA_AccF
         WRITE( Un, IOSTAT=ErrStat) LocalVar%FA_AccF
         WRITE( Un, IOSTAT=ErrStat) LocalVar%FA_Hist
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%Twr_GainFact_P
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%Twr_GainFact_I
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%Twr_HistDist
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(1)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(2)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(3)
@@ -309,6 +312,9 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%NACIMU_FA_AccF
         READ( Un, IOSTAT=ErrStat) LocalVar%FA_AccF
         READ( Un, IOSTAT=ErrStat) LocalVar%FA_Hist
+        READ( Un, IOSTAT=ErrStat) LocalVar%Twr_GainFact_P
+        READ( Un, IOSTAT=ErrStat) LocalVar%Twr_GainFact_I
+        READ( Un, IOSTAT=ErrStat) LocalVar%Twr_HistDist
         READ( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(1)
         READ( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(2)
         READ( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(3)
@@ -450,7 +456,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       '[N/A]', '[N/A]', '[N/A]', '[N/A]', '[N/A]', & 
                                       '[N/A]', '[rad/s]', '[deg]', '[deg]', '[deg]', & 
                                       '[N/A]']
-    nLocalVars = 73
+    nLocalVars = 76
     Allocate(LocalVarOutData(nLocalVars))
     Allocate(LocalVarOutStrings(nLocalVars))
     LocalVarOutData(1) = LocalVar%iStatus
@@ -523,9 +529,12 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(68) = LocalVar%NACIMU_FA_AccF
     LocalVarOutData(69) = LocalVar%FA_AccF
     LocalVarOutData(70) = LocalVar%FA_Hist
-    LocalVarOutData(71) = LocalVar%Flp_Angle(1)
-    LocalVarOutData(72) = LocalVar%RootMyb_Last(1)
-    LocalVarOutData(73) = LocalVar%ACC_INFILE_SIZE
+    LocalVarOutData(71) = LocalVar%Twr_GainFact_P
+    LocalVarOutData(72) = LocalVar%Twr_GainFact_I
+    LocalVarOutData(73) = LocalVar%Twr_HistDist
+    LocalVarOutData(74) = LocalVar%Flp_Angle(1)
+    LocalVarOutData(75) = LocalVar%RootMyb_Last(1)
+    LocalVarOutData(76) = LocalVar%ACC_INFILE_SIZE
     LocalVarOutStrings = [CHARACTER(15) ::  'iStatus', 'Time', 'DT', 'VS_GenPwr', 'GenSpeed', & 
                                       'RotSpeed', 'NacHeading', 'NacVane', 'HorWindV', 'rootMOOP', & 
                                       'rootMOOPF', 'BlPitch', 'Azimuth', 'NumBl', 'FA_Acc', & 
@@ -540,7 +549,8 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       'VS_MechGenPwr', 'VS_SpdErrAr', 'VS_SpdErrBr', 'VS_SpdErr', 'VS_State', & 
                                       'VS_Rgn3Pitch', 'WE_Vw', 'WE_Vw_F', 'WE_VwI', 'WE_VwIdot', & 
                                       'VS_LastGenTrqF', 'Fl_PitCom', 'NACIMU_FA_AccF', 'FA_AccF', 'FA_Hist', & 
-                                      'Flp_Angle', 'RootMyb_Last', 'ACC_INFILE_SIZE']
+                                      'Twr_GainFact_P', 'Twr_GainFact_I', 'Twr_HistDist', 'Flp_Angle', 'RootMyb_Last', & 
+                                      'ACC_INFILE_SIZE']
     ! Initialize debug file
     IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN ! .TRUE. if we're on the first call to the DLL
         IF (CntrPar%LoggingLevel > 0) THEN

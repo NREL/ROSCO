@@ -49,7 +49,10 @@ CONTAINS
         IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
             LocalVar%VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
             IF ((CntrPar%Twr_Mode == 2) .OR. (CntrPar%Twr_Mode == 3)) THEN
-                CALL RefSpeedExclusion(LocalVar, CntrPar, DebugVar)
+                CALL RefSpeedExclusion(LocalVar, CntrPar, objInst, DebugVar)
+            ELSE
+                LocalVar%Twr_GainFact_P = 1
+                LocalVar%Twr_GainFact_I = 1
             END IF
             LocalVar%VS_RefSpd = saturate(LocalVar%VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
         ELSE
@@ -427,15 +430,17 @@ CONTAINS
     END FUNCTION Shutdown
 !-------------------------------------------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE RefSpeedExclusion(LocalVar, CntrPar, DebugVar) 
+    SUBROUTINE RefSpeedExclusion(LocalVar, CntrPar, objInst, DebugVar) 
     ! Reference speed exclusion:
     !   Changes torque controllerr reference speed to avoid specified frequencies by a prescribed bandwidth
-        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, DebugVariables
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, DebugVariables, ObjectInstances
         IMPLICIT NONE
         ! Inputs
         TYPE(ControlParameters),    INTENT(IN   )       :: CntrPar
         TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar 
         TYPE(DebugVariables),      INTENT(INOUT)        :: DebugVar
+        TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
+
         
         REAL(DbKi)                             :: VS_RefSpeed_LSS
         
@@ -459,11 +464,28 @@ CONTAINS
 
         IF (LocalVar%FA_Hist < 0) THEN
             LocalVar%VS_RefSpd = min(LocalVar%VS_RefSpd, (CntrPar%Twr_ExclSpeed - CntrPar%Twr_ExclBand) * CntrPar%WE_GearboxRatio)
+            LocalVar%Twr_HistDist = ABS(LocalVar%VS_RefSpd - (CntrPar%Twr_ExclSpeed - CntrPar%Twr_ExclBand) * CntrPar%WE_GearboxRatio)
         ELSE IF (LocalVar%FA_Hist > 0) THEN
             LocalVar%VS_RefSpd = max(LocalVar%VS_RefSpd, (CntrPar%Twr_ExclSpeed + CntrPar%Twr_ExclBand) * CntrPar%WE_GearboxRatio)
+            LocalVar%Twr_HistDist = ABS(LocalVar%VS_RefSpd - (CntrPar%Twr_ExclSpeed + CntrPar%Twr_ExclBand) * CntrPar%WE_GearboxRatio)
         END IF
         
         DebugVar%VS_RefSpeed_Excl = LocalVar%VS_RefSpd
+
+        ! Change PI gains if near hist zone
+        IF (LocalVar%Twr_HistDist < 0.001) THEN
+            LocalVar%Twr_GainFact_P = CntrPar%Twr_GainFactor(1)
+            LocalVar%Twr_GainFact_I = CntrPar%Twr_GainFactor(2)
+        ELSE
+            LocalVar%Twr_GainFact_P = 1
+            LocalVar%Twr_GainFact_I = 1
+        END IF
+
+        IF (CntrPar%Twr_GainTau > 0) THEN
+            LocalVar%Twr_GainFact_P = LPFilter(LocalVar%Twr_GainFact_P, LocalVar%DT, 2*PI/CntrPar%Twr_GainTau, LocalVar%FP, LocalVar%iStatus, LocalVar%restart,  objInst%instLPF)
+            LocalVar%Twr_GainFact_I = LPFilter(LocalVar%Twr_GainFact_I, LocalVar%DT, 2*PI/CntrPar%Twr_GainTau, LocalVar%FP, LocalVar%iStatus, LocalVar%restart,  objInst%instLPF)
+        END IF           
+
         
     END SUBROUTINE RefSpeedExclusion
 !-------------------------------------------------------------------------------------------------------------------------------

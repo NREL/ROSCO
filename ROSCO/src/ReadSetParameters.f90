@@ -363,6 +363,8 @@ CONTAINS
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
         CALL ParseInput(UnControllerParameters,CurLine,'Twr_ExclSpeed',accINFILE(1),CntrPar%Twr_ExclSpeed,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Twr_ExclBand',accINFILE(1),CntrPar%Twr_ExclBand,ErrVar)
+        CALL ParseAry(UnControllerParameters, CurLine, 'Twr_GainFactor', CntrPar%Twr_GainFactor, 2, accINFILE(1), ErrVar )
+        CALL ParseInput(UnControllerParameters,CurLine,'Twr_GainTau',accINFILE(1),CntrPar%Twr_GainTau,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'FA_KI',accINFILE(1),CntrPar%FA_KI,ErrVar)
         ! Don't check this name until we make an API change
         CALL ParseInput(UnControllerParameters,CurLine,'FA_HPFCornerFreq',accINFILE(1),CntrPar%FA_HPFCornerFreq,ErrVar,.FALSE.)
@@ -957,6 +959,30 @@ CONTAINS
                 ENDIF
             ENDIF
         ENDIF
+
+        ! ---- Tower Control ----
+        IF (CntrPar%Twr_Mode < 0 .OR. CntrPar%Twr_Mode > 3) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'Twr_Mode must be 0, 1, or 2.'
+        END IF
+
+        IF (CntrPar%Twr_Mode > 0) THEN
+            IF (CntrPar%Twr_ExclSpeed < 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'Twr_ExclSpeed must be greater than 0.'
+            END IF
+
+            IF (CntrPar%Twr_ExclBand < 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'Twr_ExclBand must be greater than 0.'
+            END IF
+
+            IF (CntrPar%Twr_GainTau < 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'Twr_GainTau must be greater than 0.'
+            END IF
+
+        END IF
 
         !------- MINIMUM PITCH SATURATION -------------------------------------------
         IF (CntrPar%PS_Mode > 0) THEN

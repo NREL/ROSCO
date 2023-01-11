@@ -376,6 +376,18 @@ properties:
                 minimum: 0
                 description: One-half of the total frequency exclusion band. Torque controller reference will be Twr_ExclFreq +/- Twr_ExlBand [rad/s]
                 default: 0.0
+            Twr_GainFactor:
+                type: array
+                items:
+                    type: number
+                    minimum: 0
+                description: Factor to change PI torque control gains by [-]
+                default: [1.0,1.0]
+            Twr_GainTau:
+                type: number
+                minimum: 0
+                description: Time constant for gain change when in exclusion zone [s]
+                default: 0.0
             IPC_Vramp:                     
                 type: array
                 description: wind speeds for IPC cut-in sigma function [m/s]

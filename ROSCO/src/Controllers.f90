@@ -199,7 +199,12 @@ CONTAINS
             END IF
 
             ! PI controller
-            LocalVar%GenTq = PIController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, LocalVar%VS_MaxTq, LocalVar%DT, LocalVar%VS_LastGenTrq, LocalVar%piP, LocalVar%restart, objInst%instPI)
+            LocalVar%GenTq = PIController( &
+                                        LocalVar%VS_SpdErr, &
+                                        LocalVar%Twr_GainFact_P * CntrPar%VS_KP(1), &
+                                        LocalVar%Twr_GainFact_I * CntrPar%VS_KI(1), &
+                                        CntrPar%VS_MinTq, LocalVar%VS_MaxTq, &
+                                        LocalVar%DT, LocalVar%VS_LastGenTrq, LocalVar%piP, LocalVar%restart, objInst%instPI)
             LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, LocalVar%VS_MaxTq)
         
         ! K*Omega^2 control law with PI torque control in transition regions

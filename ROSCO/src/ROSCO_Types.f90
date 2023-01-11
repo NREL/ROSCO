@@ -24,6 +24,8 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: Twr_Mode                    ! Tower Fore-Aft control mode {0 - no fore-aft control, 1 - Tower fore-aft damping, 2 -Frequency exclusion zone, 3- Options 1 and 2}
     REAL(DbKi)                    :: Twr_ExclSpeed               ! Rotor speed for exclusion [LSS] [rad/s]
     REAL(DbKi)                    :: Twr_ExclBand                ! One-half of the total frequency exclusion band. Torque controller reference will be Twr_ExclFreq +/- Twr_ExlBand [rad/s]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: Twr_GainFactor              ! Factor to change PI torque control gains by [-]
+    REAL(DbKi)                    :: Twr_GainTau                 ! Time constant for gain change when in exclusion zone [s]
     REAL(DbKi)                    :: FA_HPFCornerFreq            ! Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]
     REAL(DbKi)                    :: FA_IntSat                   ! Integrator saturation (maximum signal amplitude contrbution to pitch from FA damper), [rad]
     REAL(DbKi)                    :: FA_KI                       ! Integral gain for the fore-aft tower damper controller, -1 = off / >0 = on [rad s/m]
@@ -261,6 +263,9 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None
     REAL(DbKi)                    :: FA_AccF                     ! None
     INTEGER(IntKi)                :: FA_Hist                     ! Hysteresis state for tower resonance avoidance.
+    REAL(DbKi)                    :: Twr_GainFact_P              ! Tower gain factor for P term
+    REAL(DbKi)                    :: Twr_GainFact_I              ! Tower gain factor for I term
+    REAL(DbKi)                    :: Twr_HistDist                ! Distance from histeresis saturation [rad/s]
     REAL(DbKi)                    :: Flp_Angle(3)                ! Flap Angle (rad)
     REAL(DbKi)                    :: RootMyb_Last(3)             ! Last blade root bending moment (Nm)
     INTEGER(IntKi)                :: ACC_INFILE_SIZE             ! Length of parameter input filename

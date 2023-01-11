@@ -121,6 +121,13 @@ ControlParameters:
     Twr_ExclBand:
       <<: *real
       description: One-half of the total frequency exclusion band. Torque controller reference will be Twr_ExclFreq +/- Twr_ExlBand [rad/s]
+    Twr_GainFactor:
+      <<: *real
+      allocatable: True
+      description: Factor to change PI torque control gains by [-]
+    Twr_GainTau:
+      <<: *real
+      description: Time constant for gain change when in exclusion zone [s]
     
     FA_HPFCornerFreq:
       <<: *real
@@ -912,6 +919,15 @@ LocalVariables:
     FA_Hist:
       <<: *integer 
       description: Hysteresis state for tower resonance avoidance.
+    Twr_GainFact_P:
+      <<: *real
+      description: Tower gain factor for P term
+    Twr_GainFact_I:
+      <<: *real
+      description: Tower gain factor for I term
+    Twr_HistDist:
+      <<: *real
+      description: Distance from histeresis saturation [rad/s]
     Flp_Angle:
       <<: *real 
       description: Flap Angle (rad)
