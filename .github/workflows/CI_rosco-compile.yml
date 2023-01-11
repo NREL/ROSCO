@@ -5,7 +5,7 @@ on: [push, pull_request]
 
 # Specify FORTRAN compiler
 env:
-  FORTRAN_COMPILER: gfortran-10
+  FORTRAN_COMPILER: gfortran
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -48,6 +48,11 @@ jobs:
         shell: bash -l {0}
         run: |
           conda install -y m2w64-toolchain
+
+      - name: Add dependencies macOS specific
+        if: true == contains( matrix.os, 'macOS')
+        run: |
+          conda install compilers
 
       - name: Setup Workspace
         run: cmake -E make_directory ${{runner.workspace}}/ROSCO/ROSCO/build
