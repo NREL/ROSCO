@@ -845,6 +845,12 @@ LocalVariables:
     SS_DelOmegaF:                 
       <<: *real 
       description: Filtered setpoint shifting term defined in setpoint smoother [rad/s].
+    VS_RefSpd:                 
+      <<: *real 
+      description: Torque control generator speed set point [rad/s].
+    PC_RefSpd:                 
+      <<: *real 
+      description: Pitch control generator speed set point [rad/s].
     TestType:                     
       <<: *real 
       description: Test variable, no use
