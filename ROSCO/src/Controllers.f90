@@ -600,7 +600,7 @@ CONTAINS
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
         
         ! Internal Variables
-        Integer(IntKi)                            :: I_Group
+        Integer(IntKi)                            :: I_GROUP
 
         ! Allocate Cable control arrays --------------
         IF (.NOT. ALLOCATED(LocalVar%CC_DesiredL)) THEN
@@ -644,6 +644,7 @@ CONTAINS
 
         DO I_GROUP = 1, CntrPar%CC_Group_N
 
+            ! Get Actuated deltaL
             LocalVar%CC_ActuatedDL(I_GROUP) = SecLPFilter_Vel(LocalVar%CC_DesiredL(I_GROUP),LocalVar%DT,2*PI/CntrPar%CC_ActTau,1.0, &
                                                                 LocalVar%FP,LocalVar%iStatus,LocalVar%restart,objInst%instSecLPFV)
 
@@ -655,7 +656,12 @@ CONTAINS
         END DO
 
         ! Assign to avrSWAP
+        DO I_GROUP = 1, CntrPar%CC_Group_N
 
+            avrSWAP(CntrPar%CC_GroupIndex(I_GROUP)) = LocalVar%CC_ActuatedL(I_GROUP)
+            avrSWAP(CntrPar%CC_GroupIndex(I_GROUP)+1) = LocalVar%CC_ActuatedDL(I_GROUP)
+
+        END DO
 
     END SUBROUTINE CableControl
 !-------------------------------------------------------------------------------------------------------------------------------
