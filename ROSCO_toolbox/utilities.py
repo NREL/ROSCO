@@ -487,8 +487,8 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     # ------- TOWER FORE-AFT DAMPING -------
     DISCON_dict['Twr_ExclSpeed']    = controller.Twr_ExclSpeed
     DISCON_dict['Twr_ExclBand']     = controller.Twr_ExclBand
-    DISCON_dict['Twr_GainFactor']     = [1.,1.]
-    DISCON_dict['Twr_GainTau']     = [1.]
+    DISCON_dict['Twr_GainFactor']   = [1.,1.]
+    DISCON_dict['Twr_GainTau']      = 1.
     DISCON_dict['FA_KI']            = 0.0
     DISCON_dict['FA_HPFCornerFreq'] = 0.0
     DISCON_dict['FA_IntSat']		= 0.0
