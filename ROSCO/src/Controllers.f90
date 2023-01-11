@@ -644,7 +644,7 @@ CONTAINS
 
         DO I_GROUP = 1, CntrPar%CC_Group_N
 
-            LocalVar%CC_ActuatedDL(I_GROUP) = SecLPFilter_Vel(LocalVar%CC_DesiredL(I_GROUP),LocalVar%DT,2 * PI/10.0,1.0, &
+            LocalVar%CC_ActuatedDL(I_GROUP) = SecLPFilter_Vel(LocalVar%CC_DesiredL(I_GROUP),LocalVar%DT,2*PI/CntrPar%CC_ActTau,1.0, &
                                                                 LocalVar%FP,LocalVar%iStatus,LocalVar%restart,objInst%instSecLPFV)
 
             ! Integrate

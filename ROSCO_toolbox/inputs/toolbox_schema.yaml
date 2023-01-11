@@ -877,6 +877,10 @@ properties:
                             type: number
                         description: First index for cable control group, should correspond to deltaL
                         default: [0]
+                    CC_ActTau:
+                        type: number
+                        description: Time constant for line actuator [s]
+                        default: 0
 
     linmodel_tuning:
         type: object
