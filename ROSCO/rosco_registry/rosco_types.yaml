@@ -486,7 +486,7 @@ ControlParameters:
       description: Number of cable control groups
 
     CC_ActTau:
-      <<: *integer
+      <<: *real
       description: Time constant for line actuator [s]
 
     CC_GroupIndex:

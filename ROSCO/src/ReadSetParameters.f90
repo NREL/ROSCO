@@ -1043,6 +1043,13 @@ CONTAINS
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg = 'CC_Mode must be 0 or 1'
         END IF
+
+        IF (CntrPar%CC_Mode > 0) THEN
+            IF (CntrPar%CC_ActTau .LE. 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'CC_ActTau must be greater than 0.'
+            END IF
+        END IF
             
 
         

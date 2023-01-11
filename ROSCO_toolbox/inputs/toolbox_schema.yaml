@@ -880,7 +880,7 @@ properties:
                     CC_ActTau:
                         type: number
                         description: Time constant for line actuator [s]
-                        default: 0
+                        default: 20
 
     linmodel_tuning:
         type: object
