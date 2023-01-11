@@ -586,7 +586,7 @@ CONTAINS
     END SUBROUTINE FlapControl
 
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE CableControl(avrSWAP, CntrPar, LocalVar)
+    SUBROUTINE CableControl(avrSWAP, CntrPar, LocalVar, objInst)
         ! Cable controller
         !       CC_Mode = 0, No cable control, this code not executed
         !       CC_Mode = 1, User-defined cable control
@@ -597,9 +597,22 @@ CONTAINS
     
         TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
+        TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
         
         ! Internal Variables
-        
+
+        ! Allocate Cable control arrays --------------
+        IF (.NOT. ALLOCATED(LocalVar%CC_DesiredL)) THEN
+            ALLOCATE(LocalVar%CC_DesiredL(CntrPar%CC_Group_N))
+        END IF
+        IF (.NOT. ALLOCATED(LocalVar%CC_ActuatedL)) THEN
+            ALLOCATE(LocalVar%CC_ActuatedL(CntrPar%CC_Group_N))
+        END IF
+        IF (.NOT. ALLOCATED(LocalVar%CC_ActuatedDL)) THEN
+            ALLOCATE(LocalVar%CC_ActuatedDL(CntrPar%CC_Group_N))
+        END IF
+
+
         IF (CntrPar%CC_Mode == 1) THEN
             ! User defined control
 
@@ -615,14 +628,9 @@ CONTAINS
 
             ! END IF
 
-            IF (LocalVar%Time > 200) THEN
-                ! Shorten first group by 1 m/s for 10 sec
-                avrSWAP(CntrPar%CC_GroupIndex(1) + 1) = - 1
-
-
-                IF (LocalVar%Time > 300) THEN
-                    avrSWAP(CntrPar%CC_GroupIndex(1) + 1) = 0
-                END IF
+            IF (LocalVar%Time > 20) THEN
+                ! Shorten first group by 4 m
+                LocalVar%CC_DesiredL(1) = -4
 
 
             END IF
@@ -630,6 +638,22 @@ CONTAINS
 
 
         END IF
+
+        ! Convert desired to actuated line length and delta length for all groups
+
+        DO I_GROUP = 1, CntrPar%CC_Group_N
+
+            LocalVar%CC_ActuatedDL(I_GROUP) = SecLPFilter_Vel(LocalVar%CC_DesiredL(I_GROUP),LocalVar%DT,2 * PI/10.0,1.0, &
+                                                                LocalVar%FP,LocalVar%iStatus,LocalVar%restart,objInst%instSecLPFV)
+
+            ! Integrate
+            LocalVar%CC_ActuatedL(I_GROUP) = PIController(LocalVar%CC_ActuatedDL(I_GROUP),0.0_DbKi,1.0_DbKi, &
+                                                    -1000.0_DbKi,1000.0_DbKi,LocalVar%DT,LocalVar%CC_ActuatedDL(1), &
+                                                    LocalVar%piP, LocalVar%restart, objInst%instPI)
+
+        END DO
+
+        ! Assign to avrSWAP
 
 
 

@@ -119,7 +119,7 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
 
     ! Cable contro;
     IF (CntrPar%CC_Mode > 0) THEN
-        CALL CableControl(avrSWAP,CntrPar,LocalVar)
+        CALL CableControl(avrSWAP,CntrPar,LocalVar, objInst)
     END IF
     
     IF ( CntrPar%LoggingLevel > 0 ) THEN

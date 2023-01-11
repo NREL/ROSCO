@@ -120,6 +120,9 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Fl_PitCom
         WRITE( Un, IOSTAT=ErrStat) LocalVar%NACIMU_FA_AccF
         WRITE( Un, IOSTAT=ErrStat) LocalVar%FA_AccF
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%CC_DesiredL
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%CC_ActuatedL
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%CC_ActuatedDL
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(1)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(2)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(3)
@@ -152,6 +155,16 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%FP%lpf2_OutputSignalLast2
         WRITE( Un, IOSTAT=ErrStat) LocalVar%FP%lpf2_InputSignalLast1
         WRITE( Un, IOSTAT=ErrStat) LocalVar%FP%lpf2_OutputSignalLast1
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%FP%lpfV_a2
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%FP%lpfV_a1
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%FP%lpfV_a0
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%FP%lpfV_b2
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%FP%lpfV_b1
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%FP%lpfV_b0
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%FP%lpfV_InputSignalLast2
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%FP%lpfV_OutputSignalLast2
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%FP%lpfV_InputSignalLast1
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%FP%lpfV_OutputSignalLast1
         WRITE( Un, IOSTAT=ErrStat) LocalVar%FP%hpf_InputSignalLast
         WRITE( Un, IOSTAT=ErrStat) LocalVar%FP%hpf_OutputSignalLast
         WRITE( Un, IOSTAT=ErrStat) LocalVar%FP%nfs_OutputSignalLast1
@@ -179,6 +192,7 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%rlP%LastSignal
         WRITE( Un, IOSTAT=ErrStat) objInst%instLPF
         WRITE( Un, IOSTAT=ErrStat) objInst%instSecLPF
+        WRITE( Un, IOSTAT=ErrStat) objInst%instSecLPFV
         WRITE( Un, IOSTAT=ErrStat) objInst%instHPF
         WRITE( Un, IOSTAT=ErrStat) objInst%instNotchSlopes
         WRITE( Un, IOSTAT=ErrStat) objInst%instNotch
@@ -301,6 +315,9 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%Fl_PitCom
         READ( Un, IOSTAT=ErrStat) LocalVar%NACIMU_FA_AccF
         READ( Un, IOSTAT=ErrStat) LocalVar%FA_AccF
+        READ( Un, IOSTAT=ErrStat) LocalVar%CC_DesiredL
+        READ( Un, IOSTAT=ErrStat) LocalVar%CC_ActuatedL
+        READ( Un, IOSTAT=ErrStat) LocalVar%CC_ActuatedDL
         READ( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(1)
         READ( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(2)
         READ( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(3)
@@ -334,6 +351,16 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%FP%lpf2_OutputSignalLast2
         READ( Un, IOSTAT=ErrStat) LocalVar%FP%lpf2_InputSignalLast1
         READ( Un, IOSTAT=ErrStat) LocalVar%FP%lpf2_OutputSignalLast1
+        READ( Un, IOSTAT=ErrStat) LocalVar%FP%lpfV_a2
+        READ( Un, IOSTAT=ErrStat) LocalVar%FP%lpfV_a1
+        READ( Un, IOSTAT=ErrStat) LocalVar%FP%lpfV_a0
+        READ( Un, IOSTAT=ErrStat) LocalVar%FP%lpfV_b2
+        READ( Un, IOSTAT=ErrStat) LocalVar%FP%lpfV_b1
+        READ( Un, IOSTAT=ErrStat) LocalVar%FP%lpfV_b0
+        READ( Un, IOSTAT=ErrStat) LocalVar%FP%lpfV_InputSignalLast2
+        READ( Un, IOSTAT=ErrStat) LocalVar%FP%lpfV_OutputSignalLast2
+        READ( Un, IOSTAT=ErrStat) LocalVar%FP%lpfV_InputSignalLast1
+        READ( Un, IOSTAT=ErrStat) LocalVar%FP%lpfV_OutputSignalLast1
         READ( Un, IOSTAT=ErrStat) LocalVar%FP%hpf_InputSignalLast
         READ( Un, IOSTAT=ErrStat) LocalVar%FP%hpf_OutputSignalLast
         READ( Un, IOSTAT=ErrStat) LocalVar%FP%nfs_OutputSignalLast1
@@ -361,6 +388,7 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%rlP%LastSignal
         READ( Un, IOSTAT=ErrStat) objInst%instLPF
         READ( Un, IOSTAT=ErrStat) objInst%instSecLPF
+        READ( Un, IOSTAT=ErrStat) objInst%instSecLPFV
         READ( Un, IOSTAT=ErrStat) objInst%instHPF
         READ( Un, IOSTAT=ErrStat) objInst%instNotchSlopes
         READ( Un, IOSTAT=ErrStat) objInst%instNotch
@@ -445,7 +473,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       '[rad/s]', '[rad/s]', '[m/s]', '[rad]', '[rad]', & 
                                       '[N/A]', '[N/A]', '[N/A]', '[N/A]', '[rad/s]', & 
                                       '[deg]', '[deg]', '[deg]', '[N/A]']
-    nLocalVars = 69
+    nLocalVars = 72
     Allocate(LocalVarOutData(nLocalVars))
     Allocate(LocalVarOutStrings(nLocalVars))
     LocalVarOutData(1) = LocalVar%iStatus
@@ -514,9 +542,12 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(64) = LocalVar%Fl_PitCom
     LocalVarOutData(65) = LocalVar%NACIMU_FA_AccF
     LocalVarOutData(66) = LocalVar%FA_AccF
-    LocalVarOutData(67) = LocalVar%Flp_Angle(1)
-    LocalVarOutData(68) = LocalVar%RootMyb_Last(1)
-    LocalVarOutData(69) = LocalVar%ACC_INFILE_SIZE
+    LocalVarOutData(67) = LocalVar%CC_DesiredL(1)
+    LocalVarOutData(68) = LocalVar%CC_ActuatedL(1)
+    LocalVarOutData(69) = LocalVar%CC_ActuatedDL(1)
+    LocalVarOutData(70) = LocalVar%Flp_Angle(1)
+    LocalVarOutData(71) = LocalVar%RootMyb_Last(1)
+    LocalVarOutData(72) = LocalVar%ACC_INFILE_SIZE
     LocalVarOutStrings = [CHARACTER(15) ::  'iStatus', 'Time', 'DT', 'VS_GenPwr', 'GenSpeed', & 
                                       'RotSpeed', 'NacHeading', 'NacVane', 'HorWindV', 'rootMOOP', & 
                                       'rootMOOPF', 'BlPitch', 'Azimuth', 'NumBl', 'FA_Acc', & 
@@ -530,7 +561,8 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       'VS_LastGenTrq', 'VS_LastGenPwr', 'VS_MechGenPwr', 'VS_SpdErrAr', 'VS_SpdErrBr', & 
                                       'VS_SpdErr', 'VS_State', 'VS_Rgn3Pitch', 'WE_Vw', 'WE_Vw_F', & 
                                       'WE_VwI', 'WE_VwIdot', 'VS_LastGenTrqF', 'Fl_PitCom', 'NACIMU_FA_AccF', & 
-                                      'FA_AccF', 'Flp_Angle', 'RootMyb_Last', 'ACC_INFILE_SIZE']
+                                      'FA_AccF', 'CC_DesiredL', 'CC_ActuatedL', 'CC_ActuatedDL', 'Flp_Angle', & 
+                                      'RootMyb_Last', 'ACC_INFILE_SIZE']
     ! Initialize debug file
     IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN ! .TRUE. if we're on the first call to the DLL
         IF (CntrPar%LoggingLevel > 0) THEN

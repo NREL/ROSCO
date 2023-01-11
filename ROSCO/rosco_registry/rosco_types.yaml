@@ -592,6 +592,46 @@ FilterParameters:
       <<: *real
       dimension: (99)
       description: Second order filter - Previous output 1
+    lpfV_a2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Denominator coefficient 1
+    lpfV_a1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Denominator coefficient 1
+    lpfV_a0:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Denominator coefficient 0
+    lpfV_b2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Numerator coefficient 2
+    lpfV_b1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Numerator coefficient 1
+    lpfV_b0:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Numerator coefficient 0
+    lpfV_InputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous input 2
+    lpfV_OutputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous output 2
+    lpfV_InputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous input 1 
+    lpfV_OutputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous output 1
     hpf_InputSignalLast:
       <<: *real
       dimension: (99)
@@ -907,6 +947,15 @@ LocalVariables:
       <<: *real 
     FA_AccF:
       <<: *real 
+    CC_DesiredL:
+      <<: *real
+      allocatable: True
+    CC_ActuatedL:
+      <<: *real
+      allocatable: True
+    CC_ActuatedDL:
+      <<: *real
+      allocatable: True
     Flp_Angle:
       <<: *real 
       description: Flap Angle (rad)
@@ -948,6 +997,9 @@ ObjectInstances:
     <<: *integer
     description: Low-pass filter instance
   instSecLPF:
+    <<: *integer
+    description: Second order low-pass filter instance
+  instSecLPFV:
     <<: *integer
     description: Second order low-pass filter instance
   instHPF:

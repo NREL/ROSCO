@@ -117,6 +117,7 @@ CONTAINS
         ! Initialize all filter instance counters at 1
         objInst%instLPF         = 1
         objInst%instSecLPF      = 1
+        objInst%instSecLPFV     = 1
         objInst%instHPF         = 1
         objInst%instNotchSlopes = 1
         objInst%instNotch       = 1

@@ -157,6 +157,16 @@ TYPE, PUBLIC :: FilterParameters
     REAL(DbKi), DIMENSION(99)     :: lpf2_OutputSignalLast2      ! Second order filter - Previous output 2
     REAL(DbKi), DIMENSION(99)     :: lpf2_InputSignalLast1       ! Second order filter - Previous input 1
     REAL(DbKi), DIMENSION(99)     :: lpf2_OutputSignalLast1      ! Second order filter - Previous output 1
+    REAL(DbKi), DIMENSION(99)     :: lpfV_a2                     ! Second order filter - Denominator coefficient 1
+    REAL(DbKi), DIMENSION(99)     :: lpfV_a1                     ! Second order filter - Denominator coefficient 1
+    REAL(DbKi), DIMENSION(99)     :: lpfV_a0                     ! Second order filter - Denominator coefficient 0
+    REAL(DbKi), DIMENSION(99)     :: lpfV_b2                     ! Second order filter - Numerator coefficient 2
+    REAL(DbKi), DIMENSION(99)     :: lpfV_b1                     ! Second order filter - Numerator coefficient 1
+    REAL(DbKi), DIMENSION(99)     :: lpfV_b0                     ! Second order filter - Numerator coefficient 0
+    REAL(DbKi), DIMENSION(99)     :: lpfV_InputSignalLast2       ! Second order filter - Previous input 2
+    REAL(DbKi), DIMENSION(99)     :: lpfV_OutputSignalLast2      ! Second order filter - Previous output 2
+    REAL(DbKi), DIMENSION(99)     :: lpfV_InputSignalLast1       ! Second order filter - Previous input 1
+    REAL(DbKi), DIMENSION(99)     :: lpfV_OutputSignalLast1      ! Second order filter - Previous output 1
     REAL(DbKi), DIMENSION(99)     :: hpf_InputSignalLast         ! High pass filter - Previous output 1
     REAL(DbKi), DIMENSION(99)     :: hpf_OutputSignalLast        ! High pass filter - Previous output 1
     REAL(DbKi), DIMENSION(99)     :: nfs_OutputSignalLast1       ! Notch filter slopes previous output 1
@@ -258,6 +268,9 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None
     REAL(DbKi)                    :: FA_AccF                     ! None
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: CC_DesiredL                 ! None
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: CC_ActuatedL                ! None
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: CC_ActuatedDL               ! None
     REAL(DbKi)                    :: Flp_Angle(3)                ! Flap Angle (rad)
     REAL(DbKi)                    :: RootMyb_Last(3)             ! Last blade root bending moment (Nm)
     INTEGER(IntKi)                :: ACC_INFILE_SIZE             ! Length of parameter input filename
@@ -272,6 +285,7 @@ END TYPE LocalVariables
 TYPE, PUBLIC :: ObjectInstances
     INTEGER(IntKi)                :: instLPF                     ! Low-pass filter instance
     INTEGER(IntKi)                :: instSecLPF                  ! Second order low-pass filter instance
+    INTEGER(IntKi)                :: instSecLPFV                 ! Second order low-pass filter instance
     INTEGER(IntKi)                :: instHPF                     ! High-pass filter instance
     INTEGER(IntKi)                :: instNotchSlopes             ! Notch filter slopes instance
     INTEGER(IntKi)                :: instNotch                   ! Notch filter instance
