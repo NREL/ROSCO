@@ -22,6 +22,7 @@ all_scripts = [
     'example_16',
     'example_17', # NJA: only runs on unix in CI
     'example_18', 
+    'example_19', 
 ]
 
 def execute_script(fscript):
