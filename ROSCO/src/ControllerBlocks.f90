@@ -133,7 +133,7 @@ CONTAINS
             END IF
             
             ! --- Torque control state machine ---
-            IF (LocalVar%PC_PitComT >= LocalVar%VS_Rgn3Pitch) THEN       
+            IF (LocalVar%PC_PitComC >= LocalVar%VS_Rgn3Pitch) THEN       
 
                 IF (CntrPar%VS_ControlMode == 1) THEN                   ! Region 3
                     LocalVar%VS_State = 5 ! Constant power tracking
@@ -349,7 +349,7 @@ CONTAINS
         ! ------ Setpoint Smoothing ------
         IF ( CntrPar%SS_Mode == 1) THEN
             ! Find setpoint shift amount
-            DelOmega = ((LocalVar%PC_PitComT - LocalVar%PC_MinPit)/0.524) * CntrPar%SS_VSGain - ((CntrPar%VS_RtPwr - LocalVar%VS_LastGenPwr))/CntrPar%VS_RtPwr * CntrPar%SS_PCGain ! Normalize to 30 degrees for now
+            DelOmega = ((LocalVar%PC_PitComC - LocalVar%PC_MinPit)/0.524) * CntrPar%SS_VSGain - ((CntrPar%VS_RtPwr - LocalVar%VS_LastGenPwr))/CntrPar%VS_RtPwr * CntrPar%SS_PCGain ! Normalize to 30 degrees for now
             DelOmega = DelOmega * CntrPar%PC_RefSpd
             ! Filter
             LocalVar%SS_DelOmegaF = LPFilter(DelOmega, LocalVar%DT, CntrPar%F_SSCornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 

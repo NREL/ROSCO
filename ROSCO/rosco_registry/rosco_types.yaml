@@ -792,9 +792,12 @@ LocalVariables:
     PC_MinPit:                    
       <<: *real 
       description: Minimum pitch setting in pitch controller (variable) [rad].
+    PC_PitComC:                   
+      <<: *real 
+      description: Collective pitch commmand from PI control [rad].
     PC_PitComT:                   
       <<: *real 
-      description: Total command pitch based on the sum of the proportional and integral terms [rad].
+      description: Total command pitch based on the sum of PI and floating feedback [rad].
     PC_PitComT_Last:                   
       <<: *real 
       description: Last total command pitch based on the sum of the proportional and integral terms [rad].

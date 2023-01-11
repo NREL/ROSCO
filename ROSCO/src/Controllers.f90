@@ -57,8 +57,8 @@ CONTAINS
         LocalVar%PC_TF = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_TF, LocalVar%PC_PitComTF, ErrVar) ! TF gains (derivative filter) !NJA - need to clarify
         
         ! Compute the collective pitch command associated with the proportional and integral gains:
-        LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, LocalVar%PC_MinPit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%BlPitch(1), LocalVar%piP, LocalVar%restart, objInst%instPI)
-        DebugVar%PC_PICommand = LocalVar%PC_PitComT
+        LocalVar%PC_PitComC = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, LocalVar%PC_MinPit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%BlPitch(1), LocalVar%piP, LocalVar%restart, objInst%instPI)
+        DebugVar%PC_PICommand = LocalVar%PC_PitComC
         ! Find individual pitch control contribution
         IF ((CntrPar%IPC_ControlMode >= 1) .OR. (CntrPar%Y_ControlMode == 2)) THEN
             CALL IPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
@@ -86,7 +86,7 @@ CONTAINS
         IF (CntrPar%Fl_Mode > 0) THEN
             LocalVar%Fl_PitCom = FloatingFeedback(LocalVar, CntrPar, objInst)
             DebugVar%FL_PitCom = LocalVar%Fl_PitCom
-            LocalVar%PC_PitComT = LocalVar%PC_PitComT + LocalVar%Fl_PitCom
+            LocalVar%PC_PitComT = LocalVar%PC_PitComC + LocalVar%Fl_PitCom
         ENDIF
         
         ! Shutdown
