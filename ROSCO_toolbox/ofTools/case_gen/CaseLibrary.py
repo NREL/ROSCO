@@ -363,6 +363,53 @@ def user_hh(**wind_case_opts):
     case_inputs[("InflowWind","Filename_Uni")] = {'vals':wind_case_opts['wind_filenames'], 'group':1}
 
     return case_inputs
+
+def ramp_up_down(**wind_case_opts):
+    '''
+     Uniform, hub-height wind file, ramp from U_start to U_end and back in T_ramp
+     Expected inputs:
+        TMax            TODO: someday make all TMaxs TMax
+        wind_input (list of string wind inputs filenames)
+        wind_dir  (directory where wind input lives)
+    '''
+
+    # Options:
+
+    # Wind directory, default is run_dir
+    wind_case_opts['wind_dir'] = wind_case_opts.get('wind_dir',wind_case_opts['run_dir'])
+
+    # U_start, default 4 m/s
+    wind_case_opts['U_start'] = wind_case_opts.get('U_start',4.)
+
+    # U_end, default 20 m/s
+    wind_case_opts['U_end'] = wind_case_opts.get('U_end',20.)
+
+    # T_ramp, default 2000 s
+    wind_case_opts['T_ramp'] = wind_case_opts.get('T_ramp',2000.)
+
+    # T_max, default is T_ramp
+    wind_case_opts['T_max'] = wind_case_opts.get('T_max',wind_case_opts['T_ramp'])
+
+
+    # Make wind file object, write
+    hh_ramp = HH_WindFile(**{
+        'time': [0,wind_case_opts['T_ramp']/2, wind_case_opts['T_ramp']],
+        'wind_speed': [wind_case_opts['U_start'], wind_case_opts['U_end'], wind_case_opts['U_start']],
+        'filename': os.path.join(wind_case_opts['wind_dir'],'ramp.wnd')
+    })
+    hh_ramp.write()
+
+    # Set up case
+    case_inputs = base_op_case()
+    # simulation settings
+    case_inputs[("Fst","TMax")] = {'vals':[wind_case_opts['T_max']], 'group':0}
+    
+    # wind inflow
+    case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
+    case_inputs[("InflowWind","Filename_Uni")] = {'vals':[hh_ramp.filename], 'group':1}
+
+    return case_inputs
+
     
 ##############################################################################################
 #
