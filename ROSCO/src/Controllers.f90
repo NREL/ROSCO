@@ -600,6 +600,7 @@ CONTAINS
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
         
         ! Internal Variables
+        Integer(IntKi)                            :: I_Group
 
         ! Allocate Cable control arrays --------------
         IF (.NOT. ALLOCATED(LocalVar%CC_DesiredL)) THEN
@@ -654,7 +655,6 @@ CONTAINS
         END DO
 
         ! Assign to avrSWAP
-
 
 
     END SUBROUTINE CableControl
