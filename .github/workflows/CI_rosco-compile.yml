@@ -69,6 +69,7 @@ jobs:
 
       - name: Configure and Build - windows
         if: true == contains( matrix.os, 'windows')
+        shell: bash -l {0}
         working-directory: "${{runner.workspace}}/ROSCO/ROSCO/build"
         run: |
           cmake /
