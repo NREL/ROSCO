@@ -54,7 +54,6 @@ jobs:
           conda install -y gfortran
 
       - name: Setup Workspace
-        shell: bash -l {0}
         run: |
             cmake -E make_directory ${{runner.workspace}}/ROSCO/ROSCO/build
 
