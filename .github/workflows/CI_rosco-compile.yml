@@ -43,11 +43,15 @@ jobs:
       - name: Generate Registry
         run: python ROSCO/rosco_registry/write_registry.py
           
-      
       - name: Add dependencies windows 
         if: true == contains( matrix.os, 'windows')
         run: |
           conda install -y m2w64-toolchain
+
+      - name: Add dependencies windows 
+        if: true == contains( matrix.os, 'mac')
+        run: |
+          conda install -y gfortran
 
       - name: Setup Workspace
         run: cmake -E make_directory ${{runner.workspace}}/ROSCO/ROSCO/build
