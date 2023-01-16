@@ -54,12 +54,14 @@ jobs:
           conda install -y gfortran
 
       - name: Setup Workspace
-        run: cmake -E make_directory ${{runner.workspace}}/ROSCO/ROSCO/build
+        shell: bash -l {0}
+        run: |
+            cmake -E make_directory ${{runner.workspace}}/ROSCO/ROSCO/build
 
       - name: Configure and Build - unix
         if: false == contains( matrix.os, 'windows')
         shell: bash -l {0}
-        working-directory: ${{runner.workspace}}/ROSCO/ROSCO/build
+        working-directory: "${{runner.workspace}}/ROSCO/ROSCO/build"
         run: |
           cmake \
             -DCMAKE_INSTALL_PREFIX:PATH=${{runner.workspace}}/ROSCO/ROSCO/install \
@@ -75,5 +77,5 @@ jobs:
           cmake /
             -DCMAKE_INSTALL_PREFIX:PATH="${{runner.workspace}}/ROSCO/ROSCO/install" \
             -G "MinGW Makefiles" \
-            .. 
+            -S .. 
           cmake --build . --target install
