@@ -3,9 +3,9 @@ name: CI_rosco-compile
 # We run CI on push commits on all branches
 on: [push, pull_request]
 
-# Specify FORTRAN compiler
+# Specify FORTRAN compiler, used to be "gfortran-10"
 env:
-  FORTRAN_COMPILER: gfortran-10
+  FORTRAN_COMPILER: gfortran
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -16,11 +16,14 @@ jobs:
       fail-fast: true
       matrix:
         os: ["ubuntu-latest", "macOS-latest", "windows-latest"]
-        python-version: ["3.8"]    
+        python-version: ["3.9"]    
+    defaults:
+      run:
+        shell: bash -l {0}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup environment
         uses: conda-incubator/setup-miniconda@v2
@@ -28,24 +31,21 @@ jobs:
           miniconda-version: "latest"
           channels: conda-forge, general
           auto-update-conda: true
-          python-version: 3.8
+          python-version: 3.9
           environment-file: environment.yml
 
       # Install ROSCO toolbox
       - name: Install ROSCO toolbox
-        shell: bash -l {0}
         run: |
           python setup.py install      
           
       # Re-generate registry
       - name: Generate Registry
-        shell: bash -l {0}
         run: python ROSCO/rosco_registry/write_registry.py
           
       
       - name: Add dependencies windows 
         if: true == contains( matrix.os, 'windows')
-        shell: bash -l {0}
         run: |
           conda install -y m2w64-toolchain
 
@@ -65,7 +65,6 @@ jobs:
       - name: Configure and Build - windows
         if: true == contains( matrix.os, 'windows')
         working-directory: ${{runner.workspace}}/ROSCO/ROSCO/build
-        shell: bash -l {0}
         run: |
           cmake \
             -DCMAKE_INSTALL_PREFIX:PATH=${{runner.workspace}}/ROSCO/ROSCO/install \
