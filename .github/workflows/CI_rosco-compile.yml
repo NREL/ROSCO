@@ -73,5 +73,5 @@ jobs:
         #shell: bash #-l {0}
         working-directory: "${{runner.workspace}}/ROSCO/ROSCO/build"
         run: |
-          cmake -G "MinGW Makefiles" ..
-          cmake --build . --target install --prefix "${{runner.workspace}}/ROSCO/ROSCO/install"
+          cmake -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX="${{runner.workspace}}/ROSCO/ROSCO/build" ..
+          cmake --build . --target install
