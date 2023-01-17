@@ -70,11 +70,11 @@ jobs:
 
       - name: Configure and Build - windows
         if: true == contains( matrix.os, 'windows')
-        shell: cmd #bash -l {0}
+        #shell: bash #-l {0}
         working-directory: "${{runner.workspace}}/ROSCO/ROSCO/build"
         run: |
           cmake /
-            -DCMAKE_INSTALL_PREFIX:PATH="${{runner.workspace}}/ROSCO/ROSCO/install" \
+            -DCMAKE_Fortran_COMPILER:STRING=${{env.FORTRAN_COMPILER}} \
             -G "MinGW Makefiles" \
             .. 
-          cmake --build . --target install
+          cmake --build . --target install --prefix "${{runner.workspace}}/ROSCO/ROSCO/install"
