@@ -42,6 +42,16 @@ CONTAINS
 
         CHARACTER(*),               PARAMETER           :: RoutineName = 'PitchControl'
 
+        ! Local
+        REAL(DbKi), PARAMETER      :: phi1 = 0.0                       ! Phase difference from first to second blade
+        REAL(DbKi), PARAMETER      :: phi2 = 2.0/3.0*PI                ! Phase difference from first to second blade
+        REAL(DbKi), PARAMETER      :: phi3 = 4.0/3.0*PI                ! Phase difference from first to third blade
+        REAL(DbKi), DIMENSION(3)                        :: AWC_angle
+        DOUBLE COMPLEX, DIMENSION(3)                    :: AWC_complexangle
+        DOUBLE COMPLEX                                  :: complexI = (0.0, 1.0)
+        INTEGER(IntKi)                                  :: Imode       ! Index used for looping through AWC modes
+        REAL(DbKi)                 :: clockang                         ! Clock angle for AWC pitching
+
         ! ------- Blade Pitch Controller --------
         ! Load PC State
         IF (LocalVar%PC_State == 1) THEN ! PI BldPitch control
@@ -118,6 +128,19 @@ CONTAINS
             ENDIF
         ENDIF
 
+        ! Compute the AWC pitch settings
+        AWC_complexangle = 0.0D0
+        DO Imode = 1,CntrPar%AWC_NumModes
+           clockang = CntrPar%AWC_clockangle(Imode)*PI/180.0_DbKi
+           AWC_angle(1) = CntrPar%AWC_omega(Imode) * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi1 + clockang)
+           AWC_angle(2) = CntrPar%AWC_omega(Imode) * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi2 + clockang)
+           AWC_angle(3) = CntrPar%AWC_omega(Imode) * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi3 + clockang)
+           ! Add the forcing contribution to AWC_complexangle
+           DO K = 1,LocalVar%NumBl ! Loop through all blades
+              AWC_complexangle(K) = AWC_complexangle(K) + CntrPar%AWC_amp(Imode) * EXP(complexI * (AWC_angle(K)))
+           END DO
+        END DO
+
         ! Place pitch actuator here, so it can be used with or without open-loop
         DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
             IF (CntrPar%PA_Mode > 0) THEN
@@ -141,10 +164,11 @@ CONTAINS
 
         ! Command the pitch demanded from the last
         ! call to the controller (See Appendix A of Bladed User's Guide):
-        avrSWAP(42) = LocalVar%PitComAct(1)    ! Use the command angles of all blades if using individual pitch
-        avrSWAP(43) = LocalVar%PitComAct(2)    ! "
-        avrSWAP(44) = LocalVar%PitComAct(3)    ! "
-        avrSWAP(45) = LocalVar%PitComAct(1)    ! Use the command angle of blade 1 if using collective pitch
+        ! AWC added here as well
+        avrSWAP(42) = LocalVar%PitCom(1) + REAL(AWC_complexangle(1))   ! Use the command angles of all blades if using individual pitch
+        avrSWAP(43) = LocalVar%PitCom(2) + REAL(AWC_complexangle(2))   ! "
+        avrSWAP(44) = LocalVar%PitCom(3) + REAL(AWC_complexangle(3))   ! "
+        avrSWAP(45) = LocalVar%PitCom(1) + REAL(AWC_complexangle(1))   ! Use the command angle of blade 1 if using collective pitch
 
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN
