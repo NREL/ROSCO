@@ -308,9 +308,9 @@ TYPE, PUBLIC :: DebugVariables
     REAL(DbKi)                    :: axisTilt_2P                 ! Tilt component of coleman transformation, 2P
     REAL(DbKi)                    :: axisYaw_2P                  ! Yaw component of coleman transformation, 2P
     REAL(DbKi)                    :: YawRateCom                  ! Commanded yaw rate [rad/s].
-    REAL(DbKi)                    :: NacHeadingTarget            ! Target nacelle heading [rad].
-    REAL(DbKi)                    :: NacVaneOffset               ! Nacelle vane angle with offset [rad].
-    REAL(DbKi)                    :: Yaw_err                     ! Yaw error [rad].
+    REAL(DbKi)                    :: NacHeadingTarget            ! Target nacelle heading [deg].
+    REAL(DbKi)                    :: NacVaneOffset               ! Nacelle vane angle with offset [deg].
+    REAL(DbKi)                    :: Yaw_Err                     ! Yaw error [deg].
     REAL(DbKi)                    :: YawState                    ! State of yaw controller
 END TYPE DebugVariables
 

@@ -371,6 +371,7 @@ CONTAINS
             DebugVar%NacHeadingTarget = NacHeadingTarget
             DebugVar%NacVaneOffset    = NacVaneOffset
             DebugVar%YawState         = YawState
+            DebugVar%Yaw_Err          = NacHeadingError
         END IF
     END SUBROUTINE YawRateControl
 !-------------------------------------------------------------------------------------------------------------------------------
