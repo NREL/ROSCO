@@ -96,7 +96,7 @@ CONTAINS
         
         ! Saturate collective pitch commands:
         LocalVar%PC_PitComT = saturate(LocalVar%PC_PitComT, LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
-        LocalVar%PC_PitComT = ratelimit(LocalVar%PC_PitComT, CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitchC) ! Saturate the overall command of blade K using the pitch rate limit
+        LocalVar%PC_PitComT = ratelimit(LocalVar%PC_PitComT, CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitchCMeas) ! Saturate the overall command of blade K using the pitch rate limit
         LocalVar%PC_PitComT_Last = LocalVar%PC_PitComT
 
         ! Combine and saturate all individual pitch commands in software
@@ -423,10 +423,10 @@ CONTAINS
         ! Handle saturation limit, depends on IPC_SatMode
         IF (CntrPar%IPC_SatMode == 2) THEN
             ! Saturate to min allowed pitch angle, softly using IPC_IntSat
-            LocalVar%IPC_IntSat = min(CntrPar%IPC_IntSat,LocalVar%BlPitchC - CntrPar%PC_MinPit)
+            LocalVar%IPC_IntSat = min(CntrPar%IPC_IntSat,LocalVar%BlPitchCMeas - CntrPar%PC_MinPit)
         ELSEIF (CntrPar%IPC_SatMode == 3) THEN
             ! Saturate to peak shaving, softly using IPC_IntSat
-            LocalVar%IPC_IntSat = min(CntrPar%IPC_IntSat,LocalVar%BlPitchC - LocalVar%PC_MinPit)
+            LocalVar%IPC_IntSat = min(CntrPar%IPC_IntSat,LocalVar%BlPitchCMeas - LocalVar%PC_MinPit)
         ELSE
             LocalVar%IPC_IntSat = CntrPar%IPC_IntSat
         ENDIF

@@ -53,7 +53,7 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%BlPitch(1)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%BlPitch(2)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%BlPitch(3)
-        WRITE( Un, IOSTAT=ErrStat) LocalVar%BlPitchC
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%BlPitchCMeas
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Azimuth
         WRITE( Un, IOSTAT=ErrStat) LocalVar%NumBl
         WRITE( Un, IOSTAT=ErrStat) LocalVar%FA_Acc
@@ -236,7 +236,7 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%BlPitch(1)
         READ( Un, IOSTAT=ErrStat) LocalVar%BlPitch(2)
         READ( Un, IOSTAT=ErrStat) LocalVar%BlPitch(3)
-        READ( Un, IOSTAT=ErrStat) LocalVar%BlPitchC
+        READ( Un, IOSTAT=ErrStat) LocalVar%BlPitchCMeas
         READ( Un, IOSTAT=ErrStat) LocalVar%Azimuth
         READ( Un, IOSTAT=ErrStat) LocalVar%NumBl
         READ( Un, IOSTAT=ErrStat) LocalVar%FA_Acc
@@ -457,7 +457,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(10) = LocalVar%rootMOOP(1)
     LocalVarOutData(11) = LocalVar%rootMOOPF(1)
     LocalVarOutData(12) = LocalVar%BlPitch(1)
-    LocalVarOutData(13) = LocalVar%BlPitchC
+    LocalVarOutData(13) = LocalVar%BlPitchCMeas
     LocalVarOutData(14) = LocalVar%Azimuth
     LocalVarOutData(15) = LocalVar%NumBl
     LocalVarOutData(16) = LocalVar%FA_Acc
@@ -518,7 +518,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(71) = LocalVar%ACC_INFILE_SIZE
     LocalVarOutStrings = [CHARACTER(15) ::  'iStatus', 'Time', 'DT', 'VS_GenPwr', 'GenSpeed', & 
                                       'RotSpeed', 'NacHeading', 'NacVane', 'HorWindV', 'rootMOOP', & 
-                                      'rootMOOPF', 'BlPitch', 'BlPitchC', 'Azimuth', 'NumBl', & 
+                                      'rootMOOPF', 'BlPitch', 'BlPitchCMeas', 'Azimuth', 'NumBl', & 
                                       'FA_Acc', 'NacIMU_FA_Acc', 'FA_AccHPF', 'FA_AccHPFI', 'FA_PitCom', & 
                                       'RotSpeedF', 'GenSpeedF', 'GenTq', 'GenTqMeas', 'GenArTq', & 
                                       'GenBrTq', 'IPC_PitComF', 'PC_KP', 'PC_KI', 'PC_KD', & 

@@ -77,7 +77,7 @@ CONTAINS
 
         ENDIF
 
-        LocalVar%BlPitchC = (1 / REAL(LocalVar%NumBl)) * (LocalVar%BlPitch(1) + LocalVar%BlPitch(2) + LocalVar%BlPitch(3)) 
+        LocalVar%BlPitchCMeas = (1 / REAL(LocalVar%NumBl)) * (LocalVar%BlPitch(1) + LocalVar%BlPitch(2) + LocalVar%BlPitch(3)) 
 
         IF (LocalVar%iStatus == 0) THEN     ! TODO: Technically, LocalVar%Time > 0, too, but this restart is in many places as a reset
             LocalVar%restart = .True.
