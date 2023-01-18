@@ -46,7 +46,7 @@ fast_out = output_processing.output_processing()
 # fast_out.plot_fast_out()
 
 # Load and plot
-fastout = fast_out.load_fast_out(filenames, tmin=10)
+fastout = fast_out.load_fast_out(filenames)
 fast_out.plot_fast_out(cases=cases,showplot=False)
 
 plt.savefig(os.path.join(example_out_dir,'08_IEA-15MW_Semi_Out.png'))
