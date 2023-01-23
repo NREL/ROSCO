@@ -341,7 +341,7 @@ def load_ascii_output(filename):
                 info['attribute_units'] = [unit[1:-1] for unit in f.readline().split()]
 
         # Data, up to end of file or empty line (potential comment line at the end)
-        data = np.array([l.strip().split() for l in takewhile(lambda x: len(x.strip())>0, f.readlines())]).astype(np.float)
+        data = np.array([l.strip().split() for l in takewhile(lambda x: len(x.strip())>0, f.readlines())]).astype(np.float_)
         return data, info
 
 

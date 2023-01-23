@@ -26,6 +26,7 @@ MODULE ExtControl
     USE Functions
     USE ROSCO_Types
     USE SysSubs
+    USE Constants
 
     IMPLICIT NONE
 
@@ -35,7 +36,9 @@ MODULE ExtControl
     SUBROUTINE BladedDLL_Legacy_Procedure ( avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG )  BIND(C)
        USE, INTRINSIC :: ISO_C_Binding
 
-       REAL(C_FLOAT),          INTENT(INOUT) :: avrSWAP   (*)  !< DATA
+       USE Constants
+
+       REAL(ReKi),             INTENT(INOUT) :: avrSWAP   (*)  !< DATA
        INTEGER(C_INT),         INTENT(INOUT) :: aviFAIL        !< FLAG  (Status set in DLL and returned to simulation code)
        CHARACTER(KIND=C_CHAR), INTENT(IN)    :: accINFILE (*)  !< INFILE
        CHARACTER(KIND=C_CHAR), INTENT(INOUT) :: avcOUTNAME(*)  !< OUTNAME (in:Simulation RootName; out:Name:Units; of logging channels)
@@ -54,7 +57,7 @@ CONTAINS
         TYPE(ExtControlType), INTENT(INOUT)         :: ExtDLL
 
 
-        REAL(C_FLOAT), INTENT(INOUT)                   :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from the DLL controller.
+        REAL(ReKi), INTENT(INOUT)                   :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from the DLL controller.
 
         ! Temporary variables
         ! CHARACTER(1024), PARAMETER                  :: ExtDLL_InFile = '/Users/dzalkind/Tools/ROSCO/Test_Cases/IEA-15-240-RWT-UMaineSemi/ServoData/DISCON-UMaineSemi.IN'

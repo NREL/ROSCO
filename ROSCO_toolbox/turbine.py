@@ -163,7 +163,22 @@ class Turbine():
         fast = self.fast = InputReader_OpenFAST()
         fast.FAST_InputFile = FAST_InputFile
         fast.FAST_directory = FAST_directory
-        fast.execute()
+
+        fast.read_MainInput()
+        fast.read_ElastoDyn()
+
+        
+        fast.read_AeroDyn15()
+
+        fast.read_ServoDyn()
+        fast.read_DISCON_in()
+    
+        
+        if fast.fst_vt['Fst']['CompHydro'] == 1: # SubDyn not yet implimented
+            fast.read_HydroDyn()
+
+        # fast.read_AeroDyn15()
+        # fast.execute()
 
         # Use Performance tables if defined, otherwise use defaults
         if txt_filename:
