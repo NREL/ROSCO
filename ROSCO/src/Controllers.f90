@@ -142,6 +142,10 @@ CONTAINS
            END DO
         END DO
 
+        DO K = 1,LocalVar%NumBl ! Loop through all blades, apply AWC_angle
+            LocalVar%PitCom(K) = LocalVar%PitCom(K) + REAL(AWC_complexangle(K))
+        END DO
+
         ! Place pitch actuator here, so it can be used with or without open-loop
         DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
             IF (CntrPar%PA_Mode > 0) THEN
