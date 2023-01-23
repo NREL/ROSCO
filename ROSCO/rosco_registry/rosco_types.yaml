@@ -12,6 +12,13 @@ default_types:
     size: 0                # Use this if the type IS an array (size:3 --> REAL(8), BldPitch(3))
     allocatable: False
     equals: 
+  complex: &complex
+    type: complex
+    description: 
+    dimension:             # Use this if a higher-dimensional allocatable array (dimension:(:,:) --> REAL(8), DIMESION(:,:), ALLOCATABLE)
+    size: 0                # Use this if the type IS an array (size:3 --> REAL(8), BldPitch(3))
+    allocatable: False
+    equals: 
   float: &float
     type: float
     description: 
@@ -933,6 +940,10 @@ LocalVariables:
     restart:
       <<: *logical
       description: Restart flag
+    AWC_complexangle:
+      <<: *complex
+      description: Complex angle for each blade, sum of modes?
+      size: 3
     WE: 
       <<: *derived_type
       id: WE 

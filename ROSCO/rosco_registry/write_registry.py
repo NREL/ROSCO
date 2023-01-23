@@ -237,7 +237,7 @@ def write_roscoio(yfile):
     # -- Always prints blade(1) for multi-bladed inputss (e.g. BldPitch(1))
     lv_strings = []
     for lv_idx, localvar in enumerate(reg['LocalVariables']):
-        if reg['LocalVariables'][localvar]['type'] in ['integer', 'real']:
+        if reg['LocalVariables'][localvar]['type'] in ['integer', 'real', 'complex']:
             lv_strings.append(localvar)
     file.write('    nLocalVars = {}\n'.format(len(lv_strings)))
     file.write('    Allocate(LocalVarOutData(nLocalVars))\n')
@@ -346,6 +346,15 @@ def read_type(param):
             f90type += ', DIMENSION(:), ALLOCATABLE'
     elif param['type'] == 'real':
         f90type = 'REAL(DbKi)'
+        if param['allocatable']:
+            if param['dimension']:
+                f90type += ', DIMENSION{}, ALLOCATABLE'.format(param['dimension'])
+            else:
+                f90type += ', DIMENSION(:), ALLOCATABLE'
+        elif param['dimension']:
+            f90type += ', DIMENSION{}'.format(param['dimension'])
+    elif param['type'] == 'complex':
+        f90type = 'COMPLEX(DbKi)'
         if param['allocatable']:
             if param['dimension']:
                 f90type += ', DIMENSION{}, ALLOCATABLE'.format(param['dimension'])
