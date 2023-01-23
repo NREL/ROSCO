@@ -47,8 +47,8 @@ CONTAINS
         REAL(DbKi), PARAMETER      :: phi2 = 2.0/3.0*PI                ! Phase difference from first to second blade
         REAL(DbKi), PARAMETER      :: phi3 = 4.0/3.0*PI                ! Phase difference from first to third blade
         REAL(DbKi), DIMENSION(3)                        :: AWC_angle
-        DOUBLE COMPLEX, DIMENSION(3)                    :: AWC_complexangle
-        DOUBLE COMPLEX                                  :: complexI = (0.0, 1.0)
+        COMPLEX(DbKi), DIMENSION(3)                    :: AWC_complexangle
+        COMPLEX(DbKi)                                  :: complexI = (0.0, 1.0)
         INTEGER(IntKi)                                  :: Imode       ! Index used for looping through AWC modes
         REAL(DbKi)                 :: clockang                         ! Clock angle for AWC pitching
 
