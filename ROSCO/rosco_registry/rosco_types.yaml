@@ -437,6 +437,27 @@ ControlParameters:
     PA_Damping:
       <<: *real
       description: Pitch actuator damping ratio [-, unused if PA_Mode = 1]
+
+    # Active wake control
+    AWC_NumModes:
+      <<: *integer
+      description: AWC- Number of modes to include [-] 
+    AWC_n:
+      <<: *integer
+      allocatable: True
+      description: AWC azimuthal mode [-]
+    AWC_omega:
+      <<: *real
+      allocatable: True
+      description: AWC frequency [rad/s]
+    AWC_amp:
+      <<: *real
+      allocatable: True
+      description: AWC amplitude [deg]
+    AWC_clockangle:
+      <<: *real
+      allocatable: True
+      description: AWC clocking angle [deg]
     
     # Pitch actuator error
     PF_Mode:

@@ -113,6 +113,11 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: PA_Mode                     ! Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
     REAL(DbKi)                    :: PA_CornerFreq               ! Pitch actuator bandwidth/cut-off frequency [rad/s]
     REAL(DbKi)                    :: PA_Damping                  ! Pitch actuator damping ratio [-, unused if PA_Mode = 1]
+    INTEGER(IntKi)                :: AWC_NumModes                ! AWC- Number of modes to include [-]
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: AWC_n                       ! AWC azimuthal mode [-]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_omega                   ! AWC frequency [rad/s]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_amp                     ! AWC amplitude [deg]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_clockangle              ! AWC clocking angle [deg]
     INTEGER(IntKi)                :: PF_Mode                     ! Pitch actuator fault mode {0 - not used, 1 - offsets on one or more blades}
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PF_Offsets                  ! Pitch actuator fault offsets for blade 1-3 [rad/s]
     INTEGER(IntKi)                :: Ext_Mode                    ! External control mode (0 - not used, 1 - call external control library)
@@ -125,12 +130,6 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: PC_RtTq99                   ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(DbKi)                    :: VS_MaxOMTq                  ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(DbKi)                    :: VS_MinOMTq                  ! Minimum torque at the beginning of the below-rated region 2, [Nm]
-    REAL(DbKi)                    :: Test_Input                  ! Test Var Input
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_omega                   ! AWC frequency [rad/s]
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_amp                     ! AWC amplitude [deg]
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_clockangle              ! AWC clocking angle [deg]
-    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE :: AWC_n                       ! AWC azimuthal mode [-]
-    INTEGER(IntKi)                :: AWC_NumModes                ! AWC: Number of modes to include [-]
 END TYPE ControlParameters
 
 TYPE, PUBLIC :: WE
