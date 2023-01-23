@@ -138,6 +138,7 @@ CONTAINS
            ! Add the forcing contribution to AWC_complexangle
            DO K = 1,LocalVar%NumBl ! Loop through all blades
               AWC_complexangle(K) = AWC_complexangle(K) + CntrPar%AWC_amp(Imode) * EXP(complexI * (AWC_angle(K)))
+              LocalVar%PitCom(K) = LocalVar%PitCom(K) + REAL(AWC_complexangle(K))
            END DO
         END DO
 
@@ -173,10 +174,10 @@ CONTAINS
         ! Command the pitch demanded from the last
         ! call to the controller (See Appendix A of Bladed User's Guide):
         ! AWC added here as well
-        avrSWAP(42) = LocalVar%PitCom(1) + REAL(AWC_complexangle(1))   ! Use the command angles of all blades if using individual pitch
-        avrSWAP(43) = LocalVar%PitCom(2) + REAL(AWC_complexangle(2))   ! "
-        avrSWAP(44) = LocalVar%PitCom(3) + REAL(AWC_complexangle(3))   ! "
-        avrSWAP(45) = LocalVar%PitCom(1) + REAL(AWC_complexangle(1))   ! Use the command angle of blade 1 if using collective pitch
+        avrSWAP(42) = LocalVar%PitComAct(1)   ! Use the command angles of all blades if using individual pitch
+        avrSWAP(43) = LocalVar%PitComAct(2)   ! "
+        avrSWAP(44) = LocalVar%PitComAct(3)   ! "
+        avrSWAP(45) = LocalVar%PitComAct(1)   ! Use the command angle of blade 1 if using collective pitch
 
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN
