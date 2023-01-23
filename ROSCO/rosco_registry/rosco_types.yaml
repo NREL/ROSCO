@@ -138,7 +138,7 @@ ControlParameters:
       description: Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
     IPC_SatMode:
       <<: *integer
-      description: IPC Saturation method (0 - no saturation, 1 - saturate by PC_MinPit, 2 - saturate by PS_BldPitchMin)
+      description: IPC Saturation method IPC Saturation method (0 - no saturation (except by PC_MinPit), 1 - saturate by PS_BldPitchMin, 2 - saturate sotfly (full IPC cycle) by PC_MinPit, 3 - saturate softly by PS_BldPitchMin)
     IPC_KP:
       <<: *real
       description: Integral gain for the individual pitch controller, [-].
