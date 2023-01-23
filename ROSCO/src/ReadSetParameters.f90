@@ -971,7 +971,7 @@ CONTAINS
 
         ! --- Pitch Actuator ---
         IF (CntrPar%PA_Mode > 0) THEN
-            IF ((CntrPar%PA_Mode < 0) .OR. (CntrPar%PA_Mode < 2)) THEN
+            IF ((CntrPar%PA_Mode < 0) .OR. (CntrPar%PA_Mode > 2)) THEN
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg = 'PA_Mode must be 0, 1, or 2'
             END IF
