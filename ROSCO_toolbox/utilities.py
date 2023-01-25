@@ -392,6 +392,14 @@ def DISCON_dict(turbine, controller, txt_filename=None):
         Name of rotor performance filename
     '''
     DISCON_dict = {}
+
+    # Populate with available defaults
+    input_schema = load_yaml(os.path.join(os.path.dirname(__file__),'inputs/toolbox_schema.yaml'))
+    discon_props = input_schema['properties']['controller_params']['properties']['DISCON']['properties']
+    for prop in discon_props:
+        if 'default' in discon_props[prop]:
+            DISCON_dict[prop] = discon_props[prop]['default']
+
     # ------- DEBUG -------
     DISCON_dict['LoggingLevel']	    = int(controller.LoggingLevel)
     DISCON_dict['DT_Out']	        = 'DEFAULT'
