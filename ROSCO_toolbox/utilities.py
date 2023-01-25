@@ -265,6 +265,8 @@ def read_DISCON(DISCON_filename):
                     # Remove printed quotations if string is in quotes
                     if (value[0] == '"') or (value[0] == "'"):
                         value = value[1:-1]
+                    elif value == 'DEFAULT':
+                        pass
                     else:
                         value = float(value)
                     DISCON_in[param] = value
