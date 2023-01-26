@@ -96,7 +96,7 @@ CONTAINS
         
         ! Saturate collective pitch commands:
         LocalVar%PC_PitComT = saturate(LocalVar%PC_PitComT, LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
-        LocalVar%PC_PitComT = ratelimit(LocalVar%PC_PitComT, CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL) ! Saturate the overall command of blade K using the pitch rate limit
+        LocalVar%PC_PitComT = ratelimit(LocalVar%PC_PitComT, CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitchCMeas) ! Saturate the overall command of blade K using the pitch rate limit
         LocalVar%PC_PitComT_Last = LocalVar%PC_PitComT
 
         ! Combine and saturate all individual pitch commands in software
@@ -104,9 +104,15 @@ CONTAINS
             LocalVar%PitCom(K) = LocalVar%PC_PitComT + LocalVar%FA_PitCom(K) 
             LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the pitch satauration limits
             LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%IPC_PitComF(K)                                          ! Add IPC
-            LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the absolute pitch angle limits
-            LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL) ! Saturate the overall command of blade K using the pitch rate limit
-        END DO
+            
+            ! Hard IPC saturation by peak shaving limit
+            IF (CntrPar%IPC_SatMode == 1) THEN
+                LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)  
+            END IF
+
+            ! Rate limit                  
+            LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitch(K)) ! Saturate the overall command of blade K using the pitch rate limit
+        END DO 
 
         ! Open Loop control, use if
         !   Open loop mode active         Using OL blade pitch control      
@@ -134,9 +140,9 @@ CONTAINS
         ! Hardware saturation: using CntrPar%PC_MinPit
         DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
             ! Saturate the pitch command using the overall (hardware) limit
-            LocalVar%PitComAct(K) = saturate(LocalVar%PitComAct(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)
+            LocalVar%PitComAct(K) = saturate(LocalVar%PitComAct(K), CntrPar%PC_MinPit, CntrPar%PC_MaxPit)
             ! Saturate the overall command of blade K using the pitch rate limit
-            LocalVar%PitComAct(K) = ratelimit(LocalVar%PitComAct(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL) ! Saturate the overall command of blade K using the pitch rate limit
+            LocalVar%PitComAct(K) = ratelimit(LocalVar%PitComAct(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitch(K)) ! Saturate the overall command of blade K using the pitch rate limit
         END DO
 
         ! Add pitch actuator fault for blade K
@@ -413,15 +419,26 @@ CONTAINS
             LocalVar%IPC_KP(i) = sigma(LocalVar%WE_Vw, CntrPar%IPC_Vramp(1), CntrPar%IPC_Vramp(2), 0.0_DbKi, CntrPar%IPC_KP(i), ErrVar)
             LocalVar%IPC_KI(i) = sigma(LocalVar%WE_Vw, CntrPar%IPC_Vramp(1), CntrPar%IPC_Vramp(2), 0.0_DbKi, CntrPar%IPC_KI(i), ErrVar)
         END DO
+
+        ! Handle saturation limit, depends on IPC_SatMode
+        IF (CntrPar%IPC_SatMode == 2) THEN
+            ! Saturate to min allowed pitch angle, softly using IPC_IntSat
+            LocalVar%IPC_IntSat = min(CntrPar%IPC_IntSat,LocalVar%BlPitchCMeas - CntrPar%PC_MinPit)
+        ELSEIF (CntrPar%IPC_SatMode == 3) THEN
+            ! Saturate to peak shaving, softly using IPC_IntSat
+            LocalVar%IPC_IntSat = min(CntrPar%IPC_IntSat,LocalVar%BlPitchCMeas - LocalVar%PC_MinPit)
+        ELSE
+            LocalVar%IPC_IntSat = CntrPar%IPC_IntSat
+        ENDIF
         
         ! Integrate the signal and multiply with the IPC gain
         IF ((CntrPar%IPC_ControlMode >= 1) .AND. (CntrPar%Y_ControlMode /= 2)) THEN
-            LocalVar%IPC_axisTilt_1P = PIController(axisTilt_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
-            LocalVar%IPC_axisYaw_1P = PIController(axisYawF_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+            LocalVar%IPC_axisTilt_1P = PIController(axisTilt_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+            LocalVar%IPC_axisYaw_1P = PIController(axisYawF_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
             
             IF (CntrPar%IPC_ControlMode >= 2) THEN
-                LocalVar%IPC_axisTilt_2P = PIController(axisTilt_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
-                LocalVar%IPC_axisYaw_2P = PIController(axisYawF_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+                LocalVar%IPC_axisTilt_2P = PIController(axisTilt_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+                LocalVar%IPC_axisYaw_2P = PIController(axisYawF_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
             END IF
         ELSE
             LocalVar%IPC_axisTilt_1P = 0.0

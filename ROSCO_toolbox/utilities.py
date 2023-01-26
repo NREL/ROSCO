@@ -116,7 +116,8 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('\n')
     file.write('!------- INDIVIDUAL PITCH CONTROL -----------------------------------------\n')
     file.write('{}! IPC_Vramp		- Start and end wind speeds for cut-in ramp function. First entry: IPC inactive, second entry: IPC fully active. [m/s]\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['IPC_Vramp'][i]) for i in range(len(rosco_vt['IPC_Vramp'])))))
-    file.write('{:<13.1f}       ! IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from IPC), [rad]\n'.format(rosco_vt['IPC_IntSat'])) # Hardcode to 5 degrees
+    file.write('{:<11d}         ! IPC_SatMode		- IPC Saturation method (0 - no saturation (except by PC_MinPit), 1 - saturate by PS_BldPitchMin, 2 - saturate sotfly (full IPC cycle) by PC_MinPit, 3 - saturate softly by PS_BldPitchMin)\n'.format(int(rosco_vt['IPC_SatMode']))) # Hardcode to 5 degrees
+    file.write('{:<13.1f}       ! IPC_IntSat		- Integrator saturation (maximum signal amplitude contribution to pitch from IPC), [rad]\n'.format(rosco_vt['IPC_IntSat'])) 
     file.write('{}! IPC_KP			- Proportional gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions, [-]\n'.format(''.join('{:<4.3e} '.format(rosco_vt['IPC_KP'][i]) for i in range(len(rosco_vt['IPC_KP'])))))
     file.write('{}! IPC_KI			- Integral gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions, [-]\n'.format(''.join('{:<4.3e} '.format(rosco_vt['IPC_KI'][i]) for i in range(len(rosco_vt['IPC_KI'])))))
     file.write('{}! IPC_aziOffset		- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. \n'.format(''.join('{:<4.6f}  '.format(rosco_vt['IPC_aziOffset'][i]) for i in range(len(rosco_vt['IPC_aziOffset'])))))
@@ -437,6 +438,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     # ------- INDIVIDUAL PITCH CONTROL -------
     DISCON_dict['IPC_Vramp']        = controller.IPC_Vramp
     DISCON_dict['IPC_IntSat']		= 0.2618
+    DISCON_dict['IPC_SatMode']		= 2
     DISCON_dict['IPC_KP']           = [controller.Kp_ipc1p, controller.Kp_ipc2p]
     DISCON_dict['IPC_KI']           = [controller.Ki_ipc1p, controller.Ki_ipc2p]
     DISCON_dict['IPC_aziOffset']	= [0.0, 0.0]

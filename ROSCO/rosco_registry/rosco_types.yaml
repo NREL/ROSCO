@@ -136,6 +136,9 @@ ControlParameters:
     IPC_IntSat:
       <<: *real
       description: Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
+    IPC_SatMode:
+      <<: *integer
+      description: IPC Saturation method IPC Saturation method (0 - no saturation (except by PC_MinPit), 1 - saturate by PS_BldPitchMin, 2 - saturate sotfly (full IPC cycle) by PC_MinPit, 3 - saturate softly by PS_BldPitchMin)
     IPC_KP:
       <<: *real
       description: Integral gain for the individual pitch controller, [-].
@@ -723,6 +726,9 @@ LocalVariables:
       <<: *real
       description: Blade pitch [rad]
       size: 3
+    BlPitchCMeas: 
+      <<: *real
+      description: Mean (collective) blade pitch [rad]
     Azimuth: 
       <<: *real 
       description: Rotor aziumuth angle [rad]
@@ -824,6 +830,9 @@ LocalVariables:
       <<: *real
       description: Proportional gain for IPC, after ramp [-]
       size: 2
+    IPC_IntSat:
+      <<: *real
+      description: Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
     PC_State:                     
       <<: *integer 
       description: State of the pitch control system
