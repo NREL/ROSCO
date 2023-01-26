@@ -43,9 +43,9 @@ def yaml_to_objs(tuning_yaml):
     # Tune controller 
     controller.tune_controller(turbine)
 
-    return controller, turbine
+    return controller, turbine, path_params
 
-def update_discon_version(file,tuning_yaml):
+def update_discon_version(file,tuning_yaml,new_discon_filename):
     '''''''''
     This function will take a DISCON input from a previous version of ROSCO and conver it to this version
     It will not be 100%, requires a check, but still saves time
@@ -55,13 +55,14 @@ def update_discon_version(file,tuning_yaml):
     # Use new defaults for these inputs for various reasons
     exclude_list = [
         'Y_ErrThresh',      # translated from float to list of floats in v2.6
+        'WE_CP',
         ]
 
     # Read original DISCON
     discon_vt = read_DISCON(file)
 
     # Tune dummy controller to get objects
-    controller, turbine = yaml_to_objs(tuning_yaml)
+    controller, turbine, _ = yaml_to_objs(tuning_yaml)
 
     # Load default inputs
     discon_defaults = DISCON_dict(turbine,controller)
@@ -81,14 +82,7 @@ def update_discon_version(file,tuning_yaml):
     write_DISCON(
         turbine,
         controller,
-        '/Users/dzalkind/Tools/openfast-turbine-models/IEA-scaled/NREL-2.8-127/OpenFAST/NREL-2p8-127_DISCON_RO2.6.IN',
+        new_discon_filename,
         rosco_vt = new_discon,
     )
 
-
-
-if __name__=="__main__":
-    file = '/Users/dzalkind/Tools/openfast-turbine-models/IEA-scaled/NREL-2.8-127/OpenFAST/NREL-2p8-127_DISCON.IN'
-
-    tuning_yaml = '/Users/dzalkind/Tools/ROSCO3/Tune_Cases/NREL5MW.yaml'        # dummy for now
-    update_discon_version(file,tuning_yaml)

@@ -21,16 +21,25 @@ all_scripts = [
     'example_15',
     'example_16',
     'example_17', # NJA: only runs on unix in CI
+    'example_19',
+    'update_rosco_discons',     
 ]
 
 def execute_script(fscript):
     examples_dir = os.path.dirname(os.path.realpath(__file__))
+    test_case_dir = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)),'../Test_Cases'))
 
     # Go to location due to relative path use for airfoil files
     print("\n\n")
     print("NOW RUNNING:", fscript)
     print()
-    fullpath = os.path.join(examples_dir, fscript + ".py")
+
+    if fscript in ['update_rosco_discons']:
+        run_dir = test_case_dir
+    else:
+        run_dir = examples_dir
+
+    fullpath = os.path.join(run_dir, fscript + ".py")
     basepath = os.path.dirname(os.path.realpath(fullpath))
     os.chdir(basepath)
 

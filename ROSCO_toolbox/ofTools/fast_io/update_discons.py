@@ -9,7 +9,7 @@ def update_discons(tune_to_test_map):
     # Input is a dict: each key is the tuning yaml and each value is the discon or list of discons
     for tuning_yaml in tune_to_test_map:
 
-        controller, turbine = yaml_to_objs(tuning_yaml)
+        controller, turbine, path_params = yaml_to_objs(tuning_yaml)
 
         # Write parameter input file
         if not isinstance(tune_to_test_map[tuning_yaml],list):
