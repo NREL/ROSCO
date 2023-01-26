@@ -10,7 +10,7 @@ In this example:
 - Write a text file with rotor performance properties
 '''
 # Python modules
-import yaml, os 
+import os 
 # ROSCO toolbox modules 
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox.utilities import write_rotor_performance

@@ -1,5 +1,5 @@
 '''
------------ XX_update_discon_version -----------------
+----------- 19_update_discon_version -----------------
 Test and demonstrate update_discon_version() function for converting an old ROSCO input
 to the current version
 '''
