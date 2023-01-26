@@ -135,7 +135,7 @@ jobs:
       - name: Run examples
         run: |
           cd Examples
-          python run_examples.py
+          python test_examples.py
 
       # Test walkthrough notebook
       - name: Test walkthrough notebook
