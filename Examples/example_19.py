@@ -16,7 +16,7 @@ def main():
     old_discon_filename = os.path.join(this_dir,'example_inputs','DISCON_v2.2.0.IN')        # An IEA-15MW input
 
     # Tuning yaml can be anything, does not have to correspond to old discon
-    tuning_yaml = '/Users/dzalkind/Tools/ROSCO3/Tune_Cases/NREL5MW.yaml'        # dummy for now
+    tuning_yaml = os.path.join(rosco_dir,'Tune_Cases','NREL5MW.yaml')        # dummy for now
     update_discon_version(
         old_discon_filename,
         tuning_yaml,
