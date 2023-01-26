@@ -936,10 +936,16 @@ class InputReader_OpenFAST(InputReader_Common):
         self.fst_vt['AeroDyn14']['TLModel'] = f.readline().split()[0]
         self.fst_vt['AeroDyn14']['HLModel'] = f.readline().split()[0]
         self.fst_vt['AeroDyn14']['TwrShad'] = f.readline().split()[0]
-        self.fst_vt['AeroDyn14']['TwrPotent'] = bool_read(f.readline().split()[0])
-        self.fst_vt['AeroDyn14']['TwrShadow'] = bool_read(f.readline().split()[0])
-        self.fst_vt['AeroDyn14']['TwrFile'] = f.readline().split()[0].replace('"','').replace("'",'')
-        self.fst_vt['AeroDyn14']['CalcTwrAero'] = bool_read(f.readline().split()[0])
+        
+        if self.fst_vt['AeroDyn14']['TwrShad'] == "NEWTOWER": #w tower influence
+            self.fst_vt['AeroDyn14']['TwrPotent'] = bool_read(f.readline().split()[0])
+            self.fst_vt['AeroDyn14']['TwrShadow'] = bool_read(f.readline().split()[0])
+            self.fst_vt['AeroDyn14']['TwrFile'] = f.readline().split()[0].replace('"','').replace("'",'')
+            self.fst_vt['AeroDyn14']['CalcTwrAero'] = bool_read(f.readline().split()[0])
+        else: #w/o tower influence
+            self.fst_vt['AeroDyn14']['ShadHWid'] = float_read(f.readline().split()[0])
+            self.fst_vt['AeroDyn14']['T_Shad_Refpt'] = float_read(f.readline().split()[0])
+            
         self.fst_vt['AeroDyn14']['AirDens'] = float_read(f.readline().split()[0])
         self.fst_vt['AeroDyn14']['KinVisc'] = float_read(f.readline().split()[0])
         self.fst_vt['AeroDyn14']['DTAero'] = float_read(f.readline().split()[0])
@@ -973,11 +979,12 @@ class InputReader_OpenFAST(InputReader_Common):
 
         # create airfoil objects
         self.fst_vt['AeroDynBlade']['af_data'] = []
-        for i in range(self.fst_vt['AeroDynBlade']['NumFoil']):
-             self.fst_vt['AeroDynBlade']['af_data'].append(self.read_AeroDyn14Polar(os.path.join(self.FAST_directory,self.fst_vt['AeroDyn14']['FoilNm'][i])))
+        for i in range(self.fst_vt['AeroDyn14']['NumFoil']):
+             self.fst_vt['AeroDynBlade']['af_data'].append(self.read_AeroDyn14Polar(os.path.join(self.FAST_directory,self.fst_vt['Fst']['AeroFile_path'],self.fst_vt['AeroDyn14']['FoilNm'][i])))
 
         # tower
-        self.read_AeroDyn14Tower()
+        if self.fst_vt['AeroDyn14']['TwrShad'] == "NEWTOWER":
+            self.read_AeroDyn14Tower()
 
     def read_AeroDyn14Tower(self):
         # AeroDyn v14.04 Tower
@@ -2249,7 +2256,6 @@ class InputReader_OpenFAST(InputReader_Common):
         f.readline()
         self.fst_vt['MoorDyn']['Echo']     = bool_read(f.readline().split()[0])
         f.readline()
-        self.fst_vt['MoorDyn']['NTypes']   = int_read(f.readline().split()[0])
         f.readline()
         f.readline()
         self.fst_vt['MoorDyn']['Name'] = []
@@ -2257,77 +2263,67 @@ class InputReader_OpenFAST(InputReader_Common):
         self.fst_vt['MoorDyn']['MassDen']  = []
         self.fst_vt['MoorDyn']['EA']       = []
         self.fst_vt['MoorDyn']['BA_zeta']  = []
-        self.fst_vt['MoorDyn']['Can']      = []
-        self.fst_vt['MoorDyn']['Cat']      = []
-        self.fst_vt['MoorDyn']['Cdn']      = []
-        self.fst_vt['MoorDyn']['Cdt']      = []
-        for i in range(self.fst_vt['MoorDyn']['NTypes']):
-            data_line = f.readline().strip().split()
+        self.fst_vt['MoorDyn']['EI']  = []
+        self.fst_vt['MoorDyn']['Cd']      = []
+        self.fst_vt['MoorDyn']['Ca']      = []
+        self.fst_vt['MoorDyn']['CdAx']      = []
+        self.fst_vt['MoorDyn']['CaAx']      = []
+        data_line = f.readline().strip().split()
+        while data_line[0][:3] != '---': # OpenFAST searches for ---, so we'll do the same
             self.fst_vt['MoorDyn']['Name'].append(str(data_line[0]))
             self.fst_vt['MoorDyn']['Diam'].append(float(data_line[1]))
             self.fst_vt['MoorDyn']['MassDen'].append(float(data_line[2]))
             self.fst_vt['MoorDyn']['EA'].append(float(data_line[3]))
             self.fst_vt['MoorDyn']['BA_zeta'].append(float(data_line[4]))
-            self.fst_vt['MoorDyn']['Can'].append(float(data_line[5]))
-            self.fst_vt['MoorDyn']['Cat'].append(float(data_line[6]))
-            self.fst_vt['MoorDyn']['Cdn'].append(float(data_line[7]))
-            self.fst_vt['MoorDyn']['Cdt'].append(float(data_line[8]))
+            self.fst_vt['MoorDyn']['EI'].append(float(data_line[5]))
+            self.fst_vt['MoorDyn']['Cd'].append(float(data_line[6]))
+            self.fst_vt['MoorDyn']['Ca'].append(float(data_line[7]))
+            self.fst_vt['MoorDyn']['CdAx'].append(float(data_line[8]))
+            self.fst_vt['MoorDyn']['CaAx'].append(float(data_line[9]))
+            data_line = f.readline().strip().split()
         f.readline()
-        self.fst_vt['MoorDyn']['NConnects'] = int_read(f.readline().split()[0])
         f.readline()
-        f.readline()
-        self.fst_vt['MoorDyn']['Node'] = []
-        self.fst_vt['MoorDyn']['Type'] = []
+        self.fst_vt['MoorDyn']['Point_ID'] = []
+        self.fst_vt['MoorDyn']['Attachment'] = []
         self.fst_vt['MoorDyn']['X']    = []
         self.fst_vt['MoorDyn']['Y']    = []
         self.fst_vt['MoorDyn']['Z']    = []
         self.fst_vt['MoorDyn']['M']    = []
         self.fst_vt['MoorDyn']['V']    = []
-        self.fst_vt['MoorDyn']['FX']   = []
-        self.fst_vt['MoorDyn']['FY']   = []
-        self.fst_vt['MoorDyn']['FZ']   = []
         self.fst_vt['MoorDyn']['CdA']  = []
         self.fst_vt['MoorDyn']['CA']   = []
-        for i in range(self.fst_vt['MoorDyn']['NConnects']):
-            data_line = f.readline().strip().split()
-            self.fst_vt['MoorDyn']['Node'].append(int(data_line[0]))
-            self.fst_vt['MoorDyn']['Type'].append(str(data_line[1]))
+        data_line = f.readline().strip().split()
+        while data_line[0][:3] != '---': # OpenFAST searches for ---, so we'll do the same
+            self.fst_vt['MoorDyn']['Point_ID'].append(int(data_line[0]))
+            self.fst_vt['MoorDyn']['Attachment'].append(str(data_line[1]))
             self.fst_vt['MoorDyn']['X'].append(float(data_line[2]))
             self.fst_vt['MoorDyn']['Y'].append(float(data_line[3]))
             self.fst_vt['MoorDyn']['Z'].append(float(data_line[4]))
             self.fst_vt['MoorDyn']['M'].append(float(data_line[5]))
             self.fst_vt['MoorDyn']['V'].append(float(data_line[6]))
-            self.fst_vt['MoorDyn']['FX'].append(float(data_line[7]))
-            self.fst_vt['MoorDyn']['FY'].append(float(data_line[8]))
-            self.fst_vt['MoorDyn']['FZ'].append(float(data_line[9]))
-            self.fst_vt['MoorDyn']['CdA'].append(float(data_line[10]))
-            self.fst_vt['MoorDyn']['CA'].append(float(data_line[11]))
-        f.readline()
-        self.fst_vt['MoorDyn']['NLines'] = int_read(f.readline().split()[0])
-        f.readline()
-        f.readline()
-        self.fst_vt['MoorDyn']['Line']          = []
-        self.fst_vt['MoorDyn']['LineType']      = []
-        self.fst_vt['MoorDyn']['UnstrLen']      = []
-        self.fst_vt['MoorDyn']['NumSegs']       = []
-        self.fst_vt['MoorDyn']['NodeAnch']      = []
-        self.fst_vt['MoorDyn']['NodeFair']      = []
-        self.fst_vt['MoorDyn']['Outputs']       = []
-        self.fst_vt['MoorDyn']['CtrlChan']      = []
-        for i in range(self.fst_vt['MoorDyn']['NLines']):
+            self.fst_vt['MoorDyn']['CdA'].append(float(data_line[7]))
+            self.fst_vt['MoorDyn']['CA'].append(float(data_line[8]))
             data_line = f.readline().strip().split()
-            self.fst_vt['MoorDyn']['Line'].append(int(data_line[0]))
-            self.fst_vt['MoorDyn']['LineType'].append(str(data_line[1]))
-            self.fst_vt['MoorDyn']['UnstrLen'].append(float(data_line[2]))
-            self.fst_vt['MoorDyn']['NumSegs'].append(int(data_line[3]))
-            self.fst_vt['MoorDyn']['NodeAnch'].append(int(data_line[4]))
-            self.fst_vt['MoorDyn']['NodeFair'].append(int(data_line[5]))
-            self.fst_vt['MoorDyn']['Outputs'].append(str(data_line[6]))
-            if len(data_line) > 7:
-                self.fst_vt['MoorDyn']['CtrlChan'].append(int(data_line[7]))
-            else:
-                self.fst_vt['MoorDyn']['CtrlChan'].append(0)
         f.readline()
+        f.readline()
+        self.fst_vt['MoorDyn']['Line_ID']          = []
+        self.fst_vt['MoorDyn']['LineType']    = []
+        self.fst_vt['MoorDyn']['AttachA']     = []
+        self.fst_vt['MoorDyn']['AttachB']     = []
+        self.fst_vt['MoorDyn']['UnstrLen']    = []
+        self.fst_vt['MoorDyn']['NumSegs']     = []
+        self.fst_vt['MoorDyn']['Outputs']     = []
+        data_line = f.readline().strip().split()
+        while data_line[0][:3] != '---': # OpenFAST searches for ---, so we'll do the same
+            self.fst_vt['MoorDyn']['Line_ID'].append(int(data_line[0]))
+            self.fst_vt['MoorDyn']['LineType'].append(str(data_line[1]))
+            self.fst_vt['MoorDyn']['AttachA'].append(int(data_line[2]))
+            self.fst_vt['MoorDyn']['AttachB'].append(int(data_line[3]))
+            self.fst_vt['MoorDyn']['UnstrLen'].append(float(data_line[4]))
+            self.fst_vt['MoorDyn']['NumSegs'].append(int(data_line[5]))
+            self.fst_vt['MoorDyn']['Outputs'].append(str(data_line[6]))
+            data_line = f.readline().strip().split()
+
         self.fst_vt['MoorDyn']['dtM']       = float_read(f.readline().split()[0])
         self.fst_vt['MoorDyn']['kbot']      = float_read(f.readline().split()[0])
         self.fst_vt['MoorDyn']['cbot']      = float_read(f.readline().split()[0])

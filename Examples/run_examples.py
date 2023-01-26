@@ -21,6 +21,7 @@ all_scripts = [
     'example_15',
     'example_16',
     'example_17', # NJA: only runs on unix in CI
+    'example_18', 
     'example_19',
     'update_rosco_discons',     
 ]

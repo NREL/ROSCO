@@ -9,7 +9,7 @@ ROSCO_Toolbox tuning .yaml
 Definition of inputs for ROSCO tuning procedure
 
 
-toolbox_schema.
+/Users/dzalkind/Tools/ROSCO/ROSCO_toolbox/inputs/toolbox_schema.
 
 
 
@@ -254,6 +254,15 @@ controller_params
     *Default* = 0
 
     *Minimum* = 0    *Maximum* = 2
+
+
+:code:`PF_Mode` : Float
+    Pitch fault mode {0 - not used, 1 - constant offset on one or more
+    blades}
+
+    *Default* = 0
+
+    *Minimum* = 0    *Maximum* = 1
 
 
 :code:`Ext_Mode` : Float
@@ -908,6 +917,9 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
     Name of procedure in DLL to be called
 
     *Default* = DISCON
+
+:code:`PF_Offsets` : Array of Floats
+    Pitch angle offsets for each blade (array with length of 3)
 
 
 
