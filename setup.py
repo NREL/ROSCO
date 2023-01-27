@@ -52,7 +52,9 @@ REQUIRED = [
 
 
 # For the CMake Extensions
-this_directory = os.path.abspath(os.path.dirname(__file__))
+# this_directory = os.path.abspath(os.path.dirname(__file__))
+this_directory = "/pscratch/ndeveld/awc/ROSCO"
+
 class CMakeExtension(Extension):
 
     def __init__(self, name, sourcedir='', **kwa):

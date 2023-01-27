@@ -130,6 +130,11 @@ CONTAINS
 
         ! Compute the AWC pitch settings
         LocalVar%AWC_complexangle = 0.0D0
+
+        IF (CntrPar%AWC_NumModes > 0) THEN
+            LocalVar%PC_MinPit = CntrPar%PC_MinPit
+        ENDIF
+
         DO Imode = 1,CntrPar%AWC_NumModes
            clockang = CntrPar%AWC_clockangle(Imode)*PI/180.0_DbKi
            AWC_angle(1) = CntrPar%AWC_omega(Imode) * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi1 + clockang)
@@ -138,12 +143,11 @@ CONTAINS
            ! Add the forcing contribution to LocalVar%AWC_complexangle
            DO K = 1,LocalVar%NumBl ! Loop through all blades
               LocalVar%AWC_complexangle(K) = LocalVar%AWC_complexangle(K) + CntrPar%AWC_amp(Imode) * EXP(complexI * (AWC_angle(K)))
-              LocalVar%PitCom(K) = LocalVar%PitCom(K) + REAL(LocalVar%AWC_complexangle(K))
            END DO
         END DO
 
         DO K = 1,LocalVar%NumBl ! Loop through all blades, apply AWC_angle
-            LocalVar%PitCom(K) = LocalVar%PitCom(K) + REAL(LocalVar%AWC_complexangle(K))
+           LocalVar%PitCom(K) = LocalVar%PitCom(K) + REAL(LocalVar%AWC_complexangle(K))
         END DO
 
         ! Place pitch actuator here, so it can be used with or without open-loop
