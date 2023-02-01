@@ -126,6 +126,9 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: CC_Group_N                  ! Number of cable control groups
     REAL(DbKi)                    :: CC_ActTau                   ! Time constant for line actuator [s]
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: CC_GroupIndex               ! Cable control group indices
+    INTEGER(IntKi)                :: StC_Mode                    ! Flag for ZeroMQ (0-off, 1-yaw}
+    INTEGER(IntKi)                :: StC_Group_N                 ! Number of cable control groups
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: StC_GroupIndex              ! Cable control group indices
     REAL(DbKi)                    :: PC_RtTq99                   ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(DbKi)                    :: VS_MaxOMTq                  ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(DbKi)                    :: VS_MinOMTq                  ! Minimum torque at the beginning of the below-rated region 2, [Nm]

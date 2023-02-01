@@ -602,17 +602,6 @@ CONTAINS
         ! Internal Variables
         Integer(IntKi)                            :: I_GROUP
 
-        ! Allocate Cable control arrays --------------
-        IF (.NOT. ALLOCATED(LocalVar%CC_DesiredL)) THEN
-            ALLOCATE(LocalVar%CC_DesiredL(CntrPar%CC_Group_N))
-        END IF
-        IF (.NOT. ALLOCATED(LocalVar%CC_ActuatedL)) THEN
-            ALLOCATE(LocalVar%CC_ActuatedL(CntrPar%CC_Group_N))
-        END IF
-        IF (.NOT. ALLOCATED(LocalVar%CC_ActuatedDL)) THEN
-            ALLOCATE(LocalVar%CC_ActuatedDL(CntrPar%CC_Group_N))
-        END IF
-
 
         IF (CntrPar%CC_Mode == 1) THEN
             ! User defined control
@@ -629,9 +618,9 @@ CONTAINS
 
             ! END IF
 
-            IF (LocalVar%Time > 20) THEN
+            IF (LocalVar%Time > 200) THEN
                 ! Shorten first group by 4 m
-                LocalVar%CC_DesiredL(1) = -4
+                LocalVar%CC_DesiredL(1) = -10
 
 
             END IF

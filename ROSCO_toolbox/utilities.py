@@ -101,6 +101,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! Ext_Mode          - External control mode {{0 - not used, 1 - call external dynamic library}}\n'.format(int(rosco_vt['Ext_Mode'])))
     file.write('{0:<12d}        ! ZMQ_Mode          - Fuse ZeroMQ interface {{0: unused, 1: Yaw Control}}\n'.format(int(rosco_vt['ZMQ_Mode'])))
     file.write('{:<12d}         ! CC_Mode           - {}\n'.format(int(rosco_vt['CC_Mode']),mode_descriptions['CC_Mode']))
+    file.write('{:<12d}         ! StC_Mode           - {}\n'.format(int(rosco_vt['StC_Mode']),mode_descriptions['StC_Mode']))
 
     file.write('\n')
     file.write('!------- FILTERS ----------------------------------------------------------\n') 
@@ -236,7 +237,11 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<11d}         ! CC_Group_N		- {}\n'.format(len(rosco_vt['CC_GroupIndex']), input_descriptions['CC_Group_N']))
     file.write('{:^11s}         ! CC_GroupIndex     - {}\n'.format(' '.join([f'{ind:d}' for ind in rosco_vt['CC_GroupIndex']]), input_descriptions['CC_GroupIndex']))
     file.write('{:<11f}         ! CC_ActTau		    - {}\n'.format(rosco_vt['CC_ActTau'], input_descriptions['CC_ActTau']  ))
-
+    file.write('\n')
+    file.write('!------- Structural Controllers ---------------------------------------------------------\n')
+    file.write('{:<11d}         ! StC_Group_N		- {}\n'.format(len(rosco_vt['StC_GroupIndex']), input_descriptions['StC_Group_N']))
+    file.write('{:^11s}         ! StC_GroupIndex     - {}\n'.format(' '.join([f'{ind:d}' for ind in rosco_vt['StC_GroupIndex']]), input_descriptions['StC_GroupIndex']))
+    
     file.close()
 
     # Write Open loop input
@@ -425,6 +430,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['Ext_Mode']         = int(controller.Ext_Mode)
     DISCON_dict['ZMQ_Mode']         = int(controller.ZMQ_Mode)
     DISCON_dict['CC_Mode']          = int(controller.CC_Mode)
+    DISCON_dict['StC_Mode']          = int(controller.StC_Mode)
     # ------- FILTERS -------
     DISCON_dict['F_LPFCornerFreq']	    = turbine.bld_edgewise_freq * 1/4
     DISCON_dict['F_LPFDamping']		    = controller.F_LPFDamping

@@ -68,6 +68,7 @@ class Controller():
         self.Ext_Mode           = controller_params['Ext_Mode']
         self.ZMQ_Mode           = controller_params['ZMQ_Mode']
         self.CC_Mode            = controller_params['CC_Mode']
+        self.StC_Mode           = controller_params['StC_Mode']
 
         # Necessary parameters
         self.U_pc = list_check(controller_params['U_pc'], return_bool=False)

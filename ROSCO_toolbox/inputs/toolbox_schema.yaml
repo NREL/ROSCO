@@ -214,7 +214,13 @@ properties:
                 minimum: 0
                 maximum: 1
                 default: 0
-                description: Cable Control mode [0- unused, 1- User defined, 2- Position control]
+                description: Cable control mode [0- unused, 1- User defined, 2- Position control (not yet implemented)]
+            StC_Mode:           
+                type: number
+                minimum: 0
+                maximum: 1
+                default: 0
+                description: Structural control mode [0- unused, 1- User defined]
             U_pc:                       
                 type: array
                 description: List of wind speeds to schedule pitch control zeta and omega 
@@ -881,6 +887,16 @@ properties:
                         type: number
                         description: Time constant for line actuator [s]
                         default: 20
+                    StC_Group_N:
+                        type: number
+                        description: Number of cable control groups
+                        default: 0
+                    StC_GroupIndex:
+                        type: array
+                        items:
+                            type: number
+                        description: First index for structural control group, options specified in ServoDyn summary output
+                        default: [0]
 
     linmodel_tuning:
         type: object

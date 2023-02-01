@@ -190,6 +190,18 @@ CONTAINS
             ! Check validity of input parameters:
             CALL CheckInputs(LocalVar, CntrPar, avrSWAP, ErrVar, size_avcMSG)
 
+            !------------------- ALLOCATIONS --------------------------------
+            ! Cable control arrays --------------
+            IF (.NOT. ALLOCATED(LocalVar%CC_DesiredL)) THEN
+                ALLOCATE(LocalVar%CC_DesiredL(CntrPar%CC_Group_N))
+            END IF
+            IF (.NOT. ALLOCATED(LocalVar%CC_ActuatedL)) THEN
+                ALLOCATE(LocalVar%CC_ActuatedL(CntrPar%CC_Group_N))
+            END IF
+            IF (.NOT. ALLOCATED(LocalVar%CC_ActuatedDL)) THEN
+                ALLOCATE(LocalVar%CC_ActuatedDL(CntrPar%CC_Group_N))
+            END IF
+
             ! Add RoutineName to error message
             IF (ErrVar%aviFAIL < 0) THEN
                 ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
@@ -287,7 +299,7 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'Ext_Mode',accINFILE(1),CntrPar%Ext_Mode,ErrVar)
 		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_Mode',accINFILE(1), CntrPar%ZMQ_Mode,ErrVar)
 		CALL ParseInput(UnControllerParameters,CurLine,'CC_Mode',accINFILE(1), CntrPar%CC_Mode,ErrVar)
-
+		CALL ParseInput(UnControllerParameters,CurLine,'StC_Mode',accINFILE(1), CntrPar%StC_Mode,ErrVar)
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !----------------- FILTER CONSTANTS ---------------------
@@ -454,6 +466,12 @@ CONTAINS
         CALL ParseInput(UnControllerParameters, CurLine,'CC_Group_N', accINFILE(1), CntrPar%CC_Group_N, ErrVar)
         CALL ParseAry(UnControllerParameters, CurLine,'CC_GroupIndex', CntrPar%CC_GroupIndex, CntrPar%CC_Group_N, accINFILE(1), ErrVar)
         CALL ParseInput(UnControllerParameters, CurLine,'CC_ActTau', accINFILE(1), CntrPar%CC_ActTau, ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+
+        !------------- StC Control ----- 
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(UnControllerParameters, CurLine,'StC_Group_N', accINFILE(1), CntrPar%StC_Group_N, ErrVar)
+        CALL ParseAry(UnControllerParameters, CurLine,'StC_GroupIndex', CntrPar%StC_GroupIndex, CntrPar%StC_Group_N, accINFILE(1), ErrVar)
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -608,6 +626,8 @@ CONTAINS
         
         CHARACTER(*), PARAMETER                         :: RoutineName = 'CheckInputs'
         ! Local
+
+        INTEGER(IntKi)                                  :: I
         
         !..............................................................................................................................
         ! Check validity of input parameters:
@@ -1049,6 +1069,22 @@ CONTAINS
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg = 'CC_ActTau must be greater than 0.'
             END IF
+
+            DO I = 1,CntrPar%CC_Group_N
+                IF (CntrPar%CC_GroupIndex(I) < 2601) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = 'CC_GroupIndices must be greater than 2601.'        !< Starting index for the cable control
+                END IF
+            END DO
+        END IF
+
+        IF (CntrPar%StC_Mode > 0) THEN
+            DO I = 1,CntrPar%StC_Group_N
+                IF (CntrPar%StC_GroupIndex(I) < 2801) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = 'StC_GroupIndices must be greater than 2801.'        !< Starting index for the cable control
+                END IF
+            END DO
         END IF
             
 

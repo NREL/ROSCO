@@ -494,6 +494,20 @@ ControlParameters:
       description: Cable control group indices
       allocatable: True
 
+    # StC Control
+    StC_Mode:
+      <<: *integer
+      description: Flag for ZeroMQ (0-off, 1-yaw}
+
+    StC_Group_N:
+      <<: *integer
+      description: Number of cable control groups
+
+    StC_GroupIndex:
+      <<: *integer
+      description: Cable control group indices
+      allocatable: True
+
     # Calculated
     PC_RtTq99:
       <<: *real

@@ -117,7 +117,7 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
         CALL FlapControl(avrSWAP, CntrPar, LocalVar, objInst)
     END IF
 
-    ! Cable contro;
+    ! Cable control
     IF (CntrPar%CC_Mode > 0) THEN
         CALL CableControl(avrSWAP,CntrPar,LocalVar, objInst)
     END IF
