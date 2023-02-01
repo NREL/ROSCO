@@ -165,9 +165,14 @@ class Turbine():
         fast.FAST_directory = FAST_directory
 
         fast.read_MainInput()
-        fast.read_ElastoDyn()
 
-        
+        # file
+        ed_file = os.path.join(fast.FAST_directory, fast.fst_vt['Fst']['EDFile'])
+
+        fast.read_ElastoDyn(ed_file)
+        ed_blade_file = os.path.join(os.path.dirname(ed_file), fast.fst_vt['ElastoDyn']['BldFile1'])
+        fast.read_ElastoDynBlade(ed_blade_file)
+
         fast.read_AeroDyn15()
 
         fast.read_ServoDyn()
@@ -175,7 +180,8 @@ class Turbine():
     
         
         if fast.fst_vt['Fst']['CompHydro'] == 1: # SubDyn not yet implimented
-            fast.read_HydroDyn()
+            hd_file = os.path.normpath(os.path.join(fast.FAST_directory, fast.fst_vt['Fst']['HydroFile']))
+            fast.read_HydroDyn(hd_file)
 
         # fast.read_AeroDyn15()
         # fast.execute()
@@ -434,7 +440,7 @@ class Turbine():
             "GenPwr", "GenTq",
             # AeroDyn15
             "RtArea", "RtVAvgxh", "B1N3Clrnc", "B2N3Clrnc", "B3N3Clrnc",
-            "RtAeroCp", 'RtAeroCq', 'RtAeroCt', 'RtTSR', # NECESSARY
+            "RtFldCp", 'RtFldCq', 'RtFldCt', 'RtTSR', # NECESSARY
             # InflowWind
             "Wind1VelX", 
         ]
