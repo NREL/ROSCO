@@ -974,6 +974,9 @@ LocalVariables:
     CC_ActuatedDL:
       <<: *real
       allocatable: True
+    StC_Input:
+      <<: *real
+      allocatable: True
     Flp_Angle:
       <<: *real 
       description: Flap Angle (rad)

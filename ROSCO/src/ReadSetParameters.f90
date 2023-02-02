@@ -202,6 +202,16 @@ CONTAINS
                 ALLOCATE(LocalVar%CC_ActuatedDL(CntrPar%CC_Group_N))
             END IF
 
+            LocalVar%CC_DesiredL = 0
+            LocalVar%CC_ActuatedL = 0
+            LocalVar%CC_ActuatedDL = 0
+
+            ! Structural control arrays --------------
+            IF (.NOT. ALLOCATED(LocalVar%StC_Input)) THEN
+                ALLOCATE(LocalVar%StC_Input(CntrPar%StC_Group_N))
+            END IF
+            LocalVar%StC_Input = 0
+
             ! Add RoutineName to error message
             IF (ErrVar%aviFAIL < 0) THEN
                 ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)

@@ -123,6 +123,7 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%CC_DesiredL
         WRITE( Un, IOSTAT=ErrStat) LocalVar%CC_ActuatedL
         WRITE( Un, IOSTAT=ErrStat) LocalVar%CC_ActuatedDL
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%StC_Input
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(1)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(2)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(3)
@@ -318,6 +319,7 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%CC_DesiredL
         READ( Un, IOSTAT=ErrStat) LocalVar%CC_ActuatedL
         READ( Un, IOSTAT=ErrStat) LocalVar%CC_ActuatedDL
+        READ( Un, IOSTAT=ErrStat) LocalVar%StC_Input
         READ( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(1)
         READ( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(2)
         READ( Un, IOSTAT=ErrStat) LocalVar%Flp_Angle(3)
@@ -473,7 +475,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       '[rad/s]', '[rad/s]', '[m/s]', '[rad]', '[rad]', & 
                                       '[N/A]', '[N/A]', '[N/A]', '[N/A]', '[rad/s]', & 
                                       '[deg]', '[deg]', '[deg]', '[N/A]']
-    nLocalVars = 72
+    nLocalVars = 73
     Allocate(LocalVarOutData(nLocalVars))
     Allocate(LocalVarOutStrings(nLocalVars))
     LocalVarOutData(1) = LocalVar%iStatus
@@ -545,9 +547,10 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(67) = LocalVar%CC_DesiredL(1)
     LocalVarOutData(68) = LocalVar%CC_ActuatedL(1)
     LocalVarOutData(69) = LocalVar%CC_ActuatedDL(1)
-    LocalVarOutData(70) = LocalVar%Flp_Angle(1)
-    LocalVarOutData(71) = LocalVar%RootMyb_Last(1)
-    LocalVarOutData(72) = LocalVar%ACC_INFILE_SIZE
+    LocalVarOutData(70) = LocalVar%StC_Input(1)
+    LocalVarOutData(71) = LocalVar%Flp_Angle(1)
+    LocalVarOutData(72) = LocalVar%RootMyb_Last(1)
+    LocalVarOutData(73) = LocalVar%ACC_INFILE_SIZE
     LocalVarOutStrings = [CHARACTER(15) ::  'iStatus', 'Time', 'DT', 'VS_GenPwr', 'GenSpeed', & 
                                       'RotSpeed', 'NacHeading', 'NacVane', 'HorWindV', 'rootMOOP', & 
                                       'rootMOOPF', 'BlPitch', 'Azimuth', 'NumBl', 'FA_Acc', & 
@@ -561,8 +564,8 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       'VS_LastGenTrq', 'VS_LastGenPwr', 'VS_MechGenPwr', 'VS_SpdErrAr', 'VS_SpdErrBr', & 
                                       'VS_SpdErr', 'VS_State', 'VS_Rgn3Pitch', 'WE_Vw', 'WE_Vw_F', & 
                                       'WE_VwI', 'WE_VwIdot', 'VS_LastGenTrqF', 'Fl_PitCom', 'NACIMU_FA_AccF', & 
-                                      'FA_AccF', 'CC_DesiredL', 'CC_ActuatedL', 'CC_ActuatedDL', 'Flp_Angle', & 
-                                      'RootMyb_Last', 'ACC_INFILE_SIZE']
+                                      'FA_AccF', 'CC_DesiredL', 'CC_ActuatedL', 'CC_ActuatedDL', 'StC_Input', & 
+                                      'Flp_Angle', 'RootMyb_Last', 'ACC_INFILE_SIZE']
     ! Initialize debug file
     IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN ! .TRUE. if we're on the first call to the DLL
         IF (CntrPar%LoggingLevel > 0) THEN
@@ -593,6 +596,13 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                 DO Ind = 1, SIZE(CntrPar%CC_GroupIndex)
                     Call AddToList(avrIndices,CntrPar%CC_GroupIndex(Ind))
                     Call AddToList(avrIndices,CntrPar%CC_GroupIndex(Ind)+1)
+                END DO
+            END IF
+
+            ! Structural control indices
+            IF (CntrPar%StC_Mode > 0) THEN
+                DO Ind = 1, SIZE(CntrPar%StC_GroupIndex)
+                    Call AddToList(avrIndices,CntrPar%StC_GroupIndex(Ind))
                 END DO
             END IF
 

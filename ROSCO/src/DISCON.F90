@@ -121,6 +121,11 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
     IF (CntrPar%CC_Mode > 0) THEN
         CALL CableControl(avrSWAP,CntrPar,LocalVar, objInst)
     END IF
+
+    ! Structural control
+    IF (CntrPar%StC_Mode > 0) THEN
+        CALL StructuralControl(avrSWAP,CntrPar,LocalVar, objInst)
+    END IF
     
     IF ( CntrPar%LoggingLevel > 0 ) THEN
         CALL Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, SIZE(avcOUTNAME))

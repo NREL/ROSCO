@@ -275,6 +275,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: CC_DesiredL                 ! None
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: CC_ActuatedL                ! None
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: CC_ActuatedDL               ! None
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: StC_Input                   ! None
     REAL(DbKi)                    :: Flp_Angle(3)                ! Flap Angle (rad)
     REAL(DbKi)                    :: RootMyb_Last(3)             ! Last blade root bending moment (Nm)
     INTEGER(IntKi)                :: ACC_INFILE_SIZE             ! Length of parameter input filename

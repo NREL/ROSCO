@@ -653,5 +653,45 @@ CONTAINS
         END DO
 
     END SUBROUTINE CableControl
+
+!-------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst)
+        ! Cable controller
+        !       StC_Mode = 0, No cable control, this code not executed
+        !       StC_Mode = 1, User-defined cable control
+        !       StC_Mode = 2, Ballast-like control, not yet implemented
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+    
+        REAL(ReKi), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
+    
+        TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
+        TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
+        
+        ! Internal Variables
+        Integer(IntKi)                            :: I_GROUP
+
+
+        IF (CntrPar%StC_Mode == 1) THEN
+            ! User defined control
+
+            IF (LocalVar%Time > 50) THEN
+                ! Step change in input of 1000 N
+                LocalVar%StC_Input(1) = -4e5
+
+
+            END IF
+
+
+
+        END IF
+
+
+        ! Assign to avrSWAP
+        DO I_GROUP = 1, CntrPar%StC_Group_N
+            avrSWAP(CntrPar%StC_GroupIndex(I_GROUP)) = LocalVar%StC_Input(I_GROUP)
+        END DO
+
+    END SUBROUTINE StructuralControl
 !-------------------------------------------------------------------------------------------------------------------------------
 END MODULE Controllers
