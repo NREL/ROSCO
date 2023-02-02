@@ -54,7 +54,7 @@ def load_tuning_yaml(tuning_yaml):
     cp_filename = os.path.join(tune_case_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
     turbine.load_from_fast(path_params['FAST_InputFile'], \
         os.path.join(tune_case_dir,path_params['FAST_directory']), \
-        dev_branch=True,rot_source='txt',\
+        rot_source='txt',\
         txt_filename=cp_filename)
 
     return turbine, controller, cp_filename
@@ -395,7 +395,7 @@ def sweep_rated_torque(start_group, **control_sweep_opts):
         cp_filename = os.path.join(tune_case_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
         turbine.load_from_fast(path_params['FAST_InputFile'], \
             os.path.join(tune_case_dir,path_params['FAST_directory']), \
-            dev_branch=True,rot_source='txt',\
+            rot_source='txt',\
             txt_filename=cp_filename)
 
         controller.tune_controller(turbine)
@@ -479,7 +479,7 @@ def sweep_ps_percent(start_group, **control_sweep_opts):
 
         # make default controller, turbine objects for ROSCO_toolbox
         turbine             = ROSCO_turbine.Turbine(turbine_params)
-        turbine.load_from_fast( path_params['FAST_InputFile'],path_params['FAST_directory'], dev_branch=True)
+        turbine.load_from_fast( path_params['FAST_InputFile'],path_params['FAST_directory'])
 
         controller          = ROSCO_controller.Controller(controller_params)
 

@@ -1052,8 +1052,8 @@ class InputReader_OpenFAST(InputReader_Common):
 
         # Blade-Element/Momentum Theory Options
         f.readline()
-        self.fst_vt['AeroDyn15']['SkewMod']               = int(f.readline().split()[0])
-        self.fst_vt['AeroDyn15']['SkewModFactor']     = float_read(f.readline().split()[0])
+        self.fst_vt['AeroDyn15']['SkewMod']               = int_read(f.readline().split()[0])
+        self.fst_vt['AeroDyn15']['SkewModFactor']         = float_read(f.readline().split()[0])
         self.fst_vt['AeroDyn15']['TipLoss']               = bool_read(f.readline().split()[0])
         self.fst_vt['AeroDyn15']['HubLoss']               = bool_read(f.readline().split()[0])
         self.fst_vt['AeroDyn15']['TanInd']                = bool_read(f.readline().split()[0])

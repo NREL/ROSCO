@@ -59,7 +59,6 @@ cp_filename = os.path.join(tune_dir,path_params['FAST_directory'],path_params['r
 turbine.load_from_fast(
     path_params['FAST_InputFile'],
     os.path.join(tune_dir,path_params['FAST_directory']),
-    dev_branch=True,
     rot_source='txt',txt_filename=cp_filename
     )
 
