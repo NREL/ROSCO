@@ -147,7 +147,7 @@ CONTAINS
         END DO
 
         DO K = 1,LocalVar%NumBl ! Loop through all blades, apply AWC_angle
-           LocalVar%PitCom(K) = LocalVar%PitCom(K) + REAL(LocalVar%AWC_complexangle(K))
+            LocalVar%PitCom(K) = LocalVar%PitCom(K) + REAL(LocalVar%AWC_complexangle(K))
         END DO
 
         ! Place pitch actuator here, so it can be used with or without open-loop
@@ -178,6 +178,8 @@ CONTAINS
                 LocalVar%PitComAct(K) = LocalVar%PitComAct(K) + CntrPar%PF_Offsets(K)
             END DO
         END IF
+
+        !WRITE (*,*) 'PITCH ANGLE PRE AWC = ',REAL(LocalVar%PitComAct(1))
 
         ! Command the pitch demanded from the last
         ! call to the controller (See Appendix A of Bladed User's Guide):

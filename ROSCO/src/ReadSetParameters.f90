@@ -420,6 +420,7 @@ CONTAINS
         CALL ParseAry(  UnControllerParameters,CurLine,'AWC_omega',     CntrPar%AWC_omega, CntrPar%AWC_NumModes, accINFILE(1), ErrVar)
         CALL ParseAry(  UnControllerParameters,CurLine,'AWC_amp',       CntrPar%AWC_amp,   CntrPar%AWC_NumModes, accINFILE(1), ErrVar)
         CALL ParseAry(  UnControllerParameters,CurLine,'AWC_clockangle',CntrPar%AWC_clockangle,CntrPar%AWC_NumModes, accINFILE(1), ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)
         
         !------------ External control interface ------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
