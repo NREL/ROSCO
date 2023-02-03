@@ -107,5 +107,5 @@ np.testing.assert_almost_equal(sim_1.gen_speed,sim_2.gen_speed)
 if False:
   plt.show()
 else:
-  plt.savefig(os.path.join(example_out_dir,'05_NREL5MW_SimpSim.png'))
+  plt.savefig(os.path.join(example_out_dir,'04_NREL5MW_SimpSim.png'))
 

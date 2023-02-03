@@ -1,5 +1,5 @@
 '''
------------ Example_13 --------------
+----------- 12_tune_ipc --------------
 Load a turbine, tune a controller with IPC
 -------------------------------------
 
@@ -28,7 +28,7 @@ from ROSCO_toolbox.ofTools.case_gen.CaseGen_General     import CaseGen_General
 this_dir          = os.path.dirname(os.path.abspath(__file__))
 rosco_dir         = os.path.dirname(this_dir)
 example_out_dir   = os.path.join(this_dir,'examples_out')
-run_dir = os.path.join(example_out_dir, '13_ipc_sim')
+run_dir = os.path.join(example_out_dir, '12_ipc_sim')
 
 # Load yaml file (Open Loop Case)
 parameter_filename = os.path.join(rosco_dir,'Tune_Cases/BAR.yaml')

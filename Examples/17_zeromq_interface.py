@@ -1,5 +1,5 @@
 '''
------------ Example_17 --------------
+----------- 17_zeromq_interface --------------
 Run ROSCO using the ROSCO toolbox control interface and execute communication with ZeroMQ
 -------------------------------------
 

@@ -42,5 +42,5 @@ turbine.load_from_fast(
     txt_filename=None)
 
 # Write rotor performance text file
-txt_filename = os.path.join(example_out_dir,'03_Cp_Ct_Cq.Ex03.txt')
+txt_filename = os.path.join(example_out_dir,'02_Cp_Ct_Cq.Ex03.txt')
 write_rotor_performance(turbine,txt_filename=txt_filename)

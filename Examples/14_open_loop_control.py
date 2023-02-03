@@ -1,5 +1,5 @@
 '''
------------ Example_14 --------------
+----------- 14_open_loop_control --------------
 Load a turbine, tune a controller with open loop control commands
 -------------------------------------
 

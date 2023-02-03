@@ -43,7 +43,7 @@ def run_example():
 
     # Path options
     example_out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'examples_out')
-    output_name = '12_robust_scheduling'
+    output_name = '11_robust_scheduling'
     path_options = {'output_dir': example_out_dir,
                     'output_name': output_name
                     }
@@ -123,7 +123,7 @@ def run_example():
     if False:
         plt.show()
     else:
-        fig.savefig(os.path.join(example_out_dir, '12_RobustSched.png'))
+        fig.savefig(os.path.join(example_out_dir, '11_RobustSched.png'))
 
     # ---- Plot nyquist ----
     # Re-load and trimlinturb for plotting

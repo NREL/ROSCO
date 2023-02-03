@@ -60,4 +60,4 @@ ax.set_ylabel('Blade pitch (rad)')
 if False:
   plt.show()
 else:
-  plt.savefig(os.path.join(example_out_dir,'07_MinPitch.png'))
+  plt.savefig(os.path.join(example_out_dir,'06_MinPitch.png'))
