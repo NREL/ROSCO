@@ -28,7 +28,8 @@ from ROSCO_toolbox.ofTools.case_gen.CaseGen_General     import CaseGen_General
 this_dir          = os.path.dirname(os.path.abspath(__file__))
 rosco_dir         = os.path.dirname(this_dir)
 example_out_dir   = os.path.join(this_dir,'examples_out')
-run_dir = os.path.join(example_out_dir, '12_ipc_sim')
+example_name      = '12_ipc_sim'
+run_dir = os.path.join(example_out_dir, example_name)
 
 # Load yaml file (Open Loop Case)
 parameter_filename = os.path.join(rosco_dir,'Tune_Cases/BAR.yaml')
@@ -104,7 +105,7 @@ fastBatch.run_serial()
 cases = {}
 cases['Baseline'] = ['Wind1VelX', ('BldPitch1', 'BldPitch2', 'BldPitch3'), 'RootMyc1', 'RotSpeed']
 
-out_file = os.path.join(example_out_dir,'13_ipc_sim/ipc_example_0.outb')
+out_file = os.path.join(example_out_dir,example_name,'ipc_example_0.outb')
 op = output_processing.output_processing()
 fastout = op.load_fast_out(out_file, tmin=0)
 fig, ax = op.plot_fast_out(cases=cases,showplot=False)

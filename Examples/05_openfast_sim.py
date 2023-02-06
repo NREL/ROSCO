@@ -85,7 +85,7 @@ else:
 
 # Run OpenFAST
 # --- May need to change fastcall if you use a non-standard command to call openfast
-fastcall = '/Users/dzalkind/opt/anaconda3/envs/rosco-env3/bin/openfast'
+fastcall = 'openfast'
 run_openfast(
   os.path.join(this_dir,path_params['FAST_directory']),
   fastcall=fastcall, 
