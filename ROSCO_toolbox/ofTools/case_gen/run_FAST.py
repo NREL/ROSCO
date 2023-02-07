@@ -93,10 +93,12 @@ class run_FAST_ROSCO():
             path_params['FAST_directory'],
             path_params['rotor_performance_filename']
             )
-        turbine.load_from_fast(path_params['FAST_InputFile'], \
-            os.path.join(tune_yaml_dir,path_params['FAST_directory']), \
-            dev_branch=True,rot_source='txt',\
-            txt_filename=cp_filename)
+        turbine.load_from_fast(
+            path_params['FAST_InputFile'],
+            os.path.join(tune_yaml_dir,path_params['FAST_directory']),
+            rot_source='txt',
+            txt_filename=cp_filename
+            )
 
         # tune base controller defined by the yaml
         controller.tune_controller(turbine)

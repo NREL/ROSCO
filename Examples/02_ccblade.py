@@ -10,7 +10,7 @@ In this example:
 - Write a text file with rotor performance properties
 '''
 # Python modules
-import yaml, os 
+import os 
 # ROSCO toolbox modules 
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox.utilities import write_rotor_performance
@@ -38,10 +38,9 @@ turbine = ROSCO_turbine.Turbine(turbine_params)
 turbine.load_from_fast(
     path_params['FAST_InputFile'],
     os.path.join(this_dir,path_params['FAST_directory']),
-    dev_branch=True,
     rot_source='cc-blade',
     txt_filename=None)
 
 # Write rotor performance text file
-txt_filename = os.path.join(example_out_dir,'03_Cp_Ct_Cq.Ex03.txt')
+txt_filename = os.path.join(example_out_dir,'02_Cp_Ct_Cq.Ex03.txt')
 write_rotor_performance(turbine,txt_filename=txt_filename)
