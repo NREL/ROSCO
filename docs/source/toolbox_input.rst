@@ -9,7 +9,7 @@ ROSCO_Toolbox tuning .yaml
 Definition of inputs for ROSCO tuning procedure
 
 
-/Users/dzalkind/Tools/ROSCO/ROSCO_toolbox/inputs/toolbox_schema.
+toolbox_schema
 
 
 
@@ -696,6 +696,10 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
 :code:`IPC_IntSat` : Float, rad
     Integrator saturation (maximum signal amplitude contribution to
     pitch from IPC)
+
+:code:`IPC_SatMode` : Integer
+    IPC Saturation method (0 - no saturation, 1 - saturate by
+    PC_MinPit, 2 - saturate by PS_BldPitchMin)
 
 :code:`IPC_KP` : Array of Floats
     Proportional gain for the individual pitch controller- first
