@@ -109,6 +109,10 @@ install(TARGETS discon
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
 )
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+
+set(linuxDefault ${CMAKE_INSTALL_PREFIX} STREQUAL "/usr/local")
+set(windowsDefault ${CMAKE_INSTALL_PREFIX} STREQUAL "C:\\Program Files (x86)")
+if(${linuxDefault} OR ${windowsDefault})
+  message("TRUE")
   set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/install")
 endif()
