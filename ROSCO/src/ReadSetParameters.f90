@@ -264,6 +264,7 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'OL_Mode',accINFILE(1),CntrPar%OL_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PA_Mode',accINFILE(1),CntrPar%PA_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PF_Mode',accINFILE(1),CntrPar%PF_Mode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'AWC_Mode',accINFILE(1),CntrPar%AWC_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Ext_Mode',accINFILE(1),CntrPar%Ext_Mode,ErrVar)
 		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_Mode',accINFILE(1), CntrPar%ZMQ_Mode,ErrVar)
 

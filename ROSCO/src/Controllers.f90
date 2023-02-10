@@ -43,14 +43,6 @@ CONTAINS
         CHARACTER(*),               PARAMETER           :: RoutineName = 'PitchControl'
 
         ! Local
-        REAL(DbKi), PARAMETER      :: phi1 = 0.0                       ! Phase difference from first to second blade
-        REAL(DbKi), PARAMETER      :: phi2 = 2.0/3.0*PI                ! Phase difference from first to second blade
-        REAL(DbKi), PARAMETER      :: phi3 = 4.0/3.0*PI                ! Phase difference from first to third blade
-        REAL(DbKi), DIMENSION(3)                        :: AWC_angle
-        COMPLEX(DbKi), DIMENSION(3)                    :: AWC_complexangle
-        COMPLEX(DbKi)                                  :: complexI = (0.0, 1.0)
-        INTEGER(IntKi)                                  :: Imode       ! Index used for looping through AWC modes
-        REAL(DbKi)                 :: clockang                         ! Clock angle for AWC pitching
 
         ! ------- Blade Pitch Controller --------
         ! Load PC State
@@ -134,27 +126,10 @@ CONTAINS
             ENDIF
         ENDIF
 
-        ! Compute the AWC pitch settings
-        LocalVar%AWC_complexangle = 0.0D0
-
-        IF (CntrPar%AWC_NumModes > 0) THEN
-            LocalVar%PC_MinPit = CntrPar%PC_MinPit
+        ! Active wake control
+        IF (CntrPar%AWC_Mode > 0) THEN
+            CALL ActiveWakeControl(CntrPar, LocalVar)
         ENDIF
-
-        DO Imode = 1,CntrPar%AWC_NumModes
-           clockang = CntrPar%AWC_clockangle(Imode)*PI/180.0_DbKi
-           AWC_angle(1) = CntrPar%AWC_omega(Imode) * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi1 + clockang)
-           AWC_angle(2) = CntrPar%AWC_omega(Imode) * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi2 + clockang)
-           AWC_angle(3) = CntrPar%AWC_omega(Imode) * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi3 + clockang)
-           ! Add the forcing contribution to LocalVar%AWC_complexangle
-           DO K = 1,LocalVar%NumBl ! Loop through all blades
-              LocalVar%AWC_complexangle(K) = LocalVar%AWC_complexangle(K) + CntrPar%AWC_amp(Imode) * EXP(complexI * (AWC_angle(K)))
-           END DO
-        END DO
-
-        DO K = 1,LocalVar%NumBl ! Loop through all blades, apply AWC_angle
-            LocalVar%PitCom(K) = LocalVar%PitCom(K) + REAL(LocalVar%AWC_complexangle(K))
-        END DO
 
         ! Place pitch actuator here, so it can be used with or without open-loop
         DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
@@ -636,4 +611,50 @@ CONTAINS
             RETURN
         ENDIF
     END SUBROUTINE FlapControl
+
+!-------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE ActiveWakeControl(CntrPar, LocalVar)
+        ! Yaw rate controller
+        !       AWC_Mode = 0, No active wake control
+        !       AWC_Mode = 1, SNL active wake control
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+
+        TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
+
+        ! Local vars
+        REAL(DbKi), PARAMETER      :: phi1 = 0.0                       ! Phase difference from first to second blade
+        REAL(DbKi), PARAMETER      :: phi2 = 2.0/3.0*PI                ! Phase difference from first to second blade
+        REAL(DbKi), PARAMETER      :: phi3 = 4.0/3.0*PI                ! Phase difference from first to third blade
+        REAL(DbKi), DIMENSION(3)                        :: AWC_angle
+        COMPLEX(DbKi), DIMENSION(3)                    :: AWC_complexangle
+        COMPLEX(DbKi)                                  :: complexI = (0.0, 1.0)
+        INTEGER(IntKi)                                  :: Imode, K       ! Index used for looping through AWC modes
+        REAL(DbKi)                 :: clockang                         ! Clock angle for AWC pitching
+
+
+        ! Compute the AWC pitch settings
+        LocalVar%AWC_complexangle = 0.0D0
+
+        IF (CntrPar%AWC_NumModes > 0) THEN
+            LocalVar%PC_MinPit = CntrPar%PC_MinPit
+        ENDIF
+
+        DO Imode = 1,CntrPar%AWC_NumModes
+           clockang = CntrPar%AWC_clockangle(Imode)*PI/180.0_DbKi
+           AWC_angle(1) = CntrPar%AWC_omega(Imode) * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi1 + clockang)
+           AWC_angle(2) = CntrPar%AWC_omega(Imode) * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi2 + clockang)
+           AWC_angle(3) = CntrPar%AWC_omega(Imode) * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi3 + clockang)
+           ! Add the forcing contribution to LocalVar%AWC_complexangle
+           DO K = 1,LocalVar%NumBl ! Loop through all blades
+              LocalVar%AWC_complexangle(K) = LocalVar%AWC_complexangle(K) + CntrPar%AWC_amp(Imode) * EXP(complexI * (AWC_angle(K)))
+           END DO
+        END DO
+
+        DO K = 1,LocalVar%NumBl ! Loop through all blades, apply AWC_angle
+            LocalVar%PitCom(K) = LocalVar%PitCom(K) + REAL(LocalVar%AWC_complexangle(K))
+        END DO
+
+    END SUBROUTINE ActiveWakeControl
+
 END MODULE Controllers

@@ -84,6 +84,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! OL_Mode           - Open loop control mode {{0: no open loop control, 1: open loop control vs. time}}\n'.format(int(rosco_vt['OL_Mode'])))
     file.write('{0:<12d}        ! PA_Mode           - Pitch actuator mode {{0 - not used, 1 - first order filter, 2 - second order filter}}\n'.format(int(rosco_vt['PA_Mode'])))
     file.write('{0:<12d}        ! PF_Mode           - Pitch fault mode {{0 - not used, 1 - constant offset on one or more blades}}\n'.format(int(rosco_vt['PF_Mode'])))
+    file.write('{0:<12d}        ! AWC_Mode          - Active wake control {{0 - not used, 1 - SNL method}}\n'.format(int(rosco_vt['AWC_Mode'])))
     file.write('{0:<12d}        ! Ext_Mode          - External control mode {{0 - not used, 1 - call external dynamic library}}\n'.format(int(rosco_vt['Ext_Mode'])))
     file.write('{0:<12d}        ! ZMQ_Mode          - Fuse ZeroMQ interface {{0: unused, 1: Yaw Control}}\n'.format(int(rosco_vt['ZMQ_Mode'])))
 
@@ -208,6 +209,13 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('\n')
     file.write('!------- Pitch Actuator Faults -----------------------------------------------------\n')
     file.write('{}                ! PF_Offsets     - Constant blade pitch offsets for blades 1-3 [rad]\n'.format(''.join('{:<10.8f} '.format(rosco_vt['PF_Offsets'][i]) for i in range(3))))
+    file.write('\n')
+    file.write('!------- Active Wake Control -----------------------------------------------------\n')
+    file.write('{0:<12d}          ! AWC_NumModes     - \n'.format(int(rosco_vt['AWC_NumModes'])))
+    file.write('{}                ! AWC_n     - AWC azimuthal number\n'.format(write_array(rosco_vt['AWC_n'],'<4d')))
+    file.write('{}                ! AWC_omega     - AWC frequency [rad/s]\n'.format(write_array(rosco_vt['AWC_omega'],'<6.4f')))
+    file.write('{}                ! AWC_amp     - AWC amplitude [rad]\n'.format(write_array(rosco_vt['AWC_amp'],'<6.4f')))
+    file.write('{}                ! AWC_clockangle     - WC clock angle [deg]\n'.format(write_array(rosco_vt['AWC_clockangle'],'<6.4f')))
     file.write('\n')
     file.write('!------- External Controller Interface -----------------------------------------------------\n')
     file.write('"{}"            ! DLL_FileName        - Name/location of the dynamic library in the Bladed-DLL format\n'.format(rosco_vt['DLL_FileName']))
@@ -611,3 +619,10 @@ def list_check(x, return_bool=True):
         return is_list
     else:
         return y
+    
+def write_array(array,format='<.4f'):
+    
+    if not hasattr(array,'len'):  #not an array
+        array = [array]
+
+    return ''.join(['{:{}} '.format(item,format) for item in array])
