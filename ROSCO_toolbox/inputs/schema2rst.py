@@ -84,7 +84,7 @@ class Schema2RST(object):
     def write_rst(self):
         self.f = open(self.fout, "w")
         self.write_header()
-        self.write_loop(self.yaml["properties"], 0, self.fname.replace("yaml", ""))
+        self.write_loop(self.yaml["properties"], 0, 'toolbox_schema')
         self.f.close()
 
     def write_header(self):
