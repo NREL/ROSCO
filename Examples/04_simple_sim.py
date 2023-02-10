@@ -59,7 +59,6 @@ cp_filename = os.path.join(tune_dir,path_params['FAST_directory'],path_params['r
 turbine.load_from_fast(
     path_params['FAST_InputFile'],
     os.path.join(tune_dir,path_params['FAST_directory']),
-    dev_branch=True,
     rot_source='txt',txt_filename=cp_filename
     )
 
@@ -108,5 +107,5 @@ np.testing.assert_almost_equal(sim_1.gen_speed,sim_2.gen_speed)
 if False:
   plt.show()
 else:
-  plt.savefig(os.path.join(example_out_dir,'05_NREL5MW_SimpSim.png'))
+  plt.savefig(os.path.join(example_out_dir,'04_NREL5MW_SimpSim.png'))
 

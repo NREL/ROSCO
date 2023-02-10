@@ -44,7 +44,6 @@ controller      = ROSCO_controller.Controller(controller_params)
 turbine.load_from_fast(
     path_params['FAST_InputFile'],
     os.path.join(tune_dir,path_params['FAST_directory']),
-    dev_branch=True,
     rot_source='txt',txt_filename=os.path.join(tune_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
     )
 # Tune controller 
@@ -61,4 +60,4 @@ ax.set_ylabel('Blade pitch (rad)')
 if False:
   plt.show()
 else:
-  plt.savefig(os.path.join(example_out_dir,'07_MinPitch.png'))
+  plt.savefig(os.path.join(example_out_dir,'06_MinPitch.png'))

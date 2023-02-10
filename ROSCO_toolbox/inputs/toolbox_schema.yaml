@@ -197,6 +197,12 @@ properties:
                 maximum: 2
                 default: 0
                 description: Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
+            PF_Mode:           
+                type: number
+                minimum: 0
+                maximum: 1
+                default: 0
+                description: Pitch fault mode {0 - not used, 1 - constant offset on one or more blades}
             Ext_Mode:           
                 type: number
                 minimum: 0
@@ -600,6 +606,9 @@ properties:
                         type: number
                         description: Integrator saturation (maximum signal amplitude contribution to pitch from IPC)
                         units: rad
+                    IPC_SatMode:
+                        type: integer
+                        description: IPC Saturation method (0 - no saturation, 1 - saturate by PC_MinPit, 2 - saturate by PS_BldPitchMin)
                     IPC_KP:
                         type: array
                         items:
@@ -849,6 +858,12 @@ properties:
                         type: string
                         description: Name of procedure in DLL to be called
                         default: DISCON
+                    PF_Offsets:
+                        type: array
+                        items:
+                            type: number
+                        description: Pitch angle offsets for each blade (array with length of 3)
+                        units: rad
 
     linmodel_tuning:
         type: object
