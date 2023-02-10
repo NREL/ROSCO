@@ -622,7 +622,7 @@ def list_check(x, return_bool=True):
     
 def write_array(array,format='<.4f'):
     
-    if not hasattr(array,'len'):  #not an array
+    if not hasattr(array,'__len__'):  #not an array
         array = [array]
 
     return ''.join(['{:{}} '.format(item,format) for item in array])

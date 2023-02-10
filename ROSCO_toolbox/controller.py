@@ -65,6 +65,7 @@ class Controller():
         self.Flp_Mode           = controller_params['Flp_Mode']
         self.PA_Mode           = controller_params['PA_Mode']
         self.PF_Mode           = controller_params['PF_Mode']
+        self.AWC_Mode           = controller_params['AWC_Mode']
         self.Ext_Mode           = controller_params['Ext_Mode']
         self.ZMQ_Mode           = controller_params['ZMQ_Mode']
 
