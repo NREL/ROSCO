@@ -160,11 +160,8 @@ CONTAINS
             END DO
         END IF
 
-        !WRITE (*,*) 'PITCH ANGLE PRE AWC = ',REAL(LocalVar%PitComAct(1))
-
         ! Command the pitch demanded from the last
         ! call to the controller (See Appendix A of Bladed User's Guide):
-        ! AWC added here as well
         avrSWAP(42) = LocalVar%PitComAct(1)   ! Use the command angles of all blades if using individual pitch
         avrSWAP(43) = LocalVar%PitComAct(2)   ! "
         avrSWAP(44) = LocalVar%PitComAct(3)   ! "
@@ -635,10 +632,6 @@ CONTAINS
 
         ! Compute the AWC pitch settings
         LocalVar%AWC_complexangle = 0.0D0
-
-        IF (CntrPar%AWC_NumModes > 0) THEN
-            LocalVar%PC_MinPit = CntrPar%PC_MinPit
-        ENDIF
 
         DO Imode = 1,CntrPar%AWC_NumModes
            clockang = CntrPar%AWC_clockangle(Imode)*PI/180.0_DbKi
