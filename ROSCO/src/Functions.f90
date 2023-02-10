@@ -48,7 +48,7 @@ CONTAINS
     END FUNCTION saturate
     
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(DbKi) FUNCTION ratelimit(inputSignal, minRate, maxRate, DT, reset, rlP, inst)
+    REAL(DbKi) FUNCTION ratelimit(inputSignal, minRate, maxRate, DT, reset, rlP, inst, ResetValue)
     ! Saturates inputValue. Makes sure it is not smaller than minValue and not larger than maxValue
         USE ROSCO_Types, ONLY : rlParams
 
@@ -62,13 +62,18 @@ CONTAINS
         LOGICAL,    INTENT(IN)         :: reset  
         TYPE(rlParams), INTENT(INOUT)   :: rlP
         INTEGER(IntKi), INTENT(INOUT)   :: inst
+        REAL(DbKi), OPTIONAL,  INTENT(IN)          :: ResetValue           ! Value to base rate limit off if restarting
 
         ! Local variables
         REAL(DbKi)                 :: rate
+        REAL(DbKi)                 :: ResetValue_
+
+        ResetValue_ = inputSignal
+        IF (PRESENT(ResetValue)) ResetValue_ = ResetValue   
 
         IF (reset) THEN
-            rlP%LastSignal(inst) = inputSignal
-            ratelimit = inputSignal
+            rlP%LastSignal(inst) = ResetValue_
+            ratelimit = ResetValue_
             
         ELSE
             rate = (inputSignal - rlP%LastSignal(inst))/DT                       ! Signal rate (unsaturated)
@@ -592,6 +597,7 @@ CONTAINS
         ENDIF
         
     END FUNCTION sigma
+
 
 
 !-------------------------------------------------------------------------------------------------------------------------------

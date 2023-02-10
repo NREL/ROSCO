@@ -33,7 +33,7 @@ example_out_dir = os.path.join(this_dir,'examples_out')
 if not os.path.isdir(example_out_dir):
   os.makedirs(example_out_dir)
 
-linmod_filename     = os.path.join(example_out_dir,'11_IEA15MW_LinMod.dat')
+linmod_filename     = os.path.join(example_out_dir,'10_IEA15MW_LinMod.dat')
 
 # Instantiate turbine, controller, and file processing classes
 turbine         = ROSCO_turbine.Turbine(turbine_params)
@@ -44,7 +44,6 @@ tune_dir =  os.path.join(this_dir,'../Tune_Cases')
 turbine.load_from_fast(
   path_params['FAST_InputFile'],
   os.path.join(this_dir,path_params['FAST_directory']),
-  dev_branch=True,
   rot_source='txt',
   txt_filename=os.path.join(tune_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
   )

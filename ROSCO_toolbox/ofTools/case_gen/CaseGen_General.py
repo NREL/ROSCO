@@ -157,7 +157,6 @@ def CaseGen_General(case_inputs, dir_matrix='', namebase='', save_matrix=True):
         matrix_out.append(row_out)
 
     matrix_out = np.asarray(matrix_out, dtype=object)
-
     n_cases = np.shape(matrix_out)[0]
 
     # case naming

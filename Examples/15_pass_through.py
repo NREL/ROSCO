@@ -1,5 +1,5 @@
 '''
------------ Example_15 --------------
+----------- 15_pass_through --------------
 Use the runFAST scripts to set up an example, use pass through in yaml
 -------------------------------------
 
