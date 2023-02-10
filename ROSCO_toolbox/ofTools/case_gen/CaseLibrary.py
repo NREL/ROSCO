@@ -127,7 +127,7 @@ def power_curve(**wind_case_opts):
     # Constant wind speed, multiple wind speeds, define below
 
     # Runtime
-    T_max   = 400.
+    T_max   = wind_case_opts.get('TMax',400.)
 
     if 'U' in wind_case_opts:
         U = wind_case_opts['U']
