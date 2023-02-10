@@ -32,8 +32,8 @@ else:
 def main():
 
     # Input yaml and output directory
-    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW.yaml')  # will be dummy and overwritten with SNL DISCON
-    run_dir = os.path.join(example_out_dir,'20_active_wake_control')
+    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/NREL2p8.yaml')  # will be dummy and overwritten with SNL DISCON
+    run_dir = os.path.join(example_out_dir,'20_active_wake_control/setup_2')
     os.makedirs(run_dir,exist_ok=True)
 
     # Read all inputs

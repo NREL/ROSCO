@@ -2,7 +2,7 @@
 !    - File written using ROSCO version 2.3.0 controller tuning logic on 07/01/21
 
 !------- DEBUG ------------------------------------------------------------
-1                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: write standard output .dbg-file and complete avrSWAP-array .dbg2-file}
+2                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: write standard output .dbg-file and complete avrSWAP-array .dbg2-file}
 
 !------- CONTROLLER FLAGS -------------------------------------------------
 1                   ! F_LPFType			- {1: first-order low-pass filter, 2: second-order low-pass filter}, [rad/s] (currently filters generator speed and pitch control signals
@@ -21,6 +21,7 @@
 0                   ! OL_Mode           - Open loop control mode {0: no open loop control, 1: open loop control vs. time}
 0                   ! PA_Mode           - Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
 0                   ! PF_Mode           - Pitch fault mode {0 - not used, 1 - constant offset on one or more blades}
+1                   ! AWC_Mode          - Active wake control {0 - not used, 1 - SNL method}
 0                   ! Ext_Mode          - External control mode {0 - not used, 1 - call external dynamic library}
 0                   ! ZMQ_Mode          - Fuse ZeroMQ interface {0: unused, 1: Yaw Control}
 
