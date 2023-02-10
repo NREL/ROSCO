@@ -32,13 +32,14 @@ else:
 def main():
 
     # Input yaml and output directory
-    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/NREL2p8.yaml')  # will be dummy and overwritten with SNL DISCON
-    run_dir = os.path.join(example_out_dir,'20_active_wake_control/setup_2')
+    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/NREL2p8.yaml')  # will be dummy and overwritten with SNL DISCON params
+    run_dir = os.path.join(example_out_dir,'20_active_wake_control/setup_4')
     os.makedirs(run_dir,exist_ok=True)
 
-    # Read all inputs
-    rosco_vt = read_DISCON('/Users/dzalkind/Tools/ROSCO3/Test_Cases/NREL_2p8_127/NREL-2p8-127_DISCON.IN')
+    # Read all DISCON inputs
+    rosco_vt = read_DISCON(os.path.join(rosco_dir,'TestCases','NREL_2p8_127/NREL-2p8-127_DISCON.IN'))
 
+    # Could change discon parameters here
 
 
     # Apply all discon variables as case inputs
@@ -62,9 +63,7 @@ def main():
 
     r.run_FAST()
 
-
-    print('here')
-    # # Check pitch offsets
+    # # Check AWC here
     # filenames = [os.path.join(run_dir,'IEA15MW/simp_step/base/IEA15MW_0.outb')]
     # fast_out = output_processing.output_processing()
 
