@@ -55,7 +55,7 @@ Readers may be familiar with several forcing strategies from literature on activ
 Note that the inverse multi-blade coordinate (MBC) transformation can also be used to obtain the same result as eq 6.
 	Beginning with Eq. 3 from [2], we have 
 
-		/            \		             /               \
+		/            \			 /               \
 		| theta_1(t) |                	 | theta_0(t)    |
 		| theta_2(t) | = T^-1(psi(t)) *  | theta_tilt(t) |												(eq 7)
 		| theta_3(t) |               	 | theta_yaw(t)  |
@@ -63,11 +63,11 @@ Note that the inverse multi-blade coordinate (MBC) transformation can also be us
 
 		where
 
-						/                     	     	\
+				/                     	     	\
 		             	| 1 cos(psi_1(t)) sin(psi_1(t)) |
 		T^-1(psi(t)) =  | 1 cos(psi_2(t)) sin(psi_2(t)) |
-						| 1 cos(psi_3(t)) sin(psi_3(t)) |
-						\			        			/
+				| 1 cos(psi_3(t)) sin(psi_3(t)) |
+				\			        /
 
 	Multiplying the first row of the top matrix (and dropping the subscript of blade 1) yields:
 		theta(t) = theta_0(t) + theta_tilt(t)*cos(psi(t)) + theta_yaw(t)*sin(psi(t))									(eq 8)
