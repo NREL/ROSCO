@@ -5,6 +5,84 @@ Run openfast with ROSCO and active wake control
 
 Set up and run simulation with AWC, check outputs
 
+Active wake control with blade pitching is implemented in this example with an adaptation into the rotating frame of the mathematical framework from the classical theory for stability of axisymmetric jets [1], which offers flexibility in specifying the forcing strategy.
+
+The inputs to the controller are:
+	-AWC_NumModes	(-)	-> number of forcing modes
+	-AWC_n		(-)	-> azimuthal mode number(s) (i.e., the azimuthal mode number relates to the number and direction of the lobes of the wake structure)
+	-AWC_clockangle (deg)	-> clocking angle of forcing mode(s)
+	-AWC_omega 	(rad/s)	-> frequency(s) of forcing mode(s)
+	-AWC_amp 	(rad)	-> pitch amplitude(s) of forcing mode(s)
+
+The latter two inputs may be specified based on the expected inflow while the former three inputs determine the type of active wake control to be used.
+
+Readers may be familiar with several forcing strategies from literature on active wake control that can be represented as follows:
+	-collective dynamic induction control: 	AWC_NumModes = 1, AWC_n = 0, AWC_clockangle = 0
+	-helix clockwise:			AWC_NumModes = 1, AWC_n = 1, AWC_clockangle = 0
+	-helix counter-clockwise:		AWC_NumModes = 1, AWC_n = -1, AWC_clockangle = 0
+	-up-and-down:				AWC_NumModes = 2, AWC_n = -1 1, AWC_clockangle = 0 0
+	-side-to-side:				AWC_NumModes = 2, AWC_n = -1 1, AWC_clockangle = 90 90
+	-other:					Higher-order modes or different combinations of the above can also be specified
+
+	Calculation methodology:
+		For each blade, we compute the total phase angle of blade pitch excursion according to:
+			AWC_angle(t) = AWC_omega * t - AWC_n * (psi(t) + phi + AWC_clockangle*PI/180)								(eq 1)
+			where 	t is time
+				phi(t) is the angular offset of the given blade in the rotor plane relative to blade 1
+				psi is the angle of blade 1 in the rotor plane from top-dead center
+				
+		Next, the phase angle is converted into the complex pitch amplitude:
+			AWC_complexangle(t) = AWC_amp * EXP(i * AWC_angle(t))											(eq 2)
+			where 	i is the square root of -1 
+			
+		Note that if AWC_NumModes>1, then eq 1 and 2 are computed for each additional mode, and AWC_complexangle becomes a summation over all modes for each blade.
+
+		Finally, the real pitch amplitude, theta(t), to be passed to the next step of the controller is calculated:
+			theta(t) = theta_0(t) + REAL(AWC_complexangle(t))											(eq 3)
+			where 	theta_0(t) is the controller's nominal pitch command
+		
+	Rearranging for ease of viewing:		
+		Inserting eq 1 into eq 2, and then putting that result into eq 3 gives:
+			theta(t) = theta_0(t) + REAL(AWC_amp * EXP(i * (AWC_omega * t - AWC_n * (psi(t) + phi + AWC_clockangle*PI/180))))			(eq 4)
+		
+		Applying Euler's formula and carrying out the REAL operator:
+			theta(t) = theta_0(t) + AWC_amp * cos(AWC_omega * t - AWC_n * (psi(t) + phi + AWC_clockangle*PI/180))					(eq 5)
+
+	As an example, we can set parameters to produce the counter-clockwise helix pattern from [2] using AWC_NumModes = 1, AWC_n = -1, and AWC_clockangle = 0:
+		For blade 1, eq 5 becomes:
+			theta(t) = theta_0(t) + AWC_amp * cos(AWC_omega * t + psi(t))										(eq 6)		
+
+Note that the inverse multi-blade coordinate (MBC) transformation can also be used to obtain the same result as eq 6.
+	Beginning with Eq. 3 from [2], we have 
+
+		/            \		             /               \
+		| theta_1(t) |                	 | theta_0(t)    |
+		| theta_2(t) | = T^-1(psi(t)) *  | theta_tilt(t) |												(eq 7)
+		| theta_3(t) |               	 | theta_yaw(t)  |
+		\            /               	 \               /
+
+		where
+
+						/                     	     	\
+		             	| 1 cos(psi_1(t)) sin(psi_1(t)) |
+		T^-1(psi(t)) =  | 1 cos(psi_2(t)) sin(psi_2(t)) |
+						| 1 cos(psi_3(t)) sin(psi_3(t)) |
+						\			        			/
+
+	Multiplying the first row of the top matrix (and dropping the subscript of blade 1) yields:
+		theta(t) = theta_0(t) + theta_tilt(t)*cos(psi(t)) + theta_yaw(t)*sin(psi(t))									(eq 8)
+		
+	Setting theta_tilt(t) = AWC_amp * cos(AWC_omega * t) and theta_yaw(t) = -AWC_amp * sin(AWC_omega * t) gives:
+		theta(t) = theta_0(t) + (AWC_amp * cos(AWC_omega * t))*cos(psi(t)) - (AWC_amp * sin(AWC_omega * t))*sin(psi(t))					(eq 9)
+
+	Applying a Ptolemy identity gives:
+		theta(t) = theta_0(t) + AWC_amp * cos(AWC_omega * t + psi(t))											(eq 10)	
+		which is equivlanet to eq 6 above.
+
+References:
+[1] - Batchelor, G. K., and A. E. Gill. "Analysis of the stability of axisymmetric jets." Journal of fluid mechanics 14.4 (1962): 529-551.
+[2] - Frederik, Joeri A., et al. "The helix approach: Using dynamic individual pitch control to enhance wake mixing in wind farms." Wind Energy 23.8 (2020): 1739-1751.
+
 '''
 
 import os, platform
