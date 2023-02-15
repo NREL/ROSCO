@@ -130,7 +130,13 @@ class Turbine():
         return turbine
     
     # Load data from fast input deck
-    def load_from_fast(self, FAST_InputFile,FAST_directory, FAST_ver='OpenFAST',dev_branch=True,rot_source=None, txt_filename=None):
+    def load_from_fast(
+            self, 
+            FAST_InputFile,
+            FAST_directory, 
+            rot_source=None, 
+            txt_filename=None
+            ):
         """
         Load the parameter files directly from a FAST input deck
 
@@ -140,10 +146,6 @@ class Turbine():
                             Primary fast model input file (*.fst)
             FAST_directory: str
                             Directory for primary fast model input file
-            FAST_ver: string, optional
-                      fast version, usually OpenFAST
-            dev_branch: bool, optional
-                        dev_branch input to InputReader_OpenFAST, probably True
             rot_source: str, optional
                         desired source for rotor to get Cp, Ct, Cq tables. Default is to run cc-blade. 
                             options: cc-blade - run cc-blade

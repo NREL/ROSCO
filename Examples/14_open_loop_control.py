@@ -1,5 +1,5 @@
 '''
------------ Example_14 --------------
+----------- 14_open_loop_control --------------
 Load a turbine, tune a controller with open loop control commands
 -------------------------------------
 
@@ -76,7 +76,7 @@ controller      = ROSCO_controller.Controller(controller_params)
 # Load turbine data from OpenFAST and rotor performance text file
 turbine.load_from_fast(path_params['FAST_InputFile'], \
   os.path.join(this_dir,path_params['FAST_directory']), \
-    dev_branch=True,rot_source='txt',\
+    rot_source='txt',\
       txt_filename=os.path.join(this_dir,path_params['FAST_directory'],path_params['rotor_performance_filename']))
 
 # Tune controller 

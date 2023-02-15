@@ -4,34 +4,42 @@ from time import time
 import runpy
 
 all_scripts = [
-    'example_01',
-    'example_02',
-    'example_03',
-    'example_04',
-    'example_05',
-    'example_06',
-    'example_07',
-    'example_08',
-    'example_09',
-    'example_10',
-    'example_11',
-    'example_12',
-    'example_13',
-    'example_14',
-    'example_15',
-    'example_16',
-    'example_17', # NJA: only runs on unix in CI
-    'example_18', 
+    '01_turbine_model',
+    '02_ccblade',
+    '03_tune_controller',
+    '04_simple_sim',
+    '05_openfast_sim',
+    '06_peak_shaving',
+    '07_openfast_outputs',
+    '08_run_turbsim',
+    '09_distributed_aero',
+    '10_linear_params',
+    '11_robust_tuning',
+    '12_tune_ipc',
+    '14_open_loop_control',
+    '15_pass_through',
+    '16_external_dll',
+    '17_zeromq_interface',
+    '18_pitch_offsets', # NJA: only runs on unix in CI
+    '19_update_discon_version', 
+    'update_rosco_discons',     
 ]
 
 def execute_script(fscript):
     examples_dir = os.path.dirname(os.path.realpath(__file__))
+    test_case_dir = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)),'../Test_Cases'))
 
     # Go to location due to relative path use for airfoil files
     print("\n\n")
     print("NOW RUNNING:", fscript)
     print()
-    fullpath = os.path.join(examples_dir, fscript + ".py")
+
+    if fscript in ['update_rosco_discons']:
+        run_dir = test_case_dir
+    else:
+        run_dir = examples_dir
+
+    fullpath = os.path.join(run_dir, fscript + ".py")
     basepath = os.path.dirname(os.path.realpath(fullpath))
     os.chdir(basepath)
 
