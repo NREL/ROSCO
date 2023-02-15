@@ -14,8 +14,8 @@ from ROSCO_toolbox.ofTools.fast_io import output_processing
 from ROSCO_toolbox.controller import OpenLoopControl
 import numpy as np
 import pandas as pd
+import pickle
 
-OPENFAST = False
 RPS2RPM          = 9.5492966
 GB_RATIO = 111.7
 
@@ -120,12 +120,18 @@ def read_scada(scada_file,mbc=False):
 
 def main():
 
+    OPENFAST = True
+
+
     # Ensure external control paths are okay
-    wind_bin = 981
+    wind_bin = 891
     parameter_filename = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/ROSCO/RAAW_rosco_BD.yaml'
-    run_dir = os.path.join(example_out_dir,'19_RotPos_SCADA_17')
+    run_dir = os.path.join(example_out_dir,'19_RotPos_Baseline_8')
     gains = -1800 * np.array([12,1.2,120])
     os.makedirs(run_dir,exist_ok=True)
+
+    iterate = False
+    iterate_file = os.path.join(example_out_dir,'19_RotPos_SCADA_20/rpc/turb_bts/base/rpc_0.out')
 
     # Case input for RotSpeed IC
     case_inputs = {}
@@ -139,10 +145,9 @@ def main():
     
     # Steady simualtion with initial RotSpeed of 5 rpm
     r = run_FAST_ROSCO()
-    r.tuning_yaml   = parameter_filename
     r.wind_case_fcn = cl.turb_bts
     r.wind_case_opts    = {
-        'TMax': 300,
+        'TMax': 600,
         'wind_filenames': ['/Users/dzalkind/Tools/WEIS-1/outputs/02_RAAW_TurbOff/wind/IEA15_NTM_U8.000000_Seed123.0.bts']
         }
     r.save_dir      = run_dir
@@ -153,8 +158,10 @@ def main():
     # itch, generator torque output
     if OPENFAST:
         op = output_processing.output_processing()
-        fast_out = op.load_fast_out(os.path.join(example_out_dir,'19_RotPos_Turb_0/IEA15MW/turb_bts/base/IEA15MW_0.outb'), tmin=0)
-        
+        # fast_out = op.load_fast_out(os.path.join(example_out_dir,'19_RotPos_Turb_0/IEA15MW/turb_bts/base/IEA15MW_0.outb'), tmin=0)
+        bl_out = '/Users/dzalkind/Tools/ROSCO2/outputs/RPC_Sweeps/Baseline_Cases/RAAW_rosco_BD/turb_bts/base/RAAW_rosco_BD_0.outb'
+        fast_out = op.load_fast_out(bl_out)
+
         olc = OpenLoopControl()
         olc.ol_timeseries['time'] = fast_out[0]['Time']
         olc.ol_timeseries['blade_pitch1'] = np.radians(fast_out[0]['BldPitch1'])
@@ -162,6 +169,10 @@ def main():
         olc.ol_timeseries['blade_pitch3'] = np.radians(fast_out[0]['BldPitch3'])
         olc.ol_timeseries['generator_torque'] = fast_out[0]['GenTq'] * 1000
         olc.ol_timeseries['azimuth'] = np.radians(fast_out[0]['Azimuth'])
+
+        RotSpeed_0 = fast_out[0]['RotSpeed'][0]
+        Azimuth_0 = fast_out[0]['Azimuth'][0]
+        BldPitch_0 = fast_out[0]['BldPitch1'][0]
     else:
         # print('here')
         scada_file = f'/Users/dzalkind/Box/EXT - RAAW data sharing/GE Proprietary/Data Assimilation (Mid-Fidelity)/Historical Data/v31/_Diagnostics/_GeneralDiagnostic/_TurbineConditions_Timeseries_Bin{wind_bin}.csv'
@@ -184,6 +195,24 @@ def main():
         olc.ol_timeseries['generator_torque'] = df.GenTq * 1000
         olc.ol_timeseries['azimuth'] = int_RotSpeed
 
+        # ICs
+        RotSpeed_0 = df.RotSpd[0]
+        Azimuth_0 = np.degrees(int_RotSpeed[0])
+
+        if iterate:  # iterate
+            op = output_processing.output_processing()
+            fast_out = op.load_fast_out(iterate_file, tmin=0)
+            olc.ol_timeseries['generator_torque'] = np.interp(olc.ol_timeseries['time'],fast_out[0]['Time'],fast_out[0]['GenTq'] * 1000)
+
+    # Save olc
+    olc.RotSpeed_0 = RotSpeed_0
+    olc.Azimuth_0 = Azimuth_0
+    olc.BldPitch_0 = BldPitch_0
+    case_ind = bl_out.split('.out')[0][-1]
+    case_dir = os.path.split(bl_out)[0]
+    with open(os.path.join(case_dir,f'olc_{case_ind}.p'),'wb') as f:
+        pickle.dump(olc,f)
+    
     # set up control_params for next run
     open_loop = olc.write_input(os.path.join(run_dir,'ol_input.dat'))
     controller_params = {}
@@ -199,19 +228,21 @@ def main():
     # case_inputs[("ElastoDyn","RotSpeed")]    = {'vals':[4], 'group':0}
     r.case_inputs   = case_inputs
     r.base_name     = 'rpc'
+    r.tuning_yaml   = parameter_filename
     r.wind_case_opts    = {
-        'TMax': 150,
-        'wind_filenames': [f'/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/wind/bin{wind_bin}-turbsim.bts']
+        'TMax': 600,
+        # 'wind_filenames': [f'/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/wind/bin{wind_bin}-turbsim.bts'],
+        'wind_filenames': ['/Users/dzalkind/Downloads/RAAW_0_NTM_U9.000000_Seed533103612.0.bts'],
         }
     # Set initial conditions
     r.case_inputs = {}
-    r.case_inputs[("ElastoDyn","RotSpeed")]      = {'vals':[df.RotSpd[0]], 'group':0}
-    r.case_inputs[("ElastoDyn","Azimuth")]      = {'vals':[np.degrees(int_RotSpeed[0])], 'group':0}
+    r.case_inputs[("ElastoDyn","RotSpeed")]      = {'vals':[RotSpeed_0], 'group':0}
+    r.case_inputs[("ElastoDyn","Azimuth")]      = {'vals':[Azimuth_0], 'group':0}
     r.case_inputs[("ServoDyn","Ptch_Cntrl")]      = {'vals':[1], 'group':0}
 
     r.controller_params = controller_params
     r.openfast_exe = '/Users/dzalkind/opt/anaconda3/envs/rosco-env2/bin/openfast'
-    r.run_FAST()
+    # r.run_FAST()
 
 
 
