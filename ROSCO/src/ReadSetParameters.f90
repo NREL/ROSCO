@@ -56,6 +56,26 @@ CONTAINS
         LocalVar%Azimuth            = avrSWAP(60)
         LocalVar%NumBl              = NINT(avrSWAP(61))
 
+        ! Platform signals 
+        LocalVar%PtfmTDX            = avrSWAP(1001)
+        LocalVar%PtfmTDY            = avrSWAP(1002)
+        LocalVar%PtfmTDZ            = avrSWAP(1003)
+        LocalVar%PtfmRDX            = avrSWAP(1004)
+        LocalVar%PtfmRDY            = avrSWAP(1005)
+        LocalVar%PtfmRDZ            = avrSWAP(1006)
+        LocalVar%PtfmTVX            = avrSWAP(1007)
+        LocalVar%PtfmTVY            = avrSWAP(1008)
+        LocalVar%PtfmTVZ            = avrSWAP(1009)
+        LocalVar%PtfmRVX            = avrSWAP(1010)
+        LocalVar%PtfmRVY            = avrSWAP(1011)
+        LocalVar%PtfmRVZ            = avrSWAP(1012)
+        LocalVar%PtfmTAX            = avrSWAP(1013)
+        LocalVar%PtfmTAY            = avrSWAP(1014)
+        LocalVar%PtfmTAZ            = avrSWAP(1015)
+        LocalVar%PtfmRAX            = avrSWAP(1016)
+        LocalVar%PtfmRAY            = avrSWAP(1017)
+        LocalVar%PtfmRAZ            = avrSWAP(1018)
+
         ! --- NJA: usually feedback back the previous pitch command helps for numerical stability, sometimes it does not...
         IF (LocalVar%iStatus == 0) THEN
             LocalVar%BlPitch(1) = avrSWAP(4)

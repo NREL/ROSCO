@@ -275,6 +275,24 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None
     REAL(DbKi)                    :: FA_AccF                     ! None
+    REAL(DbKi)                    :: PtfmTDX                     ! Platform motion -- Displacement TDX (m)')
+    REAL(DbKi)                    :: PtfmTDY                     ! Platform motion -- Displacement TDY (m)')
+    REAL(DbKi)                    :: PtfmTDZ                     ! Platform motion -- Displacement TDZ (m)')
+    REAL(DbKi)                    :: PtfmRDX                     ! Platform motion -- Displacement RDX (rad)')
+    REAL(DbKi)                    :: PtfmRDY                     ! Platform motion -- Displacement RDY (rad)')
+    REAL(DbKi)                    :: PtfmRDZ                     ! Platform motion -- Displacement RDZ (rad)')
+    REAL(DbKi)                    :: PtfmTVX                     ! Platform motion -- Velocity     TVX (m/s)')
+    REAL(DbKi)                    :: PtfmTVY                     ! Platform motion -- Velocity     TVY (m/s)')
+    REAL(DbKi)                    :: PtfmTVZ                     ! Platform motion -- Velocity     TVZ (m/s)')
+    REAL(DbKi)                    :: PtfmRVX                     ! Platform motion -- Velocity     RVX (rad/s)')
+    REAL(DbKi)                    :: PtfmRVY                     ! Platform motion -- Velocity     RVY (rad/s)')
+    REAL(DbKi)                    :: PtfmRVZ                     ! Platform motion -- Velocity     RVZ (rad/s)')
+    REAL(DbKi)                    :: PtfmTAX                     ! Platform motion -- Acceleration TAX (m/s^2)')
+    REAL(DbKi)                    :: PtfmTAY                     ! Platform motion -- Acceleration TAY (m/s^2)')
+    REAL(DbKi)                    :: PtfmTAZ                     ! Platform motion -- Acceleration TAZ (m/s^2)')
+    REAL(DbKi)                    :: PtfmRAX                     ! Platform motion -- Acceleration RAX (rad/s^2)')
+    REAL(DbKi)                    :: PtfmRAY                     ! Platform motion -- Acceleration RAY (rad/s^2)')
+    REAL(DbKi)                    :: PtfmRAZ                     ! Platform motion -- Acceleration RAZ (rad/s^2)')
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: CC_DesiredL                 ! None
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: CC_ActuatedL                ! None
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: CC_ActuatedDL               ! None

@@ -974,6 +974,60 @@ LocalVariables:
       <<: *real 
     FA_AccF:
       <<: *real 
+    PtfmTDX:
+      <<: *real
+      description: Platform motion -- Displacement TDX (m)')
+    PtfmTDY:
+      <<: *real
+      description: Platform motion -- Displacement TDY (m)')
+    PtfmTDZ:
+      <<: *real
+      description: Platform motion -- Displacement TDZ (m)')
+    PtfmRDX:
+      <<: *real
+      description: Platform motion -- Displacement RDX (rad)')
+    PtfmRDY:
+      <<: *real
+      description: Platform motion -- Displacement RDY (rad)')
+    PtfmRDZ:
+      <<: *real
+      description: Platform motion -- Displacement RDZ (rad)')
+    PtfmTVX:
+      <<: *real
+      description: Platform motion -- Velocity     TVX (m/s)')
+    PtfmTVY:
+      <<: *real
+      description: Platform motion -- Velocity     TVY (m/s)')
+    PtfmTVZ:
+      <<: *real
+      description: Platform motion -- Velocity     TVZ (m/s)')
+    PtfmRVX:
+      <<: *real
+      description: Platform motion -- Velocity     RVX (rad/s)')
+    PtfmRVY:
+      <<: *real
+      description: Platform motion -- Velocity     RVY (rad/s)')
+    PtfmRVZ:
+      <<: *real
+      description: Platform motion -- Velocity     RVZ (rad/s)')
+    PtfmTAX:
+      <<: *real
+      description: Platform motion -- Acceleration TAX (m/s^2)')
+    PtfmTAY:
+      <<: *real
+      description: Platform motion -- Acceleration TAY (m/s^2)')
+    PtfmTAZ:
+      <<: *real
+      description: Platform motion -- Acceleration TAZ (m/s^2)')
+    PtfmRAX:
+      <<: *real
+      description: Platform motion -- Acceleration RAX (rad/s^2)')
+    PtfmRAY:
+      <<: *real
+      description: Platform motion -- Acceleration RAY (rad/s^2)')
+    PtfmRAZ:
+      <<: *real
+      description: Platform motion -- Acceleration RAZ (rad/s^2)')
     CC_DesiredL:
       <<: *real
       allocatable: True
