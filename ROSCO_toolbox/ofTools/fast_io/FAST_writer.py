@@ -873,7 +873,8 @@ class InputWriter_OpenFAST(object):
                 num_tab = len(self.fst_vt['AeroDyn15']['af_data'][afi])
             elif self.fst_vt['AeroDyn15']['AFTabMod'] == 3:
                 # for tab_orig in range(self.fst_vt['AeroDyn15']['af_data'][afi][0]['NumTabs'] - 1):
-                if self.fst_vt['AeroDyn15']['af_data'][afi][0]['Ctrl'] == self.fst_vt['AeroDyn15']['af_data'][afi][1]['Ctrl']:
+                if len(self.fst_vt['AeroDyn15']['af_data'][afi])== 1 or \
+                    (self.fst_vt['AeroDyn15']['af_data'][afi][0]['Ctrl'] == self.fst_vt['AeroDyn15']['af_data'][afi][1]['Ctrl']):
                     num_tab = 1  # assume that all Ctrl angles of the flaps are identical if the first two are -> no flaps!
                 else:
                     num_tab = self.fst_vt['AeroDyn15']['af_data'][afi][0]['NumTabs']
