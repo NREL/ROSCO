@@ -9,7 +9,7 @@ from ROSCO_toolbox.ofTools.case_gen.CaseGen_IEC         import CaseGen_IEC
 from ROSCO_toolbox.ofTools.case_gen.CaseGen_General     import CaseGen_General
 from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
 from wisdem.commonse.mpi_tools              import MPI
-import sys, os, platform
+import sys, os, platform, pickle
 import collections.abc
 import numpy as np
 from ROSCO_toolbox import utilities as ROSCO_utilities
@@ -190,7 +190,7 @@ class run_FAST_ROSCO():
 if __name__ == "__main__":
 
     # Simulation config
-    sim_config = 11
+    sim_config = 24
     
     r = run_FAST_ROSCO()
 
@@ -261,12 +261,15 @@ if __name__ == "__main__":
         r.tuning_yaml   = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/ROSCO/RAAW_rosco_BD.yaml'
         r.wind_case_fcn = cl.turb_bts
         r.wind_case_opts    = {
-            'TMax': 720,
-            'wind_filenames': ['/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW_IPC/wind/RAAW_NTM_U12.000000_Seed1693606511.0.bts']
+            'TMax': 600,
+            'wind_filenames': [
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/02_base_wind/play/RAAW_0_NTM_U9.000000_Seed533103612.0.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/02_base_wind/play/RAAW_0_NTM_U9.000000_Seed533103612.0_delay15.bts',
+                ]
             }
-        r.save_dir      = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/outputs/PS_BD'
-        r.control_sweep_fcn = cl.sweep_ps_percent
-        r.n_cores = 8
+        r.save_dir      = '/Users/dzalkind/Tools/ROSCO2/outputs/delay_1'
+        # r.control_sweep_fcn = cl.sweep_ps_percent
+        r.n_cores = 2
 
     elif sim_config == 11:
 
@@ -280,6 +283,239 @@ if __name__ == "__main__":
         r.save_dir      = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/outputs/PS_steps'
         r.control_sweep_fcn = cl.sweep_ps_percent
         r.n_cores = 4
+
+    elif sim_config == 12:
+        # RAAW delay offset test
+
+        r = run_FAST_ROSCO()
+        r.tuning_yaml   = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/ROSCO/RAAW_rosco_BD.yaml'
+        r.wind_case_fcn = cl.turb_bts
+        r.wind_case_opts    = {
+            'TMax': 750,
+            'wind_filenames': [
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/wind_delay/RAAW_NTM_U8.000000_Seed1501552846.0_delay-15.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/wind_delay/RAAW_NTM_U8.000000_Seed1501552846.0_delay-10.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/wind_delay/RAAW_NTM_U8.000000_Seed1501552846.0_delay-5.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/wind_delay/RAAW_NTM_U8.000000_Seed1501552846.0_delay0.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/wind_delay/RAAW_NTM_U8.000000_Seed1501552846.0_delay5.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/wind_delay/RAAW_NTM_U8.000000_Seed1501552846.0_delay10.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/wind_delay/RAAW_NTM_U8.000000_Seed1501552846.0_delay15.bts',
+                ]
+            }
+        r.save_dir      = '/Users/dzalkind/Tools/ROSCO2/outputs/RPC_Sweeps/Delay_Offset_1'
+        
+        with open('/Users/dzalkind/Tools/ROSCO2/outputs/RPC_Sweeps/Baseline_Cases/RAAW_rosco_BD/turb_bts/base/olc_0.p','rb') as f:
+            olc = pickle.load(f)
+
+        # set up control_params for next run
+        open_loop = olc.write_input(os.path.join(r.save_dir,'ol_input.dat'))
+        controller_params = {}
+        controller_params['open_loop'] = open_loop
+        controller_params['OL_Mode'] = 2
+        controller_params['PA_Mode'] = 0
+        controller_params['DISCON'] = {}
+        controller_params['DISCON']['RP_Gains'] = -1800 * np.array([12,1.2,120])
+        controller_params['DISCON']['PC_MinPit'] = np.radians(-20)
+        
+        # Set initial conditions, fixed bottom, initial conditions
+        r.case_inputs = {}
+        r.case_inputs[("ElastoDyn","PtfmSgDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmSwDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmHvDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmRDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmPDOF")]    = {'vals':['False'], 'group':0}
+        
+        r.case_inputs[("ElastoDyn","PtfmYDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","RotSpeed")]      = {'vals':[olc.RotSpeed_0], 'group':0}
+        r.case_inputs[("ElastoDyn","Azimuth")]      = {'vals':[olc.Azimuth_0], 'group':0}
+        r.case_inputs[("ElastoDyn","BlPitch1")]      = {'vals':[olc.BldPitch_0], 'group':0}
+        r.case_inputs[("ElastoDyn","BlPitch2")]      = {'vals':[olc.BldPitch_0], 'group':0}
+        r.case_inputs[("ElastoDyn","BlPitch3")]      = {'vals':[olc.BldPitch_0], 'group':0}
+        r.case_inputs[("ServoDyn","Ptch_Cntrl")]      = {'vals':[1], 'group':0}
+
+        r.controller_params = controller_params
+        r.openfast_exe = '/Users/dzalkind/opt/anaconda3/envs/rosco-env2/bin/openfast'
+
+        r.n_cores = 4
+
+    elif sim_config == 22:
+        # RAAW delay offset test
+
+        r = run_FAST_ROSCO()
+        r.tuning_yaml   = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/ROSCO/RAAW_rosco_BD.yaml'
+        r.wind_case_fcn = cl.turb_bts
+        r.wind_case_opts    = {
+            'TMax': 750,
+            'wind_filenames': [
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/wind_delay/RAAW_NTM_U8.000000_Seed1501552846.0_delay-15.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/wind_delay/RAAW_NTM_U8.000000_Seed1501552846.0_delay-10.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/wind_delay/RAAW_NTM_U8.000000_Seed1501552846.0_delay-5.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/wind_delay/RAAW_NTM_U8.000000_Seed1501552846.0_delay0.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/wind_delay/RAAW_NTM_U8.000000_Seed1501552846.0_delay5.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/wind_delay/RAAW_NTM_U8.000000_Seed1501552846.0_delay10.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/wind_delay/RAAW_NTM_U8.000000_Seed1501552846.0_delay15.bts',
+                ]
+            }
+        r.save_dir      = '/Users/dzalkind/Tools/ROSCO2/outputs/RPC_Sweeps/Delay_Offset_RO'
+        
+        with open('/Users/dzalkind/Tools/ROSCO2/outputs/RPC_Sweeps/Baseline_Cases/RAAW_rosco_BD/turb_bts/base/olc_0.p','rb') as f:
+            olc = pickle.load(f)
+        
+        # Set initial conditions, fixed bottom, initial conditions
+        r.case_inputs = {}
+        r.case_inputs[("ElastoDyn","PtfmSgDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmSwDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmHvDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmRDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmPDOF")]    = {'vals':['False'], 'group':0}
+        
+        r.case_inputs[("ElastoDyn","PtfmYDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","RotSpeed")]      = {'vals':[olc.RotSpeed_0], 'group':0}
+        r.case_inputs[("ElastoDyn","Azimuth")]      = {'vals':[olc.Azimuth_0], 'group':0}
+        r.case_inputs[("ElastoDyn","BlPitch1")]      = {'vals':[olc.BldPitch_0], 'group':0}
+        r.case_inputs[("ElastoDyn","BlPitch2")]      = {'vals':[olc.BldPitch_0], 'group':0}
+        r.case_inputs[("ElastoDyn","BlPitch3")]      = {'vals':[olc.BldPitch_0], 'group':0}
+        r.case_inputs[("ServoDyn","Ptch_Cntrl")]      = {'vals':[1], 'group':0}
+
+        r.openfast_exe = '/Users/dzalkind/opt/anaconda3/envs/rosco-env2/bin/openfast'
+
+        r.n_cores = 4
+
+    elif sim_config == 14:
+        # RAAW wind speed offset test
+
+        r = run_FAST_ROSCO()
+        r.tuning_yaml   = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/ROSCO/RAAW_rosco_BD.yaml'
+        r.wind_case_fcn = cl.turb_bts
+        r.wind_case_opts    = {
+            'TMax': 750,
+            'wind_filenames': [
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/speed_offset/RAAW_NTM_U8.000000_Seed1501552846.0_speed-2.0.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/speed_offset/RAAW_NTM_U8.000000_Seed1501552846.0_speed-1.5.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/speed_offset/RAAW_NTM_U8.000000_Seed1501552846.0_speed-1.0.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/speed_offset/RAAW_NTM_U8.000000_Seed1501552846.0_speed-0.5.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/speed_offset/RAAW_NTM_U8.000000_Seed1501552846.0_speed0.0.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/speed_offset/RAAW_NTM_U8.000000_Seed1501552846.0_speed0.5.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/speed_offset/RAAW_NTM_U8.000000_Seed1501552846.0_speed1.0.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/speed_offset/RAAW_NTM_U8.000000_Seed1501552846.0_speed1.5.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/speed_offset/RAAW_NTM_U8.000000_Seed1501552846.0_speed2.0.bts',
+                ]
+            }
+        r.save_dir      = '/Users/dzalkind/Tools/ROSCO2/outputs/RPC_Sweeps/Speed_Offset_0'
+        
+        with open('/Users/dzalkind/Tools/ROSCO2/outputs/RPC_Sweeps/Baseline_Cases/RAAW_rosco_BD/turb_bts/base/olc_0.p','rb') as f:
+            olc = pickle.load(f)
+
+        # set up control_params for next run
+        open_loop = olc.write_input(os.path.join(r.save_dir,'ol_input.dat'))
+        controller_params = {}
+        controller_params['open_loop'] = open_loop
+        controller_params['OL_Mode'] = 2
+        controller_params['PA_Mode'] = 0
+        controller_params['DISCON'] = {}
+        controller_params['DISCON']['RP_Gains'] = -1800 * np.array([12,1.2,120])
+        controller_params['DISCON']['PC_MinPit'] = np.radians(-20)
+        
+        # Set initial conditions, fixed bottom, initial conditions
+        r.case_inputs = {}
+        r.case_inputs[("ElastoDyn","PtfmSgDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmSwDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmHvDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmRDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmPDOF")]    = {'vals':['False'], 'group':0}
+        
+        r.case_inputs[("ElastoDyn","PtfmYDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","RotSpeed")]      = {'vals':[olc.RotSpeed_0], 'group':0}
+        r.case_inputs[("ElastoDyn","Azimuth")]      = {'vals':[olc.Azimuth_0], 'group':0}
+        r.case_inputs[("ElastoDyn","BlPitch1")]      = {'vals':[olc.BldPitch_0], 'group':0}
+        r.case_inputs[("ElastoDyn","BlPitch2")]      = {'vals':[olc.BldPitch_0], 'group':0}
+        r.case_inputs[("ElastoDyn","BlPitch3")]      = {'vals':[olc.BldPitch_0], 'group':0}
+        r.case_inputs[("ServoDyn","Ptch_Cntrl")]      = {'vals':[1], 'group':0}
+
+        r.controller_params = controller_params
+        r.openfast_exe = '/Users/dzalkind/opt/anaconda3/envs/rosco-env2/bin/openfast'
+
+        r.n_cores = 4
+
+    elif sim_config == 24:
+        # RAAW wind speed offset test
+
+        r = run_FAST_ROSCO()
+        r.tuning_yaml   = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/ROSCO/RAAW_rosco_BD.yaml'
+        r.wind_case_fcn = cl.turb_bts
+        r.wind_case_opts    = {
+            'TMax': 750,
+            'wind_filenames': [
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/speed_offset/RAAW_NTM_U8.000000_Seed1501552846.0_speed-2.0.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/speed_offset/RAAW_NTM_U8.000000_Seed1501552846.0_speed-1.5.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/speed_offset/RAAW_NTM_U8.000000_Seed1501552846.0_speed-1.0.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/speed_offset/RAAW_NTM_U8.000000_Seed1501552846.0_speed-0.5.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/speed_offset/RAAW_NTM_U8.000000_Seed1501552846.0_speed0.0.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/speed_offset/RAAW_NTM_U8.000000_Seed1501552846.0_speed0.5.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/speed_offset/RAAW_NTM_U8.000000_Seed1501552846.0_speed1.0.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/speed_offset/RAAW_NTM_U8.000000_Seed1501552846.0_speed1.5.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/speed_offset/RAAW_NTM_U8.000000_Seed1501552846.0_speed2.0.bts',
+                ]
+            }
+        r.save_dir      = '/Users/dzalkind/Tools/ROSCO2/outputs/RPC_Sweeps/Speed_Offset_RO'
+        
+        with open('/Users/dzalkind/Tools/ROSCO2/outputs/RPC_Sweeps/Baseline_Cases/RAAW_rosco_BD/turb_bts/base/olc_0.p','rb') as f:
+            olc = pickle.load(f)
+
+        
+        # Set initial conditions, fixed bottom, initial conditions
+        r.case_inputs = {}
+        r.case_inputs[("ElastoDyn","PtfmSgDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmSwDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmHvDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmRDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmPDOF")]    = {'vals':['False'], 'group':0}
+        
+        r.case_inputs[("ElastoDyn","PtfmYDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","RotSpeed")]      = {'vals':[olc.RotSpeed_0], 'group':0}
+        r.case_inputs[("ElastoDyn","Azimuth")]      = {'vals':[olc.Azimuth_0], 'group':0}
+        r.case_inputs[("ElastoDyn","BlPitch1")]      = {'vals':[olc.BldPitch_0], 'group':0}
+        r.case_inputs[("ElastoDyn","BlPitch2")]      = {'vals':[olc.BldPitch_0], 'group':0}
+        r.case_inputs[("ElastoDyn","BlPitch3")]      = {'vals':[olc.BldPitch_0], 'group':0}
+        r.case_inputs[("ServoDyn","Ptch_Cntrl")]      = {'vals':[1], 'group':0}
+
+        r.openfast_exe = '/Users/dzalkind/opt/anaconda3/envs/rosco-env2/bin/openfast'
+
+        r.n_cores = 4
+
+    elif sim_config == 30:
+        # RAAW baseline cases
+
+        r = run_FAST_ROSCO()
+        r.tuning_yaml   = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/ROSCO/RAAW_rosco_BD.yaml'
+        r.wind_case_fcn = cl.turb_bts
+        r.wind_case_opts    = {
+            'TMax': 750,
+            'wind_filenames': [
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/wind/RAAW_NTM_U8.000000_Seed1501552846.0.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/wind/RAAW_NTM_U10.000000_Seed488200390.0.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/wind/RAAW_NTM_U12.000000_Seed1693606511.0.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/wind/RAAW_NTM_U14.000000_Seed680233354.0.bts',
+                '/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW/03_base_wind_files/wind/RAAW_NTM_U16.000000_Seed438466540.0.bts',
+                ]
+            }
+        r.save_dir      = '/Users/dzalkind/Tools/ROSCO2/outputs/RPC_Sweeps/Baseline_Cases'
+
+        
+        # Set initial conditions, fixed bottom, initial conditions
+        r.case_inputs = {}
+        r.case_inputs[("ElastoDyn","PtfmSgDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmSwDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmHvDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmRDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmPDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ElastoDyn","PtfmYDOF")]    = {'vals':['False'], 'group':0}
+        r.case_inputs[("ServoDyn","Ptch_Cntrl")]      = {'vals':[1], 'group':0}
+
+        r.openfast_exe = '/Users/dzalkind/opt/anaconda3/envs/rosco-env2/bin/openfast'
+
+        r.n_cores = 4
+
 
     else:
         raise Exception('This simulation configuration is not supported.')
