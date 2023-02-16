@@ -899,14 +899,14 @@ properties:
                         items:
                             type: number
                         description: AWC amplitude [rad]
-                        units: rad/s
+                        units: rad
                         default: [0.017453292]
                     AWC_clockangle:
                         type: array
                         items:
                             type: number
                         description: AWC clock angle [deg]
-                        units: rad/s
+                        units: deg
                         default: [0]
 
     linmodel_tuning:
