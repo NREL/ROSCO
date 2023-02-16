@@ -18,8 +18,8 @@ The latter two inputs may be specified based on the expected inflow while the fo
 
 Readers may be familiar with several forcing strategies from literature on active wake control that can be represented as follows:
 	-collective dynamic induction control: 	AWC_NumModes = 1, AWC_n = 0, AWC_clockangle = 0
-	-helix clockwise:			AWC_NumModes = 1, AWC_n = 1, AWC_clockangle = 0
-	-helix counter-clockwise:		AWC_NumModes = 1, AWC_n = -1, AWC_clockangle = 0
+	-helix clockwise [2]:			AWC_NumModes = 1, AWC_n = 1, AWC_clockangle = 0
+	-helix counter-clockwise [2]:		AWC_NumModes = 1, AWC_n = -1, AWC_clockangle = 0
 	-up-and-down:				AWC_NumModes = 2, AWC_n = -1 1, AWC_clockangle = 0 0
 	-side-to-side:				AWC_NumModes = 2, AWC_n = -1 1, AWC_clockangle = 90 90
 	-other:					Higher-order modes or different combinations of the above can also be specified
