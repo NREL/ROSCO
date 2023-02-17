@@ -111,21 +111,24 @@ def main():
 
     # Input yaml and output directory
     parameter_filename = os.path.join(rosco_dir,'Tune_Cases/NREL2p8.yaml')  # will be dummy and overwritten with SNL DISCON params
-    run_dir = os.path.join(example_out_dir,'20_active_wake_control/setup_4')
+    run_dir = os.path.join(example_out_dir,'20_active_wake_control/all_cases')
     os.makedirs(run_dir,exist_ok=True)
 
     # Read all DISCON inputs
-    rosco_vt = read_DISCON(os.path.join(rosco_dir,'TestCases','NREL_2p8_127/NREL-2p8-127_DISCON.IN'))
-
-    # Could change discon parameters here
-
+    rosco_vt = read_DISCON(os.path.join(rosco_dir,'Test_Cases','NREL_2p8_127/NREL-2p8-127_DISCON.IN'))
 
     # Apply all discon variables as case inputs
     control_base_case = {}
     for discon_input in rosco_vt:
         control_base_case[('DISCON_in',discon_input)] = {'vals': [rosco_vt[discon_input]], 'group': 0}
-    
 
+    # Set up AWC cases defined above
+    control_base_case[('DISCON_in','AWC_NumModes')] = {'vals': [1,1,1,2,2], 'group': 2}
+    control_base_case[('DISCON_in','AWC_n')] = {'vals': [[0],[1],[-1],[-1,1], [-1,1]], 'group': 2}
+    control_base_case[('DISCON_in','AWC_omega')] = {'vals': [[0.3142],[0.3142],[0.3142],[0.3142,0.3142], [0.3142,0.3142]], 'group': 2}
+    control_base_case[('DISCON_in','AWC_amp')] = {'vals': [[0.0175],[0.0175],[0.0175],[0.0175,0.0175], [0.0175,0.0175]], 'group': 2}
+    control_base_case[('DISCON_in','AWC_clockangle')] = {'vals': [[0],[0],[0],[0,0], [90,90]], 'group': 2}
+    
     # simulation set up
     r = run_FAST_ROSCO()
     r.tuning_yaml   = parameter_filename
@@ -138,7 +141,7 @@ def main():
     r.case_inputs[("ServoDyn","Ptch_Cntrl")] = {'vals':[1], 'group':0}  # Individual pitch control must be enabled in ServoDyn
     r.save_dir      = run_dir
     r.rosco_dir     = rosco_dir
-
+    r.n_cores = 5
     r.run_FAST()
 
     # # Check AWC here
