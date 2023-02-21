@@ -327,6 +327,8 @@ CONTAINS
         ENDIF
 
     END SUBROUTINE WindSpeedEstimator
+    
+    
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE SetpointSmoother(LocalVar, CntrPar, objInst)
     ! Setpoint smoother modifies controller reference in order to separate generator torque and blade pitch control actions
@@ -354,6 +356,70 @@ CONTAINS
         ENDIF
 
     END SUBROUTINE SetpointSmoother
+    
+    !-------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE LidarConfiguration(LocalVar, CntrPar, objInst)
+    ! Sets the lidar configuration and measurement coordinates
+
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
+        IMPLICIT NONE
+    
+        ! Inputs
+        TYPE(ControlParameters),    INTENT(IN   )       :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar 
+        TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
+        
+        REAL(IntKi)                                     :: I        !Loop counter
+      
+              
+   IF (LocalVar%SensorType == 1) THEN   
+        DO I = 1,LocalVar%NumBeam
+            
+         IF (.not. allocated(LocalVar%MsrPosition)) THEN
+             Allocate(LocalVar%MsrPosition(3,5))         
+            LocalVar%MsrPosition(1,I) = LocalVar%MsrPositionsX(I)
+            LocalVar%MsrPosition(2,I) = LocalVar%MsrPositionsY(I)
+            LocalVar%MsrPosition(3,I) = LocalVar%MsrPositionsZ(I)
+            
+         END IF 
+            LocalVar%MsrPosition(1,I) = LocalVar%MsrPositionsX(I)
+            LocalVar%MsrPosition(2,I) = LocalVar%MsrPositionsY(I)
+            LocalVar%MsrPosition(3,I) = LocalVar%MsrPositionsZ(I)
+        END DO 
+         
+        ELSE IF (LocalVar%SensorType == 2) THEN       
+         IF (.not. allocated(LocalVar%MsrPosition)) THEN
+             Allocate(LocalVar%MsrPosition(3,1))
+                 
+             LocalVar%MsrPosition(1,1) = LocalVar%MsrPositionsX(1)
+             LocalVar%MsrPosition(2,1) = LocalVar%MsrPositionsY(1)
+             LocalVar%MsrPosition(3,1) = LocalVar%MsrPositionsZ(1)
+        END IF 
+             LocalVar%MsrPosition(1,1) = LocalVar%MsrPositionsX(1)
+             LocalVar%MsrPosition(2,1) = LocalVar%MsrPositionsY(1)
+             LocalVar%MsrPosition(3,1) = LocalVar%MsrPositionsZ(1)
+   
+        ELSE IF (LocalVar%SensorType == 3) THEN
+            
+        DO I = 1,LocalVar%NumPulseGate  
+           IF (.not. allocated(LocalVar%MsrPosition)) THEN
+             Allocate(LocalVar%MsrPosition(3,5))   
+              
+            LocalVar%MsrPosition(1,I) = LocalVar%MsrPositionsX(1) - ((I - 1)*LocalVar%PulseSpacing)
+            LocalVar%MsrPosition(2,I) = LocalVar%MsrPositionsY(1)
+            LocalVar%MsrPosition(3,I) = LocalVar%MsrPositionsZ(1)
+            
+           END IF
+            LocalVar%MsrPosition(1,I) = LocalVar%MsrPositionsX(1) - ((I - 1)*LocalVar%PulseSpacing)
+            LocalVar%MsrPosition(2,I) = LocalVar%MsrPositionsY(1)
+            LocalVar%MsrPosition(3,I) = LocalVar%MsrPositionsZ(1)
+        END DO   
+         
+            LocalVar%LidSpeed(1) = (LocalVar%LidSpeed(1) + LocalVar%LidSpeed(2) + LocalVar%LidSpeed(3) + LocalVar%LidSpeed(4) + LocalVar%LidSpeed(5))/LocalVar%NumPulseGate
+          
+        END IF
+           
+     END SUBROUTINE LidarConfiguration    
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL(DbKi) FUNCTION PitchSaturation(LocalVar, CntrPar, objInst, DebugVar, ErrVar) 
     ! PitchSaturation defines a minimum blade pitch angle based on a lookup table provided by DISCON.IN
