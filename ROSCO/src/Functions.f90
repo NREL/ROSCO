@@ -129,6 +129,51 @@ CONTAINS
         inst = inst + 1
         
     END FUNCTION PIController
+    
+!-------------------------------------------------------------------------------------------------------------------------------
+      
+      REAL(DbKi) FUNCTION PIControllerFF(error, kp, ki, PitchError, PitchRate, minValue, maxValue, DT, I0, piP, reset, inst)
+    ! PI controller, capable of accepting forward pitch rate with output saturation
+
+        USE ROSCO_Types, ONLY : piParams
+        
+        IMPLICIT NONE
+        ! Allocate Inputs
+        REAL(8), INTENT(IN)         :: error
+        REAL(8), INTENT(IN)         :: kp
+        REAL(8), INTENT(IN)         :: ki
+        REAL(8), INTENT(IN)         :: PitchError
+        REAL(8), INTENT(IN)         :: PitchRate
+        REAL(8), INTENT(IN)         :: minValue
+        REAL(8), INTENT(IN)         :: maxValue
+        REAL(8), INTENT(IN)         :: DT
+        INTEGER(4), INTENT(INOUT)   :: inst
+        REAL(8), INTENT(IN)         :: I0
+        TYPE(piParams), INTENT(INOUT)  :: piP
+        LOGICAL, INTENT(IN)         :: reset     
+        ! Allocate local variables
+        INTEGER(4)                      :: i                                            ! Counter for making arrays
+        REAL(8)                         :: PTerm                                        ! Proportional term
+
+        
+        ! Initialize persistent variables/arrays, and set inital condition for integrator term
+        IF (reset) THEN
+            piP%ITerm(inst) = I0
+            piP%ITermLast(inst) = I0
+            
+            PIControllerFF = I0
+        ELSE
+            
+            PTerm = kp*error + kp*PitchError
+            piP%ITerm(inst) = piP%ITermLast(inst) + DT*ki*error + DT*PitchRate
+            piP%ITerm(inst) = saturate(piP%ITerm(inst), minValue, maxValue)
+            PIControllerFF = saturate(PTerm + pIP%ITerm(inst), minValue, maxValue)
+        
+            piP%ITermLast(inst) = piP%ITerm(inst)
+        END IF
+        inst = inst + 1
+        
+      END FUNCTION PIControllerFF   
 
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL(DbKi) FUNCTION PIIController(error, error2, kp, ki, ki2, minValue, maxValue, DT, I0, piP, reset, inst)
