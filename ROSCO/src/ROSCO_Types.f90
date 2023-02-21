@@ -126,6 +126,13 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: PC_RtTq99                   ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(DbKi)                    :: VS_MaxOMTq                  ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(DbKi)                    :: VS_MinOMTq                  ! Minimum torque at the beginning of the below-rated region 2, [Nm]
+    INTEGER(4)                    :: LIDAR_ControlMode                   ! Flag of lidar assisted Pitch forward control
+    REAL(8)                             :: FF_LPFCornerFreq              ! Corner frequency (-3dB point) in the low-pass filters, [rad/s]
+    REAL(8)                             :: Pitch_PreviewTime             ! The pitch preview time in seconds
+    INTEGER(4)                          :: NumPitchCurveFF              ! Number of points in the steady state pitch curve
+    REAL(8), DIMENSION(:), ALLOCATABLE  :: REWS_curve                   ! The second element of unit vector 
+    REAL(8), DIMENSION(:), ALLOCATABLE  :: Pitch_curve                  ! The third element of unit vector 
+
 END TYPE ControlParameters
 
 TYPE, PUBLIC :: WE
@@ -267,6 +274,30 @@ TYPE, PUBLIC :: LocalVariables
     TYPE(FilterParameters)        :: FP                          ! Filter parameters derived type
     TYPE(piParams)                :: piP                         ! PI parameters derived type
     TYPE(rlParams)                :: rlP                         ! Rate limiter parameters derived type
+  
+  ! ---------- LIDAR-assisted control variables ---------- 
+    INTEGER(4)                          :: MaxBufferStep = 20           ! the maximum buffer steps for store the u_est
+    INTEGER(4)                          :: MaxBufferStep_REWS = 2000    ! the maximum buffer steps for store the REWS, 25 second for a 80Hz 
+    REAL(8)                             :: NumPulseGate                ! number of gates in each lidar beam (pulsed lidar) received from the Discon.in  just need to cross check with GatesPerBeam from the avrSWAP
+    INTEGER(4)                          :: URefLid                     ! Reference average wind speed for the lidar [m/s]
+    REAL(8)                             :: LidSpeed(5)                 ! Line-of-sight wind speeds measurement [m/s]
+    REAL(8)                             :: LidSpeed_F(5)               ! Line-of-sight wind speeds measurement [m/s]
+    REAL(8)                             :: MsrPositionsX(5)            ! X direction lidar measurement coordinates [m]
+    REAL(8)                             :: MsrPositionsY(5)            ! Y direction lidar measurement coordinates [m]
+    REAL(8)                             :: MsrPositionsZ(5)            ! Z direction lidar measurement coordinates [m]
+    REAL(8), DIMENSION(:,:), ALLOCATABLE  :: MsrPosition               ! XYZ Coordinates of measurement position [m] 
+    REAL(8)                             :: SensorType                  ! Lidar sensor type
+    REAL(8)                             :: NumBeam                     ! Number of beams
+    REAL(8)                             :: PulseSpacing                ! Distance between range gates
+    REAL(8), DIMENSION(:), ALLOCATABLE  :: REWS_f                      ! Low pass filtered rotor effective wind speed,  estimated by lidar for feed-forward control, with a buffer size [m/s]    
+    REAL(8)                             :: REWS_b                      ! filterd and buffered Rotor effective wind speed [m/s]
+    REAL(8), DIMENSION(:), ALLOCATABLE  :: REWS_f_Time                 ! Rotor effective wind speed,  buffer time[s] 
+    REAL(8)                             :: LeadTime_1                  ! The leading time of the first measurement plane
+    REAL(8)                             :: FF_Pitch                    !the pitch of feed forward control
+    REAL(8)                             :: FF_Pitch_old                !the previous pitch of feed forward control
+    REAL(8)                             :: FF_Pitch_Error              !the error between the pitch of feedforward control and the current blade pitch
+    REAL(8)                             :: FF_Pitch_Error_old          !the previous pitch of feedforward control
+    REAL(8)                             :: FF_PitchRate                !the pitch rate of feedforward control
 END TYPE LocalVariables
 
 TYPE, PUBLIC :: ObjectInstances
