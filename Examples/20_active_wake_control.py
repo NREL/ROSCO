@@ -8,11 +8,12 @@ Set up and run simulation with AWC, check outputs
 Active wake control with blade pitching is implemented in this example with an adaptation into the rotating frame of the mathematical framework from the classical theory for stability of axisymmetric jets [1], which offers flexibility in specifying the forcing strategy.
 
 The inputs to the controller are:
-	-AWC_NumModes	(-)	-> number of forcing modes
-	-AWC_n		(-)	-> azimuthal mode number(s) (i.e., the azimuthal mode number relates to the number and direction of the lobes of the wake structure)
-	-AWC_clockangle (deg)	-> clocking angle of forcing mode(s)
-	-AWC_omega 	(rad/s)	-> frequency(s) of forcing mode(s)
-	-AWC_amp 	(rad)	-> pitch amplitude(s) of forcing mode(s)
+	Name			Unit		Type		Range		Description
+	AWC_NumModes		-		Integer		[0,inf]		number of forcing modes
+	AWC_n			-		Integer		[-inf,inf]	azimuthal mode number(s) (i.e., the azimuthal mode number relates to the number and direction of the lobes of the wake structure according to the classical spatio-temporal Fourier decomposition of an arbitrary quantity q, sigma{sigma{q*exp(i*n*theta)*exp(i*omega*time)}}. For the case of a non-time-varying flow (i.e., where omega = 0), the azimuthal mode number specifies the number of cycles of blade pitch oscillation per one rotation around the rotor azimuth.)
+	AWC_clockangle 		deg		Float		[0,360]		clocking angle of forcing mode(s)
+	AWC_omega 		rad/s		Float		[0,inf]		frequency(s) of forcing mode(s)
+	AWC_amp 		rad		Float		[0,inf]		pitch amplitude(s) of forcing mode(s)
 
 The latter two inputs may be specified based on the expected inflow while the former three inputs determine the type of active wake control to be used.
 
