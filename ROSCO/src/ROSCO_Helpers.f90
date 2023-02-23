@@ -31,10 +31,11 @@ MODULE ROSCO_Helpers
         ! MODULE PROCEDURE ParseInput_Log                                             ! Parses an LOGICAL from a string.
     END INTERFACE
 
-    INTERFACE ParseAry                                                         ! Parse an array of numbers from a string.
+    INTERFACE ParseAry                                                          ! Parse an array of numbers from a string.
         MODULE PROCEDURE ParseDbAry                                             ! Parse an array of double-precision REAL values.
         MODULE PROCEDURE ParseInAry                                             ! Parse an array of whole numbers.
-        MODULE PROCEDURE ParseInAry_Opt                                             ! Parse an array of whole numbers.
+        MODULE PROCEDURE ParseInAry_Opt                                         ! Parse an array of whole numbers. Optional inputs.
+        MODULE PROCEDURE ParseDbAry_Opt                                         ! Parse an array of double-precision REAL values.  Optional inputs.
     END INTERFACE
 
 CONTAINS
@@ -487,7 +488,7 @@ END SUBROUTINE ParseInAry
 
 !=======================================================================
 
-  !=======================================================================
+!=======================================================================
 !> This subroutine parses the specified line of text for AryLen INTEGER values.
 !! Generate an error message if the value is the wrong type.
 !! Use ParseAry (nwtc_io::parseary) instead of directly calling a specific routine in the generic interface.   
@@ -512,7 +513,7 @@ END SUBROUTINE ParseInAry
 
     CHARACTER(200), ALLOCATABLE                     :: Words_Ary       (:)               ! The array "words" parsed from the line.
     CHARACTER(1024)                                 :: Debug_String 
-    CHARACTER(*), PARAMETER                         :: RoutineName = 'ParseInAry'
+    CHARACTER(*), PARAMETER                         :: RoutineName = 'ParseInAry_Opt'
     CHARACTER(40)                                   :: AryNameUC
     LOGICAL                                         :: AllowDefault_, FoundLine
 
@@ -631,6 +632,151 @@ END SUBROUTINE ParseInAry
         END SUBROUTINE Cleanup
 
 END SUBROUTINE ParseInAry_Opt
+
+!=======================================================================
+!> This subroutine parses the specified line of text for AryLen INTEGER values.
+!! Generate an error message if the value is the wrong type.
+!! Use ParseAry (nwtc_io::parseary) instead of directly calling a specific routine in the generic interface.   
+  SUBROUTINE ParseDbAry_Opt ( FileLines, LineNum, AryName, Ary, AryLen, FileName, ErrVar, AllowDefault )
+
+    USE ROSCO_Types, ONLY : ErrorVariables
+
+    ! Arguments declarations.
+    CHARACTER(*),  INTENT(IN   ), DIMENSION(:)     :: FileLines   ! Input file unit
+    INTEGER,                INTENT(INOUT)          :: AryLen                        !< The length of the array to parse.
+    REAL(DbKi), ALLOCATABLE,   INTENT(INOUT)       :: Ary(:)            !< The array to receive the input values.
+    INTEGER(IntKi),         INTENT(INOUT)          :: LineNum                       !< The number of the line to parse.
+    CHARACTER(*),           INTENT(IN)             :: FileName                      !< The name of the file being parsed.
+    CHARACTER(*),           INTENT(IN)             :: AryName                       !< The array name we are trying to fill.
+    TYPE(ErrorVariables),   INTENT(INOUT)          :: ErrVar   ! Current line of input
+    LOGICAL, OPTIONAL,      INTENT(IN   )          :: AllowDefault
+
+    ! Local declarations.
+    CHARACTER(1024)                                :: Line
+    INTEGER(IntKi)                                 :: ErrStatLcl                    ! Error status local to this routine.
+    INTEGER(IntKi)                                 :: i
+
+    CHARACTER(200), ALLOCATABLE                     :: Words_Ary       (:)               ! The array "words" parsed from the line.
+    CHARACTER(1024)                                 :: Debug_String 
+    CHARACTER(*), PARAMETER                         :: RoutineName = 'ParseDbAry_Opt'
+    CHARACTER(40)                                   :: AryNameUC
+    LOGICAL                                         :: AllowDefault_, FoundLine
+
+    ! Figure out if we're checking the name, default to .TRUE.
+    AllowDefault_ = .TRUE.
+    if (PRESENT(AllowDefault)) AllowDefault_ = AllowDefault    
+
+    ! If we've already failed, don't read anything
+    IF (ErrVar%aviFAIL >= 0) THEN
+        
+        AryNameUC = AryName
+        CALL Conv2UC(AryNameUC)
+        ! Search for line in FileLines
+        FoundLine = .FALSE.
+        DO I = 1,SIZE(FileLines)
+            IF (INDEX(FileLines(I), AryName) > 0) THEN
+                Line = FileLines(I)
+                FoundLine = .TRUE.
+            END IF
+        END DO
+
+        ! PRINT *, "Line: ", TRIM(Line)
+
+        ! Minimum array length
+        IF (AryLen < 1) THEN
+            AryLen = 1
+        ENDIF
+
+        ! Allocate array and handle errors
+        ALLOCATE ( Ary(AryLen) , STAT=ErrStatLcl )
+        IF ( ErrStatLcl /= 0 ) THEN
+            IF ( ALLOCATED(Ary) ) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = RoutineName//':Error allocating memory for the '//TRIM( AryName )//' array; array was already allocated.'
+            ELSE
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = RoutineName//':Error allocating memory for '//TRIM(Int2LStr( AryLen ))//' characters in the '//TRIM( AryName )//' array.'
+            END IF
+        END IF
+
+        ! Print warning with default
+        IF (.NOT. FoundLine) THEN
+            IF (.NOT. AllowDefault_) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = RoutineName//':Default values are not allowed for '//TRIM( AryName )//'.'
+                RETURN
+            ENDIF
+
+            Ary = 0     ! Default of allocatable arrays is 0 for now
+            PRINT *, "Did not find "//TRIM( AryName )//" in input file.  Using default value of [", Ary, "]"
+            ! Skip the rest of the subroutine, exit
+            RETURN
+        ENDIF
+    
+        ! Allocate words array
+        ALLOCATE ( Words_Ary( AryLen + 1 ) , STAT=ErrStatLcl )
+        IF ( ErrStatLcl /= 0 )  THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg = RoutineName//':Fatal error allocating memory for the Words array.'
+            CALL Cleanup()
+            RETURN
+        ENDIF
+
+        ! Separate line string into AryLen + 1 words, should include variable name
+        CALL GetWords ( Line, Words_Ary, AryLen + 1 )  
+
+        ! Debug Output
+        IF (DEBUG_PARSING) THEN
+            Debug_String = ''
+            DO i = 1,AryLen+1
+                Debug_String = TRIM(Debug_String)//TRIM(Words_Ary(i))
+                IF (i < AryLen + 1) THEN
+                    Debug_String = TRIM(Debug_String)//','
+                END IF
+            END DO
+            print *, 'Read: '//TRIM(Debug_String)//' on line ', LineNum
+        END IF
+    
+        ! Read array
+        READ (Line,*,IOSTAT=ErrStatLcl)  Ary
+        IF ( ErrStatLcl /= 0 )  THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg = RoutineName//':A fatal error occurred when parsing data from "' &
+                            //TRIM( FileName )//'".'//NewLine//  &
+                            ' >> The "'//TRIM( AryName )//'" array was not assigned valid REAL values on line #' &
+                            //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
+                            //'    "'//TRIM( Line )//'"' 
+            RETURN
+            CALL Cleanup()         
+        ENDIF
+
+    !  IF ( PRESENT(UnEc) )  THEN
+    !     IF ( UnEc > 0 )  WRITE (UnEc,'(A)')  TRIM( FileInfo%Lines(LineNum) )
+    !  END IF
+
+        LineNum = LineNum + 1
+        CALL Cleanup()
+    ENDIF
+
+    RETURN
+
+    !=======================================================================
+    CONTAINS
+    !=======================================================================
+        SUBROUTINE Cleanup ( )
+
+            ! This subroutine cleans up the parent routine before exiting.
+
+            ! Deallocate the Words array if it had been allocated.
+
+            IF ( ALLOCATED( Words_Ary ) ) DEALLOCATE( Words_Ary )
+
+
+            RETURN
+
+        END SUBROUTINE Cleanup
+
+END SUBROUTINE ParseDbAry_Opt
 
 !=======================================================================
 
