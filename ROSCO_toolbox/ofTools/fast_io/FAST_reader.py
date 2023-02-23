@@ -1444,12 +1444,12 @@ class InputReader_OpenFAST(object):
             StC_vt['StC_Y_DOF'] = bool_read(f.readline().split()[0])  # false         StC_Y_DOF    - DOF on or off for StC Y (flag) [Used only when StC_DOF_MODE=1]
             StC_vt['StC_Z_DOF'] = bool_read(f.readline().split()[0])  # false         StC_Z_DOF    - DOF on or off for StC Z (flag) [Used only when StC_DOF_MODE=1]
             f.readline()    # StC LOCATION 
-            StC_vt['StC_P_Y'] = float_read(f.readline().split()[0])   #        0   StC_P_Y      - At rest Y position of StC (m)
             StC_vt['StC_P_X'] = float_read(f.readline().split()[0])   #    -51.75   StC_P_X      - At rest X position of StC (m)
+            StC_vt['StC_P_Y'] = float_read(f.readline().split()[0])   #        0   StC_P_Y      - At rest Y position of StC (m)
             StC_vt['StC_P_Z'] = float_read(f.readline().split()[0])   #        -10   StC_P_Z      - At rest Z position of StC (m)
             f.readline()    # StC INITIAL CONDITIONS 
-            StC_vt['StC_Y_DSP'] = float_read(f.readline().split()[0])   #        0   StC_Y_DSP    - StC Y initial displacement (m) [relative to at rest position]
             StC_vt['StC_X_DSP'] = float_read(f.readline().split()[0])   #        0   StC_X_DSP    - StC X initial displacement (m) [relative to at rest position]
+            StC_vt['StC_Y_DSP'] = float_read(f.readline().split()[0])   #        0   StC_Y_DSP    - StC Y initial displacement (m) [relative to at rest position]
             StC_vt['StC_Z_DSP'] = float_read(f.readline().split()[0])   #        0   StC_Z_DSP    - StC Z initial displacement (m) [relative to at rest position; used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]
             StC_vt['StC_Z_PreLd'] = f.readline().split()[0] # "none"        StC_Z_PreLd  - StC Z prefloat_read(f.readline().split()[0])  #-load (N) {"gravity" to offset for gravity load; "none" or 0 to turn off} [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]
             f.readline()    # StC CONFIGURATION 
@@ -2409,7 +2409,15 @@ class InputReader_OpenFAST(object):
             
         if self.fst_vt['Fst']['CompServo'] == 1:
             self.read_ServoDyn()
-            # Would read StCs here
+            # Read StC Files
+            for StC_file in self.fst_vt['ServoDyn']['BStCfiles']:
+                self.fst_vt['BStC'].append(self.read_StC(StC_file))
+            for StC_file in self.fst_vt['ServoDyn']['NStCfiles']:
+                self.fst_vt['NStC'].append(self.read_StC(StC_file))
+            for StC_file in self.fst_vt['ServoDyn']['TStCfiles']:
+                self.fst_vt['TStC'].append(self.read_StC(StC_file))
+            for StC_file in self.fst_vt['ServoDyn']['SStCfiles']:
+                self.fst_vt['SStC'].append(self.read_StC(StC_file))
             if ROSCO:
                 self.read_DISCON_in()
         hd_file = os.path.normpath(os.path.join(self.FAST_directory, self.fst_vt['Fst']['HydroFile']))
