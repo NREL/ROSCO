@@ -22,12 +22,13 @@ MODULE ROSCO_Helpers
     IMPLICIT NONE
 
     ! Global Variables
-    LOGICAL, PARAMETER     :: DEBUG_PARSING = .FALSE.      ! debug flag to output parsing information, set up Echo file later
+    LOGICAL, PARAMETER     :: DEBUG_PARSING = .TRUE.      ! debug flag to output parsing information, set up Echo file later
     
     INTERFACE ParseInput                                                         ! Parses a character variable name and value from a string.
         MODULE PROCEDURE ParseInput_Str                                             ! Parses a character string from a string.
         MODULE PROCEDURE ParseInput_Dbl                                             ! Parses a double-precision REAL from a string.
         MODULE PROCEDURE ParseInput_Int                                             ! Parses an INTEGER from a string.
+        MODULE PROCEDURE ParseInput_Int_Opt                                             ! Parses an INTEGER from a string.
         ! MODULE PROCEDURE ParseInput_Log                                             ! Parses an LOGICAL from a string.
     END INTERFACE
 
@@ -38,6 +39,9 @@ MODULE ROSCO_Helpers
         MODULE PROCEDURE ParseDbAry_Opt                                         ! Parse an array of double-precision REAL values.  Optional inputs.
     END INTERFACE
 
+    INTEGER(IntKi), PARAMETER       :: MaxLineLength    = 2048      ! characters
+    INTEGER(IntKi), PARAMETER       :: MaxParamLength   = 40        ! characters
+
 CONTAINS
 
     !=======================================================================
@@ -45,13 +49,13 @@ CONTAINS
     subroutine ParseInput_Int(Un, CurLine, VarName, FileName, Variable, ErrVar, CheckName)
         USE ROSCO_Types, ONLY : ErrorVariables
 
-        CHARACTER(1024)                         :: Line
+        CHARACTER(MaxLineLength)                    :: Line
         INTEGER(IntKi),             INTENT(IN   )   :: Un   ! Input file unit
-        CHARACTER(*),           INTENT(IN   )   :: VarName   ! Input file unit
-        CHARACTER(*),           INTENT(IN   )   :: FileName   ! Input file unit
+        CHARACTER(*),           INTENT(IN   )       :: VarName   ! Input file unit
+        CHARACTER(*),           INTENT(IN   )       :: FileName   ! Input file unit
         INTEGER(IntKi),             INTENT(INOUT)   :: CurLine   ! Current line of input
-        TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
-        CHARACTER(20)                           :: Words       (2)               ! The two "words" parsed from the line
+        TYPE(ErrorVariables),   INTENT(INOUT)       :: ErrVar   ! Current line of input
+        CHARACTER(MaxParamLength)                   :: Words       (2)               ! The two "words" parsed from the line
 
         INTEGER(IntKi),             INTENT(INOUT)   :: Variable   ! Variable
         INTEGER(IntKi)                              :: ErrStatLcl                    ! Error status local to this routine.
@@ -103,6 +107,99 @@ CONTAINS
         END IF
 
     END subroutine ParseInput_Int
+
+    !=======================================================================
+    ! Parse integer input: read line, check that variable name is in line, handle errors
+    subroutine ParseInput_Int_Opt(FileLines, VarName, FileName, Variable, ErrVar, DefaultFlag)
+        USE ROSCO_Types, ONLY : ErrorVariables
+
+        CHARACTER(*),           INTENT(IN   ), DIMENSION(:) :: FileLines   ! Input file unit
+        CHARACTER(*),           INTENT(IN   )               :: VarName   ! Input file unit
+        CHARACTER(*),           INTENT(IN   )               :: FileName   ! Input file unit
+        TYPE(ErrorVariables),   INTENT(INOUT)               :: ErrVar   ! Current line of input
+        INTEGER(IntKi),         INTENT(INOUT)               :: Variable   ! Variable
+        
+        ! Flag (usually control mode) specifying whether default is allowed, 0 - yes, nonzero - no
+        INTEGER(IntKi), OPTIONAL,      INTENT(IN   )        :: DefaultFlag   
+        
+        INTEGER(IntKi)                          :: CurLine   ! Current line of input
+        CHARACTER(MaxParamLength)               :: Words       (2)               ! The two "words" parsed from the line
+        CHARACTER(MaxParamLength)               :: VarNameUC
+        CHARACTER(MaxLineLength)                :: Line
+        INTEGER(IntKi)                          :: ErrStatLcl           ! Error status local to this routine.
+        INTEGER(IntKi)                          :: I, VarLineIndex                    ! Line indexer
+        LOGICAL                                 :: AllowDefault, FoundLine
+        CHARACTER(*), PARAMETER                 :: RoutineName = 'ParseInput_Int_Opt'
+
+
+        ! Figure out if we allow default
+        AllowDefault = .FALSE.
+        IF (.NOT. PRESENT(DefaultFlag) .OR. DefaultFlag == 0) THEN
+            AllowDefault = .TRUE. 
+        ENDIF
+
+        ! If we've already failed, don't read anything
+        IF (ErrVar%aviFAIL >= 0) THEN
+
+            VarNameUC = VarName
+            CALL Conv2UC(VarNameUC)
+            ! Search for line in FileLines
+            FoundLine = .FALSE.
+            DO I = 1,SIZE(FileLines)
+                ! Separate line string into 2 words
+                CALL GetWords ( FileLines(I), Words, 2 )  
+
+                ! Variable name should be second word
+                IF (INDEX(Words(2), VarName) > 0) THEN
+                    Line = FileLines(I)
+                    CurLine = I
+                    FoundLine = .TRUE.
+                END IF
+            END DO
+
+            ! Separate line again
+            CALL GetWords ( Line, Words, 2 )  
+
+            ! PRINT *, "Line: ", Line
+
+            ! Print warning with default
+            IF (.NOT. FoundLine) THEN
+                IF (.NOT. AllowDefault) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = RoutineName//':Default values are not allowed for '//TRIM( VarName )//'.'
+                    RETURN
+                ENDIF
+
+                Variable = 0     ! Default of integer iputs is 0 for now
+                PRINT *, "Did not find "//TRIM( VarName )//" in input file.  Using default value of ", Variable
+                ! Skip the rest of the subroutine, exit
+                RETURN
+            ENDIF
+
+            ! Debugging: show what's being read, turn into Echo later
+            IF (DEBUG_PARSING) THEN
+                print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
+            END IF
+
+            ! IF We haven't failed already
+            IF (ErrVar%aviFAIL >= 0) THEN        
+
+                ! Read the variable
+                READ (Words(1),*,IOSTAT=ErrStatLcl)  Variable
+                IF ( ErrStatLcl /= 0 )  THEN
+                    ErrVar%aviFAIL  = -1
+                    ErrVar%ErrMsg   =  NewLine//' >> A fatal error occurred when parsing data from "' &
+                        //TRIM( FileName )//'".'//NewLine//  &
+                        ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid INTEGER value on line #' &
+                        //TRIM( Int2LStr( CurLine ) )//'.'//NewLine//&
+                        ' >> The text being parsed was :'//NewLine//'    "'//TRIM( Line )//'"'
+                ENDIF
+
+            ENDIF   
+
+        END IF
+
+    END subroutine ParseInput_Int_Opt
 
     !=======================================================================
     ! Parse double input, this is a copy of ParseInput_Int and a change in the variable definitions
@@ -507,14 +604,14 @@ END SUBROUTINE ParseInAry
     LOGICAL, OPTIONAL,      INTENT(IN   )          :: AllowDefault
 
     ! Local declarations.
-    CHARACTER(1024)                                :: Line
+    CHARACTER(MaxLineLength)                                :: Line
     INTEGER(IntKi)                                 :: ErrStatLcl                    ! Error status local to this routine.
     INTEGER(IntKi)                                 :: i
 
-    CHARACTER(200), ALLOCATABLE                     :: Words_Ary       (:)               ! The array "words" parsed from the line.
-    CHARACTER(1024)                                 :: Debug_String 
+    CHARACTER(MaxParamLength), ALLOCATABLE          :: Words_Ary       (:)               ! The array "words" parsed from the line.
+    CHARACTER(MaxLineLength)                        :: Debug_String 
     CHARACTER(*), PARAMETER                         :: RoutineName = 'ParseInAry_Opt'
-    CHARACTER(40)                                   :: AryNameUC
+    CHARACTER(MaxParamLength)                       :: AryNameUC
     LOGICAL                                         :: AllowDefault_, FoundLine
 
     ! Figure out if we're checking the name, default to .TRUE.
@@ -609,7 +706,6 @@ END SUBROUTINE ParseInAry
     !     IF ( UnEc > 0 )  WRITE (UnEc,'(A)')  TRIM( FileInfo%Lines(LineNum) )
     !  END IF
 
-        LineNum = LineNum + 1
         CALL Cleanup()
     ENDIF
 
@@ -656,10 +752,10 @@ END SUBROUTINE ParseInAry_Opt
     INTEGER(IntKi)                                 :: ErrStatLcl                    ! Error status local to this routine.
     INTEGER(IntKi)                                 :: i
 
-    CHARACTER(200), ALLOCATABLE                     :: Words_Ary       (:)               ! The array "words" parsed from the line.
-    CHARACTER(1024)                                 :: Debug_String 
+    CHARACTER(MaxParamLength), ALLOCATABLE          :: Words_Ary       (:)               ! The array "words" parsed from the line.
+    CHARACTER(MaxLineLength)                        :: Debug_String 
     CHARACTER(*), PARAMETER                         :: RoutineName = 'ParseDbAry_Opt'
-    CHARACTER(40)                                   :: AryNameUC
+    CHARACTER(MaxParamLength)                       :: AryNameUC
     LOGICAL                                         :: AllowDefault_, FoundLine
 
     ! Figure out if we're checking the name, default to .TRUE.
@@ -754,7 +850,6 @@ END SUBROUTINE ParseInAry_Opt
     !     IF ( UnEc > 0 )  WRITE (UnEc,'(A)')  TRIM( FileInfo%Lines(LineNum) )
     !  END IF
 
-        LineNum = LineNum + 1
         CALL Cleanup()
     ENDIF
 
