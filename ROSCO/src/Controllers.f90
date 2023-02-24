@@ -611,7 +611,7 @@ CONTAINS
 
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE ActiveWakeControl(CntrPar, LocalVar)
-        ! Yaw rate controller
+        ! Active wake controller
         !       AWC_Mode = 0, No active wake control
         !       AWC_Mode = 1, SNL active wake control
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
@@ -627,7 +627,9 @@ CONTAINS
         COMPLEX(DbKi), DIMENSION(3)                    :: AWC_complexangle
         COMPLEX(DbKi)                                  :: complexI = (0.0, 1.0)
         INTEGER(IntKi)                                  :: Imode, K       ! Index used for looping through AWC modes
-        REAL(DbKi)                 :: clockang                         ! Clock angle for AWC pitching
+        REAL(DbKi)                 :: clockang                         ! Clock angle for AWC pitching in radian
+        REAL(DbKi)                 :: omega                         ! angular frequency for AWC pitching in rad/s
+        REAL(DbKi)                 :: amp                         ! amplitude for AWC pitching in radian
 
 
         ! Compute the AWC pitch settings
@@ -636,14 +638,16 @@ CONTAINS
             LocalVar%AWC_complexangle = 0.0D0
 
             DO Imode = 1,CntrPar%AWC_NumModes
-            clockang = CntrPar%AWC_clockangle(Imode)*PI/180.0_DbKi
-            AWC_angle(1) = CntrPar%AWC_omega(Imode) * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi1 + clockang)
-            AWC_angle(2) = CntrPar%AWC_omega(Imode) * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi2 + clockang)
-            AWC_angle(3) = CntrPar%AWC_omega(Imode) * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi3 + clockang)
-            ! Add the forcing contribution to LocalVar%AWC_complexangle
-            DO K = 1,LocalVar%NumBl ! Loop through all blades
-                LocalVar%AWC_complexangle(K) = LocalVar%AWC_complexangle(K) + CntrPar%AWC_amp(Imode) * EXP(complexI * (AWC_angle(K)))
-            END DO
+                clockang = CntrPar%AWC_clockangle(Imode)*PI/180.0_DbKi
+                omega = CntrPar%AWC_freq(Imode)*PI*2.0_DbKi
+                AWC_angle(1) = omega * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi1 + clockang)
+                AWC_angle(2) = omega * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi2 + clockang)
+                AWC_angle(3) = omega * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi3 + clockang)
+                ! Add the forcing contribution to LocalVar%AWC_complexangle
+                amp = CntrPar%AWC_amp(Imode)*PI/180.0_DbKi
+                DO K = 1,LocalVar%NumBl ! Loop through all blades
+                    LocalVar%AWC_complexangle(K) = LocalVar%AWC_complexangle(K) + amp * EXP(complexI * (AWC_angle(K)))
+                END DO
             END DO
 
             DO K = 1,LocalVar%NumBl ! Loop through all blades, apply AWC_angle
