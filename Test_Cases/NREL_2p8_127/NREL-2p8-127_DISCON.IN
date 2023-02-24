@@ -141,11 +141,11 @@
 0.00000000 0.00000000 0.00000000                 ! PF_Offsets     - Constant blade pitch offsets for blades 1-3 [rad]
 
 !------- AWC Modifications -----------------------------------------------------
-1        ! AWC_NumModes
-1        ! AWC_n       - AWC azimuthal number
-0.3141592653     ! AWC_omega      - AWC frequency [rad/s]
-0.01745329222222222222    ! AWC_amp      - AWC amplitude [rad]
-0.0   ! AWC_clockangle     - AWC clock angle [deg]
+1        ! AWC_NumModes    - Number of modes
+1        ! AWC_n           - azimuthal mode number
+0.05     ! AWC_freq        - frequency [Hz]
+1.0      ! AWC_amp         - amplitude [deg]
+0.0      ! AWC_clockangle  - clock angle [deg]
 
 !------- External Controller Interface -----------------------------------------------------
 "unused"            ! DLL_FileName        - Name/location of the dynamic library in the Bladed-DLL format
