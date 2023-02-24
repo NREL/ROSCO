@@ -82,7 +82,7 @@ END IF
 CALL ReadAvrSWAP(avrSWAP, LocalVar, CntrPar)
 
 ! Set Control Parameters
-CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, zmqVar, ErrVar)
+CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, zmqVar, RootName, ErrVar)
 
 ! Call external controller, if desired
 IF (CntrPar%Ext_Mode > 0) THEN

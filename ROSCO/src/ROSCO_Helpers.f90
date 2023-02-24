@@ -22,7 +22,7 @@ MODULE ROSCO_Helpers
     IMPLICIT NONE
 
     ! Global Variables
-    LOGICAL, PARAMETER     :: DEBUG_PARSING = .TRUE.      ! debug flag to output parsing information, set up Echo file later
+    LOGICAL, PARAMETER     :: DEBUG_PARSING = .FALSE.      ! debug flag to output parsing information, set up Echo file later
     
     INTERFACE ParseInput                                                         ! Parses a character variable name and value from a string.
         MODULE PROCEDURE ParseInput_Str                                             ! Parses a character string from a string.
@@ -112,7 +112,7 @@ CONTAINS
 
     !=======================================================================
     ! Parse integer input: read line, check that variable name is in line, handle errors
-    subroutine ParseInput_Int_Opt(FileLines, VarName, Variable, FileName, ErrVar, AllowDefault)
+    subroutine ParseInput_Int_Opt(FileLines, VarName, Variable, FileName, ErrVar, AllowDefault, UnEc)
         USE ROSCO_Types, ONLY : ErrorVariables
 
         CHARACTER(*),           INTENT(IN   ), DIMENSION(:) :: FileLines   ! Input file unit
@@ -120,7 +120,9 @@ CONTAINS
         CHARACTER(*),           INTENT(IN   )               :: FileName   ! Input file unit
         TYPE(ErrorVariables),   INTENT(INOUT)               :: ErrVar   ! Current line of input
         INTEGER(IntKi),         INTENT(INOUT)               :: Variable   ! Variable
-        
+        Integer(IntKi), OPTIONAL, INTENT(IN   )               :: UnEc   ! Variable
+
+
         ! Flag (usually control mode) specifying whether default is allowed, 0 - yes, nonzero - no
         LOGICAL, OPTIONAL,      INTENT(IN   )        :: AllowDefault   
         
@@ -183,13 +185,17 @@ CONTAINS
 
             ENDIF   
 
+            IF ( PRESENT(UnEc))  THEN
+                IF ( UnEc > 0 )  WRITE (UnEc,*)  CurLine, Tab, VarName, Tab, Variable
+            END IF
+
         END IF
 
     END subroutine ParseInput_Int_Opt
 
      !=======================================================================
     ! Parse integer input: read line, check that variable name is in line, handle errors
-    subroutine ParseInput_Dbl_Opt(FileLines, VarName, Variable, FileName, ErrVar, AllowDefault)
+    subroutine ParseInput_Dbl_Opt(FileLines, VarName, Variable, FileName, ErrVar, AllowDefault, UnEc)
         USE ROSCO_Types, ONLY : ErrorVariables
 
         CHARACTER(*),           INTENT(IN   ), DIMENSION(:) :: FileLines   ! Input file unit
@@ -197,6 +203,8 @@ CONTAINS
         CHARACTER(*),           INTENT(IN   )               :: FileName   ! Input file unit
         TYPE(ErrorVariables),   INTENT(INOUT)               :: ErrVar   ! Current line of input
         REAL(DbKi),             INTENT(INOUT)               :: Variable   ! Variable
+        Integer(IntKi), OPTIONAL, INTENT(IN   )               :: UnEc   ! Variable
+
         
         ! Flag (usually control mode) specifying whether default is allowed, 0 - yes, nonzero - no
         LOGICAL, OPTIONAL,      INTENT(IN   )        :: AllowDefault   
@@ -261,13 +269,17 @@ CONTAINS
 
             ENDIF   
 
+            IF ( PRESENT(UnEc))  THEN
+                IF ( UnEc > 0 )  WRITE (UnEc,*)  CurLine, Tab, VarName, Tab, Variable
+            END IF
+
         END IF
 
     END subroutine ParseInput_Dbl_Opt
 
         !=======================================================================
     ! Parse integer input: read line, check that variable name is in line, handle errors
-    subroutine ParseInput_Str_Opt(FileLines, VarName, Variable, FileName, ErrVar, AllowDefault)
+    subroutine ParseInput_Str_Opt(FileLines, VarName, Variable, FileName, ErrVar, AllowDefault, UnEc)
         USE ROSCO_Types, ONLY : ErrorVariables
 
         CHARACTER(*),           INTENT(IN   ), DIMENSION(:) :: FileLines   ! Input file unit
@@ -275,7 +287,8 @@ CONTAINS
         CHARACTER(*),           INTENT(IN   )               :: FileName   ! Input file unit
         TYPE(ErrorVariables),   INTENT(INOUT)               :: ErrVar   ! Current line of input
         CHARACTER(*),           INTENT(INOUT)               :: Variable   ! Variable
-        
+        Integer(IntKi), OPTIONAL, INTENT(IN   )               :: UnEc   ! Variable
+
         ! Flag (usually control mode) specifying whether default is allowed, 0 - yes, nonzero - no
         LOGICAL, OPTIONAL,      INTENT(IN   )        :: AllowDefault   
         
@@ -338,6 +351,10 @@ CONTAINS
                 ENDIF
 
             ENDIF   
+
+            IF ( PRESENT(UnEc))  THEN
+                IF ( UnEc > 0 )  WRITE (UnEc,*)  CurLine, Tab, VarName, Tab, Variable
+            END IF
 
         END IF
 
@@ -571,10 +588,6 @@ CONTAINS
                 CALL Cleanup()         
             ENDIF
 
-        !  IF ( PRESENT(UnEc) )  THEN
-        !     IF ( UnEc > 0 )  WRITE (UnEc,'(A)')  TRIM( FileInfo%Lines(LineNum) )
-        !  END IF
-
             LineNum = LineNum + 1
             CALL Cleanup()
         ENDIF
@@ -732,7 +745,7 @@ END SUBROUTINE ParseInAry
 !> This subroutine parses the specified line of text for AryLen INTEGER values.
 !! Generate an error message if the value is the wrong type.
 !! Use ParseAry (nwtc_io::parseary) instead of directly calling a specific routine in the generic interface.   
-  SUBROUTINE ParseInAry_Opt ( FileLines, ParamName, Ary, AryLen, FileName, ErrVar, AllowDefault )
+  SUBROUTINE ParseInAry_Opt( FileLines, ParamName, Ary, AryLen, FileName, ErrVar, AllowDefault, UnEc )
 
     USE ROSCO_Types, ONLY : ErrorVariables
 
@@ -743,6 +756,7 @@ END SUBROUTINE ParseInAry
     CHARACTER(*),           INTENT(IN)             :: FileName                      !< The name of the file being parsed.
     CHARACTER(*),           INTENT(IN)             :: ParamName                       !< The array name we are trying to fill.
     TYPE(ErrorVariables),   INTENT(INOUT)          :: ErrVar   ! Current line of input
+    Integer(IntKi), OPTIONAL, INTENT(IN   )               :: UnEc   ! Variable
     LOGICAL, OPTIONAL,      INTENT(IN   )        :: AllowDefault   
 
     ! Local declarations.
@@ -839,9 +853,9 @@ END SUBROUTINE ParseInAry
             CALL Cleanup()         
         ENDIF
 
-    !  IF ( PRESENT(UnEc) )  THEN
-    !     IF ( UnEc > 0 )  WRITE (UnEc,'(A)')  TRIM( FileInfo%Lines(LineNum) )
-    !  END IF
+        IF ( PRESENT(UnEc))  THEN
+            IF ( UnEc > 0 )  WRITE (UnEc,*)  LineNum, Tab, ParamName, Tab, Ary
+        END IF
 
         CALL Cleanup()
     ENDIF
@@ -870,7 +884,7 @@ END SUBROUTINE ParseInAry_Opt
 !> This subroutine parses the specified line of text for AryLen INTEGER values.
 !! Generate an error message if the value is the wrong type.
 !! Use ParseAry (nwtc_io::parseary) instead of directly calling a specific routine in the generic interface.   
-  SUBROUTINE ParseDbAry_Opt ( FileLines, ParamName, Ary, AryLen, FileName, ErrVar, AllowDefault )
+  SUBROUTINE ParseDbAry_Opt ( FileLines, ParamName, Ary, AryLen, FileName, ErrVar, AllowDefault, UnEc )
 
     USE ROSCO_Types, ONLY : ErrorVariables
 
@@ -882,6 +896,7 @@ END SUBROUTINE ParseInAry_Opt
     CHARACTER(*),           INTENT(IN)             :: ParamName                       !< The array name we are trying to fill.
     TYPE(ErrorVariables),   INTENT(INOUT)          :: ErrVar   ! Current line of input
     LOGICAL, OPTIONAL,      INTENT(IN   )          :: AllowDefault   
+    Integer(IntKi), OPTIONAL, INTENT(IN   )        :: UnEc   ! Variable
 
     ! Local declarations.
     INTEGER(IntKi)                                 :: LineNum                       !< The number of the line to parse.
@@ -975,9 +990,9 @@ END SUBROUTINE ParseInAry_Opt
             CALL Cleanup()         
         ENDIF
 
-    !  IF ( PRESENT(UnEc) )  THEN
-    !     IF ( UnEc > 0 )  WRITE (UnEc,'(A)')  TRIM( FileInfo%Lines(LineNum) )
-    !  END IF
+        IF ( PRESENT(UnEc))  THEN
+            IF ( UnEc > 0 )  WRITE (UnEc,*)  LineNum, Tab, ParamName, Tab, Ary
+        END IF
 
         CALL Cleanup()
     ENDIF

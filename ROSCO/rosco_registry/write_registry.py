@@ -163,7 +163,7 @@ def write_roscoio(yfile):
     file.write('        Close ( Un )\n')
     file.write('    ENDIF\n')
     file.write('    ! Read Parameter files\n')
-    file.write('    CALL ReadControlParameterFileSub(CntrPar, zmqVar, LocalVar%ACC_INFILE, LocalVar%ACC_INFILE_SIZE, ErrVar)\n')
+    file.write('    CALL ReadControlParameterFileSub(CntrPar, zmqVar, LocalVar%ACC_INFILE, LocalVar%ACC_INFILE_SIZE, RootName, ErrVar)\n')
     file.write('    IF (CntrPar%WE_Mode > 0) THEN\n')
     file.write('        CALL READCpFile(CntrPar, PerfData, ErrVar)\n')
     file.write('    ENDIF\n')

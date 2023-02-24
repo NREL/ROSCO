@@ -69,7 +69,9 @@ ControlParameters:
     LoggingLevel: 
       <<: *integer
       description: 0 - write no debug files, 1 - write standard output .dbg-file, 2 - write standard output .dbg-file and complete avrSWAP-array .dbg2-file
-    
+    Echo: 
+      <<: *integer
+      description: 0 - no Echo, 1 - Echo input data to <RootName>.echo
     # Filters
     F_LPFType:
       <<: *integer
