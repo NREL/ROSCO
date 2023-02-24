@@ -111,7 +111,7 @@ CONTAINS
 
     !=======================================================================
     ! Parse integer input: read line, check that variable name is in line, handle errors
-    subroutine ParseInput_Int_Opt(FileLines, VarName, Variable, FileName, ErrVar, DefaultFlag)
+    subroutine ParseInput_Int_Opt(FileLines, VarName, Variable, FileName, ErrVar, AllowDefault)
         USE ROSCO_Types, ONLY : ErrorVariables
 
         CHARACTER(*),           INTENT(IN   ), DIMENSION(:) :: FileLines   ! Input file unit
@@ -121,7 +121,7 @@ CONTAINS
         INTEGER(IntKi),         INTENT(INOUT)               :: Variable   ! Variable
         
         ! Flag (usually control mode) specifying whether default is allowed, 0 - yes, nonzero - no
-        INTEGER(IntKi), OPTIONAL,      INTENT(IN   )        :: DefaultFlag   
+        LOGICAL, OPTIONAL,      INTENT(IN   )        :: AllowDefault   
         
         INTEGER(IntKi)                          :: CurLine   ! Current line of input
         CHARACTER(MaxParamLength)               :: Words       (2)               ! The two "words" parsed from the line
@@ -129,34 +129,18 @@ CONTAINS
         CHARACTER(MaxLineLength)                :: Line
         INTEGER(IntKi)                          :: ErrStatLcl           ! Error status local to this routine.
         INTEGER(IntKi)                          :: I, VarLineIndex                    ! Line indexer
-        LOGICAL                                 :: AllowDefault, FoundLine
+        LOGICAL                                 :: AllowDefault_, FoundLine
         CHARACTER(*), PARAMETER                 :: RoutineName = 'ParseInput_Int_Opt'
 
 
         ! Figure out if we allow default
-        AllowDefault = .FALSE.
-        IF (.NOT. PRESENT(DefaultFlag) .OR. DefaultFlag == 0) THEN
-            AllowDefault = .TRUE. 
-        ENDIF
+        AllowDefault_ = .TRUE.
+        if (PRESENT(AllowDefault)) AllowDefault_ = AllowDefault    
 
         ! If we've already failed, don't read anything
         IF (ErrVar%aviFAIL >= 0) THEN
 
-            VarNameUC = VarName
-            CALL Conv2UC(VarNameUC)
-            ! Search for line in FileLines
-            FoundLine = .FALSE.
-            DO I = 1,SIZE(FileLines)
-                ! Separate line string into 2 words
-                CALL GetWords ( FileLines(I), Words, 2 )  
-
-                ! Variable name should be second word
-                IF (INDEX(Words(2), VarName) > 0) THEN
-                    Line = FileLines(I)
-                    CurLine = I
-                    FoundLine = .TRUE.
-                END IF
-            END DO
+            CALL FindLine(FileLines, VarName, FoundLine, Line, CurLine)
 
             ! Separate line again
             CALL GetWords ( Line, Words, 2 )  
@@ -165,9 +149,9 @@ CONTAINS
 
             ! Print warning with default
             IF (.NOT. FoundLine) THEN
-                IF (.NOT. AllowDefault) THEN
+                IF (.NOT. AllowDefault_) THEN
                     ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg = RoutineName//':Missing or default values are not allowed for '//TRIM( VarName )//'. Please check control modes.'
+                    ErrVar%ErrMsg = RoutineName//':Missing or default values are not allowed for '//TRIM( VarName )//'. Please check control modes and array length.'
                     RETURN
                 ENDIF
 
@@ -204,8 +188,7 @@ CONTAINS
 
      !=======================================================================
     ! Parse integer input: read line, check that variable name is in line, handle errors
-    subroutine ParseInput_Dbl_Opt(FileLines, VarName, Variable, FileName, ErrVar, DefaultFlag)
-    ! SUBROUTINE ParseInAry_Opt ( FileLines, AryName, Ary, AryLen, FileName, ErrVar, DefaultFlag )
+    subroutine ParseInput_Dbl_Opt(FileLines, VarName, Variable, FileName, ErrVar, AllowDefault)
         USE ROSCO_Types, ONLY : ErrorVariables
 
         CHARACTER(*),           INTENT(IN   ), DIMENSION(:) :: FileLines   ! Input file unit
@@ -215,7 +198,7 @@ CONTAINS
         REAL(DbKi),             INTENT(INOUT)               :: Variable   ! Variable
         
         ! Flag (usually control mode) specifying whether default is allowed, 0 - yes, nonzero - no
-        INTEGER(IntKi), OPTIONAL,      INTENT(IN   )        :: DefaultFlag   
+        LOGICAL, OPTIONAL,      INTENT(IN   )        :: AllowDefault   
         
         INTEGER(IntKi)                          :: CurLine   ! Current line of input
         CHARACTER(MaxParamLength)               :: Words       (2)               ! The two "words" parsed from the line
@@ -223,34 +206,19 @@ CONTAINS
         CHARACTER(MaxLineLength)                :: Line
         INTEGER(IntKi)                          :: ErrStatLcl           ! Error status local to this routine.
         INTEGER(IntKi)                          :: I, VarLineIndex                    ! Line indexer
-        LOGICAL                                 :: AllowDefault, FoundLine
+        LOGICAL                                 :: AllowDefault_, FoundLine
         CHARACTER(*), PARAMETER                 :: RoutineName = 'ParseInput_Dbl_Opt'
 
 
         ! Figure out if we allow default
-        AllowDefault = .FALSE.
-        IF (.NOT. PRESENT(DefaultFlag) .OR. DefaultFlag == 0) THEN
-            AllowDefault = .TRUE. 
-        ENDIF
+        AllowDefault_ = .TRUE.
+        if (PRESENT(AllowDefault)) AllowDefault_ = AllowDefault    
 
         ! If we've already failed, don't read anything
         IF (ErrVar%aviFAIL >= 0) THEN
 
-            VarNameUC = VarName
-            CALL Conv2UC(VarNameUC)
-            ! Search for line in FileLines
-            FoundLine = .FALSE.
-            DO I = 1,SIZE(FileLines)
-                ! Separate line string into 2 words
-                CALL GetWords ( FileLines(I), Words, 2 )  
+            CALL FindLine(FileLines, VarName, FoundLine, Line, CurLine)
 
-                ! Variable name should be second word
-                IF (INDEX(Words(2), VarName) > 0) THEN
-                    Line = FileLines(I)
-                    CurLine = I
-                    FoundLine = .TRUE.
-                END IF
-            END DO
 
             ! Separate line again
             CALL GetWords ( Line, Words, 2 )  
@@ -259,9 +227,9 @@ CONTAINS
 
             ! Print warning with default
             IF (.NOT. FoundLine) THEN
-                IF (.NOT. AllowDefault) THEN
+                IF (.NOT. AllowDefault_) THEN
                     ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg = RoutineName//':Missing or default values are not allowed for '//TRIM( VarName )//'. Please check control modes.'
+                    ErrVar%ErrMsg = RoutineName//':Missing or default values are not allowed for '//TRIM( VarName )//'. Please check control modes and array length.'
                     RETURN
                 ENDIF
 
@@ -428,7 +396,7 @@ CONTAINS
 !> This subroutine parses the specified line of text for AryLen REAL values.
 !! Generate an error message if the value is the wrong type.
 !! Use ParseAry (nwtc_io::parseary) instead of directly calling a specific routine in the generic interface.   
-    SUBROUTINE ParseDbAry ( Un, LineNum, AryName, Ary, AryLen, FileName, ErrVar, CheckName )
+    SUBROUTINE ParseDbAry ( Un, LineNum, ParamName, Ary, AryLen, FileName, ErrVar, CheckName )
 
         USE ROSCO_Types, ONLY : ErrorVariables
 
@@ -442,7 +410,7 @@ CONTAINS
         CHARACTER(*),           INTENT(IN)      :: FileName                      !< The name of the file being parsed.
 
 
-        CHARACTER(*),           INTENT(IN   )   :: AryName                       !< The array name we are trying to fill.
+        CHARACTER(*),           INTENT(IN   )   :: ParamName                       !< The array name we are trying to fill.
 
         TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
 
@@ -474,10 +442,10 @@ CONTAINS
             IF ( ErrStatLcl /= 0 ) THEN
                 IF ( ALLOCATED(Ary) ) THEN
                     ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg = RoutineName//':Error allocating memory for the '//TRIM( AryName )//' array; array was already allocated.'
+                    ErrVar%ErrMsg = RoutineName//':Error allocating memory for the '//TRIM( ParamName )//' array; array was already allocated.'
                 ELSE
                     ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg = RoutineName//':Error allocating memory for '//TRIM(Int2LStr( AryLen ))//' characters in the '//TRIM( AryName )//' array.'
+                    ErrVar%ErrMsg = RoutineName//':Error allocating memory for '//TRIM(Int2LStr( AryLen ))//' characters in the '//TRIM( ParamName )//' array.'
                 END IF
             END IF
         
@@ -507,7 +475,7 @@ CONTAINS
 
             ! Check that Variable Name is at the end of Words, will also check length of array
             IF (CheckName_) THEN
-                CALL ChkParseData ( Words_Ary(AryLen:AryLen+1), AryName, FileName, LineNum, ErrVar )
+                CALL ChkParseData ( Words_Ary(AryLen:AryLen+1), ParamName, FileName, LineNum, ErrVar )
             END IF
         
             ! Read array
@@ -516,7 +484,7 @@ CONTAINS
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg = RoutineName//':A fatal error occurred when parsing data from "' &
                                 //TRIM( FileName )//'".'//NewLine//  &
-                                ' >> The "'//TRIM( AryName )//'" array was not assigned valid REAL values on line #' &
+                                ' >> The "'//TRIM( ParamName )//'" array was not assigned valid REAL values on line #' &
                                 //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
                                 //'    "'//TRIM( Line )//'"' 
                 RETURN
@@ -555,7 +523,7 @@ CONTAINS
 !> This subroutine parses the specified line of text for AryLen INTEGER values.
 !! Generate an error message if the value is the wrong type.
 !! Use ParseAry (nwtc_io::parseary) instead of directly calling a specific routine in the generic interface.   
-  SUBROUTINE ParseInAry ( Un, LineNum, AryName, Ary, AryLen, FileName, ErrVar, CheckName )
+  SUBROUTINE ParseInAry ( Un, LineNum, ParamName, Ary, AryLen, FileName, ErrVar, CheckName )
 
     USE ROSCO_Types, ONLY : ErrorVariables
 
@@ -569,7 +537,7 @@ CONTAINS
     CHARACTER(*),           INTENT(IN)      :: FileName                      !< The name of the file being parsed.
 
 
-    CHARACTER(*),           INTENT(IN   )   :: AryName                       !< The array name we are trying to fill.
+    CHARACTER(*),           INTENT(IN   )   :: ParamName                       !< The array name we are trying to fill.
 
     TYPE(ErrorVariables),   INTENT(INOUT)   :: ErrVar   ! Current line of input
 
@@ -601,10 +569,10 @@ CONTAINS
         IF ( ErrStatLcl /= 0 ) THEN
             IF ( ALLOCATED(Ary) ) THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = RoutineName//':Error allocating memory for the '//TRIM( AryName )//' array; array was already allocated.'
+                ErrVar%ErrMsg = RoutineName//':Error allocating memory for the '//TRIM( ParamName )//' array; array was already allocated.'
             ELSE
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = RoutineName//':Error allocating memory for '//TRIM(Int2LStr( AryLen ))//' characters in the '//TRIM( AryName )//' array.'
+                ErrVar%ErrMsg = RoutineName//':Error allocating memory for '//TRIM(Int2LStr( AryLen ))//' characters in the '//TRIM( ParamName )//' array.'
             END IF
         END IF
     
@@ -634,7 +602,7 @@ CONTAINS
 
         ! Check that Variable Name is at the end of Words, will also check length of array
         IF (CheckName_) THEN
-            CALL ChkParseData ( Words_Ary(AryLen:AryLen+1), AryName, FileName, LineNum, ErrVar )
+            CALL ChkParseData ( Words_Ary(AryLen:AryLen+1), ParamName, FileName, LineNum, ErrVar )
         END IF
     
         ! Read array
@@ -643,7 +611,7 @@ CONTAINS
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg = RoutineName//':A fatal error occurred when parsing data from "' &
                             //TRIM( FileName )//'".'//NewLine//  &
-                            ' >> The "'//TRIM( AryName )//'" array was not assigned valid REAL values on line #' &
+                            ' >> The "'//TRIM( ParamName )//'" array was not assigned valid REAL values on line #' &
                             //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
                             //'    "'//TRIM( Line )//'"' 
             RETURN
@@ -684,7 +652,7 @@ END SUBROUTINE ParseInAry
 !> This subroutine parses the specified line of text for AryLen INTEGER values.
 !! Generate an error message if the value is the wrong type.
 !! Use ParseAry (nwtc_io::parseary) instead of directly calling a specific routine in the generic interface.   
-  SUBROUTINE ParseInAry_Opt ( FileLines, AryName, Ary, AryLen, FileName, ErrVar, DefaultFlag )
+  SUBROUTINE ParseInAry_Opt ( FileLines, ParamName, Ary, AryLen, FileName, ErrVar, AllowDefault )
 
     USE ROSCO_Types, ONLY : ErrorVariables
 
@@ -693,9 +661,9 @@ END SUBROUTINE ParseInAry
     INTEGER,                INTENT(INOUT)          :: AryLen                        !< The length of the array to parse.
     INTEGER(IntKi), ALLOCATABLE,   INTENT(INOUT)   :: Ary(:)            !< The array to receive the input values.
     CHARACTER(*),           INTENT(IN)             :: FileName                      !< The name of the file being parsed.
-    CHARACTER(*),           INTENT(IN)             :: AryName                       !< The array name we are trying to fill.
+    CHARACTER(*),           INTENT(IN)             :: ParamName                       !< The array name we are trying to fill.
     TYPE(ErrorVariables),   INTENT(INOUT)          :: ErrVar   ! Current line of input
-    INTEGER(IntKi), OPTIONAL,      INTENT(IN   )   :: DefaultFlag
+    LOGICAL, OPTIONAL,      INTENT(IN   )        :: AllowDefault   
 
     ! Local declarations.
     INTEGER(IntKi)                                 :: FinalAryLen                   !< Final array length, non-input
@@ -707,29 +675,17 @@ END SUBROUTINE ParseInAry
     CHARACTER(MaxParamLength), ALLOCATABLE          :: Words_Ary       (:)               ! The array "words" parsed from the line.
     CHARACTER(MaxLineLength)                        :: Debug_String 
     CHARACTER(*), PARAMETER                         :: RoutineName = 'ParseInAry_Opt'
-    CHARACTER(MaxParamLength)                       :: AryNameUC
-    LOGICAL                                         :: AllowDefault, FoundLine
+    CHARACTER(MaxParamLength)                       :: ParamNameUC
+    LOGICAL                                         :: AllowDefault_, FoundLine
 
     ! Figure out if we allow default
-    AllowDefault = .FALSE.
-    IF (.NOT. PRESENT(DefaultFlag) .OR. DefaultFlag == 0) THEN
-        AllowDefault = .TRUE. 
-    ENDIF
+    AllowDefault_ = .TRUE.
+    if (PRESENT(AllowDefault)) AllowDefault_ = AllowDefault    
 
     ! If we've already failed, don't read anything
     IF (ErrVar%aviFAIL >= 0) THEN
         
-        AryNameUC = AryName
-        CALL Conv2UC(AryNameUC)
-        ! Search for line in FileLines
-        FoundLine = .FALSE.
-        DO I = 1,SIZE(FileLines)
-            IF (INDEX(FileLines(I), AryName) > 0) THEN
-                Line = FileLines(I)
-                LineNum = I
-                FoundLine = .TRUE.
-            END IF
-        END DO
+        CALL FindLine(FileLines, ParamName, FoundLine, Line, LineNum, AryLen)
 
         ! PRINT *, "Line: ", TRIM(Line)
 
@@ -745,23 +701,23 @@ END SUBROUTINE ParseInAry
         IF ( ErrStatLcl /= 0 ) THEN
             IF ( ALLOCATED(Ary) ) THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = RoutineName//':Error allocating memory for the '//TRIM( AryName )//' array; array was already allocated.'
+                ErrVar%ErrMsg = RoutineName//':Error allocating memory for the '//TRIM( ParamName )//' array; array was already allocated.'
             ELSE
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = RoutineName//':Error allocating memory for '//TRIM(Int2LStr( AryLen ))//' characters in the '//TRIM( AryName )//' array.'
+                ErrVar%ErrMsg = RoutineName//':Error allocating memory for '//TRIM(Int2LStr( AryLen ))//' characters in the '//TRIM( ParamName )//' array.'
             END IF
         END IF
 
         ! Print warning with default
         IF (.NOT. FoundLine) THEN
-            IF (.NOT. AllowDefault) THEN
+            IF (.NOT. AllowDefault_) THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = RoutineName//':Missing or default values are not allowed for '//TRIM( AryName )//'. Please check control modes.'
+                ErrVar%ErrMsg = RoutineName//':Missing or default values are not allowed for '//TRIM( ParamName )//'. Please check control modes.'
                 RETURN
             ENDIF
 
             Ary = 0     ! Default of allocatable arrays is 0 for now
-            PRINT *, "Did not find "//TRIM( AryName )//" in input file.  Using default value of [", Ary, "]"
+            PRINT *, "Did not find "//TRIM( ParamName )//" in input file.  Using default value of [", Ary, "]"
             ! Skip the rest of the subroutine, exit
             RETURN
         ENDIF
@@ -796,7 +752,7 @@ END SUBROUTINE ParseInAry
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg = RoutineName//':A fatal error occurred when parsing data from "' &
                             //TRIM( FileName )//'".'//NewLine//  &
-                            ' >> The "'//TRIM( AryName )//'" array was not assigned valid REAL values on line #' &
+                            ' >> The "'//TRIM( ParamName )//'" array was not assigned valid REAL values on line #' &
                             //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
                             //'    "'//TRIM( Line )//'"' 
             RETURN
@@ -834,7 +790,7 @@ END SUBROUTINE ParseInAry_Opt
 !> This subroutine parses the specified line of text for AryLen INTEGER values.
 !! Generate an error message if the value is the wrong type.
 !! Use ParseAry (nwtc_io::parseary) instead of directly calling a specific routine in the generic interface.   
-  SUBROUTINE ParseDbAry_Opt ( FileLines, AryName, Ary, AryLen, FileName, ErrVar, DefaultFlag )
+  SUBROUTINE ParseDbAry_Opt ( FileLines, ParamName, Ary, AryLen, FileName, ErrVar, AllowDefault )
 
     USE ROSCO_Types, ONLY : ErrorVariables
 
@@ -843,46 +799,32 @@ END SUBROUTINE ParseInAry_Opt
     INTEGER,                INTENT(IN)             :: AryLen                        !< The length of the array to parse.
     REAL(DbKi), ALLOCATABLE,   INTENT(INOUT)       :: Ary(:)            !< The array to receive the input values.
     CHARACTER(*),           INTENT(IN)             :: FileName                      !< The name of the file being parsed.
-    CHARACTER(*),           INTENT(IN)             :: AryName                       !< The array name we are trying to fill.
+    CHARACTER(*),           INTENT(IN)             :: ParamName                       !< The array name we are trying to fill.
     TYPE(ErrorVariables),   INTENT(INOUT)          :: ErrVar   ! Current line of input
-    INTEGER(IntKi), OPTIONAL,      INTENT(IN   )   :: DefaultFlag
+    LOGICAL, OPTIONAL,      INTENT(IN   )          :: AllowDefault   
 
     ! Local declarations.
     INTEGER(IntKi)                                 :: LineNum                       !< The number of the line to parse.
     INTEGER(IntKi)                                 :: FinalAryLen                   !< Final array length, non-input
-    CHARACTER(1024)                                :: Line
+    CHARACTER(MaxLineLength)                       :: Line
     INTEGER(IntKi)                                 :: ErrStatLcl                    ! Error status local to this routine.
     INTEGER(IntKi)                                 :: i
 
     CHARACTER(MaxParamLength), ALLOCATABLE          :: Words_Ary       (:)               ! The array "words" parsed from the line.
     CHARACTER(MaxLineLength)                        :: Debug_String 
     CHARACTER(*), PARAMETER                         :: RoutineName = 'ParseDbAry_Opt'
-    CHARACTER(MaxParamLength)                       :: AryNameUC
-    LOGICAL                                         :: AllowDefault, FoundLine
+    CHARACTER(MaxParamLength)                       :: ParamNameUC, FileLineUC
+    LOGICAL                                         :: AllowDefault_, FoundLine
 
     ! Figure out if we allow default
-    AllowDefault = .FALSE.
-    IF (.NOT. PRESENT(DefaultFlag) .OR. DefaultFlag == 0) THEN
-        AllowDefault = .TRUE. 
-    ENDIF
+    AllowDefault_ = .TRUE.
+    if (PRESENT(AllowDefault)) AllowDefault_ = AllowDefault    
 
     ! If we've already failed, don't read anything
     IF (ErrVar%aviFAIL >= 0) THEN
         
-        AryNameUC = AryName
-        CALL Conv2UC(AryNameUC)
-        ! Search for line in FileLines
-        FoundLine = .FALSE.
-        DO I = 1,SIZE(FileLines)
-            IF (INDEX(FileLines(I), AryName) > 0) THEN
-                Line = FileLines(I)
-                LineNum = I
-                FoundLine = .TRUE.
-            END IF
-        END DO
-
-        ! PRINT *, "Line: ", TRIM(Line)
-
+        CALL FindLine(FileLines, ParamName, FoundLine, Line, LineNum, AryLen)
+        
         ! Minimum array length
         IF (AryLen < 1) THEN
             FinalAryLen = 1
@@ -895,23 +837,23 @@ END SUBROUTINE ParseInAry_Opt
         IF ( ErrStatLcl /= 0 ) THEN
             IF ( ALLOCATED(Ary) ) THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = RoutineName//':Error allocating memory for the '//TRIM( AryName )//' array; array was already allocated.'
+                ErrVar%ErrMsg = RoutineName//':Error allocating memory for the '//TRIM( ParamName )//' array; array was already allocated.'
             ELSE
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = RoutineName//':Error allocating memory for '//TRIM(Int2LStr( AryLen ))//' characters in the '//TRIM( AryName )//' array.'
+                ErrVar%ErrMsg = RoutineName//':Error allocating memory for '//TRIM(Int2LStr( AryLen ))//' characters in the '//TRIM( ParamName )//' array.'
             END IF
         END IF
 
         ! Print warning with default
         IF (.NOT. FoundLine) THEN
-            IF (.NOT. AllowDefault) THEN
+            IF (.NOT. AllowDefault_) THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = RoutineName//':Missing or default values are not allowed for '//TRIM( AryName )//'. Please check control modes.'
+                ErrVar%ErrMsg = RoutineName//':Missing or default values are not allowed for '//TRIM( ParamName )//'. Please check control modes.'
                 RETURN
             ENDIF
 
             Ary = 0     ! Default of allocatable arrays is 0 for now
-            PRINT *, "Did not find "//TRIM( AryName )//" in input file.  Using default value of [", Ary, "]"
+            PRINT *, "Did not find "//TRIM( ParamName )//" in input file.  Using default value of [", Ary, "]"
             ! Skip the rest of the subroutine, exit
             RETURN
         ENDIF
@@ -946,7 +888,7 @@ END SUBROUTINE ParseInAry_Opt
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg = RoutineName//':A fatal error occurred when parsing data from "' &
                             //TRIM( FileName )//'".'//NewLine//  &
-                            ' >> The "'//TRIM( AryName )//'" array was not assigned valid REAL values on line #' &
+                            ' >> The "'//TRIM( ParamName )//'" array was not assigned valid REAL values on line #' &
                             //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
                             //'    "'//TRIM( Line )//'"' 
             RETURN
@@ -1042,6 +984,56 @@ SUBROUTINE ChkParseData ( Words, ExpVarName, FileName, FileLineNum, ErrVar )
 
 
 END SUBROUTINE ChkParseData 
+
+SUBROUTINE FindLine(FileLines, ParamName, FoundLine, Line, LineNum, AryLen)
+    CHARACTER(*),   INTENT(IN   ), DIMENSION(:)    :: FileLines   ! Input file unit
+    CHARACTER(*),   INTENT(IN)                     :: ParamName                       !< The array name we are trying to fill.
+    INTEGER(IntKi), INTENT(OUT)                    :: LineNum                       !< The number of the line to parse.
+    LOGICAL, INTENT(OUT)                    :: FoundLine
+    INTEGER(IntKi), OPTIONAL,      INTENT(IN   )          :: AryLen
+    CHARACTER(MaxLineLength), INTENT(OUT)          :: Line
+    
+    
+    CHARACTER(MaxParamLength), ALLOCATABLE  :: Words(:)               ! The two "words" parsed from the line
+
+    CHARACTER(MaxParamLength)                      :: ParamNameUC, FileLineUC
+    INTEGER(IntKi)                                 :: I, WordInd
+
+    IF (.NOT. PRESENT(AryLen)) THEN
+        WordInd = 2
+    ELSE
+        WordInd = AryLen + 1
+    ENDIF
+
+    ALLOCATE(Words(WordInd))   ! TODO: check error
+    
+    ! Make name uppercase
+    ParamNameUC = ParamName
+    CALL Conv2UC(ParamNameUC)
+    
+    ! Search for line in FileLines
+    FoundLine = .FALSE.
+    DO I = 1,SIZE(FileLines)
+
+        ! Separate line string into 2 words
+        CALL GetWords ( FileLines(I), Words, WordInd )  
+        
+        ! Make FileLines uppercase
+        FileLineUC = Words(WordInd)
+        CALL Conv2UC(FileLineUC)
+
+        ! WRITE(500,*) Words
+
+        ! PRINT *, TRIM(ParamNameUC), '==', TRIM(FileLineUC), '=', TRIM(FileLineUC)==TRIM(ParamNameUC)
+        
+        IF (FileLineUC == ParamNameUC) THEN
+            Line = FileLines(I)
+            LineNum = I
+            FoundLine = .TRUE.
+        END IF
+    END DO
+
+END subroutine FindLine
 
 !=======================================================================
 subroutine ReadEmptyLine(Un,CurLine)
