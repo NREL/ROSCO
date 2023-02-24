@@ -5,15 +5,15 @@ Run openfast with ROSCO and active wake control
 
 Set up and run simulation with AWC, check outputs
 
-Active wake control with blade pitching is implemented in this example with an adaptation into the rotating frame of the mathematical framework from the classical theory for stability of axisymmetric jets [1], which offers flexibility in specifying the forcing strategy.
+Active wake control (AWC) with blade pitching is implemented in this example with an adaptation into the rotating frame of the mathematical framework from the classical theory for stability of axisymmetric jets [1], which offers flexibility in specifying the forcing strategy.
 
 The inputs to the controller are:
 	Name			Unit		Type		Range		Description
 	AWC_NumModes		-		Integer		[0,inf]		number of forcing modes
 	AWC_n			-		Integer		[-inf,inf]	azimuthal mode number(s) (i.e., the azimuthal mode number relates to the number and direction of the lobes of the wake structure according to the classical spatio-temporal Fourier decomposition of an arbitrary quantity q, sigma{sigma{q*exp(i*n*theta)*exp(i*omega*time)}}. For the case of a non-time-varying flow (i.e., where omega = 0), the azimuthal mode number specifies the number of cycles of blade pitch oscillation per one rotation around the rotor azimuth.)
-	AWC_clockangle 		deg		Float		[0,360]		clocking angle of forcing mode(s)
-	AWC_omega 		rad/s		Float		[0,inf]		frequency(s) of forcing mode(s)
-	AWC_amp 		rad		Float		[0,inf]		pitch amplitude(s) of forcing mode(s)
+	AWC_clockangle 		deg		Float		[0,360]		clocking angle(s) of forcing mode(s)
+	AWC_freq 		Hz		Float		[0,inf]		frequency(s) of forcing mode(s)
+	AWC_amp 		deg		Float		[0,inf]		pitch amplitude(s) of forcing mode(s) (note that AWC_amp specifies the amplitude of each individual mode so that the total amplitude of pitching will be the sum of AWC_amp)
 
 The latter two inputs may be specified based on the expected inflow while the former three inputs determine the type of active wake control to be used.
 
@@ -27,13 +27,13 @@ Readers may be familiar with several forcing strategies from literature on activ
 
 	Calculation methodology:
 		For each blade, we compute the total phase angle of blade pitch excursion according to:
-			AWC_angle(t) = AWC_omega * t - AWC_n * (psi(t) + phi + AWC_clockangle*PI/180)								(eq 1)
+			AWC_angle(t) = 2*Pi*AWC_freq * t - AWC_n * (psi(t) + phi + AWC_clockangle*PI/180)							(eq 1)
 			where 	t is time
 				phi(t) is the angular offset of the given blade in the rotor plane relative to blade 1
 				psi is the angle of blade 1 in the rotor plane from top-dead center
 				
 		Next, the phase angle is converted into the complex pitch amplitude:
-			AWC_complexangle(t) = AWC_amp * EXP(i * AWC_angle(t))											(eq 2)
+			AWC_complexangle(t) = AWC_amp*PI/180 * EXP(i * AWC_angle(t))										(eq 2)
 			where 	i is the square root of -1 
 			
 		Note that if AWC_NumModes>1, then eq 1 and 2 are computed for each additional mode, and AWC_complexangle becomes a summation over all modes for each blade.
@@ -44,14 +44,14 @@ Readers may be familiar with several forcing strategies from literature on activ
 		
 	Rearranging for ease of viewing:		
 		Inserting eq 1 into eq 2, and then putting that result into eq 3 gives:
-			theta(t) = theta_0(t) + REAL(AWC_amp * EXP(i * (AWC_omega * t - AWC_n * (psi(t) + phi + AWC_clockangle*PI/180))))			(eq 4)
+			theta(t) = theta_0(t) + REAL(AWC_amp*PI/180 * EXP(i * (2*Pi*AWC_freq * t - AWC_n * (psi(t) + phi + AWC_clockangle*PI/180))))		(eq 4)
 		
 		Applying Euler's formula and carrying out the REAL operator:
-			theta(t) = theta_0(t) + AWC_amp * cos(AWC_omega * t - AWC_n * (psi(t) + phi + AWC_clockangle*PI/180))					(eq 5)
+			theta(t) = theta_0(t) + AWC_amp*PI/180 * cos(2*Pi*AWC_freq * t - AWC_n * (psi(t) + phi + AWC_clockangle*PI/180))			(eq 5)
 
 	As an example, we can set parameters to produce the counter-clockwise helix pattern from [2] using AWC_NumModes = 1, AWC_n = -1, and AWC_clockangle = 0:
 		For blade 1, eq 5 becomes:
-			theta(t) = theta_0(t) + AWC_amp * cos(AWC_omega * t + psi(t))										(eq 6)		
+			theta(t) = theta_0(t) + AWC_amp*PI/180 * cos(2*Pi*AWC_freq * t + psi(t))								(eq 6)		
 
 Note that the inverse multi-blade coordinate (MBC) transformation can also be used to obtain the same result as eq 6.
 	Beginning with Eq. 3 from [2], we have 
@@ -73,12 +73,14 @@ Note that the inverse multi-blade coordinate (MBC) transformation can also be us
 	Multiplying the first row of the top matrix (and dropping the subscript of blade 1) yields:
 		theta(t) = theta_0(t) + theta_tilt(t)*cos(psi(t)) + theta_yaw(t)*sin(psi(t))									(eq 8)
 		
-	Setting theta_tilt(t) = AWC_amp * cos(AWC_omega * t) and theta_yaw(t) = -AWC_amp * sin(AWC_omega * t) gives:
-		theta(t) = theta_0(t) + (AWC_amp * cos(AWC_omega * t))*cos(psi(t)) - (AWC_amp * sin(AWC_omega * t))*sin(psi(t))					(eq 9)
+	Setting theta_tilt(t) = AWC_amp*PI/180 * cos(2*Pi*AWC_freq * t) and theta_yaw(t) = -AWC_amp*PI/180 * sin(2*Pi*AWC_freq * t) gives:
+		theta(t) = theta_0(t) + (AWC_amp*PI/180 * cos(2*Pi*AWC_freq * t))*cos(psi(t)) - (AWC_amp*PI/180 * sin(2*Pi*AWC_freq * t))*sin(psi(t))		(eq 9)
 
 	Applying a Ptolemy identity gives:
-		theta(t) = theta_0(t) + AWC_amp * cos(AWC_omega * t + psi(t))											(eq 10)	
+		theta(t) = theta_0(t) + AWC_amp*PI/180 * cos(2*Pi*AWC_freq * t + psi(t))									(eq 10)	
 		which is equivlanet to eq 6 above.
+		
+Implementation note: AWC strategies will be compromised if the AWC pitch command attempts to lower the blade pitch below value PC_MinPit as specified in the DISCON file, so PC_MinPit may need to be reduced by the user.
 
 References:
 [1] - Batchelor, G. K., and A. E. Gill. "Analysis of the stability of axisymmetric jets." Journal of fluid mechanics 14.4 (1962): 529-551.
@@ -126,8 +128,8 @@ def main():
     # Set up AWC cases defined above
     control_base_case[('DISCON_in','AWC_NumModes')] = {'vals': [1,1,1,2,2], 'group': 2}
     control_base_case[('DISCON_in','AWC_n')] = {'vals': [[0],[1],[-1],[-1,1], [-1,1]], 'group': 2}
-    control_base_case[('DISCON_in','AWC_omega')] = {'vals': [[0.3142],[0.3142],[0.3142],[0.3142,0.3142], [0.3142,0.3142]], 'group': 2}
-    control_base_case[('DISCON_in','AWC_amp')] = {'vals': [[0.0175],[0.0175],[0.0175],[0.0175,0.0175], [0.0175,0.0175]], 'group': 2}
+    control_base_case[('DISCON_in','AWC_freq')] = {'vals': [[0.05],[0.05],[0.05],[0.05,0.05], [0.05,0.05]], 'group': 2}
+    control_base_case[('DISCON_in','AWC_amp')] = {'vals': [[1.0],[1.0],[1.0],[1.0,1.0], [1.0,1.0]], 'group': 2}
     control_base_case[('DISCON_in','AWC_clockangle')] = {'vals': [[0],[0],[0],[0,0], [90,90]], 'group': 2}
     
     # simulation set up
