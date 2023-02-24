@@ -459,10 +459,10 @@ ControlParameters:
       <<: *integer
       allocatable: True
       description: AWC azimuthal mode [-]
-    AWC_omega:
+    AWC_freq:
       <<: *real
       allocatable: True
-      description: AWC frequency [rad/s]
+      description: AWC frequency [Hz]
     AWC_amp:
       <<: *real
       allocatable: True
