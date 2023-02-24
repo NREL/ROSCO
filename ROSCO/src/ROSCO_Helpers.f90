@@ -30,6 +30,7 @@ MODULE ROSCO_Helpers
         MODULE PROCEDURE ParseInput_Int                                             ! Parses an INTEGER from a string.
         MODULE PROCEDURE ParseInput_Int_Opt                                             ! Parses an INTEGER from a string.  Optional input.
         MODULE PROCEDURE ParseInput_Dbl_Opt                                             ! Parses an double-precision REAL from a string.  Optional input.
+        MODULE PROCEDURE ParseInput_Str_Opt                                             ! Parses an character string from a string.  Optional input.
         ! MODULE PROCEDURE ParseInput_Log                                             ! Parses an LOGICAL from a string.
     END INTERFACE
 
@@ -155,7 +156,7 @@ CONTAINS
                     RETURN
                 ENDIF
 
-                Variable = 0     ! Default of integer iputs is 0 for now
+                Variable = 0     ! Default of integer inputs is 0 for now
                 PRINT *, "Did not find "//TRIM( VarName )//" in input file.  Using default value of ", Variable
                 ! Skip the rest of the subroutine, exit
                 RETURN
@@ -233,7 +234,7 @@ CONTAINS
                     RETURN
                 ENDIF
 
-                Variable = 0     ! Default of integer iputs is 0 for now
+                Variable = 0     ! Default of integer inputs is 0 for now
                 PRINT *, "Did not find "//TRIM( VarName )//" in input file.  Using default value of ", Variable
                 ! Skip the rest of the subroutine, exit
                 RETURN
@@ -263,6 +264,85 @@ CONTAINS
         END IF
 
     END subroutine ParseInput_Dbl_Opt
+
+        !=======================================================================
+    ! Parse integer input: read line, check that variable name is in line, handle errors
+    subroutine ParseInput_Str_Opt(FileLines, VarName, Variable, FileName, ErrVar, AllowDefault)
+        USE ROSCO_Types, ONLY : ErrorVariables
+
+        CHARACTER(*),           INTENT(IN   ), DIMENSION(:) :: FileLines   ! Input file unit
+        CHARACTER(*),           INTENT(IN   )               :: VarName   ! Input file unit
+        CHARACTER(*),           INTENT(IN   )               :: FileName   ! Input file unit
+        TYPE(ErrorVariables),   INTENT(INOUT)               :: ErrVar   ! Current line of input
+        CHARACTER(*),           INTENT(INOUT)               :: Variable   ! Variable
+        
+        ! Flag (usually control mode) specifying whether default is allowed, 0 - yes, nonzero - no
+        LOGICAL, OPTIONAL,      INTENT(IN   )        :: AllowDefault   
+        
+        INTEGER(IntKi)                          :: CurLine   ! Current line of input
+        CHARACTER(MaxParamLength)               :: Words       (2)               ! The two "words" parsed from the line
+        CHARACTER(MaxParamLength)               :: VarNameUC
+        CHARACTER(MaxLineLength)                :: Line
+        INTEGER(IntKi)                          :: ErrStatLcl           ! Error status local to this routine.
+        INTEGER(IntKi)                          :: I, VarLineIndex                    ! Line indexer
+        LOGICAL                                 :: AllowDefault_, FoundLine
+        CHARACTER(*), PARAMETER                 :: RoutineName = 'ParseInput_Str_Opt'
+
+
+        ! Figure out if we allow default
+        AllowDefault_ = .TRUE.
+        if (PRESENT(AllowDefault)) AllowDefault_ = AllowDefault    
+
+        ! If we've already failed, don't read anything
+        IF (ErrVar%aviFAIL >= 0) THEN
+
+            CALL FindLine(FileLines, VarName, FoundLine, Line, CurLine)
+
+
+            ! Separate line again
+            CALL GetWords ( Line, Words, 2 )  
+
+            ! PRINT *, "Line: ", Line
+
+            ! Print warning with default
+            IF (.NOT. FoundLine) THEN
+                IF (.NOT. AllowDefault_) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = RoutineName//':Missing or default values are not allowed for '//TRIM( VarName )//'. Please check control modes and array length.'
+                    RETURN
+                ENDIF
+
+                Variable = 'unused'     ! Default of string input is unused for now
+                PRINT *, "Did not find "//TRIM( VarName )//" in input file.  Using default value of ", Variable
+                ! Skip the rest of the subroutine, exit
+                RETURN
+            ENDIF
+
+            ! Debugging: show what's being read, turn into Echo later
+            IF (DEBUG_PARSING) THEN
+                print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
+            END IF
+
+            ! IF We haven't failed already
+            IF (ErrVar%aviFAIL >= 0) THEN        
+
+                ! Read the variable
+                READ (Words(1),*,IOSTAT=ErrStatLcl)  Variable
+                IF ( ErrStatLcl /= 0 )  THEN
+                    ErrVar%aviFAIL  = -1
+                    ErrVar%ErrMsg   =  NewLine//' >> A fatal error occurred when parsing data from "' &
+                        //TRIM( FileName )//'".'//NewLine//  &
+                        ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid INTEGER value on line #' &
+                        //TRIM( Int2LStr( CurLine ) )//'.'//NewLine//&
+                        ' >> The text being parsed was :'//NewLine//'    "'//TRIM( Line )//'"'
+                ENDIF
+
+            ENDIF   
+
+        END IF
+
+    END subroutine ParseInput_Str_Opt
+
 
     !=======================================================================
     ! Parse double input, this is a copy of ParseInput_Int and a change in the variable definitions
@@ -658,7 +738,7 @@ END SUBROUTINE ParseInAry
 
     ! Arguments declarations.
     CHARACTER(*),  INTENT(IN   ), DIMENSION(:)     :: FileLines   ! Input file unit
-    INTEGER,                INTENT(INOUT)          :: AryLen                        !< The length of the array to parse.
+    INTEGER,                INTENT(IN   )          :: AryLen                        !< The length of the array to parse.
     INTEGER(IntKi), ALLOCATABLE,   INTENT(INOUT)   :: Ary(:)            !< The array to receive the input values.
     CHARACTER(*),           INTENT(IN)             :: FileName                      !< The name of the file being parsed.
     CHARACTER(*),           INTENT(IN)             :: ParamName                       !< The array name we are trying to fill.
@@ -1557,6 +1637,70 @@ END SUBROUTINE Read_OL_Input
 
 
       end subroutine AddToList
+
+    !-------------------------------------------------------------------------------------------------------------------------------
+    ! Copied from NWTC_IO.f90
+    !> This function returns a character string encoded with today's date in the form dd-mmm-ccyy.
+    FUNCTION CurDate( )
+
+    ! Function declaration.
+
+    CHARACTER(11)                :: CurDate                                      !< 'dd-mmm-yyyy' string with the current date
+
+
+    ! Local declarations.
+
+    CHARACTER(8)                 :: CDate                                        ! String to hold the returned value from the DATE_AND_TIME subroutine call.
+
+
+
+    !  Call the system date function.
+
+    CALL DATE_AND_TIME ( CDate )
+
+
+    !  Parse out the day.
+
+    CurDate(1:3) = CDate(7:8)//'-'
+
+
+    !  Parse out the month.
+
+    SELECT CASE ( CDate(5:6) )
+    CASE ( '01' )
+        CurDate(4:6) = 'Jan'
+    CASE ( '02' )
+        CurDate(4:6) = 'Feb'
+    CASE ( '03' )
+        CurDate(4:6) = 'Mar'
+    CASE ( '04' )
+        CurDate(4:6) = 'Apr'
+    CASE ( '05' )
+        CurDate(4:6) = 'May'
+    CASE ( '06' )
+        CurDate(4:6) = 'Jun'
+    CASE ( '07' )
+        CurDate(4:6) = 'Jul'
+    CASE ( '08' )
+        CurDate(4:6) = 'Aug'
+    CASE ( '09' )
+        CurDate(4:6) = 'Sep'
+    CASE ( '10' )
+        CurDate(4:6) = 'Oct'
+    CASE ( '11' )
+        CurDate(4:6) = 'Nov'
+    CASE ( '12' )
+        CurDate(4:6) = 'Dec'
+    END SELECT
+
+
+    !  Parse out the year.
+
+    CurDate(7:11) = '-'//CDate(1:4)
+
+
+    RETURN
+    END FUNCTION CurDate
 
 
 END MODULE ROSCO_Helpers
