@@ -218,26 +218,10 @@ CONTAINS
             ! Check validity of input parameters:
             CALL CheckInputs(LocalVar, CntrPar, avrSWAP, ErrVar, size_avcMSG)
 
-            !------------------- ALLOCATIONS --------------------------------
-            ! Cable control arrays --------------
-            IF (.NOT. ALLOCATED(LocalVar%CC_DesiredL)) THEN
-                ALLOCATE(LocalVar%CC_DesiredL(CntrPar%CC_Group_N))
-            END IF
-            IF (.NOT. ALLOCATED(LocalVar%CC_ActuatedL)) THEN
-                ALLOCATE(LocalVar%CC_ActuatedL(CntrPar%CC_Group_N))
-            END IF
-            IF (.NOT. ALLOCATED(LocalVar%CC_ActuatedDL)) THEN
-                ALLOCATE(LocalVar%CC_ActuatedDL(CntrPar%CC_Group_N))
-            END IF
-
             LocalVar%CC_DesiredL = 0
             LocalVar%CC_ActuatedL = 0
             LocalVar%CC_ActuatedDL = 0
 
-            ! Structural control arrays --------------
-            IF (.NOT. ALLOCATED(LocalVar%StC_Input)) THEN
-                ALLOCATE(LocalVar%StC_Input(CntrPar%StC_Group_N))
-            END IF
             LocalVar%StC_Input = 0
 
             ! Add RoutineName to error message
@@ -284,6 +268,7 @@ CONTAINS
         ! Get primary path of DISCON.IN file (accINFILE(1) here)
         CALL GetPath( accINFILE(1), PriPath )     ! Input files will be relative to the path where the primary input file is located.
         CALL GetNewUnit(UnControllerParameters, ErrVar)
+        PRINT *, "accINFILE(1): " , accINFILE(1), "accINFILE_size: ", accINFILE_size
         OPEN(unit=UnControllerParameters, file=accINFILE(1), status='old', action='read')
 
         ! Read all lines, first get the number of lines

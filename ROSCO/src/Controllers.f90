@@ -608,6 +608,9 @@ CONTAINS
         !       CC_Mode = 0, No cable control, this code not executed
         !       CC_Mode = 1, User-defined cable control
         !       CC_Mode = 2, Position control, not yet implemented
+        !
+        ! Note that LocalVar%CC_Actuated*(), and CC_Desired() has a fixed max size of 12, which can be increased in rosco_types.yaml
+        !
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
     
         REAL(ReKi), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
@@ -677,6 +680,9 @@ SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst)
         !       StC_Mode = 0, No cable control, this code not executed
         !       StC_Mode = 1, User-defined cable control
         !       StC_Mode = 2, Ballast-like control, not yet implemented
+        !
+        ! Note that LocalVar%StC_Input() has a fixed max size of 12, which can be increased in rosco_types.yaml
+        !
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
     
         REAL(ReKi), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.

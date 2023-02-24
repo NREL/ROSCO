@@ -293,10 +293,10 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: PtfmRAX                     ! Platform motion -- Acceleration RAX (rad/s^2)')
     REAL(DbKi)                    :: PtfmRAY                     ! Platform motion -- Acceleration RAY (rad/s^2)')
     REAL(DbKi)                    :: PtfmRAZ                     ! Platform motion -- Acceleration RAZ (rad/s^2)')
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: CC_DesiredL                 ! None
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: CC_ActuatedL                ! None
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: CC_ActuatedDL               ! None
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: StC_Input                   ! None
+    REAL(DbKi)                    :: CC_DesiredL(12)             ! None
+    REAL(DbKi)                    :: CC_ActuatedL(12)            ! None
+    REAL(DbKi)                    :: CC_ActuatedDL(12)           ! None
+    REAL(DbKi)                    :: StC_Input(12)               ! None
     REAL(DbKi)                    :: Flp_Angle(3)                ! Flap Angle (rad)
     REAL(DbKi)                    :: RootMyb_Last(3)             ! Last blade root bending moment (Nm)
     INTEGER(IntKi)                :: ACC_INFILE_SIZE             ! Length of parameter input filename

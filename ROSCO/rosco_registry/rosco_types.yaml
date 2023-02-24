@@ -1030,16 +1030,16 @@ LocalVariables:
       description: Platform motion -- Acceleration RAZ (rad/s^2)')
     CC_DesiredL:
       <<: *real
-      allocatable: True
+      size: 12
     CC_ActuatedL:
       <<: *real
-      allocatable: True
+      size: 12
     CC_ActuatedDL:
       <<: *real
-      allocatable: True
+      size: 12
     StC_Input:
       <<: *real
-      allocatable: True
+      size: 12
     Flp_Angle:
       <<: *real 
       description: Flap Angle (rad)
