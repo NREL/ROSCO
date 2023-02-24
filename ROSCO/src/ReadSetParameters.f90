@@ -34,7 +34,7 @@ CONTAINS
         TYPE(ControlParameters), INTENT(IN) :: CntrPar
 
         ! Allocate Variables:
-        INTEGER(IntKi)                                  :: K            ! Index used for looping through blades.
+        INTEGER(IntKi)                                  :: K         ! Index used for looping through blades.
 
         ! Load variables from calling program (See Appendix A of Bladed User's Guide):
         LocalVar%iStatus            = NINT(avrSWAP(1))
@@ -75,6 +75,12 @@ CONTAINS
         LocalVar%PtfmRAX            = avrSWAP(1016)
         LocalVar%PtfmRAY            = avrSWAP(1017)
         LocalVar%PtfmRAZ            = avrSWAP(1018)
+
+        ! GenTemp = avrSWAP(1026)
+
+        ! WRITE(1000,*) LocalVar%GenSpeed*RPS2RPM, GenTemp
+
+        
 
         ! --- NJA: usually feedback back the previous pitch command helps for numerical stability, sometimes it does not...
         IF (LocalVar%iStatus == 0) THEN
@@ -269,7 +275,7 @@ CONTAINS
 
         CHARACTER(2048)                                 :: TmpLine        ! Path name of the primary DISCON file
         INTEGER(IntKi)                                  :: NumLines, IOS, I_LINE
-        CHARACTER(2048), DIMENSION(:), ALLOCATABLE      :: FileLines
+        CHARACTER(MaxLineLength), DIMENSION(:), ALLOCATABLE      :: FileLines
         
         CHARACTER(*),               PARAMETER           :: RoutineName = 'ReadControlParameterFileSub'
 
@@ -295,216 +301,165 @@ CONTAINS
             READ(UnControllerParameters,'(A)',IOSTAT=IOS) FileLines(I_LINE)
         END DO
 
-        ! Rewind and read normal way until we're ready for all optional inputs
-        REWIND( UnControllerParameters )
-        
-        !----------------------- HEADER ------------------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-
         !----------------------- DEBUG --------------------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-
-        CALL ParseInput(UnControllerParameters,CurLine,'LoggingLevel',accINFILE(1),CntrPar%LoggingLevel,ErrVar)
-
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseInput_Int_Opt(FileLines,'LoggingLevel',   CntrPar%LoggingLevel,       accINFILE(1), ErrVar)
 
         !----------------- CONTROLLER FLAGS ---------------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ParseInput(UnControllerParameters,CurLine,'F_LPFType',accINFILE(1),CntrPar%F_LPFType,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'F_NotchType',accINFILE(1),CntrPar%F_NotchType,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'IPC_ControlMode',accINFILE(1),CntrPar%IPC_ControlMode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_ControlMode',accINFILE(1),CntrPar%VS_ControlMode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PC_ControlMode',accINFILE(1),CntrPar%PC_ControlMode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_ControlMode',accINFILE(1),CntrPar%Y_ControlMode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'SS_Mode',accINFILE(1),CntrPar%SS_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'WE_Mode',accINFILE(1),CntrPar%WE_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PS_Mode',accINFILE(1),CntrPar%PS_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'SD_Mode',accINFILE(1),CntrPar%SD_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'FL_Mode',accINFILE(1),CntrPar%FL_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'TD_Mode',accINFILE(1),CntrPar%TD_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Flp_Mode',accINFILE(1),CntrPar%Flp_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'OL_Mode',accINFILE(1),CntrPar%OL_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PA_Mode',accINFILE(1),CntrPar%PA_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PF_Mode',accINFILE(1),CntrPar%PF_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Ext_Mode',accINFILE(1),CntrPar%Ext_Mode,ErrVar)
-		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_Mode',accINFILE(1), CntrPar%ZMQ_Mode,ErrVar)
-		CALL ParseInput(UnControllerParameters,CurLine,'CC_Mode',accINFILE(1), CntrPar%CC_Mode,ErrVar)
-		CALL ParseInput(UnControllerParameters,CurLine,'StC_Mode',accINFILE(1), CntrPar%StC_Mode,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseInput(FileLines,'F_LPFType',       CntrPar%F_LPFType,         accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,'F_NotchType',     CntrPar%F_NotchType,       accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,'IPC_ControlMode', CntrPar%IPC_ControlMode,   accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,'VS_ControlMode',  CntrPar%VS_ControlMode,    accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,'PC_ControlMode',  CntrPar%PC_ControlMode,    accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,'Y_ControlMode',   CntrPar%Y_ControlMode,     accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,'SS_Mode',         CntrPar%SS_Mode,           accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,'WE_Mode',         CntrPar%WE_Mode,           accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,'PS_Mode',         CntrPar%PS_Mode,           accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,'SD_Mode',         CntrPar%SD_Mode,           accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,'FL_Mode',         CntrPar%FL_Mode,           accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,'TD_Mode',         CntrPar%TD_Mode,           accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,'Flp_Mode',        CntrPar%Flp_Mode,          accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,'OL_Mode',         CntrPar%OL_Mode,           accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,'PA_Mode',         CntrPar%PA_Mode,           accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,'PF_Mode',         CntrPar%PF_Mode,           accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,'Ext_Mode',        CntrPar%Ext_Mode,          accINFILE(1), ErrVar)
+		CALL ParseInput(FileLines,'ZMQ_Mode',        CntrPar%ZMQ_Mode,          accINFILE(1), ErrVar)
+		CALL ParseInput(FileLines,'CC_Mode',         CntrPar%CC_Mode,           accINFILE(1), ErrVar)
+		CALL ParseInput(FileLines,'StC_Mode',        CntrPar%StC_Mode,          accINFILE(1), ErrVar)
 
         !----------------- FILTER CONSTANTS ---------------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ParseInput(UnControllerParameters,CurLine,'F_LPFCornerFreq',accINFILE(1),CntrPar%F_LPFCornerFreq,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'F_LPFDamping',accINFILE(1),CntrPar%F_LPFDamping,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'F_NotchCornerFreq',accINFILE(1),CntrPar%F_NotchCornerFreq,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'F_NotchBetaNumDen', CntrPar%F_NotchBetaNumDen, 2, accINFILE(1), ErrVar )
-        CALL ParseInput(UnControllerParameters,CurLine,'F_SSCornerFreq',accINFILE(1),CntrPar%F_SSCornerFreq,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'F_WECornerFreq',accINFILE(1),CntrPar%F_WECornerFreq,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'F_YawErr',accINFILE(1),CntrPar%F_YawErr, ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'F_FlCornerFreq', CntrPar%F_FlCornerFreq, 2, accINFILE(1), ErrVar )
-        CALL ParseInput(UnControllerParameters,CurLine,'F_FlHighPassFreq',accINFILE(1),CntrPar%F_FlHighPassFreq,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'F_FlpCornerFreq', CntrPar%F_FlpCornerFreq, 2, accINFILE(1), ErrVar )
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseInput(FileLines,  'F_LPFCornerFreq',      CntrPar%F_LPFCornerFreq,        accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,  'F_LPFDamping',         CntrPar%F_LPFDamping,           accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,  'F_NotchCornerFreq',    CntrPar%F_NotchCornerFreq,      accINFILE(1), ErrVar)
+        CALL ParseAry(  FileLines,  'F_NotchBetaNumDen',    CntrPar%F_NotchBetaNumDen,  2,  accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,  'F_SSCornerFreq',       CntrPar%F_SSCornerFreq,         accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,  'F_WECornerFreq',       CntrPar%F_WECornerFreq,         accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,  'F_YawErr',             CntrPar%F_YawErr,               accINFILE(1), ErrVar)
+        CALL ParseAry(  FileLines,  'F_FlCornerFreq',       CntrPar%F_FlCornerFreq,     2,  accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,  'F_FlHighPassFreq',     CntrPar%F_FlHighPassFreq,       accINFILE(1), ErrVar)
+        CALL ParseAry(  FileLines,  'F_FlpCornerFreq',      CntrPar%F_FlpCornerFreq,    2,  accINFILE(1), ErrVar)
 
         !----------- BLADE PITCH CONTROLLER CONSTANTS -----------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ParseInput(UnControllerParameters,CurLine,'PC_GS_n',accINFILE(1),CntrPar%PC_GS_n,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'PC_GS_angles', CntrPar%PC_GS_angles, CntrPar%PC_GS_n, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'PC_GS_KP', CntrPar%PC_GS_KP, CntrPar%PC_GS_n, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'PC_GS_KI', CntrPar%PC_GS_KI, CntrPar%PC_GS_n, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'PC_GS_KD', CntrPar%PC_GS_KD, CntrPar%PC_GS_n, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'PC_GS_TF', CntrPar%PC_GS_TF, CntrPar%PC_GS_n, accINFILE(1), ErrVar )
-        CALL ParseInput(UnControllerParameters,CurLine,'PC_MaxPit',accINFILE(1),CntrPar%PC_MaxPit,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PC_MinPit',accINFILE(1),CntrPar%PC_MinPit,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PC_MaxRat',accINFILE(1),CntrPar%PC_MaxRat,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PC_MinRat',accINFILE(1),CntrPar%PC_MinRat,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PC_RefSpd',accINFILE(1),CntrPar%PC_RefSpd,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PC_FinePit',accINFILE(1),CntrPar%PC_FinePit,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PC_Switch',accINFILE(1),CntrPar%PC_Switch,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseInput(FileLines,  'PC_GS_n',      CntrPar%PC_GS_n,                        accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0)
+        CALL ParseAry(  FileLines,  'PC_GS_angles', CntrPar%PC_GS_angles, CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0)
+        CALL ParseAry(  FileLines,  'PC_GS_KP',     CntrPar%PC_GS_KP,     CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0)
+        CALL ParseAry(  FileLines,  'PC_GS_KI',     CntrPar%PC_GS_KI,     CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0)
+        CALL ParseAry(  FileLines,  'PC_GS_KD',     CntrPar%PC_GS_KD,     CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0)
+        CALL ParseAry(  FileLines,  'PC_GS_TF',     CntrPar%PC_GS_TF,     CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0)
+        CALL ParseInput(FileLines,  'PC_MaxPit',    CntrPar%PC_MaxPit,                      accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0)
+        CALL ParseInput(FileLines,  'PC_MinPit',    CntrPar%PC_MinPit,                      accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0)
+        CALL ParseInput(FileLines,  'PC_MaxRat',    CntrPar%PC_MaxRat,                      accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0)
+        CALL ParseInput(FileLines,  'PC_MinRat',    CntrPar%PC_MinRat,                      accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0)
+        CALL ParseInput(FileLines,  'PC_RefSpd',    CntrPar%PC_RefSpd,                      accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0)
+        CALL ParseInput(FileLines,  'PC_FinePit',   CntrPar%PC_FinePit,                     accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0)
+        CALL ParseInput(FileLines,  'PC_Switch',    CntrPar%PC_Switch,                      accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0)
 
         !------------------- IPC CONSTANTS -----------------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine) 
-        CALL ParseAry(UnControllerParameters, CurLine, 'IPC_Vramp', CntrPar%IPC_Vramp, 2, accINFILE(1), ErrVar )
-        CALL ParseInput(UnControllerParameters,CurLine,'IPC_SatMode',accINFILE(1),CntrPar%IPC_SatMode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'IPC_IntSat',accINFILE(1),CntrPar%IPC_IntSat,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'IPC_KP', CntrPar%IPC_KP, 2, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'IPC_KI', CntrPar%IPC_KI, 2, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'IPC_aziOffset', CntrPar%IPC_aziOffset, 2, accINFILE(1), ErrVar )
-        CALL ParseInput(UnControllerParameters,CurLine,'IPC_CornerFreqAct',accINFILE(1),CntrPar%IPC_CornerFreqAct,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseAry(  FileLines,  'IPC_Vramp',        CntrPar%IPC_Vramp,          2,  accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0)
+        CALL ParseInput(FileLines,  'IPC_SatMode',      CntrPar%IPC_SatMode,            accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0)
+        CALL ParseInput(FileLines,  'IPC_IntSat',       CntrPar%IPC_IntSat,             accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0)
+        CALL ParseAry(  FileLines,  'IPC_KP',           CntrPar%IPC_KP,             2,  accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0)
+        CALL ParseAry(  FileLines,  'IPC_KI',           CntrPar%IPC_KI,             2,  accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0)
+        CALL ParseAry(  FileLines,  'IPC_aziOffset',    CntrPar%IPC_aziOffset,      2,  accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0)
+        CALL ParseInput(FileLines,  'IPC_CornerFreqAct',CntrPar%IPC_CornerFreqAct,      accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0)
 
         !------------ VS TORQUE CONTROL CONSTANTS ----------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_GenEff',accINFILE(1),CntrPar%VS_GenEff,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_ArSatTq',accINFILE(1),CntrPar%VS_ArSatTq,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_MaxRat',accINFILE(1),CntrPar%VS_MaxRat,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_MaxTq',accINFILE(1),CntrPar%VS_MaxTq,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_MinTq',accINFILE(1),CntrPar%VS_MinTq,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_MinOMSpd',accINFILE(1),CntrPar%VS_MinOMSpd,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_Rgn2K',accINFILE(1),CntrPar%VS_Rgn2K,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_RtPwr',accINFILE(1),CntrPar%VS_RtPwr,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_RtTq',accINFILE(1),CntrPar%VS_RtTq,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_RefSpd',accINFILE(1),CntrPar%VS_RefSpd,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_n',accINFILE(1),CntrPar%VS_n,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'VS_KP', CntrPar%VS_KP, CntrPar%VS_n, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'VS_KI', CntrPar%VS_KI, CntrPar%VS_n, accINFILE(1), ErrVar )
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_TSRopt',accINFILE(1),CntrPar%VS_TSRopt,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseInput(FileLines,  'VS_GenEff',    CntrPar%VS_GenEff,          accINFILE(1), ErrVar, .FALSE.)
+        CALL ParseInput(FileLines,  'VS_ArSatTq',   CntrPar%VS_ArSatTq,                 accINFILE(1), ErrVar, CntrPar%VS_ControlMode > 1)
+        CALL ParseInput(FileLines,  'VS_MaxRat',    CntrPar%VS_MaxRat,                  accINFILE(1), ErrVar, CntrPar%VS_ControlMode > 1)
+        CALL ParseInput(FileLines,  'VS_MaxTq',     CntrPar%VS_MaxTq,                   accINFILE(1), ErrVar, .FALSE.)
+        CALL ParseInput(FileLines,  'VS_MinTq',     CntrPar%VS_MinTq,                   accINFILE(1), ErrVar, .FALSE.)
+        CALL ParseInput(FileLines,  'VS_MinOMSpd',  CntrPar%VS_MinOMSpd,                accINFILE(1), ErrVar)   ! Default 0 is fine
+        CALL ParseInput(FileLines,  'VS_Rgn2K',     CntrPar%VS_Rgn2K,                   accINFILE(1), ErrVar, CntrPar%VS_ControlMode > 1)
+        CALL ParseInput(FileLines,  'VS_RtPwr',     CntrPar%VS_RtPwr,                   accINFILE(1), ErrVar, .FALSE.)
+        CALL ParseInput(FileLines,  'VS_RtTq',      CntrPar%VS_RtTq,                    accINFILE(1), ErrVar, .FALSE.)
+        CALL ParseInput(FileLines,  'VS_RefSpd',    CntrPar%VS_RefSpd,                  accINFILE(1), ErrVar, .FALSE.)
+        CALL ParseInput(FileLines,  'VS_n',         CntrPar%VS_n,                       accINFILE(1), ErrVar, .FALSE.)
+        CALL ParseAry(  FileLines,  'VS_KP',        CntrPar%VS_KP,      CntrPar%VS_n,   accINFILE(1), ErrVar, .FALSE.)
+        CALL ParseAry(  FileLines,  'VS_KI',        CntrPar%VS_KI,      CntrPar%VS_n,   accINFILE(1), ErrVar, .FALSE.)
+        CALL ParseInput(FileLines,  'VS_TSRopt',    CntrPar%VS_TSRopt,                  accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 2)
 
         !------- Setpoint Smoother --------------------------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ParseInput(UnControllerParameters,CurLine,'SS_VSGain',accINFILE(1),CntrPar%SS_VSGain,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'SS_PCGain',accINFILE(1),CntrPar%SS_PCGain,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine) 
+        CALL ParseInput(FileLines,  'SS_VSGain',    CntrPar%SS_VSGain,  accINFILE(1), ErrVar, CntrPar%SS_Mode == 0)
+        CALL ParseInput(FileLines,  'SS_PCGain',    CntrPar%SS_PCGain,  accINFILE(1), ErrVar, CntrPar%SS_Mode == 0)
 
         !------------ WIND SPEED ESTIMATOR CONTANTS --------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ParseInput(UnControllerParameters,CurLine,'WE_BladeRadius',accINFILE(1),CntrPar%WE_BladeRadius,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'WE_CP_n',accINFILE(1),CntrPar%WE_CP_n,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'WE_CP', CntrPar%WE_CP, CntrPar%WE_CP_n, accINFILE(1), ErrVar, .FALSE. )
-        CALL ParseInput(UnControllerParameters,CurLine,'WE_Gamma',accINFILE(1),CntrPar%WE_Gamma,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'WE_GearboxRatio',accINFILE(1),CntrPar%WE_GearboxRatio,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'WE_Jtot',accINFILE(1),CntrPar%WE_Jtot,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'WE_RhoAir',accINFILE(1),CntrPar%WE_RhoAir,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PerfFileName',accINFILE(1),CntrPar%PerfFileName,ErrVar)        
-        CALL ParseAry(UnControllerParameters, CurLine, 'PerfTableSize', CntrPar%PerfTableSize, 2, accINFILE(1), ErrVar )
-        CALL ParseInput(UnControllerParameters,CurLine,'WE_FOPoles_N',accINFILE(1),CntrPar%WE_FOPoles_N,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'WE_FOPoles_v', CntrPar%WE_FOPoles_v, CntrPar%WE_FOPoles_N, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'WE_FOPoles', CntrPar%WE_FOPoles, CntrPar%WE_FOPoles_N, accINFILE(1), ErrVar )
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseInput(FileLines,  'WE_BladeRadius',   CntrPar%WE_BladeRadius,                         accINFILE(1), ErrVar, .FALSE.)
+        CALL ParseInput(FileLines,  'WE_Gamma',         CntrPar%WE_Gamma,                               accINFILE(1), ErrVar, CntrPar%WE_Mode .NE. 1)
+        CALL ParseInput(FileLines,  'WE_GearboxRatio',  CntrPar%WE_GearboxRatio,                        accINFILE(1), ErrVar, .FALSE.)
+        CALL ParseInput(FileLines,  'WE_Jtot',          CntrPar%WE_Jtot,                                accINFILE(1), ErrVar, CntrPar%WE_Mode == 0)
+        CALL ParseInput(FileLines,  'WE_RhoAir',        CntrPar%WE_RhoAir,                              accINFILE(1), ErrVar, CntrPar%WE_Mode .NE. 2)
+        CALL ParseInput(FileLines,  'PerfFileName',     CntrPar%PerfFileName,                           accINFILE(1), ErrVar, CntrPar%WE_Mode == 0)        
+        CALL ParseAry(  FileLines,  'PerfTableSize',    CntrPar%PerfTableSize,  2,                      accINFILE(1), ErrVar, CntrPar%WE_Mode == 0)
+        CALL ParseInput(FileLines,  'WE_FOPoles_N',     CntrPar%WE_FOPoles_N,                           accINFILE(1), ErrVar)
+        CALL ParseAry(FileLines,    'WE_FOPoles_v',     CntrPar%WE_FOPoles_v,   CntrPar%WE_FOPoles_N,   accINFILE(1), ErrVar )
+        CALL ParseAry(FileLines,    'WE_FOPoles',       CntrPar%WE_FOPoles,     CntrPar%WE_FOPoles_N,   accINFILE(1), ErrVar )
+
+        ! CALL ParseInput(FileLines,  'WE_CP_n',accINFILE(1),CntrPar%WE_CP_n,ErrVar)
+        ! CALL ParseAry(  FileLines,  'WE_CP', CntrPar%WE_CP, CntrPar%WE_CP_n, accINFILE(1), ErrVar, .FALSE. )
 
         !-------------- YAW CONTROLLER CONSTANTS -----------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_uSwitch',accINFILE(1),CntrPar%Y_uSwitch,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'Y_ErrThresh', CntrPar%Y_ErrThresh, 2, accINFILE(1), ErrVar )
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_Rate',accINFILE(1),CntrPar%Y_Rate,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_MErrSet',accINFILE(1),CntrPar%Y_MErrSet,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_IntSat',accINFILE(1),CntrPar%Y_IPC_IntSat,ErrVar)
-        CALL ParseInput(UnControllerParameters, CurLine,'Y_IPC_KP', accINFILE(1), CntrPar%Y_IPC_KP, ErrVar )
-        CALL ParseInput(UnControllerParameters, CurLine,'Y_IPC_KI', accINFILE(1), CntrPar%Y_IPC_KI, ErrVar )
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseInput(FileLines,  'Y_uSwitch',    CntrPar%Y_uSwitch,         accINFILE(1), ErrVar,    CntrPar%Y_ControlMode == 0)
+        CALL ParseAry(  FileLines,  'Y_ErrThresh',  CntrPar%Y_ErrThresh,    2, accINFILE(1), ErrVar,    CntrPar%Y_ControlMode == 0)
+        CALL ParseInput(FileLines,  'Y_Rate',       CntrPar%Y_Rate,            accINFILE(1), ErrVar,    CntrPar%Y_ControlMode == 0)
+        CALL ParseInput(FileLines,  'Y_MErrSet',    CntrPar%Y_MErrSet,         accINFILE(1), ErrVar,    CntrPar%Y_ControlMode == 0)
+        CALL ParseInput(FileLines,  'Y_IPC_IntSat', CntrPar%Y_IPC_IntSat,      accINFILE(1), ErrVar,    CntrPar%Y_ControlMode == 0)
+        CALL ParseInput(FileLines,  'Y_IPC_KP',     CntrPar%Y_IPC_KP,          accINFILE(1), ErrVar,    CntrPar%Y_ControlMode == 0)
+        CALL ParseInput(FileLines,  'Y_IPC_KI',     CntrPar%Y_IPC_KI,          accINFILE(1), ErrVar,    CntrPar%Y_ControlMode == 0)
 
         !------------ FORE-AFT TOWER DAMPER CONSTANTS ------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters,CurLine,'FA_KI',accINFILE(1),CntrPar%FA_KI,ErrVar)
-        ! Don't check this name until we make an API change
-        CALL ParseInput(UnControllerParameters,CurLine,'FA_HPFCornerFreq',accINFILE(1),CntrPar%FA_HPFCornerFreq,ErrVar,.FALSE.)
-        CALL ParseInput(UnControllerParameters,CurLine,'FA_IntSat',accINFILE(1),CntrPar%FA_IntSat,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)      
+        CALL ParseInput(FileLines,  'FA_KI',            CntrPar%FA_KI,              accINFILE(1),   ErrVar, .NOT. ((CntrPar%TD_Mode > 0) .OR. (CntrPar%Y_ControlMode == 2)))
+        CALL ParseInput(FileLines,  'FA_HPFCornerFreq', CntrPar%FA_HPFCornerFreq,   accINFILE(1),   ErrVar, .NOT. ((CntrPar%TD_Mode > 0) .OR. (CntrPar%Y_ControlMode == 2)))
+        CALL ParseInput(FileLines,  'FA_IntSat',        CntrPar%FA_IntSat,          accINFILE(1),   ErrVar, .NOT. ((CntrPar%TD_Mode > 0) .OR. (CntrPar%Y_ControlMode == 2)))
 
         !------------ PEAK SHAVING ------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters,CurLine,'PS_BldPitchMin_N',accINFILE(1),CntrPar%PS_BldPitchMin_N,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'PS_WindSpeeds', CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin_N, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'PS_BldPitchMin', CntrPar%PS_BldPitchMin, CntrPar%PS_BldPitchMin_N, accINFILE(1), ErrVar )
-        CALL ReadEmptyLine(UnControllerParameters,CurLine) 
+        CALL ParseInput(FileLines,  'PS_BldPitchMin_N', CntrPar%PS_BldPitchMin_N,                               accINFILE(1), ErrVar, CntrPar%PS_Mode == 0)
+        CALL ParseAry(  FileLines,  'PS_WindSpeeds',    CntrPar%PS_WindSpeeds,      CntrPar%PS_BldPitchMin_N,   accINFILE(1), ErrVar, CntrPar%PS_Mode == 0)
+        CALL ParseAry(  FileLines,  'PS_BldPitchMin',   CntrPar%PS_BldPitchMin,     CntrPar%PS_BldPitchMin_N,   accINFILE(1), ErrVar, CntrPar%PS_Mode == 0)
 
         !------------ SHUTDOWN ------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters,CurLine,'SD_MaxPit',accINFILE(1),CntrPar%SD_MaxPit,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'SD_CornerFreq',accINFILE(1),CntrPar%SD_CornerFreq,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)      
+        CALL ParseInput(FileLines,  'SD_MaxPit',        CntrPar%SD_MaxPit,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0)
+        CALL ParseInput(FileLines,  'SD_CornerFreq',    CntrPar%SD_CornerFreq,  accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0)
 
         !------------ FLOATING ------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ParseInput(UnControllerParameters,CurLine,'Fl_Kp',accINFILE(1),CntrPar%Fl_Kp,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine) 
+        CALL ParseInput(FileLines,  'Fl_Kp',    CntrPar%Fl_Kp,  accINFILE(1), ErrVar, CntrPar%FL_Mode == 0)
 
         !------------ Flaps ------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters,CurLine,'Flp_Angle',accINFILE(1),CntrPar%Flp_Angle,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Flp_Kp',accINFILE(1),CntrPar%Flp_Kp,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Flp_Ki',accINFILE(1),CntrPar%Flp_Ki,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Flp_MaxPit',accINFILE(1),CntrPar%Flp_MaxPit,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(FileLines, 'Flp_Angle',     CntrPar%Flp_Angle,      accINFILE(1), ErrVar,   CntrPar%Flp_Mode == 0)
+        CALL ParseInput(FileLines, 'Flp_Kp',        CntrPar%Flp_Kp,         accINFILE(1), ErrVar,   CntrPar%Flp_Mode == 0)
+        CALL ParseInput(FileLines, 'Flp_Ki',        CntrPar%Flp_Ki,         accINFILE(1), ErrVar,   CntrPar%Flp_Mode == 0)
+        CALL ParseInput(FileLines, 'Flp_MaxPit',    CntrPar%Flp_MaxPit,     accINFILE(1), ErrVar,   CntrPar%Flp_Mode == 0)
 
         !------------ Open loop input ------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters,CurLine,'OL_Filename',accINFILE(1),CntrPar%OL_Filename,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Ind_Breakpoint',accINFILE(1),CntrPar%Ind_Breakpoint,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Ind_BldPitch',accINFILE(1),CntrPar%Ind_BldPitch,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Ind_GenTq',accINFILE(1),CntrPar%Ind_GenTq,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Ind_YawRate',accINFILE(1),CntrPar%Ind_YawRate,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(FileLines, 'OL_Filename',       CntrPar%OL_Filename,        accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0)
+        CALL ParseInput(FileLines, 'Ind_Breakpoint',    CntrPar%Ind_Breakpoint,     accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0)
+        CALL ParseInput(FileLines, 'Ind_BldPitch',      CntrPar%Ind_BldPitch,       accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0)
+        CALL ParseInput(FileLines, 'Ind_GenTq',         CntrPar%Ind_GenTq,          accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0)
+        CALL ParseInput(FileLines, 'Ind_YawRate',       CntrPar%Ind_YawRate,        accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0)
 
         !------------ Pitch Actuator Inputs ------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters,CurLine,'PA_CornerFreq',accINFILE(1),CntrPar%PA_CornerFreq,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PA_Damping',accINFILE(1),CntrPar%PA_Damping,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)  
+        CALL ParseInput(FileLines, 'PA_CornerFreq',     CntrPar%PA_CornerFreq,  accINFILE(1),   ErrVar, CntrPar%PA_Mode == 0)
+        CALL ParseInput(FileLines, 'PA_Damping',        CntrPar%PA_Damping,     accINFILE(1),   ErrVar, CntrPar%PA_Mode == 0)
 
         !------------ Pitch Actuator Faults ------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseAry(UnControllerParameters, CurLine,'PF_Offsets', CntrPar%PF_Offsets, 3, accINFILE(1), ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseAry(FileLines,    'PF_Offsets',   CntrPar%PF_Offsets,     3, accINFILE(1),    ErrVar, CntrPar%PF_Mode == 0)
         
         !------------ External control interface ------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters,CurLine,'DLL_FileName',accINFILE(1),CntrPar%DLL_FileName,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'DLL_InFile',accINFILE(1),CntrPar%DLL_InFile,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'DLL_ProcName',accINFILE(1),CntrPar%DLL_ProcName,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(FileLines, 'DLL_FileName',  CntrPar%DLL_FileName,   accINFILE(1), ErrVar,   CntrPar%Ext_Mode == 0)
+        CALL ParseInput(FileLines, 'DLL_InFile',    CntrPar%DLL_InFile,     accINFILE(1), ErrVar,   CntrPar%Ext_Mode == 0)
+        CALL ParseInput(FileLines, 'DLL_ProcName',  CntrPar%DLL_ProcName,   accINFILE(1), ErrVar,   CntrPar%Ext_Mode == 0)
 
         !------------ ZeroMQ ------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_CommAddress',accINFILE(1), CntrPar%ZMQ_CommAddress,ErrVar)
-		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_UpdatePeriod',accINFILE(1), CntrPar%ZMQ_UpdatePeriod,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(FileLines, 'ZMQ_CommAddress',   CntrPar%ZMQ_CommAddress,    accINFILE(1),   ErrVar,    CntrPar%ZMQ_Mode == 0)
+		CALL ParseInput(FileLines, 'ZMQ_UpdatePeriod',  CntrPar%ZMQ_UpdatePeriod,   accINFILE(1),   ErrVar,    CntrPar%ZMQ_Mode == 0)
 
         !------------- Cable Control ----- 
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters, CurLine,'CC_Group_N', accINFILE(1), CntrPar%CC_Group_N, ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine,'CC_GroupIndex', CntrPar%CC_GroupIndex, CntrPar%CC_Group_N, accINFILE(1), ErrVar)
-        CALL ParseInput(UnControllerParameters, CurLine,'CC_ActTau', accINFILE(1), CntrPar%CC_ActTau, ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseInput(FileLines,  'CC_Group_N',    CntrPar%CC_Group_N,                        accINFILE(1), ErrVar, CntrPar%CC_Mode == 0)
+        CALL ParseAry( FileLines,   'CC_GroupIndex', CntrPar%CC_GroupIndex, CntrPar%CC_Group_N, accINFILE(1), ErrVar, CntrPar%CC_Mode == 0)
+        CALL ParseInput(FileLines,  'CC_ActTau',     CntrPar%CC_ActTau,                         accINFILE(1), ErrVar, CntrPar%CC_Mode == 0)
 
         !------------- StC Control ----- 
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters, CurLine,'StC_Group_N', accINFILE(1), CntrPar%StC_Group_N, ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine,'StC_GroupIndex', CntrPar%StC_GroupIndex, CntrPar%StC_Group_N, accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,  'StC_Group_N',      CntrPar%StC_Group_N,                            accINFILE(1), ErrVar, CntrPar%StC_Mode == 0)
+        CALL ParseAry(  FileLines,  'StC_GroupIndex',   CntrPar%StC_GroupIndex, CntrPar%StC_Group_N,    accINFILE(1), ErrVar, CntrPar%StC_Mode == 0)
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -568,6 +523,9 @@ CONTAINS
         
         !------------------- HOUSEKEEPING -----------------------
         CntrPar%PerfFileName = TRIM(CntrPar%PerfFileName)
+
+        ! Write Echo of Control Parameters if desired
+        
 
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN
