@@ -288,6 +288,7 @@ CONTAINS
         !----------------------- DEBUG --------------------------
         CALL ParseInput(FileLines,'LoggingLevel',   CntrPar%LoggingLevel,       accINFILE(1), ErrVar)
         CALL ParseInput(FileLines,'Echo',           CntrPar%Echo,               accINFILE(1), ErrVar)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         UnEc = 0
         IF (CntrPar%Echo > 0) THEN
@@ -328,6 +329,7 @@ CONTAINS
 		CALL ParseInput(FileLines,'ZMQ_Mode',        CntrPar%ZMQ_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
 		CALL ParseInput(FileLines,'CC_Mode',         CntrPar%CC_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
 		CALL ParseInput(FileLines,'StC_Mode',        CntrPar%StC_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !----------------- FILTER CONSTANTS ---------------------
         CALL ParseInput(FileLines,  'F_LPFCornerFreq',      CntrPar%F_LPFCornerFreq,        accINFILE(1), ErrVar, UnEc=UnEc)
@@ -340,6 +342,7 @@ CONTAINS
         CALL ParseAry(  FileLines,  'F_FlCornerFreq',       CntrPar%F_FlCornerFreq,     2,  accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,  'F_FlHighPassFreq',     CntrPar%F_FlHighPassFreq,       accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseAry(  FileLines,  'F_FlpCornerFreq',      CntrPar%F_FlpCornerFreq,    2,  accINFILE(1), ErrVar, UnEc=UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !----------- BLADE PITCH CONTROLLER CONSTANTS -----------
         CALL ParseInput_Int_Opt(FileLines,  'PC_GS_n',      CntrPar%PC_GS_n,                        accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
@@ -355,6 +358,7 @@ CONTAINS
         CALL ParseInput(FileLines,  'PC_RefSpd',    CntrPar%PC_RefSpd,                      accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
         CALL ParseInput(FileLines,  'PC_FinePit',   CntrPar%PC_FinePit,                     accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
         CALL ParseInput(FileLines,  'PC_Switch',    CntrPar%PC_Switch,                      accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------------- IPC CONSTANTS -----------------------
         CALL ParseAry(  FileLines,  'IPC_Vramp',        CntrPar%IPC_Vramp,          2,  accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
@@ -364,6 +368,7 @@ CONTAINS
         CALL ParseAry(  FileLines,  'IPC_KI',           CntrPar%IPC_KI,             2,  accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
         CALL ParseAry(  FileLines,  'IPC_aziOffset',    CntrPar%IPC_aziOffset,      2,  accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
         CALL ParseInput(FileLines,  'IPC_CornerFreqAct',CntrPar%IPC_CornerFreqAct,      accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ VS TORQUE CONTROL CONSTANTS ----------------
         CALL ParseInput(FileLines,  'VS_GenEff',    CntrPar%VS_GenEff,          accINFILE(1), ErrVar, .FALSE., UnEc)
@@ -380,10 +385,12 @@ CONTAINS
         CALL ParseAry(  FileLines,  'VS_KP',        CntrPar%VS_KP,      CntrPar%VS_n,   accINFILE(1), ErrVar, .FALSE., UnEc)
         CALL ParseAry(  FileLines,  'VS_KI',        CntrPar%VS_KI,      CntrPar%VS_n,   accINFILE(1), ErrVar, .FALSE., UnEc)
         CALL ParseInput(FileLines,  'VS_TSRopt',    CntrPar%VS_TSRopt,                  accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 2, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------- Setpoint Smoother --------------------------------
         CALL ParseInput(FileLines,  'SS_VSGain',    CntrPar%SS_VSGain,  accINFILE(1), ErrVar, CntrPar%SS_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'SS_PCGain',    CntrPar%SS_PCGain,  accINFILE(1), ErrVar, CntrPar%SS_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ WIND SPEED ESTIMATOR CONTANTS --------------
         CALL ParseInput(FileLines,  'WE_BladeRadius',   CntrPar%WE_BladeRadius,                         accINFILE(1), ErrVar, .FALSE., UnEc)
@@ -396,6 +403,7 @@ CONTAINS
         CALL ParseInput(FileLines,  'WE_FOPoles_N',     CntrPar%WE_FOPoles_N,                           accINFILE(1), ErrVar, CntrPar%WE_Mode .NE. 2, UnEc)
         CALL ParseAry(FileLines,    'WE_FOPoles_v',     CntrPar%WE_FOPoles_v,   CntrPar%WE_FOPoles_N,   accINFILE(1), ErrVar, CntrPar%WE_Mode .NE. 2, UnEc)
         CALL ParseAry(FileLines,    'WE_FOPoles',       CntrPar%WE_FOPoles,     CntrPar%WE_FOPoles_N,   accINFILE(1), ErrVar, CntrPar%WE_Mode .NE. 2, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         ! CALL ParseInput(FileLines,  'WE_CP_n',accINFILE(1),CntrPar%WE_CP_n,ErrVar, UnEc)
         ! CALL ParseAry(  FileLines,  'WE_CP', CntrPar%WE_CP, CntrPar%WE_CP_n, accINFILE(1), ErrVar, .FALSE. , UnEc)
@@ -408,61 +416,75 @@ CONTAINS
         CALL ParseInput(FileLines,  'Y_IPC_IntSat', CntrPar%Y_IPC_IntSat,      accINFILE(1), ErrVar,    CntrPar%Y_ControlMode == 0, UnEc)
         CALL ParseInput(FileLines,  'Y_IPC_KP',     CntrPar%Y_IPC_KP,          accINFILE(1), ErrVar,    CntrPar%Y_ControlMode == 0, UnEc)
         CALL ParseInput(FileLines,  'Y_IPC_KI',     CntrPar%Y_IPC_KI,          accINFILE(1), ErrVar,    CntrPar%Y_ControlMode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ FORE-AFT TOWER DAMPER CONSTANTS ------------
         CALL ParseInput(FileLines,  'FA_KI',            CntrPar%FA_KI,              accINFILE(1),   ErrVar, .NOT. ((CntrPar%TD_Mode > 0) .OR. (CntrPar%Y_ControlMode == 2)), UnEc)
         CALL ParseInput(FileLines,  'FA_HPFCornerFreq', CntrPar%FA_HPFCornerFreq,   accINFILE(1),   ErrVar, .NOT. ((CntrPar%TD_Mode > 0) .OR. (CntrPar%Y_ControlMode == 2)), UnEc)
         CALL ParseInput(FileLines,  'FA_IntSat',        CntrPar%FA_IntSat,          accINFILE(1),   ErrVar, .NOT. ((CntrPar%TD_Mode > 0) .OR. (CntrPar%Y_ControlMode == 2)), UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ PEAK SHAVING ------------
         CALL ParseInput(FileLines,  'PS_BldPitchMin_N', CntrPar%PS_BldPitchMin_N,                               accINFILE(1), ErrVar, CntrPar%PS_Mode == 0, UnEc)
         CALL ParseAry(  FileLines,  'PS_WindSpeeds',    CntrPar%PS_WindSpeeds,      CntrPar%PS_BldPitchMin_N,   accINFILE(1), ErrVar, CntrPar%PS_Mode == 0, UnEc)
         CALL ParseAry(  FileLines,  'PS_BldPitchMin',   CntrPar%PS_BldPitchMin,     CntrPar%PS_BldPitchMin_N,   accINFILE(1), ErrVar, CntrPar%PS_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ SHUTDOWN ------------
         CALL ParseInput(FileLines,  'SD_MaxPit',        CntrPar%SD_MaxPit,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'SD_CornerFreq',    CntrPar%SD_CornerFreq,  accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ FLOATING ------------
         CALL ParseInput(FileLines,  'Fl_Kp',    CntrPar%Fl_Kp,  accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ Flaps ------------
         CALL ParseInput(FileLines, 'Flp_Angle',     CntrPar%Flp_Angle,      accINFILE(1), ErrVar,   CntrPar%Flp_Mode == 0, UnEc)
         CALL ParseInput(FileLines, 'Flp_Kp',        CntrPar%Flp_Kp,         accINFILE(1), ErrVar,   CntrPar%Flp_Mode == 0, UnEc)
         CALL ParseInput(FileLines, 'Flp_Ki',        CntrPar%Flp_Ki,         accINFILE(1), ErrVar,   CntrPar%Flp_Mode == 0, UnEc)
         CALL ParseInput(FileLines, 'Flp_MaxPit',    CntrPar%Flp_MaxPit,     accINFILE(1), ErrVar,   CntrPar%Flp_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ Open loop input ------------
-        CALL ParseInput(FileLines, 'OL_Filename',       CntrPar%OL_Filename,        accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0, UnEc)
-        CALL ParseInput(FileLines, 'Ind_Breakpoint',    CntrPar%Ind_Breakpoint,     accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0, UnEc)
-        CALL ParseInput(FileLines, 'Ind_BldPitch',      CntrPar%Ind_BldPitch,       accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0, UnEc)
-        CALL ParseInput(FileLines, 'Ind_GenTq',         CntrPar%Ind_GenTq,          accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0, UnEc)
-        CALL ParseInput(FileLines, 'Ind_YawRate',       CntrPar%Ind_YawRate,        accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0, UnEc)
-
+        ! Indices can be left 0 by default, checked later
+        CALL ParseInput(FileLines, 'OL_Filename',       CntrPar%OL_Filename,        accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0,   UnEc)
+        CALL ParseInput(FileLines, 'Ind_Breakpoint',    CntrPar%Ind_Breakpoint,     accINFILE(1),   ErrVar,                         UnEc=UnEc)
+        CALL ParseInput(FileLines, 'Ind_BldPitch',      CntrPar%Ind_BldPitch,       accINFILE(1),   ErrVar,                         UnEc=UnEc)
+        CALL ParseInput(FileLines, 'Ind_GenTq',         CntrPar%Ind_GenTq,          accINFILE(1),   ErrVar,                         UnEc=UnEc)
+        CALL ParseInput(FileLines, 'Ind_YawRate',       CntrPar%Ind_YawRate,        accINFILE(1),   ErrVar,                         UnEc=UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
+        
         !------------ Pitch Actuator Inputs ------------
         CALL ParseInput(FileLines, 'PA_CornerFreq',     CntrPar%PA_CornerFreq,  accINFILE(1),   ErrVar, CntrPar%PA_Mode == 0, UnEc)
         CALL ParseInput(FileLines, 'PA_Damping',        CntrPar%PA_Damping,     accINFILE(1),   ErrVar, CntrPar%PA_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ Pitch Actuator Faults ------------
         CALL ParseAry(FileLines,    'PF_Offsets',   CntrPar%PF_Offsets,     3, accINFILE(1),    ErrVar, CntrPar%PF_Mode == 0, UnEc)
-        
+        IF (ErrVar%aviFAIL < 0) RETURN
+
         !------------ External control interface ------------
         CALL ParseInput(FileLines, 'DLL_FileName',  CntrPar%DLL_FileName,   accINFILE(1), ErrVar,   CntrPar%Ext_Mode == 0, UnEc)
         CALL ParseInput(FileLines, 'DLL_InFile',    CntrPar%DLL_InFile,     accINFILE(1), ErrVar,   CntrPar%Ext_Mode == 0, UnEc)
         CALL ParseInput(FileLines, 'DLL_ProcName',  CntrPar%DLL_ProcName,   accINFILE(1), ErrVar,   CntrPar%Ext_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ ZeroMQ ------------
         CALL ParseInput(FileLines, 'ZMQ_CommAddress',   CntrPar%ZMQ_CommAddress,    accINFILE(1),   ErrVar,    CntrPar%ZMQ_Mode == 0, UnEc)
 		CALL ParseInput(FileLines, 'ZMQ_UpdatePeriod',  CntrPar%ZMQ_UpdatePeriod,   accINFILE(1),   ErrVar,    CntrPar%ZMQ_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------- Cable Control ----- 
         CALL ParseInput(FileLines,  'CC_Group_N',    CntrPar%CC_Group_N,                        accINFILE(1), ErrVar, CntrPar%CC_Mode == 0, UnEc)
         CALL ParseAry( FileLines,   'CC_GroupIndex', CntrPar%CC_GroupIndex, CntrPar%CC_Group_N, accINFILE(1), ErrVar, CntrPar%CC_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'CC_ActTau',     CntrPar%CC_ActTau,                         accINFILE(1), ErrVar, CntrPar%CC_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------- StC Control ----- 
         CALL ParseInput(FileLines,  'StC_Group_N',      CntrPar%StC_Group_N,                            accINFILE(1), ErrVar, CntrPar%StC_Mode == 0, UnEc)
         CALL ParseAry(  FileLines,  'StC_GroupIndex',   CntrPar%StC_GroupIndex, CntrPar%StC_Group_N,    accINFILE(1), ErrVar, CntrPar%StC_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -326,7 +326,7 @@ CONTAINS
                 ENDIF
 
                 Variable = 'unused'     ! Default of string input is unused for now
-                PRINT *, "Did not find "//TRIM( VarName )//" in input file.  Using default value of ", Variable
+                PRINT *, "Did not find "//TRIM( VarName )//" in input file.  Using default value of ", TRIM(Variable)
                 ! Skip the rest of the subroutine, exit
                 RETURN
             ENDIF
