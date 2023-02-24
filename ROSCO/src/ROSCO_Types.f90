@@ -116,10 +116,10 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: PA_Damping                  ! Pitch actuator damping ratio [-, unused if PA_Mode = 1]
     INTEGER(IntKi)                :: AWC_Mode                    ! Active wake control mode [0 - unused, 1 - SNL method]
     INTEGER(IntKi)                :: AWC_NumModes                ! AWC- Number of modes to include [-]
-    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: AWC_n                       ! AWC azimuthal mode [-]
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_omega                   ! AWC frequency [rad/s]
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_amp                     ! AWC amplitude [deg]
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_clockangle              ! AWC clocking angle [deg]
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: AWC_n       ! AWC azimuthal mode [-]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_freq        ! AWC frequency [Hz]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_amp         ! AWC amplitude [deg]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_clockangle  ! AWC clocking angle [deg]
     INTEGER(IntKi)                :: PF_Mode                     ! Pitch actuator fault mode {0 - not used, 1 - offsets on one or more blades}
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PF_Offsets                  ! Pitch actuator fault offsets for blade 1-3 [rad/s]
     INTEGER(IntKi)                :: Ext_Mode                    ! External control mode (0 - not used, 1 - call external control library)
