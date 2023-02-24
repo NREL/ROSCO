@@ -368,7 +368,11 @@ CONTAINS
                 LocalVar%FA_AccF = NotchFilter(LocalVar%FA_AccF, LocalVar%DT, CntrPar%F_NotchCornerFreq, CntrPar%F_NotchBetaNumDen(1), CntrPar%F_NotchBetaNumDen(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch) ! Fixed Damping
             ENDIF
         ENDIF
-        LocalVar%FA_AccHPF = HPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%FA_HPFCornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF)
+        
+        ! FA acc for ForeAft damping, condition matches whether it's used in Controllers.f90
+        IF ((CntrPar%TD_Mode > 0) .OR. (CntrPar%Y_ControlMode == 2)) THEN
+            LocalVar%FA_AccHPF = HPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%FA_HPFCornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF)
+        ENDIF
         
         ! Filter Wind Speed Estimator Signal
         LocalVar%We_Vw_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT,CntrPar%F_WECornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) ! 30 second time constant
