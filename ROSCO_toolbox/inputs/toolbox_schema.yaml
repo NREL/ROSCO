@@ -879,7 +879,6 @@ properties:
                     AWC_NumModes:
                         type: number
                         description: Number of AWC modes
-                        units: rad
                         default: 1
                     AWC_n:
                         type: array
@@ -887,20 +886,20 @@ properties:
                             type: number
                         description: AWC azimuthal number
                         default: [1]
-                    AWC_omega:
+                    AWC_freq:
                         type: array
                         items:
                             type: number
-                        description: AWC frequency [rad/s]
-                        units: rad/s
-                        default: [0.314159]
+                        description: AWC frequency [Hz]
+                        units: Hz
+                        default: [0.05]
                     AWC_amp:
                         type: array
                         items:
                             type: number
-                        description: AWC amplitude [rad]
-                        units: rad
-                        default: [0.017453292]
+                        description: AWC amplitude [deg]
+                        units: deg
+                        default: [1.0]
                     AWC_clockangle:
                         type: array
                         items:
