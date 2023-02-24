@@ -74,6 +74,12 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
         if 'description' in props:
             input_descriptions[input] = props['description']
 
+    # Tidy inputs, if needed
+    if not hasattr(rosco_vt['CC_GroupIndex'],'__len__'):
+        rosco_vt['CC_GroupIndex'] = [rosco_vt['CC_GroupIndex']]     # make an array
+    if not hasattr(rosco_vt['StC_GroupIndex'],'__len__'):
+        rosco_vt['StC_GroupIndex'] = [rosco_vt['StC_GroupIndex']]   
+
     print('Writing new controller parameter file parameter file: %s.' % param_file)
     # Should be obvious what's going on here...
     file = open(param_file,'w')
@@ -238,12 +244,12 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('\n')
     file.write('!------- Cable Control ---------------------------------------------------------\n')
     file.write('{:<11d}         ! CC_Group_N		- {}\n'.format(len(rosco_vt['CC_GroupIndex']), input_descriptions['CC_Group_N']))
-    file.write('{:^11s}         ! CC_GroupIndex     - {}\n'.format(' '.join([f'{ind:d}' for ind in rosco_vt['CC_GroupIndex']]), input_descriptions['CC_GroupIndex']))
+    file.write('{:^11s}         ! CC_GroupIndex     - {}\n'.format(' '.join([f'{int(ind):d}' for ind in rosco_vt['CC_GroupIndex']]), input_descriptions['CC_GroupIndex']))
     file.write('{:<11f}         ! CC_ActTau		    - {}\n'.format(rosco_vt['CC_ActTau'], input_descriptions['CC_ActTau']  ))
     file.write('\n')
     file.write('!------- Structural Controllers ---------------------------------------------------------\n')
     file.write('{:<11d}         ! StC_Group_N		- {}\n'.format(len(rosco_vt['StC_GroupIndex']), input_descriptions['StC_Group_N']))
-    file.write('{:^11s}         ! StC_GroupIndex     - {}\n'.format(' '.join([f'{ind:d}' for ind in rosco_vt['StC_GroupIndex']]), input_descriptions['StC_GroupIndex']))
+    file.write('{:^11s}         ! StC_GroupIndex     - {}\n'.format(' '.join([f'{int(ind):d}' for ind in rosco_vt['StC_GroupIndex']]), input_descriptions['StC_GroupIndex']))
     
     file.close()
 
