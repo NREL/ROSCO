@@ -42,6 +42,8 @@ CONTAINS
 
         CHARACTER(*),               PARAMETER           :: RoutineName = 'PitchControl'
 
+        ! Local
+
         ! ------- Blade Pitch Controller --------
         ! Load PC State
         IF (LocalVar%PC_State == 1) THEN ! PI BldPitch control
@@ -60,7 +62,7 @@ CONTAINS
         LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, LocalVar%PC_MinPit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%BlPitch(1), LocalVar%piP, LocalVar%restart, objInst%instPI)
         DebugVar%PC_PICommand = LocalVar%PC_PitComT
         ! Find individual pitch control contribution
-        IF ((CntrPar%IPC_ControlMode >= 1) .OR. (CntrPar%Y_ControlMode == 2)) THEN
+        IF ((CntrPar%IPC_ControlMode >= 1) .OR. ((CntrPar%Y_ControlMode == 2) .OR. (CntrPar%AWC_Mode == 2))) THEN
             CALL IPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
         ELSE
             LocalVar%IPC_PitComF = 0.0 ! THIS IS AN ARRAY!!
@@ -102,7 +104,7 @@ CONTAINS
         ! Combine and saturate all individual pitch commands in software
         DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
             LocalVar%PitCom(K) = LocalVar%PC_PitComT + LocalVar%FA_PitCom(K) 
-            LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the pitch satauration limits
+            LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the pitch saturation limits
             LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%IPC_PitComF(K)                                          ! Add IPC
             
             ! Hard IPC saturation by peak shaving limit
@@ -122,6 +124,11 @@ CONTAINS
                     LocalVar%PitCom(K) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch,LocalVar%Time, ErrVar)
                 END DO
             ENDIF
+        ENDIF
+
+        ! Active wake control
+        IF (CntrPar%AWC_Mode == 1) THEN
+            CALL ActiveWakeControl(CntrPar, LocalVar)
         ENDIF
 
         ! Place pitch actuator here, so it can be used with or without open-loop
@@ -395,6 +402,9 @@ CONTAINS
         REAL(DbKi)                  :: axisTilt_2P, axisYaw_2P, axisYawF_2P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
         REAL(DbKi)                  :: axisYawIPC_1P                           ! IPC contribution with yaw-by-IPC component
         REAL(DbKi)                  :: Y_MErr, Y_MErrF, Y_MErrF_IPC            ! Unfiltered and filtered yaw alignment error [rad]
+        REAL(DbKi)                  :: AWC_TiltAmp, AWC_YawAmp                 ! Tilt and yaw amplitude for AWC
+        REAL(DbKi)                  :: AWC_TiltAngle, AWC_YawAngle             ! Tilt and yaw initial phase angle for AWC
+        REAL(DbKi)                  :: AWC_TiltFreq, AWC_YawFreq             ! Tilt and yaw frequency for AWC
         
         CHARACTER(*),               PARAMETER           :: RoutineName = 'IPC'
 
@@ -432,7 +442,7 @@ CONTAINS
         ENDIF
         
         ! Integrate the signal and multiply with the IPC gain
-        IF ((CntrPar%IPC_ControlMode >= 1) .AND. (CntrPar%Y_ControlMode /= 2)) THEN
+        IF ((CntrPar%IPC_ControlMode >= 1) .AND. ((CntrPar%Y_ControlMode /= 2) .AND. (CntrPar%AWC_Mode == 0)))  THEN      ! IPC disabled if AWC is on (add warning?)
             LocalVar%IPC_axisTilt_1P = PIController(axisTilt_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
             LocalVar%IPC_axisYaw_1P = PIController(axisYawF_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
             
@@ -440,6 +450,28 @@ CONTAINS
                 LocalVar%IPC_axisTilt_2P = PIController(axisTilt_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
                 LocalVar%IPC_axisYaw_2P = PIController(axisYawF_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
             END IF
+        ! Determine AWC-IPC tilt and yaw moments
+        ELSEIF ((CntrPar%AWC_Mode == 2) .AND. (CntrPar%AWC_n(1) /= 0)) THEN
+            IF (CntrPar%AWC_NumModes == 1) THEN
+                AWC_TiltAmp = CntrPar%AWC_amp(1)
+                AWC_YawAmp = CntrPar%AWC_amp(1)
+                AWC_TiltAngle = 0
+                AWC_YawAngle = CntrPar%AWC_clockangle(1)
+                AWC_TiltFreq = CntrPar%AWC_freq(1)
+                AWC_YawFreq = CntrPar%AWC_freq(1)
+            ELSE
+                AWC_TiltAmp = CntrPar%AWC_amp(1)
+                AWC_YawAmp = CntrPar%AWC_amp(2)
+                AWC_TiltAngle = CntrPar%AWC_clockangle(1)
+                AWC_YawAngle = CntrPar%AWC_clockangle(2)
+                AWC_TiltFreq = CntrPar%AWC_freq(1)
+                AWC_YawFreq = CntrPar%AWC_freq(2)
+            END IF
+            
+            LocalVar%IPC_axisTilt_1P = PI/180*AWC_TiltAmp*sin(LocalVar%Time*2*PI*AWC_TiltFreq+AWC_TiltAngle*PI/180)
+            LocalVar%IPC_axisYaw_1P = PI/180*AWC_YawAmp*sin(LocalVar%Time*2*PI*AWC_YawFreq+AWC_YawAngle*PI/180)
+            LocalVar%IPC_axisTilt_2P = 0.0
+            LocalVar%IPC_axisYaw_2P = 0.0
         ELSE
             LocalVar%IPC_axisTilt_1P = 0.0
             LocalVar%IPC_axisYaw_1P = 0.0
@@ -469,10 +501,10 @@ CONTAINS
         END DO
 
         ! debugging
-        DebugVar%axisTilt_1P = axisTilt_1P
-        DebugVar%axisYaw_1P = axisYaw_1P
-        DebugVar%axisTilt_2P = axisTilt_2P
-        DebugVar%axisYaw_2P = axisYaw_2P
+        DebugVar%axisTilt_1P = LocalVar%IPC_axisTilt_1P ! axisTilt_1P
+        DebugVar%axisYaw_1P = LocalVar%IPC_axisYaw_1P ! axisYaw_1P
+        DebugVar%axisTilt_2P = LocalVar%IPC_axisTilt_2P
+        DebugVar%axisYaw_2P = LocalVar%IPC_axisYaw_2P
 
         
 
@@ -601,4 +633,56 @@ CONTAINS
             RETURN
         ENDIF
     END SUBROUTINE FlapControl
+
+
+!-------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE ActiveWakeControl(CntrPar, LocalVar)
+        ! Active wake controller
+        !       AWC_Mode = 0, No active wake control
+        !       AWC_Mode = 1, SNL active wake control
+        !       AWC_Mode = 2, NREL active wake control
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+
+        TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
+
+        ! Local vars
+        REAL(DbKi), PARAMETER      :: phi1 = 0.0                       ! Phase difference from first to first blade
+        REAL(DbKi), PARAMETER      :: phi2 = 2.0/3.0*PI                ! Phase difference from first to second blade
+        REAL(DbKi), PARAMETER      :: phi3 = 4.0/3.0*PI                ! Phase difference from first to third blade
+        REAL(DbKi), DIMENSION(3)                        :: AWC_angle
+        COMPLEX(DbKi), DIMENSION(3)                    :: AWC_complexangle
+        COMPLEX(DbKi)                                  :: complexI = (0.0, 1.0)
+        INTEGER(IntKi)                                  :: Imode, K       ! Index used for looping through AWC modes
+        REAL(DbKi)                 :: clockang                         ! Clock angle for AWC pitching
+        REAL(DbKi)                 :: omega                            ! angular frequency for AWC pitching in rad/s
+        REAL(DbKi)                 :: amp                              ! amplitude for AWC pitching in radian
+
+
+        ! Compute the AWC pitch settings
+        IF (CntrPar%AWC_Mode == 1) THEN
+
+            LocalVar%AWC_complexangle = 0.0D0
+
+            DO Imode = 1,CntrPar%AWC_NumModes
+                clockang = CntrPar%AWC_clockangle(Imode)*PI/180.0_DbKi
+                omega = CntrPar%AWC_freq(Imode)*PI*2.0_DbKi
+                AWC_angle(1) = omega * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi1 + clockang)
+                AWC_angle(2) = omega * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi2 + clockang)
+                AWC_angle(3) = omega * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi3 + clockang)
+                ! Add the forcing contribution to LocalVar%AWC_complexangle
+                amp = CntrPar%AWC_amp(Imode)*PI/180.0_DbKi
+                DO K = 1,LocalVar%NumBl ! Loop through all blades
+                    LocalVar%AWC_complexangle(K) = LocalVar%AWC_complexangle(K) + amp * EXP(complexI * (AWC_angle(K)))
+                END DO
+            END DO
+
+            DO K = 1,LocalVar%NumBl ! Loop through all blades, apply AWC_angle
+                LocalVar%PitCom(K) = LocalVar%PitCom(K) + REAL(LocalVar%AWC_complexangle(K))
+            END DO
+
+        ENDIF
+
+    END SUBROUTINE ActiveWakeControl
+
 END MODULE Controllers

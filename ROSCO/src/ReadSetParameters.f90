@@ -264,6 +264,7 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'OL_Mode',accINFILE(1),CntrPar%OL_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PA_Mode',accINFILE(1),CntrPar%PA_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PF_Mode',accINFILE(1),CntrPar%PF_Mode,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'AWC_Mode',accINFILE(1),CntrPar%AWC_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Ext_Mode',accINFILE(1),CntrPar%Ext_Mode,ErrVar)
 		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_Mode',accINFILE(1), CntrPar%ZMQ_Mode,ErrVar)
 
@@ -415,6 +416,15 @@ CONTAINS
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
         CALL ParseAry(UnControllerParameters, CurLine,'PF_Offsets', CntrPar%PF_Offsets, 3, accINFILE(1), ErrVar)
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+
+        !------------ AWC input ------------
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)  
+        CALL ParseInput(UnControllerParameters,CurLine,'AWC_NumModes',  accINFILE(1),CntrPar%AWC_NumModes, ErrVar)
+        CALL ParseAry(  UnControllerParameters,CurLine,'AWC_n',         CntrPar%AWC_n,     CntrPar%AWC_NumModes, accINFILE(1), ErrVar)
+        CALL ParseAry(  UnControllerParameters,CurLine,'AWC_freq',     CntrPar%AWC_freq, CntrPar%AWC_NumModes, accINFILE(1), ErrVar)
+        CALL ParseAry(  UnControllerParameters,CurLine,'AWC_amp',       CntrPar%AWC_amp,   CntrPar%AWC_NumModes, accINFILE(1), ErrVar)
+        CALL ParseAry(  UnControllerParameters,CurLine,'AWC_clockangle',CntrPar%AWC_clockangle,CntrPar%AWC_NumModes, accINFILE(1), ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)
         
         !------------ External control interface ------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   

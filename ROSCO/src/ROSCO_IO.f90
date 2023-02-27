@@ -131,6 +131,9 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%ACC_INFILE_SIZE
         WRITE( Un, IOSTAT=ErrStat) LocalVar%ACC_INFILE
         WRITE( Un, IOSTAT=ErrStat) LocalVar%restart
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%AWC_complexangle(1)
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%AWC_complexangle(2)
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%AWC_complexangle(3)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%WE%om_r
         WRITE( Un, IOSTAT=ErrStat) LocalVar%WE%v_t
         WRITE( Un, IOSTAT=ErrStat) LocalVar%WE%v_m
@@ -315,6 +318,9 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         ALLOCATE(LocalVar%ACC_INFILE(LocalVar%ACC_INFILE_SIZE))
         READ( Un, IOSTAT=ErrStat) LocalVar%ACC_INFILE
         READ( Un, IOSTAT=ErrStat) LocalVar%restart
+        READ( Un, IOSTAT=ErrStat) LocalVar%AWC_complexangle(1)
+        READ( Un, IOSTAT=ErrStat) LocalVar%AWC_complexangle(2)
+        READ( Un, IOSTAT=ErrStat) LocalVar%AWC_complexangle(3)
         READ( Un, IOSTAT=ErrStat) LocalVar%WE%om_r
         READ( Un, IOSTAT=ErrStat) LocalVar%WE%v_t
         READ( Un, IOSTAT=ErrStat) LocalVar%WE%v_m
@@ -442,7 +448,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       '[rad/s]', '[rad/s]', '[m/s]', '[rad]', '[rad]', & 
                                       '[N/A]', '[N/A]', '[N/A]', '[N/A]', '[rad/s]', & 
                                       '[deg]', '[deg]', '[deg]', '[N/A]']
-    nLocalVars = 71
+    nLocalVars = 72
     Allocate(LocalVarOutData(nLocalVars))
     Allocate(LocalVarOutStrings(nLocalVars))
     LocalVarOutData(1) = LocalVar%iStatus
@@ -516,6 +522,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(69) = LocalVar%Flp_Angle(1)
     LocalVarOutData(70) = LocalVar%RootMyb_Last(1)
     LocalVarOutData(71) = LocalVar%ACC_INFILE_SIZE
+    LocalVarOutData(72) = LocalVar%AWC_complexangle(1)
     LocalVarOutStrings = [CHARACTER(15) ::  'iStatus', 'Time', 'DT', 'VS_GenPwr', 'GenSpeed', & 
                                       'RotSpeed', 'NacHeading', 'NacVane', 'HorWindV', 'rootMOOP', & 
                                       'rootMOOPF', 'BlPitch', 'BlPitchCMeas', 'Azimuth', 'NumBl', & 
@@ -530,7 +537,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       'VS_SpdErrAr', 'VS_SpdErrBr', 'VS_SpdErr', 'VS_State', 'VS_Rgn3Pitch', & 
                                       'WE_Vw', 'WE_Vw_F', 'WE_VwI', 'WE_VwIdot', 'VS_LastGenTrqF', & 
                                       'Fl_PitCom', 'NACIMU_FA_AccF', 'FA_AccF', 'Flp_Angle', 'RootMyb_Last', & 
-                                      'ACC_INFILE_SIZE']
+                                      'ACC_INFILE_SIZE', 'AWC_complexangle']
     ! Initialize debug file
     IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN ! .TRUE. if we're on the first call to the DLL
         IF (CntrPar%LoggingLevel > 0) THEN
