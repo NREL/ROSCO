@@ -45,7 +45,7 @@ def main():
         avi_fail.append(controller_int.aviFAIL.value)
 
     # Check whether controller call failed
-    assert avi_fail == [0,0], "Unexpected pass/fail"
+    assert avi_fail == [0,-1], "Unexpected pass/fail"
 
 if __name__ == "__main__":
     main()
