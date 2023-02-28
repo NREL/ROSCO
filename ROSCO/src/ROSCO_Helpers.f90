@@ -160,8 +160,6 @@ CONTAINS
 
                 Variable = 0     ! Default of integer inputs is 0 for now
                 PRINT *, "Did not find "//TRIM( VarName )//" in input file.  Using default value of ", Variable
-                ! Skip the rest of the subroutine, exit
-                RETURN
             ENDIF
 
             ! Debugging: show what's being read, turn into Echo later
@@ -170,7 +168,7 @@ CONTAINS
             END IF
 
             ! IF We haven't failed already
-            IF (ErrVar%aviFAIL >= 0) THEN        
+            IF (ErrVar%aviFAIL >= 0 .AND. FoundLine) THEN        
 
                 ! Read the variable
                 READ (Words(1),*,IOSTAT=ErrStatLcl)  Variable
@@ -244,8 +242,6 @@ CONTAINS
 
                 Variable = 0     ! Default of integer inputs is 0 for now
                 PRINT *, "Did not find "//TRIM( VarName )//" in input file.  Using default value of ", Variable
-                ! Skip the rest of the subroutine, exit
-                RETURN
             ENDIF
 
             ! Debugging: show what's being read, turn into Echo later
@@ -254,7 +250,7 @@ CONTAINS
             END IF
 
             ! IF We haven't failed already
-            IF (ErrVar%aviFAIL >= 0) THEN        
+            IF (ErrVar%aviFAIL >= 0 .AND. FoundLine) THEN        
 
                 ! Read the variable
                 READ (Words(1),*,IOSTAT=ErrStatLcl)  Variable
@@ -327,8 +323,6 @@ CONTAINS
 
                 Variable = 'unused'     ! Default of string input is unused for now
                 PRINT *, "Did not find "//TRIM( VarName )//" in input file.  Using default value of ", TRIM(Variable)
-                ! Skip the rest of the subroutine, exit
-                RETURN
             ENDIF
 
             ! Debugging: show what's being read, turn into Echo later
@@ -336,8 +330,7 @@ CONTAINS
                 print *, 'Read: '//TRIM(Words(1))//' and '//TRIM(Words(2)),' on line ', CurLine
             END IF
 
-            ! IF We haven't failed already
-            IF (ErrVar%aviFAIL >= 0) THEN        
+            IF (ErrVar%aviFAIL >= 0 .AND. FoundLine) THEN        
 
                 ! Read the variable
                 READ (Words(1),*,IOSTAT=ErrStatLcl)  Variable
@@ -1108,6 +1101,7 @@ SUBROUTINE FindLine(FileLines, ParamName, FoundLine, Line, LineNum, AryLen)
     
     ! Search for line in FileLines
     FoundLine = .FALSE.
+    LineNum = 0
     DO I = 1,SIZE(FileLines)
 
         ! Separate line string into 2 words
