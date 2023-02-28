@@ -85,7 +85,7 @@ CALL ReadAvrSWAP(avrSWAP, LocalVar, CntrPar)
 CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, zmqVar, RootName, ErrVar)
 
 ! Call external controller, if desired
-IF (CntrPar%Ext_Mode > 0) THEN
+IF (CntrPar%Ext_Mode > 0 .AND. ErrVar%aviFAIL >= 0) THEN
     CALL ExtController(avrSWAP, CntrPar, LocalVar, ExtDLL, ErrVar)
     ! Data from external dll is in ExtDLL%avrSWAP, it's unused in the following code
 END IF
