@@ -1,5 +1,5 @@
 ! Controller parameter input file for the NREL-5MW wind turbine
-!    - File written using ROSCO version 2.7.0 controller tuning logic on 02/24/23
+!    - File written using ROSCO version 2.7.0 controller tuning logic on 02/28/23
 
 !------- DEBUG ------------------------------------------------------------
 1                   ! LoggingLevel		- (0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3))
@@ -24,8 +24,8 @@
 0                   ! PF_Mode           - Pitch fault mode {0 - not used, 1 - constant offset on one or more blades}
 0                   ! Ext_Mode          - External control mode {0 - not used, 1 - call external dynamic library}
 0                   ! ZMQ_Mode          - Fuse ZeroMQ interface {0: unused, 1: Yaw Control}
-0                    ! CC_Mode           - Cable control mode [0- unused, 1- User defined, 2- Position control (not yet implemented)]
-0                    ! StC_Mode           - Structural control mode [0- unused, 1- User defined]
+0                   ! CC_Mode           - Cable control mode [0- unused, 1- User defined, 2- Position control (not yet implemented)]
+0                   ! StC_Mode          - Structural control mode [0- unused, 1- User defined]
 
 !------- FILTERS ----------------------------------------------------------
 1.57080             ! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [rad/s]
