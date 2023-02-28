@@ -806,42 +806,46 @@ END SUBROUTINE ParseInAry
             Ary = 0     ! Default of allocatable arrays is 0 for now
             PRINT *, "Did not find "//TRIM( ParamName )//" in input file.  Using default value of [", Ary, "]"
         ENDIF
-    
-        ! Allocate words array
-        ALLOCATE ( Words_Ary( AryLen + 1 ) , STAT=ErrStatLcl )
-        IF ( ErrStatLcl /= 0 )  THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg = RoutineName//':Fatal error allocating memory for the Words array.'
-            CALL Cleanup()
-            RETURN
-        ENDIF
 
-        ! Separate line string into AryLen + 1 words, should include variable name
-        CALL GetWords ( Line, Words_Ary, AryLen + 1 )  
-
-        ! Debug Output
-        IF (DEBUG_PARSING) THEN
-            Debug_String = ''
-            DO i = 1,AryLen+1
-                Debug_String = TRIM(Debug_String)//TRIM(Words_Ary(i))
-                IF (i < AryLen + 1) THEN
-                    Debug_String = TRIM(Debug_String)//','
-                END IF
-            END DO
-            print *, 'Read: '//TRIM(Debug_String)//' on line ', LineNum
-        END IF
+        IF (FoundLine) THEN
     
-        ! Read array
-        READ (Line,*,IOSTAT=ErrStatLcl)  Ary
-        IF ( ErrStatLcl /= 0 )  THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg = RoutineName//':A fatal error occurred when parsing data from "' &
-                            //TRIM( FileName )//'".'//NewLine//  &
-                            ' >> The "'//TRIM( ParamName )//'" array was not assigned valid REAL values on line #' &
-                            //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
-                            //'    "'//TRIM( Line )//'"' 
-            RETURN
-            CALL Cleanup()         
+            ! Allocate words array
+            ALLOCATE ( Words_Ary( AryLen + 1 ) , STAT=ErrStatLcl )
+            IF ( ErrStatLcl /= 0 )  THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = RoutineName//':Fatal error allocating memory for the Words array.'
+                CALL Cleanup()
+                RETURN
+            ENDIF
+
+            ! Separate line string into AryLen + 1 words, should include variable name
+            CALL GetWords ( Line, Words_Ary, AryLen + 1 )  
+
+            ! Debug Output
+            IF (DEBUG_PARSING) THEN
+                Debug_String = ''
+                DO i = 1,AryLen+1
+                    Debug_String = TRIM(Debug_String)//TRIM(Words_Ary(i))
+                    IF (i < AryLen + 1) THEN
+                        Debug_String = TRIM(Debug_String)//','
+                    END IF
+                END DO
+                print *, 'Read: '//TRIM(Debug_String)//' on line ', LineNum
+            END IF
+        
+            ! Read array
+            READ (Line,*,IOSTAT=ErrStatLcl)  Ary
+            IF ( ErrStatLcl /= 0 )  THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = RoutineName//':A fatal error occurred when parsing data from "' &
+                                //TRIM( FileName )//'".'//NewLine//  &
+                                ' >> The "'//TRIM( ParamName )//'" array was not assigned valid REAL values on line #' &
+                                //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
+                                //'    "'//TRIM( Line )//'"' 
+                RETURN
+                CALL Cleanup()         
+            ENDIF
+
         ENDIF
 
         IF ( PRESENT(UnEc))  THEN
@@ -941,42 +945,46 @@ END SUBROUTINE ParseInAry_Opt
             Ary = 0     ! Default of allocatable arrays is 0 for now
             PRINT *, "Did not find "//TRIM( ParamName )//" in input file.  Using default value of [", Ary, "]"
         ENDIF
-    
-        ! Allocate words array
-        ALLOCATE ( Words_Ary( AryLen + 1 ) , STAT=ErrStatLcl )
-        IF ( ErrStatLcl /= 0 )  THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg = RoutineName//':Fatal error allocating memory for the Words array.'
-            CALL Cleanup()
-            RETURN
-        ENDIF
 
-        ! Separate line string into AryLen + 1 words, should include variable name
-        CALL GetWords ( Line, Words_Ary, AryLen + 1 )  
-
-        ! Debug Output
-        IF (DEBUG_PARSING) THEN
-            Debug_String = ''
-            DO i = 1,AryLen+1
-                Debug_String = TRIM(Debug_String)//TRIM(Words_Ary(i))
-                IF (i < AryLen + 1) THEN
-                    Debug_String = TRIM(Debug_String)//','
-                END IF
-            END DO
-            print *, 'Read: '//TRIM(Debug_String)//' on line ', LineNum
-        END IF
+        IF (FoundLine) THEN
     
-        ! Read array
-        READ (Line,*,IOSTAT=ErrStatLcl)  Ary
-        IF ( ErrStatLcl /= 0 )  THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg = RoutineName//':A fatal error occurred when parsing data from "' &
-                            //TRIM( FileName )//'".'//NewLine//  &
-                            ' >> The "'//TRIM( ParamName )//'" array was not assigned valid REAL values on line #' &
-                            //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
-                            //'    "'//TRIM( Line )//'"' 
-            RETURN
-            CALL Cleanup()         
+            ! Allocate words array
+            ALLOCATE ( Words_Ary( AryLen + 1 ) , STAT=ErrStatLcl )
+            IF ( ErrStatLcl /= 0 )  THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = RoutineName//':Fatal error allocating memory for the Words array.'
+                CALL Cleanup()
+                RETURN
+            ENDIF
+
+            ! Separate line string into AryLen + 1 words, should include variable name
+            CALL GetWords ( Line, Words_Ary, AryLen + 1 )  
+
+            ! Debug Output
+            IF (DEBUG_PARSING) THEN
+                Debug_String = ''
+                DO i = 1,AryLen+1
+                    Debug_String = TRIM(Debug_String)//TRIM(Words_Ary(i))
+                    IF (i < AryLen + 1) THEN
+                        Debug_String = TRIM(Debug_String)//','
+                    END IF
+                END DO
+                print *, 'Read: '//TRIM(Debug_String)//' on line ', LineNum
+            END IF
+        
+            ! Read array
+            READ (Line,*,IOSTAT=ErrStatLcl)  Ary
+            IF ( ErrStatLcl /= 0 )  THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = RoutineName//':A fatal error occurred when parsing data from "' &
+                                //TRIM( FileName )//'".'//NewLine//  &
+                                ' >> The "'//TRIM( ParamName )//'" array was not assigned valid REAL values on line #' &
+                                //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
+                                //'    "'//TRIM( Line )//'"' 
+                RETURN
+                CALL Cleanup()         
+            ENDIF
+
         ENDIF
 
         IF ( PRESENT(UnEc))  THEN
