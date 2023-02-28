@@ -789,12 +789,6 @@ CONTAINS
             ErrVar%ErrMsg  = 'F_WECornerFreq must be greater than zero.'
         ENDIF
 
-        ! F_FlHighPassFreq
-        IF (CntrPar%F_FlHighPassFreq <= 0.0) THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'F_FlHighPassFreq must be greater than zero.'
-        ENDIF
-
         IF (CntrPar%Fl_Mode > 0) THEN
             ! F_FlCornerFreq(1)  (frequency)
             IF (CntrPar%F_FlCornerFreq(1) <= 0.0) THEN
@@ -806,6 +800,12 @@ CONTAINS
             IF (CntrPar%F_FlCornerFreq(2) <= 0.0) THEN
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg  = 'F_FlCornerFreq(2) must be greater than zero.'
+            ENDIF
+
+            ! F_FlHighPassFreq
+            IF (CntrPar%F_FlHighPassFreq <= 0.0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'F_FlHighPassFreq must be greater than zero.'
             ENDIF
         ENDIF
 
@@ -1007,7 +1007,7 @@ CONTAINS
         ENDIF
 
         ! WE_FOPoles_v
-        IF (.NOT. NonDecreasing(CntrPar%WE_FOPoles_v)) THEN
+        IF (CntrPar%WE_Mode == 2 .AND. .NOT. NonDecreasing(CntrPar%WE_FOPoles_v)) THEN
             ErrVar%aviFAIL = -1
             write(400,*) CntrPar%WE_FOPoles_v
             ErrVar%ErrMsg  = 'WE_FOPoles_v must be non-decreasing.'
