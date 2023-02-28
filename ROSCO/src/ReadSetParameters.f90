@@ -525,6 +525,8 @@ CONTAINS
         CALL ParseAry(  FileLines,  'StC_GroupIndex',   CntrPar%StC_GroupIndex, CntrPar%StC_Group_N,    accINFILE(1), ErrVar, CntrPar%StC_Mode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
+        CLOSE(UnEc)     ! Close echo file
+
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         ! Fix Paths (add relative paths if called from another dir, UnEc)
