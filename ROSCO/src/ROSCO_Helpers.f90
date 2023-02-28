@@ -784,7 +784,7 @@ END SUBROUTINE ParseInAry
         ENDIF
 
         ! Allocate array and handle errors
-        ALLOCATE ( Ary(AryLen) , STAT=ErrStatLcl )
+         ALLOCATE ( Ary(FinalAryLen) , STAT=ErrStatLcl )
         IF ( ErrStatLcl /= 0 ) THEN
             IF ( ALLOCATED(Ary) ) THEN
                 ErrVar%aviFAIL = -1
@@ -805,8 +805,6 @@ END SUBROUTINE ParseInAry
 
             Ary = 0     ! Default of allocatable arrays is 0 for now
             PRINT *, "Did not find "//TRIM( ParamName )//" in input file.  Using default value of [", Ary, "]"
-            ! Skip the rest of the subroutine, exit
-            RETURN
         ENDIF
     
         ! Allocate words array
@@ -942,8 +940,6 @@ END SUBROUTINE ParseInAry_Opt
 
             Ary = 0     ! Default of allocatable arrays is 0 for now
             PRINT *, "Did not find "//TRIM( ParamName )//" in input file.  Using default value of [", Ary, "]"
-            ! Skip the rest of the subroutine, exit
-            RETURN
         ENDIF
     
         ! Allocate words array
