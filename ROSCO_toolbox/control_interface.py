@@ -82,6 +82,8 @@ class ControllerInterface():
         self.avrSWAP[32]    = 0 * np.deg2rad(1)
         self.avrSWAP[33]    = 0 * np.deg2rad(1)
 
+        self.avrSWAP[27] = 1  # IPC
+        
         # Torque initial condition
         self.avrSWAP[22]    = 0
 

@@ -371,20 +371,20 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !----------------- FILTER CONSTANTS ---------------------
-        CALL ParseInput(FileLines,  'F_LPFCornerFreq',      CntrPar%F_LPFCornerFreq,        accINFILE(1), ErrVar, UnEc=UnEc)
-        CALL ParseInput(FileLines,  'F_LPFDamping',         CntrPar%F_LPFDamping,           accINFILE(1), ErrVar, UnEc=UnEc)
-        CALL ParseInput(FileLines,  'F_NotchCornerFreq',    CntrPar%F_NotchCornerFreq,      accINFILE(1), ErrVar, UnEc=UnEc)
-        CALL ParseAry(  FileLines,  'F_NotchBetaNumDen',    CntrPar%F_NotchBetaNumDen,  2,  accINFILE(1), ErrVar, UnEc=UnEc)
-        CALL ParseInput(FileLines,  'F_SSCornerFreq',       CntrPar%F_SSCornerFreq,         accINFILE(1), ErrVar, UnEc=UnEc)
-        CALL ParseInput(FileLines,  'F_WECornerFreq',       CntrPar%F_WECornerFreq,         accINFILE(1), ErrVar, UnEc=UnEc)
-        CALL ParseInput(FileLines,  'F_YawErr',             CntrPar%F_YawErr,               accINFILE(1), ErrVar, UnEc=UnEc)
-        CALL ParseAry(  FileLines,  'F_FlCornerFreq',       CntrPar%F_FlCornerFreq,     2,  accINFILE(1), ErrVar, UnEc=UnEc)
-        CALL ParseInput(FileLines,  'F_FlHighPassFreq',     CntrPar%F_FlHighPassFreq,       accINFILE(1), ErrVar, UnEc=UnEc)
-        CALL ParseAry(  FileLines,  'F_FlpCornerFreq',      CntrPar%F_FlpCornerFreq,    2,  accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,  'F_LPFCornerFreq',      CntrPar%F_LPFCornerFreq,        accINFILE(1), ErrVar, .FALSE., UnEc)
+        CALL ParseInput(FileLines,  'F_LPFDamping',         CntrPar%F_LPFDamping,           accINFILE(1), ErrVar, CntrPar%F_LPFType == 1, UnEc)
+        CALL ParseInput(FileLines,  'F_NotchCornerFreq',    CntrPar%F_NotchCornerFreq,      accINFILE(1), ErrVar, CntrPar%F_NotchType == 0, UnEc)
+        CALL ParseAry(  FileLines,  'F_NotchBetaNumDen',    CntrPar%F_NotchBetaNumDen,  2,  accINFILE(1), ErrVar, CntrPar%F_NotchType == 0, UnEc)
+        CALL ParseInput(FileLines,  'F_SSCornerFreq',       CntrPar%F_SSCornerFreq,         accINFILE(1), ErrVar, CntrPar%SS_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'F_WECornerFreq',       CntrPar%F_WECornerFreq,         accINFILE(1), ErrVar, .FALSE., UnEc)
+        CALL ParseInput(FileLines,  'F_YawErr',             CntrPar%F_YawErr,               accINFILE(1), ErrVar, CntrPar%Y_ControlMode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'F_FlCornerFreq',       CntrPar%F_FlCornerFreq,     2,  accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'F_FlHighPassFreq',     CntrPar%F_FlHighPassFreq,       accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'F_FlpCornerFreq',      CntrPar%F_FlpCornerFreq,    2,  accINFILE(1), ErrVar, CntrPar%Flp_Mode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !----------- BLADE PITCH CONTROLLER CONSTANTS -----------
-        CALL ParseInput_Int_Opt(FileLines,  'PC_GS_n',      CntrPar%PC_GS_n,                        accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines,  'PC_GS_n',      CntrPar%PC_GS_n,                        accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
         CALL ParseAry(  FileLines,  'PC_GS_angles', CntrPar%PC_GS_angles, CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
         CALL ParseAry(  FileLines,  'PC_GS_KP',     CntrPar%PC_GS_KP,     CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
         CALL ParseAry(  FileLines,  'PC_GS_KI',     CntrPar%PC_GS_KI,     CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
