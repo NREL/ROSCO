@@ -22,6 +22,7 @@ all_scripts = [
     '17_zeromq_interface',
     '18_pitch_offsets', # NJA: only runs on unix in CI
     '19_update_discon_version', 
+    '20_active_wake_control',
     'update_rosco_discons',     
 ]
 
