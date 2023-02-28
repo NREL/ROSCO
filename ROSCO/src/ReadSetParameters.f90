@@ -131,6 +131,8 @@ CONTAINS
 
         
         INTEGER(IntKi)                              :: K    ! Index used for looping through blades.
+        CHARACTER(1024)                             :: OL_String                    ! Open description loop string
+        INTEGER(IntKi)                              :: OL_Count                     ! Number of open loop channels
 
         CHARACTER(*),               PARAMETER       :: RoutineName = 'SetParameters'
 
@@ -218,11 +220,50 @@ CONTAINS
             ! Check validity of input parameters:
             CALL CheckInputs(LocalVar, CntrPar, avrSWAP, ErrVar, size_avcMSG)
 
+            ! Initialize variables
             LocalVar%CC_DesiredL = 0
             LocalVar%CC_ActuatedL = 0
             LocalVar%CC_ActuatedDL = 0
-
             LocalVar%StC_Input = 0
+
+            ! Initialize open loop control
+            ! Read open loop input, if desired
+            IF (CntrPar%OL_Mode == 1) THEN
+                OL_String = ''      ! Display string
+                OL_Count  = 1
+                IF (CntrPar%Ind_BldPitch > 0) THEN
+                    OL_String   = TRIM(OL_String)//' BldPitch '
+                    OL_Count    = OL_Count + 1
+                ENDIF
+
+                IF (CntrPar%Ind_GenTq > 0) THEN
+                    OL_String   = TRIM(OL_String)//' GenTq '
+                    OL_Count    = OL_Count + 1
+                ENDIF
+
+                IF (CntrPar%Ind_YawRate > 0) THEN
+                    OL_String   = TRIM(OL_String)//' YawRate '
+                    OL_Count    = OL_Count + 1
+                ENDIF
+
+                PRINT *, 'ROSCO: Implementing open loop control for'//TRIM(OL_String)
+                CALL Read_OL_Input(CntrPar%OL_Filename,110_IntKi,OL_Count,CntrPar%OL_Channels, ErrVar)
+
+                CntrPar%OL_Breakpoints = CntrPar%OL_Channels(:,CntrPar%Ind_Breakpoint)
+
+                IF (CntrPar%Ind_BldPitch > 0) THEN
+                    CntrPar%OL_BldPitch = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch)
+                ENDIF
+
+                IF (CntrPar%Ind_GenTq > 0) THEN
+                    CntrPar%OL_GenTq = CntrPar%OL_Channels(:,CntrPar%Ind_GenTq)
+                ENDIF
+
+                IF (CntrPar%Ind_YawRate > 0) THEN
+                    CntrPar%OL_YawRate = CntrPar%OL_Channels(:,CntrPar%Ind_YawRate)
+                ENDIF
+            END IF
+
 
             ! Add RoutineName to error message
             IF (ErrVar%aviFAIL < 0) THEN
@@ -233,6 +274,7 @@ CONTAINS
             IF (CntrPar%ZMQ_Mode == 1) THEN ! add .OR. statements as more functionality is built in
                 zmqVar%ZMQ_Flag = .TRUE.
             ENDIF
+
 
         ENDIF
     END SUBROUTINE SetParameters
@@ -251,9 +293,6 @@ CONTAINS
 
         
         INTEGER(IntKi)                                  :: UnControllerParameters  ! Unit number to open file
-
-        CHARACTER(1024)                                 :: OL_String                    ! Open description loop string
-        INTEGER(IntKi)                                  :: OL_Count                     ! Number of open loop channels
 
         CHARACTER(1024)                                 :: PriPath        ! Path name of the primary DISCON file
 
@@ -492,48 +531,8 @@ CONTAINS
         IF (PathIsRelative(CntrPar%PerfFileName)) CntrPar%PerfFileName = TRIM(PriPath)//TRIM(CntrPar%PerfFileName)
         IF (PathIsRelative(CntrPar%OL_Filename)) CntrPar%OL_Filename = TRIM(PriPath)//TRIM(CntrPar%OL_Filename)
         
-        ! Read open loop input, if desired
-        IF (CntrPar%OL_Mode == 1) THEN
-            OL_String = ''      ! Display string
-            OL_Count  = 1
-            IF (CntrPar%Ind_BldPitch > 0) THEN
-                OL_String   = TRIM(OL_String)//' BldPitch '
-                OL_Count    = OL_Count + 1
-            ENDIF
-
-            IF (CntrPar%Ind_GenTq > 0) THEN
-                OL_String   = TRIM(OL_String)//' GenTq '
-                OL_Count    = OL_Count + 1
-            ENDIF
-
-            IF (CntrPar%Ind_YawRate > 0) THEN
-                OL_String   = TRIM(OL_String)//' YawRate '
-                OL_Count    = OL_Count + 1
-            ENDIF
-
-            PRINT *, 'ROSCO: Implementing open loop control for'//TRIM(OL_String)
-            CALL Read_OL_Input(CntrPar%OL_Filename,110_IntKi,OL_Count,CntrPar%OL_Channels, ErrVar)
-
-            CntrPar%OL_Breakpoints = CntrPar%OL_Channels(:,CntrPar%Ind_Breakpoint)
-
-            IF (CntrPar%Ind_BldPitch > 0) THEN
-                CntrPar%OL_BldPitch = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch)
-            ENDIF
-
-            IF (CntrPar%Ind_GenTq > 0) THEN
-                CntrPar%OL_GenTq = CntrPar%OL_Channels(:,CntrPar%Ind_GenTq)
-            ENDIF
-
-            IF (CntrPar%Ind_YawRate > 0) THEN
-                CntrPar%OL_YawRate = CntrPar%OL_Channels(:,CntrPar%Ind_YawRate)
-            ENDIF
-        END IF
-
         ! Convert yaw rate to deg/s
         CntrPar%Y_Rate = CntrPar%Y_Rate * R2D
-
-        ! Debugging outputs (echo someday)
-        ! write(400,*) CntrPar%OL_YawRate
 
         ! END OF INPUT FILE    
 
@@ -1054,12 +1053,26 @@ CONTAINS
         ENDIF
 
         ! --- Open loop control ---
-        IF (((CntrPar%Ind_Breakpoint) < 0) .OR. &
-        (CntrPar%Ind_BldPitch < 0) .OR. &
-        (CntrPar%Ind_GenTq < 0) .OR. &
-        (CntrPar%Ind_YawRate < 0)) THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg = 'All open loop control indices must be greater than zero'
+        IF (CntrPar%OL_Mode > 0) THEN
+            IF (((CntrPar%Ind_Breakpoint) < 0) .OR. &
+            (CntrPar%Ind_BldPitch < 0) .OR. &
+            (CntrPar%Ind_GenTq < 0) .OR. &
+            (CntrPar%Ind_YawRate < 0)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'All open loop control indices must be greater than zero'
+            ENDIF
+
+            IF (CntrPar%Ind_Breakpoint < 1) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'Ind_Breakpoint must be non-zero if OL_Mode is non-zero'
+            ENDIF
+
+            IF ((CntrPar%Ind_BldPitch < 1) .AND. &
+                (CntrPar%Ind_GenTq < 1) .AND. &
+                (CntrPar%Ind_YawRate < 1)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'At least one open loop input channel must be non-zero'
+            ENDIF
         ENDIF
 
         ! --- Pitch Actuator ---
