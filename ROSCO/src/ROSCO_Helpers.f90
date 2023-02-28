@@ -154,7 +154,7 @@ CONTAINS
             IF (.NOT. FoundLine) THEN
                 IF (.NOT. AllowDefault_) THEN
                     ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg = RoutineName//':Missing or default values are not allowed for '//TRIM( VarName )//'. Please check control modes and array length.'
+                    ErrVar%ErrMsg = RoutineName//':Missing or default values are not allowed for '//TRIM( VarName )//'. Please check control modes.'
                     RETURN
                 ENDIF
 
@@ -236,7 +236,7 @@ CONTAINS
             IF (.NOT. FoundLine) THEN
                 IF (.NOT. AllowDefault_) THEN
                     ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg = RoutineName//':Missing or default values are not allowed for '//TRIM( VarName )//'. Please check control modes and array length.'
+                    ErrVar%ErrMsg = RoutineName//':Missing or default values are not allowed for '//TRIM( VarName )//'. Please check control modes.'
                     RETURN
                 ENDIF
 
@@ -317,7 +317,7 @@ CONTAINS
             IF (.NOT. FoundLine) THEN
                 IF (.NOT. AllowDefault_) THEN
                     ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg = RoutineName//':Missing or default values are not allowed for '//TRIM( VarName )//'. Please check control modes and array length.'
+                    ErrVar%ErrMsg = RoutineName//':Missing or default values are not allowed for '//TRIM( VarName )//'. Please check control modes.'
                     RETURN
                 ENDIF
 
@@ -799,7 +799,7 @@ END SUBROUTINE ParseInAry
         IF (.NOT. FoundLine) THEN
             IF (.NOT. AllowDefault_) THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = RoutineName//':Missing or default values are not allowed for '//TRIM( ParamName )//'. Please check control modes.'
+                ErrVar%ErrMsg = RoutineName//':Missing or default values are not allowed for '//TRIM( ParamName )//'. Please check control modes and array length.'
                 RETURN
             ENDIF
 
@@ -934,7 +934,7 @@ END SUBROUTINE ParseInAry_Opt
         IF (.NOT. FoundLine) THEN
             IF (.NOT. AllowDefault_) THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = RoutineName//':Missing or default values are not allowed for '//TRIM( ParamName )//'. Please check control modes.'
+                ErrVar%ErrMsg = RoutineName//':Missing or default values are not allowed for '//TRIM( ParamName )//'. Please check control modes and array length.'
                 RETURN
             ENDIF
 
