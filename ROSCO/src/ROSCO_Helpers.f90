@@ -311,7 +311,7 @@ CONTAINS
             ! Separate line again
             CALL GetWords ( Line, Words, 2 )  
 
-            ! PRINT *, "Line: ", Line
+            ! PRINT *, "Line: ", TRIM(Line)
 
             ! Print warning with default
             IF (.NOT. FoundLine) THEN
@@ -333,7 +333,7 @@ CONTAINS
             IF (ErrVar%aviFAIL >= 0 .AND. FoundLine) THEN        
 
                 ! Read the variable
-                READ (Words(1),*,IOSTAT=ErrStatLcl)  Variable
+                READ (Words(1),'(A)',IOSTAT=ErrStatLcl)  Variable
                 IF ( ErrStatLcl /= 0 )  THEN
                     ErrVar%aviFAIL  = -1
                     ErrVar%ErrMsg   =  NewLine//' >> A fatal error occurred when parsing data from "' &
