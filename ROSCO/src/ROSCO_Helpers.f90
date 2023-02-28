@@ -42,7 +42,7 @@ MODULE ROSCO_Helpers
     END INTERFACE
 
     INTEGER(IntKi), PARAMETER       :: MaxLineLength    = 2048      ! characters
-    INTEGER(IntKi), PARAMETER       :: MaxParamLength   = 40        ! characters
+    INTEGER(IntKi), PARAMETER       :: MaxParamLength   = 200         ! characters, file paths can be long
 
 CONTAINS
 
