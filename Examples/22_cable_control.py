@@ -46,7 +46,7 @@ def main():
 
     # Input yaml and output directory
     parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW_cable.yaml')
-    run_dir = os.path.join(example_out_dir,'22_cable_control_1')
+    run_dir = os.path.join(example_out_dir,'22_cable_control')
     os.makedirs(run_dir,exist_ok=True)
 
     # Read initial input file
@@ -60,10 +60,17 @@ def main():
     reader.execute()
 
     # Set control line mapping (ChannelID -> Line(s))
+    reader.fst_vt['MoorDyn']['ChannelID'] = [1, 2, 3]
     reader.fst_vt['MoorDyn']['Lines_Control'] = [['1'], ['2'], ['3']]
 
     # Make segments longer
     reader.fst_vt['MoorDyn']['NumSegs'] = [20,20,20]
+
+    # Outputs
+    reader.fst_vt['MoorDyn']['Outputs'] = ['l', 'l', 'l']
+
+    # Set up ServoDyn for cable control
+    reader.fst_vt['ServoDyn']['CCmode'] = 5
 
     # simulation set up
     r = run_FAST_ROSCO()
