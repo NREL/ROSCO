@@ -699,7 +699,7 @@ SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst)
             ! User defined control
 
             IF (LocalVar%Time > 50) THEN
-                ! Step change in input of 1000 N
+                ! Step change in input of -4500 N
                 LocalVar%StC_Input(1) = -4e5
 
 
