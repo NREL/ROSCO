@@ -172,7 +172,7 @@ class run_FAST_ROSCO():
             fastBatch.case_list         = case_list
             fastBatch.case_name_list    = case_name_list
             fastBatch.fst_vt            = self.fst_vt
-            fastBatch.FAST_exe          = '/Users/dzalkind/opt/anaconda3/envs/rosco-env/bin/openfast'
+            fastBatch.FAST_exe          = 'openfast'
 
             if MPI:
                 fastBatch.run_mpi(comm_map_down)
