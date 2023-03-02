@@ -638,7 +638,7 @@ CONTAINS
 
             ! END IF
 
-            IF (LocalVar%Time > 200) THEN
+            IF (LocalVar%Time > 50) THEN
                 ! Shorten first group by 4 m
                 LocalVar%CC_DesiredL(1) = -10
 
