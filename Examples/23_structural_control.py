@@ -26,7 +26,7 @@ These indices can be found in the ServoDyn summary file (*SrvD.sum)
 In the example below (and hard-coded in ROSCO) a step change of -4e5 N on the first structural controller 
 is applied at 50 sec.
 
-A new version of OpenFAST (v3.5.0, upcoming) is required to run this example
+The develop branch (as of Mar 3, 2023) of OpenFAST (v3.5.0, upcoming) is required to run this example
 '''
 
 
@@ -48,7 +48,7 @@ def main():
 
     # Input yaml and output directory
     parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW_ballast.yaml')
-    run_dir = os.path.join(example_out_dir,'23_structural_control_1')
+    run_dir = os.path.join(example_out_dir,'23_structural_control')
     os.makedirs(run_dir,exist_ok=True)
 
     # Read initial input file
