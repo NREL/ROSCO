@@ -751,6 +751,13 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                 END DO
             END IF
 
+            ! Structural control indices
+            IF (CntrPar%StC_Mode > 0) THEN
+                DO Ind = 1, SIZE(CntrPar%StC_GroupIndex)
+                    Call AddToList(avrIndices,CntrPar%StC_GroupIndex(Ind))
+                END DO
+            END IF
+
             ! Format string
             avrFmt = '(A21,'//TRIM(Int2LStr(SIZE(avrIndices)))//'(TR12,"'//'AvrSWAP(",I4,")"))'
 
