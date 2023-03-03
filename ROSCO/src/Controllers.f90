@@ -626,18 +626,6 @@ CONTAINS
         IF (CntrPar%CC_Mode == 1) THEN
             ! User defined control
 
-            ! step input for example
-            ! IF (LocalVar%Time > 100) THEN
-            !     ! Shorten first group by 1 m
-            !     avrSWAP(CntrPar%CC_GroupIndex(1)) = -10
-
-            !     IF (LocalVar%Time > 150) THEN
-            !         avrSWAP(CntrPar%CC_GroupIndex(1)) = 0
-            !     END IF
-
-
-            ! END IF
-
             IF (LocalVar%Time > 50) THEN
                 ! Shorten first group by 4 m
                 LocalVar%CC_DesiredL(1) = -10

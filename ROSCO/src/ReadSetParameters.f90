@@ -329,9 +329,9 @@ CONTAINS
         CALL ParseInput(FileLines,'Echo',           CntrPar%Echo,               accINFILE(1), ErrVar)
         IF (ErrVar%aviFAIL < 0) RETURN
 
+        ! Set up echo file
         UnEc = 0
         IF (CntrPar%Echo > 0) THEN
-            ! Set up echo file
             EchoFilename = TRIM(RootName)//'.RO.echo'
             CALL GetNewUnit(UnEc, ErrVar)
             OPEN(unit=UnEc, FILE=TRIM(EchoFilename), IOSTAT=ErrStat, ACTION='WRITE' )
@@ -410,7 +410,7 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ VS TORQUE CONTROL CONSTANTS ----------------
-        CALL ParseInput(FileLines,  'VS_GenEff',    CntrPar%VS_GenEff,          accINFILE(1), ErrVar, .FALSE., UnEc)
+        CALL ParseInput(FileLines,  'VS_GenEff',    CntrPar%VS_GenEff,                  accINFILE(1), ErrVar, .FALSE., UnEc)
         CALL ParseInput(FileLines,  'VS_ArSatTq',   CntrPar%VS_ArSatTq,                 accINFILE(1), ErrVar, CntrPar%VS_ControlMode > 1, UnEc)
         CALL ParseInput(FileLines,  'VS_MaxRat',    CntrPar%VS_MaxRat,                  accINFILE(1), ErrVar, CntrPar%VS_ControlMode > 1, UnEc)
         CALL ParseInput(FileLines,  'VS_MaxTq',     CntrPar%VS_MaxTq,                   accINFILE(1), ErrVar, .FALSE., UnEc)
@@ -444,6 +444,7 @@ CONTAINS
         CALL ParseAry(FileLines,    'WE_FOPoles',       CntrPar%WE_FOPoles,     CntrPar%WE_FOPoles_N,   accINFILE(1), ErrVar, CntrPar%WE_Mode .NE. 2, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
+        ! Retired WSE inputs:  not used anywhere in code
         ! CALL ParseInput(FileLines,  'WE_CP_n',accINFILE(1),CntrPar%WE_CP_n,ErrVar, UnEc)
         ! CALL ParseAry(  FileLines,  'WE_CP', CntrPar%WE_CP, CntrPar%WE_CP_n, accINFILE(1), ErrVar, .FALSE. , UnEc)
 
@@ -511,7 +512,7 @@ CONTAINS
 
         !------------ ZeroMQ ------------
         CALL ParseInput(FileLines, 'ZMQ_CommAddress',   CntrPar%ZMQ_CommAddress,    accINFILE(1),   ErrVar,    CntrPar%ZMQ_Mode == 0, UnEc)
-		CALL ParseInput(FileLines, 'ZMQ_UpdatePeriod',  CntrPar%ZMQ_UpdatePeriod,   accINFILE(1),   ErrVar,    CntrPar%ZMQ_Mode == 0, UnEc)
+        CALL ParseInput(FileLines, 'ZMQ_UpdatePeriod',  CntrPar%ZMQ_UpdatePeriod,   accINFILE(1),   ErrVar,    CntrPar%ZMQ_Mode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------- Cable Control ----- 
@@ -525,7 +526,7 @@ CONTAINS
         CALL ParseAry(  FileLines,  'StC_GroupIndex',   CntrPar%StC_GroupIndex, CntrPar%StC_Group_N,    accINFILE(1), ErrVar, CntrPar%StC_Mode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
-        CLOSE(UnEc)     ! Close echo file
+        IF (UnEc > 0) CLOSE(UnEc)     ! Close echo file
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
