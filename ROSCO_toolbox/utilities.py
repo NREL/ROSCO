@@ -562,9 +562,6 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     # ------- Zero-MQ  ------- 
     DISCON_dict['ZMQ_CommAddress'] = "tcp://localhost:5555" 
     DISCON_dict['ZMQ_UpdatePeriod']  = 2
-    # -------- Cable Control
-    DISCON_dict['CC_GroupIndex']    = [0]
-    DISCON_dict['CC_ActTau']        = 20
     
     # Add pass through here
     for param, value in controller.controller_params['DISCON'].items():
