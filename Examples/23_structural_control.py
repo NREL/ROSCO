@@ -1,6 +1,6 @@
 '''
 ----------- 23_structural_control ------------------------
-Run openfast with ROSCO and cable control
+Run openfast with ROSCO and structural control
 -----------------------------------------------
 
 Set up and run simulation with pitch offsets, check outputs
@@ -10,12 +10,9 @@ Set up and run simulation with pitch offsets, check outputs
 import os, platform
 from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
 from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
-from ROSCO_toolbox.ofTools.fast_io import output_processing
 import numpy as np
 from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
-from ROSCO_toolbox.ofTools.fast_io.FAST_writer import InputWriter_OpenFAST
 from ROSCO_toolbox.inputs.validation import load_rosco_yaml
-import matplotlib.pyplot as plt
 
 '''
 ROSCO currently supports user-defined hooks for structural control control actuation, if StC_Mode = 1.
