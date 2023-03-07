@@ -1263,13 +1263,13 @@ class InputWriter_OpenFAST(object):
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ServoDyn']['AfC_Phase'], 'AfC_phase', '- Phase relative to the blade azimuth (0 is vertical) for for cosine cycling of flap signal (deg) [used only with AfCmode==1]\n'))
         f.write('---------------------- STRUCTURAL CONTROL ---------------------------------------\n')
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ServoDyn']['NumBStC'], 'NumBStC', '- Number of blade structural controllers (integer)\n'))
-        f.write('{!s:<22} {:<11} {:}'.format('"' + ''.join(self.fst_vt['ServoDyn']['BStCfiles']) + '"', 'BStCfiles', '- Name of the file for blade tuned mass damper (quoted string) [unused when CompNTMD is false]\n'))
+        f.write('{!s:<22} {:<11} {:}'.format('"' + '" "'.join(self.fst_vt['ServoDyn']['BStCfiles']) + '"', 'BStCfiles', '- Name of the file for blade tuned mass damper (quoted string) [unused when CompNTMD is false]\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ServoDyn']['NumNStC'], 'NumNStC', '- Number of nacelle structural controllers (integer)\n'))
-        f.write('{!s:<22} {:<11} {:}'.format('"' + ''.join(self.fst_vt['ServoDyn']['NStCfiles']) + '"', 'NStCfiles', '- Name of the file for nacelle tuned mass damper (quoted string) [unused when CompNTMD is false]\n'))
+        f.write('{!s:<22} {:<11} {:}'.format('"' + '" "'.join(self.fst_vt['ServoDyn']['NStCfiles']) + '"', 'NStCfiles', '- Name of the file for nacelle tuned mass damper (quoted string) [unused when CompNTMD is false]\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ServoDyn']['NumTStC'], 'NumTStC', '- Number of tower structural controllers (integer)\n'))
-        f.write('{!s:<22} {:<11} {:}'.format('"' + ''.join(self.fst_vt['ServoDyn']['TStCfiles']) + '"', 'TStCfiles', '- Name of the file for tower tuned mass damper (quoted string) [unused when CompNTMD is false]\n'))
+        f.write('{!s:<22} {:<11} {:}'.format('"' + '" "'.join(self.fst_vt['ServoDyn']['TStCfiles']) + '"', 'TStCfiles', '- Name of the file for tower tuned mass damper (quoted string) [unused when CompNTMD is false]\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ServoDyn']['NumSStC'], 'NumSStC', '- Number of sbustructure structural controllers (integer)\n'))
-        f.write('{!s:<22} {:<11} {:}'.format('"' + ''.join(self.fst_vt['ServoDyn']['SStCfiles']) + '"', 'SStCfiles', '- Name of the file for sbustructure tuned mass damper (quoted string) [unused when CompNTMD is false]\n'))
+        f.write('{!s:<22} {:<11} {:}'.format('"' + '" "'.join(self.fst_vt['ServoDyn']['SStCfiles']) + '"', 'SStCfiles', '- Name of the file for sbustructure tuned mass damper (quoted string) [unused when CompNTMD is false]\n'))
         f.write('---------------------- CABLE CONTROL ---------------------------------------- \n')
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['ServoDyn']['CCmode'], 'CCmode', '- Cable control mode {0- none, 4- user-defined from Simulink/Labview, 5- user-defineAfC_phased from Bladed-style DLL}\n'))
         f.write('---------------------- BLADED INTERFACE ---------------------------------------- [used only with Bladed Interface]\n')
@@ -1977,6 +1977,17 @@ class InputWriter_OpenFAST(object):
             ln.append('{:^11d}'.format(self.fst_vt['MoorDyn']['NumSegs'][i]))
             ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['Outputs'][i]))
             f.write(" ".join(ln) + '\n')
+
+        if self.fst_vt['MoorDyn']['ChannelID']: # There are control inputs
+            f.write('---------------------- CONTROL ---------------------------------------\n')
+            f.write(" ".join(['{:^11s}'.format(i) for i in ['ChannelID', 'Line(s)']])+'\n')
+            f.write(" ".join(['{:^11s}'.format(i) for i in ['()', '(,)']])+'\n')
+            for i_line in range(len(self.fst_vt['MoorDyn']['ChannelID'])):
+                ln = []
+                ln.append('{:^11d}'.format(self.fst_vt['MoorDyn']['ChannelID'][i_line]))
+                ln.append(','.join(self.fst_vt['MoorDyn']['Lines_Control'][i_line]))
+                f.write(" ".join(ln) + '\n')
+
         f.write('---------------------- SOLVER OPTIONS ---------------------------------------\n')
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['MoorDyn']['dtM'], 'dtM', '- time step to use in mooring integration (s)\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['MoorDyn']['kbot'], 'kbot', '- bottom stiffness (Pa/m)\n'))

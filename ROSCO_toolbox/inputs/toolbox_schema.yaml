@@ -99,7 +99,7 @@ properties:
                 type: number
                 description: 0- write no debug files, 1- write standard output .dbg-file, 2- write standard output .dbg-file and complete avrSWAP-array .dbg2-file
                 minimum: 0
-                maximum: 2
+                maximum: 3
                 default: 1
             F_LPFType:
                 type: number
@@ -208,7 +208,19 @@ properties:
                 minimum: 0
                 maximum: 1
                 default: 0
-                description: External control mode {{0 - not used, 1 - call external dynamic library}}
+                description: External control mode [0 - not used, 1 - call external dynamic library]
+            CC_Mode:           
+                type: number
+                minimum: 0
+                maximum: 1
+                default: 0
+                description: Cable control mode [0- unused, 1- User defined, 2- Position control (not yet implemented)]
+            StC_Mode:           
+                type: number
+                minimum: 0
+                maximum: 1
+                default: 0
+                description: Structural control mode [0- unused, 1- User defined]
             U_pc:                       
                 type: array
                 description: List of wind speeds to schedule pitch control zeta and omega 
@@ -468,6 +480,10 @@ properties:
                     LoggingLevel:
                         type: number
                         description: (0- write no debug files, 1- write standard output .dbg-file, 2- write standard output .dbg-file and complete avrSWAP-array .dbg2-file)
+                    Echo:
+                        type: number
+                        description: 0 - no Echo, 1 - Echo input data to <RootName>.echo
+                        default: 0
                     F_LPFType:
                         type: number
                         description: 1- first-order low-pass filter, 2- second-order low-pass filter (currently filters generator speed and pitch control signals
@@ -864,6 +880,30 @@ properties:
                             type: number
                         description: Pitch angle offsets for each blade (array with length of 3)
                         units: rad
+                    CC_Group_N:
+                        type: number
+                        description: Number of cable control groups
+                        default: 0
+                    CC_GroupIndex:
+                        type: array
+                        items:
+                            type: number
+                        description: First index for cable control group, should correspond to deltaL
+                        default: [0]
+                    CC_ActTau:
+                        type: number
+                        description: Time constant for line actuator [s]
+                        default: 20
+                    StC_Group_N:
+                        type: number
+                        description: Number of cable control groups
+                        default: 0
+                    StC_GroupIndex:
+                        type: array
+                        items:
+                            type: number
+                        description: First index for structural control group, options specified in ServoDyn summary output
+                        default: [0]
 
     linmodel_tuning:
         type: object

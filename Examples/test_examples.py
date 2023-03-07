@@ -19,9 +19,11 @@ all_scripts = [
     '14_open_loop_control',
     '15_pass_through',
     '16_external_dll',
-    '17_zeromq_interface',
-    '18_pitch_offsets', # NJA: only runs on unix in CI
+    '17_zeromq_interface',  # NJA: only runs on unix in CI
+    '18_pitch_offsets',
     '19_update_discon_version', 
+    '21_optional_inputs',
+    '22_cable_control',
     'update_rosco_discons',     
 ]
 

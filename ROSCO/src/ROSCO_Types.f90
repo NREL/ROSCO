@@ -9,6 +9,7 @@ IMPLICIT NONE
 
 TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: LoggingLevel                ! 0 - write no debug files, 1 - write standard output .dbg-file, 2 - write standard output .dbg-file and complete avrSWAP-array .dbg2-file
+    INTEGER(IntKi)                :: Echo                        ! 0 - no Echo, 1 - Echo input data to <RootName>.echo
     INTEGER(IntKi)                :: F_LPFType                   ! Low pass filter on the rotor and generator speed {1 - first-order low-pass filter, 2 - second-order low-pass filter}, [rad/s]
     INTEGER(IntKi)                :: F_NotchType                 ! Notch on the measured generator speed {0 - disable, 1 - enable}
     REAL(DbKi)                    :: F_LPFCornerFreq             ! Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
@@ -123,6 +124,13 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: ZMQ_Mode                    ! Flag for ZeroMQ (0-off, 1-yaw}
     CHARACTER(256)                :: ZMQ_CommAddress             ! Comm Address to zeroMQ client
     REAL(DbKi)                    :: ZMQ_UpdatePeriod            ! Integer for zeromq update frequency
+    INTEGER(IntKi)                :: CC_Mode                     ! Flag for ZeroMQ (0-off, 1-yaw}
+    INTEGER(IntKi)                :: CC_Group_N                  ! Number of cable control groups
+    REAL(DbKi)                    :: CC_ActTau                   ! Time constant for line actuator [s]
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: CC_GroupIndex               ! Cable control group indices
+    INTEGER(IntKi)                :: StC_Mode                    ! Flag for ZeroMQ (0-off, 1-yaw}
+    INTEGER(IntKi)                :: StC_Group_N                 ! Number of cable control groups
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: StC_GroupIndex              ! Cable control group indices
     REAL(DbKi)                    :: PC_RtTq99                   ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(DbKi)                    :: VS_MaxOMTq                  ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(DbKi)                    :: VS_MinOMTq                  ! Minimum torque at the beginning of the below-rated region 2, [Nm]
@@ -155,6 +163,16 @@ TYPE, PUBLIC :: FilterParameters
     REAL(DbKi), DIMENSION(99)     :: lpf2_OutputSignalLast2      ! Second order filter - Previous output 2
     REAL(DbKi), DIMENSION(99)     :: lpf2_InputSignalLast1       ! Second order filter - Previous input 1
     REAL(DbKi), DIMENSION(99)     :: lpf2_OutputSignalLast1      ! Second order filter - Previous output 1
+    REAL(DbKi), DIMENSION(99)     :: lpfV_a2                     ! Second order filter - Denominator coefficient 1
+    REAL(DbKi), DIMENSION(99)     :: lpfV_a1                     ! Second order filter - Denominator coefficient 1
+    REAL(DbKi), DIMENSION(99)     :: lpfV_a0                     ! Second order filter - Denominator coefficient 0
+    REAL(DbKi), DIMENSION(99)     :: lpfV_b2                     ! Second order filter - Numerator coefficient 2
+    REAL(DbKi), DIMENSION(99)     :: lpfV_b1                     ! Second order filter - Numerator coefficient 1
+    REAL(DbKi), DIMENSION(99)     :: lpfV_b0                     ! Second order filter - Numerator coefficient 0
+    REAL(DbKi), DIMENSION(99)     :: lpfV_InputSignalLast2       ! Second order filter - Previous input 2
+    REAL(DbKi), DIMENSION(99)     :: lpfV_OutputSignalLast2      ! Second order filter - Previous output 2
+    REAL(DbKi), DIMENSION(99)     :: lpfV_InputSignalLast1       ! Second order filter - Previous input 1
+    REAL(DbKi), DIMENSION(99)     :: lpfV_OutputSignalLast1      ! Second order filter - Previous output 1
     REAL(DbKi), DIMENSION(99)     :: hpf_InputSignalLast         ! High pass filter - Previous output 1
     REAL(DbKi), DIMENSION(99)     :: hpf_OutputSignalLast        ! High pass filter - Previous output 1
     REAL(DbKi), DIMENSION(99)     :: nfs_OutputSignalLast1       ! Notch filter slopes previous output 1
@@ -258,6 +276,28 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None
     REAL(DbKi)                    :: FA_AccF                     ! None
+    REAL(DbKi)                    :: PtfmTDX                     ! Platform motion -- Displacement TDX (m)')
+    REAL(DbKi)                    :: PtfmTDY                     ! Platform motion -- Displacement TDY (m)')
+    REAL(DbKi)                    :: PtfmTDZ                     ! Platform motion -- Displacement TDZ (m)')
+    REAL(DbKi)                    :: PtfmRDX                     ! Platform motion -- Displacement RDX (rad)')
+    REAL(DbKi)                    :: PtfmRDY                     ! Platform motion -- Displacement RDY (rad)')
+    REAL(DbKi)                    :: PtfmRDZ                     ! Platform motion -- Displacement RDZ (rad)')
+    REAL(DbKi)                    :: PtfmTVX                     ! Platform motion -- Velocity     TVX (m/s)')
+    REAL(DbKi)                    :: PtfmTVY                     ! Platform motion -- Velocity     TVY (m/s)')
+    REAL(DbKi)                    :: PtfmTVZ                     ! Platform motion -- Velocity     TVZ (m/s)')
+    REAL(DbKi)                    :: PtfmRVX                     ! Platform motion -- Velocity     RVX (rad/s)')
+    REAL(DbKi)                    :: PtfmRVY                     ! Platform motion -- Velocity     RVY (rad/s)')
+    REAL(DbKi)                    :: PtfmRVZ                     ! Platform motion -- Velocity     RVZ (rad/s)')
+    REAL(DbKi)                    :: PtfmTAX                     ! Platform motion -- Acceleration TAX (m/s^2)')
+    REAL(DbKi)                    :: PtfmTAY                     ! Platform motion -- Acceleration TAY (m/s^2)')
+    REAL(DbKi)                    :: PtfmTAZ                     ! Platform motion -- Acceleration TAZ (m/s^2)')
+    REAL(DbKi)                    :: PtfmRAX                     ! Platform motion -- Acceleration RAX (rad/s^2)')
+    REAL(DbKi)                    :: PtfmRAY                     ! Platform motion -- Acceleration RAY (rad/s^2)')
+    REAL(DbKi)                    :: PtfmRAZ                     ! Platform motion -- Acceleration RAZ (rad/s^2)')
+    REAL(DbKi)                    :: CC_DesiredL(12)             ! None
+    REAL(DbKi)                    :: CC_ActuatedL(12)            ! None
+    REAL(DbKi)                    :: CC_ActuatedDL(12)           ! None
+    REAL(DbKi)                    :: StC_Input(12)               ! None
     REAL(DbKi)                    :: Flp_Angle(3)                ! Flap Angle (rad)
     REAL(DbKi)                    :: RootMyb_Last(3)             ! Last blade root bending moment (Nm)
     INTEGER(IntKi)                :: ACC_INFILE_SIZE             ! Length of parameter input filename
@@ -272,6 +312,7 @@ END TYPE LocalVariables
 TYPE, PUBLIC :: ObjectInstances
     INTEGER(IntKi)                :: instLPF                     ! Low-pass filter instance
     INTEGER(IntKi)                :: instSecLPF                  ! Second order low-pass filter instance
+    INTEGER(IntKi)                :: instSecLPFV                 ! Second order low-pass filter instance
     INTEGER(IntKi)                :: instHPF                     ! High-pass filter instance
     INTEGER(IntKi)                :: instNotchSlopes             ! Notch filter slopes instance
     INTEGER(IntKi)                :: instNotch                   ! Notch filter instance
