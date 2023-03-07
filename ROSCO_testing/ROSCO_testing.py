@@ -297,6 +297,7 @@ class ROSCO_testing():
         iec.D = fastRead.fst_vt['ElastoDyn']['TipRad']*2.
         iec.z_hub = fastRead.fst_vt['InflowWind']['RefHt']
         iec.TMax = self.TMax
+        iec.TStart = 300 
 
         iec.dlc_inputs = {}
         iec.dlc_inputs['DLC'] = [1.3, 1.4] 
@@ -339,7 +340,7 @@ class ROSCO_testing():
         case_inputs[('ServoDyn', 'DLL_FileName')] = {'vals': [self.rosco_path], 'group': 0}
 
         case_inputs[("AeroDyn15", "WakeMod")] = {'vals': [1], 'group': 0}
-        case_inputs[("AeroDyn15", "AFAeroMod")] = {'vals': [2], 'group': 0}
+        case_inputs[("AeroDyn15", "AFAeroMod")] = {'vals': [1], 'group': 0}
         case_inputs[("AeroDyn15", "TwrPotent")] = {'vals': [0], 'group': 0}
         case_inputs[("AeroDyn15", "TwrShadow")] = {'vals': ['False'], 'group': 0}
         case_inputs[("AeroDyn15", "TwrAero")] = {'vals': ['False'], 'group': 0}

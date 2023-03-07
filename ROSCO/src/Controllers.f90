@@ -601,4 +601,108 @@ CONTAINS
             RETURN
         ENDIF
     END SUBROUTINE FlapControl
+
+!-------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE CableControl(avrSWAP, CntrPar, LocalVar, objInst)
+        ! Cable controller
+        !       CC_Mode = 0, No cable control, this code not executed
+        !       CC_Mode = 1, User-defined cable control
+        !       CC_Mode = 2, Position control, not yet implemented
+        !
+        ! Note that LocalVar%CC_Actuated*(), and CC_Desired() has a fixed max size of 12, which can be increased in rosco_types.yaml
+        !
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+    
+        REAL(ReKi), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
+    
+        TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
+        TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
+        
+        ! Internal Variables
+        Integer(IntKi)                            :: I_GROUP
+
+
+        IF (CntrPar%CC_Mode == 1) THEN
+            ! User defined control
+
+            IF (LocalVar%Time > 50) THEN
+                ! Shorten first group by 4 m
+                LocalVar%CC_DesiredL(1) = -10
+
+
+            END IF
+
+
+
+        END IF
+
+        ! Convert desired to actuated line length and delta length for all groups
+
+        DO I_GROUP = 1, CntrPar%CC_Group_N
+
+            ! Get Actuated deltaL
+            LocalVar%CC_ActuatedDL(I_GROUP) = SecLPFilter_Vel(LocalVar%CC_DesiredL(I_GROUP),LocalVar%DT,2*PI/CntrPar%CC_ActTau,1.0, &
+                                                                LocalVar%FP,LocalVar%iStatus,LocalVar%restart,objInst%instSecLPFV)
+
+            ! Integrate
+            LocalVar%CC_ActuatedL(I_GROUP) = PIController(LocalVar%CC_ActuatedDL(I_GROUP),0.0_DbKi,1.0_DbKi, &
+                                                    -1000.0_DbKi,1000.0_DbKi,LocalVar%DT,LocalVar%CC_ActuatedDL(1), &
+                                                    LocalVar%piP, LocalVar%restart, objInst%instPI)
+
+        END DO
+
+        ! Assign to avrSWAP
+        DO I_GROUP = 1, CntrPar%CC_Group_N
+
+            avrSWAP(CntrPar%CC_GroupIndex(I_GROUP)) = LocalVar%CC_ActuatedL(I_GROUP)
+            avrSWAP(CntrPar%CC_GroupIndex(I_GROUP)+1) = LocalVar%CC_ActuatedDL(I_GROUP)
+
+        END DO
+
+    END SUBROUTINE CableControl
+
+!-------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst)
+        ! Cable controller
+        !       StC_Mode = 0, No cable control, this code not executed
+        !       StC_Mode = 1, User-defined cable control
+        !       StC_Mode = 2, Ballast-like control, not yet implemented
+        !
+        ! Note that LocalVar%StC_Input() has a fixed max size of 12, which can be increased in rosco_types.yaml
+        !
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+    
+        REAL(ReKi), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
+    
+        TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
+        TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
+        
+        ! Internal Variables
+        Integer(IntKi)                            :: I_GROUP
+
+
+        IF (CntrPar%StC_Mode == 1) THEN
+            ! User defined control
+
+            IF (LocalVar%Time > 50) THEN
+                ! Step change in input of -4500 N
+                LocalVar%StC_Input(1) = -4e5
+
+
+            END IF
+
+
+
+        END IF
+
+
+        ! Assign to avrSWAP
+        DO I_GROUP = 1, CntrPar%StC_Group_N
+            avrSWAP(CntrPar%StC_GroupIndex(I_GROUP)) = LocalVar%StC_Input(I_GROUP)
+        END DO
+
+    END SUBROUTINE StructuralControl
+!-------------------------------------------------------------------------------------------------------------------------------
 END MODULE Controllers

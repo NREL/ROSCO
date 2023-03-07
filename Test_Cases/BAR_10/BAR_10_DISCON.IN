@@ -1,11 +1,12 @@
 ! Controller parameter input file for the BAR_10 wind turbine
-!    - File written using ROSCO version 2.7.0 controller tuning logic on 02/06/23
+!    - File written using ROSCO version 2.7.0 controller tuning logic on 02/28/23
 
 !------- DEBUG ------------------------------------------------------------
-1                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}
+1                   ! LoggingLevel		- (0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3))
+0                   ! Echo		        - (0 - no Echo, 1 - Echo input data to <RootName>.echo)
 
 !------- CONTROLLER FLAGS -------------------------------------------------
-2                   ! F_LPFType			- {1: first-order low-pass filter, 2: second-order low-pass filter}, [rad/s] (currently filters generator speed and pitch control signals
+2                   ! F_LPFType			- (1: first-order low-pass filter, 2: second-order low-pass filter), [rad/s] (currently filters generator speed and pitch control signals
 0                   ! F_NotchType		- Notch on the measured generator speed and/or tower fore-aft motion (for floating) {0: disable, 1: generator speed, 2: tower-top fore-aft motion, 3: generator speed and tower-top fore-aft motion}
 0                   ! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {0: off, 1: 1P reductions, 2: 1P+2P reductions}
 2                   ! VS_ControlMode	- Generator torque control mode in above rated conditions {0: constant torque, 1: constant power, 2: TSR tracking PI control with constant torque, 3: TSR tracking PI control with constant power}
@@ -23,6 +24,8 @@
 0                   ! PF_Mode           - Pitch fault mode {0 - not used, 1 - constant offset on one or more blades}
 0                   ! Ext_Mode          - External control mode {0 - not used, 1 - call external dynamic library}
 0                   ! ZMQ_Mode          - Fuse ZeroMQ interface {0: unused, 1: Yaw Control}
+0                   ! CC_Mode           - Cable control mode [0- unused, 1- User defined, 2- Position control (not yet implemented)]
+0                   ! StC_Mode          - Structural control mode [0- unused, 1- User defined]
 
 !------- FILTERS ----------------------------------------------------------
 0.81771             ! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [rad/s]
@@ -148,3 +151,12 @@
 !------- ZeroMQ Interface ---------------------------------------------------------
 "tcp://localhost:5555"            ! ZMQ_CommAddress     - Communication address for ZMQ server, (e.g. "tcp://localhost:5555") 
 2                   ! ZMQ_UpdatePeriod    - Call ZeroMQ every [x] seconds, [s]
+
+!------- Cable Control ---------------------------------------------------------
+1                   ! CC_Group_N		- Number of cable control groups
+     0              ! CC_GroupIndex     - First index for cable control group, should correspond to deltaL
+20.000000           ! CC_ActTau		    - Time constant for line actuator [s]
+
+!------- Structural Controllers ---------------------------------------------------------
+1                   ! StC_Group_N		- Number of cable control groups
+     0              ! StC_GroupIndex     - First index for structural control group, options specified in ServoDyn summary output
