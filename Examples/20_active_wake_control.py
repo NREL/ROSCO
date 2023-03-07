@@ -6,7 +6,7 @@ Set up and run simulation with AWC, check outputs
 Active wake control (AWC) with blade pitching is implemented in this example with an adaptation into the rotating frame of the mathematical framework from the classical theory for stability of axisymmetric jets [1], which offers flexibility in specifying the forcing strategy.
 
 -----------------------------------------------
-AWC_Mode = 1: Sandia National Laboratories (SNL) method:
+AWC_Mode = 1: Complex number method:
 -----------------------------------------------
 
 The inputs to the controller are:
@@ -72,7 +72,7 @@ Note that the inverse multi-blade coordinate (MBC) transformation can also be us
         which is equivlanet to eq 6 above.
 
 -----------------------------------------------
-AWC_Mode = 2: National Renewable Energy Laboratory (NREL) implementation:
+AWC_Mode = 2: Coleman transform implementation:
 -----------------------------------------------
 The inputs to the controller are:
     Name			Unit		Type			Range		Description
