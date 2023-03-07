@@ -505,10 +505,6 @@ CONTAINS
         CALL ParseAry(FileLines,    'PF_Offsets',   CntrPar%PF_Offsets,     3, accINFILE(1),    ErrVar, CntrPar%PF_Mode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
-        !------------ Pitch Actuator Faults ------------
-        CALL ParseAry(FileLines,    'PF_Offsets',   CntrPar%PF_Offsets,     3, accINFILE(1),    ErrVar, CntrPar%PF_Mode == 0, UnEc)
-        IF (ErrVar%aviFAIL < 0) RETURN
-
         !------------ AWC input ------------
         CALL ParseInput(FileLines, 'AWC_NumModes',    CntrPar%AWC_NumModes,                           accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
         CALL ParseAry(  FileLines, 'AWC_n',           CntrPar%AWC_n,          CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
