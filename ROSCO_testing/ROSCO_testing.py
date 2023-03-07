@@ -17,7 +17,6 @@ import os, platform
 import glob
 import multiprocessing as mp
 
-import ROSCO_toolbox.ofTools.fast_io.read_fast_input as fast_io
 from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
 from ROSCO_toolbox.ofTools.case_gen.CaseGen_IEC import CaseGen_IEC
 from ROSCO_toolbox.ofTools.case_gen.runFAST_pywrapper import runFAST_pywrapper_batch
