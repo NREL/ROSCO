@@ -107,6 +107,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! OL_Mode           - Open loop control mode {{0: no open loop control, 1: open loop control vs. time}}\n'.format(int(rosco_vt['OL_Mode'])))
     file.write('{0:<12d}        ! PA_Mode           - Pitch actuator mode {{0 - not used, 1 - first order filter, 2 - second order filter}}\n'.format(int(rosco_vt['PA_Mode'])))
     file.write('{0:<12d}        ! PF_Mode           - Pitch fault mode {{0 - not used, 1 - constant offset on one or more blades}}\n'.format(int(rosco_vt['PF_Mode'])))
+    file.write('{0:<12d}        ! AWC_Mode          - Active wake control {{0 - not used, 1 - SNL method, 2 - NREL method}}\n'.format(int(rosco_vt['AWC_Mode'])))
     file.write('{0:<12d}        ! Ext_Mode          - External control mode {{0 - not used, 1 - call external dynamic library}}\n'.format(int(rosco_vt['Ext_Mode'])))
     file.write('{0:<12d}        ! ZMQ_Mode          - Fuse ZeroMQ interface {{0: unused, 1: Yaw Control}}\n'.format(int(rosco_vt['ZMQ_Mode'])))
     file.write('{:<12d}        ! CC_Mode           - {}\n'.format(int(rosco_vt['CC_Mode']),mode_descriptions['CC_Mode']))
@@ -233,6 +234,13 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('\n')
     file.write('!------- Pitch Actuator Faults -----------------------------------------------------\n')
     file.write('{}                ! PF_Offsets     - Constant blade pitch offsets for blades 1-3 [rad]\n'.format(''.join('{:<10.8f} '.format(rosco_vt['PF_Offsets'][i]) for i in range(3))))
+    file.write('\n')
+    file.write('!------- Active Wake Control -----------------------------------------------------\n')
+    file.write('{0:<12d}          ! AWC_NumModes       - number of forcing modes\n'.format(int(rosco_vt['AWC_NumModes'])))
+    file.write('{}                ! AWC_n              - azimuthal mode number(s) (i.e., the azimuthal mode number relates to the number and direction of the lobes of the wake structure according to the classical spatio-temporal Fourier decomposition of an arbitrary quantity q, sigma(sigma(q*exp(i*n*theta)*exp(i*omega*time))). For the case of a non-time-varying flow (i.e., where omega = 0), the azimuthal mode number specifies the number of cycles of blade pitch oscillation per one rotation around the rotor azimuth.)\n'.format(write_array(rosco_vt['AWC_n'],'<4d')))
+    file.write('{}                ! AWC_freq           - frequency(s) of forcing mode(s) [Hz]\n'.format(write_array(rosco_vt['AWC_freq'],'<6.4f')))
+    file.write('{}                ! AWC_amp            - pitch amplitude(s) of forcing mode(s) (note that AWC_amp specifies the amplitude of each individual mode so that the total amplitude of pitching will be the sum of AWC_amp) [deg]\n'.format(write_array(rosco_vt['AWC_amp'],'<6.4f')))
+    file.write('{}                ! AWC_clockangle     - clocking angle(s) of forcing mode(s) [deg]\n'.format(write_array(rosco_vt['AWC_clockangle'],'<6.4f')))
     file.write('\n')
     file.write('!------- External Controller Interface -----------------------------------------------------\n')
     file.write('"{}"            ! DLL_FileName        - Name/location of the dynamic library in the Bladed-DLL format\n'.format(rosco_vt['DLL_FileName']))
@@ -445,6 +453,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['OL_Mode']          = int(controller.OL_Mode)
     DISCON_dict['PF_Mode']          = int(controller.PF_Mode)
     DISCON_dict['PA_Mode']          = int(controller.PA_Mode)
+    DISCON_dict['AWC_Mode']         = int(controller.AWC_Mode)
     DISCON_dict['Ext_Mode']         = int(controller.Ext_Mode)
     DISCON_dict['ZMQ_Mode']         = int(controller.ZMQ_Mode)
     DISCON_dict['CC_Mode']          = int(controller.CC_Mode)
@@ -648,3 +657,10 @@ def list_check(x, return_bool=True):
         return is_list
     else:
         return y
+
+def write_array(array,format='<.4f'):
+
+    if not hasattr(array,'__len__'):  #not an array
+        array = [array]
+
+    return ''.join(['{:{}} '.format(item,format) for item in array])

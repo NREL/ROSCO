@@ -203,6 +203,12 @@ properties:
                 maximum: 1
                 default: 0
                 description: Pitch fault mode {0 - not used, 1 - constant offset on one or more blades}
+            AWC_Mode:
+                type: number
+                minimum: 0
+                maximum: 2
+                default: 0
+                description: Active wake control mode {0 - not used, 1 - SNL method, 2 - NREL method}
             Ext_Mode:           
                 type: number
                 minimum: 0
@@ -880,6 +886,7 @@ properties:
                             type: number
                         description: Pitch angle offsets for each blade (array with length of 3)
                         units: rad
+                        default: [0,0,0]
                     CC_Group_N:
                         type: number
                         description: Number of cable control groups
@@ -904,6 +911,44 @@ properties:
                             type: number
                         description: First index for structural control group, options specified in ServoDyn summary output
                         default: [0]
+                    AWC_Mode:
+                        type: number
+                        minimum: 0
+                        maximum: 2
+                        default: 0
+                        description: Active wake control mode {0 - not used, 1 - SNL method, 2 - NREL method}
+                    AWC_NumModes:
+                        type: number
+                        description: Number of AWC modes (only used in SNL method)
+                        units: rad
+                        default: 1
+                    AWC_n:
+                        type: array
+                        items:
+                            type: number
+                        description: AWC azimuthal number (only used in SNL method)
+                        default: [1]
+                    AWC_freq:
+                        type: array
+                        items:
+                            type: number
+                        description: AWC frequency [Hz]
+                        units: Hz
+                        default: [0.05]
+                    AWC_amp:
+                        type: array
+                        items:
+                            type: number
+                        description: AWC amplitude [deg]
+                        units: deg
+                        default: [1.0]
+                    AWC_clockangle:
+                        type: array
+                        items:
+                            type: number
+                        description: AWC clock angle [deg]
+                        units: rad/s
+                        default: [0.0]
 
     linmodel_tuning:
         type: object
