@@ -340,7 +340,7 @@ class ROSCO_testing():
         case_inputs[('ServoDyn', 'DLL_FileName')] = {'vals': [self.rosco_path], 'group': 0}
 
         case_inputs[("AeroDyn15", "WakeMod")] = {'vals': [1], 'group': 0}
-        case_inputs[("AeroDyn15", "AFAeroMod")] = {'vals': [2], 'group': 0}
+        case_inputs[("AeroDyn15", "AFAeroMod")] = {'vals': [1], 'group': 0}
         case_inputs[("AeroDyn15", "TwrPotent")] = {'vals': [0], 'group': 0}
         case_inputs[("AeroDyn15", "TwrShadow")] = {'vals': ['False'], 'group': 0}
         case_inputs[("AeroDyn15", "TwrAero")] = {'vals': ['False'], 'group': 0}
