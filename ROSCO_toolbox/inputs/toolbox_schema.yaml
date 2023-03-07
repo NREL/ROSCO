@@ -947,8 +947,8 @@ properties:
                         items:
                             type: number
                         description: AWC clock angle [deg]
-                        units: rad/s
-                        default: [0.0]
+                        units: deg
+                        default: [0]
 
     linmodel_tuning:
         type: object

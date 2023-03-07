@@ -189,7 +189,7 @@ def main():
     r.tuning_yaml   = parameter_filename
     r.wind_case_fcn = cl.power_curve  # single step wind input
     r.wind_case_opts    = {
-        'U': [16],  # from 10 to 15 m/s
+        'U': [6],  # from 10 to 15 m/s
         'TMax': 100,
         }
     r.case_inputs = control_base_case

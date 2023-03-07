@@ -22,7 +22,7 @@
 0                   ! OL_Mode           - Open loop control mode {0: no open loop control, 1: open loop control vs. time}
 2                   ! PA_Mode           - Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
 0                   ! PF_Mode           - Pitch fault mode {0 - not used, 1 - constant offset on one or more blades}
-0                   ! AWC_Mode          - Active wake control {0 - not used, 1 - SNL method, 2 - NREL method}
+0                   ! AWC_Mode          - Active wake control {0 - not used, 1 - complex number method, 2 - coleman transform method}
 0                   ! Ext_Mode          - External control mode {0 - not used, 1 - call external dynamic library}
 0                   ! ZMQ_Mode          - Fuse ZeroMQ interface {0: unused, 1: Yaw Control}
 0                   ! CC_Mode           - Cable control mode [0- unused, 1- User defined, 2- Position control (not yet implemented)]
@@ -146,7 +146,7 @@
 
 !------- Active Wake Control -----------------------------------------------------
 1                     ! AWC_NumModes       - number of forcing modes
-1                    ! AWC_n              - azimuthal mode number(s) (i.e., the azimuthal mode number relates to the number and direction of the lobes of the wake structure according to the classical spatio-temporal Fourier decomposition of an arbitrary quantity q, sigma(sigma(q*exp(i*n*theta)*exp(i*omega*time))). For the case of a non-time-varying flow (i.e., where omega = 0), the azimuthal mode number specifies the number of cycles of blade pitch oscillation per one rotation around the rotor azimuth.)
+1                    ! AWC_n              - azimuthal mode number(s) (i.e., the number and direction of the lobes of the wake structure)
 0.0500                 ! AWC_freq           - frequency(s) of forcing mode(s) [Hz]
 1.0000                 ! AWC_amp            - pitch amplitude(s) of forcing mode(s) (note that AWC_amp specifies the amplitude of each individual mode so that the total amplitude of pitching will be the sum of AWC_amp) [deg]
 0.0000                 ! AWC_clockangle     - clocking angle(s) of forcing mode(s) [deg]
