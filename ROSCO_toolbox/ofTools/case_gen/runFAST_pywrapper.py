@@ -229,7 +229,6 @@ class runFAST_pywrapper_batch(object):
 
         run_dir                 = os.path.dirname( os.path.dirname( os.path.dirname( os.path.realpath(__file__) ) ) ) + os.sep
         self.FAST_exe           = os.path.join(run_dir, 'local/bin/openfast')   # Path to executable
-        print(self.FAST_exe)
         # self.FAST_lib           = os.path.join(lib_dir, 'libopenfastlib'+libext) 
         self.FAST_InputFile     = None
         self.FAST_directory     = None
