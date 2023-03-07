@@ -138,7 +138,7 @@ from ROSCO_toolbox.utilities import read_DISCON, DISCON_dict
 import numpy as np
 
 # Choose your implementation method
-AWC_Mode 			= 2			# 1 for SNL implementation, 2 for NREL implementation
+AWC_Mode 			= 2 		# 1 for SNL implementation, 2 for Coleman Transformation implementation
 
 #directories
 this_dir            = os.path.dirname(os.path.abspath(__file__))
@@ -171,25 +171,25 @@ def main():
 
     # Set up AWC cases defined above
     if AWC_Mode == 1:
-        control_base_case[('DISCON_in','AWC_NumModes')] = {'vals': [1,1,1,2,2], 'group': 2}
-        control_base_case[('DISCON_in','AWC_n')] = {'vals': [[0],[1],[-1],[-1,1], [-1,1]], 'group': 2}
-        control_base_case[('DISCON_in','AWC_freq')] = {'vals': [[0.05],[0.05],[0.05],[0.05,0.05], [0.05,0.05]], 'group': 2}
-        control_base_case[('DISCON_in','AWC_amp')] = {'vals': [[1.0],[1.0],[1.0],[1.0,1.0], [1.0,1.0]], 'group': 2}
-        control_base_case[('DISCON_in','AWC_clockangle')] = {'vals': [[0],[0],[0],[0,0], [90,90]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_NumModes')] = {'vals': [1,1,1,1,2,2], 'group': 2}
+        control_base_case[('DISCON_in','AWC_n')] = {'vals': [[0],[0],[1],[-1],[-1,1], [-1,1]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_freq')] = {'vals': [[0],[0.05],[0.05],[0.05],[0.05,0.05], [0.05,0.05]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_amp')] = {'vals': [[0],[1.0],[1.0],[1.0],[0.5,0.5], [0.5,0.5]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_clockangle')] = {'vals': [[0],[0],[0],[0],[0,0], [90,90]], 'group': 2}
     elif AWC_Mode == 2:
         control_base_case[('DISCON_in','AWC_Mode')] = {'vals': [0,2,2,2,2,2], 'group': 2}
-        control_base_case[('DISCON_in','AWC_NumModes')] = {'vals': [1,1,1,1,2,2], 'group': 2}
-        control_base_case[('DISCON_in','AWC_n')] = {'vals': [[0],[0],[1],[1],[1,1], [1,1]], 'group': 2}
-        control_base_case[('DISCON_in','AWC_freq')] = {'vals': [[0],[0.05],[0.05],[0.05],[0.05,0.05], [0.05,0.05]], 'group': 2}
-        control_base_case[('DISCON_in','AWC_amp')] = {'vals': [[0],[1.0],[1.0],[1.0],[1.0,0.0], [0.0,1.0]], 'group': 2}
-        control_base_case[('DISCON_in','AWC_clockangle')] = {'vals': [[0],[0],[-90],[90],[0,0], [0,0]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_NumModes')] = {'vals': [1,1,2,2,2,2], 'group': 2}
+        control_base_case[('DISCON_in','AWC_n')] = {'vals': [[0],[0],[1,1],[1,1],[1,1], [1,1]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_freq')] = {'vals': [[0],[0.05],[0.05,0.05],[0.05,0.05],[0.05,0.05], [0.05,0.05]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_amp')] = {'vals': [[0],[1.0],[1.0,1.0],[1.0,1.0],[1.0,0.0], [0.0,1.0]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_clockangle')] = {'vals': [[0],[0],[0,-90],[0,90],[0,0], [180,180]], 'group': 2}
     
     # simulation set up
     r = run_FAST_ROSCO()
     r.tuning_yaml   = parameter_filename
     r.wind_case_fcn = cl.power_curve  # single step wind input
     r.wind_case_opts    = {
-        'U': [14],  # from 10 to 15 m/s
+        'U': [16],  # from 10 to 15 m/s
         'TMax': 100,
         }
     r.case_inputs = control_base_case
