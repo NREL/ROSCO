@@ -297,6 +297,7 @@ class ROSCO_testing():
         iec.D = fastRead.fst_vt['ElastoDyn']['TipRad']*2.
         iec.z_hub = fastRead.fst_vt['InflowWind']['RefHt']
         iec.TMax = self.TMax
+        iec.TStart = 300 
 
         iec.dlc_inputs = {}
         iec.dlc_inputs['DLC'] = [1.3, 1.4] 
