@@ -9,6 +9,34 @@ The changes are tabulated according to the line number, and flag name.
 The line number corresponds to the resulting line number after all changes are implemented.
 Thus, be sure to implement each in order so that subsequent line numbers are correct.
 
+2.7.0 to develop
+-------------------------------
+Optional Inputs
+- ROSCO now reads in the whole input file and searches for keywords to set the inputs.  Blank spaces and specific ordering are no longer required.
+- Input requirements depend on control modes.  E.g., open loop inputs are not required if `OL_Mode = 0``
+IPC Saturation Modes
+- Added options for saturating the IPC command with the peak shaving limit
+
+====== =================    ======================================================================================================================================================================================================
+New in ROSCO develop
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Line    Input Name           Example Value
+====== =================    ======================================================================================================================================================================================================
+6      Echo                 0               ! Echo		    - (0 - no Echo, 1 - Echo input data to <RootName>.echo)
+24     CC_Mode              0               ! CC_Mode        - Cable control mode [0- unused, 1- User defined, 2- Position control (not yet implemented)]
+28     StC_Mode             0               ! StC_Mode       - Structural control mode [0- unused, 1- User defined]
+154    Empty Line          
+155    CC_Section           !------- Cable Control ---------------------------------------------------------
+156    CC_Group_N           3               ! CC_Group_N		- Number of cable control groups
+157    CC_GroupIndex        2601 2603 2605  ! CC_GroupIndex  - First index for cable control group, should correspond to deltaL
+158    CC_ActTau            20.000000       ! CC_ActTau		- Time constant for line actuator [s]
+159    Empty Line          
+160    StC_Section          !------- Structural Controllers ---------------------------------------------------------
+161    StC_Group_N          3               ! StC_Group_N		- Number of cable control groups
+162    StC_GroupIndex       2818 2838 2858  ! StC_GroupIndex     - First index for structural control group, options specified in ServoDyn summary output   
+====== =================    ======================================================================================================================================================================================================
+
+
 2.6.0 to 2.7.0
 -------------------------------
 Pitch Faults
