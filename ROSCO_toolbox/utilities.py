@@ -79,6 +79,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
         rosco_vt['CC_GroupIndex'] = [rosco_vt['CC_GroupIndex']]     # make an array
     if not hasattr(rosco_vt['StC_GroupIndex'],'__len__'):
         rosco_vt['StC_GroupIndex'] = [rosco_vt['StC_GroupIndex']]   
+    rosco_vt['AWC_n'] = [int(awcn) for awcn in rosco_vt['AWC_n']]
 
     print('Writing new controller parameter file parameter file: %s.' % param_file)
     # Should be obvious what's going on here...
@@ -237,7 +238,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('\n')
     file.write('!------- Active Wake Control -----------------------------------------------------\n')
     file.write('{0:<12d}          ! AWC_NumModes       - Number of forcing modes\n'.format(int(rosco_vt['AWC_NumModes'])))
-    file.write('{}                 ! AWC_n              - Azimuthal mode number(s) (i.e., the number and direction of the lobes of the wake structure)\n'.format(write_array(int(rosco_vt['AWC_n']),'<4d')))
+    file.write('{}                 ! AWC_n              - Azimuthal mode number(s) (i.e., the number and direction of the lobes of the wake structure)\n'.format(write_array(rosco_vt['AWC_n'],'<4d')))
     file.write('{}                ! AWC_freq           - Frequency(s) of forcing mode(s) [Hz]\n'.format(write_array(rosco_vt['AWC_freq'],'<6.4f')))
     file.write('{}                ! AWC_amp            - Pitch amplitude(s) of forcing mode(s) (note that AWC_amp specifies the amplitude of each individual mode so that the total amplitude of pitching will be the sum of AWC_amp) [deg]\n'.format(write_array(rosco_vt['AWC_amp'],'<6.4f')))
     file.write('{}                ! AWC_clockangle     - Clocking angle(s) of forcing mode(s) [deg]\n'.format(write_array(rosco_vt['AWC_clockangle'],'<6.4f')))
