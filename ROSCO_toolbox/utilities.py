@@ -79,6 +79,8 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
         rosco_vt['CC_GroupIndex'] = [rosco_vt['CC_GroupIndex']]     # make an array
     if not hasattr(rosco_vt['StC_GroupIndex'],'__len__'):
         rosco_vt['StC_GroupIndex'] = [rosco_vt['StC_GroupIndex']]   
+    if not hasattr(rosco_vt['AWC_n'],'__len__'):
+        rosco_vt['AWC_n'] = [rosco_vt['AWC_n']]   
     rosco_vt['AWC_n'] = [int(awcn) for awcn in rosco_vt['AWC_n']]
 
     print('Writing new controller parameter file parameter file: %s.' % param_file)
