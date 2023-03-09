@@ -130,7 +130,13 @@ class Turbine():
         return turbine
     
     # Load data from fast input deck
-    def load_from_fast(self, FAST_InputFile,FAST_directory, FAST_ver='OpenFAST',dev_branch=True,rot_source=None, txt_filename=None):
+    def load_from_fast(
+            self, 
+            FAST_InputFile,
+            FAST_directory, 
+            rot_source=None, 
+            txt_filename=None
+            ):
         """
         Load the parameter files directly from a FAST input deck
 
@@ -140,10 +146,6 @@ class Turbine():
                             Primary fast model input file (*.fst)
             FAST_directory: str
                             Directory for primary fast model input file
-            FAST_ver: string, optional
-                      fast version, usually OpenFAST
-            dev_branch: bool, optional
-                        dev_branch input to InputReader_OpenFAST, probably True
             rot_source: str, optional
                         desired source for rotor to get Cp, Ct, Cq tables. Default is to run cc-blade. 
                             options: cc-blade - run cc-blade
@@ -165,12 +167,14 @@ class Turbine():
         fast.FAST_directory = FAST_directory
 
         fast.read_MainInput()
+
+        # file
         ed_file = os.path.join(fast.FAST_directory, fast.fst_vt['Fst']['EDFile'])
+
         fast.read_ElastoDyn(ed_file)
         ed_blade_file = os.path.join(os.path.dirname(ed_file), fast.fst_vt['ElastoDyn']['BldFile1'])
         fast.read_ElastoDynBlade(ed_blade_file)
 
-        
         fast.read_AeroDyn15()
 
         fast.read_ServoDyn()
@@ -438,7 +442,7 @@ class Turbine():
             "GenPwr", "GenTq",
             # AeroDyn15
             "RtArea", "RtVAvgxh", "B1N3Clrnc", "B2N3Clrnc", "B3N3Clrnc",
-            "RtAeroCp", 'RtAeroCq', 'RtAeroCt', 'RtTSR', # NECESSARY
+            "RtFldCp", 'RtFldCq', 'RtFldCt', 'RtTSR', # NECESSARY
             # InflowWind
             "Wind1VelX", 
         ]

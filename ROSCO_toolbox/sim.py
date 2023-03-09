@@ -304,6 +304,7 @@ class Sim():
 
             # Calculate the power
             gen_power[i] = gen_speed[i] * gen_torque[i]
+            gen_power[i] = gen_speed[i] * gen_torque[i] * self.turbine.GenEff / 100
 
             # Update the nacelle position
             nac_yaw[i] = nac_yaw[i-1] + nac_yawrate[i]*rad2deg*dt

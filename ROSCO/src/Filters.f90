@@ -26,7 +26,7 @@ MODULE Filters
 
 CONTAINS
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(DbKi) FUNCTION LPFilter(InputSignal, DT, CornerFreq, FP, iStatus, reset, inst)
+    REAL(DbKi) FUNCTION LPFilter(InputSignal, DT, CornerFreq, FP, iStatus, reset, inst, InitialValue)
     ! Discrete time Low-Pass Filter of the form:
     !                               Continuous Time Form:   H(s) = CornerFreq/(1 + CornerFreq)
     !                               Discrete Time Form:     H(z) = (b1z + b0) / (a1*z + a0)
@@ -40,11 +40,18 @@ CONTAINS
         INTEGER(IntKi), INTENT(IN)      :: iStatus                  ! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
         INTEGER(IntKi), INTENT(INOUT)   :: inst                     ! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
         LOGICAL(4), INTENT(IN)      :: reset                    ! Reset the filter to the input signal
+        REAL(DbKi), OPTIONAL,  INTENT(IN)          :: InitialValue           ! Value to set when reset 
+        
+        REAL(DbKi)                          :: InitialValue_           ! Value to set when reset
 
-            ! Initialization
+        ! Defaults
+        InitialValue_ = InputSignal
+        IF (PRESENT(InitialValue)) InitialValue_ = InitialValue  
+
+        ! Initialization
         IF ((iStatus == 0) .OR. reset) THEN   
-            FP%lpf1_OutputSignalLast(inst) = InputSignal
-            FP%lpf1_InputSignalLast(inst) = InputSignal
+            FP%lpf1_OutputSignalLast(inst) = InitialValue_
+            FP%lpf1_InputSignalLast(inst) = InitialValue_
             FP%lpf1_a1(inst) = 2 + CornerFreq*DT
             FP%lpf1_a0(inst) = CornerFreq*DT - 2
             FP%lpf1_b1(inst) = CornerFreq*DT
@@ -63,7 +70,7 @@ CONTAINS
 
     END FUNCTION LPFilter
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(DbKi) FUNCTION SecLPFilter(InputSignal, DT, CornerFreq, Damp, FP, iStatus, reset, inst)
+    REAL(DbKi) FUNCTION SecLPFilter(InputSignal, DT, CornerFreq, Damp, FP, iStatus, reset, inst, InitialValue)
     ! Discrete time Low-Pass Filter of the form:
     !                               Continuous Time Form:   H(s) = CornerFreq^2/(s^2 + 2*CornerFreq*Damp*s + CornerFreq^2)
     !                               Discrete Time From:     H(z) = (b2*z^2 + b1*z + b0) / (a2*z^2 + a1*z + a0)
@@ -75,14 +82,21 @@ CONTAINS
         REAL(DbKi), INTENT(IN)         :: Damp                     ! Dampening constant
         INTEGER(IntKi), INTENT(IN)      :: iStatus                  ! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
         INTEGER(IntKi), INTENT(INOUT)   :: inst                     ! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
-        LOGICAL(4), INTENT(IN)      :: reset                    ! Reset the filter to the input signal
+        LOGICAL(4), INTENT(IN)          :: reset                    ! Reset the filter to the input signal
+        REAL(DbKi), OPTIONAL,  INTENT(IN)          :: InitialValue           ! Value to set when reset 
+        
+        REAL(DbKi)                          :: InitialValue_           ! Value to set when reset
+
+        ! Defaults
+        InitialValue_ = InputSignal
+        IF (PRESENT(InitialValue)) InitialValue_ = InitialValue  
 
         ! Initialization
         IF ((iStatus == 0) .OR. reset )  THEN
-            FP%lpf2_OutputSignalLast1(inst)  = InputSignal
-            FP%lpf2_OutputSignalLast2(inst)  = InputSignal
-            FP%lpf2_InputSignalLast1(inst)   = InputSignal
-            FP%lpf2_InputSignalLast2(inst)   = InputSignal
+            FP%lpf2_OutputSignalLast1(inst)  = InitialValue_
+            FP%lpf2_OutputSignalLast2(inst)  = InitialValue_
+            FP%lpf2_InputSignalLast1(inst)   = InitialValue_
+            FP%lpf2_InputSignalLast2(inst)   = InitialValue_
             
             ! Coefficients
             FP%lpf2_a2(inst) = DT**2.0*CornerFreq**2.0 + 4.0 + 4.0*Damp*CornerFreq*DT
@@ -105,8 +119,60 @@ CONTAINS
         inst = inst + 1
 
     END FUNCTION SecLPFilter
+
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(DbKi) FUNCTION HPFilter( InputSignal, DT, CornerFreq, FP, iStatus, reset, inst)
+    REAL(DbKi) FUNCTION SecLPFilter_Vel(InputSignal, DT, CornerFreq, Damp, FP, iStatus, reset, inst, InitialValue)
+    ! Discrete time Low-Pass Filter (output is velocity) of the form:
+    !                               Continuous Time Form:   H(s) = s CornerFreq^2/(s^2 + 2*CornerFreq*Damp*s + CornerFreq^2)
+    !                               Discrete Time From:     H(z) = (b2*z^2 + b1*z + b0) / (a2*z^2 + a1*z + a0)
+        USE ROSCO_Types, ONLY : FilterParameters
+        TYPE(FilterParameters),       INTENT(INOUT)       :: FP 
+        REAL(DbKi), INTENT(IN)         :: InputSignal
+        REAL(DbKi), INTENT(IN)         :: DT                       ! time step [s]
+        REAL(DbKi), INTENT(IN)         :: CornerFreq               ! corner frequency [rad/s]
+        REAL(DbKi), INTENT(IN)         :: Damp                     ! Dampening constant
+        INTEGER(IntKi), INTENT(IN)      :: iStatus                  ! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
+        INTEGER(IntKi), INTENT(INOUT)   :: inst                     ! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
+        LOGICAL(4), INTENT(IN)          :: reset                    ! Reset the filter to the input signal
+        REAL(DbKi), OPTIONAL,  INTENT(IN)          :: InitialValue           ! Value to set when reset 
+        
+        REAL(DbKi)                          :: InitialValue_           ! Value to set when reset
+
+        ! Defaults
+        InitialValue_ = InputSignal
+        IF (PRESENT(InitialValue)) InitialValue_ = InitialValue  
+
+        ! Initialization
+        IF ((iStatus == 0) .OR. reset )  THEN
+            FP%lpfV_OutputSignalLast1(inst)  = InitialValue_
+            FP%lpfV_OutputSignalLast2(inst)  = InitialValue_
+            FP%lpfV_InputSignalLast1(inst)   = InitialValue_
+            FP%lpfV_InputSignalLast2(inst)   = InitialValue_
+            
+            ! Coefficients
+            FP%lpfV_a2(inst) = DT**2.0*CornerFreq**2.0 + 4.0 + 4.0*Damp*CornerFreq*DT
+            FP%lpfV_a1(inst) = 2.0*DT**2.0*CornerFreq**2.0 - 8.0
+            FP%lpfV_a0(inst) = DT**2.0*CornerFreq**2.0 + 4.0 - 4.0*Damp*CornerFreq*DT
+            FP%lpfV_b2(inst) = 2.0*DT*CornerFreq**2.0
+            FP%lpfV_b1(inst) = 0.0
+            FP%lpfV_b0(inst) = -2.0*DT*CornerFreq**2.0
+        ENDIF
+
+        ! Filter
+        SecLPFilter_Vel = 1.0/FP%lpfV_a2(inst) * (FP%lpfV_b2(inst)*InputSignal + FP%lpfV_b1(inst)*FP%lpfV_InputSignalLast1(inst) + FP%lpfV_b0(inst)*FP%lpfV_InputSignalLast2(inst) - FP%lpfV_a1(inst)*FP%lpfV_OutputSignalLast1(inst) - FP%lpfV_a0(inst)*FP%lpfV_OutputSignalLast2(inst))
+
+        ! Save signals for next time step
+        FP%lpfV_InputSignalLast2(inst)   = FP%lpfV_InputSignalLast1(inst)
+        FP%lpfV_InputSignalLast1(inst)   = InputSignal
+        FP%lpfV_OutputSignalLast2(inst)  = FP%lpfV_OutputSignalLast1(inst)
+        FP%lpfV_OutputSignalLast1(inst)  = SecLPFilter_Vel
+
+        inst = inst + 1
+
+    END FUNCTION SecLPFilter_Vel
+
+!-------------------------------------------------------------------------------------------------------------------------------
+    REAL(DbKi) FUNCTION HPFilter( InputSignal, DT, CornerFreq, FP, iStatus, reset, inst, InitialValue)
     ! Discrete time High-Pass Filter
         USE ROSCO_Types, ONLY : FilterParameters
         TYPE(FilterParameters),       INTENT(INOUT)       :: FP 
@@ -119,11 +185,18 @@ CONTAINS
         LOGICAL(4), INTENT(IN)  :: reset                    ! Reset the filter to the input signal
         ! Local
         REAL(DbKi)                 :: K                        ! Constant gain
+        REAL(DbKi), OPTIONAL,  INTENT(IN)          :: InitialValue           ! Value to set when reset 
+        
+        REAL(DbKi)                          :: InitialValue_           ! Value to set when reset
+
+        ! Defaults
+        InitialValue_ = InputSignal
+        IF (PRESENT(InitialValue)) InitialValue_ = InitialValue  
 
         ! Initialization
         IF ((iStatus == 0) .OR. reset)  THEN
-            FP%hpf_OutputSignalLast(inst) = InputSignal
-            FP%hpf_InputSignalLast(inst) = InputSignal
+            FP%hpf_OutputSignalLast(inst) = InitialValue_
+            FP%hpf_InputSignalLast(inst) = InitialValue_
         ENDIF
         K = 2.0 / DT
 
@@ -137,7 +210,7 @@ CONTAINS
 
     END FUNCTION HPFilter
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(DbKi) FUNCTION NotchFilterSlopes(InputSignal, DT, CornerFreq, Damp, FP, iStatus, reset, inst, Moving)
+    REAL(DbKi) FUNCTION NotchFilterSlopes(InputSignal, DT, CornerFreq, Damp, FP, iStatus, reset, inst, Moving, InitialValue)
     ! Discrete time inverted Notch Filter with descending slopes, G = CornerFreq*s/(Damp*s^2+CornerFreq*s+Damp*CornerFreq^2)
         USE ROSCO_Types, ONLY : FilterParameters
         TYPE(FilterParameters),       INTENT(INOUT)       :: FP 
@@ -150,9 +223,15 @@ CONTAINS
         INTEGER(IntKi), INTENT(INOUT)           :: inst             ! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
         LOGICAL(4), INTENT(IN)                  :: reset            ! Reset the filter to the input signal
         LOGICAL, OPTIONAL,  INTENT(IN)          :: Moving           ! Moving CornerFreq flag
+        REAL(DbKi), OPTIONAL,  INTENT(IN)          :: InitialValue           ! Value to set when reset 
 
         LOGICAL                                 :: Moving_          ! Local version
         REAL(DbKi)                              :: CornerFreq_          ! Local version
+        REAL(DbKi)                          :: InitialValue_           ! Value to set when reset
+
+        ! Defaults
+        InitialValue_ = InputSignal
+        IF (PRESENT(InitialValue)) InitialValue_ = InitialValue  
 
         Moving_ = .FALSE.
         IF (PRESENT(Moving)) Moving_ = Moving   
@@ -166,10 +245,10 @@ CONTAINS
         
         ! Initialization
         IF ((iStatus == 0) .OR. reset) THEN
-            FP%nfs_OutputSignalLast1(inst)  = InputSignal
-            FP%nfs_OutputSignalLast2(inst)  = InputSignal
-            FP%nfs_InputSignalLast1(inst)   = InputSignal
-            FP%nfs_InputSignalLast2(inst)   = InputSignal
+            FP%nfs_OutputSignalLast1(inst)  = InitialValue_
+            FP%nfs_OutputSignalLast2(inst)  = InitialValue_
+            FP%nfs_InputSignalLast1(inst)   = InitialValue_
+            FP%nfs_InputSignalLast2(inst)   = InitialValue_
         ENDIF
 
         IF ((iStatus == 0) .OR. reset .OR. Moving_) THEN
@@ -192,7 +271,7 @@ CONTAINS
 
     END FUNCTION NotchFilterSlopes
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(DbKi) FUNCTION NotchFilter(InputSignal, DT, omega, betaNum, betaDen, FP, iStatus, reset, inst)
+    REAL(DbKi) FUNCTION NotchFilter(InputSignal, DT, omega, betaNum, betaDen, FP, iStatus, reset, inst, InitialValue)
     ! Discrete time Notch Filter 
     !                               Continuous Time Form: G(s) = (s^2 + 2*omega*betaNum*s + omega^2)/(s^2 + 2*omega*betaDen*s + omega^2)
     !                               Discrete Time Form:   H(z) = (b2*z^2 +b1*z^2 + b0*z)/((z^2 +a1*z^2 + a0*z))
@@ -207,16 +286,22 @@ CONTAINS
         INTEGER(IntKi), INTENT(IN)     :: iStatus                  ! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
         INTEGER(IntKi), INTENT(INOUT)  :: inst                     ! Instance number. Every instance of this function needs to have an unique instance number to ensure instances don't influence each other.
         LOGICAL(4), INTENT(IN)  :: reset                    ! Reset the filter to the input signal
+        REAL(DbKi), OPTIONAL,  INTENT(IN)          :: InitialValue           ! Value to set when reset 
         ! Local
         REAL(DbKi)                 :: K                        ! Constant gain
+        REAL(DbKi)                          :: InitialValue_           ! Value to set when reset
+
+        ! Defaults
+        InitialValue_ = InputSignal
+        IF (PRESENT(InitialValue)) InitialValue_ = InitialValue  
 
         ! Initialization
         K = 2.0/DT
         IF ((iStatus == 0) .OR. reset) THEN
-            FP%nf_OutputSignalLast1(inst)  = InputSignal
-            FP%nf_OutputSignalLast2(inst)  = InputSignal
-            FP%nf_InputSignalLast1(inst)   = InputSignal
-            FP%nf_InputSignalLast2(inst)   = InputSignal
+            FP%nf_OutputSignalLast1(inst)  = InitialValue_
+            FP%nf_OutputSignalLast2(inst)  = InitialValue_
+            FP%nf_InputSignalLast1(inst)   = InitialValue_
+            FP%nf_InputSignalLast2(inst)   = InitialValue_
             FP%nf_b2(inst) = (K**2.0 + 2.0*omega*BetaNum*K + omega**2.0)/(K**2.0 + 2.0*omega*BetaDen*K + omega**2.0)
             FP%nf_b1(inst) = (2.0*omega**2.0 - 2.0*K**2.0)  / (K**2.0 + 2.0*omega*BetaDen*K + omega**2.0);
             FP%nf_b0(inst) = (K**2.0 - 2.0*omega*BetaNum*K + omega**2.0) / (K**2.0 + 2.0*omega*BetaDen*K + omega**2.0)
@@ -269,6 +354,10 @@ CONTAINS
         ! Filtering the tower fore-aft acceleration signal 
         IF (CntrPar%Fl_Mode > 0) THEN
             ! Force to start at 0
+            IF (LocalVar%iStatus == 0 .AND. LocalVar%Time == 0) THEN
+                LocalVar%NacIMU_FA_Acc = 0
+                LocalVar%FA_Acc = 0
+            ENDIF 
             LocalVar%NacIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
             LocalVar%FA_AccF = SecLPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
             LocalVar%NacIMU_FA_AccF = HPFilter(LocalVar%NacIMU_FA_AccF, LocalVar%DT, CntrPar%F_FlHighPassFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF) 
@@ -279,7 +368,11 @@ CONTAINS
                 LocalVar%FA_AccF = NotchFilter(LocalVar%FA_AccF, LocalVar%DT, CntrPar%F_NotchCornerFreq, CntrPar%F_NotchBetaNumDen(1), CntrPar%F_NotchBetaNumDen(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch) ! Fixed Damping
             ENDIF
         ENDIF
-        LocalVar%FA_AccHPF = HPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%FA_HPFCornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF)
+        
+        ! FA acc for ForeAft damping, condition matches whether it's used in Controllers.f90
+        IF ((CntrPar%TD_Mode > 0) .OR. (CntrPar%Y_ControlMode == 2)) THEN
+            LocalVar%FA_AccHPF = HPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%FA_HPFCornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF)
+        ENDIF
         
         ! Filter Wind Speed Estimator Signal
         LocalVar%We_Vw_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT,CntrPar%F_WECornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) ! 30 second time constant

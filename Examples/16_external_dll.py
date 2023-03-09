@@ -1,5 +1,5 @@
 '''
------------ Example_16 --------------
+----------- 16_external_dll --------------
 Run openfast with ROSCO and external control interface
 -------------------------------------
 
@@ -58,6 +58,7 @@ def main():
         'wind_dir': run_dir
         }
     r.controller_params = controller_params
+    r.rosco_dir     = rosco_dir
     r.save_dir      = run_dir
 
     r.run_FAST()

@@ -1,5 +1,5 @@
 '''
------------ Example_01 --------------
+----------- 01_turbine_model --------------
 Load and save a turbine model
 -------------------------------------
 In this example:
@@ -17,6 +17,7 @@ import os
 # ROSCO Modules
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+import matplotlib.pyplot as plt
 
 
 # Load yaml file
@@ -33,7 +34,6 @@ turbine = ROSCO_turbine.Turbine(turbine_params)
 turbine.load_from_fast(
     path_params['FAST_InputFile'],
     os.path.join(tune_dir,path_params['FAST_directory']),
-    dev_branch=True,
     rot_source='txt',txt_filename=os.path.join(tune_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
     )
 
@@ -46,3 +46,17 @@ if not os.path.isdir(example_out_dir):
   os.makedirs(example_out_dir)
 
 turbine.save(os.path.join(example_out_dir,'01_NREL5MW_saved.p'))
+
+# Now load the turbine and plot the Cp surface
+
+# Load quick from python pickle
+turbine = turbine.load(os.path.join(example_out_dir,'01_NREL5MW_saved.p'))
+
+# plot rotor performance 
+print('Plotting Cp data')
+turbine.Cp.plot_performance()
+
+if False:
+  plt.show()
+else:
+  plt.savefig(os.path.join(example_out_dir,'01_NREL5MW_Cp.png'))

@@ -15,7 +15,7 @@ from itertools import chain
 from scipy.io import loadmat
 
 try:
-    import pyFAST.linearization.mbc.mbc3 as mbc
+    import pyFAST.linearization.mbc as mbc
 except ImportError:
     import weis.control.mbc.mbc3 as mbc
 except ImportError:
@@ -43,7 +43,6 @@ class LinearTurbineModel(object):
             u_ops = np.array([], [])
             all_MBC = []
             all_matData = []
-            all_FAST_linData = []
 
             if load_parallel:
                 import time
@@ -52,7 +51,7 @@ class LinearTurbineModel(object):
                     lin_file_dir, lin_file_names[iCase] + '.{}.lin'.format(i_lin+1))) for i_lin in range(0, nlin)] for iCase in range(0,n_lin_cases)]
                 cores = mp.cpu_count()
                 pool = mp.Pool(cores)
-                all_MBC, all_matData, all_FAST_linData = zip(*pool.map(run_mbc3, all_linfiles))
+                all_MBC, all_matData = zip(*pool.map(run_mbc3, all_linfiles))
                 pool.close()
                 pool.join()
                 print('loaded in parallel in {} seconds'.format(time.time()-t1))
@@ -62,10 +61,9 @@ class LinearTurbineModel(object):
                 for iCase in range(0, n_lin_cases):
                     lin_files_i = [os.path.realpath(os.path.join(
                         lin_file_dir, lin_file_names[iCase] + '.{}.lin'.format(i_lin+1))) for i_lin in range(0, nlin)]
-                    MBC, matData, FAST_linData = run_mbc3(lin_files_i)
+                    MBC, matData = run_mbc3(lin_files_i)
                     all_MBC.append(MBC)
                     all_matData.append(matData)
-                    all_FAST_linData.append(FAST_linData)
                 print('loaded in serial in {} seconds'.format(time.time()-t1))
 
 
@@ -74,7 +72,6 @@ class LinearTurbineModel(object):
 
                 MBC = all_MBC[iCase]
                 matData = all_matData[iCase]
-                FAST_linData = all_FAST_linData[iCase]
 
                 if not iCase:   # first time through
                     # Initialize operating points, matrices
@@ -713,9 +710,9 @@ def run_mbc3(fnames):
     Helper function to run mbc3
     '''
     print('Loading linearizations from:', ''.join(fnames[0].split('.')[:-2]))
-    MBC, matData, FAST_linData = mbc.fx_mbc3(fnames, verbose=False)
+    MBC, matData = mbc.fx_mbc3(fnames, verbose=False)
 
-    return MBC, matData, FAST_linData
+    return MBC, matData
 
 def connect_ml(mods, inputs, outputs):
     ''' 

@@ -1,5 +1,5 @@
 '''
------------ Example_12 --------------
+----------- 11_robust_tuning --------------
 Controller tuning to satisfy a robustness criteria
 -------------------------------------
 NOTE: This example necessitates the mbc3 through either pyFAST or WEIS
@@ -43,7 +43,7 @@ def run_example():
 
     # Path options
     example_out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'examples_out')
-    output_name = '12_robust_scheduling'
+    output_name = '11_robust_scheduling'
     path_options = {'output_dir': example_out_dir,
                     'output_name': output_name
                     }
@@ -54,7 +54,6 @@ def run_example():
     turbine.load_from_fast(
         path_params['FAST_InputFile'],
         os.path.join(this_dir, path_params['FAST_directory']),
-        dev_branch=True,
         rot_source='txt', txt_filename=os.path.join(this_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
         )
 
@@ -124,7 +123,7 @@ def run_example():
     if False:
         plt.show()
     else:
-        fig.savefig(os.path.join(example_out_dir, '12_RobustSched.png'))
+        fig.savefig(os.path.join(example_out_dir, '11_RobustSched.png'))
 
     # ---- Plot nyquist ----
     # Re-load and trimlinturb for plotting

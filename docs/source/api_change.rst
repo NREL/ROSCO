@@ -9,17 +9,48 @@ The changes are tabulated according to the line number, and flag name.
 The line number corresponds to the resulting line number after all changes are implemented.
 Thus, be sure to implement each in order so that subsequent line numbers are correct.
 
-2.6.0 to develop
+2.7.0 to develop
 -------------------------------
-Pitch Faults
-- Constant pitch actuator offsets (PF_Mode = 1)
+Optional Inputs
+- ROSCO now reads in the whole input file and searches for keywords to set the inputs.  Blank spaces and specific ordering are no longer required.
+- Input requirements depend on control modes.  E.g., open loop inputs are not required if `OL_Mode = 0``
+IPC Saturation Modes
+- Added options for saturating the IPC command with the peak shaving limit
 
 ====== =================    ======================================================================================================================================================================================================
 New in ROSCO develop
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
+6      Echo                 0               ! Echo		    - (0 - no Echo, 1 - Echo input data to <RootName>.echo)
+24     CC_Mode              0               ! CC_Mode        - Cable control mode [0- unused, 1- User defined, 2- Position control (not yet implemented)]
+28     StC_Mode             0               ! StC_Mode       - Structural control mode [0- unused, 1- User defined]
+154    Empty Line          
+155    CC_Section           !------- Cable Control ---------------------------------------------------------
+156    CC_Group_N           3               ! CC_Group_N		- Number of cable control groups
+157    CC_GroupIndex        2601 2603 2605  ! CC_GroupIndex  - First index for cable control group, should correspond to deltaL
+158    CC_ActTau            20.000000       ! CC_ActTau		- Time constant for line actuator [s]
+159    Empty Line          
+160    StC_Section          !------- Structural Controllers ---------------------------------------------------------
+161    StC_Group_N          3               ! StC_Group_N		- Number of cable control groups
+162    StC_GroupIndex       2818 2838 2858  ! StC_GroupIndex     - First index for structural control group, options specified in ServoDyn summary output   
+====== =================    ======================================================================================================================================================================================================
+
+
+2.6.0 to 2.7.0
+-------------------------------
+Pitch Faults
+- Constant pitch actuator offsets (PF_Mode = 1)
+IPC Saturation Modes
+- Added options for saturating the IPC command with the peak shaving limit
+
+====== =================    ======================================================================================================================================================================================================
+New in ROSCO 2.7.0
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Line    Input Name           Example Value
+====== =================    ======================================================================================================================================================================================================
 23     PF_Mode              0                   ! PF_Mode           - Pitch fault mode {0 - not used, 1 - constant offset on one or more blades}
+56     IPC_SatMode          2                   ! IPC_SatMode		- IPC Saturation method (0 - no saturation (except by PC_MinPit), 1 - saturate by PS_BldPitchMin, 2 - saturate sotfly (full IPC cycle) by PC_MinPit, 3 - saturate softly by PS_BldPitchMin)
 139    PF_Section           !------- Pitch Actuator Faults ---------------------------------------------------------
 140    PF_Offsets           0.00000000 0.00000000 0.00000000                 ! PF_Offsets     - Constant blade pitch offsets for blades 1-3 [rad]
 141    Empty Line          
@@ -75,7 +106,7 @@ Modified in ROSCO 2.6.0
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
-97     Y_ErrThresh          4.000000  8.000000   ! Y_ErrThresh    - Yaw error threshold/deadband. Turbine begins to yaw when it passes this. If Y_uSwitch is zero, only the first value is used. [deg].
+97     Y_ErrThresh          4.000000  8.000000  ! Y_ErrThresh    - Yaw error threshold/deadbands. Turbine begins to yaw when it passes this. If Y_uSwitch is zero, only the second value is used. [deg].
 98     Y_Rate               0.00870              ! Y_Rate			- Yaw rate [rad/s]
 99     Y_MErrSet            0.00000              ! Y_MErrSet		- Integrator saturation (maximum signal amplitude contribution to pitch from yaw-by-IPC), [rad]
 ====== =================    ======================================================================================================================================================================================================

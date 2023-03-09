@@ -96,7 +96,7 @@ CONTAINS
         
         ! Saturate collective pitch commands:
         LocalVar%PC_PitComT = saturate(LocalVar%PC_PitComT, LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
-        LocalVar%PC_PitComT = ratelimit(LocalVar%PC_PitComT, CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitchC) ! Saturate the overall command of blade K using the pitch rate limit
+        LocalVar%PC_PitComT = ratelimit(LocalVar%PC_PitComT, CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitchCMeas) ! Saturate the overall command of blade K using the pitch rate limit
         LocalVar%PC_PitComT_Last = LocalVar%PC_PitComT
 
         ! Combine and saturate all individual pitch commands in software
@@ -412,6 +412,7 @@ CONTAINS
             DebugVar%NacHeadingTarget = NacHeadingTarget
             DebugVar%NacVaneOffset    = NacVaneOffset
             DebugVar%YawState         = YawState
+            DebugVar%Yaw_Err          = NacHeadingError
         END IF
     END SUBROUTINE YawRateControl
 !-------------------------------------------------------------------------------------------------------------------------------
@@ -463,22 +464,22 @@ CONTAINS
         ! Handle saturation limit, depends on IPC_SatMode
         IF (CntrPar%IPC_SatMode == 2) THEN
             ! Saturate to min allowed pitch angle, softly using IPC_IntSat
-            LocalVar%IPC_IntSat = min(CntrPar%IPC_IntSat,LocalVar%BlPitchC - CntrPar%PC_MinPit)
+            LocalVar%IPC_IntSat = min(CntrPar%IPC_IntSat,LocalVar%BlPitchCMeas - CntrPar%PC_MinPit)
         ELSEIF (CntrPar%IPC_SatMode == 3) THEN
             ! Saturate to peak shaving, softly using IPC_IntSat
-            LocalVar%IPC_IntSat = min(CntrPar%IPC_IntSat,LocalVar%BlPitchC - LocalVar%PC_MinPit)
+            LocalVar%IPC_IntSat = min(CntrPar%IPC_IntSat,LocalVar%BlPitchCMeas - LocalVar%PC_MinPit)
         ELSE
             LocalVar%IPC_IntSat = CntrPar%IPC_IntSat
         ENDIF
         
         ! Integrate the signal and multiply with the IPC gain
         IF ((CntrPar%IPC_ControlMode >= 1) .AND. (CntrPar%Y_ControlMode /= 2)) THEN
-            LocalVar%IPC_axisTilt_1P = PIDController(axisTilt_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), 0.0_DbKi, 999.9_DbKi, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst, LocalVar) 
-            LocalVar%IPC_axisYaw_1P = PIDController(axisYawF_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), 0.0_DbKi, 999.9_DbKi, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst, LocalVar) 
+            LocalVar%IPC_axisTilt_1P = PIController(axisTilt_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+            LocalVar%IPC_axisYaw_1P = PIController(axisYawF_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
             
             IF (CntrPar%IPC_ControlMode >= 2) THEN
-                LocalVar%IPC_axisTilt_2P = PIDController(axisTilt_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), 0.0_DbKi, 999.9_DbKi, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst, LocalVar) 
-                LocalVar%IPC_axisYaw_2P = PIDController(axisYawF_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), 0.0_DbKi, 999.9_DbKi, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst, LocalVar) 
+                LocalVar%IPC_axisTilt_2P = PIController(axisTilt_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+                LocalVar%IPC_axisYaw_2P = PIController(axisYawF_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
             END IF
         ELSE
             LocalVar%IPC_axisTilt_1P = 0.0
@@ -641,4 +642,108 @@ CONTAINS
             RETURN
         ENDIF
     END SUBROUTINE FlapControl
+
+!-------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE CableControl(avrSWAP, CntrPar, LocalVar, objInst)
+        ! Cable controller
+        !       CC_Mode = 0, No cable control, this code not executed
+        !       CC_Mode = 1, User-defined cable control
+        !       CC_Mode = 2, Position control, not yet implemented
+        !
+        ! Note that LocalVar%CC_Actuated*(), and CC_Desired() has a fixed max size of 12, which can be increased in rosco_types.yaml
+        !
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+    
+        REAL(ReKi), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
+    
+        TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
+        TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
+        
+        ! Internal Variables
+        Integer(IntKi)                            :: I_GROUP
+
+
+        IF (CntrPar%CC_Mode == 1) THEN
+            ! User defined control
+
+            IF (LocalVar%Time > 50) THEN
+                ! Shorten first group by 4 m
+                LocalVar%CC_DesiredL(1) = -10
+
+
+            END IF
+
+
+
+        END IF
+
+        ! Convert desired to actuated line length and delta length for all groups
+
+        DO I_GROUP = 1, CntrPar%CC_Group_N
+
+            ! Get Actuated deltaL
+            LocalVar%CC_ActuatedDL(I_GROUP) = SecLPFilter_Vel(LocalVar%CC_DesiredL(I_GROUP),LocalVar%DT,2*PI/CntrPar%CC_ActTau,1.0, &
+                                                                LocalVar%FP,LocalVar%iStatus,LocalVar%restart,objInst%instSecLPFV)
+
+            ! Integrate
+            LocalVar%CC_ActuatedL(I_GROUP) = PIController(LocalVar%CC_ActuatedDL(I_GROUP),0.0_DbKi,1.0_DbKi, &
+                                                    -1000.0_DbKi,1000.0_DbKi,LocalVar%DT,LocalVar%CC_ActuatedDL(1), &
+                                                    LocalVar%piP, LocalVar%restart, objInst%instPI)
+
+        END DO
+
+        ! Assign to avrSWAP
+        DO I_GROUP = 1, CntrPar%CC_Group_N
+
+            avrSWAP(CntrPar%CC_GroupIndex(I_GROUP)) = LocalVar%CC_ActuatedL(I_GROUP)
+            avrSWAP(CntrPar%CC_GroupIndex(I_GROUP)+1) = LocalVar%CC_ActuatedDL(I_GROUP)
+
+        END DO
+
+    END SUBROUTINE CableControl
+
+!-------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst)
+        ! Cable controller
+        !       StC_Mode = 0, No cable control, this code not executed
+        !       StC_Mode = 1, User-defined cable control
+        !       StC_Mode = 2, Ballast-like control, not yet implemented
+        !
+        ! Note that LocalVar%StC_Input() has a fixed max size of 12, which can be increased in rosco_types.yaml
+        !
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+    
+        REAL(ReKi), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
+    
+        TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
+        TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
+        
+        ! Internal Variables
+        Integer(IntKi)                            :: I_GROUP
+
+
+        IF (CntrPar%StC_Mode == 1) THEN
+            ! User defined control
+
+            IF (LocalVar%Time > 50) THEN
+                ! Step change in input of -4500 N
+                LocalVar%StC_Input(1) = -4e5
+
+
+            END IF
+
+
+
+        END IF
+
+
+        ! Assign to avrSWAP
+        DO I_GROUP = 1, CntrPar%StC_Group_N
+            avrSWAP(CntrPar%StC_GroupIndex(I_GROUP)) = LocalVar%StC_Input(I_GROUP)
+        END DO
+
+    END SUBROUTINE StructuralControl
+!-------------------------------------------------------------------------------------------------------------------------------
 END MODULE Controllers

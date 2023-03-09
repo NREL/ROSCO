@@ -1,5 +1,5 @@
 '''
------------ Example_18 ------------------------
+----------- 18_pitch_offsets ------------------------
 Run openfast with ROSCO and pitch offset faults
 -----------------------------------------------
 
@@ -59,6 +59,7 @@ def main():
     r.case_inputs[("ServoDyn","Ptch_Cntrl")] = {'vals':[1], 'group':0}  # Individual pitch control must be enabled in ServoDyn
     r.controller_params = controller_params
     r.save_dir      = run_dir
+    r.rosco_dir     = rosco_dir
 
     r.run_FAST()
 
