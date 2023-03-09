@@ -140,6 +140,7 @@ CONTAINS
         INTEGER(IntKi)                              :: K    ! Index used for looping through blades.
         CHARACTER(1024)                             :: OL_String                    ! Open description loop string
         INTEGER(IntKi)                              :: OL_Count                     ! Number of open loop channels
+        INTEGER(IntKi)                              :: UnOpenLoop       ! Open Loop file unit
 
         CHARACTER(*),               PARAMETER       :: RoutineName = 'SetParameters'
 
@@ -233,19 +234,36 @@ CONTAINS
             LocalVar%CC_ActuatedDL = 0
             LocalVar%StC_Input = 0
 
-            ! Initialize open loop control
             ! Read open loop input, if desired
-            IF (CntrPar%OL_Mode == 1) THEN
+            IF (CntrPar%OL_Mode > 0) THEN
                 OL_String = ''      ! Display string
                 OL_Count  = 1
-                IF (CntrPar%Ind_BldPitch > 0) THEN
-                    OL_String   = TRIM(OL_String)//' BldPitch '
+                IF (CntrPar%Ind_BldPitch(1) > 0) THEN
+                    OL_String   = TRIM(OL_String)//' BldPitch1 '
                     OL_Count    = OL_Count + 1
+                ENDIF
+
+                IF (CntrPar%Ind_BldPitch(2) > 0) THEN
+                    OL_String   = TRIM(OL_String)//' BldPitch2 '
+                    ! If there are duplicate indices, don't increment OL_Count
+                    IF (.NOT. ((CntrPar%Ind_BldPitch(2) == CntrPar%Ind_BldPitch(1)) .OR. &
+                    (CntrPar%Ind_BldPitch(2) == CntrPar%Ind_BldPitch(3)))) THEN
+                        OL_Count    = OL_Count + 1
+                    ENDIF
+                ENDIF
+
+                IF (CntrPar%Ind_BldPitch(3) > 0) THEN
+                    OL_String   = TRIM(OL_String)//' BldPitch3 '
+                    ! If there are duplicate indices, don't increment OL_Count
+                    IF (.NOT. ((CntrPar%Ind_BldPitch(3) == CntrPar%Ind_BldPitch(1)) .OR. &
+                    (CntrPar%Ind_BldPitch(3) == CntrPar%Ind_BldPitch(2)))) THEN
+                        OL_Count    = OL_Count + 1
+                    ENDIF
                 ENDIF
 
                 IF (CntrPar%Ind_GenTq > 0) THEN
                     OL_String   = TRIM(OL_String)//' GenTq '
-                    OL_Count    = OL_Count + 1
+                    OL_Count    = OL_Count + 1  ! Read channel still, so we don't have issues
                 ENDIF
 
                 IF (CntrPar%Ind_YawRate > 0) THEN
@@ -253,13 +271,34 @@ CONTAINS
                     OL_Count    = OL_Count + 1
                 ENDIF
 
+                IF (CntrPar%Ind_Azimuth > 0) THEN
+                    IF (CntrPar%OL_Mode == 2) THEN
+                        OL_String   = TRIM(OL_String)//' Azimuth '
+                        OL_Count    = OL_Count + 1
+                    END IF
+                ENDIF
+
                 PRINT *, 'ROSCO: Implementing open loop control for'//TRIM(OL_String)
-                CALL Read_OL_Input(CntrPar%OL_Filename,110_IntKi,OL_Count,CntrPar%OL_Channels, ErrVar)
+                IF (CntrPar%OL_Mode == 2) THEN
+                    PRINT *, 'ROSCO: OL_Mode = 2 will change generator torque control for Azimuth tracking'
+                ENDIF
+
+                CALL GetNewUnit(UnOpenLoop, ErrVar)
+                CALL Read_OL_Input(CntrPar%OL_Filename,UnOpenLoop,OL_Count,CntrPar%OL_Channels, ErrVar)
 
                 CntrPar%OL_Breakpoints = CntrPar%OL_Channels(:,CntrPar%Ind_Breakpoint)
 
-                IF (CntrPar%Ind_BldPitch > 0) THEN
-                    CntrPar%OL_BldPitch = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch)
+                ! Set OL Inputs based on indices
+                IF (CntrPar%Ind_BldPitch(1) > 0) THEN
+                    CntrPar%OL_BldPitch1 = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch(1))
+                ENDIF
+
+                IF (CntrPar%Ind_BldPitch(2) > 0) THEN
+                    CntrPar%OL_BldPitch2 = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch(2))
+                ENDIF
+
+                IF (CntrPar%Ind_BldPitch(3) > 0) THEN
+                    CntrPar%OL_BldPitch3 = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch(3))
                 ENDIF
 
                 IF (CntrPar%Ind_GenTq > 0) THEN
@@ -268,6 +307,10 @@ CONTAINS
 
                 IF (CntrPar%Ind_YawRate > 0) THEN
                     CntrPar%OL_YawRate = CntrPar%OL_Channels(:,CntrPar%Ind_YawRate)
+                ENDIF
+
+                IF (CntrPar%Ind_Azimuth > 0) THEN
+                    CntrPar%OL_Azimuth = Unwrap(CntrPar%OL_Channels(:,CntrPar%Ind_Azimuth),ErrVar)
                 ENDIF
             END IF
 
@@ -332,8 +375,7 @@ CONTAINS
             READ(UnControllerParameters,'(A)',IOSTAT=IOS) FileLines(I_LINE)
         END DO
 
-        !----------------------- DEBUG --------------------------
-        CALL ParseInput(FileLines,'LoggingLevel',   CntrPar%LoggingLevel,       accINFILE(1), ErrVar)
+        ! Read Echo first, so file can be set up, if desired
         CALL ParseInput(FileLines,'Echo',           CntrPar%Echo,               accINFILE(1), ErrVar)
         IF (ErrVar%aviFAIL < 0) RETURN
 
@@ -354,6 +396,11 @@ CONTAINS
                 WRITE( UnEc, *) '-----------------------------------------'
             ENDIF
         ENDIF
+
+        !----------------------- Simulation Control --------------------------
+        CALL ParseInput(FileLines,'LoggingLevel',   CntrPar%LoggingLevel,       accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,'DT_Out',         CntrPar%DT_Out,             accINFILE(1), ErrVar)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !----------------- CONTROLLER FLAGS ---------------------
         CALL ParseInput(FileLines,'F_LPFType',       CntrPar%F_LPFType,         accINFILE(1), ErrVar, UnEc=UnEc)
@@ -496,24 +543,14 @@ CONTAINS
 
         !------------ Open loop input ------------
         ! Indices can be left 0 by default, checked later
-        CALL ParseInput(FileLines, 'OL_Filename',       CntrPar%OL_Filename,        accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0,   UnEc)
-        CALL ParseInput(FileLines, 'Ind_Breakpoint',    CntrPar%Ind_Breakpoint,     accINFILE(1),   ErrVar,                         UnEc=UnEc)
-        CALL ParseInput(FileLines, 'Ind_BldPitch',      CntrPar%Ind_BldPitch,       accINFILE(1),   ErrVar,                         UnEc=UnEc)
-        CALL ParseInput(FileLines, 'Ind_GenTq',         CntrPar%Ind_GenTq,          accINFILE(1),   ErrVar,                         UnEc=UnEc)
-        CALL ParseInput(FileLines, 'Ind_YawRate',       CntrPar%Ind_YawRate,        accINFILE(1),   ErrVar,                         UnEc=UnEc)
+        CALL ParseInput(FileLines, 'OL_Filename',       CntrPar%OL_Filename,            accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0,   UnEc)
+        CALL ParseInput(FileLines, 'Ind_Breakpoint',    CntrPar%Ind_Breakpoint,         accINFILE(1),   ErrVar,                         UnEc=UnEc)
+        CALL ParseAry(  FileLines, 'Ind_BldPitch',      CntrPar%Ind_BldPitch,       3,  accINFILE(1),   ErrVar,                         UnEc=UnEc)
+        CALL ParseInput(FileLines, 'Ind_GenTq',         CntrPar%Ind_GenTq,              accINFILE(1),   ErrVar,                         UnEc=UnEc)
+        CALL ParseInput(FileLines, 'Ind_YawRate',       CntrPar%Ind_YawRate,            accINFILE(1),   ErrVar,                         UnEc=UnEc)
+        CALL ParseInput(FileLines, 'Ind_Azimuth',       CntrPar%Ind_Azimuth,            accINFILE(1),   ErrVar, CntrPar%OL_Mode .NE. 2, UnEc=UnEc)
+        CALL ParseAry(  FileLines, 'RP_Gains',          CntrPar%RP_Gains,           3,  accINFILE(1),   ErrVar, CntrPar%OL_Mode .NE. 2, UnEc=UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
-
-        ! FIX THIS
-        
-        ! CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        ! CALL ParseInput(UnControllerParameters,CurLine,'OL_Filename',accINFILE(1),CntrPar%OL_Filename,ErrVar)
-        ! CALL ParseInput(UnControllerParameters,CurLine,'Ind_Breakpoint',accINFILE(1),CntrPar%Ind_Breakpoint,ErrVar)
-        ! CALL ParseAry(UnControllerParameters, CurLine, 'Ind_BldPitch', CntrPar%Ind_BldPitch, 3, accINFILE(1), ErrVar )
-        ! CALL ParseInput(UnControllerParameters,CurLine,'Ind_GenTq',accINFILE(1),CntrPar%Ind_GenTq,ErrVar)
-        ! CALL ParseInput(UnControllerParameters,CurLine,'Ind_YawRate',accINFILE(1),CntrPar%Ind_YawRate,ErrVar)
-        ! CALL ParseInput(UnControllerParameters,CurLine,'Ind_Azimuth',accINFILE(1),CntrPar%Ind_Azimuth,ErrVar)
-        ! CALL ParseAry(UnControllerParameters, CurLine, 'RP_Gains', CntrPar%RP_Gains, 3, accINFILE(1), ErrVar )
-        ! CALL ReadEmptyLine(UnControllerParameters,CurLine)   
 
         !------------ Pitch Actuator Inputs ------------
         CALL ParseInput(FileLines, 'PA_CornerFreq',     CntrPar%PA_CornerFreq,  accINFILE(1),   ErrVar, CntrPar%PA_Mode == 0, UnEc)
@@ -549,6 +586,12 @@ CONTAINS
         IF (UnEc > 0) CLOSE(UnEc)     ! Close echo file
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        ! Fix defaults manually for now
+        IF (CntrPar%DT_Out == 0) THEN
+            CntrPar%DT_Out = LocalVar%DT
+        ENDIF
+
 
         ! Fix Paths (add relative paths if called from another dir, UnEc)
         IF (PathIsRelative(CntrPar%PerfFileName)) CntrPar%PerfFileName = TRIM(PriPath)//TRIM(CntrPar%PerfFileName)
@@ -1109,8 +1152,12 @@ CONTAINS
                 ErrVar%ErrMsg = 'Ind_Breakpoint must be non-zero if OL_Mode is non-zero'
             ENDIF
 
-            IF ((CntrPar%Ind_BldPitch < 1) .AND. &
+            IF (    &
+                (CntrPar%Ind_BldPitch(1) < 1) .AND. &
+                (CntrPar%Ind_BldPitch(2) < 1) .AND. &
+                (CntrPar%Ind_BldPitch(3) < 1) .AND. &
                 (CntrPar%Ind_GenTq < 1) .AND. &
+                (CntrPar%Ind_Azimuth < 1) .AND. &
                 (CntrPar%Ind_YawRate < 1)) THEN
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg = 'At least one open loop input channel must be non-zero'
@@ -1126,17 +1173,19 @@ CONTAINS
                 ENDIF
             ENDIF
 
+            IF (CntrPar%OL_Mode == 2) THEN
+                IF ((CntrPar%Ind_BldPitch(1) < 0) .OR. &
+                (CntrPar%Ind_BldPitch(2) < 0) .OR. &
+                (CntrPar%Ind_BldPitch(3) < 0) .OR. &
+                (CntrPar%Ind_GenTq < 0)) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = 'If OL_Mode = 2, Ind_BldPitch and Ind_GenTq must be greater than zero'
+                ENDIF
+            ENDIF
+
         ENDIF
 
-        IF (CntrPar%OL_Mode == 2) THEN
-            IF ((CntrPar%Ind_BldPitch(1) < 0) .OR. &
-            (CntrPar%Ind_BldPitch(2) < 0) .OR. &
-            (CntrPar%Ind_BldPitch(3) < 0) .OR. &
-            (CntrPar%Ind_GenTq < 0)) THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = 'If OL_Mode = 2, Ind_BldPitch and Ind_GenTq must be greater than zero'
-            ENDIF
-        ENDIF
+
 
         ! --- Pitch Actuator ---
         IF (CntrPar%PA_Mode > 0) THEN

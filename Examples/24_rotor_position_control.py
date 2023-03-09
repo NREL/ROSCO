@@ -1,5 +1,5 @@
 '''
------------ Example_17 --------------
+----------- 24_rotor_position_control --------------
 Run ROSCO with rotor position control
 -------------------------------------
 
@@ -152,7 +152,7 @@ def main():
         }
     r.save_dir      = run_dir
     r.case_inputs   = case_inputs
-    # r.run_FAST()
+    r.run_FAST()
 
     # Gather azimuth, blade p
     # itch, generator torque output

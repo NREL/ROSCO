@@ -91,6 +91,47 @@ CONTAINS
 
     END FUNCTION ratelimit
 
+    !-------------------------------------------------------------------------------------------------------------------------------
+    REAL(DbKi) FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, piP, reset, inst)
+        USE ROSCO_Types, ONLY : piParams
+
+    ! PI controller, with output saturation
+
+        IMPLICIT NONE
+        ! Allocate Inputs
+        REAL(DbKi),    INTENT(IN)         :: error
+        REAL(DbKi),    INTENT(IN)         :: kp
+        REAL(DbKi),    INTENT(IN)         :: ki
+        REAL(DbKi),    INTENT(IN)         :: minValue
+        REAL(DbKi),    INTENT(IN)         :: maxValue
+        REAL(DbKi),    INTENT(IN)         :: DT
+        INTEGER(IntKi), INTENT(INOUT)      :: inst
+        REAL(DbKi),    INTENT(IN)         :: I0
+        TYPE(piParams), INTENT(INOUT)  :: piP
+        LOGICAL,    INTENT(IN)         :: reset     
+        ! Allocate local variables
+        INTEGER(IntKi)                      :: i                                            ! Counter for making arrays
+        REAL(DbKi)                         :: PTerm                                        ! Proportional term
+
+        ! Initialize persistent variables/arrays, and set inital condition for integrator term
+        IF (reset) THEN
+            piP%ITerm(inst) = I0
+            piP%ITermLast(inst) = I0
+            
+            PIController = I0
+        ELSE
+            PTerm = kp*error
+            piP%ITerm(inst) = piP%ITerm(inst) + DT*ki*error
+            piP%ITerm(inst) = saturate(piP%ITerm(inst), minValue, maxValue)
+            PIController = saturate(PTerm + piP%ITerm(inst), minValue, maxValue)
+        
+            piP%ITermLast(inst) = piP%ITerm(inst)
+        END IF
+        inst = inst + 1
+        
+    END FUNCTION PIController
+
+
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL(DbKi) FUNCTION PIDController(error, kp, ki, kd, tf, minValue, maxValue, DT, I0, piP, reset, objInst, LocalVar)
         USE ROSCO_Types, ONLY : piParams, LocalVariables, ObjectInstances
