@@ -132,7 +132,7 @@ CONTAINS
     
 !-------------------------------------------------------------------------------------------------------------------------------
       
-      REAL(DbKi) FUNCTION PIControllerFF(error, kp, ki, PitchError, PitchRate, minValue, maxValue, DT, I0, piP, reset, inst)
+      REAL(DbKi) FUNCTION PIControllerFF(error, kp, ki, PitchRate, minValue, maxValue, DT, I0, piP, reset, inst)
     ! PI controller, capable of accepting forward pitch rate with output saturation
 
         USE ROSCO_Types, ONLY : piParams
