@@ -203,6 +203,39 @@ ControlParameters:
     PC_Switch:
       <<: *real
       description: Angle above lowest minimum pitch angle for switch [rad]
+     
+    # Feedforward controller
+    FF_ControlMode:
+      <<: *integer
+      description: Lidar-assisted feedforward pitch control mode {0 - No LAC, 1 - LAC}
+    FF_LPFCornerFreq:
+      <<: *real
+      description: Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
+    FF_Kp:
+      <<: *real
+      description: Feedforward proportional gain Kp  [-]
+    Pitch_PreviewTime:
+      <<: *real
+      description: Feedforward pitch preview time [s]
+    Limits_15ms:
+      <<: *real
+      description: Limits imposed on the feedforward pitch error when the measured wind speed is between 13 m/s and 15 m/s [rad]
+      allocatable: True 
+    Limits_13ms:
+      <<: *real
+      description: Limits imposed on the feedforward pitch error when the measured wind speed is below 13 m/s [rad]
+      allocatable: True 
+    NumPitchCurveFF:
+      <<: *integer
+      description: Number of points in the wind-pitch curve 
+    REWS_curve:
+      <<: *real
+      description: Points of wind speed in the wind-pitch curve, [m/s]
+      allocatable: True 
+    Pitch_curve:
+      <<: *real
+      description: Points of pitch in the wind-pitch curve, [rad]
+      allocatable: True 
     
     # Generator Torque Controller
     VS_ControlMode:
@@ -686,6 +719,17 @@ piParams:
       dimension: (99)
       description: Previous integrator term - second integrator
 
+LidarVariables:    
+    REWS_f:
+      <<: *real
+      dimension: (2000)
+      description: Filtered rotor effective wind speed [m/s]
+      
+    REWS_f_time:
+      <<: *real
+      dimension: (2000)
+      description: Filtered rotor effective wind speed time [s] 
+
 LocalVariables:
     iStatus: 
       <<: *integer 
@@ -937,6 +981,62 @@ LocalVariables:
       <<: *derived_type
       id: rlParams
       description: Rate limiter parameters derived type
+       Lidar:
+      <<: *derived_type
+      id: LidarVariables
+      description: Lidar Variables derived type
+    LidSpeed:
+      <<: *real
+      description: Lidar wind speed measurements [m/s]
+      size: 5
+    MsrPositionsX:
+      <<: *real
+      description: X direction lidar measurement coordinates [m]
+      size: 5
+    MsrPositionsY:
+      <<: *real
+      description: Y direction lidar measurement coordinates [m]
+      size: 5
+    MsrPositionsZ:
+      <<: *real
+      description: Z direction lidar measurement coordinates [m]
+      size: 5
+    NumPulseGate:
+      <<: *integer
+      description: Number of pulsed lidar range gates 
+    URefLid:
+      <<: *real
+      description: Reference average wind speed for the lidar [m/s]
+    SensorType:
+      <<: *integer
+      description: Lidar sensor type
+    NumBeam:
+      <<: *integer
+      description: Number of lidar beams
+    PulseSpacing:
+      <<: *real
+      description: Distance between range gates
+    REWS_b:
+      <<: *real
+      description: Filtered and buffered rotor effective wind speed [m/s]
+    LeadTime_1:
+      <<: *real
+      description: The leading time of the first measurement plane [s] 
+    FF_Pitch:
+      <<: *real
+      description: Feedforward pitch value [rad] 
+    FF_Pitch_Error:
+      <<: *real
+      description: The error between the pitch of feedforward control and the current blade pitch [rad
+    FF_Pitch_Error_old:
+      <<: *real
+      description: The previous feedforward pitch error [rad]
+    FF_PitchRate:
+      <<: *real
+      description: The pitch rate of feedforward control [rad/s]
+    PC_PitComFF:
+      <<: *real
+      description: The pitch command from the feedforward controller [rad]
 
 ObjectInstances:
   instLPF:
