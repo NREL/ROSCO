@@ -34,7 +34,7 @@ CONTAINS
         TYPE(ControlParameters), INTENT(IN) :: CntrPar
 
         ! Allocate Variables:
-        INTEGER(IntKi)                                  :: K            ! Index used for looping through blades.
+        INTEGER(IntKi)                                  :: I,J,K            ! Index used for looping through blades.
 
         ! Load variables from calling program (See Appendix A of Bladed User's Guide):
         LocalVar%iStatus            = NINT(avrSWAP(1))
@@ -56,47 +56,50 @@ CONTAINS
         LocalVar%Azimuth            = avrSWAP(60)
         LocalVar%NumBl              = NINT(avrSWAP(61))
 	
-	 ! Load Lidar Inputs
-         
-         IF (LocalVar%iStatus == 0) THEN
-             LocalVar%LidSpeed(1) = 0
-             LocalVar%LidSpeed(2) = 0
-             LocalVar%LidSpeed(3) = 0
-             LocalVar%LidSpeed(4) = 0
-             LocalVar%LidSpeed(5) = 0
-         ELSE
-             LocalVar%LidSpeed(1) = avrSWAP(2001)
-             LocalVar%LidSpeed(2) = avrSWAP(2002)
-             LocalVar%LidSpeed(3) = avrSWAP(2003)
-             LocalVar%LidSpeed(4) = avrSWAP(2004)
-             LocalVar%LidSpeed(5) = avrSWAP(2005)
-             
-        END IF
+	! Load Lidar Inputs
+         LocalVar%SensorType    = avrSWAP(2001)
+        LocalVar%NumBeam       = avrSWAP(2002)
+        LocalVar%NumPulseGate  = avrSWAP(2003)
+        LocalVar%URefLid       = avrSWAP(2004)
+     
+        ! Assign Lidar Speeds depending on sensor type and number of beams or pulse gates 
+         IF  (LocalVar%SensorType == 1)  THEN     
+             DO I=1,LocalVar%NumBeam
+                J = 2005 + (I-1)
+                 IF (LocalVar%iStatus == 0) THEN
+                    LocalVar%LidSpeed(I) = 0
+                 ELSE
+                    LocalVar%LidSpeed(I) = avrSWAP(J)      
+                 END IF
+              LocalVar%MsrPositionsX(I) = avrSWAP(J+LocalVar%NumBeam)
+              LocalVar%MsrPositionsY(I) = avrSWAP(J+(LocalVar%NumBeam*2))
+              LocalVar%MsrPositionsZ(I) = avrSWAP(J+(LocalVar%NumBeam*3))
+             END DO
+         ELSEIF (LocalVar%SensorType == 2) THEN      
+             IF (LocalVar%iStatus == 0) THEN
+                LocalVar%LidSpeed = 0
+             ELSE
+                LocalVar%LidSpeed(1) = avrSWAP(2005)      
+             END IF
              LocalVar%MsrPositionsX(1) = avrSWAP(2006)
-             LocalVar%MsrPositionsX(2) = avrSWAP(2007)
-             LocalVar%MsrPositionsX(3) = avrSWAP(2008)
-             LocalVar%MsrPositionsX(4) = avrSWAP(2009)
-             LocalVar%MsrPositionsX(5) = avrSWAP(2010)
-    
-             
-             LocalVar%MsrPositionsY(1) = avrSWAP(2011)
-             LocalVar%MsrPositionsY(2) = avrSWAP(2012)
-             LocalVar%MsrPositionsY(3) = avrSWAP(2013)
-             LocalVar%MsrPositionsY(4) = avrSWAP(2014)
-             LocalVar%MsrPositionsY(5) = avrSWAP(2015)
-             
-           
-             LocalVar%MsrPositionsZ(1) = avrSWAP(2016)
-             LocalVar%MsrPositionsZ(2) = avrSWAP(2017)
-             LocalVar%MsrPositionsZ(3) = avrSWAP(2018)
-             LocalVar%MsrPositionsZ(4) = avrSWAP(2019)
-             LocalVar%MsrPositionsZ(5) = avrSWAP(2020)
-        
-
-             LocalVar%SensorType    = avrSWAP(2021)
-             LocalVar%NumBeam       = avrSWAP(2022)
-             LocalVar%NumPulseGate  = avrSWAP(2023)
-             LocalVar%URefLid       = avrSWAP(2024)
+             LocalVar%MsrPositionsY(1) = avrSWAP(2007)
+             LocalVar%MsrPositionsZ(1) = avrSWAP(2008)
+         ELSEIF (LocalVar%SensorType == 3) THEN 
+             DO I=1,LocalVar%NumPulseGate
+                J = 2005 + (I-1)
+                IF (LocalVar%iStatus == 0) THEN
+                   LocalVar%LidSpeed(I) = 0
+                ELSE
+                   LocalVar%LidSpeed(I) = avrSWAP(J)      
+                END IF
+              LocalVar%MsrPositionsX(I) = avrSWAP(J+LocalVar%NumPulseGate)
+              LocalVar%MsrPositionsY(I) = avrSWAP(J+(LocalVar%NumPulseGate*2))
+              LocalVar%MsrPositionsZ(I) = avrSWAP(J+(LocalVar%NumPulseGate*3))
+            END DO
+         ELSE
+            RETURN    
+         END IF
+       
 
         ! --- NJA: usually feedback back the previous pitch command helps for numerical stability, sometimes it does not...
         IF (LocalVar%iStatus == 0) THEN
@@ -232,16 +235,6 @@ CONTAINS
             
             ! Check validity of input parameters:
             CALL CheckInputs(LocalVar, CntrPar, avrSWAP, ErrVar, size_avcMSG)
-	    
-	     IF (.not. allocated(LocalVar%REWS_f)) THEN
-              Allocate(LocalVar%REWS_f(LocalVar%MaxBufferStep_REWS))
-              LocalVar%REWS_f(:) = 0
-             END IF
-        
-             IF (.not. allocated(LocalVar%REWS_f_Time)) THEN
-             Allocate(LocalVar%REWS_f_Time(LocalVar%MaxBufferStep_REWS))
-             LocalVar%REWS_f_Time(:) = 0
-             END IF
 
             ! Add RoutineName to error message
             IF (ErrVar%aviFAIL < 0) THEN
@@ -306,7 +299,7 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'VS_ControlMode',accINFILE(1),CntrPar%VS_ControlMode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PC_ControlMode',accINFILE(1),CntrPar%PC_ControlMode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Y_ControlMode',accINFILE(1),CntrPar%Y_ControlMode,ErrVar)
-	CALL ParseInput(UnControllerParameters,CurLine,'LIDAR_ControlMode',accINFILE(1),CntrPar%LIDAR_ControlMode,ErrVar)
+	CALL ParseInput(UnControllerParameters,CurLine,'FF_ControlMode',accINFILE(1),CntrPar%FF_ControlMode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'SS_Mode',accINFILE(1),CntrPar%SS_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'WE_Mode',accINFILE(1),CntrPar%WE_Mode,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'PS_Mode',accINFILE(1),CntrPar%PS_Mode,ErrVar)
@@ -415,10 +408,13 @@ CONTAINS
         CALL ParseInput(UnControllerParameters, CurLine,'Y_IPC_KI', accINFILE(1), CntrPar%Y_IPC_KI, ErrVar )
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 	
-	!------------ LIDAR ASSISTED CONTROL ---------------- 
+	!-------------- LIDAR ASSISTED CONTROL ------------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
         CALL ParseInput(UnControllerParameters,CurLine,'FF_LPFCornerFreq',accINFILE(1),CntrPar%FF_LPFCornerFreq,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'FF_Kp',accINFILE(1),CntrPar%FF_Kp,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Pitch_PreviewTime',accINFILE(1),CntrPar%Pitch_PreviewTime,ErrVar)
+        CALL ParseAry(UnControllerParameters, CurLine, 'Limits_15ms', CntrPar%Limits_15ms, 2, accINFILE(1), ErrVar )
+        CALL ParseAry(UnControllerParameters, CurLine, 'Limits_13ms', CntrPar%Limits_13ms, 2, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'NumPitchCurveFF',accINFILE(1),CntrPar%NumPitchCurveFF,ErrVar)
         CALL ParseAry(UnControllerParameters,CurLine,'REWS_curve',CntrPar%REWS_curve,CntrPar%NumPitchCurveFF,accINFILE(1),ErrVar)
         CALL ParseAry(UnControllerParameters,CurLine,'Pitch_curve',CntrPar%Pitch_curve,CntrPar%NumPitchCurveFF,accINFILE(1),ErrVar)
@@ -697,16 +693,16 @@ CONTAINS
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'Y_ControlMode must be 0, 1 or 2.'
         ENDIF
-	
-	! LIDAR_ControlMode
-        IF ((CntrPar%LIDAR_ControlMode < 0) .OR. (CntrPar%LIDAR_ControlMode > 1)) THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'LIDAR_ControlMode must be 0 or 1.'
-        ENDIF
 
         IF ((CntrPar%IPC_ControlMode > 0) .AND. (CntrPar%Y_ControlMode > 1)) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'IPC control for load reductions and yaw-by-IPC cannot be activated simultaneously'
+        ENDIF
+	
+	! FF_ControlMode
+        IF ((CntrPar%FF_ControlMode < 0) .OR. (CntrPar%FF_ControlMode > 1)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'LIDAR_ControlMode must be 0 or 1.'
         ENDIF
 
         ! SS_Mode

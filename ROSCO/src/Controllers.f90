@@ -56,20 +56,16 @@ CONTAINS
         LocalVar%PC_KD = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KD, LocalVar%PC_PitComTF, ErrVar) ! Derivative gain
         LocalVar%PC_TF = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_TF, LocalVar%PC_PitComTF, ErrVar) ! TF gains (derivative filter) !NJA - need to clarify
         
-        ! Compute the collective pitch command associated with the proportional and integral gains:
-	IF (LocalVar%iStatus == 0) THEN
+        ! Compute the collective pitch command associated with the proportional and integral gains:     
+        IF (LocalVar%iStatus == 0) THEN
              LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, LocalVar%PC_MinPit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%BlPitch(1), LocalVar%piP, LocalVar%restart, objInst%instPI)
-             LocalVar%REWS_f(1)    = LPFilter(LocalVar%LidSpeed(1), LocalVar%DT, CntrPar%FF_LPFCornerFreq, LocalVar%FP, LocalVar%iStatus, .TRUE., objInst%instLPF)
-             LocalVar%FF_Pitch_Error_old = 0
-             LocalVar%FF_PitchRate = 0
         ELSE
-            IF (CntrPar%LIDAR_ControlMode == 1)  THEN
-               CALL LidarConfiguration(LocalVar, CntrPar, objInst) 
-               CALL FeedforwardCPC(LocalVar, CntrPar, objInst, ErrVar)  
-               LocalVar%PC_PitComT = PIControllerFF(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, LocalVar%FF_Pitch_Error, LocalVar%FF_PitchRate, LocalVar%PC_MinPit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%BlPitch(1), LocalVar%piP, .FALSE., objInst%instPI)          
-            ELSE 
-               LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI,LocalVar%PC_MinPit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%BlPitch(1), LocalVar%piP, .FALSE., objInst%instPI)
-            END IF              
+             LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI,LocalVar%PC_MinPit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%BlPitch(1), LocalVar%piP, .FALSE., objInst%instPI)
+        END IF             
+        IF (CntrPar%FF_ControlMode == 1)  THEN
+         CALL FeedforwardCPC(LocalVar, CntrPar, LocalVar%Lidar, objInst, ErrVar)  
+               LocalVar%PC_PitComT = PIControllerFF(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, LocalVar%FF_PitchRate, LocalVar%PC_MinPit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%BlPitch(1), LocalVar%piP, .FALSE., objInst%instPI)          
+               LocalVar%PC_PitComT = LocalVar%PC_PitComT +  LocalVar%PC_PitComFF          
         END IF       
 	DebugVar%PC_PICommand = LocalVar%PC_PitComT
         ! Find individual pitch control contribution
@@ -389,63 +385,76 @@ CONTAINS
     END SUBROUTINE YawRateControl
  !-------------------------------------------------------------------------------------------------------------------------------
     
-     SUBROUTINE FeedForwardCPC(LocalVar, CntrPar, objInst, ErrVar)
+     SUBROUTINE FeedForwardCPC(LocalVar, CntrPar, LidVar, objInst, ErrVar)
     ! Subroutine for calculating feedforward collective pitch commands using the first beam point only
     
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, ErrorVariables
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, LidarVariables, ObjectInstances, ErrorVariables
         
        ! REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         TYPE(LocalVariables), INTENT(INOUT)          :: LocalVar
         TYPE(ControlParameters), INTENT(INOUT)       :: CntrPar
         TYPE(ObjectInstances), INTENT(INOUT)         :: objInst
         TYPE(ErrorVariables), INTENT(INOUT)          :: ErrVar
-        INTEGER(4)                                   :: iBuffer
-        REAL(8)                                      :: ActionTime(LocalVar%MaxBufferStep_REWS)
-        INTEGER(4)                                   :: ArrayPosition
-   
+        TYPE(LidarVariables), INTENT(INOUT)          :: LidVar 
+        INTEGER(IntKi)                               :: ArrayPosition
+        INTEGER(IntKi)                               :: MaxBufferStep
+        REAL(DbKi)                                   :: REWS
+        REAL(DbKi), DIMENSION(:), ALLOCATABLE        :: ActionTime
+             
+       IF (LocalVar%iStatus == 0) THEN  
+             LidVar%REWS_f(1)    = LPFilter(LocalVar%LidSpeed(1), LocalVar%DT, CntrPar%FF_LPFCornerFreq, LocalVar%FP, LocalVar%iStatus, .TRUE., objInst%instLPF)
+             LocalVar%FF_Pitch_Error_old = 0
+             LocalVar%FF_PitchRate = 0
+             LocalVar%PC_PitComFF = 0    
+       ELSE
+       MaxBufferStep = SIZE(LidVar%REWS_f)
         
         !--------- Shift the filter and Time in the buffer and assign new values -------------------------
-         
-       LocalVar%REWS_f(2:LocalVar%MaxBufferStep_REWS) = LocalVar%REWS_f(1:LocalVar%MaxBufferStep_REWS-1)
-       LocalVar%REWS_f_Time(2:LocalVar%MaxBufferStep_REWS) = LocalVar%REWS_f_Time(1:LocalVar%MaxBufferStep_REWS-1)
-       LocalVar%REWS_f(1)    = LPFilter(LocalVar%LidSpeed(1), LocalVar%DT, CntrPar%FF_LPFCornerFreq, LocalVar%FP, LocalVar%iStatus, .FALSE., objInst%instLPF)
-       LocalVar%LeadTime_1   =  (-LocalVar%MsrPosition(1,1))/LocalVar%REWS_f(1)
-       LocalVar%REWS_f_time(1) = LocalVar%LeadTime_1 + LocalVar%Time
-      
+       LidVar%REWS_f(2:MaxBufferStep) = LidVar%REWS_f(1:MaxBufferStep-1)
+       LidVar%REWS_f_Time(2:MaxBufferStep) = LidVar%REWS_f_Time(1:MaxBufferStep-1)
+       
+        !--------- Determine REWS - This will either average the measurements from the multiple beams or the multiple pulse gates --------
+       IF (LocalVar%SensorType == 1) THEN
+          REWS = SUM(LocalVar%LidSpeed)/LocalVar%NumBeam
+       ELSEIF (LocalVar%SensorType == 2) THEN
+          REWS = SUM(LocalVar%LidSpeed)/1    
+       ELSEIF (LocalVar%SensorType == 3) THEN
+          REWS = SUM(LocalVar%LidSpeed)/LocalVar%NumPulseGate  
+       ENDIF
+ 
+       LidVar%REWS_f(1)    = LPFilter(REWS, LocalVar%DT, CntrPar%FF_LPFCornerFreq, LocalVar%FP, LocalVar%iStatus, .FALSE., objInst%instLPF)
+       LocalVar%LeadTime_1   =  (-LocalVar%MsrPositionsX(1))/LidVar%REWS_f(1)
+       LidVar%REWS_f_time(1) = LocalVar%LeadTime_1 + LocalVar%Time
            
         !--------- Get the buffer ID that has the time closest to the pitch action time ------------------
-        
-       ActionTime   =  ABS(LocalVar%REWS_f_Time - LocalVar%Time - CntrPar%Pitch_PreviewTime)         ! This determines the time that needs to be matched to the wind speed record
-       ArrayPosition    = INT(MINLOC(ActionTime, 1))                                             ! This determines the position  in the REWS array that needs to be called
-       LocalVar%REWS_b  = LocalVar%REWS_f(ArrayPosition)                                          ! REWS_b is the wind speed AT the desired time
+       ActionTime       =  ABS(LidVar%REWS_f_Time - LocalVar%Time - CntrPar%Pitch_PreviewTime)               ! This determines the time that needs to be matched to the wind speed record
+       ArrayPosition    =  INT(MINLOC(ActionTime, 1))                                                        ! This determines the position  in the REWS array that needs to be called
+       LocalVar%REWS_b  =  LidVar%REWS_f(ArrayPosition)                                                      ! REWS_b is the wind speed AT the desired time
        LocalVar%FF_Pitch = interp1d(CntrPar%REWS_curve,CntrPar%Pitch_curve, LocalVar%REWS_b, ErrVar)
        LocalVar%FF_Pitch_Error  = LocalVar%FF_Pitch - (LocalVar%BlPitch(1)+ LocalVar%BlPitch(2)+ LocalVar%BlPitch(3))/3
+       LocalVar%PC_PitComFF =  CntrPar%FF_Kp * LocalVar%FF_Pitch_Error 
 
-       
-       !---------- Limit feedforward pitch action depending on wind speed conditions ----------------------
-        
-        IF (LocalVar%URefLid > 15) THEN
-            
-             IF ((LocalVar%REWS_b <= 15) .AND. (LocalVar%REWS_b > 13) ) THEN
-                  LocalVar%FF_Pitch_Error = saturate(LocalVar%FF_Pitch_Error, -0.05, 0.15) 
-             ELSE IF (LocalVar%REWS_b <= 13) THEN
-                  LocalVar%FF_Pitch_Error = saturate(LocalVar%FF_Pitch_Error, -0.025, 0.05) 
+       !---------- Limit feedforward pitch error depending on wind speed conditions ----------------------
+       IF (LocalVar%URefLid > 15_DbKi) THEN  
+             IF ((LocalVar%REWS_b <= 15_DbKi) .AND. (LocalVar%REWS_b > 13_DbKi) ) THEN
+                  LocalVar%FF_Pitch_Error = saturate(LocalVar%FF_Pitch_Error, CntrPar%Limits_15ms(1), CntrPar%Limits_15ms(2)) 
+             ELSE IF (LocalVar%REWS_b <= 13_DbKi) THEN
+                  LocalVar%FF_Pitch_Error = saturate(LocalVar%FF_Pitch_Error, CntrPar%Limits_13ms(1), CntrPar%Limits_13ms(2)) 
+             END IF 
+       ELSEIF ((LocalVar%URefLid <= 15_DbKi) .AND. (LocalVar%URefLid > 13_DbKi) ) THEN
+                  LocalVar%FF_Pitch_Error = saturate(LocalVar%FF_Pitch_Error, CntrPar%Limits_15ms(1), CntrPar%Limits_15ms(2))
+             IF (LocalVar%REWS_b < 13_DbKi ) THEN
+                  LocalVar%FF_Pitch_Error = saturate(LocalVar%FF_Pitch_Error, CntrPar%Limits_13ms(1), CntrPar%Limits_13ms(2))
              END IF
-        
-        ELSEIF ((LocalVar%URefLid <= 15) .AND. (LocalVar%URefLid > 13) ) THEN
-                  LocalVar%FF_Pitch_Error = saturate(LocalVar%FF_Pitch_Error, -0.04, 0.15) 
-             IF (LocalVar%REWS_b < 13 ) THEN
-                  LocalVar%FF_Pitch_Error = saturate(LocalVar%FF_Pitch_Error, -0.015, 0.05)
-            END IF
-     
-        ELSE IF ((LocalVar%URefLid <= 13)) THEN
-                 LocalVar%FF_Pitch_Error = saturate(LocalVar%FF_Pitch_Error, -0.015, 0.05)  
-        END IF
+       ELSE IF ((LocalVar%URefLid <= 13_DbKi)) THEN
+                  LocalVar%FF_Pitch_Error = saturate(LocalVar%FF_Pitch_Error, CntrPar%Limits_13ms(1), CntrPar%Limits_13ms(2))  
+       END IF
         
        !--------- Determine Pitch Rate --------------------------------------------------------------------
-        
-        LocalVar%FF_PitchRate = (LocalVar%FF_Pitch_Error-LocalVar%FF_Pitch_Error_old)/LocalVar%DT
-        LocalVar%FF_Pitch_Error_old = LocalVar%FF_Pitch_Error
+       LocalVar%FF_PitchRate = (LocalVar%FF_Pitch_Error-LocalVar%FF_Pitch_Error_old)/LocalVar%DT
+       LocalVar%FF_Pitch_Error_old = LocalVar%FF_Pitch_Error
+       
+       END IF
      
     END SUBROUTINE FeedForwardCPC     
     
