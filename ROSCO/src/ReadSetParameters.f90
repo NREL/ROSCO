@@ -235,16 +235,6 @@ CONTAINS
             
             ! Check validity of input parameters:
             CALL CheckInputs(LocalVar, CntrPar, avrSWAP, ErrVar, size_avcMSG)
-	    
-	     IF (.not. allocated(LocalVar%REWS_f)) THEN
-              Allocate(LocalVar%REWS_f(LocalVar%MaxBufferStep_REWS))
-              LocalVar%REWS_f(:) = 0
-             END IF
-        
-             IF (.not. allocated(LocalVar%REWS_f_Time)) THEN
-             Allocate(LocalVar%REWS_f_Time(LocalVar%MaxBufferStep_REWS))
-             LocalVar%REWS_f_Time(:) = 0
-             END IF
 
             ! Add RoutineName to error message
             IF (ErrVar%aviFAIL < 0) THEN
