@@ -179,7 +179,7 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%piP%ITerm2
         WRITE( Un, IOSTAT=ErrStat) LocalVar%piP%ITermLast2
         WRITE( Un, IOSTAT=ErrStat) LocalVar%rlP%LastSignal
-                WRITE( Un, IOSTAT=ErrStat) LocalVar%Lidar%REWS_f
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%Lidar%REWS_f
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Lidar%REWS_f_time
         WRITE( Un, IOSTAT=ErrStat) LocalVar%LidSpeed(1)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%LidSpeed(2)
@@ -510,7 +510,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       '[rad/s]', '[rad/s]', '[m/s]', '[rad]', '[rad]', & 
                                       '[N/A]', '[N/A]', '[N/A]', '[N/A]', '[rad/s]', & 
                                       '[deg]', '[deg]', '[deg]', '[N/A]']
-    nLocalVars = 71
+    nLocalVars = 87
     Allocate(LocalVarOutData(nLocalVars))
     Allocate(LocalVarOutStrings(nLocalVars))
     LocalVarOutData(1) = LocalVar%iStatus
@@ -584,22 +584,22 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(69) = LocalVar%Flp_Angle(1)
     LocalVarOutData(70) = LocalVar%RootMyb_Last(1)
     LocalVarOutData(71) = LocalVar%ACC_INFILE_SIZE
-    LocalVarOutData(70) = LocalVar%LidSpeed(1)
-    LocalVarOutData(71) = LocalVar%MsrPositionsX(1)
-    LocalVarOutData(72) = LocalVar%MsrPositionsY(1)
-    LocalVarOutData(73) = LocalVar%MsrPositionsZ(1)
-    LocalVarOutData(74) = LocalVar%NumPulseGate
-    LocalVarOutData(75) = LocalVar%URefLid
-    LocalVarOutData(76) = LocalVar%SensorType
-    LocalVarOutData(77) = LocalVar%NumBeam
-    LocalVarOutData(78) = LocalVar%PulseSpacing
-    LocalVarOutData(79) = LocalVar%REWS_b
-    LocalVarOutData(80) = LocalVar%LeadTime_1
-    LocalVarOutData(81) = LocalVar%FF_Pitch
-    LocalVarOutData(82) = LocalVar%FF_Pitch_Error
-    LocalVarOutData(83) = LocalVar%FF_Pitch_Error_old
-    LocalVarOutData(84) = LocalVar%FF_PitchRate
-    LocalVarOutData(85) = LocalVar%PC_PitComFF
+    LocalVarOutData(72) = LocalVar%LidSpeed(1)
+    LocalVarOutData(73) = LocalVar%MsrPositionsX(1)
+    LocalVarOutData(74) = LocalVar%MsrPositionsY(1)
+    LocalVarOutData(75) = LocalVar%MsrPositionsZ(1)
+    LocalVarOutData(76) = LocalVar%NumPulseGate
+    LocalVarOutData(77) = LocalVar%URefLid
+    LocalVarOutData(78) = LocalVar%SensorType
+    LocalVarOutData(79) = LocalVar%NumBeam
+    LocalVarOutData(80) = LocalVar%PulseSpacing
+    LocalVarOutData(81) = LocalVar%REWS_b
+    LocalVarOutData(82) = LocalVar%LeadTime_1
+    LocalVarOutData(83) = LocalVar%FF_Pitch
+    LocalVarOutData(84) = LocalVar%FF_Pitch_Error
+    LocalVarOutData(85) = LocalVar%FF_Pitch_Error_old
+    LocalVarOutData(86) = LocalVar%FF_PitchRate
+    LocalVarOutData(87) = LocalVar%PC_PitComFF
     LocalVarOutStrings = [CHARACTER(15) ::  'iStatus', 'Time', 'DT', 'VS_GenPwr', 'GenSpeed', & 
                                       'RotSpeed', 'NacHeading', 'NacVane', 'HorWindV', 'rootMOOP', & 
                                       'rootMOOPF', 'BlPitch', 'BlPitchCMeas', 'Azimuth', 'NumBl', & 
@@ -614,11 +614,10 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       'VS_SpdErrAr', 'VS_SpdErrBr', 'VS_SpdErr', 'VS_State', 'VS_Rgn3Pitch', & 
                                       'WE_Vw', 'WE_Vw_F', 'WE_VwI', 'WE_VwIdot', 'VS_LastGenTrqF', & 
                                       'Fl_PitCom', 'NACIMU_FA_AccF', 'FA_AccF', 'Flp_Angle', 'RootMyb_Last', & 
-                                      'ACC_INFILE_SIZE''LidSpeed', 'MsrPositionsX', 'MsrPositionsY', &
-                                      'MsrPositionsZ', 'NumPulseGate', 'URefLid', 'SensorType', 'NumBeam', & 
-                                      'PulseSpacing', 'REWS_b', 'LeadTime_1', 'FF_Pitch', 'FF_Pitch_Error', &
-                                      'FF_Pitch_Error_old', 'FF_PitchRate', 'PC_PitComFF' & 
-                                       ]
+                                      'ACC_INFILE_SIZE', 'LidSpeed', 'MsrPositionsX', 'MsrPositionsY', 'MsrPositionsZ', & 
+                                      'NumPulseGate', 'URefLid', 'SensorType', 'NumBeam', 'PulseSpacing', & 
+                                      'REWS_b', 'LeadTime_1', 'FF_Pitch', 'FF_Pitch_Error', 'FF_Pitch_Error_old', & 
+                                      'FF_PitchRate', 'PC_PitComFF']
     ! Initialize debug file
     IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN ! .TRUE. if we're on the first call to the DLL
         IF (CntrPar%LoggingLevel > 0) THEN
