@@ -981,7 +981,7 @@ LocalVariables:
       <<: *derived_type
       id: rlParams
       description: Rate limiter parameters derived type
-       Lidar:
+    Lidar:
       <<: *derived_type
       id: LidarVariables
       description: Lidar Variables derived type
