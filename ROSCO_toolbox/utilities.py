@@ -113,6 +113,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! OL_Mode           - Open loop control mode {{0: no open loop control, 1: open loop control vs. time}}\n'.format(int(rosco_vt['OL_Mode'])))
     file.write('{0:<12d}        ! PA_Mode           - Pitch actuator mode {{0 - not used, 1 - first order filter, 2 - second order filter}}\n'.format(int(rosco_vt['PA_Mode'])))
     file.write('{0:<12d}        ! PF_Mode           - Pitch fault mode {{0 - not used, 1 - constant offset on one or more blades}}\n'.format(int(rosco_vt['PF_Mode'])))
+    file.write('{0:<12d}        ! AWC_Mode          - Active wake control {{0 - not used, 1 - complex number method, 2 - coleman transform method}}\n'.format(int(rosco_vt['AWC_Mode'])))
     file.write('{0:<12d}        ! Ext_Mode          - External control mode {{0 - not used, 1 - call external dynamic library}}\n'.format(int(rosco_vt['Ext_Mode'])))
     file.write('{0:<12d}        ! ZMQ_Mode          - Fuse ZeroMQ interface {{0: unused, 1: Yaw Control}}\n'.format(int(rosco_vt['ZMQ_Mode'])))
     file.write('{:<12d}        ! CC_Mode           - {}\n'.format(int(rosco_vt['CC_Mode']),mode_descriptions['CC_Mode']))
@@ -242,6 +243,13 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('!------- Pitch Actuator Faults -----------------------------------------------------\n')
     file.write('{}                ! PF_Offsets     - Constant blade pitch offsets for blades 1-3 [rad]\n'.format(''.join('{:<10.8f} '.format(rosco_vt['PF_Offsets'][i]) for i in range(3))))
     file.write('\n')
+    file.write('!------- Active Wake Control -----------------------------------------------------\n')
+    file.write('{0:<12d}          ! AWC_NumModes       - Number of forcing modes\n'.format(int(rosco_vt['AWC_NumModes'])))
+    file.write('{}                 ! AWC_n              - Azimuthal mode number(s) (i.e., the number and direction of the lobes of the wake structure)\n'.format(write_array(rosco_vt['AWC_n'],'<4d')))
+    file.write('{}                ! AWC_freq           - Frequency(s) of forcing mode(s) [Hz]\n'.format(write_array(rosco_vt['AWC_freq'],'<6.4f')))
+    file.write('{}                ! AWC_amp            - Pitch amplitude(s) of forcing mode(s) (note that AWC_amp specifies the amplitude of each individual mode so that the total amplitude of pitching will be the sum of AWC_amp) [deg]\n'.format(write_array(rosco_vt['AWC_amp'],'<6.4f')))
+    file.write('{}                ! AWC_clockangle     - Clocking angle(s) of forcing mode(s) [deg]\n'.format(write_array(rosco_vt['AWC_clockangle'],'<6.4f')))
+    file.write('\n')
     file.write('!------- External Controller Interface -----------------------------------------------------\n')
     file.write('"{}"            ! DLL_FileName        - Name/location of the dynamic library in the Bladed-DLL format\n'.format(rosco_vt['DLL_FileName']))
     file.write('"{}"            ! DLL_InFile          - Name of input file sent to the DLL (-)\n'.format(rosco_vt['DLL_InFile']))
@@ -253,12 +261,12 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('\n')
     file.write('!------- Cable Control ---------------------------------------------------------\n')
     file.write('{:<11d}         ! CC_Group_N        - {}\n'.format(len(rosco_vt['CC_GroupIndex']), input_descriptions['CC_Group_N']))
-    file.write('{:^11s}         ! CC_GroupIndex     - {}\n'.format(' '.join([f'{int(ind):d}' for ind in rosco_vt['CC_GroupIndex']]), input_descriptions['CC_GroupIndex']))
+    file.write('{:^11s}         ! CC_GroupIndex     - {}\n'.format(write_array(rosco_vt['CC_GroupIndex'],'<6d'), input_descriptions['CC_GroupIndex']))
     file.write('{:<11f}         ! CC_ActTau         - {}\n'.format(rosco_vt['CC_ActTau'], input_descriptions['CC_ActTau']  ))
     file.write('\n')
     file.write('!------- Structural Controllers ---------------------------------------------------------\n')
     file.write('{:<11d}         ! StC_Group_N       - {}\n'.format(len(rosco_vt['StC_GroupIndex']), input_descriptions['StC_Group_N']))
-    file.write('{:^11s}         ! StC_GroupIndex    - {}\n'.format(' '.join([f'{int(ind):d}' for ind in rosco_vt['StC_GroupIndex']]), input_descriptions['StC_GroupIndex']))
+    file.write('{:^11s}         ! StC_GroupIndex    - {}\n'.format(write_array(rosco_vt['StC_GroupIndex'],'<6d'), input_descriptions['StC_GroupIndex']))
     
     file.close()
 
@@ -455,6 +463,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['OL_Mode']          = int(controller.OL_Mode)
     DISCON_dict['PF_Mode']          = int(controller.PF_Mode)
     DISCON_dict['PA_Mode']          = int(controller.PA_Mode)
+    DISCON_dict['AWC_Mode']         = int(controller.AWC_Mode)
     DISCON_dict['Ext_Mode']         = int(controller.Ext_Mode)
     DISCON_dict['ZMQ_Mode']         = int(controller.ZMQ_Mode)
     DISCON_dict['CC_Mode']          = int(controller.CC_Mode)
@@ -659,3 +668,14 @@ def list_check(x, return_bool=True):
         return is_list
     else:
         return y
+
+def write_array(array,format='<.4f'):
+
+    if not hasattr(array,'__len__'):  #not an array
+        array = [array]
+
+    # force int if not
+    if 'd' in format and type(array[0]) != int:
+        array = [int(a) for a in array]
+
+    return ''.join(['{:{}} '.format(item,format) for item in array])

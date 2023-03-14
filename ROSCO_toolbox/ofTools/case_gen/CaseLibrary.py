@@ -127,10 +127,8 @@ def base_op_case():
 def power_curve(**wind_case_opts):
     # Constant wind speed, multiple wind speeds, define below
 
-    # Defaults
-    T_max   = 400.
-    U = np.arange(4,14.5,.5).tolist()
-    U = np.linspace(9.5,12,num=16)
+    # Runtime
+    T_max   = wind_case_opts.get('TMax',400.)
 
     if 'U' in wind_case_opts:
         U = wind_case_opts['U']

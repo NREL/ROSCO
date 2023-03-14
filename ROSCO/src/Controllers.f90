@@ -42,6 +42,8 @@ CONTAINS
 
         CHARACTER(*),               PARAMETER           :: RoutineName = 'PitchControl'
 
+        ! Local
+
         ! ------- Blade Pitch Controller --------
         ! Load PC State
         IF (LocalVar%PC_State == 1) THEN ! PI BldPitch control
@@ -102,7 +104,7 @@ CONTAINS
         ! Combine and saturate all individual pitch commands in software
         DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
             LocalVar%PitCom(K) = LocalVar%PC_PitComT + LocalVar%FA_PitCom(K) 
-            LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the pitch satauration limits
+            LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the pitch saturation limits
             LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%IPC_PitComF(K)                                          ! Add IPC
             
             ! Hard IPC saturation by peak shaving limit
@@ -130,6 +132,11 @@ CONTAINS
                     LocalVar%PitCom(3) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch3,LocalVar%Time, ErrVar)
                 ENDIF
             ENDIF
+        ENDIF
+
+        ! Active wake control
+        IF (CntrPar%AWC_Mode > 0) THEN
+            CALL ActiveWakeControl(CntrPar, LocalVar, DebugVar)
         ENDIF
 
         ! Place pitch actuator here, so it can be used with or without open-loop
@@ -163,10 +170,10 @@ CONTAINS
 
         ! Command the pitch demanded from the last
         ! call to the controller (See Appendix A of Bladed User's Guide):
-        avrSWAP(42) = LocalVar%PitComAct(1)    ! Use the command angles of all blades if using individual pitch
-        avrSWAP(43) = LocalVar%PitComAct(2)    ! "
-        avrSWAP(44) = LocalVar%PitComAct(3)    ! "
-        avrSWAP(45) = LocalVar%PitComAct(1)    ! Use the command angle of blade 1 if using collective pitch
+        avrSWAP(42) = LocalVar%PitComAct(1)   ! Use the command angles of all blades if using individual pitch
+        avrSWAP(43) = LocalVar%PitComAct(2)   ! "
+        avrSWAP(44) = LocalVar%PitComAct(3)   ! "
+        avrSWAP(45) = LocalVar%PitComAct(1)   ! Use the command angle of blade 1 if using collective pitch
 
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN
@@ -436,6 +443,9 @@ CONTAINS
         REAL(DbKi)                  :: axisTilt_2P, axisYaw_2P, axisYawF_2P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
         REAL(DbKi)                  :: axisYawIPC_1P                           ! IPC contribution with yaw-by-IPC component
         REAL(DbKi)                  :: Y_MErr, Y_MErrF, Y_MErrF_IPC            ! Unfiltered and filtered yaw alignment error [rad]
+        REAL(DbKi)                  :: AWC_YawAmp                              ! Yaw amplitude for AWC
+        REAL(DbKi)                  :: AWC_TiltAngle, AWC_YawAngle             ! Tilt and yaw initial phase angle for AWC
+        REAL(DbKi)                  :: AWC_YawFreq                             ! Yaw frequency for AWC
         
         CHARACTER(*),               PARAMETER           :: RoutineName = 'IPC'
 
@@ -473,7 +483,7 @@ CONTAINS
         ENDIF
         
         ! Integrate the signal and multiply with the IPC gain
-        IF ((CntrPar%IPC_ControlMode >= 1) .AND. (CntrPar%Y_ControlMode /= 2)) THEN
+        IF ((CntrPar%IPC_ControlMode >= 1) .AND. ((CntrPar%Y_ControlMode /= 2) .AND. (CntrPar%AWC_Mode == 0)))  THEN      ! IPC disabled if AWC is on (add warning?)
             LocalVar%IPC_axisTilt_1P = PIController(axisTilt_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
             LocalVar%IPC_axisYaw_1P = PIController(axisYawF_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
             
@@ -481,18 +491,13 @@ CONTAINS
                 LocalVar%IPC_axisTilt_2P = PIController(axisTilt_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
                 LocalVar%IPC_axisYaw_2P = PIController(axisYawF_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
             END IF
-        ELSE
-            LocalVar%IPC_axisTilt_1P = 0.0
-            LocalVar%IPC_axisYaw_1P = 0.0
-            LocalVar%IPC_axisTilt_2P = 0.0
-            LocalVar%IPC_axisYaw_2P = 0.0
-        END IF
+        ENDIF
         
         ! Add the yaw-by-IPC contribution
         axisYawIPC_1P = LocalVar%IPC_axisYaw_1P + Y_MErrF_IPC
         
         ! Pass direct and quadrature axis through the inverse Coleman transform to get the commanded pitch angles
-        CALL ColemanTransformInverse(LocalVar%IPC_axisTilt_1P, axisYawIPC_1P, LocalVar%Azimuth, NP_1, CntrPar%IPC_aziOffset(1), PitComIPC_1P)
+        CALL ColemanTransformInverse(LocalVar%IPC_axisTilt_1P, axisYawIPC_1P, LocalVar%Azimuth, CntrPar%AWC_n(1), CntrPar%IPC_aziOffset(1), PitComIPC_1P)
         CALL ColemanTransformInverse(LocalVar%IPC_axisTilt_2P, LocalVar%IPC_axisYaw_2P, LocalVar%Azimuth, NP_2, CntrPar%IPC_aziOffset(2), PitComIPC_2P)
         
         ! Sum nP IPC contributions and store to LocalVar data type
@@ -512,8 +517,8 @@ CONTAINS
         ! debugging
         DebugVar%axisTilt_1P = axisTilt_1P
         DebugVar%axisYaw_1P = axisYaw_1P
-        DebugVar%axisTilt_2P = axisTilt_2P
-        DebugVar%axisYaw_2P = axisYaw_2P
+        DebugVar%axisTilt_2P = LocalVar%IPC_axisTilt_2P
+        DebugVar%axisYaw_2P = LocalVar%IPC_axisYaw_2P
 
         
 
@@ -642,6 +647,77 @@ CONTAINS
             RETURN
         ENDIF
     END SUBROUTINE FlapControl
+
+
+!-------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE ActiveWakeControl(CntrPar, LocalVar, DebugVar)
+        ! Active wake controller
+        !       AWC_Mode = 0, No active wake control
+        !       AWC_Mode = 1, SNL active wake control
+        !       AWC_Mode = 2, Coleman Transform-based active wake control
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, DebugVariables, ObjectInstances
+
+        TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
+        TYPE(DebugVariables), INTENT(INOUT)       :: DebugVar
+        TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
+
+        ! Local vars
+        REAL(DbKi), PARAMETER      :: phi1 = 0.0                       ! Phase difference from first to first blade
+        REAL(DbKi), PARAMETER      :: phi2 = 2.0/3.0*PI                ! Phase difference from first to second blade
+        REAL(DbKi), PARAMETER      :: phi3 = 4.0/3.0*PI                ! Phase difference from first to third blade
+        REAL(DbKi), DIMENSION(3)                        :: AWC_angle
+        COMPLEX(DbKi), DIMENSION(3)                    :: AWC_complexangle
+        COMPLEX(DbKi)                                  :: complexI = (0.0, 1.0)
+        INTEGER(IntKi)                                  :: Imode, K       ! Index used for looping through AWC modes, blades
+        REAL(DbKi)                 :: clockang                         ! Clock angle for AWC pitching
+        REAL(DbKi)                 :: omega                            ! angular frequency for AWC pitching in Hz
+        REAL(DbKi)                 :: amp                              ! amplitude for AWC pitching in degrees
+        REAL(DbKi), DIMENSION(2)   :: AWC_TiltYaw = [0.0, 0.0]         ! AWC Tilt and yaw pitch signal
+
+
+        ! Compute the AWC pitch settings
+        IF (CntrPar%AWC_Mode == 1) THEN
+
+            LocalVar%AWC_complexangle = 0.0D0
+
+            DO Imode = 1,CntrPar%AWC_NumModes
+                clockang = CntrPar%AWC_clockangle(Imode)*PI/180.0_DbKi
+                omega = CntrPar%AWC_freq(Imode)*PI*2.0_DbKi
+                AWC_angle(1) = omega * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi1 + clockang)
+                AWC_angle(2) = omega * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi2 + clockang)
+                AWC_angle(3) = omega * LocalVar%Time - CntrPar%AWC_n(Imode) * (LocalVar%Azimuth + phi3 + clockang)
+                ! Add the forcing contribution to LocalVar%AWC_complexangle
+                amp = CntrPar%AWC_amp(Imode)*PI/180.0_DbKi
+                DO K = 1,LocalVar%NumBl ! Loop through all blades
+                    LocalVar%AWC_complexangle(K) = LocalVar%AWC_complexangle(K) + amp * EXP(complexI * (AWC_angle(K)))
+                END DO
+            END DO
+
+            DO K = 1,LocalVar%NumBl ! Loop through all blades, apply AWC_angle
+                LocalVar%PitCom(K) = LocalVar%PitCom(K) + REAL(LocalVar%AWC_complexangle(K))
+            END DO
+
+        ELSEIF (CntrPar%AWC_Mode == 2) THEN
+
+            DO Imode = 1,CntrPar%AWC_NumModes
+                DebugVar%axisTilt_1P = AWC_TiltYaw(1)
+                AWC_TiltYaw = [0.0, 0.0]
+                AWC_TiltYaw(Imode) = PI/180*CntrPar%AWC_amp(Imode)*cos(LocalVar%Time*2*PI*CntrPar%AWC_freq(Imode) + CntrPar%AWC_clockangle(Imode)*PI/180)
+                IF (CntrPar%AWC_NumModes == 1) THEN
+                    AWC_TiltYaw(2) = PI/180*CntrPar%AWC_amp(1)*cos(LocalVar%Time*2*PI*CntrPar%AWC_freq(1) + 2*CntrPar%AWC_clockangle(1)*PI/180)
+                ENDIF
+                CALL ColemanTransformInverse(AWC_TiltYaw(1), AWC_TiltYaw(2), LocalVar%Azimuth, CntrPar%AWC_n(Imode), 0.0, AWC_angle)
+
+                DO K = 1,LocalVar%NumBl ! Loop through all blades, apply AWC_angle
+                    LocalVar%PitCom(K) = LocalVar%PitCom(K) + AWC_angle(K)
+                END DO
+            END DO
+            DebugVar%axisYaw_1P = AWC_TiltYaw(2)
+            DebugVar%axisTilt_2P = AWC_angle(1)
+
+        ENDIF
+
+    END SUBROUTINE ActiveWakeControl
 
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE CableControl(avrSWAP, CntrPar, LocalVar, objInst)
