@@ -258,7 +258,7 @@ CONTAINS
                     ErrVar%aviFAIL  = -1
                     ErrVar%ErrMsg   =  NewLine//' >> A fatal error occurred when parsing data from "' &
                         //TRIM( FileName )//'".'//NewLine//  &
-                        ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid INTEGER value on line #' &
+                        ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid REAL value on line #' &
                         //TRIM( Int2LStr( CurLine ) )//'.'//NewLine//&
                         ' >> The text being parsed was :'//NewLine//'    "'//TRIM( Line )//'"'
                 ENDIF
