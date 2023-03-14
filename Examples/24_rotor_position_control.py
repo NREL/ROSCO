@@ -126,7 +126,7 @@ def main():
     # Ensure external control paths are okay
     wind_bin = 891
     parameter_filename = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/ROSCO/RAAW_rosco_BD.yaml'
-    run_dir = os.path.join(example_out_dir,'19_RotPos_Baseline_8')
+    run_dir = os.path.join(example_out_dir,'24_rotor_position_control_0')
     gains = -1800 * np.array([12,1.2,120])
     os.makedirs(run_dir,exist_ok=True)
 
