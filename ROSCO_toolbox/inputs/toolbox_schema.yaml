@@ -502,7 +502,8 @@ properties:
                         default: 0
                     DT_Out:
                         type: number
-                        description: Output sampling period.  Can also be left empty and DEFAULT will use OpenFAST sampling period DT
+                        description: Time step to output .dbg* files, or 0 to match sampling period of OpenFAST
+                        default: 0
                     F_LPFType:
                         type: number
                         description: 1- first-order low-pass filter, 2- second-order low-pass filter (currently filters generator speed and pitch control signals
