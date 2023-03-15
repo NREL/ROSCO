@@ -364,7 +364,7 @@ CONTAINS
         CALL ParseInput(FileLines,'OL_Mode',         CntrPar%OL_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'PA_Mode',         CntrPar%PA_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'PF_Mode',         CntrPar%PF_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
-        CALL ParseInput(FileLines,'AWC_Mode',        CntrPar%AWC_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'AWC_Mode',        CntrPar%AWC_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'Ext_Mode',        CntrPar%Ext_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
 		CALL ParseInput(FileLines,'ZMQ_Mode',        CntrPar%ZMQ_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
 		CALL ParseInput(FileLines,'CC_Mode',         CntrPar%CC_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
@@ -507,7 +507,8 @@ CONTAINS
 
         !------------ AWC input ------------
         CALL ParseInput(FileLines, 'AWC_NumModes',    CntrPar%AWC_NumModes,                           accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
-        CALL ParseAry(  FileLines, 'AWC_n',           CntrPar%AWC_n,          CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
+        CALL ParseAry(  FileLines, 'AWC_n',           CntrPar%AWC_n,          CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode /= 1, UnEc)
+        CALL ParseAry(  FileLines, 'AWC_harmonic',    CntrPar%AWC_harmonic,   CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode < 2,  UnEc)
         CALL ParseAry(  FileLines, 'AWC_freq',        CntrPar%AWC_freq,       CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
         CALL ParseAry(  FileLines, 'AWC_amp',         CntrPar%AWC_amp,        CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
         CALL ParseAry(  FileLines, 'AWC_clockangle',  CntrPar%AWC_clockangle, CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)

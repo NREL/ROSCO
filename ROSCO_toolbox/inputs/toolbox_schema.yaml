@@ -916,17 +916,23 @@ properties:
                         minimum: 0
                         maximum: 2
                         default: 0
-                        description: Active wake control mode {0 - not used, 1 - SNL method, 2 - NREL method}
+                        description: Active wake control mode {0 - not used, 1 - complex number method, 2 - Coleman transformation method}
                     AWC_NumModes:
                         type: number
-                        description: Number of AWC modes (only used in SNL method)
+                        description: Number of AWC modes
                         units: rad
                         default: 1
                     AWC_n:
                         type: array
                         items:
                             type: number
-                        description: AWC azimuthal number (only used in SNL method)
+                        description: AWC azimuthal number (only used in complex number method)
+                        default: [1]
+                    AWC_harmonic:
+                        type: array
+                        items:
+                            type: number
+                        description: AWC Coleman transform harmonic (only used in Coleman transform method)
                         default: [1]
                     AWC_freq:
                         type: array

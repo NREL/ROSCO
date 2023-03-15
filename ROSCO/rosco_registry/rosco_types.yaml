@@ -453,7 +453,7 @@ ControlParameters:
     # Active wake control
     AWC_Mode:
       <<: *integer
-      description: Active wake control mode [0 - unused, 1 - SNL method]
+      description: Active wake control mode [0 - unused, 1 - complex number method, 2 - Coleman transform method]
     AWC_NumModes:
       <<: *integer
       description: AWC- Number of modes to include [-] 
@@ -461,6 +461,10 @@ ControlParameters:
       <<: *integer
       allocatable: True
       description: AWC azimuthal mode [-]
+    AWC_harmonic:
+      <<: *integer
+      allocatable: True
+      description: AWC AWC Coleman transform harmonic [-]
     AWC_freq:
       <<: *real
       allocatable: True
