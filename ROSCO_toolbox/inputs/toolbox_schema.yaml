@@ -931,7 +931,7 @@ properties:
                     AWC_harmonic:
                         type: array
                         items:
-                            type: number
+                            type: integer
                         description: AWC Coleman transform harmonic (only used in Coleman transform method)
                         default: [1]
                     AWC_freq:

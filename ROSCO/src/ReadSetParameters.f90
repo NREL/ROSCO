@@ -648,6 +648,7 @@ CONTAINS
         TYPE(LocalVariables),       INTENT(IN   )       :: LocalVar
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
         INTEGER(IntKi),                 INTENT(IN   )       :: size_avcMSG
+        INTEGER(IntKi)                                  :: Imode       ! Index used for looping through AWC modes
         REAL(ReKi),              INTENT(IN   )       :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
         
         CHARACTER(*), PARAMETER                         :: RoutineName = 'CheckInputs'
@@ -1106,37 +1107,44 @@ CONTAINS
 
         ! --- Active Wake Control ---
         IF (CntrPar%AWC_Mode > 0) THEN
-            IF (CntrPar%AWC_freq < 0) THEN
+            IF (CntrPar%AWC_NumModes < 0) THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = 'AWC_freq cannot be smaller than 0'
+                ErrVar%ErrMsg = 'AWC_NumModes must be a positive integer if AWC_Mode = 1'
             END IF
-            IF (CntrPar%AWC_amp < 0) THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = 'AWC_amp cannot be smaller than 0'
-            END IF
+            DO Imode = 1,CntrPar%AWC_NumModes
+                IF (CntrPar%AWC_freq(Imode) < 0.0) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = 'AWC_freq cannot be smaller than 0'
+                END IF
+                IF (CntrPar%AWC_amp(Imode) < 0.0) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = 'AWC_amp cannot be smaller than 0'
+                END IF
+            END DO
             IF (CntrPar%AWC_Mode == 1) THEN
-                IF ((CntrPar%AWC_clockangle > 360) .OR. (CntrPar%AWC_clockangle < 0)) THEN
-                    ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg = 'AWC_clockangle must be between -360 and 360'
-                END IF
-                IF (CntrPar%AWC_NumModes < 0) THEN
-                    ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg = 'AWC_NumModes must be a positive integer if AWC_Mode = 1'
-                END IF
+                DO Imode = 1,CntrPar%AWC_NumModes
+                    IF ((CntrPar%AWC_clockangle(Imode) > 360.0) .OR. (CntrPar%AWC_clockangle(Imode) < 0.0)) THEN
+                        ErrVar%aviFAIL = -1
+                        ErrVar%ErrMsg = 'AWC_clockangle must be between 0 and 360 in AWC_Mode = 1'
+                    END IF
+                END DO    
             END IF
+
             IF (CntrPar%AWC_Mode == 2) THEN
-                IF ((CntrPar%AWC_clockangle > 360) .OR. (CntrPar%AWC_clockangle < -360)) THEN
-                    ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg = 'AWC_clockangle must be between -360 and 360'
-                END IF
                 IF ((CntrPar%AWC_NumModes > 2) .OR. (CntrPar%AWC_NumModes < 1)) THEN
                     ErrVar%aviFAIL = -1
                     ErrVar%ErrMsg = 'AWC_NumModes must be either 1 or 2 if AWC_Mode = 2'
                 END IF
-                IF (CntrPar%AWC_harmonic < 0) THEN
-                    ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg = 'AWC_harmonic must be a positive integer'
-                END IF
+                DO Imode = 1,CntrPar%AWC_NumModes
+                    IF ((CntrPar%AWC_clockangle(Imode) > 360.0) .OR. (CntrPar%AWC_clockangle(Imode) < -360.0)) THEN
+                        ErrVar%aviFAIL = -1
+                        ErrVar%ErrMsg = 'AWC_clockangle must be between -360 and 360 in AWC_Mode = 2'
+                    END IF
+                    IF (CntrPar%AWC_harmonic(Imode) < 0) THEN
+                        ErrVar%aviFAIL = -1
+                        ErrVar%ErrMsg = 'AWC_harmonic must be a positive integer'
+                    END IF
+                END DO
             END IF
         END IF
 
