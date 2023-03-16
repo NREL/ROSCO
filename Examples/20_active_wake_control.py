@@ -78,7 +78,7 @@ The inputs to the controller are:
     Name			Unit		Type			Range		Description
     AWC_NumModes	-		Integer				[1,2]		number of modes for tilt and yaw (1: identical settings for tilt and yaw pitch angles, 2: seperate settings for tilt and yaw moments)
     AWC_harmonic    -		Integer				[0,inf]		harmonic(s) to apply in the inverse Coleman transform (size = AWC_NumModes. 0: collective pitch AWC, 1: 1P IPC-AWC, 2: 2P IPC-AWC, etc.)
-    AWC_clockangle 	deg		Array of Floats		[0,360]		clocking angle(s) of tilt and yaw pitch angles (size = AWC_NumModes. If size = 1, yaw clockangle = 2*clockangle)
+    AWC_clockangle 	deg		Array of Floats		[-360,360]	clocking angle(s) of tilt and yaw pitch angles (size = AWC_NumModes. If size = 1, yaw clockangle = 2*clockangle)
     AWC_freq 		Hz		Array of Floats		[0,inf]		frequency(s) of the tilt and yaw ptich angles, respectively (size = AWC_NumModes. If size = 1, both frequencies are assumed identical)
     AWC_amp 		deg		Array of Floats		[0,inf]		pitch amplitude(s) of tilt and yaw pitch angles (size = AWC_NumModes. If size = 1, both amplitudes are assumed identical)
     

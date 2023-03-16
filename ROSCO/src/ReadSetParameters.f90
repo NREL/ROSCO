@@ -1104,6 +1104,42 @@ CONTAINS
             END IF
         END IF
 
+        ! --- Active Wake Control ---
+        IF (CntrPar%AWC_Mode > 0) THEN
+            IF (CntrPar%AWC_freq < 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'AWC_freq cannot be smaller than 0'
+            END IF
+            IF (CntrPar%AWC_amp < 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'AWC_amp cannot be smaller than 0'
+            END IF
+            IF (CntrPar%AWC_Mode == 1) THEN
+                IF ((CntrPar%AWC_clockangle > 360) .OR. (CntrPar%AWC_clockangle < 0)) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = 'AWC_clockangle must be between -360 and 360'
+                END IF
+                IF (CntrPar%AWC_NumModes < 0) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = 'AWC_NumModes must be a positive integer if AWC_Mode = 1'
+                END IF
+            END IF
+            IF (CntrPar%AWC_Mode == 2) THEN
+                IF ((CntrPar%AWC_clockangle > 360) .OR. (CntrPar%AWC_clockangle < -360)) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = 'AWC_clockangle must be between -360 and 360'
+                END IF
+                IF ((CntrPar%AWC_NumModes > 2) .OR. (CntrPar%AWC_NumModes < 1)) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = 'AWC_NumModes must be either 1 or 2 if AWC_Mode = 2'
+                END IF
+                IF (CntrPar%AWC_harmonic < 0) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = 'AWC_harmonic must be a positive integer'
+                END IF
+            END IF
+        END IF
+
         IF ((CntrPar%CC_Mode < 0) .OR. (CntrPar%CC_Mode > 1)) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg = 'CC_Mode must be 0 or 1'
