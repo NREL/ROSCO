@@ -134,7 +134,7 @@ CONTAINS
         avrSWAP(56) = 0.0 ! Torque override: 0=yes
         avrSWAP(65) = 0.0 ! Number of variables returned for logging
         avrSWAP(72) = 0.0 ! Generator start-up resistance
-        avrSWAP(79) = 0.0 ! Request for loads: 0=none
+        avrSWAP(79) = 4.0 ! Request for loads: 0=none
         avrSWAP(80) = 0.0 ! Variable slip current status
         avrSWAP(81) = 0.0 ! Variable slip current demand
         
