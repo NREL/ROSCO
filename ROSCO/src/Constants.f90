@@ -35,4 +35,6 @@ MODULE Constants
     INTEGER(IntKi), PARAMETER     :: ErrID_Fatal  = 4                              !< ErrStat parameter indicating "fatal error"; simulation should end
     INTEGER, PARAMETER            :: BITS_IN_ADDR  = C_INTPTR_T*8                  !< The number of bits in an address (32-bit or 64-bit).
 
+    CHARACTER(1), PARAMETER       :: Tab      = CHAR( 9 ) 
+
 END MODULE Constants

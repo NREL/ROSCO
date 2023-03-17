@@ -1,5 +1,5 @@
 '''
------------ Example_06 --------------
+----------- 05_openfast_sim --------------
 Load a turbine, tune a controller, run OpenFAST simulation 
 -------------------------------------
 

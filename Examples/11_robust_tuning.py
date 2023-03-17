@@ -1,5 +1,5 @@
 '''
------------ Example_12 --------------
+----------- 11_robust_tuning --------------
 Controller tuning to satisfy a robustness criteria
 -------------------------------------
 NOTE: This example necessitates the mbc3 through either pyFAST or WEIS

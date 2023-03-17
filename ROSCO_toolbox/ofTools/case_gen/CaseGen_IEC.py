@@ -151,6 +151,9 @@ class CaseGen_IEC():
             iecwind_ex.setup()
             _, V_e50, V_e1, V_50, V_1   = iecwind_ex.EWM(0.)
 
+            if dlc == 1.4:
+                case_inputs_i[("AeroDyn15","AFAeroMod")]= {'vals':[1], 'group':0}
+
 
             if dlc == 5.1:
                 case_inputs_i[("ServoDyn","TPitManS1")]  = {'vals':[self.TStart], 'group':0}

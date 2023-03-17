@@ -1,5 +1,5 @@
 '''
------------ Example_05 --------------
+----------- 04_simple_sim --------------
 Run and plot a simple simple step wind simulation
 -------------------------------------
 
