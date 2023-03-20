@@ -955,6 +955,24 @@ LocalVariables:
     IPC_AxisYaw_2P:
       <<: *real
       description: Integral of quadrature, 2P
+    axisTilt_1P:
+      <<: *real
+      description: Tilt moment, 1P
+    axisYaw_1P:
+      <<: *real
+      description: Yaw moment, 1P
+    axisYawF_1P:
+      <<: *real
+      description: Filtered yaw moment, 1P
+    axisTilt_2P:
+      <<: *real
+      description: Tilt moment, 2P
+    axisYaw_2P:
+      <<: *real
+      description: Yaw moment, 2P
+    axisYawF_2P:
+      <<: *real
+      description: Filtered yaw moment, 2P
     IPC_KI:
       <<: *real
       description: Integral gain for IPC, after ramp [-]

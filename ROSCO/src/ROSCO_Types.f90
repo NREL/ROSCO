@@ -115,10 +115,10 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: PA_Mode                     ! Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
     REAL(DbKi)                    :: PA_CornerFreq               ! Pitch actuator bandwidth/cut-off frequency [rad/s]
     REAL(DbKi)                    :: PA_Damping                  ! Pitch actuator damping ratio [-, unused if PA_Mode = 1]
-    INTEGER(IntKi)                :: AWC_Mode                    ! Active wake control mode [0 - unused, 1 - complex number method, 2 - Coleman transform method]
+    INTEGER(IntKi)                :: AWC_Mode                    ! Active wake control mode [0 - unused, 1 - SNL method, 2 - NREL method]
     INTEGER(IntKi)                :: AWC_NumModes                ! AWC- Number of modes to include [-]
-    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: AWC_n                   ! AWC azimuthal mode [-] (only used in complex number method)
-    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: AWC_harmonic            ! AWC azimuthal mode [-] (only used in Coleman transform method)
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: AWC_n                       ! AWC azimuthal mode [-]
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: AWC_harmonic                ! AWC AWC Coleman transform harmonic [-]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_freq                    ! AWC frequency [Hz]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_amp                     ! AWC amplitude [deg]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_clockangle              ! AWC clocking angle [deg]
@@ -257,6 +257,12 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: IPC_AxisYaw_1P              ! Integral of quadrature, 1P
     REAL(DbKi)                    :: IPC_AxisTilt_2P             ! Integral of the direct axis, 2P
     REAL(DbKi)                    :: IPC_AxisYaw_2P              ! Integral of quadrature, 2P
+    REAL(DbKi)                    :: axisTilt_1P                 ! Tilt moment, 1P
+    REAL(DbKi)                    :: axisYaw_1P                  ! Yaw moment, 1P
+    REAL(DbKi)                    :: axisYawF_1P                 ! Filtered yaw moment, 1P
+    REAL(DbKi)                    :: axisTilt_2P                 ! Tilt moment, 2P
+    REAL(DbKi)                    :: axisYaw_2P                  ! Yaw moment, 2P
+    REAL(DbKi)                    :: axisYawF_2P                 ! Filtered yaw moment, 2P
     REAL(DbKi)                    :: IPC_KI(2)                   ! Integral gain for IPC, after ramp [-]
     REAL(DbKi)                    :: IPC_KP(2)                   ! Proportional gain for IPC, after ramp [-]
     REAL(DbKi)                    :: IPC_IntSat                  ! Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)

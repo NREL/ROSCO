@@ -1089,6 +1089,11 @@ CONTAINS
             ENDIF
         ENDIF
 
+        ! ---- AWC vs. IPC
+        IF (CntrPar%AWC_Mode > 0 .AND. CntrPar%IPC_ControlMode > 0) THEN
+            PRINT *, "ROSCO WARNING: Individual pitch control and active wake control are both enabled. Performance may be compromised."
+        ENDIF
+
         ! --- Pitch Actuator ---
         IF (CntrPar%PA_Mode > 0) THEN
             IF ((CntrPar%PA_Mode < 0) .OR. (CntrPar%PA_Mode > 2)) THEN
