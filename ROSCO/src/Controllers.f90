@@ -400,9 +400,6 @@ CONTAINS
         INTEGER(IntKi)              :: i, K                                    ! Integer used to loop through gains and turbine blades
         REAL(DbKi)                  :: axisYawIPC_1P                           ! IPC contribution with yaw-by-IPC component
         REAL(DbKi)                  :: Y_MErr, Y_MErrF, Y_MErrF_IPC            ! Unfiltered and filtered yaw alignment error [rad]
-        REAL(DbKi)                  :: AWC_YawAmp                              ! Yaw amplitude for AWC
-        REAL(DbKi)                  :: AWC_TiltAngle, AWC_YawAngle             ! Tilt and yaw initial phase angle for AWC
-        REAL(DbKi)                  :: AWC_YawFreq                             ! Yaw frequency for AWC
         
         CHARACTER(*),               PARAMETER           :: RoutineName = 'IPC'
 
