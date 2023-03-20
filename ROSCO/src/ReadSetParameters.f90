@@ -1114,11 +1114,11 @@ CONTAINS
             DO Imode = 1,CntrPar%AWC_NumModes
                 IF (CntrPar%AWC_freq(Imode) < 0.0) THEN
                     ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg = 'AWC_freq cannot be smaller than 0'
+                    ErrVar%ErrMsg = 'AWC_freq cannot be less than 0'
                 END IF
                 IF (CntrPar%AWC_amp(Imode) < 0.0) THEN
                     ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg = 'AWC_amp cannot be smaller than 0'
+                    ErrVar%ErrMsg = 'AWC_amp cannot be less than 0'
                 END IF
             END DO
             IF (CntrPar%AWC_Mode == 1) THEN
