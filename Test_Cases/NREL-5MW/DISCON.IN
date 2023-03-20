@@ -1,5 +1,5 @@
 ! Controller parameter input file for the NREL-5MW wind turbine
-!    - File written using ROSCO version 2.7.0 controller tuning logic on 03/15/23
+!    - File written using ROSCO version 2.7.0 controller tuning logic on 03/20/23
 
 !------- DEBUG ------------------------------------------------------------
 1                   ! LoggingLevel		- (0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3))
@@ -146,11 +146,11 @@
 
 !------- Active Wake Control -----------------------------------------------------
 1                     ! AWC_NumModes       - Number of user-defined AWC forcing modes 
-1                    ! AWC_n              - Azimuthal mode number(s) (i.e., the number and direction of the lobes of the wake structure)
-1                    ! AWC_harmonic       - Harmonic(s) to apply in the AWC Inverse Coleman Transformation (only used when AWC_Mode = 2)
-0.0500                 ! AWC_freq           - Frequency(s) of forcing mode(s) [Hz]
-1.0000                 ! AWC_amp            - Pitch amplitude(s) of individual forcing mode(s) [deg]
-0.0000                 ! AWC_clockangle     - Initial angle(s) of forcing mode(s) [deg]
+1                     ! AWC_n              - Azimuthal mode number(s) (i.e., the number and direction of the lobes of the wake structure)
+1                     ! AWC_harmonic       - Harmonic(s) to apply in the AWC Inverse Coleman Transformation (only used when AWC_Mode = 2)
+0.0500                ! AWC_freq           - Frequency(s) of forcing mode(s) [Hz]
+1.0000                ! AWC_amp            - Pitch amplitude(s) of individual forcing mode(s) [deg]
+0.0000                ! AWC_clockangle     - Initial angle(s) of forcing mode(s) [deg]
 
 !------- External Controller Interface -----------------------------------------------------
 "unused"            ! DLL_FileName        - Name/location of the dynamic library in the Bladed-DLL format
