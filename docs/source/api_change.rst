@@ -16,6 +16,8 @@ Optional Inputs
 - Input requirements depend on control modes.  E.g., open loop inputs are not required if `OL_Mode = 0``
 IPC Saturation Modes
 - Added options for saturating the IPC command with the peak shaving limit
+Active wake control
+- Added Active Wake Control (AWC) implementation
 
 ====== =================    ======================================================================================================================================================================================================
 New in ROSCO develop
@@ -24,16 +26,25 @@ Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
 6      Echo                 0               ! Echo		    - (0 - no Echo, 1 - Echo input data to <RootName>.echo)
 24     CC_Mode              0               ! CC_Mode        - Cable control mode [0- unused, 1- User defined, 2- Position control (not yet implemented)]
-28     StC_Mode             0               ! StC_Mode       - Structural control mode [0- unused, 1- User defined]
-154    Empty Line          
-155    CC_Section           !------- Cable Control ---------------------------------------------------------
-156    CC_Group_N           3               ! CC_Group_N		- Number of cable control groups
-157    CC_GroupIndex        2601 2603 2605  ! CC_GroupIndex  - First index for cable control group, should correspond to deltaL
-158    CC_ActTau            20.000000       ! CC_ActTau		- Time constant for line actuator [s]
-159    Empty Line          
-160    StC_Section          !------- Structural Controllers ---------------------------------------------------------
-161    StC_Group_N          3               ! StC_Group_N		- Number of cable control groups
-162    StC_GroupIndex       2818 2838 2858  ! StC_GroupIndex     - First index for structural control group, options specified in ServoDyn summary output   
+25     AWC_Mode             0			          ! AWC_Mode       - Active wake control mode [0 - not used, 1 - complex number method, 2 - Coleman transform method]
+29     StC_Mode             0               ! StC_Mode       - Structural control mode [0- unused, 1- User defined]
+146    Empty Line
+147    AWC_Section          !------- Active Wake Control -----------------------------------------------------
+148    AWC_NumModes         1               ! AWC_NumModes    - AWC- Number of modes to include [-]
+149    AWC_n                1               ! AWC_n           - AWC azimuthal mode [-] (only used in complex number method)
+150    AWC_harmonic         1               ! AWC_harmonic    - AWC Coleman transform harmonic [-] (only used in Coleman transform method)
+151    AWC_NumModes         0.03            ! AWC_freq        - AWC frequency [Hz]
+152    AWC_NumModes         2.0             ! AWC_amp         - AWC amplitude [deg]
+153    AWC_NumModes         0.0             ! AWC_clockangle  - AWC clock angle [deg]
+163    Empty Line          
+164    CC_Section           !------- Cable Control ---------------------------------------------------------
+165    CC_Group_N           3               ! CC_Group_N		- Number of cable control groups
+166    CC_GroupIndex        2601 2603 2605  ! CC_GroupIndex  - First index for cable control group, should correspond to deltaL
+167    CC_ActTau            20.000000       ! CC_ActTau		- Time constant for line actuator [s]
+168    Empty Line          
+169    StC_Section          !------- Structural Controllers ---------------------------------------------------------
+170    StC_Group_N          3               ! StC_Group_N		- Number of cable control groups
+171    StC_GroupIndex       2818 2838 2858  ! StC_GroupIndex     - First index for structural control group, options specified in ServoDyn summary output   
 ====== =================    ======================================================================================================================================================================================================
 
 
