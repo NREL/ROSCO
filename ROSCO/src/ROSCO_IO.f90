@@ -563,7 +563,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     INTEGER(IntKi), INTENT(IN)      :: size_avcOUTNAME
     INTEGER(IntKi)                  :: I , nDebugOuts, nLocalVars   ! Generic index.
     CHARACTER(1), PARAMETER         :: Tab = CHAR(9)                ! The tab character.
-    CHARACTER(29), PARAMETER        :: FmtDat = "(F20.5,TR5,99(ES20.5E2,TR5:))"   ! The format of the debugging data
+    CHARACTER(100)                  :: FmtDat                       ! The format of the debugging data
     INTEGER(IntKi), SAVE            :: UnDb                         ! I/O unit for the debugging information
     INTEGER(IntKi), SAVE            :: UnDb2                        ! I/O unit for the debugging information, avrSWAP
     INTEGER(IntKi), SAVE            :: UnDb3                        ! I/O unit for the debugging information, avrSWAP
@@ -759,8 +759,8 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
             CALL GetNewUnit(UnDb2, ErrVar)
             OPEN(unit=UnDb2, FILE=TRIM(RootName)//'.RO.dbg2')
             WRITE(UnDb2, *)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)
-            WRITE(UnDb2, '(99(a20,TR5:))') 'Time',   LocalVarOutStrings
-            WRITE(UnDb2, '(99(a20,TR5:))')
+            WRITE(UnDb2, '(101(a20,TR5:))') 'Time',   LocalVarOutStrings
+            WRITE(UnDb2, '(101(a20,TR5:))')
         END IF
 
         IF (CntrPar%LoggingLevel > 2) THEN
@@ -817,16 +817,17 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     END DO
     
     ! Write debug files
+    FmtDat = "(F20.5,TR5,100(ES20.5E2,TR5:))"   ! The format of the debugging data
     IF(CntrPar%LoggingLevel > 0) THEN
-        WRITE (UnDb, FmtDat)  LocalVar%Time, DebugOutData
+        WRITE (UnDb, TRIM(FmtDat))  LocalVar%Time, DebugOutData
     END IF
 
     IF(CntrPar%LoggingLevel > 1) THEN
-        WRITE (UnDb2, FmtDat)  LocalVar%Time, LocalVarOutData
+        WRITE (UnDb2, TRIM(FmtDat))  LocalVar%Time, LocalVarOutData
     END IF
 
     IF(CntrPar%LoggingLevel > 2) THEN
-        WRITE (UnDb3, FmtDat)    LocalVar%Time, avrSWAP(avrIndices)
+        WRITE (UnDb3, TRIM(FmtDat))    LocalVar%Time, avrSWAP(avrIndices)
     END IF
 
 END SUBROUTINE Debug
