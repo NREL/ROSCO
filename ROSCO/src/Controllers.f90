@@ -42,8 +42,6 @@ CONTAINS
 
         CHARACTER(*),               PARAMETER           :: RoutineName = 'PitchControl'
 
-        ! Local
-
         ! ------- Blade Pitch Controller --------
         ! Load PC State
         IF (LocalVar%PC_State == 1) THEN ! PI BldPitch control
