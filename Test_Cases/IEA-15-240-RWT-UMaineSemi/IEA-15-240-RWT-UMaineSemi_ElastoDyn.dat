@@ -120,6 +120,8 @@ True          TabDelim    - Use tab delimiters in text tabular output file? (fla
                    OutList             - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)                 
 "Azimuth"                  
 "BldPitch1"                
+"BldPitch2"                
+"BldPitch3"                
 "GenSpeed"                 
 "IPDefl1"                  
 "LSSGagMya"                

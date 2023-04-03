@@ -12,6 +12,13 @@ default_types:
     size: 0                # Use this if the type IS an array (size:3 --> REAL(8), BldPitch(3))
     allocatable: False
     equals: 
+  float: &float
+    type: float
+    description: 
+    dimension:             # Use this if a higher-dimensional allocatable array (dimension:(:,:) --> REAL(8), DIMESION(:,:), ALLOCATABLE)
+    size: 0                # Use this if the type IS an array (size:3 --> REAL(8), BldPitch(3))
+    allocatable: False
+    equals: 
   character: &character
     type: character
     description: 
@@ -62,7 +69,9 @@ ControlParameters:
     LoggingLevel: 
       <<: *integer
       description: 0 - write no debug files, 1 - write standard output .dbg-file, 2 - write standard output .dbg-file and complete avrSWAP-array .dbg2-file
-    
+    Echo: 
+      <<: *integer
+      description: 0 - no Echo, 1 - Echo input data to <RootName>.echo
     # Filters
     F_LPFType:
       <<: *integer
@@ -129,6 +138,9 @@ ControlParameters:
     IPC_IntSat:
       <<: *real
       description: Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
+    IPC_SatMode:
+      <<: *integer
+      description: IPC Saturation method IPC Saturation method (0 - no saturation (except by PC_MinPit), 1 - saturate by PS_BldPitchMin, 2 - saturate sotfly (full IPC cycle) by PC_MinPit, 3 - saturate softly by PS_BldPitchMin)
     IPC_KP:
       <<: *real
       description: Integral gain for the individual pitch controller, [-].
@@ -446,7 +458,16 @@ ControlParameters:
     PA_Damping:
       <<: *real
       description: Pitch actuator damping ratio [-, unused if PA_Mode = 1]
-
+    
+    # Pitch actuator error
+    PF_Mode:
+      <<: *integer
+      description: Pitch actuator fault mode {0 - not used, 1 - offsets on one or more blades}
+    PF_Offsets:
+      <<: *real
+      description: Pitch actuator fault offsets for blade 1-3 [rad/s]
+      allocatable: True
+    
     # External Control
     Ext_Mode:
       <<: *integer
@@ -475,6 +496,38 @@ ControlParameters:
     ZMQ_UpdatePeriod:
       <<: *real
       description: Integer for zeromq update frequency
+
+    # Cable control 
+    CC_Mode:
+      <<: *integer
+      description: Flag for ZeroMQ (0-off, 1-yaw}
+
+    CC_Group_N:
+      <<: *integer
+      description: Number of cable control groups
+
+    CC_ActTau:
+      <<: *real
+      description: Time constant for line actuator [s]
+
+    CC_GroupIndex:
+      <<: *integer
+      description: Cable control group indices
+      allocatable: True
+
+    # StC Control
+    StC_Mode:
+      <<: *integer
+      description: Flag for ZeroMQ (0-off, 1-yaw}
+
+    StC_Group_N:
+      <<: *integer
+      description: Number of cable control groups
+
+    StC_GroupIndex:
+      <<: *integer
+      description: Cable control group indices
+      allocatable: True
 
     # Calculated
     PC_RtTq99:
@@ -578,6 +631,46 @@ FilterParameters:
       <<: *real
       dimension: (99)
       description: Second order filter - Previous output 1
+    lpfV_a2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Denominator coefficient 1
+    lpfV_a1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Denominator coefficient 1
+    lpfV_a0:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Denominator coefficient 0
+    lpfV_b2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Numerator coefficient 2
+    lpfV_b1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Numerator coefficient 1
+    lpfV_b0:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Numerator coefficient 0
+    lpfV_InputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous input 2
+    lpfV_OutputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous output 2
+    lpfV_InputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous input 1 
+    lpfV_OutputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous output 1
     hpf_InputSignalLast:
       <<: *real
       dimension: (99)
@@ -659,6 +752,12 @@ FilterParameters:
       dimension: (99)
       description: Notch filter denominator coefficient 0  
 
+rlParams:
+    LastSignal:
+      <<: *real
+      dimension: (99)
+      description: Last input signal
+
 piParams:
     ITerm:
       <<: *real
@@ -717,6 +816,9 @@ LocalVariables:
       <<: *real
       description: Blade pitch [rad]
       size: 3
+    BlPitchCMeas: 
+      <<: *real
+      description: Mean (collective) blade pitch [rad]
     Azimuth: 
       <<: *real 
       description: Rotor aziumuth angle [rad]
@@ -824,6 +926,9 @@ LocalVariables:
       <<: *real
       description: Proportional gain for IPC, after ramp [-]
       size: 2
+    IPC_IntSat:
+      <<: *real
+      description: Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
     PC_State:                     
       <<: *integer 
       description: State of the pitch control system
@@ -833,7 +938,7 @@ LocalVariables:
       size: 3
     PitComAct:                  
       <<: *real 
-      description: Actuated pitch of each blade the last time the controller was called [rad].
+      description: Actuated pitch command of each blade [rad].
       size: 3
     SS_DelOmegaF:                 
       <<: *real 
@@ -893,6 +998,72 @@ LocalVariables:
       <<: *real 
     FA_AccF:
       <<: *real 
+    PtfmTDX:
+      <<: *real
+      description: Platform motion -- Displacement TDX (m)')
+    PtfmTDY:
+      <<: *real
+      description: Platform motion -- Displacement TDY (m)')
+    PtfmTDZ:
+      <<: *real
+      description: Platform motion -- Displacement TDZ (m)')
+    PtfmRDX:
+      <<: *real
+      description: Platform motion -- Displacement RDX (rad)')
+    PtfmRDY:
+      <<: *real
+      description: Platform motion -- Displacement RDY (rad)')
+    PtfmRDZ:
+      <<: *real
+      description: Platform motion -- Displacement RDZ (rad)')
+    PtfmTVX:
+      <<: *real
+      description: Platform motion -- Velocity     TVX (m/s)')
+    PtfmTVY:
+      <<: *real
+      description: Platform motion -- Velocity     TVY (m/s)')
+    PtfmTVZ:
+      <<: *real
+      description: Platform motion -- Velocity     TVZ (m/s)')
+    PtfmRVX:
+      <<: *real
+      description: Platform motion -- Velocity     RVX (rad/s)')
+    PtfmRVY:
+      <<: *real
+      description: Platform motion -- Velocity     RVY (rad/s)')
+    PtfmRVZ:
+      <<: *real
+      description: Platform motion -- Velocity     RVZ (rad/s)')
+    PtfmTAX:
+      <<: *real
+      description: Platform motion -- Acceleration TAX (m/s^2)')
+    PtfmTAY:
+      <<: *real
+      description: Platform motion -- Acceleration TAY (m/s^2)')
+    PtfmTAZ:
+      <<: *real
+      description: Platform motion -- Acceleration TAZ (m/s^2)')
+    PtfmRAX:
+      <<: *real
+      description: Platform motion -- Acceleration RAX (rad/s^2)')
+    PtfmRAY:
+      <<: *real
+      description: Platform motion -- Acceleration RAY (rad/s^2)')
+    PtfmRAZ:
+      <<: *real
+      description: Platform motion -- Acceleration RAZ (rad/s^2)')
+    CC_DesiredL:
+      <<: *real
+      size: 12
+    CC_ActuatedL:
+      <<: *real
+      size: 12
+    CC_ActuatedDL:
+      <<: *real
+      size: 12
+    StC_Input:
+      <<: *real
+      size: 12
     Flp_Angle:
       <<: *real 
       description: Flap Angle (rad)
@@ -924,12 +1095,19 @@ LocalVariables:
       <<: *derived_type
       id: piParams
       description: PI parameters derived type
+    rlP:
+      <<: *derived_type
+      id: rlParams
+      description: Rate limiter parameters derived type
 
 ObjectInstances:
   instLPF:
     <<: *integer
     description: Low-pass filter instance
   instSecLPF:
+    <<: *integer
+    description: Second order low-pass filter instance
+  instSecLPFV:
     <<: *integer
     description: Second order low-pass filter instance
   instHPF:
@@ -944,6 +1122,9 @@ ObjectInstances:
   instPI:
     <<: *integer
     description: PI controller instance
+  instRL:
+    <<: *integer
+    description: Rate limiter instance
 
 PerformanceData:
   TSR_vec:
@@ -1034,13 +1215,13 @@ DebugVariables:
     description: Commanded yaw rate [rad/s].
   NacHeadingTarget:
     <<: *real
-    description: Target nacelle heading [rad].
+    description: Target nacelle heading [deg].
   NacVaneOffset:
     <<: *real
-    description: Nacelle vane angle with offset [rad].
-  Yaw_err:
+    description: Nacelle vane angle with offset [deg].
+  Yaw_Err:
     <<: *real
-    description: Yaw error [rad].
+    description: Yaw error [deg].
   YawState:
     <<: *real
     description: State of yaw controller
@@ -1093,7 +1274,7 @@ ZMQ_Variables:
     
 ExtControlType:
   avrSWAP:
-    <<: *c_float
+    <<: *float
     description: The swap array- used to pass data to and from the DLL controller [see Bladed DLL documentation]
     allocatable: True
     dimension: (:)

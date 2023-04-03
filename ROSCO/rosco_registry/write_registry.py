@@ -125,7 +125,7 @@ def write_roscoio(yfile):
     file.write("    TYPE(PerformanceData), INTENT(INOUT)            :: PerfData\n")
     file.write("    TYPE(ErrorVariables), INTENT(INOUT)             :: ErrVar\n")
     file.write("    TYPE(ZMQ_Variables), INTENT(INOUT)              :: zmqVar\n")
-    file.write("    REAL(C_FLOAT), INTENT(IN)                       :: avrSWAP(*)\n")
+    file.write("    REAL(ReKi), INTENT(IN)                          :: avrSWAP(*)\n")
     file.write("    INTEGER(IntKi), INTENT(IN)                      :: size_avcOUTNAME\n")
     file.write("    CHARACTER(size_avcOUTNAME-1), INTENT(IN)        :: RootName \n")
     file.write("    \n")
@@ -163,7 +163,7 @@ def write_roscoio(yfile):
     file.write('        Close ( Un )\n')
     file.write('    ENDIF\n')
     file.write('    ! Read Parameter files\n')
-    file.write('    CALL ReadControlParameterFileSub(CntrPar, zmqVar, LocalVar%ACC_INFILE, LocalVar%ACC_INFILE_SIZE, ErrVar)\n')
+    file.write('    CALL ReadControlParameterFileSub(CntrPar, zmqVar, LocalVar%ACC_INFILE, LocalVar%ACC_INFILE_SIZE, RootName, ErrVar)\n')
     file.write('    IF (CntrPar%WE_Mode > 0) THEN\n')
     file.write('        CALL READCpFile(CntrPar, PerfData, ErrVar)\n')
     file.write('    ENDIF\n')
@@ -191,6 +191,13 @@ def write_roscoio(yfile):
     file.write('    CHARACTER(size_avcOUTNAME-1), INTENT(IN) :: RootName            ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]\n')
     file.write('    CHARACTER(200)                  :: Version                      ! git version of ROSCO\n')
     file.write('    CHARACTER(15), ALLOCATABLE      :: DebugOutStrings(:), DebugOutUnits(:)\n')
+    file.write('\n')
+    file.write('    ! Avr output writing\n')
+    file.write('    INTEGER(IntKi), SAVE, DIMENSION(:), ALLOCATABLE     :: avrIndices\n')
+    file.write('    INTEGER(IntKi)                  :: avrBaseLength = 85\n')
+    file.write('    INTEGER(IntKi)                  :: Ind\n')
+    file.write('    CHARACTER(100)                  :: avrFmt\n')
+    file.write('\n')
     file.write('    REAL(DbKi), ALLOCATABLE         :: DebugOutData(:)\n \n')
     file.write('    CHARACTER(15), ALLOCATABLE      :: LocalVarOutStrings(:)\n')
     file.write('    REAL(DbKi), ALLOCATABLE         :: LocalVarOutData(:)\n \n')
@@ -221,12 +228,15 @@ def write_roscoio(yfile):
     file.write('    DebugOutUnits = [CHARACTER(15) :: ')
     counter = 0
     for unit in dbg_units:
+        # Give dummy unit if not defined
+        if not unit:
+            unit = '[N/A]'
         counter += 1
         if counter == len(dbg_units):
-            file.write(" '{}'".format(unit))
+            file.write(" '{}'".format(unit))    # last line
         else:
             file.write(" '{}',".format(unit))
-        if (counter % 5 == 0):
+        if (counter % 5 == 0):      # group in groups of 5
             file.write(' & \n                                     ')
     file.write(']\n')
 
@@ -239,8 +249,11 @@ def write_roscoio(yfile):
     file.write('    nLocalVars = {}\n'.format(len(lv_strings)))
     file.write('    Allocate(LocalVarOutData(nLocalVars))\n')
     file.write('    Allocate(LocalVarOutStrings(nLocalVars))\n')
+
+    # Loop through LocalVariables
     for lv_idx, localvar in enumerate(lv_strings):
-        if reg['LocalVariables'][localvar]['size'] > 0:
+        # If an array, only show first
+        if reg['LocalVariables'][localvar]['size'] > 0 or reg['LocalVariables'][localvar]['allocatable']:
             file.write('    LocalVarOutData({}) = LocalVar%{}(1)\n'.format(lv_idx+1, localvar))
         else:
             file.write('    LocalVarOutData({}) = LocalVar%{}\n'.format(lv_idx+1, localvar))
@@ -280,19 +293,59 @@ def write_roscoio(yfile):
     file.write("\n")
     # avrSWAP debug
     file.write("        IF (CntrPar%LoggingLevel > 2) THEN\n")
+    file.write("            ! Set avrIndices, start with basic indices\n")
+    file.write("            Allocate(avrIndices(avrBaseLength))\n")
+    file.write("            DO Ind = 1, avrBaseLength\n")
+    file.write("                avrIndices(Ind) = Ind\n")
+    file.write("            END DO\n")
+    file.write("\n")
+    file.write("            ! Cable control indices\n")
+    file.write("            IF (CntrPar%CC_Mode > 0) THEN\n")
+    file.write("                DO Ind = 1, SIZE(CntrPar%CC_GroupIndex)\n")
+    file.write("                    Call AddToList(avrIndices,CntrPar%CC_GroupIndex(Ind))\n")
+    file.write("                    Call AddToList(avrIndices,CntrPar%CC_GroupIndex(Ind)+1)\n")
+    file.write("                END DO\n")
+    file.write("            END IF\n")
+    file.write("\n")
+    file.write("            ! Structural control indices\n")
+    file.write("            IF (CntrPar%StC_Mode > 0) THEN\n")
+    file.write("                DO Ind = 1, SIZE(CntrPar%StC_GroupIndex)\n")
+    file.write("                    Call AddToList(avrIndices,CntrPar%StC_GroupIndex(Ind))\n")
+    file.write("                END DO\n")
+    file.write("            END IF\n")
+    file.write("\n")
+    file.write("            ! Format string\n")
+    file.write("            avrFmt = '(A21,'//TRIM(Int2LStr(SIZE(avrIndices)))//'(TR12," + '"' + "'//'" + "AvrSWAP(" + '",I4,"' + ')"' + "))'\n")
+    # file.write("            WRITE(UnDb3,'"+'(A,85("'+"'//Tab//'"+'AvrSWAP("'+',I2,")"'+"))')  'LocalVar%Time ', (i,i=1, 85)\n")
+    file.write("\n")
     file.write("            CALL GetNewUnit(UnDb3, ErrVar)\n")
     file.write("            OPEN(unit=UnDb3, FILE=TRIM(RootName)//'.RO.dbg3')\n")
     file.write("            WRITE(UnDb3,'(/////)')\n")
-    file.write("            WRITE(UnDb3,'"+'(A,85("'+"'//Tab//'"+'AvrSWAP("'+',I2,")"'+"))')  'LocalVar%Time ', (i,i=1, 85)\n")
-    file.write("            WRITE(UnDb3,'"+'(A,85("'+"'//Tab//'"+'(-)"'+"))')  '(s)'"+'\n')
+    file.write("            WRITE(UnDb3,avrFmt)  'LocalVar%Time ', (avrIndices)\n")
+    file.write("            WRITE(UnDb3,'(A21,'//TRIM(Int2LStr(SIZE(avrIndices)))//'(TR22," + '"(-)"' + "))')  '(s)'\n")
     file.write("        END IF\n")
     file.write("    END IF\n")
+    file.write("\n")
     file.write("        ! Print simulation status, every 10 seconds\n")
     file.write("    IF (MODULO(LocalVar%Time, 10.0_DbKi) == 0) THEN\n")
     file.write("        WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0, LocalVar%WE_Vw\n")
     file.write("        100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')\n")
     file.write("    END IF\n")
     file.write("\n")
+    file.write("    ! Process DebugOutData, LocalVarOutData\n")
+    file.write("    ! Remove very small numbers that cause ******** outputs\n")
+    file.write("    DO I = 1,SIZE(DebugOutData)\n")
+    file.write("        IF (ABS(DebugOutData(I)) < 1E-10) THEN\n")
+    file.write("            DebugOutData(I) = 0\n")
+    file.write("        END IF\n")
+    file.write("    END DO\n")
+    file.write("    \n")
+    file.write("    DO I = 1,SIZE(LocalVarOutData)\n")
+    file.write("        IF (ABS(LocalVarOutData(I)) < 1E-10) THEN\n")
+    file.write("            LocalVarOutData(I) = 0\n")
+    file.write("        END IF\n")
+    file.write("    END DO\n")
+    file.write("    \n")
     file.write("    ! Write debug files\n")
     file.write("    IF(CntrPar%LoggingLevel > 0) THEN\n")
     file.write("        WRITE (UnDb, FmtDat)  LocalVar%Time, DebugOutData\n")
@@ -303,7 +356,7 @@ def write_roscoio(yfile):
     file.write("    END IF\n")
     file.write("\n")
     file.write("    IF(CntrPar%LoggingLevel > 2) THEN\n")
-    file.write("        WRITE (UnDb3, FmtDat)    LocalVar%Time, avrSWAP(1: 85)\n")
+    file.write("        WRITE (UnDb3, FmtDat)    LocalVar%Time, avrSWAP(avrIndices)\n")
     file.write("    END IF\n")
     file.write("\n")
     file.write("END SUBROUTINE Debug\n")
@@ -329,6 +382,15 @@ def read_type(param):
             f90type += ', DIMENSION(:), ALLOCATABLE'
     elif param['type'] == 'real':
         f90type = 'REAL(DbKi)'
+        if param['allocatable']:
+            if param['dimension']:
+                f90type += ', DIMENSION{}, ALLOCATABLE'.format(param['dimension'])
+            else:
+                f90type += ', DIMENSION(:), ALLOCATABLE'
+        elif param['dimension']:
+            f90type += ', DIMENSION{}'.format(param['dimension'])
+    elif param['type'] == 'float':
+        f90type = 'REAL(ReKi)'
         if param['allocatable']:
             if param['dimension']:
                 f90type += ', DIMENSION{}, ALLOCATABLE'.format(param['dimension'])
