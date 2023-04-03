@@ -43,16 +43,17 @@ VERSION = '2.7.0'
 REQUIRED = [
     'matplotlib',
     'numpy',
-    'pytest',
+    #'pytest',
     'scipy',
     'pyYAML',
-    'future',
+    #'future',
     'pandas'
 ]
 
 
 # For the CMake Extensions
 this_directory = os.path.abspath(os.path.dirname(__file__))
+
 class CMakeExtension(Extension):
 
     def __init__(self, name, sourcedir='', **kwa):
