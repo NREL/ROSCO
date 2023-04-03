@@ -3,7 +3,7 @@ controller_params:
     LoggingLevel: 1
     F_LPFType: 1
     F_NotchType: 0
-    IPC_ControlMode: 0
+    IPC_ControlMode: 1
     VS_ControlMode: 3
     PC_ControlMode: 1
     Y_ControlMode: 0
@@ -41,7 +41,7 @@ controller_params:
     max_torque_factor: 1.1
     IPC_Kp1p: 0.0
     IPC_Kp2p: 0.0
-    IPC_Ki1p: 0.0
+    IPC_Ki1p: 5.2e-9
     IPC_Ki2p: 0.0
     IPC_Vramp: [0.0, 0.0]
     filter_params: {f_we_cornerfreq: 0.20944, f_fl_highpassfreq: 0.01042, f_ss_cornerfreq: 0.6283, f_yawerr: 0.17952, f_sd_cornerfreq: 0.41888}
