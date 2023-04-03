@@ -1,6 +1,6 @@
 path_params: {FAST_InputFile: NREL-2p8-127.fst, FAST_directory: ../Test_Cases/NREL_2p8_127, rotor_performance_filename: NREL-2p8-127_Cp_Ct_Cq.txt}
 controller_params:
-    LoggingLevel: 1
+    LoggingLevel: 2
     F_LPFType: 1
     F_NotchType: 0
     IPC_ControlMode: 1
