@@ -47,7 +47,7 @@ def main():
 
 
     # Create rotor speed table
-    controller, turbine, path_params = yaml_to_objs(parameter_filename)
+    controller, _, _ = yaml_to_objs(parameter_filename)
 
 
     # plot original ops
@@ -71,28 +71,27 @@ def main():
     # plot new lookup
     plt.plot(v,omega,linestyle='--')
 
-
-    # simulation set up
     r = run_FAST_ROSCO()
     r.tuning_yaml   = parameter_filename
-    r.wind_case_fcn = cl.simp_step  # single step wind input
-    r.wind_case_fcn = cl.power_curve
+    r.wind_case_fcn = cl.ramp  # single step wind input
     r.wind_case_opts    = {
-        'U': [9],
-        'T_max': 100,
+        'U_start': 5,  # from 10 to 15 m/s
+        'U_end': 35,
+        't_start': 100,
+        't_end': 2500,
         }
-    r.case_inputs = {}
     r.save_dir      = run_dir
-    # r.controller_params  = {
-    #     'OD_Mode': 1,
-    #     'DISCON': {
-    #         'Echo': True,
-    #     }}   # Use OutData in control
     r.rosco_dir     = rosco_dir
+    r.controller_params  = {
+        'PRC_Mode': 1,
+        'DISCON': {
+            'PRC_Mode': 1,
+            'PRC_n': len(v),
+            'PRC_WindSpeeds': v,
+            'PRC_RotorSpeeds': omega,
 
+        }}   # Use OutData in control
     r.run_FAST()
-
-
 
 if __name__=="__main__":
     main()
