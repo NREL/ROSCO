@@ -12,6 +12,13 @@ default_types:
     size: 0                # Use this if the type IS an array (size:3 --> REAL(8), BldPitch(3))
     allocatable: False
     equals: 
+  complex: &complex
+    type: complex
+    description: 
+    dimension:             # Use this if a higher-dimensional allocatable array (dimension:(:,:) --> REAL(8), DIMESION(:,:), ALLOCATABLE)
+    size: 0                # Use this if the type IS an array (size:3 --> REAL(8), BldPitch(3))
+    allocatable: False
+    equals: 
   float: &float
     type: float
     description: 
@@ -458,6 +465,58 @@ ControlParameters:
     PA_Damping:
       <<: *real
       description: Pitch actuator damping ratio [-, unused if PA_Mode = 1]
+
+    # Active wake control
+    AWC_Mode:
+      <<: *integer
+      description: Active wake control mode [0 - unused, 1 - complex number method, 2 - Coleman transform method]
+    AWC_NumModes:
+      <<: *integer
+      description: AWC- Number of modes to include [-] 
+    AWC_n:
+      <<: *integer
+      allocatable: True
+      description: AWC azimuthal mode [-]
+    AWC_harmonic:
+      <<: *integer
+      allocatable: True
+      description: AWC AWC Coleman transform harmonic [-]
+    AWC_freq:
+      <<: *real
+      allocatable: True
+      description: AWC frequency [Hz]
+    AWC_amp:
+      <<: *real
+      allocatable: True
+      description: AWC amplitude [deg]
+    AWC_clockangle:
+      <<: *real
+      allocatable: True
+      description: AWC clocking angle [deg]
+    
+    # Active wake control
+    AWC_Mode:
+      <<: *integer
+      description: Active wake control mode [0 - unused, 1 - SNL method, 2 - NREL method]
+    AWC_NumModes:
+      <<: *integer
+      description: AWC- Number of modes to include [-] 
+    AWC_n:
+      <<: *integer
+      allocatable: True
+      description: AWC azimuthal mode [-]
+    AWC_freq:
+      <<: *real
+      allocatable: True
+      description: AWC frequency [Hz]
+    AWC_amp:
+      <<: *real
+      allocatable: True
+      description: AWC amplitude [deg]
+    AWC_clockangle:
+      <<: *real
+      allocatable: True
+      description: AWC clocking angle [deg]
     
     # Pitch actuator error
     PF_Mode:
@@ -918,6 +977,24 @@ LocalVariables:
     IPC_AxisYaw_2P:
       <<: *real
       description: Integral of quadrature, 2P
+    axisTilt_1P:
+      <<: *real
+      description: Tilt moment, 1P
+    axisYaw_1P:
+      <<: *real
+      description: Yaw moment, 1P
+    axisYawF_1P:
+      <<: *real
+      description: Filtered yaw moment, 1P
+    axisTilt_2P:
+      <<: *real
+      description: Tilt moment, 2P
+    axisYaw_2P:
+      <<: *real
+      description: Yaw moment, 2P
+    axisYawF_2P:
+      <<: *real
+      description: Filtered yaw moment, 2P
     IPC_KI:
       <<: *real
       description: Integral gain for IPC, after ramp [-]
@@ -1083,6 +1160,10 @@ LocalVariables:
     restart:
       <<: *logical
       description: Restart flag
+    AWC_complexangle:
+      <<: *complex
+      description: Complex angle for each blade, sum of modes?
+      size: 3
     WE: 
       <<: *derived_type
       id: WE 

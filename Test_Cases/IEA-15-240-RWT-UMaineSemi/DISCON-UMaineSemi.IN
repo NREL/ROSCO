@@ -1,5 +1,5 @@
 ! Controller parameter input file for the IEA-15-240-RWT-UMaineSemi wind turbine
-!    - File written using ROSCO version 2.7.0 controller tuning logic on 04/03/23
+!    - File written using ROSCO version 2.7.0 controller tuning logic on 03/20/23
 
 !------- DEBUG ------------------------------------------------------------
 2                   ! LoggingLevel		- (0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3))
@@ -13,7 +13,6 @@
 1                   ! PC_ControlMode    - Blade pitch control mode {0: No pitch, fix to fine pitch, 1: active PI blade pitch control}
 0                   ! Y_ControlMode		- Yaw control mode {0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}
 1                   ! SS_Mode           - Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
-0                   ! PRC_Mode          - Power reference tracking mode{0: use standard rotor speed set points, 1: use PRC rotor speed setpoints}
 2                   ! WE_Mode           - Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator, 2: Extended Kalman Filter}
 1                   ! PS_Mode           - Pitch saturation mode {0: no pitch saturation, 1: implement pitch saturation}
 0                   ! SD_Mode           - Shutdown mode {0: no shutdown procedure, 1: pitch to max pitch at shutdown}
@@ -23,6 +22,7 @@
 0                   ! OL_Mode           - Open loop control mode {0: no open loop control, 1: open loop control vs. time}
 2                   ! PA_Mode           - Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
 0                   ! PF_Mode           - Pitch fault mode {0 - not used, 1 - constant offset on one or more blades}
+0                   ! AWC_Mode          - Active wake control {0 - not used, 1 - complex number method, 2 - Coleman transform method}
 0                   ! Ext_Mode          - External control mode {0 - not used, 1 - call external dynamic library}
 0                   ! ZMQ_Mode          - Fuse ZeroMQ interface {0: unused, 1: Yaw Control}
 0                   ! CC_Mode           - Cable control mode [0- unused, 1- User defined, 2- Position control (not yet implemented)]
@@ -84,11 +84,6 @@
 1.00000             ! SS_VSGain         - Variable speed torque controller setpoint smoother gain, [-].
 0.00100             ! SS_PCGain         - Collective pitch controller setpoint smoother gain, [-].
 
-!------- POWER REFERENCE TRACKING --------------------------------------
-2                   ! PRC_n			    -  Number of elements in PRC_WindSpeeds and PRC_RotorSpeeds array
-3.000  25.000                ! PRC_WindSpeeds	- Array of wind speeds used in rotor speed vs. wind speed lookup table [m/s].
-0.792  0.792                ! PRC_RotorSpeeds	- Array of rotor speeds corresponding to PRC_WindSpeeds [rad/s].
-
 !------- WIND SPEED ESTIMATOR ---------------------------------------------
 120.000             ! WE_BladeRadius	- Blade length (distance from hub center to blade tip), [m]
 1                   ! WE_CP_n			- Amount of parameters in the Cp array
@@ -119,8 +114,8 @@
 
 !------- MINIMUM PITCH SATURATION -------------------------------------------
 60                  ! PS_BldPitchMin_N  - Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)
-3.000 3.267 3.534 3.801 4.068 4.334 4.601 4.868 5.135 5.402 5.669 5.936 6.203 6.470 6.737 7.003 7.270 7.537 7.804 8.071 8.338 8.605 8.872 9.139 9.406 9.672 9.939 10.206 10.473 10.740 11.215 11.691 12.166 12.641 13.117 13.592 14.067 14.543 15.018 15.493 15.969 16.444 16.919 17.395 17.870 18.345 18.821 19.296 19.771 20.247 20.722 21.197 21.673 22.148 22.623 23.099 23.574 24.049 24.525 25.000               ! PS_WindSpeeds     - Wind speeds corresponding to minimum blade pitch angles [m/s]
-0.060      0.060      0.060      0.060      0.060      0.060      0.056      0.051      0.046      0.041      0.034      0.028      0.021      0.014      0.007      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.008      0.022      0.035      0.046      0.053      0.064      0.074      0.084      0.094      0.103      0.112      0.121      0.130      0.139      0.147      0.156      0.164      0.172      0.180      0.189      0.197      0.205      0.212      0.220      0.228      0.236      0.243      0.251      0.259      0.266      0.273      0.281      0.288      0.296      0.303                    ! PS_BldPitchMin    - Minimum blade pitch angles [rad]
+3.0000 3.2669 3.5338 3.8007 4.0676 4.3345 4.6014 4.8683 5.1352 5.4021 5.6690 5.9359 6.2028 6.4697 6.7366 7.0034 7.2703 7.5372 7.8041 8.0710 8.3379 8.6048 8.8717 9.1386 9.4055 9.6724 9.9393 10.2062 10.4731 10.7400 11.2153 11.6907 12.1660 12.6413 13.1167 13.5920 14.0673 14.5427 15.0180 15.4933 15.9687 16.4440 16.9193 17.3947 17.8700 18.3453 18.8207 19.2960 19.7713 20.2467 20.7220 21.1973 21.6727 22.1480 22.6233 23.0987 23.5740 24.0493 24.5247 25.0000               ! PS_WindSpeeds     - Wind speeds corresponding to minimum blade pitch angles [m/s]
+0.05997374 0.05997374 0.05997374 0.05997374 0.05997374 0.05995230 0.05568017 0.05139305 0.04630957 0.04053154 0.03444871 0.02774193 0.02083682 0.01377992 0.00660717 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00798358 0.02222567 0.03475505 0.04563791 0.05328450 0.06405592 0.07436594 0.08427713 0.09385932 0.10323575 0.11234777 0.12134295 0.13011531 0.13881511 0.14732690 0.15578898 0.16409463 0.17235500 0.18049466 0.18858365 0.19658691 0.20452181 0.21241204 0.22021131 0.22800500 0.23567545 0.24336643 0.25094186 0.25851588 0.26602564 0.27348266 0.28093357 0.28828297 0.29566389 0.30293290               ! PS_BldPitchMin    - Minimum blade pitch angles [rad]
 
 !------- SHUTDOWN -----------------------------------------------------------
 0.698100000000      ! SD_MaxPit         - Maximum blade pitch angle to initiate shutdown, [rad]
@@ -149,6 +144,14 @@
 !------- Pitch Actuator Faults -----------------------------------------------------
 0.00000000 0.00000000 0.00000000                 ! PF_Offsets     - Constant blade pitch offsets for blades 1-3 [rad]
 
+!------- Active Wake Control -----------------------------------------------------
+1                     ! AWC_NumModes       - Number of user-defined AWC forcing modes 
+1                     ! AWC_n              - Azimuthal mode number(s) (i.e., the number and direction of the lobes of the wake structure)
+1                     ! AWC_harmonic       - Harmonic(s) to apply in the AWC Inverse Coleman Transformation (only used when AWC_Mode = 2)
+0.0500                ! AWC_freq           - Frequency(s) of forcing mode(s) [Hz]
+1.0000                ! AWC_amp            - Pitch amplitude(s) of individual forcing mode(s) [deg]
+0.0000                ! AWC_clockangle     - Initial angle(s) of forcing mode(s) [deg]
+
 !------- External Controller Interface -----------------------------------------------------
 "unused"            ! DLL_FileName        - Name/location of the dynamic library in the Bladed-DLL format
 "unused"            ! DLL_InFile          - Name of input file sent to the DLL (-)
@@ -160,9 +163,9 @@
 
 !------- Cable Control ---------------------------------------------------------
 1                   ! CC_Group_N        - Number of cable control groups
-     0              ! CC_GroupIndex     - First index for cable control group, should correspond to deltaL
+  0                 ! CC_GroupIndex     - First index for cable control group, should correspond to deltaL
 20.000000           ! CC_ActTau         - Time constant for line actuator [s]
 
 !------- Structural Controllers ---------------------------------------------------------
 1                   ! StC_Group_N       - Number of cable control groups
-     0              ! StC_GroupIndex    - First index for structural control group, options specified in ServoDyn summary output
+  0                 ! StC_GroupIndex    - First index for structural control group, options specified in ServoDyn summary output
