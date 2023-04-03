@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 from matplotlib import transforms
 from itertools import takewhile
 import struct
+import multiprocessing as mp
 
 from ROSCO_toolbox.ofTools.util import spectral
 
@@ -39,7 +40,7 @@ class output_processing():
         if len(filenames) > 0:
             self.load_fast_out(filenames, tmin=tmin, tmax=tmax, verbose=verbose)
 
-    def load_fast_out(self, filenames, tmin=None, tmax=None, verbose=False):
+    def load_fast_out(self, filenames, tmin=None, tmax=None, verbose=False, max_cores=4):
         """Load a FAST binary or ascii output file
         
         Parameters
@@ -52,6 +53,8 @@ class output_processing():
             final data to trim output data to
         verbose : bool, optional
             Print updates
+        max_cores: int, optional
+            Maximum number of cores to use for loading outputs in parallel
         
         Returns
         -------
@@ -60,30 +63,30 @@ class output_processing():
         """
         if type(filenames) is str:
             filenames = [filenames]
+
+        cores = min(len(filenames), max_cores)
             
-        # data = []
-        # info = []
         try:
             self.fastout
         except AttributeError:
             self.fastout = []
-        for i, filename in enumerate(filenames):
-            assert os.path.isfile(filename), "File, %s, does not exists" % filename
-            with open(filename, 'r') as f:
-                if verbose:
-                    print('Loading data from {}'.format(filename))
-                try:
-                    f.readline()
-                except UnicodeDecodeError:
-                    data, info = load_binary_output(filename)
-                else:
-                    data, info = load_ascii_output(filename)
+        
+        inputs = []
+        for filename in filenames:
+            inp = {}
+            inp['filename'] = filename
+            inp['verbose'] = verbose
+            inputs.append(inp)
 
-            # Build dictionary
-            fast_data = dict(zip(info['channels'],data.T))
-            fast_data['meta'] = info
-            fast_data['meta']['filename'] = filename
-            self.fastout.append(fast_data)
+        if cores > 1:
+            pool = mp.Pool(cores)
+            self.fastout = pool.map(self._load_fast_data, inputs)
+            pool.close()
+            pool.join()
+        else:
+            for inp in inputs:
+                fast_data = self._load_fast_data(inp)
+                self.fastout.append(fast_data)
 
         # Trim outputs
         if (tmin) or (tmax):
@@ -91,6 +94,28 @@ class output_processing():
 
         # return fastout
         return self.fastout
+    
+    def _load_fast_data(self,input):
+        # Unpack
+        filename = input['filename']
+        verbose = input['verbose']
+
+        assert os.path.isfile(filename), "File, %s, does not exists" % filename
+        with open(filename, 'r') as f:
+            if verbose:
+                print('Loading data from {}'.format(filename))
+            try:
+                f.readline()
+            except UnicodeDecodeError:
+                data, info = load_binary_output(filename)
+            else:
+                data, info = load_ascii_output(filename)
+
+        # Build dictionary
+        fast_data = dict(zip(info['channels'],data.T))
+        fast_data['meta'] = info
+        fast_data['meta']['filename'] = filename
+        return fast_data
 
     def plot_fast_out(self, fastout=None, cases=None, showplot=True, fignum=None, xlim=None):
         '''
@@ -581,3 +606,53 @@ def trim_output(fast_data, tmin=None, tmax=None, verbose=False):
 
 
     return fast_data
+
+
+if __name__ == "__main__":
+    outfiles = [
+        '/Users/dzalkind/Tools/ROSCO3/outputs/IPC_tune_1/NREL2p8/turb_bts/sweep_ipc_gains/NREL2p8_0.out',
+        '/Users/dzalkind/Tools/ROSCO3/outputs/IPC_tune_1/NREL2p8/turb_bts/sweep_ipc_gains/NREL2p8_1.out',
+        '/Users/dzalkind/Tools/ROSCO3/outputs/IPC_tune_1/NREL2p8/turb_bts/sweep_ipc_gains/NREL2p8_2.out',
+        '/Users/dzalkind/Tools/ROSCO3/outputs/IPC_tune_1/NREL2p8/turb_bts/sweep_ipc_gains/NREL2p8_3.out'
+    ]
+
+    plt.rcParams["figure.figsize"] = [9,12]
+
+    ROSCO = False
+    ROSCO2 = False
+
+    #  Define Plot cases 
+    cases = {}
+    cases['Gen. Speed Sigs.'] = ['Wind1VelX','BldPitch1', 'GenTq', 'GenSpeed','TwrBsMyt','GenPwr','RootMyb1']#,'PtfmPitch','PtfmYaw','NacYaw']
+
+    op = output_processing()
+    op_RO = output_processing()
+    op_RO2 = output_processing()
+
+    fast_out = []
+    fast_out = op.load_fast_out(outfiles, tmin=0)
+    if ROSCO:
+        # Rosco outfiles
+        r_outfiles = [out.split('.out')[0] + '.RO.dbg' for out in outfiles]
+        rosco_out = op_RO.load_fast_out(r_outfiles, tmin=0)
+        
+        if ROSCO2:
+            r_outfiles = [out.split('.out')[0] + '.RO.dbg2' for out in outfiles]
+            rosco_out2 = op_RO2.load_fast_out(r_outfiles, tmin=0)
+    
+    # Combine outputs
+    if ROSCO:
+        comb_out = [None] * len(fast_out)
+        for i, (r_out, f_out) in enumerate(zip(rosco_out,fast_out)):
+            r_out.update(f_out)
+            comb_out[i] = r_out
+        if ROSCO2:
+            for i, (r_out2, f_out) in enumerate(zip(rosco_out2,comb_out)):
+                r_out2.update(f_out)
+                comb_out[i] = r_out2
+    else:
+        comb_out = fast_out
+
+        
+    # Plot
+    fig, ax = op.plot_fast_out(comb_out,cases, showplot=True)
