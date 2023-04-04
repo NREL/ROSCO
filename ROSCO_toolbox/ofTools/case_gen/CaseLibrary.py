@@ -127,7 +127,7 @@ def power_curve(**wind_case_opts):
     # Constant wind speed, multiple wind speeds, define below
 
     # Runtime
-    T_max   = 400.
+    T_max   = wind_case_opts.get('TMax',400.)
 
     if 'U' in wind_case_opts:
         U = wind_case_opts['U']
@@ -363,6 +363,42 @@ def user_hh(**wind_case_opts):
     case_inputs[("InflowWind","Filename_Uni")] = {'vals':wind_case_opts['wind_filenames'], 'group':1}
 
     return case_inputs
+
+def ramp(**wind_case_opts):
+    U_start     = wind_case_opts.get('U_start',8.)
+    U_end       = wind_case_opts.get('U_end',15.)
+    t_start     = wind_case_opts.get('t_start',100.)
+    t_end       = wind_case_opts.get('t_end',400.)
+    vert_shear  = wind_case_opts.get('vert_shear',.2) 
+    both_dir    = wind_case_opts.get('both_dir',False)  # ramp up and down
+
+    # Make Default step wind object
+    hh_wind = HH_WindFile()
+    hh_wind.t_max = t_end
+    hh_wind.filename = os.path.join(wind_case_opts['run_dir'],'ramp.hh')
+
+    # Step Wind Setup
+    if both_dir:
+        hh_wind.time = [0, t_start, (t_start + t_end) / 2, t_end]
+        hh_wind.wind_speed = [U_start, U_start, U_end, U_start]
+    else:
+        hh_wind.time = [0, t_start, t_end]
+        hh_wind.wind_speed = [U_start, U_start, U_end]
+
+    hh_wind.vert_shear = [vert_shear] * len(hh_wind.time)
+
+    hh_wind.resample()
+    hh_wind.write()
+
+    case_inputs = base_op_case()
+    case_inputs[("Fst","TMax")] = {'vals':[t_end], 'group':0}
+    case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
+    case_inputs[("InflowWind","Filename_Uni")] = {'vals':[hh_wind.filename], 'group':0}
+
+    return case_inputs
+
+
+
     
 ##############################################################################################
 #
@@ -432,9 +468,9 @@ def sweep_pitch_act(start_group, **control_sweep_opts):
 def sweep_ipc_gains(start_group, **control_sweep_opts):
     case_inputs_control = {}
 
-    kis = np.linspace(0,1,6).tolist()
+    kis = np.linspace(0,1,8).tolist()
     # kis = [0.,0.6,1.2,1.8,2.4,3.]
-    KIs = [[ki * 6e-9,0.] for ki in kis]
+    KIs = [[ki * 12e-9,0.] for ki in kis]
     case_inputs_control[('DISCON_in','IPC_ControlMode')] = {'vals': [1], 'group': 0}
     # case_inputs_control[('DISCON_in','IPC_KI')] = {'vals': [[0.,0.],[1e-8,0.]], 'group': start_group}
     case_inputs_control[('DISCON_in','IPC_KI')] = {'vals': KIs, 'group': start_group}

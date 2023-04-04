@@ -1,5 +1,5 @@
 ! Controller parameter input file for the IEA-15-240-RWT-UMaineSemi wind turbine
-!    - File written using ROSCO version 2.7.0 controller tuning logic on 02/28/23
+!    - File written using ROSCO version 2.7.0 controller tuning logic on 03/20/23
 
 !------- DEBUG ------------------------------------------------------------
 2                   ! LoggingLevel		- (0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3))
@@ -22,6 +22,7 @@
 0                   ! OL_Mode           - Open loop control mode {0: no open loop control, 1: open loop control vs. time}
 2                   ! PA_Mode           - Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
 0                   ! PF_Mode           - Pitch fault mode {0 - not used, 1 - constant offset on one or more blades}
+0                   ! AWC_Mode          - Active wake control {0 - not used, 1 - complex number method, 2 - Coleman transform method}
 0                   ! Ext_Mode          - External control mode {0 - not used, 1 - call external dynamic library}
 0                   ! ZMQ_Mode          - Fuse ZeroMQ interface {0: unused, 1: Yaw Control}
 0                   ! CC_Mode           - Cable control mode [0- unused, 1- User defined, 2- Position control (not yet implemented)]
@@ -143,6 +144,14 @@
 !------- Pitch Actuator Faults -----------------------------------------------------
 0.00000000 0.00000000 0.00000000                 ! PF_Offsets     - Constant blade pitch offsets for blades 1-3 [rad]
 
+!------- Active Wake Control -----------------------------------------------------
+1                     ! AWC_NumModes       - Number of user-defined AWC forcing modes 
+1                     ! AWC_n              - Azimuthal mode number(s) (i.e., the number and direction of the lobes of the wake structure)
+1                     ! AWC_harmonic       - Harmonic(s) to apply in the AWC Inverse Coleman Transformation (only used when AWC_Mode = 2)
+0.0500                ! AWC_freq           - Frequency(s) of forcing mode(s) [Hz]
+1.0000                ! AWC_amp            - Pitch amplitude(s) of individual forcing mode(s) [deg]
+0.0000                ! AWC_clockangle     - Initial angle(s) of forcing mode(s) [deg]
+
 !------- External Controller Interface -----------------------------------------------------
 "unused"            ! DLL_FileName        - Name/location of the dynamic library in the Bladed-DLL format
 "unused"            ! DLL_InFile          - Name of input file sent to the DLL (-)
@@ -153,10 +162,10 @@
 2                   ! ZMQ_UpdatePeriod    - Call ZeroMQ every [x] seconds, [s]
 
 !------- Cable Control ---------------------------------------------------------
-1                   ! CC_Group_N		- Number of cable control groups
-     0              ! CC_GroupIndex     - First index for cable control group, should correspond to deltaL
-20.000000           ! CC_ActTau		    - Time constant for line actuator [s]
+1                   ! CC_Group_N        - Number of cable control groups
+  0                 ! CC_GroupIndex     - First index for cable control group, should correspond to deltaL
+20.000000           ! CC_ActTau         - Time constant for line actuator [s]
 
 !------- Structural Controllers ---------------------------------------------------------
-1                   ! StC_Group_N		- Number of cable control groups
-     0              ! StC_GroupIndex     - First index for structural control group, options specified in ServoDyn summary output
+1                   ! StC_Group_N       - Number of cable control groups
+  0                 ! StC_GroupIndex    - First index for structural control group, options specified in ServoDyn summary output
