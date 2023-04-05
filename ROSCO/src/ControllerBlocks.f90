@@ -39,13 +39,13 @@ CONTAINS
         ! Power reference tracking rotor speed
         IF (CntrPar%PRC_Mode == 1) THEN
             LocalVar%PC_RefSpd = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_RotorSpeeds,LocalVar%WE_Vw_F,ErrVar) * CntrPar%WE_GearboxRatio
+        ELSE
+            LocalVar%PC_RefSpd = CntrPar%PC_RefSpd
         ENDIF
         
         ! Implement setpoint smoothing
         IF (LocalVar%SS_DelOmegaF < 0) THEN
             LocalVar%PC_RefSpd = LocalVar%PC_RefSpd - LocalVar%SS_DelOmegaF
-        ELSE
-            LocalVar%PC_RefSpd = LocalVar%PC_RefSpd
         ENDIF
 
         ! Compute error for pitch controller
