@@ -142,6 +142,8 @@ class Controller():
         self.OL_Mode            = int(controller_params['open_loop']['flag'])
         self.OL_Filename        = controller_params['open_loop']['filename']
         self.OL_Ind_Breakpoint  = self.OL_Ind_BldPitch = self.OL_Ind_GenTq = self.OL_Ind_YawRate = 0
+        self.OL_Ind_CableControl = [0]
+        self.OL_Ind_StructControl = [0]
         
         if self.OL_Mode:
             ol_params               = controller_params['open_loop']
