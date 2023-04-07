@@ -107,8 +107,12 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: Ind_BldPitch                ! The column in OL_Filename that contains the blade pitch input in rad
     INTEGER(IntKi)                :: Ind_GenTq                   ! The column in OL_Filename that contains the generator torque in Nm
     INTEGER(IntKi)                :: Ind_YawRate                 ! The column in OL_Filename that contains the generator torque in Nm
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: Ind_CableControl            ! The column in OL_Filename that contains the cable control inputs in m
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: Ind_StructControl           ! The column in OL_Filename that contains the structural control inputs in various units
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_Breakpoints              ! Open loop breakpoints in timeseries
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_BldPitch                 ! Open blade pitch timeseries
+    REAL(DbKi), DIMENSION(:,:), ALLOCATABLE     :: OL_CableControl             ! None
+    REAL(DbKi), DIMENSION(:,:), ALLOCATABLE     :: OL_StructControl            ! None
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_GenTq                    ! Open generator torque timeseries
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_YawRate                  ! Open yaw rate timeseries
     REAL(DbKi), DIMENSION(:,:), ALLOCATABLE     :: OL_Channels                 ! Open loop channels in timeseries
@@ -135,7 +139,7 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: CC_Group_N                  ! Number of cable control groups
     REAL(DbKi)                    :: CC_ActTau                   ! Time constant for line actuator [s]
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: CC_GroupIndex               ! Cable control group indices
-    INTEGER(IntKi)                :: StC_Mode                    ! Flag for ZeroMQ (0-off, 1-yaw}
+    INTEGER(IntKi)                :: StC_Mode                    ! Flag for StC Control
     INTEGER(IntKi)                :: StC_Group_N                 ! Number of cable control groups
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: StC_GroupIndex              ! Cable control group indices
     REAL(DbKi)                    :: PC_RtTq99                   ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
