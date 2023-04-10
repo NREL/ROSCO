@@ -218,15 +218,15 @@ properties:
             CC_Mode:           
                 type: number
                 minimum: 0
-                maximum: 1
+                maximum: 2
                 default: 0
-                description: Cable control mode [0- unused, 1- User defined, 2- Position control (not yet implemented)]
+                description: Cable control mode [0- unused, 1- User defined, 2- Open loop control]
             StC_Mode:           
                 type: number
                 minimum: 0
-                maximum: 1
+                maximum: 2
                 default: 0
-                description: Structural control mode [0- unused, 1- User defined]
+                description: Structural control mode [0- unused, 1- User defined, 2- Open loop control]
             U_pc:                       
                 type: array
                 description: List of wind speeds to schedule pitch control zeta and omega 
@@ -868,6 +868,18 @@ properties:
                     Ind_YawRate:
                         type: number
                         description: The column in OL_Filename that contains the generator torque in Nm
+                    Ind_CableControl:
+                        type: array
+                        items:
+                            type: number
+                        description: The column in OL_Filename that contains the cable control inputs in m
+                        # default: [0] # No default because it's defined in controller and DISCON_Dict
+                    Ind_StructControl:
+                        type: array
+                        items:
+                            type: number
+                        description: The column in OL_Filename that contains the structural control inputs in various units
+                        # default: [0]  # No default because it's defined in controller and DISCON_Dict
                     DLL_FileName:
                         type: string
                         description: Name/location of the dynamic library {.dll [Windows] or .so [Linux]} in the Bladed-DLL format

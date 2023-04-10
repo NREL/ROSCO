@@ -670,7 +670,7 @@ CONTAINS
     END SUBROUTINE ActiveWakeControl
 
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE CableControl(avrSWAP, CntrPar, LocalVar, objInst)
+    SUBROUTINE CableControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
         ! Cable controller
         !       CC_Mode = 0, No cable control, this code not executed
         !       CC_Mode = 1, User-defined cable control
@@ -678,13 +678,14 @@ CONTAINS
         !
         ! Note that LocalVar%CC_Actuated*(), and CC_Desired() has a fixed max size of 12, which can be increased in rosco_types.yaml
         !
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, ErrorVariables
     
         REAL(ReKi), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
     
         TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
+        TYPE(ErrorVariables), INTENT(INOUT)      :: ErrVar
         
         ! Internal Variables
         Integer(IntKi)                            :: I_GROUP
@@ -693,12 +694,27 @@ CONTAINS
         IF (CntrPar%CC_Mode == 1) THEN
             ! User defined control
 
-            IF (LocalVar%Time > 50) THEN
+            IF (LocalVar%Time > 500) THEN
                 ! Shorten first group by 4 m
-                LocalVar%CC_DesiredL(1) = -10
+                LocalVar%CC_DesiredL(1) = -14.51
+                LocalVar%CC_DesiredL(2) = 1.58
+                LocalVar%CC_DesiredL(3) = -10.332
 
 
             END IF
+
+        ELSEIF (CntrPar%CC_Mode == 2) THEN
+            ! Open loop control
+            ! DO I_GROUP = 1, CntrPar%CC_Group_N
+            !     LocalVar%CC_DesiredL(I_GROUP) = interp1d(x,y,eq,ErrVar)
+
+            DO I_GROUP = 1,CntrPar%CC_Group_N
+                IF (CntrPar%Ind_CableControl(I_GROUP) > 0) THEN
+                    LocalVar%CC_DesiredL(I_GROUP) = interp1d(CntrPar%OL_Breakpoints, &
+                                                            CntrPar%OL_CableControl(I_GROUP,:), &
+                                                            LocalVar%Time,ErrVar)
+                ENDIF
+            ENDDO
 
 
 
@@ -753,10 +769,11 @@ SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst)
         IF (CntrPar%StC_Mode == 1) THEN
             ! User defined control
 
-            IF (LocalVar%Time > 50) THEN
+            IF (LocalVar%Time > 500) THEN
                 ! Step change in input of -4500 N
-                LocalVar%StC_Input(1) = -4e5
-
+                LocalVar%StC_Input(1) = -1.234e+06
+                LocalVar%StC_Input(2) = 2.053e+06
+                LocalVar%StC_Input(3) = -7.795e+05
 
             END IF
 

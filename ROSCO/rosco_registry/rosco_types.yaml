@@ -417,6 +417,14 @@ ControlParameters:
     Ind_YawRate:
       <<: *integer
       description: The column in OL_Filename that contains the generator torque in Nm
+    Ind_CableControl:
+      <<: *integer
+      allocatable: True
+      description: The column in OL_Filename that contains the cable control inputs in m
+    Ind_StructControl:
+      <<: *integer
+      allocatable: True
+      description: The column in OL_Filename that contains the structural control inputs in various units
     OL_Breakpoints:
       <<: *real
       allocatable: True
@@ -425,6 +433,14 @@ ControlParameters:
       <<: *real
       allocatable: True
       description: Open blade pitch timeseries
+    OL_CableControl:
+      <<: *real
+      allocatable: True
+      dimension: (:,:)
+    OL_StructControl:
+      <<: *real
+      allocatable: True
+      dimension: (:,:)
     OL_GenTq:
       <<: *real
       allocatable: True
@@ -561,7 +577,7 @@ ControlParameters:
     # StC Control
     StC_Mode:
       <<: *integer
-      description: Flag for ZeroMQ (0-off, 1-yaw}
+      description: Flag for StC Control
 
     StC_Group_N:
       <<: *integer

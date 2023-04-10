@@ -226,7 +226,9 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! Ind_Breakpoint    - The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)\n'.format(int(rosco_vt['Ind_Breakpoint'])))
     file.write('{0:<12d}        ! Ind_BldPitch      - The column in OL_Filename that contains the blade pitch input in rad\n'.format(int(rosco_vt['Ind_BldPitch'])))
     file.write('{0:<12d}        ! Ind_GenTq         - The column in OL_Filename that contains the generator torque in Nm\n'.format(int(rosco_vt['Ind_GenTq'])))
-    file.write('{0:<12d}        ! Ind_YawRate       - The column in OL_Filename that contains the generator torque in Nm\n'.format(int(rosco_vt['Ind_YawRate'])))
+    file.write('{0:<12d}        ! Ind_YawRate       - The column in OL_Filename that contains the nacelle yaw rate rad/s\n'.format(int(rosco_vt['Ind_YawRate'])))
+    file.write('{}               ! Ind_CableControl  - The column(s) in OL_Filename that contains the cable control inputs in m [Used with CC_Mode = 2, must be the same size as CC_Group_N]\n'.format(write_array(rosco_vt['Ind_CableControl'],'<4d')))
+    file.write('{}               ! Ind_StructControl - The column(s) in OL_Filename that contains the structural control inputs [Used with StC_Mode = 2, must be the same size as StC_Group_N]\n'.format(write_array(rosco_vt['Ind_StructControl'],'<4d')))
     file.write('\n')
     file.write('!------- Pitch Actuator Model -----------------------------------------------------\n')
     file.write('{:<014.5f}        ! PA_CornerFreq     - Pitch actuator bandwidth/cut-off frequency [rad/s]\n'.format(rosco_vt['PA_CornerFreq']))
@@ -563,6 +565,8 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['Ind_BldPitch']    = controller.OL_Ind_BldPitch
     DISCON_dict['Ind_GenTq']       = controller.OL_Ind_GenTq
     DISCON_dict['Ind_YawRate']     = controller.OL_Ind_YawRate
+    DISCON_dict['Ind_CableControl']     = controller.OL_Ind_CableControl
+    DISCON_dict['Ind_StructControl']    = controller.OL_Ind_StructControl
     # ------- Pitch Actuator -------
     DISCON_dict['PA_Mode']         = controller.PA_Mode
     DISCON_dict['PA_CornerFreq']   = controller.PA_CornerFreq
