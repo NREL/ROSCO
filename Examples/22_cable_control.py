@@ -39,7 +39,7 @@ def main():
 
     # Input yaml and output directory
     parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW_cable.yaml')
-    run_dir = os.path.join(example_out_dir,'22_cable_control_OL_1')
+    run_dir = os.path.join(example_out_dir,'22_cable_control')
     os.makedirs(run_dir,exist_ok=True)
 
     # Read initial input file
