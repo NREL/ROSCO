@@ -9,18 +9,20 @@ The changes are tabulated according to the line number, and flag name.
 The line number corresponds to the resulting line number after all changes are implemented.
 Thus, be sure to implement each in order so that subsequent line numbers are correct.
 
-2.7.0 to develop
+2.7.0 to 2.8.0
 -------------------------------
 Optional Inputs
 - ROSCO now reads in the whole input file and searches for keywords to set the inputs.  Blank spaces and specific ordering are no longer required.
 - Input requirements depend on control modes.  E.g., open loop inputs are not required if `OL_Mode = 0``
-IPC Saturation Modes
-- Added options for saturating the IPC command with the peak shaving limit
+Cable Control
+- Can control OpenFAST cables (MoorDyn or SubDyn) using ROSCO
+Structural Control
+- Can control OpenFAST structural control elements (ServoDyn) using ROSCO
 Active wake control
 - Added Active Wake Control (AWC) implementation
 
 ====== =================    ======================================================================================================================================================================================================
-New in ROSCO develop
+New in ROSCO 2.8.0
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
