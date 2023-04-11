@@ -1,5 +1,5 @@
 '''
------------ Example_07 --------------
+----------- 06_peak_shavings --------------
 Load saved turbine, tune controller, plot minimum pitch schedule
 -------------------------------------
 

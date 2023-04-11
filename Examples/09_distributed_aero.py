@@ -1,5 +1,5 @@
 '''
------------ Example_10 --------------
+----------- 09_distributed_aero --------------
 Tune a controller for distributed aerodynamic control
 -------------------------------------
 

@@ -26,6 +26,26 @@ def fix_path(name):
         new = os.path.join(new, name[i])
     return new
 
+def read_array(f,len,array_type=str):
+    strings = re.split(',| ',f.readline().strip())
+    while '' in strings:    # remove empties
+        strings.remove('')
+
+    arr = strings[:len]    # select len strings
+
+    if array_type==str:
+        arr = [ar.replace('"','') for ar in arr]  # remove quotes and commas
+    elif array_type==float:
+        arr = [float_read(ar) for ar in arr]
+    elif array_type==int:
+        arr = [int_read(ar) for ar in arr]
+    elif array_type==bool:
+        arr = [bool_read(ar) for ar in arr]
+    else:
+        raise Exception(f"read_array with type {str(array_type)} not currently supported")
+
+    return arr
+
 def bool_read(text):
     # convert true/false strings to boolean
     if 'default' in text.lower():
@@ -777,8 +797,21 @@ class InputReader_OpenFAST(object):
         f.readline()
         self.fst_vt['AeroDyn15']['UAMod']                  = int(f.readline().split()[0])
         self.fst_vt['AeroDyn15']['FLookup']                = bool_read(f.readline().split()[0])
-        # self.fst_vt['AeroDyn15']['UAStartRad']             = float_read(f.readline().split()[0])
-        # self.fst_vt['AeroDyn15']['UAEndRad']               = float_read(f.readline().split()[0])
+        
+        file_pos = f.tell()
+        line = f.readline()
+        if 'UAStartRad' in line:
+            self.fst_vt['AeroDyn15']['UAStartRad']             = float_read(line.split()[0])
+        else:
+            f.seek(file_pos)
+        
+        file_pos = f.tell()
+        line = f.readline()
+        if 'UAEndRad' in line:
+            self.fst_vt['AeroDyn15']['UAEndRad']             = float_read(line.split()[0])
+        else:
+            f.seek(file_pos)
+
 
         # Airfoil Information
         f.readline()
@@ -1327,13 +1360,13 @@ class InputReader_OpenFAST(object):
         # Structural Control
         f.readline()
         self.fst_vt['ServoDyn']['NumBStC']  = int(f.readline().split()[0])
-        self.fst_vt['ServoDyn']['BStCfiles'] = f.readline().split()[0][1:-1]
+        self.fst_vt['ServoDyn']['BStCfiles'] = read_array(f,self.fst_vt['ServoDyn']['NumBStC'],str)
         self.fst_vt['ServoDyn']['NumNStC']  = int(f.readline().split()[0])
-        self.fst_vt['ServoDyn']['NStCfiles'] = f.readline().split()[0][1:-1]
+        self.fst_vt['ServoDyn']['NStCfiles'] = read_array(f,self.fst_vt['ServoDyn']['NumNStC'],str)
         self.fst_vt['ServoDyn']['NumTStC'] = int(f.readline().split()[0])
-        self.fst_vt['ServoDyn']['TStCfiles'] = f.readline().split()[0][1:-1]
+        self.fst_vt['ServoDyn']['TStCfiles'] = read_array(f,self.fst_vt['ServoDyn']['NumTStC'],str)
         self.fst_vt['ServoDyn']['NumSStC'] = int(f.readline().split()[0])
-        self.fst_vt['ServoDyn']['SStCfiles'] = f.readline().split()[0][1:-1]
+        self.fst_vt['ServoDyn']['SStCfiles'] = read_array(f,self.fst_vt['ServoDyn']['NumSStC'],str)
 
         # Initialize Struct Control trees
         self.fst_vt['BStC'] = [] * self.fst_vt['ServoDyn']['NumBStC']
@@ -1406,6 +1439,121 @@ class InputReader_OpenFAST(object):
 
         f.close()
 
+    def read_StC(self,filename):
+        '''
+        return StC vt so it can be appended to fst_vt['XStC'] list
+        '''
+        StC_vt = {}
+
+        with open(os.path.join(self.FAST_directory, filename)) as f:
+
+            f.readline()
+            f.readline()
+            f.readline()
+            StC_vt['Echo'] = bool_read(f.readline().split()[0])      #  Echo         - Echo input data to <RootName>.ech (flag)
+            f.readline()  # StC DEGREES OF FREEDOM
+            StC_vt['StC_DOF_MODE'] = int_read(f.readline().split()[0]) #        4   StC_DOF_MODE - DOF mode (switch) {0: No StC or TLCD DOF; 1: StC_X_DOF, StC_Y_DOF, and/or StC_Z_DOF (three independent StC DOFs); 2: StC_XY_DOF (Omni-Directional StC); 3: TLCD; 4: Prescribed force/moment time series}
+            StC_vt['StC_X_DOF'] = bool_read(f.readline().split()[0])  # false         StC_X_DOF    - DOF on or off for StC X (flag) [Used only when StC_DOF_MODE=1]
+            StC_vt['StC_Y_DOF'] = bool_read(f.readline().split()[0])  # false         StC_Y_DOF    - DOF on or off for StC Y (flag) [Used only when StC_DOF_MODE=1]
+            StC_vt['StC_Z_DOF'] = bool_read(f.readline().split()[0])  # false         StC_Z_DOF    - DOF on or off for StC Z (flag) [Used only when StC_DOF_MODE=1]
+            f.readline()    # StC LOCATION 
+            StC_vt['StC_P_X'] = float_read(f.readline().split()[0])   #    -51.75   StC_P_X      - At rest X position of StC (m)
+            StC_vt['StC_P_Y'] = float_read(f.readline().split()[0])   #        0   StC_P_Y      - At rest Y position of StC (m)
+            StC_vt['StC_P_Z'] = float_read(f.readline().split()[0])   #        -10   StC_P_Z      - At rest Z position of StC (m)
+            f.readline()    # StC INITIAL CONDITIONS 
+            StC_vt['StC_X_DSP'] = float_read(f.readline().split()[0])   #        0   StC_X_DSP    - StC X initial displacement (m) [relative to at rest position]
+            StC_vt['StC_Y_DSP'] = float_read(f.readline().split()[0])   #        0   StC_Y_DSP    - StC Y initial displacement (m) [relative to at rest position]
+            StC_vt['StC_Z_DSP'] = float_read(f.readline().split()[0])   #        0   StC_Z_DSP    - StC Z initial displacement (m) [relative to at rest position; used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]
+            StC_vt['StC_Z_PreLd'] = f.readline().split()[0] # "none"        StC_Z_PreLd  - StC Z prefloat_read(f.readline().split()[0])  #-load (N) {"gravity" to offset for gravity load; "none" or 0 to turn off} [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]
+            f.readline()    # StC CONFIGURATION 
+            StC_vt['StC_X_NSP'] = float_read(f.readline().split()[0])   #        0   StC_X_NSP    - Negative stop position (minimum X mass displacement) (m)
+            StC_vt['StC_X_PSP'] = float_read(f.readline().split()[0])   #        0   StC_X_PSP    - Positive stop position (maximum X mass displacement) (m)
+            StC_vt['StC_Y_PSP'] = float_read(f.readline().split()[0])   #        0   StC_Y_PSP    - Positive stop position (maximum Y mass displacement) (m)
+            StC_vt['StC_Y_NSP'] = float_read(f.readline().split()[0])   #        0   StC_Y_NSP    - Negative stop position (minimum Y mass displacement) (m)
+            StC_vt['StC_Z_PSP'] = float_read(f.readline().split()[0])   #        0   StC_Z_PSP    - Positive stop position (maximum Z mass displacement) (m) [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]
+            StC_vt['StC_Z_NSP'] = float_read(f.readline().split()[0])   #        0   StC_Z_NSP    - Negative stop position (minimum Z mass displacement) (m) [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]
+            f.readline()    # StC MASS, STIFFNESS, & DAMPING
+            StC_vt['StC_X_M'] = float_read(f.readline().split()[0])   #        0   StC_X_M      - StC X mass (kg) [must equal StC_Y_M for StC_DOF_MODE = 2]
+            StC_vt['StC_Y_M'] = float_read(f.readline().split()[0])   #        50   StC_Y_M      - StC Y mass (kg) [must equal StC_X_M for StC_DOF_MODE = 2]
+            StC_vt['StC_Z_M'] = float_read(f.readline().split()[0])   #        0   StC_Z_M      - StC Z mass (kg) [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]
+            StC_vt['StC_XY_M'] = float_read(f.readline().split()[0])   #        0   StC_XY_M     - StC XY mass (kg) [used only when StC_DOF_MODE=2]
+            StC_vt['StC_X_K'] = float_read(f.readline().split()[0])   #    2300   StC_X_K      - StC X stiffness (N/m)
+            StC_vt['StC_Y_K'] = float_read(f.readline().split()[0])   #    2300   StC_Y_K      - StC Y stiffness (N/m)
+            StC_vt['StC_Z_K'] = float_read(f.readline().split()[0])   #        0   StC_Z_K      - StC Z stiffness (N/m) [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]
+            StC_vt['StC_X_C'] = float_read(f.readline().split()[0])   #        35   StC_X_C      - StC X damping (N/(m/s))
+            StC_vt['StC_Y_C'] = float_read(f.readline().split()[0])  #float_read(f.readline().split()[0])  #        35   StC_Y_C      - StC Y damping (N/(m/s))
+            StC_vt['StC_Z_C'] = float_read(f.readline().split()[0])  #        0   StC_Z_C      - StC Z damping (N/(m/s)) [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]
+            StC_vt['StC_X_KS'] = float_read(f.readline().split()[0])  #        0   StC_X_KS     - Stop spring X stiffness (N/m)
+            StC_vt['StC_Y_KS'] = float_read(f.readline().split()[0])  #       0   StC_Y_KS     - Stop spring Y stiffness (N/m)
+            StC_vt['StC_Z_KS'] = float_read(f.readline().split()[0])  #        0   StC_Z_KS     - Stop spring Z stiffness (N/m) [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]
+            StC_vt['StC_X_CS'] = float_read(f.readline().split()[0])  #        0   StC_X_CS     - Stop spring X damping (N/(m/s))
+            StC_vt['StC_Y_CS'] = float_read(f.readline().split()[0])  #        0   StC_Y_CS     - Stop spring Y damping (N/(m/s))
+            StC_vt['StC_Z_CS'] = float_read(f.readline().split()[0])  #        0   StC_Z_CS     - Stop spring Z damping (N/(m/s)) [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]
+            f.readline()    # StC USER-DEFINED SPRING FORCES
+            StC_vt['Use_F_TBL'] = bool_read(f.readline().split()[0])  # False         Use_F_TBL    - Use spring force from user-defined table (flag)
+            StC_vt['NKInpSt'] = int_read(f.readline().split()[0]) #        17   NKInpSt      - Number of spring force input stations
+
+            StC_vt['SpringForceTable'] = {}
+            table = StC_vt['SpringForceTable']
+            table['X']      = [None] * StC_vt['NKInpSt']
+            table['F_X']    = [None] * StC_vt['NKInpSt']
+            table['Y']      = [None] * StC_vt['NKInpSt']
+            table['F_Y']    = [None] * StC_vt['NKInpSt']
+            table['Z']      = [None] * StC_vt['NKInpSt']
+            table['F_Z']    = [None] * StC_vt['NKInpSt']
+
+            f.readline()
+            # if StC_vt['Use_F_TBL']:
+            f.readline()
+            f.readline()
+            for i in range(StC_vt['NKInpSt']):
+                ln = f.readline().split()
+                table['X'][i]      = float(ln[0])
+                table['F_X'][i]    = float(ln[1])
+                table['Y'][i]      = float(ln[2])
+                table['F_Y'][i]    = float(ln[3])
+                table['Z'][i]      = float(ln[4])
+                table['F_Z'][i]    = float(ln[5])
+            # else:
+            #     # Skip until next section
+            #     data_line = f.readline().strip().split()
+            #     while data_line[0][:3] != '---': 
+            #         data_line = f.readline().strip().split()
+
+            # StructCtrl CONTROL, skip this readline() because it already happened
+            f.readline()
+            StC_vt['StC_CMODE'] = int_read(f.readline().split()[0]) #        5   StC_CMODE     - Control mode (switch) {0:none; 1: Semi-Active Control Mode; 4: Active Control Mode through Simulink (not available); 5: Active Control Mode through Bladed interface}
+            StC_vt['StC_CChan'] = int_read(f.readline().split()[0]) #        0   StC_CChan     - Control channel group (1:10) for stiffness and damping (StC_[XYZ]_K, StC_[XYZ]_C, and StC_[XYZ]_Brake) (specify additional channels for blade instances of StC active control -- one channel per blade) [used only when StC_DOF_MODE=1 or 2, and StC_CMODE=4 or 5]
+            StC_vt['StC_SA_MODE'] = int_read(f.readline().split()[0]) #        1   StC_SA_MODE   - Semi-Active control mode {1: velocity-based ground hook control; 2: Inverse velocity-based ground hook control; 3: displacement-based ground hook control 4: Phase difference Algorithm with Friction Force 5: Phase difference Algorithm with Damping Force} (-)
+            StC_vt['StC_X_C_LOW'] = float_read(f.readline().split()[0])  #        0   StC_X_C_LOW   - StC X low damping for ground hook control
+            StC_vt['StC_X_C_HIGH'] = float_read(f.readline().split()[0])  #        0   StC_X_C_HIGH  - StC X high damping for ground hook control
+            StC_vt['StC_Y_C_HIGH'] = float_read(f.readline().split()[0])  #        0   StC_Y_C_HIGH  - StC Y high damping for ground hook control
+            StC_vt['StC_Y_C_LOW'] = float_read(f.readline().split()[0])  #        0   StC_Y_C_LOW   - StC Y low damping for ground hook control
+            StC_vt['StC_Z_C_HIGH'] = float_read(f.readline().split()[0])  #        0   StC_Z_C_HIGH  - StC Z high damping for ground hook control [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]
+            StC_vt['StC_Z_C_LOW'] = float_read(f.readline().split()[0])  #        0   StC_Z_C_LOW   - StC Z low damping for ground hook control  [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]
+            StC_vt['StC_X_C_BRAKE'] = float_read(f.readline().split()[0])  #        0   StC_X_C_BRAKE - StC X high damping for braking the StC (Don't use it now. should be zero)
+            StC_vt['StC_Y_C_BRAKE'] = float_read(f.readline().split()[0])  #        0   StC_Y_C_BRAKE - StC Y high damping for braking the StC (Don't use it now. should be zero)
+            StC_vt['StC_Z_C_BRAKE'] = float_read(f.readline().split()[0])  #        0   StC_Z_C_BRAKE - StC Z high damping for braking the StC (Don't use it now. should be zero) [used only when StC_DOF_MODE=1 and StC_Z_DOF=TRUE]
+            f.readline()    # TLCD
+            StC_vt['L_X'] = float_read(f.readline().split()[0])  #   7.9325     L_X             - X TLCD total length (m)
+            StC_vt['B_X'] = float_read(f.readline().split()[0])  #   6.5929     B_X             - X TLCD horizontal length (m)
+            StC_vt['area_X'] = float_read(f.readline().split()[0])  #   2.0217     area_X          - X TLCD cross-sectional area of vertical column (m^2)
+            StC_vt['area_ratio_X'] = float_read(f.readline().split()[0])  #   0.913      area_ratio_X    - X TLCD cross-sectional area ratio (vertical column area divided by horizontal column area) (-)
+            StC_vt['headLossCoeff_X'] = float_read(f.readline().split()[0])  #   2.5265     headLossCoeff_X - X TLCD head loss coeff (-)
+            StC_vt['rho_X'] = float_read(f.readline().split()[0])  #       1000     rho_X           - X TLCD liquid density (kg/m^3)
+            StC_vt['L_Y'] = float_read(f.readline().split()[0])  #   3.5767     L_Y             - Y TLCD total length (m)
+            StC_vt['B_Y'] = float_read(f.readline().split()[0])  #   2.1788     B_Y             - Y TLCD horizontal length (m)
+            StC_vt['area_Y'] = float_read(f.readline().split()[0])  #   1.2252     area_Y          - Y TLCD cross-sectional area of vertical column (m^2)
+            StC_vt['area_ratio_Y'] = float_read(f.readline().split()[0])  #   2.7232     area_ratio_Y    - Y TLCD cross-sectional area ratio (vertical column area divided by horizontal column area) (-)
+            StC_vt['headLossCoeff_Y'] = float_read(f.readline().split()[0])  #   0.6433     headLossCoeff_Y - Y TLCD head loss coeff (-)
+            StC_vt['rho_Y'] = float_read(f.readline().split()[0])  #       1000     rho_Y           - Y TLCD liquid density (kg/m^3)
+            f.readline()    # PRESCRIBED TIME SERIES 
+            StC_vt['PrescribedForcesCoord'] = int_read(f.readline().split()[0]) #        2   PrescribedForcesCoord- Prescribed forces are in global or local coordinates (switch) {1: global; 2: local}
+            StC_vt['PrescribedForcesFile'] = f.readline().split()[0] # "Bld-TimeForceSeries.dat"  PrescribedForcesFile   - Time series force and moment (7 columns of time, FX, FY, FZ, MX, MY, MZ)
+            f.readline()
+
+        return StC_vt
+    
     def read_DISCON_in(self):
         # Read the Bladed style Interface controller input file, intended for ROSCO https://github.com/NREL/ROSCO_toolbox
 
@@ -2213,6 +2361,29 @@ class InputReader_OpenFAST(object):
             self.fst_vt['MoorDyn']['Outputs'].append(str(data_line[6]))
             data_line = f.readline().strip().split()
 
+        # read optional control inputs, there are other optional MoorDyn sections/inputs
+        self.fst_vt['MoorDyn']['ChannelID'] = []
+        self.fst_vt['MoorDyn']['Lines_Control'] = []
+        if 'CONTROL' in [dl.upper() for dl in data_line]:
+            f.readline()
+            f.readline()
+            data_line = f.readline().strip().split()
+            while data_line[0][:3] != '---': # OpenFAST searches for ---, so we'll do the same
+                self.fst_vt['MoorDyn']['ChannelID'].append(int(data_line[0]))
+                # Line(s) is a list of mooring lines, spaces are allowed between commas
+                control_lines = []
+                for lines in data_line[1:]:
+                    for line in lines.split(','):
+                        control_lines.append(line.strip(','))
+
+                # Spaces show up in control_lines as '', remove them all
+                while '' in control_lines:
+                    control_lines.remove('')
+
+                self.fst_vt['MoorDyn']['Lines_Control'].append(control_lines)
+                data_line = f.readline().strip().split()
+
+        # Solver options, there are a few more optional MoorDyn inputs that can be added line 'CONTROL'
         self.fst_vt['MoorDyn']['dtM']       = float_read(f.readline().split()[0])
         self.fst_vt['MoorDyn']['kbot']      = float_read(f.readline().split()[0])
         self.fst_vt['MoorDyn']['cbot']      = float_read(f.readline().split()[0])
@@ -2251,7 +2422,15 @@ class InputReader_OpenFAST(object):
             
         if self.fst_vt['Fst']['CompServo'] == 1:
             self.read_ServoDyn()
-            # Would read StCs here
+            # Read StC Files
+            for StC_file in self.fst_vt['ServoDyn']['BStCfiles']:
+                self.fst_vt['BStC'].append(self.read_StC(StC_file))
+            for StC_file in self.fst_vt['ServoDyn']['NStCfiles']:
+                self.fst_vt['NStC'].append(self.read_StC(StC_file))
+            for StC_file in self.fst_vt['ServoDyn']['TStCfiles']:
+                self.fst_vt['TStC'].append(self.read_StC(StC_file))
+            for StC_file in self.fst_vt['ServoDyn']['SStCfiles']:
+                self.fst_vt['SStC'].append(self.read_StC(StC_file))
             if ROSCO:
                 self.read_DISCON_in()
         hd_file = os.path.normpath(os.path.join(self.FAST_directory, self.fst_vt['Fst']['HydroFile']))

@@ -163,7 +163,7 @@ def write_roscoio(yfile):
     file.write('        Close ( Un )\n')
     file.write('    ENDIF\n')
     file.write('    ! Read Parameter files\n')
-    file.write('    CALL ReadControlParameterFileSub(CntrPar, zmqVar, LocalVar%ACC_INFILE, LocalVar%ACC_INFILE_SIZE, ErrVar)\n')
+    file.write('    CALL ReadControlParameterFileSub(CntrPar, zmqVar, LocalVar%ACC_INFILE, LocalVar%ACC_INFILE_SIZE, RootName, ErrVar)\n')
     file.write('    IF (CntrPar%WE_Mode > 0) THEN\n')
     file.write('        CALL READCpFile(CntrPar, PerfData, ErrVar)\n')
     file.write('    ENDIF\n')
@@ -183,7 +183,7 @@ def write_roscoio(yfile):
     file.write('    INTEGER(IntKi), INTENT(IN)      :: size_avcOUTNAME\n')
     file.write('    INTEGER(IntKi)                  :: I , nDebugOuts, nLocalVars   ! Generic index.\n')
     file.write('    CHARACTER(1), PARAMETER         :: Tab = CHAR(9)                ! The tab character.\n')
-    file.write('    CHARACTER(29), PARAMETER        :: FmtDat = "(F20.5,TR5,99(ES20.5E2,TR5:))"   ! The format of the debugging data\n')
+    file.write('    CHARACTER(100)                  :: FmtDat                       ! The format of the debugging data\n')
     file.write('    INTEGER(IntKi), SAVE            :: UnDb                         ! I/O unit for the debugging information\n')
     file.write('    INTEGER(IntKi), SAVE            :: UnDb2                        ! I/O unit for the debugging information, avrSWAP\n')
     file.write('    INTEGER(IntKi), SAVE            :: UnDb3                        ! I/O unit for the debugging information, avrSWAP\n')
@@ -191,6 +191,13 @@ def write_roscoio(yfile):
     file.write('    CHARACTER(size_avcOUTNAME-1), INTENT(IN) :: RootName            ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]\n')
     file.write('    CHARACTER(200)                  :: Version                      ! git version of ROSCO\n')
     file.write('    CHARACTER(15), ALLOCATABLE      :: DebugOutStrings(:), DebugOutUnits(:)\n')
+    file.write('\n')
+    file.write('    ! Avr output writing\n')
+    file.write('    INTEGER(IntKi), SAVE, DIMENSION(:), ALLOCATABLE     :: avrIndices\n')
+    file.write('    INTEGER(IntKi)                  :: avrBaseLength = 85\n')
+    file.write('    INTEGER(IntKi)                  :: Ind\n')
+    file.write('    CHARACTER(100)                  :: avrFmt\n')
+    file.write('\n')
     file.write('    REAL(DbKi), ALLOCATABLE         :: DebugOutData(:)\n \n')
     file.write('    CHARACTER(15), ALLOCATABLE      :: LocalVarOutStrings(:)\n')
     file.write('    REAL(DbKi), ALLOCATABLE         :: LocalVarOutData(:)\n \n')
@@ -237,13 +244,18 @@ def write_roscoio(yfile):
     # -- Always prints blade(1) for multi-bladed inputss (e.g. BldPitch(1))
     lv_strings = []
     for lv_idx, localvar in enumerate(reg['LocalVariables']):
-        if reg['LocalVariables'][localvar]['type'] in ['integer', 'real']:
+        if reg['LocalVariables'][localvar]['type'] in ['integer', 'real', 'complex']:
             lv_strings.append(localvar)
-    file.write('    nLocalVars = {}\n'.format(len(lv_strings)))
+
+    n_lv_outputs = len(lv_strings)
+    file.write('    nLocalVars = {}\n'.format(n_lv_outputs))
     file.write('    Allocate(LocalVarOutData(nLocalVars))\n')
     file.write('    Allocate(LocalVarOutStrings(nLocalVars))\n')
+
+    # Loop through LocalVariables
     for lv_idx, localvar in enumerate(lv_strings):
-        if reg['LocalVariables'][localvar]['size'] > 0:
+        # If an array, only show first
+        if reg['LocalVariables'][localvar]['size'] > 0 or reg['LocalVariables'][localvar]['allocatable']:
             file.write('    LocalVarOutData({}) = LocalVar%{}(1)\n'.format(lv_idx+1, localvar))
         else:
             file.write('    LocalVarOutData({}) = LocalVar%{}\n'.format(lv_idx+1, localvar))
@@ -277,19 +289,45 @@ def write_roscoio(yfile):
     file.write("            CALL GetNewUnit(UnDb2, ErrVar)\n")
     file.write("            OPEN(unit=UnDb2, FILE=TRIM(RootName)//'.RO.dbg2')\n")
     file.write("            WRITE(UnDb2, *)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)\n")
-    file.write("            WRITE(UnDb2, '(99(a20,TR5:))') 'Time',   LocalVarOutStrings\n")
-    file.write("            WRITE(UnDb2, '(99(a20,TR5:))')\n")
+    file.write(f"            WRITE(UnDb2, '({n_lv_outputs+1}(a20,TR5:))') 'Time',   LocalVarOutStrings\n")
+    file.write(f"            WRITE(UnDb2, '({n_lv_outputs+1}(a20,TR5:))')\n")
     file.write("        END IF\n")
     file.write("\n")
     # avrSWAP debug
     file.write("        IF (CntrPar%LoggingLevel > 2) THEN\n")
+    file.write("            ! Set avrIndices, start with basic indices\n")
+    file.write("            Allocate(avrIndices(avrBaseLength))\n")
+    file.write("            DO Ind = 1, avrBaseLength\n")
+    file.write("                avrIndices(Ind) = Ind\n")
+    file.write("            END DO\n")
+    file.write("\n")
+    file.write("            ! Cable control indices\n")
+    file.write("            IF (CntrPar%CC_Mode > 0) THEN\n")
+    file.write("                DO Ind = 1, SIZE(CntrPar%CC_GroupIndex)\n")
+    file.write("                    Call AddToList(avrIndices,CntrPar%CC_GroupIndex(Ind))\n")
+    file.write("                    Call AddToList(avrIndices,CntrPar%CC_GroupIndex(Ind)+1)\n")
+    file.write("                END DO\n")
+    file.write("            END IF\n")
+    file.write("\n")
+    file.write("            ! Structural control indices\n")
+    file.write("            IF (CntrPar%StC_Mode > 0) THEN\n")
+    file.write("                DO Ind = 1, SIZE(CntrPar%StC_GroupIndex)\n")
+    file.write("                    Call AddToList(avrIndices,CntrPar%StC_GroupIndex(Ind))\n")
+    file.write("                END DO\n")
+    file.write("            END IF\n")
+    file.write("\n")
+    file.write("            ! Format string\n")
+    file.write("            avrFmt = '(A21,'//TRIM(Int2LStr(SIZE(avrIndices)))//'(TR12," + '"' + "'//'" + "AvrSWAP(" + '",I4,"' + ')"' + "))'\n")
+    # file.write("            WRITE(UnDb3,'"+'(A,85("'+"'//Tab//'"+'AvrSWAP("'+',I2,")"'+"))')  'LocalVar%Time ', (i,i=1, 85)\n")
+    file.write("\n")
     file.write("            CALL GetNewUnit(UnDb3, ErrVar)\n")
     file.write("            OPEN(unit=UnDb3, FILE=TRIM(RootName)//'.RO.dbg3')\n")
     file.write("            WRITE(UnDb3,'(/////)')\n")
-    file.write("            WRITE(UnDb3,'"+'(A,85("'+"'//Tab//'"+'AvrSWAP("'+',I2,")"'+"))')  'LocalVar%Time ', (i,i=1, 85)\n")
-    file.write("            WRITE(UnDb3,'"+'(A,85("'+"'//Tab//'"+'(-)"'+"))')  '(s)'"+'\n')
+    file.write("            WRITE(UnDb3,avrFmt)  'LocalVar%Time ', (avrIndices)\n")
+    file.write("            WRITE(UnDb3,'(A21,'//TRIM(Int2LStr(SIZE(avrIndices)))//'(TR22," + '"(-)"' + "))')  '(s)'\n")
     file.write("        END IF\n")
     file.write("    END IF\n")
+    file.write("\n")
     file.write("        ! Print simulation status, every 10 seconds\n")
     file.write("    IF (MODULO(LocalVar%Time, 10.0_DbKi) == 0) THEN\n")
     file.write("        WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0, LocalVar%WE_Vw\n")
@@ -311,16 +349,17 @@ def write_roscoio(yfile):
     file.write("    END DO\n")
     file.write("    \n")
     file.write("    ! Write debug files\n")
+    file.write(f'    FmtDat = "(F20.5,TR5,{n_lv_outputs}(ES20.5E2,TR5:))"   ! The format of the debugging data\n')
     file.write("    IF(CntrPar%LoggingLevel > 0) THEN\n")
-    file.write("        WRITE (UnDb, FmtDat)  LocalVar%Time, DebugOutData\n")
+    file.write("        WRITE (UnDb, TRIM(FmtDat))  LocalVar%Time, DebugOutData\n")
     file.write("    END IF\n")
     file.write("\n")
     file.write("    IF(CntrPar%LoggingLevel > 1) THEN\n")
-    file.write("        WRITE (UnDb2, FmtDat)  LocalVar%Time, LocalVarOutData\n")
+    file.write("        WRITE (UnDb2, TRIM(FmtDat))  LocalVar%Time, LocalVarOutData\n")
     file.write("    END IF\n")
     file.write("\n")
     file.write("    IF(CntrPar%LoggingLevel > 2) THEN\n")
-    file.write("        WRITE (UnDb3, FmtDat)    LocalVar%Time, avrSWAP(1: 85)\n")
+    file.write("        WRITE (UnDb3, TRIM(FmtDat))    LocalVar%Time, avrSWAP(avrIndices)\n")
     file.write("    END IF\n")
     file.write("\n")
     file.write("END SUBROUTINE Debug\n")
@@ -346,6 +385,15 @@ def read_type(param):
             f90type += ', DIMENSION(:), ALLOCATABLE'
     elif param['type'] == 'real':
         f90type = 'REAL(DbKi)'
+        if param['allocatable']:
+            if param['dimension']:
+                f90type += ', DIMENSION{}, ALLOCATABLE'.format(param['dimension'])
+            else:
+                f90type += ', DIMENSION(:), ALLOCATABLE'
+        elif param['dimension']:
+            f90type += ', DIMENSION{}'.format(param['dimension'])
+    elif param['type'] == 'complex':
+        f90type = 'COMPLEX(DbKi)'
         if param['allocatable']:
             if param['dimension']:
                 f90type += ', DIMENSION{}, ALLOCATABLE'.format(param['dimension'])

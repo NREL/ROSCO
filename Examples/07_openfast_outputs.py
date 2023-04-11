@@ -1,5 +1,5 @@
 '''
------------ Example_08 --------------
+----------- 07_openfast_outputss --------------
 Plot some OpenFAST output data
 -------------------------------------
 

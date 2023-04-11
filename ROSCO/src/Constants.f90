@@ -14,7 +14,7 @@
 MODULE Constants
     USE, INTRINSIC  :: ISO_C_Binding
     
-    Character(*), PARAMETER     :: rosco_version = 'v2.7.0'             ! ROSCO version	
+    Character(*), PARAMETER     :: rosco_version = 'v2.8.0'             ! ROSCO version	
     INTEGER, PARAMETER                  :: DbKi             = C_DOUBLE            !< Default kind for double floating-point numbers
     INTEGER, PARAMETER                  :: ReKi             = C_FLOAT             !< Default kind for single floating-point numbers
     INTEGER, PARAMETER                  :: IntKi            = C_INT               !< Default kind for integer numbers
@@ -34,5 +34,7 @@ MODULE Constants
     INTEGER(IntKi), PARAMETER     :: ErrID_Severe = 3                              !< ErrStat parameter indicating "severe error"; 
     INTEGER(IntKi), PARAMETER     :: ErrID_Fatal  = 4                              !< ErrStat parameter indicating "fatal error"; simulation should end
     INTEGER, PARAMETER            :: BITS_IN_ADDR  = C_INTPTR_T*8                  !< The number of bits in an address (32-bit or 64-bit).
+
+    CHARACTER(1), PARAMETER       :: Tab      = CHAR( 9 ) 
 
 END MODULE Constants
