@@ -178,8 +178,11 @@ class Turbine():
 
         fast.read_AeroDyn15()
 
-        fast.read_ServoDyn()
-        fast.read_DISCON_in()
+        if fast.fst_vt['Fst']['CompServo']:
+            fast.read_ServoDyn()
+            fast.read_DISCON_in()
+        else:
+            fast.fst_vt['ServoDyn']['GenEff'] = 1.0
     
         
         if fast.fst_vt['Fst']['CompHydro'] == 1: # SubDyn not yet implimented
@@ -203,11 +206,20 @@ class Turbine():
         self.NumBl              = fast.fst_vt['ElastoDyn']['NumBl']
         self.TowerHt            = fast.fst_vt['ElastoDyn']['TowerHt']
         self.shearExp           = 0.2  #NOTE: HARD CODED 
+        
+        # Fluid density
         if 'default' in str(fast.fst_vt['AeroDyn15']['AirDens']):
-            fast.fst_vt['AeroDyn15']['AirDens'] = 1.225
+            if fast.fst_vt['Fst']['MHK']:
+                fast.fst_vt['AeroDyn15']['AirDens'] = fast.fst_vt['Fst']['WtrDens']
+            else:
+                fast.fst_vt['AeroDyn15']['AirDens'] = fast.fst_vt['Fst']['AirDens']
         self.rho                = fast.fst_vt['AeroDyn15']['AirDens']
+        # self.rho = 1.225
+
+        # Kinematic viscosity
         if 'default' in str(fast.fst_vt['AeroDyn15']['KinVisc']):
-            fast.fst_vt['AeroDyn15']['KinVisc'] = 1.460e-5
+            fast.fst_vt['AeroDyn15']['KinVisc'] = fast.fst_vt['Fst']['KinVisc']
+            
         self.mu                 = fast.fst_vt['AeroDyn15']['KinVisc']
         self.Ng                 = fast.fst_vt['ElastoDyn']['GBRatio']
         self.GenEff             = fast.fst_vt['ServoDyn']['GenEff']
