@@ -86,6 +86,7 @@ class Turbine():
         self.bld_edgewise_freq = turbine_params['bld_edgewise_freq']     
         self.TSR_operational = turbine_params['TSR_operational']
         self.bld_flapwise_freq = turbine_params['bld_flapwise_freq']
+        self.turbine_params = turbine_params
 
 
     # Allow print out of class
@@ -538,16 +539,24 @@ class Turbine():
         # Read OpenFAST Airfoil data, assumes AeroDyn > v15.03 and associated polars > v1.01
         af_dict = {}
         for i, section in enumerate(self.fast.fst_vt['AeroDyn15']['af_data']):
-            Alpha = section[0]['Alpha']
             if section[0]['NumTabs'] > 1:  # sections with multiple airfoil tables
-                ref_tab = int(np.floor(section[0]['NumTabs']/2)) # get information from "center" table
-                Re = np.array([section[ref_tab]['Re']])*1e6 
+                reynolds_ref = self.turbine_params['reynolds_ref']
+                if reynolds_ref:  # default is 0
+                    # find closest table to reynolds_ref, interpolate someday, approximate is probably okay
+                    Res_in_table = np.array([sec['Re'] for sec in section])
+                    ref_tab = np.abs(Res_in_table - reynolds_ref).argmin()
+                else:
+                    print("ROSCO Warning: No Reynolds number provided and airfoils have multiple tables, using center table")
+                    ref_tab = int(np.floor(section[0]['NumTabs']/2)) # get information from "center" table
+                Alpha = section[ref_tab]['Alpha']
+                Re = np.array([section[ref_tab]['Re']])
                 Cl = section[ref_tab]['Cl']
                 Cd = section[ref_tab]['Cd']
                 Cm = section[ref_tab]['Cm']
                 af_dict[i] = CCAirfoil(Alpha, Re, Cl, Cd, Cm)
-            else:                           # sections without multiple airfoil tables
-                Re = np.array([section[0]['Re']])*1e6 
+            else:        
+                Alpha = section[0]['Alpha']                   # sections without multiple airfoil tables
+                Re = np.array([section[0]['Re']])
                 Cl = section[0]['Cl']
                 Cd = section[0]['Cd']
                 Cm = section[0]['Cm']

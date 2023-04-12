@@ -90,6 +90,12 @@ properties:
                 unit: none
                 default: 0
                 minimum: 0
+            reynolds_ref:
+                type: number
+                description: Reynolds number near rated speeds, used to interpolate airfoils, if provided
+                unit: none
+                default: 0
+                minimum: 0
 
             
     controller_params:
