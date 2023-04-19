@@ -9,7 +9,7 @@ ROSCO_Toolbox tuning .yaml
 Definition of inputs for ROSCO tuning procedure
 
 
-/Users/dzalkind/Tools/ROSCO/ROSCO_toolbox/inputs/toolbox_schema.
+toolbox_schema
 
 
 
@@ -102,7 +102,7 @@ controller_params
 
     *Default* = 1
 
-    *Minimum* = 0    *Maximum* = 2
+    *Minimum* = 0    *Maximum* = 3
 
 
 :code:`F_LPFType` : Float
@@ -266,8 +266,25 @@ controller_params
 
 
 :code:`Ext_Mode` : Float
-    External control mode {{0 - not used, 1 - call external dynamic
-    library}}
+    External control mode [0 - not used, 1 - call external dynamic
+    library]
+
+    *Default* = 0
+
+    *Minimum* = 0    *Maximum* = 1
+
+
+:code:`CC_Mode` : Float
+    Cable control mode [0- unused, 1- User defined, 2- Position
+    control (not yet implemented)]
+
+    *Default* = 0
+
+    *Minimum* = 0    *Maximum* = 1
+
+
+:code:`StC_Mode` : Float
+    Structural control mode [0- unused, 1- User defined]
 
     *Default* = 0
 
@@ -567,6 +584,11 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
     write standard output .dbg-file and complete avrSWAP-array
     .dbg2-file)
 
+:code:`Echo` : Float
+    0 - no Echo, 1 - Echo input data to <RootName>.echo
+
+    *Default* = 0
+
 :code:`F_LPFType` : Float
     1- first-order low-pass filter, 2- second-order low-pass filter
     (currently filters generator speed and pitch control signals
@@ -696,6 +718,10 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
 :code:`IPC_IntSat` : Float, rad
     Integrator saturation (maximum signal amplitude contribution to
     pitch from IPC)
+
+:code:`IPC_SatMode` : Integer
+    IPC Saturation method (0 - no saturation, 1 - saturate by
+    PC_MinPit, 2 - saturate by PS_BldPitchMin)
 
 :code:`IPC_KP` : Array of Floats
     Proportional gain for the individual pitch controller- first
@@ -920,6 +946,32 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
 
 :code:`PF_Offsets` : Array of Floats
     Pitch angle offsets for each blade (array with length of 3)
+
+:code:`CC_Group_N` : Float
+    Number of cable control groups
+
+    *Default* = 0
+
+:code:`CC_GroupIndex` : Array of Floats
+    First index for cable control group, should correspond to deltaL
+
+    *Default* = [0]
+
+:code:`CC_ActTau` : Float
+    Time constant for line actuator [s]
+
+    *Default* = 20
+
+:code:`StC_Group_N` : Float
+    Number of cable control groups
+
+    *Default* = 0
+
+:code:`StC_GroupIndex` : Array of Floats
+    First index for structural control group, options specified in
+    ServoDyn summary output
+
+    *Default* = [0]
 
 
 

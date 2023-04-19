@@ -7,7 +7,7 @@ Otherwise, the directories can be defined as attributes of the run_FAST_ROSCO
 
 """
 
-from ROSCO_toolbox.ofTools.case_gen.runFAST_pywrapper   import runFAST_pywrapper, runFAST_pywrapper_batch
+from ROSCO_toolbox.ofTools.case_gen.runFAST_pywrapper   import runFAST_pywrapper_batch
 from ROSCO_toolbox.ofTools.case_gen.CaseGen_IEC         import CaseGen_IEC
 from ROSCO_toolbox.ofTools.case_gen.CaseGen_General     import CaseGen_General
 from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
@@ -36,6 +36,8 @@ class run_FAST_ROSCO():
         self.n_cores            = 1
         self.base_name          = ''
         self.controller_params  = {}   
+        self.fst_vt             = {}   
+        self.openfast_exe       = 'openfast'
 
         # Directories
         self.tune_case_dir  = ''
@@ -93,10 +95,12 @@ class run_FAST_ROSCO():
             path_params['FAST_directory'],
             path_params['rotor_performance_filename']
             )
-        turbine.load_from_fast(path_params['FAST_InputFile'], \
-            os.path.join(tune_yaml_dir,path_params['FAST_directory']), \
-            dev_branch=True,rot_source='txt',\
-            txt_filename=cp_filename)
+        turbine.load_from_fast(
+            path_params['FAST_InputFile'],
+            os.path.join(tune_yaml_dir,path_params['FAST_directory']),
+            rot_source='txt',
+            txt_filename=cp_filename
+            )
 
         # tune base controller defined by the yaml
         controller.tune_controller(turbine)
@@ -168,8 +172,8 @@ class run_FAST_ROSCO():
             fastBatch.FAST_runDirectory = run_dir
             fastBatch.case_list         = case_list
             fastBatch.case_name_list    = case_name_list
-            fastBatch.debug_level       = 2
-            fastBatch.FAST_exe          = 'openfast'
+            fastBatch.fst_vt            = self.fst_vt
+            fastBatch.FAST_exe          = self.openfast_exe
 
             if MPI:
                 fastBatch.run_mpi(comm_map_down)

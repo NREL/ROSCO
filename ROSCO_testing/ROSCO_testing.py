@@ -17,7 +17,6 @@ import os, platform
 import glob
 import multiprocessing as mp
 
-import ROSCO_toolbox.ofTools.fast_io.read_fast_input as fast_io
 from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
 from ROSCO_toolbox.ofTools.case_gen.CaseGen_IEC import CaseGen_IEC
 from ROSCO_toolbox.ofTools.case_gen.runFAST_pywrapper import runFAST_pywrapper_batch
@@ -47,7 +46,6 @@ class ROSCO_testing():
             self.rosco_path = glob.glob(os.path.join(os.path.dirname(os.path.realpath(__file__)),'../ROSCO/build/libdiscon.*'))[0]
         except:
             print('No compiled ROSCO version found, please provide ROSCO_testing.rosco_path.')
-        self.dev_branch = True      # openfast dev branch?
         self.debug_level = 2        # debug level. 0 - no outputs, 1 - minimal outputs, 2 - all outputs
         self.overwrite = False      # overwrite existing files? 
         self.cores = 4              # number of cores to use
@@ -114,8 +112,7 @@ class ROSCO_testing():
         else:
             WindSpeeds = [5, 8, 11, 14, 17]
 
-        fastRead = InputReader_OpenFAST(
-            FAST_ver=self.FAST_ver, dev_branch=self.dev_branch)
+        fastRead = InputReader_OpenFAST()
         fastRead.FAST_InputFile =  self.FAST_InputFile   # FAST input file (ext=.fst)
         # Path to fst directory files
         fastRead.FAST_directory = self.FAST_directory
@@ -215,7 +212,6 @@ class ROSCO_testing():
         fastBatch.FAST_InputFile = self.FAST_InputFile  # FAST input file (ext=.fst)
         fastBatch.FAST_directory = self.FAST_directory   # Path to fst directory files
         fastBatch.debug_level = self.debug_level
-        fastBatch.dev_branch = self.dev_branch
 
         fastBatch.case_list = case_list
         fastBatch.case_name_list = case_name_list
@@ -270,8 +266,7 @@ class ROSCO_testing():
         else:
             WindSpeeds = [[4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24], [8.88, 12.88]]
 
-        fastRead = InputReader_OpenFAST(
-            FAST_ver=self.FAST_ver, dev_branch=self.dev_branch)
+        fastRead = InputReader_OpenFAST()
         fastRead.FAST_InputFile = self.FAST_InputFile   # FAST input file (ext=.fst)
         # Path to fst directory files
         fastRead.FAST_directory = self.FAST_directory
@@ -301,6 +296,7 @@ class ROSCO_testing():
         iec.D = fastRead.fst_vt['ElastoDyn']['TipRad']*2.
         iec.z_hub = fastRead.fst_vt['InflowWind']['RefHt']
         iec.TMax = self.TMax
+        iec.TStart = 300 
 
         iec.dlc_inputs = {}
         iec.dlc_inputs['DLC'] = [1.3, 1.4] 
@@ -343,7 +339,7 @@ class ROSCO_testing():
         case_inputs[('ServoDyn', 'DLL_FileName')] = {'vals': [self.rosco_path], 'group': 0}
 
         case_inputs[("AeroDyn15", "WakeMod")] = {'vals': [1], 'group': 0}
-        case_inputs[("AeroDyn15", "AFAeroMod")] = {'vals': [2], 'group': 0}
+        case_inputs[("AeroDyn15", "AFAeroMod")] = {'vals': [1], 'group': 0}
         case_inputs[("AeroDyn15", "TwrPotent")] = {'vals': [0], 'group': 0}
         case_inputs[("AeroDyn15", "TwrShadow")] = {'vals': ['False'], 'group': 0}
         case_inputs[("AeroDyn15", "TwrAero")] = {'vals': ['False'], 'group': 0}
@@ -380,7 +376,6 @@ class ROSCO_testing():
         fastBatch.FAST_InputFile = self.FAST_InputFile  # FAST input file (ext=.fst)
         fastBatch.FAST_directory = self.FAST_directory   # Path to fst directory files
         fastBatch.debug_level = self.debug_level
-        fastBatch.dev_branch = self.dev_branch
 
         fastBatch.case_list = case_list
         fastBatch.case_name_list = case_name_list
@@ -549,33 +544,32 @@ class ROSCO_testing():
 if __name__=='__main__':
     rt = ROSCO_testing()
 
+    this_dir = os.path.dirname(__file__)
+
 
     ## =================== INITIALIZATION ===================
     # Setup simulation parameters
     rt.namebase = 'IEA-15MW'     # Base name for FAST files 
     rt.FAST_exe = 'openfast'     # OpenFAST executable path
     rt.Turbsim_exe = 'turbsim'   # Turbsim executable path
-    rt.FAST_ver = 'OpenFAST'     # FAST version
     # path to compiled ROSCO controller
     if platform.system() == 'Windows':
-        rt.rosco_path = os.path.join(os.getcwd(), '../ROSCO/build/libdiscon.dll')
+        rt.rosco_path = os.path.join(this_dir, '../ROSCO/build/libdiscon.dll')
     elif platform.system() == 'Darwin':
-        rt.rosco_path = os.path.join(os.getcwd(), '../ROSCO/build/libdiscon.dylib')
+        rt.rosco_path = os.path.join(this_dir, '../ROSCO/build/libdiscon.dylib')
     else:
-        rt.rosco_path = os.path.join(os.getcwd(), '../ROSCO/build/libdiscon.so')
-    rt.dev_branch = True         # dev branch of Openfast?
+        rt.rosco_path = os.path.join(this_dir, '../ROSCO/build/libdiscon.so')
     rt.debug_level = 2           # debug level. 0 - no outputs, 1 - minimal outputs, 2 - all outputs
     rt.overwrite = True          # overwite fast sims?
-    rt.cores = 4                 # number of cores if multiprocessings
+    rt.cores = 1                 # number of cores if multiprocessings
     rt.mpi_run = False           # run using mpi
     rt.mpi_comm_map_down = []    # core mapping for MPI
     rt.outfile_fmt = 2           # 1 = .txt, 2 = binary, 3 = both
-    rt.dev_branch= 'True'
 
     # Setup turbine
     rt.Turbine_Class = 'I'
     rt.Turbulence_Class = 'B'
-    rt.FAST_directory = os.path.join(os.getcwd(), '../Test_Cases/IEA-15-240-RWT-UMaineSemi')
+    rt.FAST_directory = os.path.join(this_dir, '../Test_Cases/IEA-15-240-RWT-UMaineSemi')
     rt.FAST_InputFile = 'IEA-15-240-RWT-UMaineSemi.fst'
 
     # Additional inputs 
@@ -591,7 +585,7 @@ if __name__=='__main__':
     case_inputs[('DISCON_in', 'WE_Mode')] = {'vals': [2], 'group': 0}
 
     # Wind Speeds
-    U = [5, 9, 12, 15]
+    U = [5]
 
     # Run test
     rt.ROSCO_Test_lite(more_case_inputs=case_inputs, U=U)

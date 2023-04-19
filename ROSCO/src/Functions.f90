@@ -48,7 +48,7 @@ CONTAINS
     END FUNCTION saturate
     
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(DbKi) FUNCTION ratelimit(inputSignal, minRate, maxRate, DT, reset, rlP, inst)
+    REAL(DbKi) FUNCTION ratelimit(inputSignal, minRate, maxRate, DT, reset, rlP, inst, ResetValue)
     ! Saturates inputValue. Makes sure it is not smaller than minValue and not larger than maxValue
         USE ROSCO_Types, ONLY : rlParams
 
@@ -62,13 +62,18 @@ CONTAINS
         LOGICAL,    INTENT(IN)         :: reset  
         TYPE(rlParams), INTENT(INOUT)   :: rlP
         INTEGER(IntKi), INTENT(INOUT)   :: inst
+        REAL(DbKi), OPTIONAL,  INTENT(IN)          :: ResetValue           ! Value to base rate limit off if restarting
 
         ! Local variables
         REAL(DbKi)                 :: rate
+        REAL(DbKi)                 :: ResetValue_
+
+        ResetValue_ = inputSignal
+        IF (PRESENT(ResetValue)) ResetValue_ = ResetValue   
 
         IF (reset) THEN
-            rlP%LastSignal(inst) = inputSignal
-            ratelimit = inputSignal
+            rlP%LastSignal(inst) = ResetValue_
+            ratelimit = ResetValue_
             
         ELSE
             rate = (inputSignal - rlP%LastSignal(inst))/DT                       ! Signal rate (unsaturated)
@@ -593,70 +598,6 @@ CONTAINS
         
     END FUNCTION sigma
 
-
-!-------------------------------------------------------------------------------------------------------------------------------
-    ! Copied from NWTC_IO.f90
-!> This function returns a character string encoded with today's date in the form dd-mmm-ccyy.
-FUNCTION CurDate( )
-
-    ! Function declaration.
-
-    CHARACTER(11)                :: CurDate                                      !< 'dd-mmm-yyyy' string with the current date
-
-
-    ! Local declarations.
-
-    CHARACTER(8)                 :: CDate                                        ! String to hold the returned value from the DATE_AND_TIME subroutine call.
-
-
-
-    !  Call the system date function.
-
-    CALL DATE_AND_TIME ( CDate )
-
-
-    !  Parse out the day.
-
-    CurDate(1:3) = CDate(7:8)//'-'
-
-
-    !  Parse out the month.
-
-    SELECT CASE ( CDate(5:6) )
-    CASE ( '01' )
-        CurDate(4:6) = 'Jan'
-    CASE ( '02' )
-        CurDate(4:6) = 'Feb'
-    CASE ( '03' )
-        CurDate(4:6) = 'Mar'
-    CASE ( '04' )
-        CurDate(4:6) = 'Apr'
-    CASE ( '05' )
-        CurDate(4:6) = 'May'
-    CASE ( '06' )
-        CurDate(4:6) = 'Jun'
-    CASE ( '07' )
-        CurDate(4:6) = 'Jul'
-    CASE ( '08' )
-        CurDate(4:6) = 'Aug'
-    CASE ( '09' )
-        CurDate(4:6) = 'Sep'
-    CASE ( '10' )
-        CurDate(4:6) = 'Oct'
-    CASE ( '11' )
-        CurDate(4:6) = 'Nov'
-    CASE ( '12' )
-        CurDate(4:6) = 'Dec'
-    END SELECT
-
-
-    !  Parse out the year.
-
-    CurDate(7:11) = '-'//CDate(1:4)
-
-
-    RETURN
-    END FUNCTION CurDate
 
 
 END MODULE Functions

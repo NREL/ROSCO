@@ -54,7 +54,7 @@ def load_tuning_yaml(tuning_yaml):
     cp_filename = os.path.join(tune_case_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
     turbine.load_from_fast(path_params['FAST_InputFile'], \
         os.path.join(tune_case_dir,path_params['FAST_directory']), \
-        dev_branch=True,rot_source='txt',\
+        rot_source='txt',\
         txt_filename=cp_filename)
 
     return turbine, controller, cp_filename
@@ -127,7 +127,7 @@ def power_curve(**wind_case_opts):
     # Constant wind speed, multiple wind speeds, define below
 
     # Runtime
-    T_max   = 400.
+    T_max   = wind_case_opts.get('TMax',400.)
 
     if 'U' in wind_case_opts:
         U = wind_case_opts['U']
@@ -364,51 +364,40 @@ def user_hh(**wind_case_opts):
 
     return case_inputs
 
-def ramp_up_down(**wind_case_opts):
-    '''
-     Uniform, hub-height wind file, ramp from U_start to U_end and back in T_ramp
-     Expected inputs:
-        TMax            TODO: someday make all TMaxs TMax
-        wind_input (list of string wind inputs filenames)
-        wind_dir  (directory where wind input lives)
-    '''
+def ramp(**wind_case_opts):
+    U_start     = wind_case_opts.get('U_start',8.)
+    U_end       = wind_case_opts.get('U_end',15.)
+    t_start     = wind_case_opts.get('t_start',100.)
+    t_end       = wind_case_opts.get('t_end',400.)
+    vert_shear  = wind_case_opts.get('vert_shear',.2) 
+    both_dir    = wind_case_opts.get('both_dir',False)  # ramp up and down
 
-    # Options:
+    # Make Default step wind object
+    hh_wind = HH_WindFile()
+    hh_wind.t_max = t_end
+    hh_wind.filename = os.path.join(wind_case_opts['run_dir'],'ramp.hh')
 
-    # Wind directory, default is run_dir
-    wind_case_opts['wind_dir'] = wind_case_opts.get('wind_dir',wind_case_opts['run_dir'])
+    # Step Wind Setup
+    if both_dir:
+        hh_wind.time = [0, t_start, (t_start + t_end) / 2, t_end]
+        hh_wind.wind_speed = [U_start, U_start, U_end, U_start]
+    else:
+        hh_wind.time = [0, t_start, t_end]
+        hh_wind.wind_speed = [U_start, U_start, U_end]
 
-    # U_start, default 4 m/s
-    wind_case_opts['U_start'] = wind_case_opts.get('U_start',4.)
+    hh_wind.vert_shear = [vert_shear] * len(hh_wind.time)
 
-    # U_end, default 20 m/s
-    wind_case_opts['U_end'] = wind_case_opts.get('U_end',20.)
+    hh_wind.resample()
+    hh_wind.write()
 
-    # T_ramp, default 2000 s
-    wind_case_opts['T_ramp'] = wind_case_opts.get('T_ramp',2000.)
-
-    # T_max, default is T_ramp
-    wind_case_opts['T_max'] = wind_case_opts.get('T_max',wind_case_opts['T_ramp'])
-
-
-    # Make wind file object, write
-    hh_ramp = HH_WindFile(**{
-        'time': [0,wind_case_opts['T_ramp']/2, wind_case_opts['T_ramp']],
-        'wind_speed': [wind_case_opts['U_start'], wind_case_opts['U_end'], wind_case_opts['U_start']],
-        'filename': os.path.join(wind_case_opts['wind_dir'],'ramp.wnd')
-    })
-    hh_ramp.write()
-
-    # Set up case
     case_inputs = base_op_case()
-    # simulation settings
-    case_inputs[("Fst","TMax")] = {'vals':[wind_case_opts['T_max']], 'group':0}
-    
-    # wind inflow
+    case_inputs[("Fst","TMax")] = {'vals':[t_end], 'group':0}
     case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
-    case_inputs[("InflowWind","Filename_Uni")] = {'vals':[hh_ramp.filename], 'group':1}
+    case_inputs[("InflowWind","Filename_Uni")] = {'vals':[hh_wind.filename], 'group':0}
 
     return case_inputs
+
+
 
     
 ##############################################################################################
@@ -442,7 +431,7 @@ def sweep_rated_torque(start_group, **control_sweep_opts):
         cp_filename = os.path.join(tune_case_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
         turbine.load_from_fast(path_params['FAST_InputFile'], \
             os.path.join(tune_case_dir,path_params['FAST_directory']), \
-            dev_branch=True,rot_source='txt',\
+            rot_source='txt',\
             txt_filename=cp_filename)
 
         controller.tune_controller(turbine)
@@ -479,9 +468,9 @@ def sweep_pitch_act(start_group, **control_sweep_opts):
 def sweep_ipc_gains(start_group, **control_sweep_opts):
     case_inputs_control = {}
 
-    kis = np.linspace(0,1,6).tolist()
+    kis = np.linspace(0,1,8).tolist()
     # kis = [0.,0.6,1.2,1.8,2.4,3.]
-    KIs = [[ki * 6e-9,0.] for ki in kis]
+    KIs = [[ki * 12e-9,0.] for ki in kis]
     case_inputs_control[('DISCON_in','IPC_ControlMode')] = {'vals': [1], 'group': 0}
     # case_inputs_control[('DISCON_in','IPC_KI')] = {'vals': [[0.,0.],[1e-8,0.]], 'group': start_group}
     case_inputs_control[('DISCON_in','IPC_KI')] = {'vals': KIs, 'group': start_group}
@@ -526,7 +515,7 @@ def sweep_ps_percent(start_group, **control_sweep_opts):
 
         # make default controller, turbine objects for ROSCO_toolbox
         turbine             = ROSCO_turbine.Turbine(turbine_params)
-        turbine.load_from_fast( path_params['FAST_InputFile'],path_params['FAST_directory'], dev_branch=True)
+        turbine.load_from_fast( path_params['FAST_InputFile'],path_params['FAST_directory'])
 
         controller          = ROSCO_controller.Controller(controller_params)
 
@@ -570,7 +559,7 @@ def test_pitch_offset(start_group, **control_sweep_opts):
 
 #     # make default controller, turbine objects for ROSCO_toolbox
 #     turbine             = ROSCO_turbine.Turbine(turbine_params)
-#     turbine.load_from_fast( path_params['FAST_InputFile'],path_params['FAST_directory'], dev_branch=True)
+#     turbine.load_from_fast( path_params['FAST_InputFile'],path_params['FAST_directory'])
 
 #     controller          = ROSCO_controller.Controller(controller_params)
 

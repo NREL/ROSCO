@@ -12,6 +12,13 @@ default_types:
     size: 0                # Use this if the type IS an array (size:3 --> REAL(8), BldPitch(3))
     allocatable: False
     equals: 
+  complex: &complex
+    type: complex
+    description: 
+    dimension:             # Use this if a higher-dimensional allocatable array (dimension:(:,:) --> REAL(8), DIMESION(:,:), ALLOCATABLE)
+    size: 0                # Use this if the type IS an array (size:3 --> REAL(8), BldPitch(3))
+    allocatable: False
+    equals: 
   float: &float
     type: float
     description: 
@@ -69,7 +76,9 @@ ControlParameters:
     LoggingLevel: 
       <<: *integer
       description: 0 - write no debug files, 1 - write standard output .dbg-file, 2 - write standard output .dbg-file and complete avrSWAP-array .dbg2-file
-    
+    Echo: 
+      <<: *integer
+      description: 0 - no Echo, 1 - Echo input data to <RootName>.echo
     # Filters
     F_LPFType:
       <<: *integer
@@ -150,6 +159,9 @@ ControlParameters:
     IPC_IntSat:
       <<: *real
       description: Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
+    IPC_SatMode:
+      <<: *integer
+      description: IPC Saturation method IPC Saturation method (0 - no saturation (except by PC_MinPit), 1 - saturate by PS_BldPitchMin, 2 - saturate sotfly (full IPC cycle) by PC_MinPit, 3 - saturate softly by PS_BldPitchMin)
     IPC_KP:
       <<: *real
       description: Integral gain for the individual pitch controller, [-].
@@ -419,6 +431,14 @@ ControlParameters:
     Ind_YawRate:
       <<: *integer
       description: The column in OL_Filename that contains the generator torque in Nm
+    Ind_CableControl:
+      <<: *integer
+      allocatable: True
+      description: The column in OL_Filename that contains the cable control inputs in m
+    Ind_StructControl:
+      <<: *integer
+      allocatable: True
+      description: The column in OL_Filename that contains the structural control inputs in various units
     OL_Breakpoints:
       <<: *real
       allocatable: True
@@ -427,6 +447,14 @@ ControlParameters:
       <<: *real
       allocatable: True
       description: Open blade pitch timeseries
+    OL_CableControl:
+      <<: *real
+      allocatable: True
+      dimension: (:,:)
+    OL_StructControl:
+      <<: *real
+      allocatable: True
+      dimension: (:,:)
     OL_GenTq:
       <<: *real
       allocatable: True
@@ -451,6 +479,58 @@ ControlParameters:
     PA_Damping:
       <<: *real
       description: Pitch actuator damping ratio [-, unused if PA_Mode = 1]
+
+    # Active wake control
+    AWC_Mode:
+      <<: *integer
+      description: Active wake control mode [0 - unused, 1 - complex number method, 2 - Coleman transform method]
+    AWC_NumModes:
+      <<: *integer
+      description: AWC- Number of modes to include [-] 
+    AWC_n:
+      <<: *integer
+      allocatable: True
+      description: AWC azimuthal mode [-]
+    AWC_harmonic:
+      <<: *integer
+      allocatable: True
+      description: AWC AWC Coleman transform harmonic [-]
+    AWC_freq:
+      <<: *real
+      allocatable: True
+      description: AWC frequency [Hz]
+    AWC_amp:
+      <<: *real
+      allocatable: True
+      description: AWC amplitude [deg]
+    AWC_clockangle:
+      <<: *real
+      allocatable: True
+      description: AWC clocking angle [deg]
+    
+    # Active wake control
+    AWC_Mode:
+      <<: *integer
+      description: Active wake control mode [0 - unused, 1 - SNL method, 2 - NREL method]
+    AWC_NumModes:
+      <<: *integer
+      description: AWC- Number of modes to include [-] 
+    AWC_n:
+      <<: *integer
+      allocatable: True
+      description: AWC azimuthal mode [-]
+    AWC_freq:
+      <<: *real
+      allocatable: True
+      description: AWC frequency [Hz]
+    AWC_amp:
+      <<: *real
+      allocatable: True
+      description: AWC amplitude [deg]
+    AWC_clockangle:
+      <<: *real
+      allocatable: True
+      description: AWC clocking angle [deg]
     
     # Pitch actuator error
     PF_Mode:
@@ -489,6 +569,38 @@ ControlParameters:
     ZMQ_UpdatePeriod:
       <<: *real
       description: Integer for zeromq update frequency
+
+    # Cable control 
+    CC_Mode:
+      <<: *integer
+      description: Flag for ZeroMQ (0-off, 1-yaw}
+
+    CC_Group_N:
+      <<: *integer
+      description: Number of cable control groups
+
+    CC_ActTau:
+      <<: *real
+      description: Time constant for line actuator [s]
+
+    CC_GroupIndex:
+      <<: *integer
+      description: Cable control group indices
+      allocatable: True
+
+    # StC Control
+    StC_Mode:
+      <<: *integer
+      description: Flag for StC Control
+
+    StC_Group_N:
+      <<: *integer
+      description: Number of cable control groups
+
+    StC_GroupIndex:
+      <<: *integer
+      description: Cable control group indices
+      allocatable: True
 
     # Calculated
     PC_RtTq99:
@@ -589,6 +701,46 @@ FilterParameters:
       dimension: (99)
       description: Second order filter - Previous input 1 
     lpf2_OutputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous output 1
+    lpfV_a2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Denominator coefficient 1
+    lpfV_a1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Denominator coefficient 1
+    lpfV_a0:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Denominator coefficient 0
+    lpfV_b2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Numerator coefficient 2
+    lpfV_b1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Numerator coefficient 1
+    lpfV_b0:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Numerator coefficient 0
+    lpfV_InputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous input 2
+    lpfV_OutputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous output 2
+    lpfV_InputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous input 1 
+    lpfV_OutputSignalLast1:
       <<: *real
       dimension: (99)
       description: Second order filter - Previous output 1
@@ -737,6 +889,9 @@ LocalVariables:
       <<: *real
       description: Blade pitch [rad]
       size: 3
+    BlPitchCMeas: 
+      <<: *real
+      description: Mean (collective) blade pitch [rad]
     Azimuth: 
       <<: *real 
       description: Rotor aziumuth angle [rad]
@@ -833,6 +988,24 @@ LocalVariables:
     IPC_AxisYaw_2P:
       <<: *real
       description: Integral of quadrature, 2P
+    axisTilt_1P:
+      <<: *real
+      description: Tilt moment, 1P
+    axisYaw_1P:
+      <<: *real
+      description: Yaw moment, 1P
+    axisYawF_1P:
+      <<: *real
+      description: Filtered yaw moment, 1P
+    axisTilt_2P:
+      <<: *real
+      description: Tilt moment, 2P
+    axisYaw_2P:
+      <<: *real
+      description: Yaw moment, 2P
+    axisYawF_2P:
+      <<: *real
+      description: Filtered yaw moment, 2P
     IPC_KI:
       <<: *real
       description: Integral gain for IPC, after ramp [-]
@@ -841,6 +1014,9 @@ LocalVariables:
       <<: *real
       description: Proportional gain for IPC, after ramp [-]
       size: 2
+    IPC_IntSat:
+      <<: *real
+      description: Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
     PC_State:                     
       <<: *integer 
       description: State of the pitch control system
@@ -916,6 +1092,72 @@ LocalVariables:
       <<: *real 
     FA_AccF:
       <<: *real 
+    PtfmTDX:
+      <<: *real
+      description: Platform motion -- Displacement TDX (m)')
+    PtfmTDY:
+      <<: *real
+      description: Platform motion -- Displacement TDY (m)')
+    PtfmTDZ:
+      <<: *real
+      description: Platform motion -- Displacement TDZ (m)')
+    PtfmRDX:
+      <<: *real
+      description: Platform motion -- Displacement RDX (rad)')
+    PtfmRDY:
+      <<: *real
+      description: Platform motion -- Displacement RDY (rad)')
+    PtfmRDZ:
+      <<: *real
+      description: Platform motion -- Displacement RDZ (rad)')
+    PtfmTVX:
+      <<: *real
+      description: Platform motion -- Velocity     TVX (m/s)')
+    PtfmTVY:
+      <<: *real
+      description: Platform motion -- Velocity     TVY (m/s)')
+    PtfmTVZ:
+      <<: *real
+      description: Platform motion -- Velocity     TVZ (m/s)')
+    PtfmRVX:
+      <<: *real
+      description: Platform motion -- Velocity     RVX (rad/s)')
+    PtfmRVY:
+      <<: *real
+      description: Platform motion -- Velocity     RVY (rad/s)')
+    PtfmRVZ:
+      <<: *real
+      description: Platform motion -- Velocity     RVZ (rad/s)')
+    PtfmTAX:
+      <<: *real
+      description: Platform motion -- Acceleration TAX (m/s^2)')
+    PtfmTAY:
+      <<: *real
+      description: Platform motion -- Acceleration TAY (m/s^2)')
+    PtfmTAZ:
+      <<: *real
+      description: Platform motion -- Acceleration TAZ (m/s^2)')
+    PtfmRAX:
+      <<: *real
+      description: Platform motion -- Acceleration RAX (rad/s^2)')
+    PtfmRAY:
+      <<: *real
+      description: Platform motion -- Acceleration RAY (rad/s^2)')
+    PtfmRAZ:
+      <<: *real
+      description: Platform motion -- Acceleration RAZ (rad/s^2)')
+    CC_DesiredL:
+      <<: *real
+      size: 12
+    CC_ActuatedL:
+      <<: *real
+      size: 12
+    CC_ActuatedDL:
+      <<: *real
+      size: 12
+    StC_Input:
+      <<: *real
+      size: 12
     FA_Hist:
       <<: *integer 
       description: Hysteresis state for tower resonance avoidance.
@@ -947,6 +1189,10 @@ LocalVariables:
     restart:
       <<: *logical
       description: Restart flag
+    AWC_complexangle:
+      <<: *complex
+      description: Complex angle for each blade, sum of modes?
+      size: 3
     WE: 
       <<: *derived_type
       id: WE 
@@ -969,6 +1215,9 @@ ObjectInstances:
     <<: *integer
     description: Low-pass filter instance
   instSecLPF:
+    <<: *integer
+    description: Second order low-pass filter instance
+  instSecLPFV:
     <<: *integer
     description: Second order low-pass filter instance
   instHPF:

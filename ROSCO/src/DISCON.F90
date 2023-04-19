@@ -82,10 +82,10 @@ END IF
 CALL ReadAvrSWAP(avrSWAP, LocalVar, CntrPar)
 
 ! Set Control Parameters
-CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, zmqVar, ErrVar)
+CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, zmqVar, RootName, ErrVar)
 
 ! Call external controller, if desired
-IF (CntrPar%Ext_Mode > 0) THEN
+IF (CntrPar%Ext_Mode > 0 .AND. ErrVar%aviFAIL >= 0) THEN
     CALL ExtController(avrSWAP, CntrPar, LocalVar, ExtDLL, ErrVar)
     ! Data from external dll is in ExtDLL%avrSWAP, it's unused in the following code
 END IF
@@ -115,6 +115,16 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
     
     IF (CntrPar%Flp_Mode > 0) THEN
         CALL FlapControl(avrSWAP, CntrPar, LocalVar, objInst)
+    END IF
+
+    ! Cable control
+    IF (CntrPar%CC_Mode > 0) THEN
+        CALL CableControl(avrSWAP,CntrPar,LocalVar, objInst, ErrVar)
+    END IF
+
+    ! Structural control
+    IF (CntrPar%StC_Mode > 0) THEN
+        CALL StructuralControl(avrSWAP,CntrPar,LocalVar, objInst)
     END IF
     
     IF ( CntrPar%LoggingLevel > 0 ) THEN
