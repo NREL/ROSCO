@@ -370,7 +370,7 @@ CONTAINS
         ENDIF
         
         ! FA acc for ForeAft damping, condition matches whether it's used in Controllers.f90
-        IF ((CntrPar%TD_Mode > 0) .OR. (CntrPar%Y_ControlMode == 2)) THEN
+        IF ((CntrPar%Twr_Mode == 1) .OR. (CntrPar%Y_ControlMode == 2)) THEN
             LocalVar%FA_AccHPF = HPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%FA_HPFCornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF)
         ENDIF
         
