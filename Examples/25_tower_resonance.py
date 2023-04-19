@@ -51,11 +51,12 @@ def main():
     # simulation set up
     r = run_FAST_ROSCO()
     r.tuning_yaml   = parameter_filename
-    r.wind_case_fcn = cl.ramp_up_down  # single step wind input
+    r.wind_case_fcn = cl.ramp  # single step wind input
     r.wind_case_opts    = {
         'U_start': 4,  # from 10 to 15 m/s
         'U_end': 12,
-        'T_ramp': 600,
+        't_start': 100,
+        't_end': 600
         }
 
     r.controller_params = controller_params
