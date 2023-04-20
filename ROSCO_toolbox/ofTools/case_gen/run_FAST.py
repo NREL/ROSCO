@@ -37,6 +37,7 @@ class run_FAST_ROSCO():
         self.base_name          = ''
         self.controller_params  = {}   
         self.fst_vt             = {}   
+        self.openfast_exe       = 'openfast'
 
         # Directories
         self.tune_case_dir  = ''
@@ -172,7 +173,7 @@ class run_FAST_ROSCO():
             fastBatch.case_list         = case_list
             fastBatch.case_name_list    = case_name_list
             fastBatch.fst_vt            = self.fst_vt
-            fastBatch.FAST_exe          = 'openfast'
+            fastBatch.FAST_exe          = self.openfast_exe
 
             if MPI:
                 fastBatch.run_mpi(comm_map_down)
