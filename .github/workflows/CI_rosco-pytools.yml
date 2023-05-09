@@ -31,6 +31,7 @@ jobs:
         uses: mamba-org/provision-with-micromamba@main
         with:
           environment-name: test
+          environment-file: environment.yml
           channels: conda-forge
           extra-specs: |
             python=${{ matrix.python-version }}
@@ -89,6 +90,7 @@ jobs:
         uses: mamba-org/provision-with-micromamba@main
         with:
           environment-name: test
+          environment-file: environment.yml
           channels: conda-forge
           extra-specs: |
             python=${{ matrix.python-version }}
@@ -179,6 +181,7 @@ jobs:
         uses: mamba-org/provision-with-micromamba@main
         with:
           environment-name: test
+          environment-file: environment.yml
           channels: conda-forge
           extra-specs: |
             python=${{ matrix.python-version }}
