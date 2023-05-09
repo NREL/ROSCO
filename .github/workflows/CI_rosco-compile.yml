@@ -22,14 +22,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup environment
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Install Conda environment with Micromamba
+        uses: mamba-org/provision-with-micromamba@main
         with:
-          miniconda-version: "latest"
-          channels: conda-forge, general
-          auto-update-conda: true
-          python-version: 3.9
+          environment-name: test
+          channels: conda-forge
           environment-file: environment.yml
+          extra-specs: |
+            python=${{ matrix.python-version }}
+            sel(osx): compilers
+            sel(win): m2w64-toolchain
+            sel(win): libpython
 
       # Install ROSCO toolbox
       - name: Install ROSCO toolbox
