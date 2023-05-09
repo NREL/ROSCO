@@ -36,7 +36,7 @@ jobs:
             python=${{ matrix.python-version }}
             sel(osx): compilers
             sel(win): m2w64-toolchain
-            sel(win): libpython`
+            sel(win): libpython
 
 
       # # Install dependencies of ROSCO toolbox
@@ -184,7 +184,7 @@ jobs:
             python=${{ matrix.python-version }}
             sel(osx): compilers
             sel(win): m2w64-toolchain
-            sel(win): libpython`
+            sel(win): libpython
             wisdem
             openfast
 
