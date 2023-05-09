@@ -94,7 +94,7 @@ jobs:
             python=${{ matrix.python-version }}
             sel(osx): compilers
             sel(win): m2w64-toolchain
-            sel(win): libpython`
+            sel(win): libpython
             openfast
 
       # setup cmake
