@@ -45,16 +45,16 @@ jobs:
         shell: bash -l {0}
         run: python ROSCO/rosco_registry/write_registry.py
           
-      - name: Add dependencies windows 
-        if: true == contains( matrix.os, 'windows')
-        run: |
-          conda install -y m2w64-toolchain
+      # - name: Add dependencies windows 
+      #   if: true == contains( matrix.os, 'windows')
+      #   run: |
+      #     conda install -y m2w64-toolchain
 
-      - name: Add dependencies windows 
-        if: true == contains( matrix.os, 'mac')
-        shell: bash -l {0}
-        run: |
-          conda install -y gfortran
+      # - name: Add dependencies windows 
+      #   if: true == contains( matrix.os, 'mac')
+      #   shell: bash -l {0}
+      #   run: |
+      #     conda install -y gfortran
 
       - name: Setup Workspace
         run: |
