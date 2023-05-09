@@ -34,9 +34,6 @@ jobs:
           channels: conda-forge
           extra-specs: |
             python=${{ matrix.python-version }}
-            mpi4py
-            petsc4py
-            openmpi
             sel(osx): compilers
             sel(win): m2w64-toolchain
             sel(win): libpython`
@@ -95,12 +92,10 @@ jobs:
           channels: conda-forge
           extra-specs: |
             python=${{ matrix.python-version }}
-            mpi4py
-            petsc4py
-            openmpi
             sel(osx): compilers
             sel(win): m2w64-toolchain
             sel(win): libpython`
+            openfast
 
       # setup cmake
       - name: Setup Workspace
@@ -136,10 +131,10 @@ jobs:
             ..
           cmake --build . --target install
           
-      # Install OpenFAST
-      - name: Install OpenFAST
-        run: |
-          mamba install openfast==3.4
+      # # Install OpenFAST
+      # - name: Install OpenFAST
+      #   run: |
+      #     mamba install openfast==3.4
           
       # Run examples
       - name: Run examples
@@ -187,18 +182,17 @@ jobs:
           channels: conda-forge
           extra-specs: |
             python=${{ matrix.python-version }}
-            mpi4py
-            petsc4py
-            openmpi
             sel(osx): compilers
             sel(win): m2w64-toolchain
             sel(win): libpython`
+            wisdem
+            openfast
 
 
-      # Install dependencies of ROSCO toolbox
-      - name: Add dependencies
-        run: |
-          mamba install -y wisdem
+      # # Install dependencies of ROSCO toolbox
+      # - name: Add dependencies
+      #   run: |
+      #     mamba install -y wisdem
         
 
       # Install ROSCO toolbox
@@ -206,10 +200,10 @@ jobs:
         run: |
           python setup.py install --compile-rosco
           
-      # Install OpenFAST
-      - name: Install OpenFAST
-        run: |
-          mamba install openfast==3.4
+      # # Install OpenFAST
+      # - name: Install OpenFAST
+      #   run: |
+      #     mamba install openfast==3.4
 
       # Run ROSCO Testing
       - name: Run ROSCO testing
