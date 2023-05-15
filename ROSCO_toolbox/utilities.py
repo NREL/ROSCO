@@ -132,6 +132,9 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{}              ! PC_GS_angles	    - Gain-schedule table: pitch angles [rad].\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['PC_GS_angles'][i]) for i in range(len(rosco_vt['PC_GS_angles'])))))            
     file.write('{}              ! PC_GS_KP		- Gain-schedule table: pitch controller kp gains [s].\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['PC_GS_KP'][i]) for i in range(len(rosco_vt['PC_GS_KP'])))))
     file.write('{}              ! PC_GS_KI		- Gain-schedule table: pitch controller ki gains [-].\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['PC_GS_KI'][i]) for i in range(len(rosco_vt['PC_GS_KI'])))))
+    # Mod by A. Wright:
+    file.write('{}              ! PC_GS_KPfloat		- Gain-schedule table: pitch controller KPfloat gains [-].\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['PC_GS_KPfloat'][i]) for i in range(len(rosco_vt['PC_GS_KPfloat'])))))
+#	
     file.write('{}              ! PC_GS_KD			- Gain-schedule table: pitch controller kd gains\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['PC_GS_KD'][i]) for i in range(len(rosco_vt['PC_GS_KD'])))))
     file.write('{}              ! PC_GS_TF			- Gain-schedule table: pitch controller tf gains (derivative filter)\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['PC_GS_TF'][i]) for i in range(len(rosco_vt['PC_GS_TF'])))))
     file.write('{:<014.5f}      ! PC_MaxPit			- Maximum physical pitch limit, [rad].\n'.format(rosco_vt['PC_MaxPit']))
@@ -487,6 +490,9 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['PC_GS_KI']		    = controller.pc_gain_schedule.Ki
     DISCON_dict['PC_GS_KD']			= [0.0 for i in range(len(controller.pc_gain_schedule.Ki))]
     DISCON_dict['PC_GS_TF']			= [0.0 for i in range(len(controller.pc_gain_schedule.Ki))]
+    #   Mod by A. Wright:
+    DISCON_dict['PC_GS_KPfloat']		    = controller.pc_gain_schedule.KPfloat
+    #	
     DISCON_dict['PC_MaxPit']		= controller.max_pitch
     DISCON_dict['PC_MinPit']		= controller.min_pitch
     DISCON_dict['PC_MaxRat']		= turbine.max_pitch_rate

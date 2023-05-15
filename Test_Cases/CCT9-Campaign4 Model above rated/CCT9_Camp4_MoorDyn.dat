@@ -1,0 +1,41 @@
+--------------------- MoorDyn Input File ------------------------------------
+Mooring system in CCT9 project: 3 horizontal massless pretensioned cables
+True    Echo      - echo the input file data (flag)
+----------------------- LINE TYPES ------------------------------------------
+3        NTypes    - number of LineTypes
+Name     Diam      MassDen      EA     BA/-zeta  Can   Cat   Cdn   Cdt  Roger comments: Name is just an arbitrary indentifier word. EA is the axial stiffness. BA is the damping in [Ns]. Note that in reality the units should be [Ns/m]. According to the manual, BA can be calculated as: BA = damping_ratio*(UnstrLen/NumSegs)*sqrt(EA*MassDen). The easiest way is using a negative value indicating the desired damping ratio. Then MoorDyn calculates it internally. The value entered here is used to damp the non-physical segment resonances due to the line discretization. It should be close to critical damping (1). It's not the structural damping of the mooring line.   
+(-)       (m)      (kg/m)       (N)    (N-s/-)   (-)   (-)   (-)   (-)  Roger comments: The hydrodynamic coefficients are: Can (transversal added mass [e.g. Ca = 1]), Cat (axial adedd mass [e.g. Ca = 1]), Cdn (transversal drag coefficient [e.g. Cd = 1], Cdt (axial drag coefficient [e.g. Cd = 1]). Kind reminder: Cm = Ca + 1 = 2.    
+ A        0.1        10    32133192    -0.8      0     0     0     0
+ B        0.1        10    35075301    -0.8      0     0     0     0
+ C        0.1        10    43002320    -0.8      0     0     0     0 
+---------------------- CONNECTION PROPERTIES --------------------------------
+6        NConnects - number of connections including anchors and fairleads
+Node    Type     	 X        Y        Z       M     V      FX   FY   FZ   CdA   Ca  Roger comments: Type can be fixed (e.g. ground), vessel (floater) or connect (connection between mooring lines). The coordinates (X,Y,Z) are expressed from the intersection between the tower axis and the mean sea level.
+(-)     (-)      	(m)      (m)      (m)     (kg)  (m^3)  (kN) (kN) (kN) (m^2)  (-) Roger comments: M can be used to include a lumped mass. V can be used to include a floater. FX, FY, FZ can be used to apply a constant external force. CdA is used to account for a drag force in X, Y, and Z directions. The user provides Cd [-] *A [m^2] already. Ca is the added mass coefficient to calculate the hydro loads in the connection node (rather than the line). It would take advantage of the volumen (V) defined by the user.
+1      fixed   	    179.8  -293.5    -14       0     0      0    0    0     0     0
+2      fixed        180.1   321.9    -14       0     0      0    0    0     0     0
+3      fixed   	   -423.8    13.1    -12.6     0     0      0    0    0     0     0
+4      vessel        29.8   -51.5    -14.36    0     0      0    0    0     0     0
+5      vessel        29.1    51.5    -14.36    0     0      0    0    0     0     0
+6      vessel       -59.4     0      -14.36    0     0      0    0    0     0     0
+---------------------- LINE PROPERTIES --------------------------------------
+3         NLines    - number of line objects                                            Roger comments: How many mooring lines with uniform-properties we have. For example, for 3 mooring lines where each line has 2 different properties, we would have NLines = 6. 
+Line    LineType  UnstrLen  NumSegs   NodeAnch  NodeFair  Flags/Outputs    CtrlChan     Roger comments: Note that the outputs selected here are written in a special file. The possible outputs are: p (node positions), v (node velocities), U (wave velocities at each node), D (hydrodynamic drag force at each node), t (tension force ar each segment), c (internal damping force at each segment), s (strain of each segment), d (rate of strain of each segment). If we want for example node positions and segment tensions, we should write: pt. Note that the outputs in OpenFAST doesn't include so many options. For reference , the node 0 for a given line is the lowest one.
+(-)       (-)       (m)       (-)       (-)       (-)         (-)             (-)       Roger comments: The number of segments plays a very important role. The local axial modes in the mooring lines are placed at: f [Hz] = (NumSegs/(UnstrLen*pi))*sqrt(EA/MassDen). For example: f = (1/(6*pi))*sqrt(1.15E9/250.7) = 113.6Hz. This will also determine the necessary time step (dtM).
+1          A        254.82     15         1         4           -               0
+2          B        284.93     15         2         5           -               0
+3          C        342.65     15         3         6           -               0
+---------------------- SOLVER OPTIONS ---------------------------------------
+0.5E-4   dtM       - time step to use in mooring integration (s). Roger comment: The time step could be determined as follows: (1/f)/50 = 1/(50*((NumSegs/(UnstrLen*pi))*sqrt(EA/MassDen))). For lines with different properties, we have to look for the higher frequency. In this case, the higher frequency is for lines 13,14,15: 1/(50*((1/(6*pi))*sqrt(1.15E9/250.7))) = 1.8E-4s 
+2.5E7    kbot      - bottom stiffness (Pa/m). Roger comments: Seabed stiffness. MoorDyn calculates the stiffness based on the longitudinal area of the cable: kbot [N/m^3] * A_mooring [m^2] = K [N/m]. If we want to account for an stiffness of 1E10N/m, we should do: 1E10/(Diam*(UnstrLen/NumSegs)).
+2.5E6    cbot      - bottom damping (Pa-s/m). Roger comments: Seabed damping. By following the same logic as for the seabed stiffness, the damping would be in [N*s/m] as expected. If we want to account for a damping of 1E10Ns/m, we should do: 1E10/(Diam*(UnstrLen/NumSegs)).
+1.0      dtIC      - time interval for analyzing convergence during initial condition (IC) generation (s)
+200.0    TmaxIC    - max time for IC generation without convergence (s)
+4.0      CdScaleIC - factor by which to scale drag coefficients during dynamic relaxation (-)
+0.001    threshIC  - threshold for IC convergence (-)
+------------------------ OUTPUTS --------------------------------------------
+FairTen1       - Fairlead tension [N] in the line 1.
+FairTen2       - Fairlead tension [N] in the line 2.
+FairTen3       - Fairlead tension [N] in the line 3.
+END
+------------------------- need this line --------------------------------------

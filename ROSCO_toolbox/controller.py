@@ -344,6 +344,9 @@ class Controller():
         self.v              = v                                  # Wind speed (m/s)
         self.v_above_rated  = v_above_rated
         self.v_below_rated  = v_below_rated
+        # Mod by A. Wright
+        self.v_for_gs       = v[-len(v_above_rated)+1:]
+		# end
         self.pitch_op       = pitch_op
         self.pitch_op_pc    = pitch_op[-len(v_above_rated)+1:]
         self.TSR_op         = TSR_op
@@ -380,6 +383,10 @@ class Controller():
                     Kp_float *= turbine.TowerHt      
                 f_kp     = interpolate.interp1d(v,Kp_float)
                 self.Kp_float = f_kp(turbine.v_rated * (1.05))   # get Kp at v_rated + 0.5 m/s
+
+        # Mod by A. Wright: get the array of Kp_float values at the values of v-above rated (see self.v_for_gs calculated around line 344).
+                self.pc_gain_schedule.KPfloat = f_kp(self.v_for_gs)   # get Kp at v_rated + 0.5 m/s 
+        # end
 
             # Turn on the notch filter if floating
             self.F_NotchType = 2
