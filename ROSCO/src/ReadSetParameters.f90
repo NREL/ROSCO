@@ -439,6 +439,9 @@ CONTAINS
         CALL ParseAry(  FileLines,  'PC_GS_KP',     CntrPar%PC_GS_KP,     CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
         CALL ParseAry(  FileLines,  'PC_GS_KI',     CntrPar%PC_GS_KI,     CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
         CALL ParseAry(  FileLines,  'PC_GS_KD',     CntrPar%PC_GS_KD,     CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
+!       Mod made by A. Wright: add scheduled KPfloat gain array:
+        CALL ParseAry(  FileLines,  'PC_GS_KPfloat',     CntrPar%PC_GS_KPfloat,     CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
+!        
         CALL ParseAry(  FileLines,  'PC_GS_TF',     CntrPar%PC_GS_TF,     CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
         CALL ParseInput(FileLines,  'PC_MaxPit',    CntrPar%PC_MaxPit,                      accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
         CALL ParseInput(FileLines,  'PC_MinPit',    CntrPar%PC_MinPit,                      accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)

@@ -40,6 +40,9 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PC_GS_KP                    ! Gain-schedule table - pitch controller kp gains
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PC_GS_KI                    ! Gain-schedule table - pitch controller ki gains
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PC_GS_KD                    ! Gain-schedule table - pitch controller kd gains
+! Mod made by A. Wright: add variable for scheduled floating feedback gain
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PC_GS_KPfloat                    ! Gain-schedule table - pitch controller kd gains
+!    
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PC_GS_TF                    ! Gain-schedule table - pitch controller tf gains (derivative filter)
     REAL(DbKi)                    :: PC_MaxPit                   ! Maximum physical pitch limit, [rad].
     REAL(DbKi)                    :: PC_MinPit                   ! Minimum physical pitch limit, [rad].
@@ -248,6 +251,9 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: PC_KP                       ! Proportional gain for pitch controller at rated pitch (zero) [s].
     REAL(DbKi)                    :: PC_KI                       ! Integral gain for pitch controller at rated pitch (zero) [-].
     REAL(DbKi)                    :: PC_KD                       ! Differential gain for pitch controller at rated pitch (zero) [-].
+!   Mod by A. Wright: add PC_KPfloat
+    REAL(DbKi)                    :: PC_KPfloat                       ! PC_KPfloat gain for pitch controller at rated pitch (zero) [-].
+!    
     REAL(DbKi)                    :: PC_TF                       ! First-order filter parameter for derivative action
     REAL(DbKi)                    :: PC_MaxPit                   ! Maximum pitch setting in pitch controller (variable) [rad].
     REAL(DbKi)                    :: PC_MinPit                   ! Minimum pitch setting in pitch controller (variable) [rad].
