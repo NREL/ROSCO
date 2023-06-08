@@ -22,17 +22,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Even miniconda gets bogged down- try mamba
       - name: Install Conda environment with Micromamba
-        uses: mamba-org/provision-with-micromamba@main
+        uses: mamba-org/setup-micromamba@v1
         with:
-          environment-name: test
-          channels: conda-forge
           environment-file: environment.yml
-          extra-specs: |
+          environment-name: test
+          post-cleanup: none
+          init-shell: bash
+          condarc: |
+              channels:
+                  - conda-forge
+          create-args: >-
             python=${{ matrix.python-version }}
-            sel(osx): compilers
-            sel(win): m2w64-toolchain
-            sel(win): libpython
+            mpi4py
+            petsc4py
+            openmpi
 
       # Install ROSCO toolbox
       - name: Install ROSCO toolbox
