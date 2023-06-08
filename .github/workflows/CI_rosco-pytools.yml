@@ -40,9 +40,6 @@ jobs:
                   - conda-forge
           create-args: >-
             python=${{ matrix.python-version }}
-            mpi4py
-            petsc4py
-            openmpi
 
       # Install ROSCO toolbox
       - name: Install ROSCO toolbox on Windows
