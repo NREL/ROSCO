@@ -36,7 +36,7 @@ URL = 'https://github.com/NREL/ROSCO'
 EMAIL = 'daniel.zalkind@nrel.gov'
 AUTHOR = 'NREL, National Wind Technology Center'
 REQUIRES_PYTHON = '>=3.8'
-VERSION = '2.7.0'
+VERSION = '2.8.0'
 
 # These packages are required for all of the code to be executed. 
 # - Maybe you can get away with older versions...
