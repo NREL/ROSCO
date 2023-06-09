@@ -55,6 +55,12 @@ controller      = ROSCO_controller.Controller(controller_params)
 controller.tune_controller(turbine)
 np.testing.assert_almost_equal(Kp_float,controller.Kp_float)
 
+# Now gain schedule Kp_float
+controller_params['U_Fl'] = 'all'
+controller_params['tune_Fl'] = True
+controller      = ROSCO_controller.Controller(controller_params)
+controller.tune_controller(turbine)
+
 # Write parameter input file
 param_file = os.path.join(this_dir,'DISCON.IN')   # This must be named DISCON.IN to be seen by the compiled controller binary. 
 write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])

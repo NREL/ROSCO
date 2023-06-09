@@ -131,10 +131,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<11d}         ! PC_GS_n			- Amount of gain-scheduling table entries\n'.format(int(rosco_vt['PC_GS_n'])))
     file.write('{}              ! PC_GS_angles	    - Gain-schedule table: pitch angles [rad].\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['PC_GS_angles'][i]) for i in range(len(rosco_vt['PC_GS_angles'])))))            
     file.write('{}              ! PC_GS_KP		- Gain-schedule table: pitch controller kp gains [s].\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['PC_GS_KP'][i]) for i in range(len(rosco_vt['PC_GS_KP'])))))
-    file.write('{}              ! PC_GS_KI		- Gain-schedule table: pitch controller ki gains [-].\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['PC_GS_KI'][i]) for i in range(len(rosco_vt['PC_GS_KI'])))))
-    # Mod by A. Wright:
-    file.write('{}              ! PC_GS_KPfloat		- Gain-schedule table: pitch controller KPfloat gains [-].\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['PC_GS_KPfloat'][i]) for i in range(len(rosco_vt['PC_GS_KPfloat'])))))
-#	
+    file.write('{}              ! PC_GS_KI		- Gain-schedule table: pitch controller ki gains [-].\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['PC_GS_KI'][i]) for i in range(len(rosco_vt['PC_GS_KI'])))))#	
     file.write('{}              ! PC_GS_KD			- Gain-schedule table: pitch controller kd gains\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['PC_GS_KD'][i]) for i in range(len(rosco_vt['PC_GS_KD'])))))
     file.write('{}              ! PC_GS_TF			- Gain-schedule table: pitch controller tf gains (derivative filter)\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['PC_GS_TF'][i]) for i in range(len(rosco_vt['PC_GS_TF'])))))
     file.write('{:<014.5f}      ! PC_MaxPit			- Maximum physical pitch limit, [rad].\n'.format(rosco_vt['PC_MaxPit']))
@@ -216,7 +213,9 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
         floatstr = 'pitching'
     else:
         floatstr = 'velocity'
-    file.write('{:<014.5f}      ! Fl_Kp             - Nacelle {} proportional feedback gain [s]\n'.format(rosco_vt['Fl_Kp'], floatstr))
+    file.write('{:<11d} ! Fl_n              - Number of Fl_Kp gains in gain scheduling, optional with default of 1\n'.format(rosco_vt['Fl_n']))
+    file.write('{}      ! Fl_Kp             - Nacelle {} proportional feedback gain [s]\n'.format(write_array(rosco_vt['Fl_Kp'],'<6.4f'), floatstr))
+    file.write('{}      ! Fl_U              - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]\n'.format(write_array(rosco_vt['Fl_U'],'<6.4f')))
     file.write('\n')
     file.write('!------- FLAP ACTUATION -----------------------------------------------------\n')
     file.write('{:<014.5f}      ! Flp_Angle         - Initial or steady state flap angle [rad]\n'.format(rosco_vt['Flp_Angle']))
@@ -490,8 +489,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['PC_GS_KI']		    = controller.pc_gain_schedule.Ki
     DISCON_dict['PC_GS_KD']			= [0.0 for i in range(len(controller.pc_gain_schedule.Ki))]
     DISCON_dict['PC_GS_TF']			= [0.0 for i in range(len(controller.pc_gain_schedule.Ki))]
-    #   Mod by A. Wright:
-    DISCON_dict['PC_GS_KPfloat']		    = controller.pc_gain_schedule.KPfloat
+
     #	
     DISCON_dict['PC_MaxPit']		= controller.max_pitch
     DISCON_dict['PC_MinPit']		= controller.min_pitch
@@ -559,7 +557,9 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['SD_MaxPit']        = controller.sd_maxpit
     DISCON_dict['SD_CornerFreq']    = controller.f_sd_cornerfreq
     # ------- Floating -------
+    DISCON_dict['Fl_n']             = len(controller.Kp_float)
     DISCON_dict['Fl_Kp']            = controller.Kp_float
+    DISCON_dict['Fl_U']             = controller.U_Fl
     # ------- FLAP ACTUATION -------
     DISCON_dict['Flp_Angle']        = controller.flp_angle
     DISCON_dict['Flp_Kp']           = controller.Kp_flap[-1]

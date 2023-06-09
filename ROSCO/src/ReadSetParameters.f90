@@ -439,9 +439,6 @@ CONTAINS
         CALL ParseAry(  FileLines,  'PC_GS_KP',     CntrPar%PC_GS_KP,     CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
         CALL ParseAry(  FileLines,  'PC_GS_KI',     CntrPar%PC_GS_KI,     CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
         CALL ParseAry(  FileLines,  'PC_GS_KD',     CntrPar%PC_GS_KD,     CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
-!       Mod made by A. Wright: add scheduled KPfloat gain array:
-        CALL ParseAry(  FileLines,  'PC_GS_KPfloat',     CntrPar%PC_GS_KPfloat,     CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
-!        
         CALL ParseAry(  FileLines,  'PC_GS_TF',     CntrPar%PC_GS_TF,     CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
         CALL ParseInput(FileLines,  'PC_MaxPit',    CntrPar%PC_MaxPit,                      accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
         CALL ParseInput(FileLines,  'PC_MinPit',    CntrPar%PC_MinPit,                      accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
@@ -529,7 +526,10 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ FLOATING ------------
-        CALL ParseInput(FileLines,  'Fl_Kp',    CntrPar%Fl_Kp,  accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'Fl_n',     CntrPar%Fl_n,                   accINFILE(1), ErrVar, .TRUE., UnEc)
+        IF (CntrPar%Fl_n == 0) CntrPar%Fl_n = 1   ! Default is 1
+        CALL ParseAry(FileLines,    'Fl_Kp',      CntrPar%Fl_Kp,  CntrPar%Fl_n,   accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
+        CALL ParseAry(FileLines,    'Fl_U',       CntrPar%Fl_U,  CntrPar%Fl_n,   accINFILE(1), ErrVar, CntrPar%Fl_n == 1, UnEc)  ! Allow default if only one Fl_Kp
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ Flaps ------------

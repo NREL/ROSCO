@@ -376,9 +376,17 @@ ControlParameters:
     Fl_Mode:
       <<: *integer
       description: Floating specific feedback mode {0 - no nacelle velocity feedback, 1 - nacelle velocity feedback}
+    Fl_n:
+      <<: *integer
+      description: Number of Fl_Kp for gain scheduling
     Fl_Kp:
       <<: *real
       description: Nacelle velocity proportional feedback gain [s]
+      allocatable: True
+    Fl_U:
+      <<: *real
+      description: Wind speeds for scheduling Fl_Kp [m/s]
+      allocatable: True
     
     # Trailing edge flaps
     Flp_Mode:
@@ -1017,6 +1025,9 @@ LocalVariables:
     TestType:                     
       <<: *real 
       description: Test variable, no use
+    Kp_Float:
+      <<: *real
+      description: Local, instantaneous Kp_Float, scheduled on wind speed, if desired
     VS_MaxTq:                     
       <<: *real 
       description: Maximum allowable generator torque [Nm].
