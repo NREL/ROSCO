@@ -661,6 +661,7 @@ class InputReader_OpenFAST(object):
         self.fst_vt['InflowWind']['WindType']       = int(f.readline().split()[0])
         self.fst_vt['InflowWind']['PropagationDir'] = float_read(f.readline().split()[0])
         self.fst_vt['InflowWind']['VFlowAng']       = float_read(f.readline().split()[0])
+        self.fst_vt['InflowWind']['VelInterpCubic'] = bool_read(f.readline().split()[0])
         self.fst_vt['InflowWind']['NWindVel']       = int(f.readline().split()[0])
         self.fst_vt['InflowWind']['WindVxiList']    = float_read(f.readline().split()[0])
         self.fst_vt['InflowWind']['WindVyiList']    = float_read(f.readline().split()[0])
@@ -716,6 +717,20 @@ class InputReader_OpenFAST(object):
         self.fst_vt['InflowWind']['PLExp_Hawc']  = float_read(f.readline().split()[0])
         self.fst_vt['InflowWind']['Z0']          = float_read(f.readline().split()[0])
         self.fst_vt['InflowWind']['XOffset']     = float_read(f.readline().split()[0])
+        
+        # LIDAR Parameters
+        self.fst_vt['InflowWind']['SensorType']          = int(f.readline().split()[0])
+        self.fst_vt['InflowWind']['NumPulseGate']        = int(f.readline().split()[0])
+        self.fst_vt['InflowWind']['PulseSpacing']        = float_read(f.readline().split()[0])
+        self.fst_vt['InflowWind']['NumBeam']             = int(f.readline().split()[0])
+        self.fst_vt['InflowWind']['FocalDistanceX']      = float_read(f.readline().split()[0])
+        self.fst_vt['InflowWind']['FocalDistanceY']      = float_read(f.readline().split()[0])
+        self.fst_vt['InflowWind']['FocalDistanceZ']      = float_read(f.readline().split()[0])
+        self.fst_vt['InflowWind']['RotorApexOffsetPos']  = [float_read(idx.strip()) for idx in f.readline().split('RotorApexOffsetPos')[0].split()]
+        self.fst_vt['InflowWind']['URefLid']             = float_read(f.readline().split()[0])
+        self.fst_vt['InflowWind']['MeasurementInterval'] = float_read(f.readline().split()[0])
+        self.fst_vt['InflowWind']['LidRadialVel']        = bool_read(f.readline().split()[0])
+        self.fst_vt['InflowWind']['ConsiderHubMotion']   = int(f.readline().split()[0])
 
         # Inflow Wind Output Parameters (inflow_out_params)
         f.readline()
