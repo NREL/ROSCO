@@ -2555,6 +2555,267 @@ AeroDyn['RtFldCp']           = False     # (-); Rotor aerodynamic power coeffici
 AeroDyn['RtFldCq']           = False     # (-); Rotor aerodynamic torque coefficient; 
 AeroDyn['RtFldCt']           = False     # (-); Rotor aerodynamic thrust coefficient; 
 
+""" ElastoDyn_Nodes """
+ElastoDyn_Nodes = {}
+
+#  Local Span Motions
+ElastoDyn_Nodes['ALx']        = False     # (m/s^2); local flapwise acceleration (absolute) of node; Directed along the local xb-axis
+ElastoDyn_Nodes['Ax']         = False     # (m/s^2); local flapwise acceleration (absolute) of node; Directed along the local xb-axis
+ElastoDyn_Nodes['ALy']        = False     # (m/s^2); local flapwise acceleration (absolute) of node; Directed along the local yb-axis
+ElastoDyn_Nodes['Ay']         = False     # (m/s^2); local flapwise acceleration (absolute) of node; Directed along the local yb-axis
+ElastoDyn_Nodes['ALz']        = False     # (m/s^2); local flapwise acceleration (absolute) of node; Directed along the local zb-axis
+ElastoDyn_Nodes['Az']         = False     # (m/s^2); local flapwise acceleration (absolute) of node; Directed along the local zb-axis
+ElastoDyn_Nodes['TDx']        = False     # (m); local flapwise (translational) deflection (relative to the undeflected position) of node; Directed along the xb-axis
+ElastoDyn_Nodes['UxB']        = False     # (m); local flapwise (translational) deflection (relative to the undeflected position) of node; Directed along the xb-axis
+ElastoDyn_Nodes['TDy']        = False     # (m); local edgewise (translational) deflection (relative to the undeflected position) of node; Directed along the yb-axis
+ElastoDyn_Nodes['UyB']        = False     # (m); local edgewise (translational) deflection (relative to the undeflected position) of node; Directed along the yb-axis
+ElastoDyn_Nodes['TDz']        = False     # (m); local axial (translational) deflection (relative to the undeflected position) of node; Directed along the zb-axis
+ElastoDyn_Nodes['UzB']        = False     # (m); local axial (translational) deflection (relative to the undeflected position) of node; Directed along the zb-axis
+ElastoDyn_Nodes['RDx']        = False     # (deg); Local rotational displacement about x-axis (relative to undeflected); About the local xb-axis
+ElastoDyn_Nodes['Rx']         = False     # (deg); Local rotational displacement about x-axis (relative to undeflected); About the local xb-axis
+ElastoDyn_Nodes['RDy']        = False     # (deg); Local rotational displacement about y-axis (relative to undeflected); About the local yb-axis
+ElastoDyn_Nodes['Ry']         = False     # (deg); Local rotational displacement about y-axis (relative to undeflected); About the local yb-axis
+ElastoDyn_Nodes['RDz']        = False     # (deg); Local rotational displacement about z-axis (relative to undeflected); About the local zb-axis
+ElastoDyn_Nodes['Rz']         = False     # (deg); Local rotational displacement about z-axis (relative to undeflected); About the local zb-axis
+
+#  Local Span Loads
+ElastoDyn_Nodes['MLx']        = False     # (kN-m);  local edgewise moment at node; About the local xb-axis
+ElastoDyn_Nodes['Mx']         = False     # (kN-m);  local edgewise moment at node; About the local xb-axis
+ElastoDyn_Nodes['MLy']        = False     # (kN-m);  local flapwise moment at node; About the local yb-axis
+ElastoDyn_Nodes['My']         = False     # (kN-m);  local flapwise moment at node; About the local yb-axis
+ElastoDyn_Nodes['MLz']        = False     # (kN-m);  local pitching moment at node; About the local zb-axis
+ElastoDyn_Nodes['MLzNT']      = False     # (kN-m);  local pitching moment at node; About the local zb-axis
+ElastoDyn_Nodes['MzL']        = False     # (kN-m);  local pitching moment at node; About the local zb-axis
+ElastoDyn_Nodes['Mz']         = False     # (kN-m);  local pitching moment at node; About the local zb-axis
+ElastoDyn_Nodes['FLx']        = False     # (kN);  local flapwise shear force at node; Directed along the local xb-axis
+ElastoDyn_Nodes['Fx']         = False     # (kN);  local flapwise shear force at node; Directed along the local xb-axis
+ElastoDyn_Nodes['FLy']        = False     # (kN);  local edgewise shear force at node; Directed along the local yb-axis
+ElastoDyn_Nodes['Fy']         = False     # (kN);  local edgewise shear force at node; Directed along the local yb-axis
+ElastoDyn_Nodes['FLz']        = False     # (kN);  local axial force at node; Directed along the local zb-axis
+ElastoDyn_Nodes['FLzNT']      = False     # (kN);  local axial force at node; Directed along the local zb-axis
+ElastoDyn_Nodes['FzL']        = False     # (kN);  local axial force at node; Directed along the local zb-axis
+ElastoDyn_Nodes['Fz']         = False     # (kN);  local axial force at node; Directed along the local zb-axis
+ElastoDyn_Nodes['MLxNT']      = False     # (kN-m); Edgewise moment in local coordinate system (initial structural twist removed); About the local xb-axis
+ElastoDyn_Nodes['MxL']        = False     # (kN-m); Edgewise moment in local coordinate system (initial structural twist removed); About the local xb-axis
+ElastoDyn_Nodes['MlyNT']      = False     # (kN-m); Flapwise shear moment in local coordinate system (initial structural twist removed); About the local yb-axis
+ElastoDyn_Nodes['MyL']        = False     # (kN-m); Flapwise shear moment in local coordinate system (initial structural twist removed); About the local yb-axis
+ElastoDyn_Nodes['FLxNT']      = False     # (kN); Flapwise shear force in local coordinate system (initial structural twist removed); Directed along the local xb-axis
+ElastoDyn_Nodes['FxL']        = False     # (kN); Flapwise shear force in local coordinate system (initial structural twist removed); Directed along the local xb-axis
+ElastoDyn_Nodes['FlyNT']      = False     # (kN); Edgewise shear force in local coordinate system (initial structural twist removed); Directed along the local yb-axis
+ElastoDyn_Nodes['FyL']        = False     # (kN); Edgewise shear force in local coordinate system (initial structural twist removed); Directed along the local yb-axis
+
+
+""" BeamDyn_Nodes """
+BeamDyn_Nodes = {}
+
+# Sectional Loads
+BeamDyn_Nodes['FxL']          = False     # (N); Sectional force resultants at each node expressed in l; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['FyL']          = False     # (N); Sectional force resultants at each node expressed in l; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['FzL']          = False     # (N); Sectional force resultants at each node expressed in l; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['MxL']          = False     # (N-m); Sectional moment resultants at each node expressed in l; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['MyL']          = False     # (N-m); Sectional moment resultants at each node expressed in l; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['MzL']          = False     # (N-m); Sectional moment resultants at each node expressed in l; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['Fxr']          = False     # (N); Sectional force resultants at each node expressed in r; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system
+BeamDyn_Nodes['Fyr']          = False     # (N); Sectional force resultants at each node expressed in r; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system
+BeamDyn_Nodes['Fzr']          = False     # (N); Sectional force resultants at each node expressed in r; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system
+BeamDyn_Nodes['Mxr']          = False     # (N-m); Sectional moment resultants at each node expressed in r; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system
+BeamDyn_Nodes['Myr']          = False     # (N-m); Sectional moment resultants at each node expressed in r; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system
+BeamDyn_Nodes['Mzr']          = False     # (N-m); Sectional moment resultants at each node expressed in r; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system
+
+# Sectional Motions
+BeamDyn_Nodes['TDxr']         = False     # (m); Sectional translational deflection (relative to the undeflected position) at each node expressed in r; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system
+BeamDyn_Nodes['TDyr']         = False     # (m); Sectional translational deflection (relative to the undeflected position) at each node expressed in r; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system
+BeamDyn_Nodes['TDzr']         = False     # (m); Sectional translational deflection (relative to the undeflected position) at each node expressed in r; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system
+BeamDyn_Nodes['RDxr']         = False     # (-); Sectional angular/rotational deflection Wiener-Milenkovic parameter (relative to the undeflected orientation) at each node expressed in r; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system
+BeamDyn_Nodes['RDyr']         = False     # (-); Sectional angular/rotational deflection Wiener-Milenkovic parameter (relative to the undeflected orientation) at each node expressed in r; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system
+BeamDyn_Nodes['RDzr']         = False     # (-); Sectional angular/rotational deflection Wiener-Milenkovic parameter (relative to the undeflected orientation) at each node expressed in r; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system
+BeamDyn_Nodes['AbsXg']        = False     # (m); Node position in X (global coordinate) ; g: the global inertial frame coordinate system; when coupled to FAST, this is equivalent to FAST s global inertial frame (i) coordinate system 
+BeamDyn_Nodes['AbsYg']        = False     # (m); Node position in Y (global coordinate) ; g: the global inertial frame coordinate system; when coupled to FAST, this is equivalent to FAST s global inertial frame (i) coordinate system 
+BeamDyn_Nodes['AbsZg']        = False     # (m); Node position in Z (global coordinate) ; g: the global inertial frame coordinate system; when coupled to FAST, this is equivalent to FAST s global inertial frame (i) coordinate system 
+BeamDyn_Nodes['AbsXr']        = False     # (m); Node position in X (relative to root) ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['AbsYr']        = False     # (m); Node position in Y (relative to root) ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['AbsZr']        = False     # (m); Node position in Z (relative to root) ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['TVxg']         = False     # (m/s); Sectional translational velocities (absolute); g: the global inertial frame coordinate system; when coupled to FAST, this is equivalent to FAST s global inertial frame (i) coordinate system 
+BeamDyn_Nodes['TVyg']         = False     # (m/s); Sectional translational velocities (absolute); g: the global inertial frame coordinate system; when coupled to FAST, this is equivalent to FAST s global inertial frame (i) coordinate system 
+BeamDyn_Nodes['TVzg']         = False     # (m/s); Sectional translational velocities (absolute); g: the global inertial frame coordinate system; when coupled to FAST, this is equivalent to FAST s global inertial frame (i) coordinate system 
+BeamDyn_Nodes['TVxl']         = False     # (m/s); Sectional translational velocities (absolute); l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['TVyl']         = False     # (m/s); Sectional translational velocities (absolute); l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['TVzl']         = False     # (m/s); Sectional translational velocities (absolute); l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['TVxr']         = False     # (m/s); Sectional translational velocities (absolute); r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['TVyr']         = False     # (m/s); Sectional translational velocities (absolute); r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['TVzr']         = False     # (m/s); Sectional translational velocities (absolute); r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['RVxg']         = False     # (deg/s); Sectional angular/rotational velocities (absolute); g: the global inertial frame coordinate system; when coupled to FAST, this is equivalent to FAST s global inertial frame (i) coordinate system 
+BeamDyn_Nodes['RVyg']         = False     # (deg/s); Sectional angular/rotational velocities (absolute); g: the global inertial frame coordinate system; when coupled to FAST, this is equivalent to FAST s global inertial frame (i) coordinate system 
+BeamDyn_Nodes['RVzg']         = False     # (deg/s); Sectional angular/rotational velocities (absolute); g: the global inertial frame coordinate system; when coupled to FAST, this is equivalent to FAST s global inertial frame (i) coordinate system 
+BeamDyn_Nodes['RVxl']         = False     # (deg/s); Sectional angular/rotational velocities (absolute); l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['RVyl']         = False     # (deg/s); Sectional angular/rotational velocities (absolute); l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['RVzl']         = False     # (deg/s); Sectional angular/rotational velocities (absolute); l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['RVxr']         = False     # (deg/s); Sectional angular/rotational velocities (absolute); r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['RVyr']         = False     # (deg/s); Sectional angular/rotational velocities (absolute); r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['RVzr']         = False     # (deg/s); Sectional angular/rotational velocities (absolute); r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['TAxl']         = False     # (m/s^2); Sectional angular/rotational velocities (absolute); l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['TAyl']         = False     # (m/s^2); Sectional angular/rotational velocities (absolute); l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['TAzl']         = False     # (m/s^2); Sectional angular/rotational velocities (absolute); l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['TAxr']         = False     # (m/s^2); Sectional angular/rotational velocities (absolute); r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['TAyr']         = False     # (m/s^2); Sectional angular/rotational velocities (absolute); r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['TAzr']         = False     # (m/s^2); Sectional angular/rotational velocities (absolute); r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['RAxl']         = False     # (deg/s^2); Sectional angular/rotational velocities (absolute); l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['RAyl']         = False     # (deg/s^2); Sectional angular/rotational velocities (absolute); l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['RAzl']         = False     # (deg/s^2); Sectional angular/rotational velocities (absolute); l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['RAxr']         = False     # (deg/s^2); Sectional angular/rotational velocities (absolute); r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['RAyr']         = False     # (deg/s^2); Sectional angular/rotational velocities (absolute); r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['RAzr']         = False     # (deg/s^2); Sectional angular/rotational velocities (absolute); r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+
+# Applied Loads
+BeamDyn_Nodes['PFxL']         = False     # (N); Applied point forces at each node expressed in l; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['PFyL']         = False     # (N); Applied point forces at each node expressed in l; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['PFzL']         = False     # (N); Applied point forces at each node expressed in l; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['PMxL']         = False     # (N-m); Applied point moments at each node expressed in l; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['PMyL']         = False     # (N-m); Applied point moments at each node expressed in l; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['PMzL']         = False     # (N-m); Applied point moments at each node expressed in l; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['DFxL']         = False     # (N/m); Applied distributed forces at each node expressed in l; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['DFyL']         = False     # (N/m); Applied distributed forces at each node expressed in l; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['DFzL']         = False     # (N/m); Applied distributed forces at each node expressed in l; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['DMxL']         = False     # (N-m/m); Applied distributed moments at each node expressed in l; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['DMyL']         = False     # (N-m/m); Applied distributed moments at each node expressed in l; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['DMzL']         = False     # (N-m/m); Applied distributed moments at each node expressed in l; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['DFxR']         = False     # (N/m); Applied distributed forces at each node expressed in r; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['DFyR']         = False     # (N/m); Applied distributed forces at each node expressed in r; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['DFzR']         = False     # (N/m); Applied distributed forces at each node expressed in r; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['DMxR']         = False     # (N-m/m); Applied distributed forces at each node expressed in r; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['DMyR']         = False     # (N-m/m); Applied distributed forces at each node expressed in r; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['DMzR']         = False     # (N-m/m); Applied distributed forces at each node expressed in r; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+
+# Sectional Partial Loads (debugging)
+BeamDyn_Nodes['FFbxl']        = False     # (N); Gyroscopic force x ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['FFbyl']        = False     # (N); Gyroscopic force y ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['FFbzl']        = False     # (N); Gyroscopic force z ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['FFbxr']        = False     # (N); Gyroscopic force x ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['FFbyr']        = False     # (N); Gyroscopic force y ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['FFbzr']        = False     # (N); Gyroscopic force z ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['MFbxl']        = False     # (N-m); Gyroscopic moment about x ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['MFbyl']        = False     # (N-m); Gyroscopic moment about y ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['MFbzl']        = False     # (N-m); Gyroscopic moment about z ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['MFbxr']        = False     # (N-m); Gyroscopic moment about x ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['MFbyr']        = False     # (N-m); Gyroscopic moment about y ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['MFbzr']        = False     # (N-m); Gyroscopic moment about z ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['FFcxl']        = False     # (N); Elastic restoring force Fc x ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['FFcyl']        = False     # (N); Elastic restoring force Fc y ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['FFczl']        = False     # (N); Elastic restoring force Fc z ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['FFcxr']        = False     # (N); Elastic restoring force Fc x ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['FFcyr']        = False     # (N); Elastic restoring force Fc y ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['FFczr']        = False     # (N); Elastic restoring force Fc z ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['MFcxl']        = False     # (N-m);   Elastic restoring moment Fc about x ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['MFcyl']        = False     # (N-m);   Elastic restoring moment Fc about y ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['MFczl']        = False     # (N-m);   Elastic restoring moment Fc about z ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['MFcxr']        = False     # (N-m);   Elastic restoring moment Fc about x ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['MFcyr']        = False     # (N-m);   Elastic restoring moment Fc about y ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['MFczr']        = False     # (N-m);   Elastic restoring moment Fc about z ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['FFdxl']        = False     # (N);   Elastic restoring force Fd x ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['FFdyl']        = False     # (N);   Elastic restoring force Fd y ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['FFdzl']        = False     # (N);   Elastic restoring force Fd z ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['FFdxr']        = False     # (N);   Elastic restoring force Fd x ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['FFdyr']        = False     # (N);   Elastic restoring force Fd y ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['FFdzr']        = False     # (N);   Elastic restoring force Fd z ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['MFdxl']        = False     # (N-m);   Elastic restoring moment Fd about x ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['MFdyl']        = False     # (N-m);   Elastic restoring moment Fd about y ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['MFdzl']        = False     # (N-m);   Elastic restoring moment Fd about z ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['MFdxr']        = False     # (N-m);   Elastic restoring moment Fd about x ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['MFdyr']        = False     # (N-m);   Elastic restoring moment Fd about y ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['MFdzr']        = False     # (N-m);   Elastic restoring moment Fd about z ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['FFgxl']        = False     # (N);   Gravity force x ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['FFgyl']        = False     # (N);   Gravity force y ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['FFgzl']        = False     # (N);   Gravity force z ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['FFgxr']        = False     # (N);   Gravity force x ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['FFgyr']        = False     # (N);   Gravity force y ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['FFgzr']        = False     # (N);   Gravity force z ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['MFgxl']        = False     # (N-m);   Gravity moment about x ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['MFgyl']        = False     # (N-m);   Gravity moment about y ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['MFgzl']        = False     # (N-m);   Gravity moment about z ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['MFgxr']        = False     # (N-m);   Gravity moment about x ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['MFgyr']        = False     # (N-m);   Gravity moment about y ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['MFgzr']        = False     # (N-m);   Gravity moment about z ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['FFixl']        = False     # (N);   Inertial force x ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['FFiyl']        = False     # (N);   Inertial force y ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['FFizl']        = False     # (N);   Inertial force z ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['FFixr']        = False     # (N);   Inertial force x ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['FFiyr']        = False     # (N);   Inertial force y ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['FFizr']        = False     # (N);   Inertial force z ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['MFixl']        = False     # (N-m);   Inertial moment about x ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['MFiyl']        = False     # (N-m);   Inertial moment about y ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['MFizl']        = False     # (N-m);   Inertial moment about z ; l: a floating coordinate system local to the deflected beam
+BeamDyn_Nodes['MFixr']        = False     # (N-m);   Inertial moment about x ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['MFiyr']        = False     # (N-m);   Inertial moment about y ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+BeamDyn_Nodes['MFizr']        = False     # (N-m);   Inertial moment about z ; r: a floating reference coordinate system fixed to the root of the moving beam; when coupled to FAST for blades, this is equivalent to the IEC blade (b) coordinate system 
+
+
+""" AeroDyn_Nodes """
+AeroDyn_Nodes = {}
+
+# Blade
+AeroDyn_Nodes['VUndx']        = False     # (m/s); x-component of undisturbed wind velocity at each node; local blade coordinate system
+AeroDyn_Nodes['VUndy']        = False     # (m/s); y-component of undisturbed wind velocity at each node; local blade coordinate system
+AeroDyn_Nodes['VUndz']        = False     # (m/s); z-component of undisturbed wind velocity at each node; local blade coordinate system
+AeroDyn_Nodes['Vundxi']       = False     # (m/s); x-component of undisturbed wind velocity at each node; inertial/global coordinate system
+AeroDyn_Nodes['Vundyi']       = False     # (m/s); y-component of undisturbed wind velocity at each node; inertial/global coordinate system
+AeroDyn_Nodes['Vundzi']       = False     # (m/s); z-component of undisturbed wind velocity at each node; inertial/global coordinate system
+AeroDyn_Nodes['VDisx']        = False     # (m/s); x-component of disturbed wind velocity at each node; local blade coordinate system
+AeroDyn_Nodes['VDisy']        = False     # (m/s); y-component of disturbed wind velocity at each node; local blade coordinate system
+AeroDyn_Nodes['VDisz']        = False     # (m/s); z-component of disturbed wind velocity at each node; local blade coordinate system
+AeroDyn_Nodes['STVx']         = False     # (m/s); x-component of structural translational velocity at each node; local blade coordinate system
+AeroDyn_Nodes['STVy']         = False     # (m/s); y-component of structural translational velocity at each node; local blade coordinate system
+AeroDyn_Nodes['STVz']         = False     # (m/s); z-component of structural translational velocity at each node; local blade coordinate system
+AeroDyn_Nodes['VRel']         = False     # (m/s); Relvative wind speed at each node; 
+AeroDyn_Nodes['DynP']         = False     # (Pa); Dynamic pressure at each node; 
+AeroDyn_Nodes['Re']           = False     # (-); Reynolds number (in millions) at each node; 
+AeroDyn_Nodes['M']            = False     # (-); Mach number at each node; 
+AeroDyn_Nodes['Vindx']        = False     # (m/s); Axial induced wind velocity at each node; 
+AeroDyn_Nodes['Vindy']        = False     # (m/s); Tangential induced wind velocity at each node; 
+AeroDyn_Nodes['AxInd']        = False     # (-); Axial induction factor at each node; 
+AeroDyn_Nodes['TnInd']        = False     # (-); Tangential induction factor at each node; 
+AeroDyn_Nodes['Alpha']        = False     # (deg); Angle of attack at each node; 
+AeroDyn_Nodes['Theta']        = False     # (deg); Pitch+Twist angle at each node; 
+AeroDyn_Nodes['Phi']          = False     # (deg); Inflow angle at each node; 
+AeroDyn_Nodes['Curve']        = False     # (deg); Curvature angle at each node; 
+AeroDyn_Nodes['Cl']           = False     # (-); Lift force coefficient at each node, including unsteady effects; 
+AeroDyn_Nodes['Cd']           = False     # (-); Drag force coefficient at each node, including unsteady effects; 
+AeroDyn_Nodes['Cm']           = False     # (-); Pitching moment coefficient at each node, including unsteady effects; 
+AeroDyn_Nodes['Cx']           = False     # (-); Normal force (to plane) coefficient at each node; 
+AeroDyn_Nodes['Cy']           = False     # (-); Tangential force (to plane) coefficient at each node; 
+AeroDyn_Nodes['Cn']           = False     # (-); Normal force (to chord) coefficient at each node; 
+AeroDyn_Nodes['Ct']           = False     # (-); Tangential force (to chord) coefficient at each node; 
+AeroDyn_Nodes['Fl']           = False     # (N/m); Lift force per unit length at each node; 
+AeroDyn_Nodes['Fd']           = False     # (N/m); Drag force per unit length at each node; 
+AeroDyn_Nodes['Mm']           = False     # (N-m/m); Pitching moment per unit length at each node; 
+AeroDyn_Nodes['Fx']           = False     # (N/m); Normal force (to plane) per unit length at each node; 
+AeroDyn_Nodes['Fy']           = False     # (N/m); Tangential force (to plane) per unit length at each node; 
+AeroDyn_Nodes['Fn']           = False     # (N/m); Normal force (to chord) per unit length at each node; 
+AeroDyn_Nodes['Ft']           = False     # (N/m); Tangential force (to chord) per unit length at each node; 
+AeroDyn_Nodes['Clrnc']        = False     # (m); Tower clearance at each node (based on the absolute distance to the nearest point in the tower from blade node B#N# minus the local tower radius, in the deflected configuration); please note that this clearance is only approximate because the calculation assumes that the blade is a line with no volume (however, the calculation does use the local tower radius); when blade node B#N# is above the tower top (or below the tower base), the absolute distance to the tower top (or base) minus the local tower radius, in the deflected configuration, is output; 
+AeroDyn_Nodes['Vx']           = False     # (m/s); Local axial velocity; 
+AeroDyn_Nodes['Vy']           = False     # (m/s); Local tangential velocity; 
+AeroDyn_Nodes['GeomPhi']      = False     # (1/0); Geometric phi? If phi was solved using normal BEMT equations, GeomPhi = 1; otherwise, if it was solved geometrically, GeomPhi = 0.; 
+AeroDyn_Nodes['Chi']          = False     # (deg); Skew angle (used in skewed wake correction); 
+AeroDyn_Nodes['UA_Flag']      = False     # (-); Flag indicating if UA is turned on for this node.; 
+AeroDyn_Nodes['UA_x1']        = False     # (rad); time-history of wake vorticity contributing to effective angle of attack; 
+AeroDyn_Nodes['UA_x2']        = False     # (rad); time-history of wake vorticity contributing to effective angle of attack; 
+AeroDyn_Nodes['UA_x3']        = False     # (-); dimension of cl (UAMod4) or cn (UAMod5); lagging the fully-attached coefficient; 
+AeroDyn_Nodes['UA_x4']        = False     # (-); UAMod4 and 5 separation factor; 
+AeroDyn_Nodes['UA_x5']        = False     # (-); UAMod5 vortex term; 
+AeroDyn_Nodes['Debug1']       = False     # (-); Placeholders for debugging channels; 
+AeroDyn_Nodes['Debug2']       = False     # (-); Placeholders for debugging channels; 
+AeroDyn_Nodes['Debug3']       = False     # (-); Placeholders for debugging channels; 
+AeroDyn_Nodes['CpMin']        = False     # (-); Pressure coefficient; 
+AeroDyn_Nodes['SgCav']        = False     # (-); Cavitation number; 
+AeroDyn_Nodes['SigCr']        = False     # (-); Critical cavitation number; 
+AeroDyn_Nodes['Gam']          = False     # (m^2/s); Gamma -- circulation on blade; 
+AeroDyn_Nodes['Cl_Static']    = False     # (-); Static portion of lift force coefficient at each node, without  unsteady effects; 
+AeroDyn_Nodes['Cd_Static']    = False     # (-); Static portion of drag force coefficient at each node, without unsteady effects; 
+AeroDyn_Nodes['Cm_Static']    = False     # (-); Static portion of pitching moment coefficient at each node, without unsteady effects; 
+AeroDyn_Nodes['Uin']          = False     # (m/s); Axial induced velocity  in rotating hub coordinates. Axial aligned with hub axis.; rotor plane polar hub rotating coordinates
+AeroDyn_Nodes['Uit']          = False     # (m/s); Tangential induced velocity  in rotating hub coordinates. Tangential to the rotation plane. Perpendicular to blade aziumth.; rotor plane polar hub rotating coordinates
+AeroDyn_Nodes['Uir']          = False     # (m/s); Radial induced velocity  in rotating hub coordinates. Radial outwards in rotation plane. Aligned with blade azimuth.; rotor plane polar hub rotating coordinates
+
 
 """ InflowWind """
 InflowWind = {}
