@@ -5,7 +5,6 @@ import numpy as np
 from functools import reduce
 
 from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
-from ROSCO_toolbox.ofTools.fast_io.FAST_vars import FstModel
 
 from ROSCO_toolbox.utilities import write_rotor_performance, write_DISCON
 ROSCO = True
