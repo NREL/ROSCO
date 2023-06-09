@@ -22,19 +22,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Even miniconda gets bogged down- try mamba
-      - name: Install Conda environment with Micromamba
-        uses: mamba-org/setup-micromamba@v1
+      - name: Setup environment
+        uses: conda-incubator/setup-miniconda@v2
         with:
+          miniconda-version: "latest"
+          channels: conda-forge, general
+          auto-update-conda: true
+          python-version: 3.9
           environment-file: environment.yml
-          environment-name: test
-          post-cleanup: none
-          init-shell: bash
-          condarc: |
-              channels:
-                  - conda-forge
-          create-args: >-
-            python=${{ matrix.python-version }}
 
       # Install ROSCO toolbox
       - name: Install ROSCO toolbox
@@ -46,6 +41,17 @@ jobs:
       - name: Generate Registry
         shell: bash -l {0}
         run: python ROSCO/rosco_registry/write_registry.py
+          
+      - name: Add dependencies windows 
+        if: true == contains( matrix.os, 'windows')
+        run: |
+          conda install -y m2w64-toolchain
+
+      - name: Add dependencies windows 
+        if: true == contains( matrix.os, 'mac')
+        shell: bash -l {0}
+        run: |
+          conda install -y gfortran
 
       - name: Setup Workspace
         run: |
