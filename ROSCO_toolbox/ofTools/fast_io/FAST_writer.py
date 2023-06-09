@@ -411,6 +411,20 @@ class InputWriter_OpenFAST(object):
                 f.write('"' + channel_list[i] + '"\n')
         
         f.write('END of input file (the word "END" must appear in the first 3 columns of this last OutList line)\n')
+                
+        # Optional nodal output section
+        if 'BldNd_BladesOut' in self.fst_vt['ElastoDyn']:
+            f.write('====== Outputs for all blade stations (same ending as above for B1N1.... =========================== [optional section]\n')
+            f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['ElastoDyn']['BldNd_BladesOut'], 'BldNd_BladesOut', '- Number of blades to output all node information at.  Up to number of blades on turbine. (-)\n'))
+            f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['ElastoDyn']['BldNd_BlOutNd'], 'BldNd_BlOutNd', '- Future feature will allow selecting a portion of the nodes to output.  Not implemented yet. (-)\n'))
+            f.write('                   OutList     - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx, ElastoDyn_Nodes tab for a listing of available output channels, (-)\n')
+            
+            opt_outlist = self.get_outlist(self.fst_vt['outlist'], ['ElastoDyn_Nodes'])      
+            for opt_channel_list in opt_outlist:
+                for i in range(len(opt_channel_list)):
+                    f.write('"' + opt_channel_list[i] + '"\n')
+            f.write('END of input file (the word "END" must appear in the first 3 columns of this last OutList line)\n')
+        
         f.write('---------------------------------------------------------------------------------------\n')
         f.close()
 
@@ -586,7 +600,21 @@ class InputWriter_OpenFAST(object):
         for channel_list in outlist:
             for i in range(len(channel_list)):
                 f.write('"' + channel_list[i] + '"\n')
-        f.write('END of input file (the word "END" must appear in the first 3 columns of this last OutList line)')
+        f.write('END of input file (the word "END" must appear in the first 3 columns of this last OutList line)\n')
+                
+        # Optional nodal output section
+        if 'BldNd_BlOutNd' in self.fst_vt['BeamDyn']:
+            f.write('====== Outputs for all blade stations (same ending as above for B1N1.... =========================== [optional section]\n')
+            # f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['BeamDyn']['BldNd_BladesOut'], 'BldNd_BladesOut', '- Number of blades to output all node information at.  Up to number of blades on turbine. (-)\n'))
+            f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['BeamDyn']['BldNd_BlOutNd'], 'BldNd_BlOutNd', '- Future feature will allow selecting a portion of the nodes to output.  Not implemented yet. (-)\n'))
+            f.write('                   OutList     - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx, BeamDyn_Nodes tab for a listing of available output channels, (-)\n')
+            
+            opt_outlist = self.get_outlist(self.fst_vt['outlist'], ['BeamDyn_Nodes'])      
+            for opt_channel_list in opt_outlist:
+                for i in range(len(opt_channel_list)):
+                    f.write('"' + opt_channel_list[i] + '"\n')
+            f.write('END of input file (the word "END" must appear in the first 3 columns of this last OutList line)\n')
+        
         f.write('---------------------------------------------------------------------------------------')
         f.close()
 
@@ -639,7 +667,7 @@ class InputWriter_OpenFAST(object):
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['WindType'], 'WindType', '- switch for wind file type (1=steady; 2=uniform; 3=binary TurbSim FF; 4=binary Bladed-style FF; 5=HAWC format; 6=User defined; 7=native Bladed FF)\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['PropagationDir'], 'PropagationDir', '- Direction of wind propagation (meteoroligical rotation from aligned with X (positive rotates towards -Y) -- degrees)\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['VFlowAng'], 'VFlowAng', '- Upflow angle (degrees) (not used for native Bladed format WindType=7)\n'))
-	f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['VelInterpCubic'], 'VelInterpCubic', '- Use cubic interpolation for velocity in time (false=linear, true=cubic) [Used with WindType=2,3,4,5,7]\n'))
+        f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['VelInterpCubic'], 'VelInterpCubic', '- Use cubic interpolation for velocity in time (false=linear, true=cubic) [Used with WindType=2,3,4,5,7]\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['NWindVel'], 'NWindVel', '- Number of points to output the wind velocity    (0 to 9)\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['WindVxiList'], 'WindVxiList', '- List of coordinates in the inertial X direction (m)\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['WindVyiList'], 'WindVyiList', '- List of coordinates in the inertial Y direction (m)\n'))
@@ -682,19 +710,20 @@ class InputWriter_OpenFAST(object):
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['PLExp_Hawc'], 'PLExp_Hawc', '- Power law exponent (-) (used for PL wind profile type only)\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['Z0'], 'Z0', '- Surface roughness length (m) (used for LG wind profile type only)\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['XOffset'], 'XOffset', '- Initial offset in +x direction (shift of wind box) (-)\n'))
-        f.write('          ================== LIDAR Parameters ===========================================================================\n')
-	f.write('{:<22} {:<22} {:}'.format(self.fst_vt['InflowWind']['SensorType'], 'SensorType', '- Switch for lidar configuration (0 = None, 1 = Single Point Beam(s), 2 = Continuous, 3 = Pulsed)\n'))
-	f.write('{:<22} {:<22} {:}'.format(self.fst_vt['InflowWind']['PulseSpacing'], 'PulseSpacing', '- Distance between range gates (m) (used when SensorType = 3)\n'))
-	f.write('{:<22} {:<22} {:}'.format(self.fst_vt['InflowWind']['NumBeam'], 'NumBeam', '- Number of lidar measurement beams (0-5)(used when SensorType = 1)\n'))
-	f.write('{:<22} {:<22} {:}'.format(self.fst_vt['InflowWind']['FocalDistanceX'], 'FocalDistanceX', '- Focal distance co-ordinates of the lidar beam in the x direction (relative to hub height) (only first coordinate used for SensorType 2 and 3) (m)\n'))
-	f.write('{:<22} {:<22} {:}'.format(self.fst_vt['InflowWind']['FocalDistanceY'], 'FocalDistanceY', '- Focal distance co-ordinates of the lidar beam in the y direction (relative to hub height) (only first coordinate used for SensorType 2 and 3) (m)\n'))
-	f.write('{:<22} {:<22} {:}'.format(self.fst_vt['InflowWind']['FocalDistanceZ'], 'FocalDistanceZ', '- Focal distance co-ordinates of the lidar beam in the z direction (relative to hub height) (only first coordinate used for SensorType 2 and 3) (m)\n'))
-	f.write('{:<22} {:<22} {:}'.format(' '.join(np.array(self.fst_vt['InflowWind']['RotorApexOffsetPos'], dtype=str)), 'RotorApexOffsetPos', '- Offset of the lidar from hub height (m)\n'))
-	f.write('{:<22} {:<22} {:}'.format(self.fst_vt['InflowWind']['URefLid'], 'URefLid', '- Reference average wind speed for the lidar[m/s]\n'))
-	f.write('{:<22} {:<22} {:}'.format(self.fst_vt['InflowWind']['MeasurementInterval'], 'MeasurementInterval', '- Time between each measurement [s]\n'))
-	f.write('{!s:<22} {:<22} {:}'.format(self.fst_vt['InflowWind']['LidRadialVel'], 'LidRadialVel', '- TRUE => return radial component, FALSE => return \'x\' direction estimate\n'))
-	f.write('{:<22} {:<22} {:}'.format(self.fst_vt['InflowWind']['ConsiderHubMotion'], 'ConsiderHubMotion', '- Flag whether to consider the hub motion\'s impact on Lidar measurements\n'))
-	f.write('====================== OUTPUT ==================================================\n')
+        f.write('-------------   LIDAR Parameters   --------------------------------------------------------------------------\n')
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['SensorType'], 'SensorType', '- Switch for lidar configuration (0 = None, 1 = Single Point Beam(s), 2 = Continuous, 3 = Pulsed)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['NumPulseGate'], 'NumPulseGate', '- Number of lidar measurement gates (used when SensorType = 3)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['PulseSpacing'], 'PulseSpacing', '- Distance between range gates (m) (used when SensorType = 3)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['NumBeam'], 'NumBeam', '- Number of lidar measurement beams (0-5)(used when SensorType = 1)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['FocalDistanceX'], 'FocalDistanceX', '- Focal distance co-ordinates of the lidar beam in the x direction (relative to hub height) (only first coordinate used for SensorType 2 and 3) (m)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['FocalDistanceY'], 'FocalDistanceY', '- Focal distance co-ordinates of the lidar beam in the y direction (relative to hub height) (only first coordinate used for SensorType 2 and 3) (m)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['FocalDistanceZ'], 'FocalDistanceZ', '- Focal distance co-ordinates of the lidar beam in the z direction (relative to hub height) (only first coordinate used for SensorType 2 and 3) (m)\n'))
+        f.write('{:<22} {:<11} {:}'.format(', '.join(np.array(self.fst_vt['InflowWind']['RotorApexOffsetPos'], dtype=str)), 'RotorApexOffsetPos', '- Offset of the lidar from hub height (m)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['URefLid'], 'URefLid', '- Reference average wind speed for the lidar[m/s]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['MeasurementInterval'], 'MeasurementInterval', '- Time between each measurement [s]\n'))
+        f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['LidRadialVel'], 'LidRadialVel', '- TRUE => return radial component, FALSE => return x direction estimate\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['ConsiderHubMotion'], 'ConsiderHubMotion', '- Flag whether to consider the hub motions impact on Lidar measurements\n'))
+        f.write('====================== OUTPUT ==================================================\n')
         f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['InflowWind']['SumPrint'], 'SumPrint', '- Print summary data to <RootName>.IfW.sum (flag)\n'))
         f.write('OutList      - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)\n')
         
@@ -820,6 +849,20 @@ class InputWriter_OpenFAST(object):
             for i in range(len(channel_list)):
                 f.write('"' + channel_list[i] + '"\n')
         f.write('END of input file (the word "END" must appear in the first 3 columns of this last OutList line)\n')
+        
+        # Optional nodal output section
+        if 'BldNd_BladesOut' in self.fst_vt['AeroDyn15']:
+            f.write('====== Outputs for all blade stations (same ending as above for B1N1.... =========================== [optional section]\n')
+            f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['BldNd_BladesOut'], 'BldNd_BladesOut', '- Number of blades to output all node information at.  Up to number of blades on turbine. (-)\n'))
+            f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['BldNd_BlOutNd'], 'BldNd_BlOutNd', '- Future feature will allow selecting a portion of the nodes to output.  Not implemented yet. (-)\n'))
+            f.write('                   OutList     - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx, AeroDyn_Nodes tab for a listing of available output channels, (-)\n')
+            
+            opt_outlist = self.get_outlist(self.fst_vt['outlist'], ['AeroDyn_Nodes'])      
+            for opt_channel_list in opt_outlist:
+                for i in range(len(opt_channel_list)):
+                    f.write('"' + opt_channel_list[i] + '"\n')
+            f.write('END of input file (the word "END" must appear in the first 3 columns of this last OutList line)\n')
+        
         f.write('---------------------------------------------------------------------------------------\n')
         f.close()
 
@@ -1174,25 +1217,25 @@ class InputWriter_OpenFAST(object):
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['nFWPanelsFree'], 'nFWPanelsFree','- Number of free far-wake panels (-) {default: nFWPanels}\n'))
         f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['FWShedVorticity'], 'FWShedVorticity','- Include shed vorticity in the far wake {default: False}\n'))
         f.write('------------------- WAKE REGULARIZATIONS AND DIFFUSION -----------------------------------------\n')
-        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['DiffusionMethod'], 'DiffusionMethod','- Diffusion method to account for viscous effects {0: None, 1: Core Spreading, "default": 0}\n'))
-        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['RegDeterMethod'], 'RegDeterMethod','- Method to determine the regularization parameters {0:  Manual, 1: Optimized, 2: Chord, 3: Span, default: 0 }\n'))
-        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['RegFunction'], 'RegFunction','- Viscous diffusion function {0: None, 1: Rankine, 2: LambOseen, 3: Vatistas, 4: Denominator, "default": 3} (switch)\n'))
-        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['WakeRegMethod'], 'WakeRegMethod','- Wake regularization method {1: Constant, 2: Stretching, 3: Age, default: 3} (switch)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['DiffusionMethod'], 'DiffusionMethod','- Diffusion method to account for viscous effects {0: None, 1: Core Spreading, "default": 0}\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['RegDeterMethod'], 'RegDeterMethod','- Method to determine the regularization parameters {0:  Manual, 1: Optimized, 2: Chord, 3: Span, default: 0 }\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['RegFunction'], 'RegFunction','- Viscous diffusion function {0: None, 1: Rankine, 2: LambOseen, 3: Vatistas, 4: Denominator, "default": 3} (switch)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['WakeRegMethod'], 'WakeRegMethod','- Wake regularization method {1: Constant, 2: Stretching, 3: Age, default: 3} (switch)\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['WakeRegFactor'], 'WakeRegFactor','- Wake regularization factor (m)\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['WingRegFactor'], 'WingRegFactor','- Wing regularization factor (m)\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['CoreSpreadEddyVisc'], 'CoreSpreadEddyVisc','- Eddy viscosity in core spreading methods, typical values 1-1000\n'))
         f.write('------------------- WAKE TREATMENT OPTIONS ---------------------------------------------------\n')
         f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['TwrShadowOnWake'], 'TwrShadowOnWake','- Include tower flow disturbance effects on wake convection {default:false} [only if TwrPotent or TwrShadow]\n'))
-        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['ShearModel'], 'ShearModel','- Shear Model {0: No treatment, 1: Mirrored vorticity, default: 0}\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['ShearModel'], 'ShearModel','- Shear Model {0: No treatment, 1: Mirrored vorticity, default: 0}\n'))
         f.write('------------------- SPEEDUP OPTIONS -----------------------------------------------------------\n')
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['VelocityMethod'], 'VelocityMethod','- Method to determine the velocity {1:Segment N^2, 2:Particle tree, 3:Particle N^2, 4:Segment tree, default: 2}\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['TreeBranchFactor'], 'TreeBranchFactor','- Branch radius fraction above which a multipole calculation is used {default: 1.5} [only if VelocityMethod=2,4]\n'))
-        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['PartPerSegment'], 'PartPerSegment','- Number of particles per segment {default: 1} [only if VelocityMethod=2,3]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['PartPerSegment'], 'PartPerSegment','- Number of particles per segment {default: 1} [only if VelocityMethod=2,3]\n'))
         f.write('===============================================================================================\n')
         f.write('--------------------------- OUTPUT OPTIONS  ---------------------------------------------------\n')
-        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['WrVTk'], 'WrVTk','- Outputs Visualization Toolkit (VTK) (independent of .fst option) {0: NoVTK, 1: Write VTK at VTK_fps, 2: Write VTK at init and final, default: 0} (flag)\n'))
-        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['nVTKBlades'], 'nVTKBlades','- Number of blades for which VTK files are exported {0: No VTK per blade, n: VTK for blade 1 to n, default: 0} (-) \n'))
-        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['VTKCoord'], 'VTKCoord','- Coordinate system used for VTK export. {1: Global, 2: Hub, 3: Both, default: 1} \n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['WrVTk'], 'WrVTk','- Outputs Visualization Toolkit (VTK) (independent of .fst option) {0: NoVTK, 1: Write VTK at VTK_fps, 2: Write VTK at init and final, default: 0} (flag)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['nVTKBlades'], 'nVTKBlades','- Number of blades for which VTK files are exported {0: No VTK per blade, n: VTK for blade 1 to n, default: 0} (-) \n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['VTKCoord'], 'VTKCoord','- Coordinate system used for VTK export. {1: Global, 2: Hub, 3: Both, default: 1} \n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['VTK_fps'], 'VTK_fps','- Frame rate for VTK output (frames per second) {"all" for all glue code timesteps, "default" for all OLAF timesteps} [only if WrVTK=1]\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['AeroDyn15']['OLAF']['nGridOut'], 'nGridOut','- Number of grid outputs\n'))
         f.write('GridName  GridType  TStart   TEnd    DTGrid   XStart  XEnd   nX   YStart   YEnd   nY   ZStart   ZEnd   nZ\n')
@@ -1463,8 +1506,11 @@ class InputWriter_OpenFAST(object):
         for j in range(6):
             if type(self.fst_vt['HydroDyn']['AddF0'][j]) == float:
                 ln = '{:14}   '.format(self.fst_vt['HydroDyn']['AddF0'][j])  
-            elif type(self.fst_vt['HydroDyn']['AddF0'][j]) == list:
+            elif type(self.fst_vt['HydroDyn']['AddF0'][j]) in [list, np.ndarray]:
                 ln = '{:14}   '.format(' '.join([f'{val}' for val in self.fst_vt['HydroDyn']['AddF0'][j]]))
+            else:
+                raise Exception("Check type of self.fst_vt['HydroDyn']['AddF0']")
+            
             if j == 0:
                 ln = ln + 'AddF0    - Additional preload (N, N-m) [If NBodyMod=1, one size 6*NBody x 1 vector; if NBodyMod>1, NBody size 6 x 1 vectors]\n'
             else:
@@ -1952,15 +1998,15 @@ class InputWriter_OpenFAST(object):
         for i in range(len(self.fst_vt['MoorDyn']['Name'])):
             ln = []
             ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['Name'][i]))
-            ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['Diam'][i]))
-            ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['MassDen'][i]))
-            ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['EA'][i]))
-            ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['BA_zeta'][i]))
-            ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['EI'][i]))
-            ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['Cd'][i]))
-            ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['Ca'][i]))
-            ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['CdAx'][i]))
-            ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['CaAx'][i]))
+            ln.append('{:^11.4f}'.format(self.fst_vt['MoorDyn']['Diam'][i]))
+            ln.append('{:^11.4f}'.format(self.fst_vt['MoorDyn']['MassDen'][i]))
+            ln.append('{:^11.4e}'.format(self.fst_vt['MoorDyn']['EA'][i]))
+            ln.append('{:^11.4f}'.format(self.fst_vt['MoorDyn']['BA_zeta'][i]))
+            ln.append('{:^11.4e}'.format(self.fst_vt['MoorDyn']['EI'][i]))
+            ln.append('{:^11.4f}'.format(self.fst_vt['MoorDyn']['Cd'][i]))
+            ln.append('{:^11.4f}'.format(self.fst_vt['MoorDyn']['Ca'][i]))
+            ln.append('{:^11.4f}'.format(self.fst_vt['MoorDyn']['CdAx'][i]))
+            ln.append('{:^11.4f}'.format(self.fst_vt['MoorDyn']['CaAx'][i]))
             f.write(" ".join(ln) + '\n')
         f.write('---------------------- POINTS --------------------------------\n')
         f.write(" ".join(['{:^11s}'.format(i) for i in ['ID', 'Attachment', 'X', 'Y', 'Z', 'M', 'V', 'CdA', 'CA']])+'\n')
@@ -1969,13 +2015,13 @@ class InputWriter_OpenFAST(object):
             ln = []
             ln.append('{:^11d}'.format(self.fst_vt['MoorDyn']['Point_ID'][i]))
             ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['Attachment'][i]))
-            ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['X'][i]))
-            ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['Y'][i]))
-            ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['Z'][i]))
-            ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['M'][i]))
-            ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['V'][i]))
-            ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['CdA'][i]))
-            ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['CA'][i]))
+            ln.append('{:^11.4f}'.format(self.fst_vt['MoorDyn']['X'][i]))
+            ln.append('{:^11.4f}'.format(self.fst_vt['MoorDyn']['Y'][i]))
+            ln.append('{:^11.4f}'.format(self.fst_vt['MoorDyn']['Z'][i]))
+            ln.append('{:^11.4e}'.format(self.fst_vt['MoorDyn']['M'][i]))
+            ln.append('{:^11.4e}'.format(self.fst_vt['MoorDyn']['V'][i]))
+            ln.append('{:^11.4f}'.format(self.fst_vt['MoorDyn']['CdA'][i]))
+            ln.append('{:^11.4f}'.format(self.fst_vt['MoorDyn']['CA'][i]))
             f.write(" ".join(ln) + '\n')
         f.write('---------------------- LINES --------------------------------------\n')
         f.write(" ".join(['{:^11s}'.format(i) for i in ['Line', 'LineType', 'AttachA', 'AttachB', 'UnstrLen', 'NumSegs',  'Outputs']])+'\n')
@@ -1986,7 +2032,7 @@ class InputWriter_OpenFAST(object):
             ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['LineType'][i]))
             ln.append('{:^11d}'.format(self.fst_vt['MoorDyn']['AttachA'][i]))
             ln.append('{:^11d}'.format(self.fst_vt['MoorDyn']['AttachB'][i]))
-            ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['UnstrLen'][i]))
+            ln.append('{:^11.4f}'.format(self.fst_vt['MoorDyn']['UnstrLen'][i]))
             ln.append('{:^11d}'.format(self.fst_vt['MoorDyn']['NumSegs'][i]))
             ln.append('{:^11}'.format(self.fst_vt['MoorDyn']['Outputs'][i]))
             f.write(" ".join(ln) + '\n')
