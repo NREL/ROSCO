@@ -116,7 +116,7 @@ class Controller():
             if 'Kp_float' in controller_params:
                 self.Kp_float = controller_params['Kp_float']
             else:
-                self.Kp_float = 0
+                self.Kp_float = np.array([0])
 
             self.tune_Fl = controller_params['tune_Fl']
 
@@ -419,7 +419,8 @@ class Controller():
                 print('WARNING: twr_freq and ptfm_freq should be defined for floating turbine control!!')
             
         else:
-            self.Kp_float = 0.0
+            self.Kp_float = np.array([0.0])
+            self.U_Fl = np.array([0.0])
         
         # Flap actuation 
         if self.Flp_Mode >= 1:
