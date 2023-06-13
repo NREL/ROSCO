@@ -213,7 +213,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
         floatstr = 'pitching'
     else:
         floatstr = 'velocity'
-    file.write('{:<11d} ! Fl_n              - Number of Fl_Kp gains in gain scheduling, optional with default of 1\n'.format(rosco_vt['Fl_n']))
+    file.write('{:<11d} ! Fl_n              - Number of Fl_Kp gains in gain scheduling, optional with default of 1\n'.format(int(rosco_vt['Fl_n'])))
     file.write('{}      ! Fl_Kp             - Nacelle {} proportional feedback gain [s]\n'.format(write_array(rosco_vt['Fl_Kp'],'<6.4f'), floatstr))
     file.write('{}      ! Fl_U              - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]\n'.format(write_array(rosco_vt['Fl_U'],'<6.4f')))
     file.write('\n')
