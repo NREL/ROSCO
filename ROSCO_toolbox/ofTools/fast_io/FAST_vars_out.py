@@ -10883,6 +10883,7 @@ FstOutput['HydroDyn']         = HydroDyn
 FstOutput['Morison']          = Morison
 FstOutput['SubDyn']           = SubDyn
 FstOutput['BeamDyn']          = BeamDyn
+FstOutput['MoorDyn']          = MoorDyn
 FstOutput['AeroDyn_Nodes']          = AeroDyn_Nodes
 FstOutput['ElastoDyn_Nodes']          = ElastoDyn_Nodes
 FstOutput['BeamDyn_Nodes']          = BeamDyn_Nodes
