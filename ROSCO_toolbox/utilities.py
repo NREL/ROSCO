@@ -30,6 +30,7 @@ import ROSCO_toolbox
 from wisdem.inputs import load_yaml
 
 from wisdem.inputs import load_yaml
+from ROSCO_toolbox.ofTools.util.FileTools import remove_numpy
 
 # Some useful constants
 now = datetime.datetime.now()
@@ -581,6 +582,8 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     for param, value in controller.controller_params['DISCON'].items():
         DISCON_dict[param] = value
 
+    # Make all lists, not numpy
+    DISCON_dict = remove_numpy(DISCON_dict)
 
     return DISCON_dict
 
