@@ -820,14 +820,23 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     FmtDat = "(F20.5,TR5,100(ES20.5E2,TR5:))"   ! The format of the debugging data
     IF(CntrPar%LoggingLevel > 0) THEN
         WRITE (UnDb, TRIM(FmtDat))  LocalVar%Time, DebugOutData
+        IF (LocalVar%iStatus < 0) THEN
+            CLOSE(UnDb)
+        ENDIF
     END IF
 
     IF(CntrPar%LoggingLevel > 1) THEN
         WRITE (UnDb2, TRIM(FmtDat))  LocalVar%Time, LocalVarOutData
+        IF (LocalVar%iStatus < 0) THEN
+            CLOSE(UnDb2)
+        ENDIF
     END IF
 
     IF(CntrPar%LoggingLevel > 2) THEN
         WRITE (UnDb3, TRIM(FmtDat))    LocalVar%Time, avrSWAP(avrIndices)
+        IF (LocalVar%iStatus < 0) THEN
+            CLOSE(UnDb3)
+        ENDIF
     END IF
 
 END SUBROUTINE Debug
