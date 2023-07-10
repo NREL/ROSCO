@@ -295,7 +295,7 @@ def read_DISCON(DISCON_filename):
                 if (line.split()[1] != '!'):    # Array valued entries
                     array_length = line.split().index('!')
                     param = line.split()[array_length+1]
-                    values = np.array( [float(x) for x in line.split()[:array_length]] )
+                    values = [float(x) for x in line.split()[:array_length]]
                     DISCON_in[param] = values
                 else:                           # All other entries
                     param = line.split()[2]
