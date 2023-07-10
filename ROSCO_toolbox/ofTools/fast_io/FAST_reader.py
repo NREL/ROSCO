@@ -409,6 +409,30 @@ class InputReader_OpenFAST(object):
                 self.set_outlist(self.fst_vt['outlist']['ElastoDyn'], channel_list)
 
                 data = f.readline()
+            
+        # ElastoDyn optional outlist
+        try:
+            f.readline()
+            self.fst_vt['ElastoDyn']['BldNd_BladesOut']    = int(f.readline().split()[0])
+            self.fst_vt['ElastoDyn']['BldNd_BlOutNd']    = f.readline().split()[0]
+
+            f.readline()
+            data =  f.readline()
+            while data.split()[0] != 'END':
+                if data.find('"')>=0:
+                    channels = data.split('"')
+                    opt_channel_list = channels[1].split(',')
+                else:
+                    row_string = data.split(',')
+                    if len(row_string)==1:
+                        opt_channel_list = row_string[0].split('\n')[0]
+                    else:
+                        opt_channel_list = row_string
+                self.set_outlist(self.fst_vt['outlist']['ElastoDyn_Nodes'], opt_channel_list)
+                data = f.readline()
+        except:
+            # The optinal outlist does not exist.
+            None
 
         f.close()
 
@@ -601,6 +625,30 @@ class InputReader_OpenFAST(object):
             channel_list = channels[1].split(',')
             self.set_outlist(self.fst_vt['outlist']['BeamDyn'], channel_list)
             data = f.readline()
+            
+        # BeamDyn optional outlist
+        try:
+            f.readline()
+            # self.fst_vt['BeamDyn']['BldNd_BladesOut']    = int(f.readline().split()[0])
+            self.fst_vt['BeamDyn']['BldNd_BlOutNd']    = f.readline().split()[0]
+
+            f.readline()
+            data =  f.readline()
+            while data.split()[0] != 'END':
+                if data.find('"')>=0:
+                    channels = data.split('"')
+                    opt_channel_list = channels[1].split(',')
+                else:
+                    row_string = data.split(',')
+                    if len(row_string)==1:
+                        opt_channel_list = row_string[0].split('\n')[0]
+                    else:
+                        opt_channel_list = row_string
+                self.set_outlist(self.fst_vt['outlist']['BeamDyn_Nodes'], opt_channel_list)
+                data = f.readline()
+        except:
+            # The optinal outlist does not exist.
+            None
 
         f.close()
 
@@ -661,6 +709,7 @@ class InputReader_OpenFAST(object):
         self.fst_vt['InflowWind']['WindType']       = int(f.readline().split()[0])
         self.fst_vt['InflowWind']['PropagationDir'] = float_read(f.readline().split()[0])
         self.fst_vt['InflowWind']['VFlowAng']       = float_read(f.readline().split()[0])
+        self.fst_vt['InflowWind']['VelInterpCubic'] = bool_read(f.readline().split()[0])
         self.fst_vt['InflowWind']['NWindVel']       = int(f.readline().split()[0])
         self.fst_vt['InflowWind']['WindVxiList']    = float_read(f.readline().split()[0])
         self.fst_vt['InflowWind']['WindVyiList']    = float_read(f.readline().split()[0])
@@ -716,6 +765,21 @@ class InputReader_OpenFAST(object):
         self.fst_vt['InflowWind']['PLExp_Hawc']  = float_read(f.readline().split()[0])
         self.fst_vt['InflowWind']['Z0']          = float_read(f.readline().split()[0])
         self.fst_vt['InflowWind']['XOffset']     = float_read(f.readline().split()[0])
+
+        # LIDAR parameters
+        f.readline()
+        self.fst_vt['InflowWind']['SensorType'] = int(f.readline().split()[0])
+        self.fst_vt['InflowWind']['NumPulseGate'] = int(f.readline().split()[0])
+        self.fst_vt['InflowWind']['PulseSpacing'] = float_read(f.readline().split()[0])
+        self.fst_vt['InflowWind']['NumBeam'] = int(f.readline().split()[0])
+        self.fst_vt['InflowWind']['FocalDistanceX'] = float_read(f.readline().split()[0])
+        self.fst_vt['InflowWind']['FocalDistanceY'] = float_read(f.readline().split()[0])
+        self.fst_vt['InflowWind']['FocalDistanceZ'] = float_read(f.readline().split()[0])
+        self.fst_vt['InflowWind']['RotorApexOffsetPos'] = [idx.strip() for idx in f.readline().split('RotorApexOffsetPos')[0].split(',')]
+        self.fst_vt['InflowWind']['URefLid'] = float_read(f.readline().split()[0])
+        self.fst_vt['InflowWind']['MeasurementInterval'] = float_read(f.readline().split()[0])
+        self.fst_vt['InflowWind']['LidRadialVel'] = bool_read(f.readline().split()[0])
+        self.fst_vt['InflowWind']['ConsiderHubMotion'] = int(f.readline().split()[0])
 
         # Inflow Wind Output Parameters (inflow_out_params)
         f.readline()
@@ -888,6 +952,30 @@ class InputReader_OpenFAST(object):
                     channel_list = row_string
             self.set_outlist(self.fst_vt['outlist']['AeroDyn'], channel_list)
             data = f.readline()
+
+        # AeroDyn15 optional outlist
+        try:
+            f.readline()
+            self.fst_vt['AeroDyn15']['BldNd_BladesOut']    = int(f.readline().split()[0])
+            self.fst_vt['AeroDyn15']['BldNd_BlOutNd']    = f.readline().split()[0]
+
+            f.readline()
+            data =  f.readline()
+            while data.split()[0] != 'END':
+                if data.find('"')>=0:
+                    channels = data.split('"')
+                    opt_channel_list = channels[1].split(',')
+                else:
+                    row_string = data.split(',')
+                    if len(row_string)==1:
+                        opt_channel_list = row_string[0].split('\n')[0]
+                    else:
+                        opt_channel_list = row_string
+                self.set_outlist(self.fst_vt['outlist']['AeroDyn_Nodes'], opt_channel_list)
+                data = f.readline()
+        except:
+            # The optinal outlist does not exist.
+            None
 
         f.close()
 
@@ -1082,11 +1170,11 @@ class InputReader_OpenFAST(object):
         f.readline()
         self.fst_vt['AeroDyn15']['OLAF']['VelocityMethod']  = int_read(f.readline().split()[0])
         self.fst_vt['AeroDyn15']['OLAF']['TreeBranchFactor']= float_read(f.readline().split()[0])
-        self.fst_vt['AeroDyn15']['OLAF']['PartPerSegment']  = int(f.readline().split()[0])
+        self.fst_vt['AeroDyn15']['OLAF']['PartPerSegment']  = int_read(f.readline().split()[0])
         f.readline()
         f.readline()
-        self.fst_vt['AeroDyn15']['OLAF']['WrVTk']       = int(f.readline().split()[0])
-        self.fst_vt['AeroDyn15']['OLAF']['nVTKBlades']  = int(f.readline().split()[0])
+        self.fst_vt['AeroDyn15']['OLAF']['WrVTk']       = int_read(f.readline().split()[0])
+        self.fst_vt['AeroDyn15']['OLAF']['nVTKBlades']  = int_read(f.readline().split()[0])
         self.fst_vt['AeroDyn15']['OLAF']['VTKCoord']    = int_read(f.readline().split()[0])
         self.fst_vt['AeroDyn15']['OLAF']['VTK_fps']     = float_read(f.readline().split()[0])
         self.fst_vt['AeroDyn15']['OLAF']['nGridOut']    = int_read(f.readline().split()[0])
