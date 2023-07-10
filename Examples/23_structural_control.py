@@ -47,7 +47,7 @@ def main():
 
     # Input yaml and output directory
     parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW_ballast.yaml')
-    run_dir = os.path.join(example_out_dir,'23_structural_control_OL_2')
+    run_dir = os.path.join(example_out_dir,'23_structural_control')
     os.makedirs(run_dir,exist_ok=True)
 
     # Read initial input file
