@@ -702,6 +702,8 @@ CONTAINS
         
         ! Internal Variables
         Integer(IntKi)                            :: I_GROUP
+        CHARACTER(*),               PARAMETER           :: RoutineName = 'StructuralControl'
+
 
 
         IF (CntrPar%CC_Mode == 1) THEN
@@ -756,10 +758,15 @@ CONTAINS
 
         END DO
 
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
+
     END SUBROUTINE CableControl
 
 !-------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst)
+SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
         ! Cable controller
         !       StC_Mode = 0, No cable control, this code not executed
         !       StC_Mode = 1, User-defined cable control
@@ -767,20 +774,24 @@ SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst)
         !
         ! Note that LocalVar%StC_Input() has a fixed max size of 12, which can be increased in rosco_types.yaml
         !
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, ErrorVariables
     
         REAL(ReKi), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
     
         TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
+        TYPE(ErrorVariables), INTENT(INOUT)      :: ErrVar
+
         
         ! Internal Variables
         Integer(IntKi)                            :: I_GROUP
+        CHARACTER(*),               PARAMETER           :: RoutineName = 'StructuralControl'
+
 
 
         IF (CntrPar%StC_Mode == 1) THEN
-            ! User defined control
+            ! User defined control, step example
 
             IF (LocalVar%Time > 500) THEN
                 ! Step change in input of -4500 N
@@ -791,6 +802,18 @@ SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst)
             END IF
 
 
+        ELSEIF (CntrPar%StC_Mode == 2) THEN
+
+
+            DO I_GROUP = 1,CntrPar%StC_Group_N
+                IF (CntrPar%Ind_StructControl(I_GROUP) > 0) THEN
+                    LocalVar%StC_Input(I_GROUP) =  interp1d(CntrPar%OL_Breakpoints, &
+                                                            CntrPar%OL_StructControl(I_GROUP,:), &
+                                                            LocalVar%Time,ErrVar)
+                ENDIF
+            ENDDO
+
+
 
         END IF
 
@@ -799,6 +822,11 @@ SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst)
         DO I_GROUP = 1, CntrPar%StC_Group_N
             avrSWAP(CntrPar%StC_GroupIndex(I_GROUP)) = LocalVar%StC_Input(I_GROUP)
         END DO
+
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
 
     END SUBROUTINE StructuralControl
 !-------------------------------------------------------------------------------------------------------------------------------

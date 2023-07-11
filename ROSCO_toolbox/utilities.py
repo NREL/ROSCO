@@ -30,6 +30,7 @@ import ROSCO_toolbox
 from wisdem.inputs import load_yaml
 
 from wisdem.inputs import load_yaml
+from ROSCO_toolbox.ofTools.util.FileTools import remove_numpy
 
 # Some useful constants
 now = datetime.datetime.now()
@@ -296,7 +297,7 @@ def read_DISCON(DISCON_filename):
                 if (line.split()[1] != '!'):    # Array valued entries
                     array_length = line.split().index('!')
                     param = line.split()[array_length+1]
-                    values = np.array( [float(x) for x in line.split()[:array_length]] )
+                    values = [float(x) for x in line.split()[:array_length]]
                     DISCON_in[param] = values
                 else:                           # All other entries
                     param = line.split()[2]
@@ -587,6 +588,8 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     for param, value in controller.controller_params['DISCON'].items():
         DISCON_dict[param] = value
 
+    # Make all lists, not numpy
+    DISCON_dict = remove_numpy(DISCON_dict)
 
     return DISCON_dict
 
