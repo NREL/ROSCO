@@ -94,7 +94,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('\n')
     file.write('!------- SIMULATION CONTROL ------------------------------------------------------------\n')
     file.write('{0:<12d}        ! LoggingLevel		- {{0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}}\n'.format(int(rosco_vt['LoggingLevel'])))
-    file.write('{}              ! DT_Out    		- {{Time step to output .dbg* files, or 0 to match sampling period of OpenFAST}}\n'.format(rosco_vt['DT_Out']))
+    file.write('{}                   ! DT_Out    		- {{Time step to output .dbg* files, or 0 to match sampling period of OpenFAST}}\n'.format(rosco_vt['DT_Out']))
     file.write('{:<11d}         ! Echo		        - ({})\n'.format(int(rosco_vt['Echo']), input_descriptions['Echo']))
     file.write('\n')
     file.write('!------- CONTROLLER FLAGS -------------------------------------------------\n')
