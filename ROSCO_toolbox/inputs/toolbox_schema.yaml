@@ -331,7 +331,7 @@ properties:
                 minimum: 0
                 default: 30
             Kp_float:
-                type: number, array
+                type: [number, array]
                 description: Gain(s) of floating feedback control
                 unit: s
                 items: 
