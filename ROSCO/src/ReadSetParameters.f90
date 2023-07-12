@@ -1226,22 +1226,14 @@ CONTAINS
             ENDIF
 
             IF (CntrPar%OL_Mode == 2) THEN
-                IF ((CntrPar%Ind_BldPitch(1) < 0) .OR. &
-                (CntrPar%Ind_BldPitch(2) < 0) .OR. &
-                (CntrPar%Ind_BldPitch(3) < 0) .OR. &
-                (CntrPar%Ind_GenTq < 0)) THEN
+                PRINT *, 'CntrPar%Ind_Azimuth: ', CntrPar%Ind_Azimuth
+                IF ((CntrPar%Ind_BldPitch(1) == 0) .OR. &
+                (CntrPar%Ind_BldPitch(2) == 0) .OR. &
+                (CntrPar%Ind_BldPitch(3) == 0) .OR. &
+                (CntrPar%Ind_GenTq == 0) .OR. &
+                (CntrPar%Ind_Azimuth == 0)) THEN
                     ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg = 'If OL_Mode = 2, Ind_BldPitch and Ind_GenTq must be greater than zero'
-                ENDIF
-            ENDIF
-
-            IF (CntrPar%OL_Mode == 2) THEN
-                IF ((CntrPar%Ind_BldPitch(1) < 0) .OR. &
-                (CntrPar%Ind_BldPitch(2) < 0) .OR. &
-                (CntrPar%Ind_BldPitch(3) < 0) .OR. &
-                (CntrPar%Ind_GenTq < 0)) THEN
-                    ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg = 'If OL_Mode = 2, Ind_BldPitch and Ind_GenTq must be greater than zero'
+                    ErrVar%ErrMsg = 'If OL_Mode = 2, Ind_BldPitch, Ind_GenTq, and Ind_Azimuth must be greater than zero'
                 ENDIF
             ENDIF
 

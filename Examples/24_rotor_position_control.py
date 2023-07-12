@@ -59,13 +59,13 @@ def main():
     r.save_dir      = run_dir
     r.openfast_exe = '/Users/dzalkind/opt/anaconda3/envs/rosco-env2/bin/openfast'
     r.case_inputs   = case_inputs
-    r.run_FAST()
+    # r.run_FAST()
 
     # Gather azimuth, blade pitch, generator torque output
     op = output_processing.output_processing()
-    # fast_out = op.load_fast_out(os.path.join(example_out_dir,'19_RotPos_Turb_0/IEA15MW/turb_bts/base/IEA15MW_0.outb'), tmin=0)
-    bl_out = '/Users/dzalkind/Tools/ROSCO2/outputs/RPC_Sweeps/Baseline_Cases/RAAW_rosco_BD/turb_bts/base/RAAW_rosco_BD_0.outb'
-    fast_out = op.load_fast_out(bl_out)
+    fast_out = op.load_fast_out(os.path.join(run_dir,'NREL2p8/power_curve/base/NREL2p8_0.outb'), tmin=0)
+    # bl_out = '/Users/dzalkind/Tools/ROSCO2/outputs/RPC_Sweeps/Baseline_Cases/RAAW_rosco_BD/turb_bts/base/RAAW_rosco_BD_0.outb'
+    # fast_out = op.load_fast_out(fast_out)
 
     olc = OpenLoopControl()
     olc.ol_timeseries['time'] = fast_out[0]['Time']
@@ -83,10 +83,10 @@ def main():
     olc.RotSpeed_0 = RotSpeed_0
     olc.Azimuth_0 = Azimuth_0
     olc.BldPitch_0 = BldPitch_0
-    case_ind = bl_out.split('.out')[0][-1]
-    case_dir = os.path.split(bl_out)[0]
-    with open(os.path.join(case_dir,f'olc_{case_ind}.p'),'wb') as f:
-        pickle.dump(olc,f)
+    # case_ind = bl_out.split('.out')[0][-1]
+    # case_dir = os.path.split(bl_out)[0]
+    # with open(os.path.join(case_dir,f'olc_{case_ind}.p'),'wb') as f:
+    #     pickle.dump(olc,f)
     
     # set up control_params for next run
     open_loop = olc.write_input(os.path.join(run_dir,'ol_input.dat'))

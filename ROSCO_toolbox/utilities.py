@@ -578,7 +578,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['Ind_YawRate']     = controller.OL_Ind_YawRate
     DISCON_dict['Ind_CableControl']     = controller.OL_Ind_CableControl
     DISCON_dict['Ind_StructControl']    = controller.OL_Ind_StructControl
-    DISCON_dict['Ind_Azimuth']     = controller.controller_params['open_loop']['Ind_Azimuth']
+    DISCON_dict['Ind_Azimuth']     = controller.OL_Ind_Azimuth
 
     # ------- Pitch Actuator -------
     DISCON_dict['PA_Mode']         = controller.PA_Mode
