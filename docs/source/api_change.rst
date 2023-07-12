@@ -9,31 +9,46 @@ The changes are tabulated according to the line number, and flag name.
 The line number corresponds to the resulting line number after all changes are implemented.
 Thus, be sure to implement each in order so that subsequent line numbers are correct.
 
-2.7.0 to develop
+2.7.0 to 2.8.0
 -------------------------------
 Optional Inputs
 - ROSCO now reads in the whole input file and searches for keywords to set the inputs.  Blank spaces and specific ordering are no longer required.
 - Input requirements depend on control modes.  E.g., open loop inputs are not required if `OL_Mode = 0``
-IPC Saturation Modes
-- Added options for saturating the IPC command with the peak shaving limit
+Cable Control
+- Can control OpenFAST cables (MoorDyn or SubDyn) using ROSCO
+Structural Control
+- Can control OpenFAST structural control elements (ServoDyn) using ROSCO
+Active wake control
+- Added Active Wake Control (AWC) implementation
 
 ====== =================    ======================================================================================================================================================================================================
-New in ROSCO develop
+New in ROSCO 2.8.0
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
 6      Echo                 0               ! Echo		    - (0 - no Echo, 1 - Echo input data to <RootName>.echo)
-24     CC_Mode              0               ! CC_Mode        - Cable control mode [0- unused, 1- User defined, 2- Position control (not yet implemented)]
-28     StC_Mode             0               ! StC_Mode       - Structural control mode [0- unused, 1- User defined]
-154    Empty Line          
-155    CC_Section           !------- Cable Control ---------------------------------------------------------
-156    CC_Group_N           3               ! CC_Group_N		- Number of cable control groups
-157    CC_GroupIndex        2601 2603 2605  ! CC_GroupIndex  - First index for cable control group, should correspond to deltaL
-158    CC_ActTau            20.000000       ! CC_ActTau		- Time constant for line actuator [s]
-159    Empty Line          
-160    StC_Section          !------- Structural Controllers ---------------------------------------------------------
-161    StC_Group_N          3               ! StC_Group_N		- Number of cable control groups
-162    StC_GroupIndex       2818 2838 2858  ! StC_GroupIndex     - First index for structural control group, options specified in ServoDyn summary output   
+25     AWC_Mode             0			    ! AWC_Mode       - Active wake control mode [0 - not used, 1 - complex number method, 2 - Coleman transform method]
+28     CC_Mode              0               ! CC_Mode           - Cable control mode [0- unused, 1- User defined, 2- Open loop control]
+29     StC_Mode             0               ! StC_Mode          - Structural control mode [0- unused, 1- User defined, 2- Open loop control]
+139    Ind_CableControl     0               ! Ind_CableControl  - The column(s) in OL_Filename that contains the cable control inputs in m [Used with CC_Mode = 2, must be the same size as CC_Group_N]
+140    Ind_StructControl    0               ! Ind_StructControl - The column(s) in OL_Filename that contains the structural control inputs [Used with StC_Mode = 2, must be the same size as StC_Group_N]
+148    Empty Line
+149    AWC_Section          !------- Active Wake Control -----------------------------------------------------
+150    AWC_NumModes         1               ! AWC_NumModes    - AWC- Number of modes to include [-]
+151    AWC_n                1               ! AWC_n           - AWC azimuthal mode [-] (only used in complex number method)
+152    AWC_harmonic         1               ! AWC_harmonic    - AWC Coleman transform harmonic [-] (only used in Coleman transform method)
+153    AWC_freq             0.03            ! AWC_freq        - AWC frequency [Hz]
+154    AWC_amp              2.0             ! AWC_amp         - AWC amplitude [deg]
+155    AWC_clockangle       0.0             ! AWC_clockangle  - AWC clock angle [deg]
+165    Empty Line          
+166    CC_Section           !------- Cable Control ---------------------------------------------------------
+167    CC_Group_N           3               ! CC_Group_N		- Number of cable control groups
+168    CC_GroupIndex        2601 2603 2605  ! CC_GroupIndex  - First index for cable control group, should correspond to deltaL
+169    CC_ActTau            20.000000       ! CC_ActTau		- Time constant for line actuator [s]
+170    Empty Line          
+171    StC_Section          !------- Structural Controllers ---------------------------------------------------------
+172    StC_Group_N          3               ! StC_Group_N		- Number of cable control groups
+173    StC_GroupIndex       2818 2838 2858  ! StC_GroupIndex     - First index for structural control group, options specified in ServoDyn summary output   
 ====== =================    ======================================================================================================================================================================================================
 
 

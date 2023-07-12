@@ -139,14 +139,20 @@ class Controller():
         self.f_sd_cornerfreq        = controller_params['filter_params']['f_sd_cornerfreq']
 
         # Open loop parameters: set up and error catching
-        self.OL_Mode            = controller_params['OL_Mode']
+        self.OL_Mode            = int(controller_params['open_loop']['flag'])
+        self.OL_Filename        = controller_params['open_loop']['filename']
+        self.OL_Ind_Breakpoint  = self.OL_Ind_BldPitch = self.OL_Ind_GenTq = self.OL_Ind_YawRate = 0
+        self.OL_Ind_CableControl = [0]
+        self.OL_Ind_StructControl = [0]
         
         if self.OL_Mode:
             ol_params               = controller_params['open_loop']
-            self.OL_Ind_Breakpoint  = ol_params['Ind_Breakpoint']
-            self.OL_Ind_BldPitch    = ol_params['Ind_BldPitch']
-            self.OL_Ind_GenTq       = ol_params['Ind_GenTq']
-            self.OL_Ind_YawRate     = ol_params['Ind_YawRate']
+            self.OL_Ind_Breakpoint  = ol_params['OL_Ind_Breakpoint']
+            self.OL_Ind_BldPitch    = ol_params['OL_Ind_BldPitch']
+            self.OL_Ind_GenTq       = ol_params['OL_Ind_GenTq']
+            self.OL_Ind_YawRate     = ol_params['OL_Ind_YawRate']
+            self.OL_Ind_CableControl     = ol_params['OL_Ind_CableControl']
+            self.OL_Ind_StructControl    = ol_params['OL_Ind_StructControl']
 
             # Check that file exists because we won't write it
             if not os.path.exists(controller_params['open_loop']['filename']):
@@ -666,21 +672,7 @@ class OpenLoopControl(object):
         self.ol_timeseries = {}
         self.ol_timeseries['time'] = np.arange(0,self.t_max,self.dt)
 
-        self.allowed_interp_controls = [
-            'blade_pitch',
-            'generator_torque',
-            'nacelle_yaw',
-            'nacelle_yaw_rate',
-            ]
-
-        self.allowed_user_controls = [
-            'blade_pitch1',
-            'blade_pitch2',
-            'blade_pitch3',
-            'azimuth',
-        ]
-
-        self.allowed_controls = self.allowed_interp_controls + self.allowed_user_controls
+        self.allowed_controls = ['blade_pitch','generator_torque','nacelle_yaw','nacelle_yaw_rate','cable_control','struct_control']
 
         
     def const_timeseries(self,control,value):
@@ -699,8 +691,9 @@ class OpenLoopControl(object):
         if len(breakpoints) != len(values):
             raise Exception('Open loop breakpoints and values do not have the same length')
 
-        if control not in self.allowed_interp_controls:
-            raise Exception(f'Interpolated open loop control of {control} is not allowed')
+        # Check if control in allowed controls, cable_control_* is in cable_control
+        if not any([ac in control for ac in self.allowed_controls]):
+            raise Exception(f'Open loop control of {control} is not allowed')
 
         else:
             # Finally interpolate
@@ -765,9 +758,11 @@ class OpenLoopControl(object):
         # simplify
         ol_timeseries = self.ol_timeseries
 
-        # Catch errors
-        if 'nacelle_yaw' in ol_timeseries and 'nacelle_yaw_rate' not in ol_timeseries:
-            raise Exception('nacelle_yaw is in ol_timeseries and nacelle_yaw_rate is not.  ROSCO can only command yaw rate. Use compute_yaw_rate() to convert.')
+        # Init indices
+        OL_Ind_Breakpoint = 1
+        OL_Ind_BldPitch = OL_Ind_GenTq = OL_Ind_YawRate = 0
+        OL_Ind_CableControl = []
+        OL_Ind_StructControl = []
 
         Ind_GenTq = Ind_YawRate = Ind_Azimuth = 0
         Ind_BldPitch = 3*[0]
@@ -817,7 +812,32 @@ class OpenLoopControl(object):
                 ol_control_array = np.c_[ol_control_array,ol_timeseries[channel]]
 
 
-        
+        # Cable control
+        is_cable_chan = np.array(['cable_control' in ol_chan for ol_chan in ol_timeseries.keys()])
+        if any(is_cable_chan):
+            # if any channels are cable_control_*
+            n_cable_chan = np.sum(is_cable_chan)
+            cable_chan_names = np.array(list(ol_timeseries.keys()))[is_cable_chan]
+
+            # Let's assume they are 1-indexed and all there, otherwise a key error will be thrown
+            for cable_chan in cable_chan_names:
+                ol_control_array = np.c_[ol_control_array,ol_timeseries[cable_chan]]
+                OL_Ind_CableControl.append(ol_index_counter)
+                ol_index_counter += 1
+
+        # Struct control
+        is_struct_chan = ['struct_control' in ol_chan for ol_chan in ol_timeseries.keys()]
+        if any(is_struct_chan):
+            # if any channels are struct_control_*
+            n_struct_chan = np.sum(np.array(is_struct_chan))
+
+            # Let's assume they are 1-indexed and all there, otherwise a key error will be thrown
+            for i_chan in range(1,n_struct_chan+1):
+                ol_control_array = np.c_[ol_control_array,ol_timeseries[f'struct_control_{i_chan}']]
+                OL_Ind_StructControl.append(ol_index_counter)
+                ol_index_counter += 1
+
+
         # Open file
         if not os.path.exists(os.path.dirname(os.path.abspath(ol_filename))):
             os.makedirs(os.path.dirname(os.path.abspath(ol_filename)))
@@ -856,6 +876,20 @@ class OpenLoopControl(object):
                     headers[Ind_BldPitch[2]-1] = 'BldPitch3'
                     units[Ind_BldPitch[2]-1] = '(rad)'
 
+            if OL_Ind_CableControl:
+                for i_chan in range(1,n_cable_chan+1):
+                    header_line += f'\t\tCable{i_chan}'
+                    unit_line   += '\t\t(m)'
+            else:
+                OL_Ind_CableControl = [0]
+
+            if OL_Ind_StructControl:
+                for i_chan in range(1,n_struct_chan+1):
+                    header_line += f'\t\tStruct{i_chan}'
+                    unit_line   += '\t\t(m)'
+            else:
+                OL_Ind_StructControl = [0]
+
             # Join headers and units
             header_line = '!' + '\t\t'.join(headers) + '\n'
             unit_line = '!' + '\t\t'.join(units) + '\n'
@@ -871,11 +905,14 @@ class OpenLoopControl(object):
         # Output open_loop dict for control params
         open_loop = {}
         open_loop['filename']           = ol_filename
-        open_loop['Ind_Breakpoint']  = Ind_Breakpoint
-        open_loop['Ind_BldPitch']    = Ind_BldPitch
-        open_loop['Ind_GenTq']       = Ind_GenTq
-        open_loop['Ind_YawRate']     = Ind_YawRate
+        open_loop['OL_Ind_Breakpoint']  = OL_Ind_Breakpoint
+        open_loop['OL_Ind_BldPitch']    = OL_Ind_BldPitch
+        open_loop['OL_Ind_GenTq']       = OL_Ind_GenTq
+        open_loop['OL_Ind_YawRate']     = OL_Ind_YawRate
+        open_loop['OL_Ind_CableControl']     = OL_Ind_CableControl
+        open_loop['OL_Ind_StructControl']    = OL_Ind_StructControl
         open_loop['Ind_Azimuth']     = Ind_Azimuth
+
 
         return open_loop
 

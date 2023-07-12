@@ -118,12 +118,12 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
 
     ! Cable control
     IF (CntrPar%CC_Mode > 0) THEN
-        CALL CableControl(avrSWAP,CntrPar,LocalVar, objInst)
+        CALL CableControl(avrSWAP,CntrPar,LocalVar, objInst, ErrVar)
     END IF
 
     ! Structural control
     IF (CntrPar%StC_Mode > 0) THEN
-        CALL StructuralControl(avrSWAP,CntrPar,LocalVar, objInst)
+        CALL StructuralControl(avrSWAP,CntrPar,LocalVar, objInst, ErrVar)
     END IF
     
     IF ( CntrPar%LoggingLevel > 0 ) THEN

@@ -414,6 +414,14 @@ CONTAINS
             ! Output yaw rate command in rad/s
             avrSWAP(48) = YawRateCom * D2R
 
+            ! If using open loop yaw rate control, overwrite controlled output
+            ! Open loop torque control
+            IF ((CntrPar%OL_Mode == 1) .AND. (CntrPar%Ind_YawRate > 0)) THEN
+                IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN
+                    avrSWAP(48) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_YawRate,LocalVar%Time, ErrVar)
+                ENDIF
+            ENDIF
+
             ! Save for debug
             DebugVar%YawRateCom       = YawRateCom
             DebugVar%NacHeadingTarget = NacHeadingTarget
@@ -439,8 +447,6 @@ CONTAINS
         ! Local variables
         REAL(DbKi)                  :: PitComIPC(3), PitComIPCF(3), PitComIPC_1P(3), PitComIPC_2P(3)
         INTEGER(IntKi)              :: i, K                                    ! Integer used to loop through gains and turbine blades
-        REAL(DbKi)                  :: axisTilt_1P, axisYaw_1P, axisYawF_1P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
-        REAL(DbKi)                  :: axisTilt_2P, axisYaw_2P, axisYawF_2P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
         REAL(DbKi)                  :: axisYawIPC_1P                           ! IPC contribution with yaw-by-IPC component
         REAL(DbKi)                  :: Y_MErr, Y_MErrF, Y_MErrF_IPC            ! Unfiltered and filtered yaw alignment error [rad]
         REAL(DbKi)                  :: AWC_YawAmp                              ! Yaw amplitude for AWC
@@ -451,8 +457,8 @@ CONTAINS
 
         ! Body
         ! Pass rootMOOPs through the Coleman transform to get the tilt and yaw moment axis
-        CALL ColemanTransform(LocalVar%rootMOOPF, LocalVar%Azimuth, NP_1, axisTilt_1P, axisYaw_1P)
-        CALL ColemanTransform(LocalVar%rootMOOPF, LocalVar%Azimuth, NP_2, axisTilt_2P, axisYaw_2P)
+        CALL ColemanTransform(LocalVar%rootMOOPF, LocalVar%Azimuth, NP_1, LocalVar%axisTilt_1P, LocalVar%axisYaw_1P)
+        CALL ColemanTransform(LocalVar%rootMOOPF, LocalVar%Azimuth, NP_2, LocalVar%axisTilt_2P, LocalVar%axisYaw_2P)
 
         ! High-pass filter the MBC yaw component and filter yaw alignment error, and compute the yaw-by-IPC contribution
         IF (CntrPar%Y_ControlMode == 2) THEN
@@ -460,7 +466,7 @@ CONTAINS
             Y_MErrF = LPFilter(Y_MErr, LocalVar%DT, CntrPar%F_YawErr, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF)
             Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP, CntrPar%Y_IPC_KI, -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
         ELSE
-            axisYawF_1P = axisYaw_1P
+            LocalVar%axisYawF_1P = LocalVar%axisYaw_1P
             Y_MErrF = 0.0
             Y_MErrF_IPC = 0.0
         END IF
@@ -483,14 +489,19 @@ CONTAINS
         ENDIF
         
         ! Integrate the signal and multiply with the IPC gain
-        IF ((CntrPar%IPC_ControlMode >= 1) .AND. ((CntrPar%Y_ControlMode /= 2) .AND. (CntrPar%AWC_Mode == 0)))  THEN      ! IPC disabled if AWC is on (add warning?)
-            LocalVar%IPC_axisTilt_1P = PIController(axisTilt_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
-            LocalVar%IPC_axisYaw_1P = PIController(axisYawF_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+        IF (CntrPar%IPC_ControlMode >= 1 .AND. CntrPar%Y_ControlMode /= 2)  THEN
+            LocalVar%IPC_axisTilt_1P = PIController(LocalVar%axisTilt_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+            LocalVar%IPC_axisYaw_1P = PIController(LocalVar%axisYawF_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
             
             IF (CntrPar%IPC_ControlMode >= 2) THEN
-                LocalVar%IPC_axisTilt_2P = PIController(axisTilt_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
-                LocalVar%IPC_axisYaw_2P = PIController(axisYawF_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+                LocalVar%IPC_axisTilt_2P = PIController(LocalVar%axisTilt_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+                LocalVar%IPC_axisYaw_2P = PIController(LocalVar%axisYawF_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
             END IF
+        ELSE
+            LocalVar%IPC_axisTilt_1P = 0.0
+            LocalVar%IPC_axisYaw_1P = 0.0
+            LocalVar%IPC_axisTilt_2P = 0.0
+            LocalVar%IPC_axisYaw_2P = 0.0
         ENDIF
         
         ! Add the yaw-by-IPC contribution
@@ -514,13 +525,6 @@ CONTAINS
             LocalVar%IPC_PitComF(K) = PitComIPCF(K)
         END DO
 
-        ! debugging
-        DebugVar%axisTilt_1P = axisTilt_1P
-        DebugVar%axisYaw_1P = axisYaw_1P
-        DebugVar%axisTilt_2P = LocalVar%IPC_axisTilt_2P
-        DebugVar%axisYaw_2P = LocalVar%IPC_axisYaw_2P
-
-        
 
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN
@@ -706,7 +710,7 @@ CONTAINS
                 IF (CntrPar%AWC_NumModes == 1) THEN
                     AWC_TiltYaw(2) = PI/180*CntrPar%AWC_amp(1)*cos(LocalVar%Time*2*PI*CntrPar%AWC_freq(1) + 2*CntrPar%AWC_clockangle(1)*PI/180)
                 ENDIF
-                CALL ColemanTransformInverse(AWC_TiltYaw(1), AWC_TiltYaw(2), LocalVar%Azimuth, CntrPar%AWC_n(Imode), 0.0, AWC_angle)
+                CALL ColemanTransformInverse(AWC_TiltYaw(1), AWC_TiltYaw(2), LocalVar%Azimuth, CntrPar%AWC_harmonic(Imode), 0.0, AWC_angle)
 
                 DO K = 1,LocalVar%NumBl ! Loop through all blades, apply AWC_angle
                     LocalVar%PitCom(K) = LocalVar%PitCom(K) + AWC_angle(K)
@@ -720,7 +724,7 @@ CONTAINS
     END SUBROUTINE ActiveWakeControl
 
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE CableControl(avrSWAP, CntrPar, LocalVar, objInst)
+    SUBROUTINE CableControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
         ! Cable controller
         !       CC_Mode = 0, No cable control, this code not executed
         !       CC_Mode = 1, User-defined cable control
@@ -728,27 +732,45 @@ CONTAINS
         !
         ! Note that LocalVar%CC_Actuated*(), and CC_Desired() has a fixed max size of 12, which can be increased in rosco_types.yaml
         !
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, ErrorVariables
     
         REAL(ReKi), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
     
         TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
+        TYPE(ErrorVariables), INTENT(INOUT)      :: ErrVar
         
         ! Internal Variables
         Integer(IntKi)                            :: I_GROUP
+        CHARACTER(*),               PARAMETER           :: RoutineName = 'StructuralControl'
+
 
 
         IF (CntrPar%CC_Mode == 1) THEN
             ! User defined control
 
-            IF (LocalVar%Time > 50) THEN
+            IF (LocalVar%Time > 500) THEN
                 ! Shorten first group by 4 m
-                LocalVar%CC_DesiredL(1) = -10
+                LocalVar%CC_DesiredL(1) = -14.51
+                LocalVar%CC_DesiredL(2) = 1.58
+                LocalVar%CC_DesiredL(3) = -10.332
 
 
             END IF
+
+        ELSEIF (CntrPar%CC_Mode == 2) THEN
+            ! Open loop control
+            ! DO I_GROUP = 1, CntrPar%CC_Group_N
+            !     LocalVar%CC_DesiredL(I_GROUP) = interp1d(x,y,eq,ErrVar)
+
+            DO I_GROUP = 1,CntrPar%CC_Group_N
+                IF (CntrPar%Ind_CableControl(I_GROUP) > 0) THEN
+                    LocalVar%CC_DesiredL(I_GROUP) = interp1d(CntrPar%OL_Breakpoints, &
+                                                            CntrPar%OL_CableControl(I_GROUP,:), &
+                                                            LocalVar%Time,ErrVar)
+                ENDIF
+            ENDDO
 
 
 
@@ -777,10 +799,15 @@ CONTAINS
 
         END DO
 
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
+
     END SUBROUTINE CableControl
 
 !-------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst)
+SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
         ! Cable controller
         !       StC_Mode = 0, No cable control, this code not executed
         !       StC_Mode = 1, User-defined cable control
@@ -788,27 +815,44 @@ SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst)
         !
         ! Note that LocalVar%StC_Input() has a fixed max size of 12, which can be increased in rosco_types.yaml
         !
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, ErrorVariables
     
         REAL(ReKi), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
     
         TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
+        TYPE(ErrorVariables), INTENT(INOUT)      :: ErrVar
+
         
         ! Internal Variables
         Integer(IntKi)                            :: I_GROUP
+        CHARACTER(*),               PARAMETER           :: RoutineName = 'StructuralControl'
+
 
 
         IF (CntrPar%StC_Mode == 1) THEN
-            ! User defined control
+            ! User defined control, step example
 
-            IF (LocalVar%Time > 50) THEN
+            IF (LocalVar%Time > 500) THEN
                 ! Step change in input of -4500 N
-                LocalVar%StC_Input(1) = -4e5
-
+                LocalVar%StC_Input(1) = -1.234e+06
+                LocalVar%StC_Input(2) = 2.053e+06
+                LocalVar%StC_Input(3) = -7.795e+05
 
             END IF
+
+
+        ELSEIF (CntrPar%StC_Mode == 2) THEN
+
+
+            DO I_GROUP = 1,CntrPar%StC_Group_N
+                IF (CntrPar%Ind_StructControl(I_GROUP) > 0) THEN
+                    LocalVar%StC_Input(I_GROUP) =  interp1d(CntrPar%OL_Breakpoints, &
+                                                            CntrPar%OL_StructControl(I_GROUP,:), &
+                                                            LocalVar%Time,ErrVar)
+                ENDIF
+            ENDDO
 
 
 
@@ -819,6 +863,11 @@ SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst)
         DO I_GROUP = 1, CntrPar%StC_Group_N
             avrSWAP(CntrPar%StC_GroupIndex(I_GROUP)) = LocalVar%StC_Input(I_GROUP)
         END DO
+
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
 
     END SUBROUTINE StructuralControl
 !-------------------------------------------------------------------------------------------------------------------------------

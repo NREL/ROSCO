@@ -25,6 +25,7 @@ all_scripts = [
     '20_active_wake_control',   
     '21_optional_inputs',
     '22_cable_control',
+    '23_structural_control',
     'update_rosco_discons',     
 ]
 

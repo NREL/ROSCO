@@ -30,6 +30,7 @@ import ROSCO_toolbox
 from wisdem.inputs import load_yaml
 
 from wisdem.inputs import load_yaml
+from ROSCO_toolbox.ofTools.util.FileTools import remove_numpy
 
 from wisdem.inputs import load_yaml
 
@@ -113,7 +114,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! OL_Mode           - Open loop control mode {{0: no open loop control, 1: open loop control vs. time}}\n'.format(int(rosco_vt['OL_Mode'])))
     file.write('{0:<12d}        ! PA_Mode           - Pitch actuator mode {{0 - not used, 1 - first order filter, 2 - second order filter}}\n'.format(int(rosco_vt['PA_Mode'])))
     file.write('{0:<12d}        ! PF_Mode           - Pitch fault mode {{0 - not used, 1 - constant offset on one or more blades}}\n'.format(int(rosco_vt['PF_Mode'])))
-    file.write('{0:<12d}        ! AWC_Mode          - Active wake control {{0 - not used, 1 - complex number method, 2 - coleman transform method}}\n'.format(int(rosco_vt['AWC_Mode'])))
+    file.write('{0:<12d}        ! AWC_Mode          - Active wake control {{0 - not used, 1 - complex number method, 2 - Coleman transform method}}\n'.format(int(rosco_vt['AWC_Mode'])))
     file.write('{0:<12d}        ! Ext_Mode          - External control mode {{0 - not used, 1 - call external dynamic library}}\n'.format(int(rosco_vt['Ext_Mode'])))
     file.write('{0:<12d}        ! ZMQ_Mode          - Fuse ZeroMQ interface {{0: unused, 1: Yaw Control}}\n'.format(int(rosco_vt['ZMQ_Mode'])))
     file.write('{:<12d}        ! CC_Mode           - {}\n'.format(int(rosco_vt['CC_Mode']),mode_descriptions['CC_Mode']))
@@ -235,6 +236,8 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! Ind_YawRate       - The column in OL_Filename that contains the generator torque in Nm\n'.format(int(rosco_vt['Ind_YawRate'])))
     file.write('{:<12d}        ! Ind_Azimuth       - {}\n'.format(int(rosco_vt["Ind_Azimuth"]), input_descriptions["Ind_Azimuth"]))
     file.write('{}        ! {} - {}\n'.format(' '.join([f'{g:02.4f}' for g in rosco_vt["RP_Gains"]]),"RP_Gains",input_descriptions["RP_Gains"]))
+    file.write('{}               ! Ind_CableControl  - The column(s) in OL_Filename that contains the cable control inputs in m [Used with CC_Mode = 2, must be the same size as CC_Group_N]\n'.format(write_array(rosco_vt['Ind_CableControl'],'<4d')))
+    file.write('{}               ! Ind_StructControl - The column(s) in OL_Filename that contains the structural control inputs [Used with StC_Mode = 2, must be the same size as StC_Group_N]\n'.format(write_array(rosco_vt['Ind_StructControl'],'<4d')))
     file.write('\n')
     file.write('!------- Pitch Actuator Model -----------------------------------------------------\n')
     file.write('{:<014.5f}        ! PA_CornerFreq     - Pitch actuator bandwidth/cut-off frequency [rad/s]\n'.format(rosco_vt['PA_CornerFreq']))
@@ -244,11 +247,12 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{}                ! PF_Offsets     - Constant blade pitch offsets for blades 1-3 [rad]\n'.format(''.join('{:<10.8f} '.format(rosco_vt['PF_Offsets'][i]) for i in range(3))))
     file.write('\n')
     file.write('!------- Active Wake Control -----------------------------------------------------\n')
-    file.write('{0:<12d}          ! AWC_NumModes       - Number of forcing modes\n'.format(int(rosco_vt['AWC_NumModes'])))
+    file.write('{0:<12d}          ! AWC_NumModes       - Number of user-defined AWC forcing modes \n'.format(int(rosco_vt['AWC_NumModes'])))
     file.write('{}                 ! AWC_n              - Azimuthal mode number(s) (i.e., the number and direction of the lobes of the wake structure)\n'.format(write_array(rosco_vt['AWC_n'],'<4d')))
-    file.write('{}                ! AWC_freq           - Frequency(s) of forcing mode(s) [Hz]\n'.format(write_array(rosco_vt['AWC_freq'],'<6.4f')))
-    file.write('{}                ! AWC_amp            - Pitch amplitude(s) of forcing mode(s) (note that AWC_amp specifies the amplitude of each individual mode so that the total amplitude of pitching will be the sum of AWC_amp) [deg]\n'.format(write_array(rosco_vt['AWC_amp'],'<6.4f')))
-    file.write('{}                ! AWC_clockangle     - Clocking angle(s) of forcing mode(s) [deg]\n'.format(write_array(rosco_vt['AWC_clockangle'],'<6.4f')))
+    file.write('{}                 ! AWC_harmonic       - Harmonic(s) to apply in the AWC Inverse Coleman Transformation (only used when AWC_Mode = 2)\n'.format(write_array(rosco_vt['AWC_harmonic'],'<4d')))
+    file.write('{}               ! AWC_freq           - Frequency(s) of forcing mode(s) [Hz]\n'.format(write_array(rosco_vt['AWC_freq'],'<6.4f')))
+    file.write('{}               ! AWC_amp            - Pitch amplitude(s) of individual forcing mode(s) [deg]\n'.format(write_array(rosco_vt['AWC_amp'],'<6.4f')))
+    file.write('{}               ! AWC_clockangle     - Initial angle(s) of forcing mode(s) [deg]\n'.format(write_array(rosco_vt['AWC_clockangle'],'<6.4f')))
     file.write('\n')
     file.write('!------- External Controller Interface -----------------------------------------------------\n')
     file.write('"{}"            ! DLL_FileName        - Name/location of the dynamic library in the Bladed-DLL format\n'.format(rosco_vt['DLL_FileName']))
@@ -299,7 +303,7 @@ def read_DISCON(DISCON_filename):
                 if (line.split()[1] != '!'):    # Array valued entries
                     array_length = line.split().index('!')
                     param = line.split()[array_length+1]
-                    values = np.array( [float(x) for x in line.split()[:array_length]] )
+                    values = [float(x) for x in line.split()[:array_length]]
                     DISCON_in[param] = values
                 else:                           # All other entries
                     param = line.split()[2]
@@ -567,12 +571,15 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['Flp_Ki']           = controller.Ki_flap[-1]
     DISCON_dict['Flp_MaxPit']       = controller.flp_maxpit
     # ------- Open Loop Control -------
-    DISCON_dict['OL_Filename']     = controller.controller_params['open_loop']['filename']
-    DISCON_dict['Ind_Breakpoint']  = controller.controller_params['open_loop']['Ind_Breakpoint']
-    DISCON_dict['Ind_BldPitch']    = controller.controller_params['open_loop']['Ind_BldPitch']
-    DISCON_dict['Ind_GenTq']       = controller.controller_params['open_loop']['Ind_GenTq']
-    DISCON_dict['Ind_YawRate']     = controller.controller_params['open_loop']['Ind_YawRate']
+    DISCON_dict['OL_Filename']     = controller.OL_Filename
+    DISCON_dict['Ind_Breakpoint']  = controller.OL_Ind_Breakpoint
+    DISCON_dict['Ind_BldPitch']    = controller.OL_Ind_BldPitch
+    DISCON_dict['Ind_GenTq']       = controller.OL_Ind_GenTq
+    DISCON_dict['Ind_YawRate']     = controller.OL_Ind_YawRate
+    DISCON_dict['Ind_CableControl']     = controller.OL_Ind_CableControl
+    DISCON_dict['Ind_StructControl']    = controller.OL_Ind_StructControl
     DISCON_dict['Ind_Azimuth']     = controller.controller_params['open_loop']['Ind_Azimuth']
+
     # ------- Pitch Actuator -------
     DISCON_dict['PA_Mode']         = controller.PA_Mode
     DISCON_dict['PA_CornerFreq']   = controller.PA_CornerFreq
@@ -587,6 +594,8 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     for param, value in controller.controller_params['DISCON'].items():
         DISCON_dict[param] = value
 
+    # Make all lists, not numpy
+    DISCON_dict = remove_numpy(DISCON_dict)
 
     return DISCON_dict
 

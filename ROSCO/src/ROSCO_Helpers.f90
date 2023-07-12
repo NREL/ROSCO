@@ -159,7 +159,7 @@ CONTAINS
                 ENDIF
 
                 Variable = 0     ! Default of integer inputs is 0 for now
-                PRINT *, "Did not find "//TRIM( VarName )//" in input file.  Using default value of ", Variable
+                PRINT *, "ROSCO Warning: Did not find "//TRIM( VarName )//" in input file.  Using default value of ", Variable
             ENDIF
 
             ! Debugging: show what's being read, turn into Echo later
@@ -241,7 +241,7 @@ CONTAINS
                 ENDIF
 
                 Variable = 0     ! Default of integer inputs is 0 for now
-                PRINT *, "Did not find "//TRIM( VarName )//" in input file.  Using default value of ", Variable
+                PRINT *, "ROSCO Warning: Did not find "//TRIM( VarName )//" in input file.  Using default value of ", Variable
             ENDIF
 
             ! Debugging: show what's being read, turn into Echo later
@@ -322,7 +322,7 @@ CONTAINS
                 ENDIF
 
                 Variable = 'unused'     ! Default of string input is unused for now
-                PRINT *, "Did not find "//TRIM( VarName )//" in input file.  Using default value of ", TRIM(Variable)
+                PRINT *, "ROSCO Warning: Did not find "//TRIM( VarName )//" in input file.  Using default value of ", TRIM(Variable)
             ENDIF
 
             ! Debugging: show what's being read, turn into Echo later
@@ -804,7 +804,7 @@ END SUBROUTINE ParseInAry
             ENDIF
 
             Ary = 0     ! Default of allocatable arrays is 0 for now
-            PRINT *, "Did not find "//TRIM( ParamName )//" in input file.  Using default value of [", Ary, "]"
+            PRINT *, "ROSCO Warning: Did not find correct size "//TRIM( ParamName )//" in input file.  Using default value of [", Ary, "]"
         ENDIF
 
         IF (FoundLine) THEN
@@ -943,7 +943,7 @@ END SUBROUTINE ParseInAry_Opt
             ENDIF
 
             Ary = 0     ! Default of allocatable arrays is 0 for now
-            PRINT *, "Did not find "//TRIM( ParamName )//" in input file.  Using default value of [", Ary, "]"
+            PRINT *, "ROSCO Warning: Did not find correct size"//TRIM( ParamName )//" in input file.  Using default value of [", Ary, "]"
         ENDIF
 
         IF (FoundLine) THEN

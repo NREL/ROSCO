@@ -51,6 +51,7 @@ class run_FAST_ROSCO():
         self.base_name          = ''
         self.controller_params  = {}   
         self.fst_vt             = {}   
+        self.openfast_exe       = 'openfast'
 
         # Directories
         self.tune_case_dir  = ''

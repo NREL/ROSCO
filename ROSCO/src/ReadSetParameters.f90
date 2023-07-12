@@ -137,10 +137,13 @@ CONTAINS
         CHARACTER(NINT(avrSWAP(50))-1), INTENT(IN)  :: RootName 
 
         
-        INTEGER(IntKi)                              :: K    ! Index used for looping through blades.
+        INTEGER(IntKi)                              :: K, I, I_OL    ! Index used for looping through blades.
         CHARACTER(1024)                             :: OL_String                    ! Open description loop string
         INTEGER(IntKi)                              :: OL_Count                     ! Number of open loop channels
         INTEGER(IntKi)                              :: UnOpenLoop       ! Open Loop file unit
+
+        INTEGER(IntKi)                              :: N_OL_Cables
+        INTEGER(IntKi)                              :: N_OL_StCs
 
         CHARACTER(*),               PARAMETER       :: RoutineName = 'SetParameters'
 
@@ -171,7 +174,7 @@ CONTAINS
         avrSWAP(56) = 0.0 ! Torque override: 0=yes
         avrSWAP(65) = 0.0 ! Number of variables returned for logging
         avrSWAP(72) = 0.0 ! Generator start-up resistance
-        avrSWAP(79) = 0.0 ! Request for loads: 0=none
+        avrSWAP(79) = 4.0 ! Request for loads: 0=none
         avrSWAP(80) = 0.0 ! Variable slip current status
         avrSWAP(81) = 0.0 ! Variable slip current demand
         
@@ -278,6 +281,29 @@ CONTAINS
                     END IF
                 ENDIF
 
+                N_OL_Cables = 0
+                IF (ANY(CntrPar%Ind_CableControl > 0)) THEN
+                    DO I = 1,SIZE(CntrPar%Ind_CableControl)
+                        IF (CntrPar%Ind_CableControl(I) > 0) THEN
+                            OL_String   = TRIM(OL_String)//' Cable'//TRIM(Int2LStr(I))//' '
+                            OL_Count    = OL_Count + 1
+                            N_OL_Cables = N_OL_Cables + 1
+                        ENDIF
+                    ENDDO
+                ENDIF
+
+                N_OL_StCs = 0
+                IF (ANY(CntrPar%Ind_StructControl > 0)) THEN
+                    DO I = 1,SIZE(CntrPar%Ind_StructControl)
+                        IF (CntrPar%Ind_StructControl(I) > 0) THEN
+                            OL_String   = TRIM(OL_String)//' StC'//TRIM(Int2LStr(I))//' '
+                            OL_Count    = OL_Count + 1
+                            N_OL_StCs   = N_OL_StCs + 1
+                        ENDIF
+                    ENDDO
+                ENDIF
+
+
                 PRINT *, 'ROSCO: Implementing open loop control for'//TRIM(OL_String)
                 IF (CntrPar%OL_Mode == 2) THEN
                     PRINT *, 'ROSCO: OL_Mode = 2 will change generator torque control for Azimuth tracking'
@@ -312,6 +338,29 @@ CONTAINS
                 IF (CntrPar%Ind_Azimuth > 0) THEN
                     CntrPar%OL_Azimuth = Unwrap(CntrPar%OL_Channels(:,CntrPar%Ind_Azimuth),ErrVar)
                 ENDIF
+                
+                IF (ANY(CntrPar%Ind_CableControl > 0)) THEN
+                    ALLOCATE(CntrPar%OL_CableControl(N_OL_Cables,SIZE(CntrPar%OL_Channels,DIM=1)))
+                    I_OL = 1
+                    DO I = 1,SIZE(CntrPar%Ind_CableControl)
+                        IF (CntrPar%Ind_CableControl(I) > 0) THEN
+                            CntrPar%OL_CableControl(I_OL,:) = CntrPar%OL_Channels(:,CntrPar%Ind_CableControl(I))
+                            I_OL = I_OL + 1
+                        ENDIF
+                    ENDDO
+                ENDIF
+
+                IF (ANY(CntrPar%Ind_StructControl > 0)) THEN
+                    ALLOCATE(CntrPar%OL_StructControl(N_OL_StCs,SIZE(CntrPar%OL_Channels,DIM=1)))
+                    I_OL = 1
+                    DO I = 1,SIZE(CntrPar%Ind_StructControl)
+                        IF (CntrPar%Ind_StructControl(I) > 0) THEN
+                            CntrPar%OL_StructControl(I_OL,:) = CntrPar%OL_Channels(:,CntrPar%Ind_StructControl(I))
+                            I_OL = I_OL + 1
+                        ENDIF
+                    ENDDO
+                ENDIF
+
             END IF
 
 
@@ -419,7 +468,7 @@ CONTAINS
         CALL ParseInput(FileLines,'OL_Mode',         CntrPar%OL_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'PA_Mode',         CntrPar%PA_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'PF_Mode',         CntrPar%PF_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
-        CALL ParseInput(FileLines,'AWC_Mode',        CntrPar%AWC_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'AWC_Mode',        CntrPar%AWC_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'Ext_Mode',        CntrPar%Ext_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
 		CALL ParseInput(FileLines,'ZMQ_Mode',        CntrPar%ZMQ_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
 		CALL ParseInput(FileLines,'CC_Mode',         CntrPar%CC_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
@@ -564,7 +613,8 @@ CONTAINS
 
         !------------ AWC input ------------
         CALL ParseInput(FileLines, 'AWC_NumModes',    CntrPar%AWC_NumModes,                           accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
-        CALL ParseAry(  FileLines, 'AWC_n',           CntrPar%AWC_n,          CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
+        CALL ParseAry(  FileLines, 'AWC_n',           CntrPar%AWC_n,          CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode /= 1, UnEc)
+        CALL ParseAry(  FileLines, 'AWC_harmonic',    CntrPar%AWC_harmonic,   CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode < 2,  UnEc)
         CALL ParseAry(  FileLines, 'AWC_freq',        CntrPar%AWC_freq,       CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
         CALL ParseAry(  FileLines, 'AWC_amp',         CntrPar%AWC_amp,        CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
         CALL ParseAry(  FileLines, 'AWC_clockangle',  CntrPar%AWC_clockangle, CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
@@ -590,6 +640,11 @@ CONTAINS
         !------------- StC Control ----- 
         CALL ParseInput(FileLines,  'StC_Group_N',      CntrPar%StC_Group_N,                            accINFILE(1), ErrVar, CntrPar%StC_Mode == 0, UnEc)
         CALL ParseAry(  FileLines,  'StC_GroupIndex',   CntrPar%StC_GroupIndex, CntrPar%StC_Group_N,    accINFILE(1), ErrVar, CntrPar%StC_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
+
+        ! Open loop cable, structural control, needs number of groups
+        CALL ParseAry(  FileLines, 'Ind_CableControl',   CntrPar%Ind_CableControl,  CntrPar%CC_Group_N,     accINFILE(1),   ErrVar,  CntrPar%CC_Mode .NE. 2,    UnEc=UnEc)
+        CALL ParseAry(  FileLines, 'Ind_StructControl',  CntrPar%Ind_StructControl, CntrPar%StC_Group_N,    accINFILE(1),   ErrVar,  CntrPar%StC_Mode .NE. 2,   UnEc=UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         IF (UnEc > 0) CLOSE(UnEc)     ! Close echo file
@@ -710,12 +765,14 @@ CONTAINS
         TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
         INTEGER(IntKi),                 INTENT(IN   )       :: size_avcMSG
+        INTEGER(IntKi)                                  :: Imode       ! Index used for looping through AWC modes
         REAL(ReKi),              INTENT(IN   )       :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
         
         CHARACTER(*), PARAMETER                         :: RoutineName = 'CheckInputs'
         ! Local
 
         INTEGER(IntKi)                                  :: I
+        INTEGER(IntKi), ALLOCATABLE                     :: All_OL_Indices(:)
         
         !..............................................................................................................................
         ! Check validity of input parameters:
@@ -758,12 +815,6 @@ CONTAINS
         IF ((CntrPar%F_NotchType < 0) .OR. (CntrPar%F_NotchType > 3)) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'F_NotchType must be 0, 1, 2, or 3.'
-        ENDIF
-
-        ! F_NotchType
-        IF ((CntrPar%F_NotchType < 0) .OR. (CntrPar%F_NotchType > 2)) THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'F_NotchType must be 0, 1, or 2.'
         ENDIF
 
         ! IPC_ControlMode
@@ -1099,7 +1150,6 @@ CONTAINS
         ! WE_FOPoles_v
         IF (CntrPar%WE_Mode == 2 .AND. .NOT. NonDecreasing(CntrPar%WE_FOPoles_v)) THEN
             ErrVar%aviFAIL = -1
-            write(400,*) CntrPar%WE_FOPoles_v
             ErrVar%ErrMsg  = 'WE_FOPoles_v must be non-decreasing.'
         ENDIF
 
@@ -1146,12 +1196,21 @@ CONTAINS
 
         ! --- Open loop control ---
         IF (CntrPar%OL_Mode > 0) THEN
-            IF (((CntrPar%Ind_Breakpoint) < 0) .OR. &
-            (CntrPar%Ind_BldPitch(1) < 0) .OR. &
-            (CntrPar%Ind_BldPitch(2) < 0) .OR. &
-            (CntrPar%Ind_BldPitch(3) < 0) .OR. &
-            (CntrPar%Ind_GenTq < 0) .OR. &
-            (CntrPar%Ind_YawRate < 0)) THEN
+            ! Get all open loop indices
+            ALLOCATE(All_OL_Indices(5))   ! Will need to increase to 5 when IPC
+            All_OL_Indices =    (/CntrPar%Ind_BldPitch, & 
+                                CntrPar%Ind_GenTq, &
+                                CntrPar%Ind_YawRate/)
+
+            DO I = 1,SIZE(CntrPar%Ind_CableControl)
+                Call AddToList(All_OL_Indices, CntrPar%Ind_CableControl(I))           
+            ENDDO
+            
+            DO I = 1,SIZE(CntrPar%Ind_StructControl)
+                Call AddToList(All_OL_Indices, CntrPar%Ind_StructControl(I))             
+            ENDDO       
+
+            IF (ANY(All_OL_Indices < 0)) THEN
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg = 'All open loop control indices must be greater than zero'
             ENDIF
@@ -1161,13 +1220,7 @@ CONTAINS
                 ErrVar%ErrMsg = 'Ind_Breakpoint must be non-zero if OL_Mode is non-zero'
             ENDIF
 
-            IF (    &
-                (CntrPar%Ind_BldPitch(1) < 1) .AND. &
-                (CntrPar%Ind_BldPitch(2) < 1) .AND. &
-                (CntrPar%Ind_BldPitch(3) < 1) .AND. &
-                (CntrPar%Ind_GenTq < 1) .AND. &
-                (CntrPar%Ind_Azimuth < 1) .AND. &
-                (CntrPar%Ind_YawRate < 1)) THEN
+            IF (ALL(All_OL_Indices < 1)) THEN
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg = 'At least one open loop input channel must be non-zero'
             ENDIF
@@ -1192,6 +1245,22 @@ CONTAINS
                 ENDIF
             ENDIF
 
+            IF (ANY(CntrPar%Ind_CableControl > 0) .AND. CntrPar%CC_Mode .NE. 2) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'CC_Mode must be 2 if using open loop cable control via Ind_CableControl'
+            ENDIF
+
+            IF (ANY(CntrPar%Ind_StructControl > 0) .AND. CntrPar%StC_Mode .NE. 2) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'CC_Mode must be 2 if using open loop struct control via Ind_StructControl'
+            ENDIF
+
+
+        ENDIF
+
+        ! ---- AWC vs. IPC
+        IF (CntrPar%AWC_Mode > 0 .AND. CntrPar%IPC_ControlMode > 0) THEN
+            PRINT *, "ROSCO WARNING: Individual pitch control and active wake control are both enabled. Performance may be compromised."
         ENDIF
 
 
@@ -1212,7 +1281,50 @@ CONTAINS
             END IF
         END IF
 
-        IF ((CntrPar%CC_Mode < 0) .OR. (CntrPar%CC_Mode > 1)) THEN
+        ! --- Active Wake Control ---
+        IF (CntrPar%AWC_Mode > 0) THEN
+            IF (CntrPar%AWC_NumModes < 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'AWC_NumModes must be a positive integer if AWC_Mode = 1'
+            END IF
+            DO Imode = 1,CntrPar%AWC_NumModes
+                IF (CntrPar%AWC_freq(Imode) < 0.0) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = 'AWC_freq cannot be less than 0'
+                END IF
+                IF (CntrPar%AWC_amp(Imode) < 0.0) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = 'AWC_amp cannot be less than 0'
+                END IF
+            END DO
+            IF (CntrPar%AWC_Mode == 1) THEN
+                DO Imode = 1,CntrPar%AWC_NumModes
+                    IF ((CntrPar%AWC_clockangle(Imode) > 360.0) .OR. (CntrPar%AWC_clockangle(Imode) < 0.0)) THEN
+                        ErrVar%aviFAIL = -1
+                        ErrVar%ErrMsg = 'AWC_clockangle must be between 0 and 360 in AWC_Mode = 1'
+                    END IF
+                END DO    
+            END IF
+
+            IF (CntrPar%AWC_Mode == 2) THEN
+                IF ((CntrPar%AWC_NumModes > 2) .OR. (CntrPar%AWC_NumModes < 1)) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = 'AWC_NumModes must be either 1 or 2 if AWC_Mode = 2'
+                END IF
+                DO Imode = 1,CntrPar%AWC_NumModes
+                    IF ((CntrPar%AWC_clockangle(Imode) > 360.0) .OR. (CntrPar%AWC_clockangle(Imode) < -360.0)) THEN
+                        ErrVar%aviFAIL = -1
+                        ErrVar%ErrMsg = 'AWC_clockangle must be between -360 and 360 in AWC_Mode = 2'
+                    END IF
+                    IF (CntrPar%AWC_harmonic(Imode) < 0) THEN
+                        ErrVar%aviFAIL = -1
+                        ErrVar%ErrMsg = 'AWC_harmonic must be a positive integer'
+                    END IF
+                END DO
+            END IF
+        END IF
+
+        IF ((CntrPar%CC_Mode < 0) .OR. (CntrPar%CC_Mode > 2)) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg = 'CC_Mode must be 0 or 1'
         END IF
@@ -1238,6 +1350,17 @@ CONTAINS
                     ErrVar%ErrMsg = 'StC_GroupIndices must be greater than 2801.'        !< Starting index for the cable control
                 END IF
             END DO
+        END IF
+
+        ! Check that open loop control active if using open loop cable/struct control
+        IF (CntrPar%CC_Mode == 2 .AND. CntrPar%OL_Mode .NE. 1) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg = 'OL_Mode must be 1 if using CC_Mode = 2 (open loop)'
+        END IF
+
+        IF (CntrPar%StC_Mode == 2 .AND. CntrPar%OL_Mode .NE. 1) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg = 'OL_Mode must be 1 if using StC_Mode = 2 (open loop)'
         END IF
             
 
