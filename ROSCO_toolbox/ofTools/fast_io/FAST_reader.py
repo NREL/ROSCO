@@ -652,12 +652,12 @@ class InputReader_OpenFAST(object):
 
         f.close()
 
-        self.read_BeamDynBlade()
+        beamdyn_blade_file = os.path.join(os.path.dirname(bd_file), self.fst_vt['BeamDyn']['BldFile'])
+        self.read_BeamDynBlade(beamdyn_blade_file)
 
-    def read_BeamDynBlade(self):
+    def read_BeamDynBlade(self, beamdyn_blade_file):
         # BeamDyn Blade
 
-        beamdyn_blade_file = os.path.join(self.FAST_directory, self.fst_vt['BeamDyn']['BldFile'])
         f = open(beamdyn_blade_file)
         
         f.readline()
@@ -2061,7 +2061,7 @@ class InputReader_OpenFAST(object):
         self.fst_vt['SubDyn']['NDiv']      = int_read(f.readline().split()[0])
         self.fst_vt['SubDyn']['CBMod']     = bool_read(f.readline().split()[0])
         self.fst_vt['SubDyn']['Nmodes']    = int_read(f.readline().split()[0])
-        self.fst_vt['SubDyn']['JDampings'] = int_read(f.readline().split()[0])
+        self.fst_vt['SubDyn']['JDampings'] = float_read(f.readline().split()[0])
         self.fst_vt['SubDyn']['GuyanDampMod'] = int_read(f.readline().split()[0])
         self.fst_vt['SubDyn']['RayleighDamp'] = [float(m.replace(',','')) for m in f.readline().split()[:2]]
         self.fst_vt['SubDyn']['GuyanDampSize'] = int_read(f.readline().split()[0])
@@ -2113,7 +2113,10 @@ class InputReader_OpenFAST(object):
             self.fst_vt['SubDyn']['RctRDXss'][i] = int(ln[4])
             self.fst_vt['SubDyn']['RctRDYss'][i] = int(ln[5])
             self.fst_vt['SubDyn']['RctRDZss'][i] = int(ln[6])
-            self.fst_vt['SubDyn']['Rct_SoilFile'][i] = ln[7]
+            if len(ln) == 8:
+                self.fst_vt['SubDyn']['Rct_SoilFile'][i] = ln[7]
+            else:
+                self.fst_vt['SubDyn']['Rct_SoilFile'][i] = 'None'        
         f.readline()
         # INTERFACE JOINTS
         self.fst_vt['SubDyn']['NInterf']   = int_read(f.readline().split()[0])
