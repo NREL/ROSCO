@@ -33,7 +33,7 @@ def main():
 
 
     # Ensure external control paths are okay
-    parameter_filename = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/ROSCO/RAAW_rosco_BD.yaml'
+    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/NREL2p8.yaml')
     run_dir = os.path.join(example_out_dir,'24_rotor_position_control_0')
     gains = -1800 * np.array([12,1.2,120])
     os.makedirs(run_dir,exist_ok=True)
@@ -53,7 +53,7 @@ def main():
     r.wind_case_fcn = cl.power_curve
     r.tuning_yaml   = parameter_filename
     r.wind_case_opts    = {
-        'U': [200],
+        'U': [14],
         'TMax': 100,
         }
     r.save_dir      = run_dir
