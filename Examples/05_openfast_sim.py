@@ -47,47 +47,9 @@ turbine.load_from_fast(
 # Tune controller 
 controller.tune_controller(turbine)
 
-# Now double Kp_float and check that it's passed through
-Kp_float = -18
-controller_params['Kp_float'] = Kp_float
-controller_params['tune_Fl'] = False
-controller      = ROSCO_controller.Controller(controller_params)
-controller.tune_controller(turbine)
-np.testing.assert_almost_equal(Kp_float,controller.Kp_float)
-
-# Now gain schedule Kp_float
-controller_params['U_Fl'] = 'all'
-controller_params['tune_Fl'] = True
-controller      = ROSCO_controller.Controller(controller_params)
-controller.tune_controller(turbine)
-
 # Write parameter input file
 param_file = os.path.join(this_dir,'DISCON.IN')   # This must be named DISCON.IN to be seen by the compiled controller binary. 
 write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
-
-# Plot gain schedule
-fig, ax = plt.subplots(2,2,constrained_layout=True,sharex=True)
-ax = ax.flatten()
-ax[0].plot(controller.v[len(controller.v_below_rated)+1:], controller.omega_pc_U)
-ax[0].set_ylabel('omega_pc')
-
-ax[1].plot(controller.v[len(controller.v_below_rated)+1:], controller.zeta_pc_U)
-ax[1].set_ylabel('zeta_pc')
-
-ax[2].plot(controller.v[len(controller.v_below_rated)+1:], controller.pc_gain_schedule.Kp)
-ax[2].set_xlabel('Wind Speed')
-ax[2].set_ylabel('Proportional Gain')
-
-ax[3].plot(controller.v[len(controller.v_below_rated)+1:], controller.pc_gain_schedule.Ki)
-ax[3].set_xlabel('Wind Speed')
-ax[3].set_ylabel('Integral Gain')
-
-plt.suptitle('Pitch Controller Gains')
-
-if False:
-  plt.show()
-else:
-  plt.savefig(os.path.join(example_out_dir,'05_GainSched.png'))
 
 # Run OpenFAST
 # --- May need to change fastcall if you use a non-standard command to call openfast
