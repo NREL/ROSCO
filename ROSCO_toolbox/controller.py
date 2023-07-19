@@ -722,7 +722,7 @@ class OpenLoopControl(object):
         if period <= 0:
             raise Exception('Open loop sine input period is <= 0')
 
-        if control not in self.allowed_interp_controls:
+        if control not in self.allowed_controls:
             raise Exception(f'Open loop control of {control} is not allowed')
         else:
             self.ol_timeseries[control] = amplitude * np.sin(2 * np.pi *  self.ol_timeseries['time'] / period)
