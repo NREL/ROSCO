@@ -482,6 +482,18 @@ properties:
                         type: number
                         default: 0
                         description: The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
+                    Ind_CableControl:
+                        type: array
+                        items:
+                            type: number
+                        description: The column in OL_Filename that contains the cable control inputs in m
+                        # default: [0] # No default because it's defined in controller and DISCON_Dict
+                    Ind_StructControl:
+                        type: array
+                        items:
+                            type: number
+                        description: The column in OL_Filename that contains the structural control inputs in various units
+                        # default: [0]  # No default because it's defined in controller and DISCON_Dict
             PA_CornerFreq:
                 type: number
                 description: Pitch actuator natural frequency [rad/s]

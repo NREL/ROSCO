@@ -805,9 +805,13 @@ class OpenLoopControl(object):
                 OL_Ind_BldPitch[2] = ol_index_counter
             elif channel == 'azimuth':
                 OL_Ind_Azimuth = ol_index_counter
+            elif 'cable_control' in channel or 'struct_control' in channel:
+                skip_write = True
+                ol_index_counter -= 1  # don't increment counter
 
 
-            # append open loop input array
+
+            # append open loop input array for non-ptfm channels
             if not skip_write:
                 ol_control_array = np.c_[ol_control_array,ol_timeseries[channel]]
 
@@ -864,7 +868,7 @@ class OpenLoopControl(object):
                 headers[OL_Ind_Azimuth-1] = 'Azimuth'
                 units[OL_Ind_Azimuth-1] = '(rad)'
 
-            if OL_Ind_BldPitch:
+            if any(OL_Ind_BldPitch):
                 if all_same(OL_Ind_BldPitch):
                     headers[OL_Ind_BldPitch[0]-1] = 'BldPitch123'
                     units[OL_Ind_BldPitch[0]-1] = '(rad)'

@@ -39,7 +39,8 @@ controller_params:
   Fl_Mode:            2                     # Floating specific feedback mode {0: no nacelle velocity feedback, 1: nacelle velocity feedback}
   Flp_Mode:           0                     # Flap control mode {0: no flap control, 1: steady state flap angle, 2: Proportional flap control}
   PA_Mode:            2                     # Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
-  CC_Mode:            1
+  CC_Mode:            2
+  OL_Mode:            1
   # Controller parameters       
   # U_pc:               [14]
   zeta_pc:            1.0                   # Pitch controller desired damping ratio [-]
