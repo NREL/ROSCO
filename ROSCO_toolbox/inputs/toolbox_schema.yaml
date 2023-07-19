@@ -842,10 +842,22 @@ properties:
                         type: number
                         description: Cutoff Frequency for first order low-pass filter for blade pitch angle
                         units: rad/s
-                    Fl_Kp:
+                    Fl_n:
                         type: number
+                        description: Number of Fl_Kp gains in gain scheduling, optional with default of 1
+                        units: s
+                    Fl_Kp:
+                        type: array
                         description: Nacelle velocity proportional feedback gain 
                         units: s
+                        items:
+                            type: number
+                    Fl_U:
+                        type: array
+                        description: Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
+                        units: s
+                        items:
+                            type: number
                     Flp_Angle:
                         type: number
                         description: Initial or steady state flap angle 

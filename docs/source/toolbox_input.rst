@@ -911,8 +911,16 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
     Cutoff Frequency for first order low-pass filter for blade pitch
     angle
 
-:code:`Fl_Kp` : Float, s
+:code:`Fl_n` : Float, s
+    Number of Fl_Kp gains in gain scheduling, optional with default of
+    1
+
+:code:`Fl_Kp` : Array of Floats
     Nacelle velocity proportional feedback gain
+
+:code:`Fl_U` : Array of Floats
+    Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single
+    value [m/s]
 
 :code:`Flp_Angle` : Float, rad
     Initial or steady state flap angle
