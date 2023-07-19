@@ -22,11 +22,11 @@ path_params
 
 :code:`FAST_directory` : String
     Main OpenFAST model directory, where the `*.fst` lives, relative
-    to ROSCO dir (if applicable)
+    to directory of this yaml (if applicable)
 
 :code:`rotor_performance_filename` : String
     Filename for rotor performance text file (if it has been generated
-    by ccblade already)
+    by ccblade already), relative to directory of this yaml
 
 
 
@@ -265,6 +265,15 @@ controller_params
     *Minimum* = 0    *Maximum* = 1
 
 
+:code:`AWC_Mode` : Float
+    Active wake control mode {0 - not used, 1 - SNL method, 2 - NREL
+    method}
+
+    *Default* = 0
+
+    *Minimum* = 0    *Maximum* = 2
+
+
 :code:`Ext_Mode` : Float
     External control mode [0 - not used, 1 - call external dynamic
     library]
@@ -275,20 +284,21 @@ controller_params
 
 
 :code:`CC_Mode` : Float
-    Cable control mode [0- unused, 1- User defined, 2- Position
-    control (not yet implemented)]
+    Cable control mode [0- unused, 1- User defined, 2- Open loop
+    control]
 
     *Default* = 0
 
-    *Minimum* = 0    *Maximum* = 1
+    *Minimum* = 0    *Maximum* = 2
 
 
 :code:`StC_Mode` : Float
-    Structural control mode [0- unused, 1- User defined]
+    Structural control mode [0- unused, 1- User defined, 2- Open loop
+    control]
 
     *Default* = 0
 
-    *Minimum* = 0    *Maximum* = 1
+    *Minimum* = 0    *Maximum* = 2
 
 
 :code:`U_pc` : Array of Floats
@@ -396,13 +406,19 @@ controller_params
 
     *Minimum* = 0
 
-:code:`Kp_float` : Float, s
-    Gain of floating feedback control
+:code:`Kp_float` : Float, s or Array of Floats
+    Gain(s) of floating feedback control
 
 :code:`tune_Fl` : Boolean
     Whether to automatically tune Kp_float
 
     *Default* = True
+
+:code:`U_Fl` : Array of Floats or String or Float
+    List of wind speeds for tuning floating feedback, or "all" for all
+    above-rated wind speeds
+
+    *Default* = []
 
 :code:`zeta_flp` : Float
     Flap controller desired damping ratio [-]
@@ -928,6 +944,14 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
 :code:`Ind_YawRate` : Float
     The column in OL_Filename that contains the generator torque in Nm
 
+:code:`Ind_CableControl` : Array of Floats
+    The column in OL_Filename that contains the cable control inputs
+    in m
+
+:code:`Ind_StructControl` : Array of Floats
+    The column in OL_Filename that contains the structural control
+    inputs in various units
+
 :code:`DLL_FileName` : String
     Name/location of the dynamic library {.dll [Windows] or .so
     [Linux]} in the Bladed-DLL format
@@ -946,6 +970,8 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
 
 :code:`PF_Offsets` : Array of Floats
     Pitch angle offsets for each blade (array with length of 3)
+
+    *Default* = [0, 0, 0]
 
 :code:`CC_Group_N` : Float
     Number of cable control groups
@@ -970,6 +996,46 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
 :code:`StC_GroupIndex` : Array of Floats
     First index for structural control group, options specified in
     ServoDyn summary output
+
+    *Default* = [0]
+
+:code:`AWC_Mode` : Float
+    Active wake control mode {0 - not used, 1 - complex number method,
+    2 - Coleman transformation method}
+
+    *Default* = 0
+
+    *Minimum* = 0    *Maximum* = 2
+
+
+:code:`AWC_NumModes` : Float, rad
+    Number of AWC modes
+
+    *Default* = 1
+
+:code:`AWC_n` : Array of Floats
+    AWC azimuthal number (only used in complex number method)
+
+    *Default* = [1]
+
+:code:`AWC_harmonic` : Array of Integers
+    AWC Coleman transform harmonic (only used in Coleman transform
+    method)
+
+    *Default* = [1]
+
+:code:`AWC_freq` : Array of Floats
+    AWC frequency [Hz]
+
+    *Default* = [0.05]
+
+:code:`AWC_amp` : Array of Floats
+    AWC amplitude [deg]
+
+    *Default* = [1.0]
+
+:code:`AWC_clockangle` : Array of Floats
+    AWC clock angle [deg]
 
     *Default* = [0]
 
