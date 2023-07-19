@@ -14,7 +14,7 @@ from ROSCO_toolbox.ofTools.fast_io import output_processing
 from ROSCO_toolbox.controller import OpenLoopControl
 import numpy as np
 import pandas as pd
-import pickle
+import matplotlib.pyplot as plt
 
 #directories
 this_dir            = os.path.dirname(os.path.abspath(__file__))
@@ -32,22 +32,11 @@ else:
 def main():
 
 
-    # Ensure external control paths are okay
+    # Set up paths
     parameter_filename = os.path.join(rosco_dir,'Tune_Cases/NREL2p8.yaml')
-    run_dir = os.path.join(example_out_dir,'24_rotor_position_control_0')
-    gains = -1800 * np.array([12,1.2,120])
+    run_dir = os.path.join(example_out_dir,'24_rotor_position_control_test')
     os.makedirs(run_dir,exist_ok=True)
-
-    # Case input for RotSpeed IC
-    case_inputs = {}
-    case_inputs[("ElastoDyn","RotSpeed")]    = {'vals':[5], 'group':0}
-    case_inputs[("ElastoDyn","PtfmSgDOF")]    = {'vals':['False'], 'group':0}
-    case_inputs[("ElastoDyn","PtfmSwDOF")]    = {'vals':['False'], 'group':0}
-    case_inputs[("ElastoDyn","PtfmHvDOF")]    = {'vals':['False'], 'group':0}
-    case_inputs[("ElastoDyn","PtfmRDOF")]    = {'vals':['False'], 'group':0}
-    case_inputs[("ElastoDyn","PtfmPDOF")]    = {'vals':['False'], 'group':0}
-    case_inputs[("ElastoDyn","PtfmYDOF")]    = {'vals':['False'], 'group':0}
-    
+   
     # Steady simualtion with initial RotSpeed of 5 rpm
     r = run_FAST_ROSCO()
     r.wind_case_fcn = cl.power_curve
@@ -57,15 +46,11 @@ def main():
         'TMax': 100,
         }
     r.save_dir      = run_dir
-    r.openfast_exe = '/Users/dzalkind/opt/anaconda3/envs/rosco-env2/bin/openfast'
-    r.case_inputs   = case_inputs
-    # r.run_FAST()
+    r.run_FAST()
 
-    # Gather azimuth, blade pitch, generator torque output
+    # Gather azimuth, blade pitch, generator torque output, apply as open loop inputs to ROSCO
     op = output_processing.output_processing()
     fast_out = op.load_fast_out(os.path.join(run_dir,'NREL2p8/power_curve/base/NREL2p8_0.outb'), tmin=0)
-    # bl_out = '/Users/dzalkind/Tools/ROSCO2/outputs/RPC_Sweeps/Baseline_Cases/RAAW_rosco_BD/turb_bts/base/RAAW_rosco_BD_0.outb'
-    # fast_out = op.load_fast_out(fast_out)
 
     olc = OpenLoopControl()
     olc.ol_timeseries['time'] = fast_out[0]['Time']
@@ -75,33 +60,24 @@ def main():
     olc.ol_timeseries['generator_torque'] = fast_out[0]['GenTq'] * 1000
     olc.ol_timeseries['azimuth'] = np.radians(fast_out[0]['Azimuth'])
 
+    # Save initial RotSpeed, Azimuth for later
     RotSpeed_0 = fast_out[0]['RotSpeed'][0]
     Azimuth_0 = fast_out[0]['Azimuth'][0]
-    BldPitch_0 = fast_out[0]['BldPitch1'][0]
-
-    # Save olc
-    olc.RotSpeed_0 = RotSpeed_0
-    olc.Azimuth_0 = Azimuth_0
-    olc.BldPitch_0 = BldPitch_0
-    # case_ind = bl_out.split('.out')[0][-1]
-    # case_dir = os.path.split(bl_out)[0]
-    # with open(os.path.join(case_dir,f'olc_{case_ind}.p'),'wb') as f:
-    #     pickle.dump(olc,f)
     
     # set up control_params for next run
     open_loop = olc.write_input(os.path.join(run_dir,'ol_input.dat'))
     controller_params = {}
     controller_params['open_loop'] = open_loop
-    controller_params['OL_Mode'] = 2
-    controller_params['PA_Mode'] = 0
+    controller_params['OL_Mode'] = 2        # Azimuth tracking open loop
+    controller_params['PA_Mode'] = 0        # No pitch actuator
     controller_params['DISCON'] = {}
-    controller_params['DISCON']['RP_Gains'] = gains
-    controller_params['DISCON']['PC_MinPit'] = np.radians(-20)
+    
+    gains = -1800 * np.array([12,1.2,120])  # PID gains of rotor position control
+    controller_params['DISCON']['RP_Gains'] = gains 
+    controller_params['DISCON']['PC_MinPit'] = np.radians(-20)  # Remove lower limit of pitch so it doesn't interfere with open loop input
 
 
-    # run again with slower IC and rotor position control
-    # case_inputs[("ElastoDyn","RotSpeed")]    = {'vals':[4], 'group':0}
-    r.case_inputs   = case_inputs
+    # run again with different IC and rotor position control
     r.base_name     = 'rpc'
     r.tuning_yaml   = parameter_filename
     # Set initial conditions
@@ -112,6 +88,31 @@ def main():
 
     r.controller_params = controller_params
     r.run_FAST()
+
+    # Plot relevant outputs
+    op = output_processing.output_processing()
+    op_dbg2 = output_processing.output_processing()
+
+    out_files = [os.path.join(run_dir,f'NREL2p8/power_curve/base/NREL2p8_0.out'),
+                os.path.join(run_dir,f'rpc/power_curve/base/rpc_0.out')]
+    dbg2_files = [out.split('.out')[0] + '.RO.dbg2' for out in out_files]
+
+    fst_out = op.load_fast_out(out_files, tmin=0)
+    local_vars = op_dbg2.load_fast_out(dbg2_files, tmin=0)
+
+    comb_out = [None] * len(fst_out)
+    for i, (r_out2, f_out) in enumerate(zip(local_vars,fst_out)):
+        r_out2.update(f_out)
+        comb_out[i] = r_out2
+
+    cases = {}
+    cases['Fl Sigs.'] = ['BldPitch1','GenTq','GenSpeed', 'Azimuth', 'AzError','GenTqAz']
+    fig, ax = op.plot_fast_out(comb_out,cases, showplot=True)
+
+    if False:
+        plt.show()
+    else:
+        plt.savefig(os.path.join(run_dir,'24_floating_feedback.png'))
 
 
 
