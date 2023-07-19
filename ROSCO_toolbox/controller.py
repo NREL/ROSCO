@@ -815,6 +815,7 @@ class OpenLoopControl(object):
             if not skip_write:
                 ol_control_array = np.c_[ol_control_array,ol_timeseries[channel]]
 
+        ol_index_counter += 1  # Increment counter so it's 1 more than time, just like above in each iteration
 
         # Cable control
         is_cable_chan = np.array(['cable_control' in ol_chan for ol_chan in ol_timeseries.keys()])
