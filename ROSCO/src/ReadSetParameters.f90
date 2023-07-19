@@ -1226,7 +1226,6 @@ CONTAINS
             ENDIF
 
             IF (CntrPar%OL_Mode == 2) THEN
-                PRINT *, 'CntrPar%Ind_Azimuth: ', CntrPar%Ind_Azimuth
                 IF ((CntrPar%Ind_BldPitch(1) == 0) .OR. &
                 (CntrPar%Ind_BldPitch(2) == 0) .OR. &
                 (CntrPar%Ind_BldPitch(3) == 0) .OR. &
