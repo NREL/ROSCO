@@ -3,6 +3,8 @@
 Controller tuning to satisfy a robustness criteria
 -------------------------------------
 NOTE: This example necessitates the mbc3 through either pyFAST or WEIS
+pyFAST is the easiest to install by cloning https://github.com/OpenFAST/python-toolbox and 
+running `python setup.py develop` from your conda environment
 
 In this example:
   - setup ROSCO's robust tuning methods for the IEA15MW on the UMaine Semi-sub
