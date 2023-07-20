@@ -44,7 +44,7 @@ controller      = ROSCO_controller.Controller(controller_params)
 turbine.load_from_fast(
     path_params['FAST_InputFile'],
     os.path.join(tune_dir,path_params['FAST_directory']),
-    rot_source='txt',txt_filename=os.path.join(tune_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
+    rot_source='txt',txt_filename=os.path.join(tune_dir,path_params['rotor_performance_filename'])
     )
 # Tune controller 
 controller.tune_controller(turbine)

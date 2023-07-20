@@ -155,25 +155,10 @@ def simp_step(**wind_case_opts):
     # Set up cases for FIW-JIP project
     # 3.x in controller tuning register
 
-    if 'T_Max' in wind_case_opts:
-        T_max = wind_case_opts['T_Max']
-    else: #default
-        T_max   = 300.
-
-    if 'U_start' in wind_case_opts:
-        U_start = wind_case_opts['U_start']
-    else: #default
-        U_start   = [16]
-
-    if 'U_end' in wind_case_opts:
-        U_end = wind_case_opts['U_end']
-    else: #default
-        U_end   = [17]
-
-    if 'T_step' in wind_case_opts:
-        T_step = wind_case_opts['T_step']
-    else: #default
-        T_step   = 150
+    TMax    = wind_case_opts.get('TMax',300.)
+    T_step  = wind_case_opts.get('TStep',150.)
+    U_start = wind_case_opts.get('U_start',[16.])
+    U_end   = wind_case_opts.get('U_end',[17.])
 
     # Wind directory, default is run_dir
     wind_case_opts['wind_dir'] = wind_case_opts.get('wind_dir',wind_case_opts['run_dir'])
@@ -182,7 +167,7 @@ def simp_step(**wind_case_opts):
 
     # Make Default step wind object
     hh_step = HH_StepFile()
-    hh_step.t_max = T_max
+    hh_step.t_max = TMax
     hh_step.t_step = T_step
     hh_step.wind_directory = wind_case_opts['wind_dir']
 
@@ -200,7 +185,7 @@ def simp_step(**wind_case_opts):
 
     case_inputs = base_op_case()
     # simulation settings
-    case_inputs[("Fst","TMax")] = {'vals':[T_max], 'group':0}
+    case_inputs[("Fst","TMax")] = {'vals':[TMax], 'group':0}
     # case_inputs[("Fst","DT")]        = {'vals':[1/80], 'group':0}
     
     # wind inflow
