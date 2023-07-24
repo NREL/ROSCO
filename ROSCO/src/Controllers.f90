@@ -497,7 +497,7 @@ CONTAINS
         axisYawIPC_1P = LocalVar%IPC_axisYaw_1P + Y_MErrF_IPC
         
         ! Pass direct and quadrature axis through the inverse Coleman transform to get the commanded pitch angles
-        CALL ColemanTransformInverse(LocalVar%IPC_axisTilt_1P, axisYawIPC_1P, LocalVar%Azimuth, CntrPar%AWC_n(1), CntrPar%IPC_aziOffset(1), PitComIPC_1P)
+        CALL ColemanTransformInverse(LocalVar%IPC_axisTilt_1P, axisYawIPC_1P, LocalVar%Azimuth, NP_1, CntrPar%IPC_aziOffset(1), PitComIPC_1P)
         CALL ColemanTransformInverse(LocalVar%IPC_axisTilt_2P, LocalVar%IPC_axisYaw_2P, LocalVar%Azimuth, NP_2, CntrPar%IPC_aziOffset(2), PitComIPC_2P)
         
         ! Sum nP IPC contributions and store to LocalVar data type
