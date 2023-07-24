@@ -857,11 +857,12 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
         IF(CntrPar%LoggingLevel > 1) THEN
             WRITE (UnDb2, FmtDat)  LocalVar%Time, LocalVarOutData
         END IF
+
+        IF(CntrPar%LoggingLevel > 2) THEN
+            WRITE (UnDb3, TRIM(FmtDat))    LocalVar%Time, avrSWAP(avrIndices)
+        END IF
     END IF
 
-    IF(CntrPar%LoggingLevel > 2) THEN
-        WRITE (UnDb3, TRIM(FmtDat))    LocalVar%Time, avrSWAP(avrIndices)
-    END IF
 
 END SUBROUTINE Debug
 
