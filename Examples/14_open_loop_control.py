@@ -77,7 +77,7 @@ controller      = ROSCO_controller.Controller(controller_params)
 turbine.load_from_fast(path_params['FAST_InputFile'], \
   os.path.join(this_dir,path_params['FAST_directory']), \
     rot_source='txt',\
-      txt_filename=os.path.join(this_dir,path_params['FAST_directory'],path_params['rotor_performance_filename']))
+      txt_filename=os.path.join(this_dir,path_params['rotor_performance_filename']))
 
 # Tune controller 
 controller.tune_controller(turbine)
@@ -144,6 +144,22 @@ out_file = os.path.join(example_out_dir,'14_OL_Sim/OL_Example_0.outb')
 op = output_processing.output_processing()
 fastout = op.load_fast_out(out_file, tmin=0)
 fig, ax = op.plot_fast_out(cases=cases,showplot=False)
+
+# Check that open loop commands are close to control outputs from OpenFAST
+fo = fastout[0]
+tt = fo['Time']
+valid_ind = tt > 2  # first few timesteps can differ, depending on OpenFAST solve config
+
+# Computer errors
+nacelle_yaw_diff = fo['NacYaw'][valid_ind] - np.degrees(np.interp(tt[valid_ind],olc.ol_timeseries['time'],olc.ol_timeseries['nacelle_yaw']))
+bld_pitch_diff = fo['BldPitch1'][valid_ind] - np.degrees(np.interp(tt[valid_ind],olc.ol_timeseries['time'],olc.ol_timeseries['blade_pitch']))
+gen_tq_diff = fo['GenTq'][valid_ind] - np.interp(tt[valid_ind],olc.ol_timeseries['time'],olc.ol_timeseries['generator_torque'])/1e3
+
+# Check diff timeseries
+np.testing.assert_allclose(nacelle_yaw_diff,  0,  atol = 1e-1)   # yaw has dynamics and integration error, tolerance higher
+np.testing.assert_allclose(bld_pitch_diff,    0,  atol = 1e-3)
+np.testing.assert_allclose(gen_tq_diff,       0,  atol = 1e-3)
+
 
 if False:
   plt.show()

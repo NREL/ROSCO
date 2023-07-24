@@ -9,6 +9,22 @@ The changes are tabulated according to the line number, and flag name.
 The line number corresponds to the resulting line number after all changes are implemented.
 Thus, be sure to implement each in order so that subsequent line numbers are correct.
 
+2.8.0 to develop
+-------------------------------
+Gain scheduling of floating feedback
+- The floating feedback gain can be scheduled on the low pass filtered wind speed signal.  Note that Fl_Kp can now be an array.
+
+====== =================    ======================================================================================================================================================================================================
+New in ROSCO develop
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Line    Input Name           Example Value
+====== =================    ======================================================================================================================================================================================================
+125     Fl_n                1           ! Fl_n              - Number of Fl_Kp gains in gain scheduling, optional with default of 1
+126     Fl_Kp               0.0000       ! Fl_Kp             - Nacelle velocity proportional feedback gain [s]
+127     Fl_U                0.0000       ! Fl_U              - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
+====== =================    ======================================================================================================================================================================================================
+
+
 2.7.0 to 2.8.0
 -------------------------------
 Optional Inputs

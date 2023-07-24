@@ -1,5 +1,5 @@
 ! Controller parameter input file for the NREL-5MW wind turbine
-!    - File written using ROSCO version 2.8.0 controller tuning logic on 04/19/23
+!    - File written using ROSCO version 2.8.0 controller tuning logic on 06/13/23
 
 !------- DEBUG ------------------------------------------------------------
 1                   ! LoggingLevel		- (0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3))
@@ -17,7 +17,7 @@
 1                   ! PS_Mode           - Pitch saturation mode {0: no pitch saturation, 1: implement pitch saturation}
 0                   ! SD_Mode           - Shutdown mode {0: no shutdown procedure, 1: pitch to max pitch at shutdown}
 0                   ! Fl_Mode           - Floating specific feedback mode {0: no nacelle velocity feedback, 1: feed back translational velocity, 2: feed back rotational veloicty}
-0                   ! Twr_Mode          - Tower control mode {0: no tower damper, 1: feed back translational nacelle accelleration to pitch angle, 2: speed exclusion zone, 3: options 1 and 2}
+0                   ! TD_Mode           - Tower damper mode {0: no tower damper, 1: feed back translational nacelle accelleration to pitch angle}
 0                   ! Flp_Mode          - Flap control mode {0: no flap control, 1: steady state flap angle, 2: Proportional flap control, 2: Cyclic (1P) flap control}
 0                   ! OL_Mode           - Open loop control mode {0: no open loop control, 1: open loop control vs. time}
 0                   ! PA_Mode           - Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
@@ -107,14 +107,10 @@
 0.00000             ! Y_IPC_KP			- Yaw-by-IPC proportional controller gain Kp
 0.00000             ! Y_IPC_KI			- Yaw-by-IPC integral controller gain Ki
 
-!------- TOWER CONTROL ------------------------------------------------------
-0.00000             ! Twr_ExclSpeed	    - Rotor speed for exclusion [LSS] [rad/s]
-0.00000             ! Twr_ExclBand	    - Twice the total frequency exclusion band. Torque controller reference will be Twr_ExclSpeed +/- Twr_ExlBand [rad/s]
-1.0000 1.0000               ! Twr_GainFactor    - Factor to change PI torque control gains by [-]
-1.00000             ! Twr_GainTau       - Time constant for gain change when in exclusion zone [s]
-0.00000             ! FA_KI				- Integral gain for the fore-aft tower damper controller,  [rad*s/m]
-0.00000             ! FA_HPFCornerFreq	- Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]
-0.00000             ! FA_IntSat			- Integrator saturation (maximum signal amplitude contribution to pitch from FA damper), [rad]
+!------- TOWER FORE-AFT DAMPING -------------------------------------------
+-1.00000            ! FA_KI				- Integral gain for the fore-aft tower damper controller [rad s/m]
+0.0                 ! FA_HPFCornerFreq	- Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]
+0.0                 ! FA_IntSat			- Integrator saturation (maximum signal amplitude contribution to pitch from FA damper), [rad]
 
 !------- MINIMUM PITCH SATURATION -------------------------------------------
 60                  ! PS_BldPitchMin_N  - Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)
@@ -126,7 +122,9 @@
 0.418880000000      ! SD_CornerFreq     - Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]
 
 !------- Floating -----------------------------------------------------------
-0.000000000000      ! Fl_Kp             - Nacelle velocity proportional feedback gain [s]
+1           ! Fl_n              - Number of Fl_Kp gains in gain scheduling, optional with default of 1
+0.0000       ! Fl_Kp             - Nacelle velocity proportional feedback gain [s]
+0.0000       ! Fl_U              - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
 
 !------- FLAP ACTUATION -----------------------------------------------------
 0.000000000000      ! Flp_Angle         - Initial or steady state flap angle [rad]

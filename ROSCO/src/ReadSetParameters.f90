@@ -530,7 +530,10 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ FLOATING ------------
-        CALL ParseInput(FileLines,  'Fl_Kp',    CntrPar%Fl_Kp,  accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'Fl_n',     CntrPar%Fl_n,                   accINFILE(1), ErrVar, .TRUE., UnEc)
+        IF (CntrPar%Fl_n == 0) CntrPar%Fl_n = 1   ! Default is 1
+        CALL ParseAry(FileLines,    'Fl_Kp',      CntrPar%Fl_Kp,  CntrPar%Fl_n,   accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
+        CALL ParseAry(FileLines,    'Fl_U',       CntrPar%Fl_U,  CntrPar%Fl_n,   accINFILE(1), ErrVar, CntrPar%Fl_n == 1, UnEc)  ! Allow default if only one Fl_Kp
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ Flaps ------------
@@ -740,12 +743,6 @@ CONTAINS
         IF ((CntrPar%F_NotchType < 0) .OR. (CntrPar%F_NotchType > 3)) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'F_NotchType must be 0, 1, 2, or 3.'
-        ENDIF
-
-        ! F_NotchType
-        IF ((CntrPar%F_NotchType < 0) .OR. (CntrPar%F_NotchType > 2)) THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'F_NotchType must be 0, 1, or 2.'
         ENDIF
 
         ! IPC_ControlMode

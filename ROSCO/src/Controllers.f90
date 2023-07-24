@@ -84,7 +84,7 @@ CONTAINS
         
         ! FloatingFeedback
         IF (CntrPar%Fl_Mode > 0) THEN
-            LocalVar%Fl_PitCom = FloatingFeedback(LocalVar, CntrPar, objInst)
+            LocalVar%Fl_PitCom = FloatingFeedback(LocalVar, CntrPar, objInst, ErrVar)
             DebugVar%FL_PitCom = LocalVar%Fl_PitCom
             LocalVar%PC_PitComT = LocalVar%PC_PitComC + LocalVar%Fl_PitCom
         ENDIF
@@ -376,6 +376,14 @@ CONTAINS
             ! Output yaw rate command in rad/s
             avrSWAP(48) = YawRateCom * D2R
 
+            ! If using open loop yaw rate control, overwrite controlled output
+            ! Open loop torque control
+            IF ((CntrPar%OL_Mode == 1) .AND. (CntrPar%Ind_YawRate > 0)) THEN
+                IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN
+                    avrSWAP(48) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_YawRate,LocalVar%Time, ErrVar)
+                ENDIF
+            ENDIF
+
             ! Save for debug
             DebugVar%YawRateCom       = YawRateCom
             DebugVar%NacHeadingTarget = NacHeadingTarget
@@ -506,28 +514,33 @@ CONTAINS
         
     END SUBROUTINE ForeAftDamping
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(DbKi) FUNCTION FloatingFeedback(LocalVar, CntrPar, objInst) 
+    REAL(DbKi) FUNCTION FloatingFeedback(LocalVar, CntrPar, objInst, ErrVar) 
     ! FloatingFeedback defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
     !       Fl_Mode = 0, No feedback
     !       Fl_Mode = 1, Proportional feedback of nacelle velocity (translational)
     !       Fl_Mode = 2, Proportional feedback of nacelle velocity (rotational)
-        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances, ErrorVariables
         IMPLICIT NONE
         ! Inputs
         TYPE(ControlParameters), INTENT(IN)     :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+        TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
         ! Allocate Variables 
         REAL(DbKi)                      :: FA_vel ! Tower fore-aft velocity [m/s]
         REAL(DbKi)                      :: NacIMU_FA_vel ! Tower fore-aft pitching velocity [rad/s]
+
+        ! Gain scheduling
+        LocalVar%Kp_Float = interp1d(CntrPar%Fl_U,CntrPar%Fl_Kp,LocalVar%WE_Vw_F,ErrVar)       ! Schedule based on WSE
         
         ! Calculate floating contribution to pitch command
         FA_vel = PIController(LocalVar%FA_AccF, 0.0_DbKi, 1.0_DbKi, -100.0_DbKi , 100.0_DbKi ,LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) ! NJA: should never reach saturation limits....
-        NacIMU_FA_vel = PIController(LocalVar%NacIMU_FA_AccF, 0.0_DbKi, 1.0_DbKi, -100.0_DbKi , 100.0_DbKi ,LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) ! NJA: should never reach saturation limits....
+        NacIMU_FA_vel = PIController(LocalVar%NacIMU_FA_AccF, 0.0_DbKi, 1.0_DbKi, -100.0_DbKi , 100.0_DbKi ,LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) ! NJA: should never reach saturation limits....        
+! Mod made by A. Wright: use the gain scheduled value of KPfloat in the floating fb equ's below (instead of the old value of CntrPar%Fl_Kp), for either value of CntrPar%Fl_Mode...        
         if (CntrPar%Fl_Mode == 1) THEN
-            FloatingFeedback = (0.0_DbKi - FA_vel) * CntrPar%Fl_Kp !* LocalVar%PC_KP/maxval(CntrPar%PC_GS_KP)
+            FloatingFeedback = (0.0_DbKi - FA_vel) * LocalVar%Kp_Float ! Mod made by A. Wright: use the gain scheduled value of KPfloat in the floating fb equ's below (instead of the old value of CntrPar%Fl_Kp), for either value of CntrPar%Fl_Mode...
         ELSEIF (CntrPar%Fl_Mode == 2) THEN
-            FloatingFeedback = (0.0_DbKi - NacIMU_FA_vel) * CntrPar%Fl_Kp !* LocalVar%PC_KP/maxval(CntrPar%PC_GS_KP)
+            FloatingFeedback = (0.0_DbKi - NacIMU_FA_vel) *LocalVar%Kp_Float ! Mod made by A. Wright: use the gain scheduled value of KPfloat in the floating fb equ's below (instead of the old value of CntrPar%Fl_Kp), for either value of CntrPar%Fl_Mode...
         END IF
 
     END FUNCTION FloatingFeedback
@@ -694,6 +707,8 @@ CONTAINS
         
         ! Internal Variables
         Integer(IntKi)                            :: I_GROUP
+        CHARACTER(*),               PARAMETER           :: RoutineName = 'StructuralControl'
+
 
 
         IF (CntrPar%CC_Mode == 1) THEN
@@ -748,10 +763,15 @@ CONTAINS
 
         END DO
 
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
+
     END SUBROUTINE CableControl
 
 !-------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst)
+SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
         ! Cable controller
         !       StC_Mode = 0, No cable control, this code not executed
         !       StC_Mode = 1, User-defined cable control
@@ -759,20 +779,24 @@ SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst)
         !
         ! Note that LocalVar%StC_Input() has a fixed max size of 12, which can be increased in rosco_types.yaml
         !
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, ErrorVariables
     
         REAL(ReKi), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
     
         TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
+        TYPE(ErrorVariables), INTENT(INOUT)      :: ErrVar
+
         
         ! Internal Variables
         Integer(IntKi)                            :: I_GROUP
+        CHARACTER(*),               PARAMETER           :: RoutineName = 'StructuralControl'
+
 
 
         IF (CntrPar%StC_Mode == 1) THEN
-            ! User defined control
+            ! User defined control, step example
 
             IF (LocalVar%Time > 500) THEN
                 ! Step change in input of -4500 N
@@ -783,6 +807,18 @@ SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst)
             END IF
 
 
+        ELSEIF (CntrPar%StC_Mode == 2) THEN
+
+
+            DO I_GROUP = 1,CntrPar%StC_Group_N
+                IF (CntrPar%Ind_StructControl(I_GROUP) > 0) THEN
+                    LocalVar%StC_Input(I_GROUP) =  interp1d(CntrPar%OL_Breakpoints, &
+                                                            CntrPar%OL_StructControl(I_GROUP,:), &
+                                                            LocalVar%Time,ErrVar)
+                ENDIF
+            ENDDO
+
+
 
         END IF
 
@@ -791,6 +827,11 @@ SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst)
         DO I_GROUP = 1, CntrPar%StC_Group_N
             avrSWAP(CntrPar%StC_GroupIndex(I_GROUP)) = LocalVar%StC_Input(I_GROUP)
         END DO
+
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
 
     END SUBROUTINE StructuralControl
 !-------------------------------------------------------------------------------------------------------------------------------

@@ -201,7 +201,7 @@ Please follow the following steps to install the ROSCO tool-chain. You should do
     conda install compilers # (Mac/Linux only)
     conda install m2w64-toolchain libpython # (Windows only)
     conda env config vars set FC=gfortran # Sometimes needed for Windows
-    conda install -y wisdem=3.5.0  
+    conda install -y wisdem>3.7
     python setup.py install --compile-rosco 
 
 3. Clone and Install the ROSCO toolbox without ROSCO controller
