@@ -392,9 +392,17 @@ ControlParameters:
     Fl_Mode:
       <<: *integer
       description: Floating specific feedback mode {0 - no nacelle velocity feedback, 1 - nacelle velocity feedback}
+    Fl_n:
+      <<: *integer
+      description: Number of Fl_Kp for gain scheduling
     Fl_Kp:
       <<: *real
       description: Nacelle velocity proportional feedback gain [s]
+      allocatable: True
+    Fl_U:
+      <<: *real
+      description: Wind speeds for scheduling Fl_Kp [m/s]
+      allocatable: True
     
     # Trailing edge flaps
     Flp_Mode:
@@ -497,30 +505,6 @@ ControlParameters:
       <<: *integer
       allocatable: True
       description: AWC AWC Coleman transform harmonic [-]
-    AWC_freq:
-      <<: *real
-      allocatable: True
-      description: AWC frequency [Hz]
-    AWC_amp:
-      <<: *real
-      allocatable: True
-      description: AWC amplitude [deg]
-    AWC_clockangle:
-      <<: *real
-      allocatable: True
-      description: AWC clocking angle [deg]
-    
-    # Active wake control
-    AWC_Mode:
-      <<: *integer
-      description: Active wake control mode [0 - unused, 1 - SNL method, 2 - NREL method]
-    AWC_NumModes:
-      <<: *integer
-      description: AWC- Number of modes to include [-] 
-    AWC_n:
-      <<: *integer
-      allocatable: True
-      description: AWC azimuthal mode [-]
     AWC_freq:
       <<: *real
       allocatable: True
@@ -1039,6 +1023,9 @@ LocalVariables:
     TestType:                     
       <<: *real 
       description: Test variable, no use
+    Kp_Float:
+      <<: *real
+      description: Local, instantaneous Kp_Float, scheduled on wind speed, if desired
     VS_MaxTq:                     
       <<: *real 
       description: Maximum allowable generator torque [Nm].

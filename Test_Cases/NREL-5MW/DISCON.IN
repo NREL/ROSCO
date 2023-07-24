@@ -1,5 +1,5 @@
 ! Controller parameter input file for the NREL-5MW wind turbine
-!    - File written using ROSCO version 2.8.0 controller tuning logic on 04/19/23
+!    - File written using ROSCO version 2.8.0 controller tuning logic on 06/13/23
 
 !------- DEBUG ------------------------------------------------------------
 1                   ! LoggingLevel		- (0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3))
@@ -13,7 +13,6 @@
 1                   ! PC_ControlMode    - Blade pitch control mode {0: No pitch, fix to fine pitch, 1: active PI blade pitch control}
 0                   ! Y_ControlMode		- Yaw control mode {0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}
 1                   ! SS_Mode           - Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
-0                   ! PRC_Mode          - Power reference tracking mode{0: use standard rotor speed set points, 1: use PRC rotor speed setpoints}
 2                   ! WE_Mode           - Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator, 2: Extended Kalman Filter}
 1                   ! PS_Mode           - Pitch saturation mode {0: no pitch saturation, 1: implement pitch saturation}
 0                   ! SD_Mode           - Shutdown mode {0: no shutdown procedure, 1: pitch to max pitch at shutdown}
@@ -85,11 +84,6 @@
 1.00000             ! SS_VSGain         - Variable speed torque controller setpoint smoother gain, [-].
 0.00100             ! SS_PCGain         - Collective pitch controller setpoint smoother gain, [-].
 
-!------- POWER REFERENCE TRACKING --------------------------------------
-2                   ! PRC_n			    -  Number of elements in PRC_WindSpeeds and PRC_RotorSpeeds array
-3.000  25.000                ! PRC_WindSpeeds	- Array of wind speeds used in rotor speed vs. wind speed lookup table [m/s].
-0.792  0.792                ! PRC_RotorSpeeds	- Array of rotor speeds corresponding to PRC_WindSpeeds [rad/s].
-
 !------- WIND SPEED ESTIMATOR ---------------------------------------------
 63.000              ! WE_BladeRadius	- Blade length (distance from hub center to blade tip), [m]
 1                   ! WE_CP_n			- Amount of parameters in the Cp array
@@ -120,15 +114,17 @@
 
 !------- MINIMUM PITCH SATURATION -------------------------------------------
 60                  ! PS_BldPitchMin_N  - Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)
-3.000 3.290 3.579 3.869 4.159 4.448 4.738 5.028 5.317 5.607 5.897 6.186 6.476 6.766 7.055 7.345 7.634 7.924 8.214 8.503 8.793 9.083 9.372 9.662 9.952 10.241 10.531 10.821 11.110 11.400 11.853 12.307 12.760 13.213 13.667 14.120 14.573 15.027 15.480 15.933 16.387 16.840 17.293 17.747 18.200 18.653 19.107 19.560 20.013 20.467 20.920 21.373 21.827 22.280 22.733 23.187 23.640 24.093 24.547 25.000               ! PS_WindSpeeds     - Wind speeds corresponding to minimum blade pitch angles [m/s]
-0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.011      0.023      0.032      0.040      0.047      0.059      0.070      0.081      0.091      0.102      0.112      0.122      0.131      0.141      0.150      0.160      0.169      0.178      0.187      0.196      0.205      0.214      0.223      0.232      0.240      0.249      0.257      0.266      0.274      0.282      0.290      0.299      0.307      0.315      0.323                    ! PS_BldPitchMin    - Minimum blade pitch angles [rad]
+3.0000 3.2897 3.5793 3.8690 4.1586 4.4483 4.7379 5.0276 5.3172 5.6069 5.8966 6.1862 6.4759 6.7655 7.0552 7.3448 7.6345 7.9241 8.2138 8.5034 8.7931 9.0828 9.3724 9.6621 9.9517 10.2414 10.5310 10.8207 11.1103 11.4000 11.8533 12.3067 12.7600 13.2133 13.6667 14.1200 14.5733 15.0267 15.4800 15.9333 16.3867 16.8400 17.2933 17.7467 18.2000 18.6533 19.1067 19.5600 20.0133 20.4667 20.9200 21.3733 21.8267 22.2800 22.7333 23.1867 23.6400 24.0933 24.5467 25.0000               ! PS_WindSpeeds     - Wind speeds corresponding to minimum blade pitch angles [m/s]
+0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.00088027 0.01116187 0.02310060 0.03164156 0.03968639 0.04741131 0.05899071 0.07019329 0.08090119 0.09141661 0.10169361 0.11174124 0.12170066 0.13137494 0.14103377 0.15048120 0.15989580 0.16913227 0.17831010 0.18739638 0.19643591 0.20537011 0.21419674 0.22293719 0.23161365 0.24025975 0.24885012 0.25735704 0.26578040 0.27407178 0.28233051 0.29047594 0.29867838 0.30674517 0.31490089 0.32284411               ! PS_BldPitchMin    - Minimum blade pitch angles [rad]
 
 !------- SHUTDOWN -----------------------------------------------------------
 0.436300000000      ! SD_MaxPit         - Maximum blade pitch angle to initiate shutdown, [rad]
 0.418880000000      ! SD_CornerFreq     - Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]
 
 !------- Floating -----------------------------------------------------------
-0.000000000000      ! Fl_Kp             - Nacelle velocity proportional feedback gain [s]
+1           ! Fl_n              - Number of Fl_Kp gains in gain scheduling, optional with default of 1
+0.0000       ! Fl_Kp             - Nacelle velocity proportional feedback gain [s]
+0.0000       ! Fl_U              - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
 
 !------- FLAP ACTUATION -----------------------------------------------------
 0.000000000000      ! Flp_Angle         - Initial or steady state flap angle [rad]

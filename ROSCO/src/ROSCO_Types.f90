@@ -99,7 +99,9 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: SD_MaxPit                   ! Maximum blade pitch angle to initiate shutdown, [rad]
     REAL(DbKi)                    :: SD_CornerFreq               ! Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]
     INTEGER(IntKi)                :: Fl_Mode                     ! Floating specific feedback mode {0 - no nacelle velocity feedback, 1 - nacelle velocity feedback}
-    REAL(DbKi)                    :: Fl_Kp                       ! Nacelle velocity proportional feedback gain [s]
+    INTEGER(IntKi)                :: Fl_n                        ! Number of Fl_Kp for gain scheduling
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: Fl_Kp                       ! Nacelle velocity proportional feedback gain [s]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: Fl_U                        ! Wind speeds for scheduling Fl_Kp [m/s]
     INTEGER(IntKi)                :: Flp_Mode                    ! Flap actuator mode {0 - off, 1 - fixed flap position, 2 - PI flap control}
     REAL(DbKi)                    :: Flp_Angle                   ! Fixed flap angle (degrees)
     REAL(DbKi)                    :: Flp_Kp                      ! PI flap control proportional gain
@@ -123,7 +125,7 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: PA_Mode                     ! Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
     REAL(DbKi)                    :: PA_CornerFreq               ! Pitch actuator bandwidth/cut-off frequency [rad/s]
     REAL(DbKi)                    :: PA_Damping                  ! Pitch actuator damping ratio [-, unused if PA_Mode = 1]
-    INTEGER(IntKi)                :: AWC_Mode                    ! Active wake control mode [0 - unused, 1 - SNL method, 2 - NREL method]
+    INTEGER(IntKi)                :: AWC_Mode                    ! Active wake control mode [0 - unused, 1 - complex number method, 2 - Coleman transform method]
     INTEGER(IntKi)                :: AWC_NumModes                ! AWC- Number of modes to include [-]
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: AWC_n                       ! AWC azimuthal mode [-]
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: AWC_harmonic                ! AWC AWC Coleman transform harmonic [-]
@@ -281,6 +283,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: PitComAct(3)                ! Actuated pitch command of each blade [rad].
     REAL(DbKi)                    :: SS_DelOmegaF                ! Filtered setpoint shifting term defined in setpoint smoother [rad/s].
     REAL(DbKi)                    :: TestType                    ! Test variable, no use
+    REAL(DbKi)                    :: Kp_Float                    ! Local, instantaneous Kp_Float, scheduled on wind speed, if desired
     REAL(DbKi)                    :: VS_MaxTq                    ! Maximum allowable generator torque [Nm].
     REAL(DbKi)                    :: VS_LastGenTrq               ! Commanded electrical generator torque the last time the controller was called [Nm].
     REAL(DbKi)                    :: VS_LastGenPwr               ! Commanded electrical generator torque the last time the controller was called [Nm].

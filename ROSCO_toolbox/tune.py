@@ -36,7 +36,7 @@ def yaml_to_objs(tuning_yaml):
         path_params['FAST_InputFile'],
         os.path.join(yaml_dir,path_params['FAST_directory']),
         rot_source='txt',
-        txt_filename=os.path.join(yaml_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
+        txt_filename=os.path.join(yaml_dir,path_params['rotor_performance_filename'])
         )
 
     # Tune controller 
