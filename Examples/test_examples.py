@@ -26,6 +26,7 @@ all_scripts = [
     '21_optional_inputs',
     '22_cable_control',
     '23_structural_control',
+    '24_floating_feedback',
     'update_rosco_discons',     
 ]
 

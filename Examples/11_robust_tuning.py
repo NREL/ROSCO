@@ -3,6 +3,8 @@
 Controller tuning to satisfy a robustness criteria
 -------------------------------------
 NOTE: This example necessitates the mbc3 through either pyFAST or WEIS
+pyFAST is the easiest to install by cloning https://github.com/OpenFAST/python-toolbox and 
+running `python setup.py develop` from your conda environment
 
 In this example:
   - setup ROSCO's robust tuning methods for the IEA15MW on the UMaine Semi-sub
@@ -53,12 +55,12 @@ def run_example():
     controller = ROSCO_controller.Controller(controller_params)
     turbine.load_from_fast(
         path_params['FAST_InputFile'],
-        os.path.join(this_dir, path_params['FAST_directory']),
-        rot_source='txt', txt_filename=os.path.join(this_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
+        os.path.join(tune_dir, path_params['FAST_directory']),
+        rot_source='txt', txt_filename=os.path.join(tune_dir,path_params['rotor_performance_filename'])
         )
 
     # Fix path params for robust setup
-    path_params['FAST_directory'] = os.path.join(this_dir, path_params['FAST_directory'])
+    path_params['FAST_directory'] = os.path.join(tune_dir, path_params['FAST_directory'])
 
     controller.tune_controller(turbine)
     k_float = controller.Kp_float

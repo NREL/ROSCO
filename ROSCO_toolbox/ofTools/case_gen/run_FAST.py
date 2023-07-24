@@ -7,7 +7,10 @@ Otherwise, the directories can be defined as attributes of the run_FAST_ROSCO
 
 """
 
-from ROSCO_toolbox.ofTools.case_gen.runFAST_pywrapper   import runFAST_pywrapper_batch
+try:
+    from weis.aeroelasticse.runFAST_pywrapper   import runFAST_pywrapper_batch
+except:
+    from ROSCO_toolbox.ofTools.case_gen.runFAST_pywrapper   import runFAST_pywrapper_batch
 from ROSCO_toolbox.ofTools.case_gen.CaseGen_IEC         import CaseGen_IEC
 from ROSCO_toolbox.ofTools.case_gen.CaseGen_General     import CaseGen_General
 from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
@@ -107,7 +110,6 @@ class run_FAST_ROSCO():
         tune_yaml_dir = os.path.split(self.tuning_yaml)[0]
         cp_filename = os.path.join(
             tune_yaml_dir,
-            path_params['FAST_directory'],
             path_params['rotor_performance_filename']
             )
         turbine.load_from_fast(
@@ -188,7 +190,7 @@ class run_FAST_ROSCO():
             fastBatch.case_list         = case_list
             fastBatch.case_name_list    = case_name_list
             fastBatch.FAST_exe          = self.openfast_exe
-            fastBatch.fst_vt            = self.fst_vt
+            fastBatch.use_exe           = True
 
             if MPI:
                 fastBatch.run_mpi(comm_map_down)
@@ -213,7 +215,7 @@ class run_FAST_ROSCO():
 if __name__ == "__main__":
 
     # Simulation config
-    sim_config = 1
+    sim_config = 3
     
     r = run_FAST_ROSCO()
 
@@ -225,6 +227,22 @@ if __name__ == "__main__":
         r.wind_case_fcn = cl.simp_step
         r.sweep_mode  = None
         r.save_dir    = '/Users/dzalkind/Tools/ROSCO/outputs'
+
+    elif sim_config == 3:
+        # IEA-22 fixed bottom
+        r.tuning_yaml = '/Users/dzalkind/Projects/IEA-22MW/IEA-22-280-RWT/OpenFAST/IEA-22-280-RWT-Monopile/IEA-22-280-RWT-Monopile.yaml'
+        r.wind_case_fcn = cl.power_curve
+        r.sweep_mode  = None
+        r.wind_case_opts    = {
+            'U': [6,9,12,15],
+            'TMax': 100,
+            }
+        r.save_dir    = '/Users/dzalkind/Projects/IEA-22MW/MonopileControl/outputs/1_const_power'
+        r.openfast_exe = '/Users/dzalkind/opt/anaconda3/envs/rosco-new/bin/openfast'
+        # rosco_dll = '/Users/dzalkind/Tools/ROSCO1/ROSCO/build/libdiscon.dylib'
+        r.case_inputs = {}
+        # r.case_inputs[('ServoDyn','DLL_FileName')] = {'vals': [rosco_dll], 'group': 0}
+        r.n_cores = 4
     
     elif sim_config == 6:
 
