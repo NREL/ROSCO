@@ -447,8 +447,8 @@ CONTAINS
         ENDIF
 
         !----------------------- Simulation Control --------------------------
-        CALL ParseInput(FileLines,'LoggingLevel',   CntrPar%LoggingLevel,       accINFILE(1), ErrVar)
-        CALL ParseInput(FileLines,'DT_Out',         CntrPar%DT_Out,             accINFILE(1), ErrVar)
+        CALL ParseInput(FileLines,'LoggingLevel',   CntrPar%LoggingLevel,       accINFILE(1), ErrVar, .TRUE., UnEc=UnEc)
+        CALL ParseInput(FileLines,'DT_Out',         CntrPar%DT_Out,             accINFILE(1), ErrVar, .TRUE., UnEc=UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !----------------- CONTROLLER FLAGS ---------------------
