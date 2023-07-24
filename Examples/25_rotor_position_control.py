@@ -1,5 +1,5 @@
 '''
------------ 24_rotor_position_control --------------
+----------- 25_rotor_position_control --------------
 Run ROSCO with rotor position control
 -------------------------------------
 
