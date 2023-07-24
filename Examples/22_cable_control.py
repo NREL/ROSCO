@@ -120,8 +120,6 @@ def main():
     r.controller_params = controller_params
     r.save_dir      = run_dir
     r.rosco_dir     = rosco_dir
-    r.openfast_exe = '/Users/dzalkind/opt/anaconda3/envs/rosco-env2/bin/openfast'
-
     r.run_FAST()
 
 
