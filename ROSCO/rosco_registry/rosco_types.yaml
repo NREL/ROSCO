@@ -584,15 +584,6 @@ ControlParameters:
       description: Process name of subprocess called in DLL_Filename (Usually DISCON)
       length: 1024
     
-    # Pitch actuator error
-    PF_Mode:
-      <<: *integer
-      description: Pitch actuator fault mode {0 - not used, 1 - offsets on one or more blades}
-    PF_Offsets:
-      <<: *real
-      description: Pitch actuator fault offsets for blade 1-3 [rad/s]
-      allocatable: True
-    
     # ZeroMQ
     ZMQ_Mode:
       <<: *integer
