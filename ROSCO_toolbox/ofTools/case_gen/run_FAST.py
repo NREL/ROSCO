@@ -186,6 +186,7 @@ class run_FAST_ROSCO():
             fastBatch.channels          = channels
             fastBatch.FAST_runDirectory = run_dir
             fastBatch.case_list         = case_list
+            fastBatch.fst_vt            = self.fst_vt
             fastBatch.case_name_list    = case_name_list
             fastBatch.FAST_exe          = self.openfast_exe
             fastBatch.use_exe           = True
