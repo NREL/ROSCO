@@ -198,7 +198,10 @@ class Controller():
         rated_rotor_speed = turbine.rated_rotor_speed               # Rated rotor speed (rad/s)
 
         # ------------- Saturation Limits --------------- #
-        turbine.max_torque = turbine.rated_torque * self.controller_params['max_torque_factor']
+        if self.VS_ControlMode == 4:
+            turbine.max_torque = turbine.rated_torque * 1.5 # If using fixed pitch variable speed controller in the above rated region, set max torque to be 1.5x rated torque
+        else:
+            turbine.max_torque = turbine.rated_torque * self.controller_params['max_torque_factor']
 
         # -------------Define Operation Points ------------- #
         TSR_rated = rated_rotor_speed*R/turbine.v_rated  # TSR at rated
@@ -280,7 +283,7 @@ class Controller():
         Pi_wind         = 1/2 * rho * Ar * v**2 * dCt_dTSR * dlambda_dv + rho * Ar * v * Ct_op
 
         # Second order system coefficients
-        if self.VS_ControlMode in [0,2]: # Constant torque above rated
+        if self.VS_ControlMode in [0,2,4]: # Constant torque above rated
             A = dtau_domega/J
         else:                            # Constant power above rated
             A = dtau_domega/J 
@@ -382,7 +385,7 @@ class Controller():
                 self.Kp_float = f_kp(turbine.v_rated * (1.05))   # get Kp at v_rated + 0.5 m/s
 
             # Turn on the notch filter if floating
-            self.F_NotchType = 2
+            #self.F_NotchType = 2
             
             # And check for .yaml input inconsistencies
             if self.twr_freq == 0.0 or self.ptfm_freq == 0.0:

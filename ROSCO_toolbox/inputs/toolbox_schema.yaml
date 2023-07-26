@@ -128,7 +128,7 @@ properties:
             VS_ControlMode:     
                 type: number
                 minimum: 0
-                maximum: 3
+                maximum: 4
                 default: 2
                 description: Generator torque control mode in above rated conditions (0- constant torque, 1- constant power, 2- TSR tracking PI control with constant torque, 3- TSR tracking with constant power)
             PC_ControlMode:     

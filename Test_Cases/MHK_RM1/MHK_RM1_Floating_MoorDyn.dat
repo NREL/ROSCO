@@ -1,0 +1,42 @@
+--------------------- MoorDyn Input File ------------------------------------
+Floating MHK turbine mooring input properties, based on the RM1 tidal current rotor with a quad-style floating platform
+FALSE    Echo      - echo the input file data (flag)
+----------------------- LINE TYPES Chain studless 0.018m --------------------
+Name     Diam     MassDen     EA        BA/-zeta   EI   Cd   Ca   CdAx   CaAx
+(-)      (m)      (kg/m)      (N)       (N-s/-)    (-)  (-)  (-)  (-)    (-)
+main     0.2      800         85.4e7    -0.8       0.8  2.4  1.0  1.15   0.5
+---------------------- POINTS -----------------------------------------------
+Node     Type      X        Y        Z       M     V      CdA    CA
+(-)      (-)       (m)      (m)      (m)     (kg)  (m^3)  (m^2)  (-)
+1        Fixed  -140.0   -50.0     -50.0    0     0      0      0
+2        Fixed  -140.0    50.0     -50.0    0     0      0      0
+3        Fixed   140.0   -50.0     -50.0    0     0      0      0
+4        Fixed   140.0    50.0     -50.0    0     0      0      0
+5        Vessel  -32.0     0.0     -10.0    0     0      0      0
+6        Vessel  -32.0     0.0     -10.0    0     0      0      0
+7        Vessel   32.0     0.0     -10.0    0     0      0      0
+8        Vessel   32.0     0.0     -10.0    0     0      0      0
+---------------------- LINES ------------------------------------------------
+Line     LineType  AttachA  AttachB   UnstrLen   NumSegs   Outputs 
+(-)      (-)       (-)      (-)       (m)        (-)       (-)
+1        main      1        5        150.0       30        p
+2        main      2        6        150.0       30        -
+3        main      3        7        150.0       30        -
+4        main      4        8        150.0       30        -
+---------------------- SOLVER OPTIONS ---------------------------------------
+0.5e-4    dtM       - time step to use in mooring integration (s)
+3.0e6    kbot      - bottom stiffness (Pa/m)
+3.0e5    cbot      - bottom damping (Pa-s/m)
+1.0      dtIC      - time interval for analyzing convergence during IC gen (s)
+10.0     TmaxIC    - max time for ic gen (s)
+4.0      CdScaleIC - factor by which to scale drag coefficients during dynamic relaxation (-)
+0.1     threshIC  - threshold for IC convergence (-)
+------------------------ OUTPUTS --------------------------------------------
+FairTen1 FairTen2 FairTen3 FairTen4
+AnchTen1 AnchTen2 AnchTen3 AnchTen4
+Con5fX Con5fY Con5fZ Con5pX Con5pY Con5pZ
+Con6fX Con6fY Con6fZ Con6pX Con6pY Con6pZ
+Con7fX Con7fY Con7fZ Con7pX Con7pY Con7pZ
+Con8fX Con8fY Con8fZ Con8pX Con8pY Con8pZ
+END
+------------------------- need this line ------------------------------------

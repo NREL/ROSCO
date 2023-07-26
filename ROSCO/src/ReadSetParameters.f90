@@ -738,12 +738,6 @@ CONTAINS
             ErrVar%ErrMsg  = 'F_NotchType must be 0, 1, 2, or 3.'
         ENDIF
 
-        ! F_NotchType
-        IF ((CntrPar%F_NotchType < 0) .OR. (CntrPar%F_NotchType > 2)) THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'F_NotchType must be 0, 1, or 2.'
-        ENDIF
-
         ! IPC_ControlMode
         IF ((CntrPar%IPC_ControlMode < 0) .OR. (CntrPar%IPC_ControlMode > 2)) THEN
             ErrVar%aviFAIL = -1
@@ -751,9 +745,9 @@ CONTAINS
         ENDIF
 
         ! VS_ControlMode
-        IF ((CntrPar%VS_ControlMode < 0) .OR. (CntrPar%VS_ControlMode > 3)) THEN
+        IF ((CntrPar%VS_ControlMode < 0) .OR. (CntrPar%VS_ControlMode > 4)) THEN
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'VS_ControlMode must be 0, 1, 2, or 3.'
+            ErrVar%ErrMsg  = 'VS_ControlMode must be 0, 1, 2, 3, or 4.'
         ENDIF
 
         ! PC_ControlMode
