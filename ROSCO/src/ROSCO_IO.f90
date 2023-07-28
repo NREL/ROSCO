@@ -863,7 +863,6 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
         END IF
     END IF
 
-
 END SUBROUTINE Debug
 
 END MODULE ROSCO_IO

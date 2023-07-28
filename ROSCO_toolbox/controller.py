@@ -788,7 +788,6 @@ class OpenLoopControl(object):
         Return open_loop dict for control params
         '''
 
-        # simplify
         ol_timeseries = self.ol_timeseries
 
         # Init indices

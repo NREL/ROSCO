@@ -42,8 +42,6 @@ CONTAINS
 
         CHARACTER(*),               PARAMETER           :: RoutineName = 'PitchControl'
 
-        ! Local
-
         ! ------- Blade Pitch Controller --------
         ! Load PC State
         IF (LocalVar%PC_State == 1) THEN ! PI BldPitch control
@@ -407,7 +405,7 @@ CONTAINS
             avrSWAP(48) = YawRateCom * D2R
 
             ! If using open loop yaw rate control, overwrite controlled output
-            ! Open loop yaw rated control - control input in rad/s
+            ! Open loop yaw rate control - control input in rad/s
             IF ((CntrPar%OL_Mode == 1) .AND. (CntrPar%Ind_YawRate > 0)) THEN
                 IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN
                     avrSWAP(48) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_YawRate,LocalVar%Time, ErrVar)
