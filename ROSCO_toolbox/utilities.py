@@ -32,8 +32,6 @@ from wisdem.inputs import load_yaml
 from wisdem.inputs import load_yaml
 from ROSCO_toolbox.ofTools.util.FileTools import remove_numpy
 
-from wisdem.inputs import load_yaml
-
 # Some useful constants
 now = datetime.datetime.now()
 pi = np.pi
