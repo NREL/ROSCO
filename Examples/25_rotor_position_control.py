@@ -34,7 +34,7 @@ def main():
 
     # Set up paths
     parameter_filename = os.path.join(rosco_dir,'Tune_Cases/NREL2p8.yaml')
-    run_dir = os.path.join(example_out_dir,'24_rotor_position_control')
+    run_dir = os.path.join(example_out_dir,'25_rotor_position_control')
     os.makedirs(run_dir,exist_ok=True)
    
     # Steady simualtion with initial RotSpeed of 5 rpm
