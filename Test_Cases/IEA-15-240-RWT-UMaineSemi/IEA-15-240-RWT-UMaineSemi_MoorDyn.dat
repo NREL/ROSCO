@@ -17,7 +17,7 @@ ID  Type      X         Y       Z       M    V   CdA   CA
 ---------------------- LINES --------------------------------------                                           
 ID  LineType  AttachA   AttachB UnstrLen  NumSegs  Outputs 
 (-)   (-)       (-)       (-)     (m)       (-)      (-)     
-1     main        2         1     850.00    50        l      
+1     main        2         1     850.00    50        -      
 2     main        4         3     850.00    50        -      
 3     main        6         5     850.00    50        -      
 ---------------------- SOLVER OPTIONS ---------------------------------------                                           
