@@ -836,14 +836,20 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     ! Process DebugOutData, LocalVarOutData
     ! Remove very small numbers that cause ******** outputs
     DO I = 1,SIZE(DebugOutData)
-        IF (ABS(DebugOutData(I)) < 1E-10) THEN
+        IF (ABS(DebugOutData(I)) < 1E-99) THEN
             DebugOutData(I) = 0
+        END IF
+        IF (ABS(DebugOutData(I)) > 1E+99) THEN
+            DebugOutData(I) = 1E+99
         END IF
     END DO
     
     DO I = 1,SIZE(LocalVarOutData)
-        IF (ABS(LocalVarOutData(I)) < 1E-10) THEN
+        IF (ABS(LocalVarOutData(I)) < 1E-99) THEN
             LocalVarOutData(I) = 0
+        END IF
+        IF (ABS(LocalVarOutData(I)) > 1E+99) THEN
+            LocalVarOutData(I) = 1E+99
         END IF
     END DO
     
