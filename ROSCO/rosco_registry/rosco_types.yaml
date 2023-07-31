@@ -429,7 +429,6 @@ ControlParameters:
     Ind_BldPitch:
       <<: *integer
       description: The columns in OL_Filename that contains the blade pitch inputs (1,2,3) in rad
-      # dimension: (3)
       allocatable: True
     Ind_GenTq:
       <<: *integer
