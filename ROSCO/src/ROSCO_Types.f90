@@ -12,9 +12,13 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: Echo                        ! 0 - no Echo, 1 - Echo input data to <RootName>.echo
     INTEGER(IntKi)                :: F_LPFType                   ! Low pass filter on the rotor and generator speed {1 - first-order low-pass filter, 2 - second-order low-pass filter}, [rad/s]
     INTEGER(IntKi)                :: F_NotchType                 ! Notch on the measured generator speed {0 - disable, 1 - enable}
+    INTEGER(IntKi)                :: GS_notch_n                  ! Number of notch filters to be placed on the generator speed signal
+    INTEGER(IntKi)                :: TTM_notch_n                 ! Number of notch filters to be placed on the tower-top motion signal
     REAL(DbKi)                    :: F_LPFCornerFreq             ! Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
     REAL(DbKi)                    :: F_LPFDamping                ! Damping coefficient [used only when F_FilterType = 2]
-    REAL(DbKi)                    :: F_NotchCornerFreq           ! Natural frequency of the notch filter, [rad/s]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_NotchCornerFreq_GS           ! Natural frequency of the notch filters applied on the genrator speed signal corresponding to GS_notch_n
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_NotchCornerFreq_TTM           !Natural frequency of the notch filters applied on the tower-top motion corresponding to TTM_notch_n
+    REAL(DbKi)                    :: F_NotchCornerFreq_RBM           ! Natural frequency of the notch filter for root bending moment, [rad/s]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_NotchBetaNumDen           ! These two notch damping values (numerator and denominator) determines the width and depth of the notch
     REAL(DbKi)                    :: F_SSCornerFreq              ! Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother [rad/s]
     REAL(DbKi)                    :: F_WECornerFreq              ! Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s]

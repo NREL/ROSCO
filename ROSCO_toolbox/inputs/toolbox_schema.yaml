@@ -130,7 +130,7 @@ properties:
                 minimum: 0
                 maximum: 4
                 default: 2
-                description: Generator torque control mode in above rated conditions (0- constant torque, 1- constant power, 2- TSR tracking PI control with constant torque, 3- TSR tracking with constant power)
+                description: Generator torque control mode in above rated conditions (0- constant torque, 1- constant power, 2- TSR tracking PI control with constant torque, 3- TSR tracking with constant power, 4- Fixed pitch variable speed PI torque controller)
             PC_ControlMode:     
                 type: number
                 minimum: 0
@@ -539,9 +539,32 @@ properties:
                     F_LPFDamping:
                         type: number
                         description: Damping coefficient (used only when F_FilterType = 2 [-]
-                    F_NotchCornerFreq:
+                    GS_notch_n:
                         type: number
-                        description: Natural frequency of the notch filter, 
+                        description: Number of notch filters to be placed on the generator speed signal
+                        default: 1
+                    TTM_notch_n:
+                        type: number
+                        description: Number of notch filters to be placed on the tower-top motion signal
+                        default: 1
+                    F_NotchCornerFreq_GS:
+                        type: [array,number]
+                        items:
+                            type: number
+                        description: Natural frequency of the notch filters applied on the genrator speed signal corresponding to GS_notch_n
+                        default: [1.00]
+                        units: rad/s
+                    F_NotchCornerFreq_TTM:
+                        type: [array,number]
+                        items:
+                            type: number
+                        description: Natural frequency of the notch filters applied on the tower-top motion signal corresponding to TTM_notch_n 
+                        default: [1.00]
+                        units: rad/s
+                    F_NotchCornerFreq_RBM:
+                        type: number
+                        description: Natural frequency of the notch filter for the root bending moment, 
+                        default: 1
                         units: rad/s
                     F_NotchBetaNumDen:
                         type: array

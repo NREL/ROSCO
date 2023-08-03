@@ -69,35 +69,26 @@ False         UseBlCm            - Include aerodynamic pitching moment in calcul
 False         TFinAero           - Calculate tail fin aerodynamics model (flag)
 "unused"      TFinFile           - Input file for tail fin aerodynamics [used only when TFinAero=True]
 ======  Tower Influence and Aerodynamics ============================================================ [used only when TwrPotent/=0, TwrShadow/=0, TwrAero=True, or Buoyancy=True]
-          13  NumTwrNds          - Number of tower nodes used in the analysis  (-) [used only when TwrPotent/=0, TwrShadow/=0, TwrAero=True, or Buoyancy=True]
+           4  NumTwrNds          - Number of tower nodes used in the analysis  (-) [used only when TwrPotent/=0, TwrShadow/=0, TwrAero=True, or Buoyancy=True]
 TwrElev     TwrDiam     TwrCd     TwrTI  TwrCb !TwrTI used only with TwrShadow=2, TwrCb used only with Buoyancy=True
 (m)         (m)         (-)       (-)    (-)
--9.0        3.50        1.1       0.0    1.0
--11.4       3.48        1.1       0.0    1.0
--13.8       3.46        1.1       0.0    1.0
--16.2       3.44        1.1       0.0    1.0
--18.6       3.42        1.1       0.0    1.0
--21.0       3.40        1.1       0.0    1.0
--23.4       3.38        1.1       0.0    1.0
--25.8       3.36        1.1       0.0    1.0
--28.2       3.34        1.1       0.0    1.0
--30.6       3.32        1.1       0.0    1.0
--33.0       3.30        1.1       0.0    1.0
--35.4       3.28        1.1       0.0    1.0
--37.8       3.26        1.1       0.0    1.0
+-9	     0.3253      0.2       0.0    1.0
+-14	     0.3253      0.2       0.0    1.0
+-19	     0.3253      0.2       0.0    1.0
+-24	     0.3253      0.2       0.0    1.0
 ======  Outputs  ====================================================================================
 True                    SumPrint - Generate a summary file listing input options and interpolated properties to "<rootname>.AD.sum"?  (flag)
                       9 NBlOuts  - Number of blade node outputs [0 - 9] (-)
 1,5,9,13,17,21,25,27,30 BlOutNd  - Blade nodes whose values will be output  (-)
-                      6 NTwOuts  - Number of tower node outputs [0 - 9]  (-)
-         1,4,7,10,11,13 TwOutNd  - Tower nodes whose values will be output  (-)
+                      4 NTwOuts  - Number of tower node outputs [0 - 9]  (-)
+                1,2,3,4 TwOutNd  - Tower nodes whose values will be output  (-)
                         OutList  - The next line(s) contains a list of output parameters. See OutListParameters.xlsx for a listing of available output channels.
 "TwN1Fbx"                        - x-component of buoyant force per unit length at Tw node 1
 "TwN3Fby"                        - y-component of buoyant force per unit length at Tw node 3
 "TwN4Fbz"                        - z-component of buoyant force per unit length at Tw node 4
-"TwN6Mbx"                        - x-component of buoyant moment per unit length at Tw node 6
-"TwN5Mby"                        - y-component of buoyant moment per unit length at Tw node 5
-"TwN2Mbz"                        - z-component of buoyant moment per unit length at Tw node 2
+"TwN1Mbx"                        - x-component of buoyant moment per unit length at Tw node 6
+"TwN2Mby"                        - y-component of buoyant moment per unit length at Tw node 5
+"TwN3Mbz"                        - z-component of buoyant moment per unit length at Tw node 2
 "B2N4Fbn"                        - Buoyant force normal to chord per unit length at blade 2 node 4
 "B1N7Fbt"                        - Buoyant force tangential to chord per unit length at blade 1 node 7
 "B2N8Fbs"                        - Buoyant spanwise force per unit length at blade 2 node 8
@@ -128,25 +119,5 @@ True                    SumPrint - Generate a summary file listing input options
 "B2N5SigCr"                      - Critical cavitation number blade 2 node 5
 "B1N2SgCav"                      - Cavitation number blade 1 node 2
 "B2N6SgCav"                      - Cavitation number blade 2 node 6
-"RtFldCp"
-"RtFldCq"
-"RtFldCt"
-"RtFldFzh"
-"RtFldMyh"
-"RtFldMzh"
-"RtFldPwr"
-"RtArea"
-"RtSkew"
-"RtSpeed"
-"RtTSR"
-"RtVAvgxh"
-"RtVAvgyh"
-"RtVAvgzh"
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
----------------------- NODE OUTPUTS --------------------------------------------
-          1   BldNd_BladesOut  - Blades to output
-         99   BldNd_BlOutNd   - Blade nodes on each blade (currently unused)
-              OutList     - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx, AeroDyn_Nodes tab for a listing of available output channels, (-)
-"Re"        - Reynolds number (in millions) at each node
-END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
-----------
+-----------------------------------------------------------------------------------------------------
