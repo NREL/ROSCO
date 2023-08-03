@@ -73,7 +73,7 @@ def main():
     controller_params['DISCON'] = {}
     
     gains = -1800 * np.array([12,1.2,120])  # PID gains of rotor position control
-    controller_params['DISCON']['RP_Gains'] = gains 
+    controller_params['DISCON']['RP_Gains'] = np.r_[gains, 2]  # Add Tf
     controller_params['DISCON']['PC_MinPit'] = np.radians(-20)  # Remove lower limit of pitch so it doesn't interfere with open loop input
 
 

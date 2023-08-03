@@ -928,8 +928,8 @@ properties:
                         description: The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
                     RP_Gains:
                         type: array
-                        description: PID gains for rotor position control (used if OL_Mode = 2)
-                        default: [0,0,0]
+                        description: PID gains and Tf of derivative for rotor position control (used if OL_Mode = 2)
+                        default: [0,0,0,0]
                         items:
                             type: number
                     Ind_CableControl:

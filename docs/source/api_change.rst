@@ -31,10 +31,10 @@ New in ROSCO develop
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
-125     Fl_n                1                       ! Fl_n          - Number of Fl_Kp gains in gain scheduling, optional with default of 1
-127     Fl_U                0.0000                  ! Fl_U          - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
-142     Ind_Azimuth         0                       ! Ind_Azimuth   - The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
-143     RP_Gains            0.0000 0.0000 0.0000    ! RP_Gains      - PID gains for rotor position control (used if OL_Mode = 2)
+125     Fl_n                1                               ! Fl_n          - Number of Fl_Kp gains in gain scheduling, optional with default of 1
+127     Fl_U                0.0000                          ! Fl_U          - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
+142     Ind_Azimuth         0                               ! Ind_Azimuth   - The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
+143     RP_Gains            0.0000 0.0000 0.0000 0.0000     ! RP_Gains - PID gains and Tf of derivative for rotor position control (used if OL_Mode = 2)
 ====== =================    ======================================================================================================================================================================================================
 
 
