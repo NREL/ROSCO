@@ -248,8 +248,8 @@ CONTAINS
                 ! Initialize recurring values
                 LocalVar%WE%om_r = WE_Inp_Speed
                 LocalVar%WE%v_t = 0.0
-                LocalVar%WE%v_m = LocalVar%HorWindV
-                LocalVar%WE%v_h = LocalVar%HorWindV
+                LocalVar%WE%v_m = max(LocalVar%HorWindV, 3.0_DbKi)   ! avoid divide by 0 below if HorWindV is 0, which some AMRWind setups create
+                LocalVar%WE%v_h = max(LocalVar%HorWindV, 3.0_DbKi)   ! avoid divide by 0 below if HorWindV is 0, which some AMRWind setups create
                 lambda = WE_Inp_Speed * CntrPar%WE_BladeRadius/LocalVar%WE%v_h
                 LocalVar%WE%xh = RESHAPE((/LocalVar%WE%om_r, LocalVar%WE%v_t, LocalVar%WE%v_m/),(/3,1/))
                 LocalVar%WE%P = RESHAPE((/0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 1.0/),(/3,3/))

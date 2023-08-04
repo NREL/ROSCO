@@ -106,20 +106,21 @@ def base_op_case():
     case_inputs[('ServoDyn', 'YCMode')] = {'vals': [5], 'group': 0}    
 
     # AeroDyn
-    case_inputs[("AeroDyn15", "WakeMod")] = {'vals': [1], 'group': 0}
-    case_inputs[("AeroDyn15", "AFAeroMod")] = {'vals': [2], 'group': 0}
-    case_inputs[("AeroDyn15", "TwrPotent")] = {'vals': [0], 'group': 0}
-    case_inputs[("AeroDyn15", "TwrShadow")] = {'vals': ['False'], 'group': 0}
-    case_inputs[("AeroDyn15", "TwrAero")] = {'vals': ['False'], 'group': 0}
-    case_inputs[("AeroDyn15", "SkewMod")] = {'vals': [1], 'group': 0}
-    case_inputs[("AeroDyn15", "TipLoss")] = {'vals': ['True'], 'group': 0}
-    case_inputs[("AeroDyn15", "HubLoss")] = {'vals': ['True'], 'group': 0}
-    case_inputs[("AeroDyn15", "TanInd")] = {'vals': ['True'], 'group': 0}
-    case_inputs[("AeroDyn15", "AIDrag")] = {'vals': ['True'], 'group': 0}
-    case_inputs[("AeroDyn15", "TIDrag")] = {'vals': ['True'], 'group': 0}
-    case_inputs[("AeroDyn15", "IndToler")] = {'vals': [1.e-5], 'group': 0}
-    case_inputs[("AeroDyn15", "MaxIter")] = {'vals': [5000], 'group': 0}
-    case_inputs[("AeroDyn15", "UseBlCm")] = {'vals': ['True'], 'group': 0}
+    if False:
+        case_inputs[("AeroDyn15", "WakeMod")] = {'vals': [1], 'group': 0}
+        case_inputs[("AeroDyn15", "AFAeroMod")] = {'vals': [2], 'group': 0}
+        case_inputs[("AeroDyn15", "TwrPotent")] = {'vals': [0], 'group': 0}
+        case_inputs[("AeroDyn15", "TwrShadow")] = {'vals': ['False'], 'group': 0}
+        case_inputs[("AeroDyn15", "TwrAero")] = {'vals': ['False'], 'group': 0}
+        case_inputs[("AeroDyn15", "SkewMod")] = {'vals': [1], 'group': 0}
+        case_inputs[("AeroDyn15", "TipLoss")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn15", "HubLoss")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn15", "TanInd")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn15", "AIDrag")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn15", "TIDrag")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn15", "IndToler")] = {'vals': [1.e-5], 'group': 0}
+        case_inputs[("AeroDyn15", "MaxIter")] = {'vals': [5000], 'group': 0}
+        case_inputs[("AeroDyn15", "UseBlCm")] = {'vals': ['True'], 'group': 0}
 
     return case_inputs
 

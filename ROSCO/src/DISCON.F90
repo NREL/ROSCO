@@ -90,7 +90,6 @@ IF (CntrPar%Ext_Mode > 0 .AND. ErrVar%aviFAIL >= 0) THEN
     ! Data from external dll is in ExtDLL%avrSWAP, it's unused in the following code
 END IF
 
-
 ! Filter signals
 CALL PreFilterMeasuredSignals(CntrPar, LocalVar, DebugVar, objInst, ErrVar)
 

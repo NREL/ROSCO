@@ -116,11 +116,19 @@ CONTAINS
 
         ! Open Loop control, use if
         !   Open loop mode active         Using OL blade pitch control      
-        IF ((CntrPar%OL_Mode == 1) .AND. (CntrPar%Ind_BldPitch > 0)) THEN
+        IF (CntrPar%OL_Mode > 0) THEN
             IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN    ! Time > first open loop breakpoint
-                DO K = 1,LocalVar%NumBl ! Loop through all blades
-                    LocalVar%PitCom(K) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch,LocalVar%Time, ErrVar)
-                END DO
+                IF (CntrPar%Ind_BldPitch(1) > 0) THEN
+                    LocalVar%PitCom(1) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch1,LocalVar%Time, ErrVar)
+                ENDIF
+
+                IF (CntrPar%Ind_BldPitch(2) > 0) THEN
+                    LocalVar%PitCom(2) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch2,LocalVar%Time, ErrVar)
+                ENDIF
+
+                IF (CntrPar%Ind_BldPitch(3) > 0) THEN
+                    LocalVar%PitCom(3) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch3,LocalVar%Time, ErrVar)
+                ENDIF
             ENDIF
         ENDIF
 
@@ -201,7 +209,7 @@ CONTAINS
             ! VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
             LocalVar%VS_MaxTq = CntrPar%VS_RtTq
         ENDIF
-
+        
         ! Optimal Tip-Speed-Ratio tracking controller
         IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
             ! Constant Power, update VS_MaxTq
@@ -244,10 +252,35 @@ CONTAINS
         LocalVar%GenTq = ratelimit(LocalVar%GenTq, -CntrPar%VS_MaxRat, CntrPar%VS_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL)    ! Saturate the command using the torque rate limit
         
         ! Open loop torque control
-        IF ((CntrPar%OL_Mode == 1) .AND. (CntrPar%Ind_GenTq > 0)) THEN
+        IF ((CntrPar%OL_Mode > 0) .AND. (CntrPar%Ind_GenTq > 0)) THEN
+            ! Get current OL GenTq, applies for OL_Mode 1 and 2
             IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN
                 LocalVar%GenTq = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_GenTq,LocalVar%Time,ErrVar)
             ENDIF
+            
+            ! Azimuth tracking control
+            IF (CntrPar%OL_Mode == 2) THEN
+                
+                ! Push, pop and unwrap azimuth buffer 
+                ! Initialize
+                IF (LocalVar%iStatus == 0) THEN
+                    LocalVar%AzBuffer(1) = LocalVar%Azimuth
+                    LocalVar%AzBuffer(2) = LocalVar%Azimuth
+                ENDIF
+                LocalVar%AzBuffer(1) = LocalVar%AzBuffer(2)
+                LocalVar%AzBuffer(2) = LocalVar%Azimuth
+                LocalVar%AzBuffer = UNWRAP(LocalVar%AzBuffer, ErrVar)
+                LocalVar%AzUnwrapped = LocalVar%AzBuffer(2)
+
+                ! Current desired Azimuth, error
+                LocalVar%OL_Azimuth = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_Azimuth,LocalVar%Time,ErrVar)
+                LocalVar%AzError = LocalVar%OL_Azimuth - LocalVar%AzUnwrapped 
+
+                LocalVar%GenTqAz = PIDController(LocalVar%AzError, CntrPar%RP_Gains(1), CntrPar%RP_Gains(2), CntrPar%RP_Gains(3), CntrPar%RP_Gains(4), -LocalVar%VS_MaxTq * 2, LocalVar%VS_MaxTq * 2, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst, LocalVar)
+                LocalVar%GenTq = LocalVar%GenTq + LocalVar%GenTqAz
+
+            ENDIF
+
         ENDIF
 
         ! Reset the value of LocalVar%VS_LastGenTrq to the current values:
@@ -372,7 +405,7 @@ CONTAINS
             avrSWAP(48) = YawRateCom * D2R
 
             ! If using open loop yaw rate control, overwrite controlled output
-            ! Open loop torque control
+            ! Open loop yaw rate control - control input in rad/s
             IF ((CntrPar%OL_Mode == 1) .AND. (CntrPar%Ind_YawRate > 0)) THEN
                 IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN
                     avrSWAP(48) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_YawRate,LocalVar%Time, ErrVar)
@@ -570,7 +603,7 @@ CONTAINS
                 LocalVar%Flp_Angle(3) = CntrPar%Flp_Angle
                 ! Initialize controller
                 IF (CntrPar%Flp_Mode == 2) THEN
-                    LocalVar%Flp_Angle(K) = PIIController(RootMyb_VelErr(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, 0.05, -CntrPar%Flp_MaxPit , CntrPar%Flp_MaxPit , LocalVar%DT, 0.0, LocalVar%piP, LocalVar%restart, objInst%instPI)
+                    LocalVar%Flp_Angle(K) = PIIController(RootMyb_VelErr(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, 0.05_DbKi, -CntrPar%Flp_MaxPit , CntrPar%Flp_MaxPit , LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
                 ENDIF
             
             ! Steady flap angle
@@ -583,7 +616,7 @@ CONTAINS
             ELSEIF (CntrPar%Flp_Mode == 2) THEN
                 DO K = 1,LocalVar%NumBl
                     ! Find flap angle command - includes an integral term to encourage zero flap angle
-                    LocalVar%Flp_Angle(K) = PIIController(-LocalVar%rootMOOPF(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, REAL(0.05,DbKi), -CntrPar%Flp_MaxPit , CntrPar%Flp_MaxPit , LocalVar%DT, 0.0, LocalVar%piP, LocalVar%restart, objInst%instPI)
+                    LocalVar%Flp_Angle(K) = PIIController(-LocalVar%rootMOOPF(K), 0 - LocalVar%Flp_Angle(K), CntrPar%Flp_Kp, CntrPar%Flp_Ki, 0.05_DbKi, -CntrPar%Flp_MaxPit , CntrPar%Flp_MaxPit , LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
                     ! Saturation Limits
                     LocalVar%Flp_Angle(K) = saturate(LocalVar%Flp_Angle(K), -CntrPar%Flp_MaxPit, CntrPar%Flp_MaxPit) * R2D
                 END DO

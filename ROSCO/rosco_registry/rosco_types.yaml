@@ -1,7 +1,8 @@
 default_types: 
   integer: &integer
     type: integer
-    description: 
+    description:
+    dimension: 
     allocatable: False
     equals: 
     size: 0
@@ -79,6 +80,15 @@ ControlParameters:
     Echo: 
       <<: *integer
       description: 0 - no Echo, 1 - Echo input data to <RootName>.echo
+    
+    DT_Out: 
+      <<: *real
+      description: Output time step
+
+    n_DT_Out:
+      <<: *integer 
+      description: output every this many steps
+
     # Filters
     F_LPFType:
       <<: *integer
@@ -418,13 +428,21 @@ ControlParameters:
       description: The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)
     Ind_BldPitch:
       <<: *integer
-      description: The column in OL_Filename that contains the blade pitch input in rad
+      description: The columns in OL_Filename that contains the blade pitch inputs (1,2,3) in rad
+      allocatable: True
     Ind_GenTq:
       <<: *integer
       description: The column in OL_Filename that contains the generator torque in Nm
     Ind_YawRate:
       <<: *integer
       description: The column in OL_Filename that contains the generator torque in Nm
+    Ind_Azimuth:
+      <<: *integer
+      description: The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
+    RP_Gains:
+      <<: *real
+      description: PID gains and Tf on derivative term for rotor position control (used if OL_Mode = 2)
+      allocatable: True
     Ind_CableControl:
       <<: *integer
       allocatable: True
@@ -437,10 +455,18 @@ ControlParameters:
       <<: *real
       allocatable: True
       description: Open loop breakpoints in timeseries
-    OL_BldPitch:
+    OL_BldPitch1:
       <<: *real
       allocatable: True
-      description: Open blade pitch timeseries
+      description: Open loop blade pitch 1 timeseries
+    OL_BldPitch2:
+      <<: *real
+      allocatable: True
+      description: Open loop blade pitch 2 timeseries
+    OL_BldPitch3:
+      <<: *real
+      allocatable: True
+      description: Open loop blade pitch 3 timeseries
     OL_CableControl:
       <<: *real
       allocatable: True
@@ -452,11 +478,15 @@ ControlParameters:
     OL_GenTq:
       <<: *real
       allocatable: True
-      description: Open generator torque timeseries
+      description: Open loop generator torque timeseries
     OL_YawRate:
       <<: *real
       allocatable: True
-      description: Open yaw rate timeseries
+      description: Open loop yaw rate timeseries
+    OL_Azimuth:
+      <<: *real
+      allocatable: True
+      description: Open loop azimuth timeseries
     OL_Channels:
       <<: *real
       allocatable: True
@@ -501,7 +531,7 @@ ControlParameters:
       <<: *real
       allocatable: True
       description: AWC clocking angle [deg]
-    
+
     # Pitch actuator error
     PF_Mode:
       <<: *integer
@@ -510,6 +540,7 @@ ControlParameters:
       <<: *real
       description: Pitch actuator fault offsets for blade 1-3 [rad/s]
       allocatable: True
+    
     
     # External Control
     Ext_Mode:
@@ -818,6 +849,10 @@ piParams:
       <<: *real
       dimension: (99)
       description: Previous integrator term - second integrator
+    ELast:
+      <<: *real
+      dimension: (99)
+      description: Previous error term for derivative
 
 LocalVariables:
     iStatus: 
@@ -829,6 +864,15 @@ LocalVariables:
     DT: 
       <<: *real 
       description: Time step [s]
+    WriteThisStep:
+      <<: *logical
+      description: Write an output line this time step
+    n_DT:
+      <<: *integer
+      description: number of timesteps since start
+    Time_Last:
+      <<: *real
+      description: Last time [s]
     VS_GenPwr: 
       <<: *real 
       description: Generator power [W]
@@ -865,6 +909,22 @@ LocalVariables:
     Azimuth: 
       <<: *real 
       description: Rotor aziumuth angle [rad]
+    OL_Azimuth: 
+      <<: *real 
+      description: Rotor aziumuth angle [rad]
+    AzUnwrapped: 
+      <<: *real 
+      description: Rotor aziumuth angle [rad]
+    AzError: 
+      <<: *real 
+      description: Azimuth error angle [rad]
+    GenTqAz: 
+      <<: *real 
+      description: Gen torque command due to azimuth error
+    AzBuffer: 
+      <<: *real 
+      size: 2
+      description: Current and last rotor aziumuth angles [rad]
     NumBl: 
       <<: *integer 
       description: Number of blades [-]
@@ -1271,7 +1331,6 @@ DebugVariables:
   axisYaw_2P:
     <<: *real
     description: Yaw component of coleman transformation, 2P
-
   YawRateCom:
     <<: *real
     description: Commanded yaw rate [rad/s].

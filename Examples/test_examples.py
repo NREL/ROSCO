@@ -27,6 +27,7 @@ all_scripts = [
     '22_cable_control',
     '23_structural_control',
     '24_floating_feedback',
+    '25_rotor_position_control',
     'update_rosco_discons',     
 ]
 

@@ -315,6 +315,7 @@ class farm_zmq_server():
 
     def send_setpoints(self, genTorques=None, nacelleHeadings=None,
                        bladePitchAngles=None):
+
         '''
         Send setpoints to DLL via zmq server for farm level controls
 

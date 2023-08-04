@@ -203,6 +203,12 @@ properties:
                 maximum: 1
                 default: 0
                 description: Pitch fault mode {0 - not used, 1 - constant offset on one or more blades}
+            OL_Mode:           
+                type: number
+                minimum: 0
+                maximum: 2
+                default: 0
+                description: Open loop control mode {0- no open loop control, 1- open loop control}
             AWC_Mode:
                 type: number
                 minimum: 0
@@ -458,22 +464,44 @@ properties:
                         description: Filename of open loop input that ROSCO reads
                         type: string
                         default: unused
-                    OL_Ind_Breakpoint:
+                    Ind_Breakpoint:
                         description: Index (column, 1-indexed) of breakpoint (time) in open loop index
                         type: number
                         default: 1
-                    OL_Ind_BldPitch:
-                        description: Index (column, 1-indexed) of breakpoint (time) in open loop index
+                        minimum: 0
+                    Ind_BldPitch:
+                        description: Indices (columns, 1-indexed) of pitch (1,2,3) inputs in open loop input
+                        type: array
+                        items:
+                            type: number
+                            minimum: 0
+                        default: [0, 0, 0]
+                    Ind_GenTq:
+                        description: Index (column, 1-indexed) of generator torque in open loop input
                         type: number
                         default: 0
-                    OL_Ind_GenTq:
-                        description: Index (column, 1-indexed) of breakpoint (time) in open loop index
+                        minimum: 0
+                    Ind_YawRate:
+                        description: Index (column, 1-indexed) of nacelle yaw in open loop input
                         type: number
                         default: 0
-                    OL_Ind_YawRate:
-                        description: Index (column, 1-indexed) of breakpoint (time) in open loop index
+                        minimum: 0
+                    Ind_Azimuth:
                         type: number
                         default: 0
+                        description: The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
+                    Ind_CableControl:
+                        type: array
+                        items:
+                            type: number
+                        description: The column in OL_Filename that contains the cable control inputs in m
+                        # default: [0] # No default because it's defined in controller and DISCON_Dict
+                    Ind_StructControl:
+                        type: array
+                        items:
+                            type: number
+                        description: The column in OL_Filename that contains the structural control inputs in various units
+                        # default: [0]  # No default because it's defined in controller and DISCON_Dict
             PA_CornerFreq:
                 type: number
                 description: Pitch actuator natural frequency [rad/s]
@@ -488,7 +516,7 @@ properties:
 
             DISCON:
                 type: object
-                description: These are pass-through parameters for the DISCON.IN file.  Use with caution.
+                description: These are pass-through parameters for the DISCON.IN file.  Use with caution. Do not set defaults in schema.
                 default: {}
                 properties:
                     LoggingLevel:
@@ -497,6 +525,10 @@ properties:
                     Echo:
                         type: number
                         description: 0 - no Echo, 1 - Echo input data to <RootName>.echo
+                        default: 0
+                    DT_Out:
+                        type: number
+                        description: Time step to output .dbg* files, or 0 to match sampling period of OpenFAST
                         default: 0
                     F_LPFType:
                         type: number
@@ -534,6 +566,9 @@ properties:
                     Flp_Mode:
                         type: number
                         description: Flap control mode (0- no flap control, 1- steady state flap angle, 2- Proportional flap control)
+                    OL_Mode:
+                        type: number
+                        description: Open loop control mode (0 - no open-loop control, 1 - direct open loop control, 2 - rotor position control)
                     F_LPFCornerFreq:
                         type: number
                         description: Corner frequency (-3dB point) in the low-pass filters, 
@@ -878,7 +913,7 @@ properties:
                         description: Input file with open loop timeseries (absolute path or relative to this file)
                     Ind_Breakpoint:
                         type: number
-                        description: The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)
+                        description: The column in OL_Filename that contains the breakpoint (time if OL_Mode > 0)
                     Ind_BldPitch:
                         type: number
                         description: The column in OL_Filename that contains the blade pitch input in rad
@@ -888,6 +923,15 @@ properties:
                     Ind_YawRate:
                         type: number
                         description: The column in OL_Filename that contains the generator torque in Nm
+                    Ind_Azimuth:
+                        type: number
+                        description: The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
+                    RP_Gains:
+                        type: array
+                        description: PID gains and Tf of derivative for rotor position control (used if OL_Mode = 2)
+                        default: [0,0,0,0]
+                        items:
+                            type: number
                     Ind_CableControl:
                         type: array
                         items:

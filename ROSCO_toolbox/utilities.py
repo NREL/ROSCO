@@ -80,6 +80,9 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
         rosco_vt['CC_GroupIndex'] = [rosco_vt['CC_GroupIndex']]     # make an array
     if not hasattr(rosco_vt['StC_GroupIndex'],'__len__'):
         rosco_vt['StC_GroupIndex'] = [rosco_vt['StC_GroupIndex']]   
+    # Get input descriptions
+    #input_schema = load_yaml(os.path.join(os.path.dirname(__file__),'inputs/toolbox_schema.yaml'))
+    #discon_props = input_schema['properties']['controller_params']['properties']['DISCON']['properties']
 
     print('Writing new controller parameter file parameter file: %s.' % param_file)
     # Should be obvious what's going on here...
@@ -87,8 +90,9 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('! Controller parameter input file for the %s wind turbine\n' % turbine.TurbineName)
     file.write('!    - File written using ROSCO version {} controller tuning logic on {}\n'.format(ROSCO_toolbox.__version__, now.strftime('%m/%d/%y')))
     file.write('\n')
-    file.write('!------- DEBUG ------------------------------------------------------------\n')
-    file.write('{0:<12d}        ! LoggingLevel		- (0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3))\n'.format(int(rosco_vt['LoggingLevel'])))
+    file.write('!------- SIMULATION CONTROL ------------------------------------------------------------\n')
+    file.write('{0:<12d}        ! LoggingLevel		- {{0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}}\n'.format(int(rosco_vt['LoggingLevel'])))
+    file.write('{}                   ! DT_Out    		- {{Time step to output .dbg* files, or 0 to match sampling period of OpenFAST}}\n'.format(rosco_vt['DT_Out']))
     file.write('{:<11d}         ! Echo		        - ({})\n'.format(int(rosco_vt['Echo']), input_descriptions['Echo']))
     file.write('\n')
     file.write('!------- CONTROLLER FLAGS -------------------------------------------------\n')
@@ -105,7 +109,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! Fl_Mode           - Floating specific feedback mode {{0: no nacelle velocity feedback, 1: feed back translational velocity, 2: feed back rotational veloicty}}\n'.format(int(rosco_vt['Fl_Mode'])))
     file.write('{0:<12d}        ! TD_Mode           - Tower damper mode {{0: no tower damper, 1: feed back translational nacelle accelleration to pitch angle}}\n'.format(int(rosco_vt['TD_Mode'])))
     file.write('{0:<12d}        ! Flp_Mode          - Flap control mode {{0: no flap control, 1: steady state flap angle, 2: Proportional flap control, 2: Cyclic (1P) flap control}}\n'.format(int(rosco_vt['Flp_Mode'])))
-    file.write('{0:<12d}        ! OL_Mode           - Open loop control mode {{0: no open loop control, 1: open loop control vs. time}}\n'.format(int(rosco_vt['OL_Mode'])))
+    file.write('{0:<12d}        ! OL_Mode           - Open loop control mode {{0: no open loop control, 1: open loop control vs. time, 2: rotor position control}}\n'.format(int(rosco_vt['OL_Mode'])))
     file.write('{0:<12d}        ! PA_Mode           - Pitch actuator mode {{0 - not used, 1 - first order filter, 2 - second order filter}}\n'.format(int(rosco_vt['PA_Mode'])))
     file.write('{0:<12d}        ! PF_Mode           - Pitch fault mode {{0 - not used, 1 - constant offset on one or more blades}}\n'.format(int(rosco_vt['PF_Mode'])))
     file.write('{0:<12d}        ! AWC_Mode          - Active wake control {{0 - not used, 1 - complex number method, 2 - Coleman transform method}}\n'.format(int(rosco_vt['AWC_Mode'])))
@@ -227,9 +231,11 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('!------- Open Loop Control -----------------------------------------------------\n')
     file.write('"{}"            ! OL_Filename       - Input file with open loop timeseries (absolute path or relative to this file)\n'.format(rosco_vt['OL_Filename']))
     file.write('{0:<12d}        ! Ind_Breakpoint    - The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)\n'.format(int(rosco_vt['Ind_Breakpoint'])))
-    file.write('{0:<12d}        ! Ind_BldPitch      - The column in OL_Filename that contains the blade pitch input in rad\n'.format(int(rosco_vt['Ind_BldPitch'])))
+    file.write('{}         ! Ind_BldPitch      - The columns in OL_Filename that contains the blade pitch (1,2,3) inputs in rad [array]\n'.format(' '.join([f'{int(ipb):3d}' for ipb in rosco_vt['Ind_BldPitch']])))
     file.write('{0:<12d}        ! Ind_GenTq         - The column in OL_Filename that contains the generator torque in Nm\n'.format(int(rosco_vt['Ind_GenTq'])))
-    file.write('{0:<12d}        ! Ind_YawRate       - The column in OL_Filename that contains the nacelle yaw rate rad/s\n'.format(int(rosco_vt['Ind_YawRate'])))
+    file.write('{0:<12d}        ! Ind_YawRate       - The column in OL_Filename that contains the yaw rate in rad/s\n'.format(int(rosco_vt['Ind_YawRate'])))
+    file.write('{:<12d}        ! Ind_Azimuth       - {}\n'.format(int(rosco_vt["Ind_Azimuth"]), input_descriptions["Ind_Azimuth"]))
+    file.write('{}        ! {} - {}\n'.format(' '.join([f'{g:02.4f}' for g in rosco_vt["RP_Gains"]]),"RP_Gains",input_descriptions["RP_Gains"]))
     file.write('{}               ! Ind_CableControl  - The column(s) in OL_Filename that contains the cable control inputs in m [Used with CC_Mode = 2, must be the same size as CC_Group_N]\n'.format(write_array(rosco_vt['Ind_CableControl'],'<4d')))
     file.write('{}               ! Ind_StructControl - The column(s) in OL_Filename that contains the structural control inputs [Used with StC_Mode = 2, must be the same size as StC_Group_N]\n'.format(write_array(rosco_vt['Ind_StructControl'],'<4d')))
     file.write('\n')
@@ -305,6 +311,8 @@ def read_DISCON(DISCON_filename):
                     # Remove printed quotations if string is in quotes
                     if (value[0] == '"') or (value[0] == "'"):
                         value = value[1:-1]
+                    elif value == 'DEFAULT':
+                        pass
                     else:
                         value = float(value)
                     DISCON_in[param] = value
@@ -574,6 +582,8 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['Ind_YawRate']     = controller.OL_Ind_YawRate
     DISCON_dict['Ind_CableControl']     = controller.OL_Ind_CableControl
     DISCON_dict['Ind_StructControl']    = controller.OL_Ind_StructControl
+    DISCON_dict['Ind_Azimuth']     = controller.OL_Ind_Azimuth
+
     # ------- Pitch Actuator -------
     DISCON_dict['PA_Mode']         = controller.PA_Mode
     DISCON_dict['PA_CornerFreq']   = controller.PA_CornerFreq

@@ -139,9 +139,10 @@ class Controller():
         self.f_sd_cornerfreq        = controller_params['filter_params']['f_sd_cornerfreq']
 
         # Open loop parameters: set up and error catching
-        self.OL_Mode            = int(controller_params['open_loop']['flag'])
+        self.OL_Mode            = controller_params['OL_Mode']
         self.OL_Filename        = controller_params['open_loop']['filename']
-        self.OL_Ind_Breakpoint  = self.OL_Ind_BldPitch = self.OL_Ind_GenTq = self.OL_Ind_YawRate = 0
+        self.OL_Ind_Breakpoint  = self.OL_Ind_GenTq = self.OL_Ind_YawRate = self.OL_Ind_Azimuth = 0
+        self.OL_Ind_BldPitch    = [0,0,0]
         self.OL_Ind_CableControl = [0]
         self.OL_Ind_StructControl = [0]
         
@@ -151,11 +152,12 @@ class Controller():
             self.OL_Ind_BldPitch    = ol_params['OL_Ind_BldPitch']
             self.OL_Ind_GenTq       = ol_params['OL_Ind_GenTq']
             self.OL_Ind_YawRate     = ol_params['OL_Ind_YawRate']
+            self.OL_Ind_Azimuth     = ol_params['OL_Ind_Azimuth']
             self.OL_Ind_CableControl     = ol_params['OL_Ind_CableControl']
             self.OL_Ind_StructControl    = ol_params['OL_Ind_StructControl']
 
             # Check that file exists because we won't write it
-            if not os.path.exists(self.OL_Filename):
+            if not os.path.exists(controller_params['open_loop']['filename']):
                 raise Exception(f'Open-loop control set up, but the open loop file {self.OL_Filename} does not exist')
             
 
@@ -790,39 +792,60 @@ class OpenLoopControl(object):
 
         # Init indices
         OL_Ind_Breakpoint = 1
-        OL_Ind_BldPitch = OL_Ind_GenTq = OL_Ind_YawRate = 0
+        OL_Ind_Azimuth = OL_Ind_GenTq = OL_Ind_YawRate = 0
+        OL_Ind_BldPitch = 3*[0]
         OL_Ind_CableControl = []
         OL_Ind_StructControl = []
 
-        self.OL_Ind_Breakpoint = 1
-        ol_index_counter = 2   # start input index at 2
-        
+        ol_index_counter = 0   # start input index at 2
+
+        # Write time first, initialize OL matrix
         if 'time' in ol_timeseries:
             ol_control_array = ol_timeseries['time']
-
+            Ind_Breakpoint = 1
         else:
             raise Exception('WARNING: no time index for open loop control.  This is only index currently supported')
 
-        if 'blade_pitch' in ol_timeseries:
-            OL_Ind_BldPitch = ol_index_counter
+        for channel in ol_timeseries:
+
+            # increment index counter first for 1-indexing in input file
             ol_index_counter += 1
+
+            # skip writing for certain channels
+            skip_write = False
             
-            ol_control_array = np.c_[ol_control_array,ol_timeseries['blade_pitch']]
+            # Set open loop index based on name
+            if channel == 'time':
+                OL_Ind_Breakpoint = ol_index_counter
+                skip_write = True
+            elif channel == 'blade_pitch':  # collective blade pitch
+                OL_Ind_BldPitch = 3 * [ol_index_counter]
+            elif channel == 'generator_torque':
+                OL_Ind_GenTq = ol_index_counter
+            elif channel == 'nacelle_yaw_rate':
+                OL_Ind_YawRate = ol_index_counter
+            elif channel == 'nacelle_yaw':
+                ol_index_counter -= 1  # don't increment counter
+                skip_write = True
+            elif channel == 'blade_pitch1':
+                OL_Ind_BldPitch[0] = ol_index_counter
+            elif channel == 'blade_pitch2':
+                OL_Ind_BldPitch[1] = ol_index_counter
+            elif channel == 'blade_pitch3':
+                OL_Ind_BldPitch[2] = ol_index_counter
+            elif channel == 'azimuth':
+                OL_Ind_Azimuth = ol_index_counter
+            elif 'cable_control' in channel or 'struct_control' in channel:
+                skip_write = True
+                ol_index_counter -= 1  # don't increment counter
 
-        if 'generator_torque' in ol_timeseries:
-            OL_Ind_GenTq = ol_index_counter
-            ol_index_counter += 1
-            
-            ol_control_array = np.c_[ol_control_array,ol_timeseries['generator_torque']]
 
-        if 'nacelle_yaw_rate' in ol_timeseries:
-            OL_Ind_YawRate = ol_index_counter
-            ol_index_counter += 1
 
-            ol_control_array = np.c_[ol_control_array,ol_timeseries['nacelle_yaw_rate']]
+            # append open loop input array for non-ptfm channels
+            if not skip_write:
+                ol_control_array = np.c_[ol_control_array,ol_timeseries[channel]]
 
-        if 'nacelle_yaw' in ol_timeseries and 'nacelle_yaw_rate' not in ol_timeseries:
-            raise Exception('nacelle_yaw is in ol_timeseries and nacelle_yaw_rate is not.  ROSCO can only command yaw rate. Use compute_yaw_rate() to convert.')
+        ol_index_counter += 1  # Increment counter so it's 1 more than time, just like above in each iteration
 
         # Cable control
         is_cable_chan = np.array(['cable_control' in ol_chan for ol_chan in ol_timeseries.keys()])
@@ -856,19 +879,37 @@ class OpenLoopControl(object):
         
         with open(ol_filename,'w') as f:
             # Write header
+            headers = [''] * ol_index_counter
+            units = [''] * ol_index_counter
             header_line = '!\tTime'
             unit_line   = '!\t(sec.)'
-            if OL_Ind_BldPitch:
-                header_line += '\t\tBldPitch'
-                unit_line   += '\t\t(rad.)'
+
+            headers[0] = 'Time'
+            units[0] = 'sec.'
 
             if OL_Ind_GenTq:
-                header_line += '\t\tGenTq'
-                unit_line   += '\t\t(Nm)'
+                headers[OL_Ind_GenTq-1] = 'GenTq'
+                units[OL_Ind_GenTq-1] = '(Nm)'
 
             if OL_Ind_YawRate:
-                header_line += '\t\tYawRate'
-                unit_line   += '\t\t(rad/s)'
+                headers[OL_Ind_YawRate-1] = 'YawRate'
+                units[OL_Ind_YawRate-1] = '(rad/s)'
+
+            if OL_Ind_Azimuth:
+                headers[OL_Ind_Azimuth-1] = 'Azimuth'
+                units[OL_Ind_Azimuth-1] = '(rad)'
+
+            if any(OL_Ind_BldPitch):
+                if all_same(OL_Ind_BldPitch):
+                    headers[OL_Ind_BldPitch[0]-1] = 'BldPitch123'
+                    units[OL_Ind_BldPitch[0]-1] = '(rad)'
+                else:
+                    headers[OL_Ind_BldPitch[0]-1] = 'BldPitch1'
+                    units[OL_Ind_BldPitch[0]-1] = '(rad)'
+                    headers[OL_Ind_BldPitch[1]-1] = 'BldPitch2'
+                    units[OL_Ind_BldPitch[1]-1] = '(rad)'
+                    headers[OL_Ind_BldPitch[2]-1] = 'BldPitch3'
+                    units[OL_Ind_BldPitch[2]-1] = '(rad)'
 
             if OL_Ind_CableControl:
                 for i_chan in range(1,n_cable_chan+1):
@@ -884,8 +925,9 @@ class OpenLoopControl(object):
             else:
                 OL_Ind_StructControl = [0]
 
-            header_line += '\n'
-            unit_line   += '\n'
+            # Join headers and units
+            header_line = '!' + '\t\t'.join(headers) + '\n'
+            unit_line = '!' + '\t\t'.join(units) + '\n'
 
             f.write(header_line)
             f.write(unit_line)
@@ -897,14 +939,15 @@ class OpenLoopControl(object):
 
         # Output open_loop dict for control params
         open_loop = {}
-        open_loop['flag']               = True
         open_loop['filename']           = ol_filename
         open_loop['OL_Ind_Breakpoint']  = OL_Ind_Breakpoint
         open_loop['OL_Ind_BldPitch']    = OL_Ind_BldPitch
         open_loop['OL_Ind_GenTq']       = OL_Ind_GenTq
         open_loop['OL_Ind_YawRate']     = OL_Ind_YawRate
+        open_loop['OL_Ind_Azimuth']     = OL_Ind_Azimuth
         open_loop['OL_Ind_CableControl']     = OL_Ind_CableControl
         open_loop['OL_Ind_StructControl']    = OL_Ind_StructControl
+
 
         return open_loop
 
@@ -987,3 +1030,6 @@ def multi_sigma(xx,x_bp,y_bp):
         plt.show()
 
     return yy
+
+def all_same(items):
+    return all(x == items[0] for x in items)

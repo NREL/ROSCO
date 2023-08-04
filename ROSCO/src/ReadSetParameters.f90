@@ -110,6 +110,13 @@ CONTAINS
             LocalVar%restart = .False.
         ENDIF
 
+        ! Increment timestep counter
+        IF (LocalVar%iStatus == 0 .AND. LocalVar%Time == 0) THEN
+            LocalVar%n_DT = 0
+        ELSE
+            LocalVar%n_DT = LocalVar%n_DT + 1
+        ENDIF
+
     END SUBROUTINE ReadAvrSWAP    
 ! -----------------------------------------------------------------------------------
     ! Define parameters for control actions
@@ -133,7 +140,7 @@ CONTAINS
         INTEGER(IntKi)                              :: K, I, I_OL    ! Index used for looping through blades.
         CHARACTER(1024)                             :: OL_String                    ! Open description loop string
         INTEGER(IntKi)                              :: OL_Count                     ! Number of open loop channels
-
+        INTEGER(IntKi)                              :: UnOpenLoop       ! Open Loop file unit
         INTEGER(IntKi)                              :: N_OL_Cables
         INTEGER(IntKi)                              :: N_OL_StCs
 
@@ -189,7 +196,7 @@ CONTAINS
             LocalVar%ACC_INFILE = accINFILE
 
             ! Read Control Parameter File
-            CALL ReadControlParameterFileSub(CntrPar, zmqVar, accINFILE, NINT(avrSWAP(50)), RootName, ErrVar)
+            CALL ReadControlParameterFileSub(CntrPar, LocalVar, zmqVar, accINFILE, NINT(avrSWAP(50)), RootName, ErrVar)
             ! If there's been an file reading error, don't continue
             ! Add RoutineName to error message
             IF (ErrVar%aviFAIL < 0) THEN
@@ -201,7 +208,7 @@ CONTAINS
                 CALL READCpFile(CntrPar,PerfData,ErrVar)
             ENDIF
         
-            ! Initialize the SAVED variables:
+            ! Initialize the Local variables:
             LocalVar%PitCom     = LocalVar%BlPitch ! This will ensure that the variable speed controller picks the correct control region and the pitch controller picks the correct gain on the first call
 
             ! Wind speed estimator initialization
@@ -220,99 +227,14 @@ CONTAINS
             LocalVar%VS_LastGenTrq = LocalVar%GenTq       
             LocalVar%VS_MaxTq      = CntrPar%VS_MaxTq
             
-            ! Check validity of input parameters:
-            CALL CheckInputs(LocalVar, CntrPar, avrSWAP, ErrVar, size_avcMSG)
-
             ! Initialize variables
             LocalVar%CC_DesiredL = 0
             LocalVar%CC_ActuatedL = 0
             LocalVar%CC_ActuatedDL = 0
             LocalVar%StC_Input = 0
 
-            ! Initialize open loop control
-            ! Read open loop input, if desired
-            IF (CntrPar%OL_Mode == 1) THEN
-                OL_String = ''      ! Display string
-                OL_Count  = 1
-                IF (CntrPar%Ind_BldPitch > 0) THEN
-                    OL_String   = TRIM(OL_String)//' BldPitch '
-                    OL_Count    = OL_Count + 1
-                ENDIF
-
-                IF (CntrPar%Ind_GenTq > 0) THEN
-                    OL_String   = TRIM(OL_String)//' GenTq '
-                    OL_Count    = OL_Count + 1
-                ENDIF
-
-                IF (CntrPar%Ind_YawRate > 0) THEN
-                    OL_String   = TRIM(OL_String)//' YawRate '
-                    OL_Count    = OL_Count + 1
-                ENDIF
-
-                N_OL_Cables = 0
-                IF (ANY(CntrPar%Ind_CableControl > 0)) THEN
-                    DO I = 1,SIZE(CntrPar%Ind_CableControl)
-                        IF (CntrPar%Ind_CableControl(I) > 0) THEN
-                            OL_String   = TRIM(OL_String)//' Cable'//TRIM(Int2LStr(I))//' '
-                            OL_Count    = OL_Count + 1
-                            N_OL_Cables = N_OL_Cables + 1
-                        ENDIF
-                    ENDDO
-                ENDIF
-
-                N_OL_StCs = 0
-                IF (ANY(CntrPar%Ind_StructControl > 0)) THEN
-                    DO I = 1,SIZE(CntrPar%Ind_StructControl)
-                        IF (CntrPar%Ind_StructControl(I) > 0) THEN
-                            OL_String   = TRIM(OL_String)//' StC'//TRIM(Int2LStr(I))//' '
-                            OL_Count    = OL_Count + 1
-                            N_OL_StCs   = N_OL_StCs + 1
-                        ENDIF
-                    ENDDO
-                ENDIF
-
-
-                PRINT *, 'ROSCO: Implementing open loop control for'//TRIM(OL_String)
-                CALL Read_OL_Input(CntrPar%OL_Filename,110_IntKi,OL_Count,CntrPar%OL_Channels, ErrVar)
-
-                CntrPar%OL_Breakpoints = CntrPar%OL_Channels(:,CntrPar%Ind_Breakpoint)
-
-                IF (CntrPar%Ind_BldPitch > 0) THEN
-                    CntrPar%OL_BldPitch = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch)
-                ENDIF
-
-                IF (CntrPar%Ind_GenTq > 0) THEN
-                    CntrPar%OL_GenTq = CntrPar%OL_Channels(:,CntrPar%Ind_GenTq)
-                ENDIF
-
-                IF (CntrPar%Ind_YawRate > 0) THEN
-                    CntrPar%OL_YawRate = CntrPar%OL_Channels(:,CntrPar%Ind_YawRate)
-                ENDIF
-
-                IF (ANY(CntrPar%Ind_CableControl > 0)) THEN
-                    ALLOCATE(CntrPar%OL_CableControl(N_OL_Cables,SIZE(CntrPar%OL_Channels,DIM=1)))
-                    I_OL = 1
-                    DO I = 1,SIZE(CntrPar%Ind_CableControl)
-                        IF (CntrPar%Ind_CableControl(I) > 0) THEN
-                            CntrPar%OL_CableControl(I_OL,:) = CntrPar%OL_Channels(:,CntrPar%Ind_CableControl(I))
-                            I_OL = I_OL + 1
-                        ENDIF
-                    ENDDO
-                ENDIF
-
-                IF (ANY(CntrPar%Ind_StructControl > 0)) THEN
-                    ALLOCATE(CntrPar%OL_StructControl(N_OL_StCs,SIZE(CntrPar%OL_Channels,DIM=1)))
-                    I_OL = 1
-                    DO I = 1,SIZE(CntrPar%Ind_StructControl)
-                        IF (CntrPar%Ind_StructControl(I) > 0) THEN
-                            CntrPar%OL_StructControl(I_OL,:) = CntrPar%OL_Channels(:,CntrPar%Ind_StructControl(I))
-                            I_OL = I_OL + 1
-                        ENDIF
-                    ENDDO
-                ENDIF
-
-            END IF
-
+            ! Check validity of input parameters:
+            CALL CheckInputs(LocalVar, CntrPar, avrSWAP, ErrVar, size_avcMSG)
 
             ! Add RoutineName to error message
             IF (ErrVar%aviFAIL < 0) THEN
@@ -327,15 +249,18 @@ CONTAINS
 
         ENDIF
     END SUBROUTINE SetParameters
+    
     ! -----------------------------------------------------------------------------------
     ! Read all constant control parameters from DISCON.IN parameter file
-    SUBROUTINE ReadControlParameterFileSub(CntrPar, zmqVar, accINFILE, accINFILE_size, RootName, ErrVar)!, accINFILE_size)
+    ! Also, all computed CntrPar%* parameters should be computed in this subroutine
+    SUBROUTINE ReadControlParameterFileSub(CntrPar, LocalVar, zmqVar, accINFILE, accINFILE_size, RootName, ErrVar)!, accINFILE_size)
         USE, INTRINSIC :: ISO_C_Binding
-        USE ROSCO_Types, ONLY : ControlParameters, ErrorVariables, ZMQ_Variables
+        USE ROSCO_Types, ONLY : ControlParameters, ErrorVariables, ZMQ_Variables, LocalVariables
 
         INTEGER(IntKi)                                  :: accINFILE_size               ! size of DISCON input filename
         CHARACTER(accINFILE_size),  INTENT(IN   )       :: accINFILE(accINFILE_size)    ! DISCON input filename
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar                      ! Control parameter type
+        TYPE(LocalVariables),        INTENT(INOUT)       :: LocalVar                       ! Control parameter type
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar                       ! Control parameter type
         TYPE(ZMQ_Variables),        INTENT(INOUT)       :: zmqVar                       ! Control parameter type
         CHARACTER(accINFILE_size),  INTENT(IN)          :: RootName 
@@ -350,6 +275,13 @@ CONTAINS
         INTEGER(IntKi)                                  :: UnEc
         CHARACTER(128)                                  :: EchoFilename              ! Input checkpoint file
         CHARACTER(MaxLineLength), DIMENSION(:), ALLOCATABLE      :: FileLines
+
+        INTEGER(IntKi)                                  :: I, I_OL    ! Index used for looping through blades.
+        CHARACTER(1024)                                 :: OL_String                    ! Open description loop string
+        INTEGER(IntKi)                                  :: OL_Count                     ! Number of open loop channels
+        INTEGER(IntKi)                                  :: UnOpenLoop       ! Open Loop file unit
+        INTEGER(IntKi)                                  :: N_OL_Cables
+        INTEGER(IntKi)                                  :: N_OL_StCs
         
         CHARACTER(*),               PARAMETER           :: RoutineName = 'ReadControlParameterFileSub'
 
@@ -373,8 +305,10 @@ CONTAINS
             READ(UnControllerParameters,'(A)',IOSTAT=IOS) FileLines(I_LINE)
         END DO
 
-        !----------------------- DEBUG --------------------------
-        CALL ParseInput(FileLines,'LoggingLevel',   CntrPar%LoggingLevel,       accINFILE(1), ErrVar)
+        ! Close Input File
+        CLOSE(UnControllerParameters)
+
+        ! Read Echo first, so file can be set up, if desired
         CALL ParseInput(FileLines,'Echo',           CntrPar%Echo,               accINFILE(1), ErrVar)
         IF (ErrVar%aviFAIL < 0) RETURN
 
@@ -395,6 +329,11 @@ CONTAINS
                 WRITE( UnEc, *) '-----------------------------------------'
             ENDIF
         ENDIF
+
+        !----------------------- Simulation Control --------------------------
+        CALL ParseInput(FileLines,'LoggingLevel',   CntrPar%LoggingLevel,       accINFILE(1), ErrVar, .TRUE., UnEc=UnEc)
+        CALL ParseInput(FileLines,'DT_Out',         CntrPar%DT_Out,             accINFILE(1), ErrVar, .TRUE., UnEc=UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !----------------- CONTROLLER FLAGS ---------------------
         CALL ParseInput(FileLines,'F_LPFType',       CntrPar%F_LPFType,         accINFILE(1), ErrVar, UnEc=UnEc)
@@ -541,13 +480,14 @@ CONTAINS
 
         !------------ Open loop input ------------
         ! Indices can be left 0 by default, checked later
-        CALL ParseInput(FileLines, 'OL_Filename',       CntrPar%OL_Filename,        accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0,   UnEc)
-        CALL ParseInput(FileLines, 'Ind_Breakpoint',    CntrPar%Ind_Breakpoint,     accINFILE(1),   ErrVar,                         UnEc=UnEc)
-        CALL ParseInput(FileLines, 'Ind_BldPitch',      CntrPar%Ind_BldPitch,       accINFILE(1),   ErrVar,                         UnEc=UnEc)
-        CALL ParseInput(FileLines, 'Ind_GenTq',         CntrPar%Ind_GenTq,          accINFILE(1),   ErrVar,                         UnEc=UnEc)
-        CALL ParseInput(FileLines, 'Ind_YawRate',       CntrPar%Ind_YawRate,        accINFILE(1),   ErrVar,                         UnEc=UnEc)
+        CALL ParseInput(FileLines, 'OL_Filename',       CntrPar%OL_Filename,            accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0,   UnEc)
+        CALL ParseInput(FileLines, 'Ind_Breakpoint',    CntrPar%Ind_Breakpoint,         accINFILE(1),   ErrVar,                         UnEc=UnEc)
+        CALL ParseAry(  FileLines, 'Ind_BldPitch',      CntrPar%Ind_BldPitch,       3,  accINFILE(1),   ErrVar,                         UnEc=UnEc)
+        CALL ParseInput(FileLines, 'Ind_GenTq',         CntrPar%Ind_GenTq,              accINFILE(1),   ErrVar,                         UnEc=UnEc)
+        CALL ParseInput(FileLines, 'Ind_YawRate',       CntrPar%Ind_YawRate,            accINFILE(1),   ErrVar,                         UnEc=UnEc)
+        CALL ParseInput(FileLines, 'Ind_Azimuth',       CntrPar%Ind_Azimuth,            accINFILE(1),   ErrVar, CntrPar%OL_Mode .NE. 2, UnEc=UnEc)
+        CALL ParseAry(  FileLines, 'RP_Gains',          CntrPar%RP_Gains,           4,  accINFILE(1),   ErrVar, CntrPar%OL_Mode .NE. 2, UnEc=UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
-        
 
         !------------ Pitch Actuator Inputs ------------
         CALL ParseInput(FileLines, 'PA_CornerFreq',     CntrPar%PA_CornerFreq,  accINFILE(1),   ErrVar, CntrPar%PA_Mode == 0, UnEc)
@@ -596,7 +536,18 @@ CONTAINS
 
         IF (UnEc > 0) CLOSE(UnEc)     ! Close echo file
 
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !-------------------
+        !------------------- CALCULATED CONSTANTS -----------------------
+        !----------------------------------------------------------------
+
+        ! Fix defaults manually for now
+        IF (CntrPar%DT_Out == 0) THEN
+            CntrPar%DT_Out = LocalVar%DT
+        ENDIF
+
+        ! DT_Out
+        CntrPar%n_DT_Out = NINT(CntrPar%DT_Out / LocalVar%DT)
+
 
         ! Fix Paths (add relative paths if called from another dir, UnEc)
         IF (PathIsRelative(CntrPar%PerfFileName)) CntrPar%PerfFileName = TRIM(PriPath)//TRIM(CntrPar%PerfFileName)
@@ -604,17 +555,138 @@ CONTAINS
         
         ! Convert yaw rate to deg/s
         CntrPar%Y_Rate = CntrPar%Y_Rate * R2D
-
-        ! END OF INPUT FILE    
-
-        ! Close Input File
-        CLOSE(UnControllerParameters)
-
         
-        !------------------- CALCULATED CONSTANTS -----------------------
+
         CntrPar%PC_RtTq99 = CntrPar%VS_RtTq*0.99
         CntrPar%VS_MinOMTq = CntrPar%VS_Rgn2K*CntrPar%VS_MinOMSpd**2
         CntrPar%VS_MaxOMTq = CntrPar%VS_Rgn2K*CntrPar%VS_RefSpd**2
+
+        ! Read open loop input, if desired
+        IF (CntrPar%OL_Mode > 0) THEN
+            OL_String = ''      ! Display string
+            OL_Count  = 1
+            IF (CntrPar%Ind_BldPitch(1) > 0) THEN
+                OL_String   = TRIM(OL_String)//' BldPitch1 '
+                OL_Count    = OL_Count + 1
+            ENDIF
+
+            IF (CntrPar%Ind_BldPitch(2) > 0) THEN
+                OL_String   = TRIM(OL_String)//' BldPitch2 '
+                ! If there are duplicate indices, don't increment OL_Count
+                IF (.NOT. ((CntrPar%Ind_BldPitch(2) == CntrPar%Ind_BldPitch(1)) .OR. &
+                (CntrPar%Ind_BldPitch(2) == CntrPar%Ind_BldPitch(3)))) THEN
+                    OL_Count    = OL_Count + 1
+                ENDIF
+            ENDIF
+
+            IF (CntrPar%Ind_BldPitch(3) > 0) THEN
+                OL_String   = TRIM(OL_String)//' BldPitch3 '
+                ! If there are duplicate indices, don't increment OL_Count
+                IF (.NOT. ((CntrPar%Ind_BldPitch(3) == CntrPar%Ind_BldPitch(1)) .OR. &
+                (CntrPar%Ind_BldPitch(3) == CntrPar%Ind_BldPitch(2)))) THEN
+                    OL_Count    = OL_Count + 1
+                ENDIF
+            ENDIF
+
+            IF (CntrPar%Ind_GenTq > 0) THEN
+                OL_String   = TRIM(OL_String)//' GenTq '
+                OL_Count    = OL_Count + 1  ! Read channel still, so we don't have issues
+            ENDIF
+
+            IF (CntrPar%Ind_YawRate > 0) THEN
+                OL_String   = TRIM(OL_String)//' YawRate '
+                OL_Count    = OL_Count + 1
+            ENDIF
+
+            IF (CntrPar%Ind_Azimuth > 0) THEN
+                IF (CntrPar%OL_Mode == 2) THEN
+                    OL_String   = TRIM(OL_String)//' Azimuth '
+                    OL_Count    = OL_Count + 1
+                END IF
+            ENDIF
+
+            N_OL_Cables = 0
+            IF (ANY(CntrPar%Ind_CableControl > 0)) THEN
+                DO I = 1,SIZE(CntrPar%Ind_CableControl)
+                    IF (CntrPar%Ind_CableControl(I) > 0) THEN
+                        OL_String   = TRIM(OL_String)//' Cable'//TRIM(Int2LStr(I))//' '
+                        OL_Count    = OL_Count + 1
+                        N_OL_Cables = N_OL_Cables + 1
+                    ENDIF
+                ENDDO
+            ENDIF
+
+            N_OL_StCs = 0
+            IF (ANY(CntrPar%Ind_StructControl > 0)) THEN
+                DO I = 1,SIZE(CntrPar%Ind_StructControl)
+                    IF (CntrPar%Ind_StructControl(I) > 0) THEN
+                        OL_String   = TRIM(OL_String)//' StC'//TRIM(Int2LStr(I))//' '
+                        OL_Count    = OL_Count + 1
+                        N_OL_StCs   = N_OL_StCs + 1
+                    ENDIF
+                ENDDO
+            ENDIF
+
+
+            PRINT *, 'ROSCO: Implementing open loop control for'//TRIM(OL_String)
+            IF (CntrPar%OL_Mode == 2) THEN
+                PRINT *, 'ROSCO: OL_Mode = 2 will change generator torque control for Azimuth tracking'
+            ENDIF
+
+            CALL GetNewUnit(UnOpenLoop, ErrVar)
+            CALL Read_OL_Input(CntrPar%OL_Filename,UnOpenLoop,OL_Count,CntrPar%OL_Channels, ErrVar)
+
+            CntrPar%OL_Breakpoints = CntrPar%OL_Channels(:,CntrPar%Ind_Breakpoint)
+
+            ! Set OL Inputs based on indices
+            IF (CntrPar%Ind_BldPitch(1) > 0) THEN
+                CntrPar%OL_BldPitch1 = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch(1))
+            ENDIF
+
+            IF (CntrPar%Ind_BldPitch(2) > 0) THEN
+                CntrPar%OL_BldPitch2 = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch(2))
+            ENDIF
+
+            IF (CntrPar%Ind_BldPitch(3) > 0) THEN
+                CntrPar%OL_BldPitch3 = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch(3))
+            ENDIF
+
+            IF (CntrPar%Ind_GenTq > 0) THEN
+                CntrPar%OL_GenTq = CntrPar%OL_Channels(:,CntrPar%Ind_GenTq)
+            ENDIF
+
+            IF (CntrPar%Ind_YawRate > 0) THEN
+                CntrPar%OL_YawRate = CntrPar%OL_Channels(:,CntrPar%Ind_YawRate)
+            ENDIF
+
+            IF (CntrPar%Ind_Azimuth > 0) THEN
+                CntrPar%OL_Azimuth = Unwrap(CntrPar%OL_Channels(:,CntrPar%Ind_Azimuth),ErrVar)
+            ENDIF
+            
+            IF (ANY(CntrPar%Ind_CableControl > 0)) THEN
+                ALLOCATE(CntrPar%OL_CableControl(N_OL_Cables,SIZE(CntrPar%OL_Channels,DIM=1)))
+                I_OL = 1
+                DO I = 1,SIZE(CntrPar%Ind_CableControl)
+                    IF (CntrPar%Ind_CableControl(I) > 0) THEN
+                        CntrPar%OL_CableControl(I_OL,:) = CntrPar%OL_Channels(:,CntrPar%Ind_CableControl(I))
+                        I_OL = I_OL + 1
+                    ENDIF
+                ENDDO
+            ENDIF
+
+            IF (ANY(CntrPar%Ind_StructControl > 0)) THEN
+                ALLOCATE(CntrPar%OL_StructControl(N_OL_StCs,SIZE(CntrPar%OL_Channels,DIM=1)))
+                I_OL = 1
+                DO I = 1,SIZE(CntrPar%Ind_StructControl)
+                    IF (CntrPar%Ind_StructControl(I) > 0) THEN
+                        CntrPar%OL_StructControl(I_OL,:) = CntrPar%OL_Channels(:,CntrPar%Ind_StructControl(I))
+                        I_OL = I_OL + 1
+                    ENDIF
+                ENDDO
+            ENDIF
+
+        END IF
+
         
         !------------------- HOUSEKEEPING -----------------------
         CntrPar%PerfFileName = TRIM(CntrPar%PerfFileName)
@@ -702,8 +774,8 @@ CONTAINS
         IMPLICIT NONE
     
         ! Inputs
-        TYPE(ControlParameters),    INTENT(IN   )       :: CntrPar
-        TYPE(LocalVariables),       INTENT(IN   )       :: LocalVar
+        TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
         INTEGER(IntKi),                 INTENT(IN   )       :: size_avcMSG
         INTEGER(IntKi)                                  :: Imode       ! Index used for looping through AWC modes
@@ -727,6 +799,20 @@ CONTAINS
             ErrVar%ErrMsg  = 'LoggingLevel must be 0 - 3.'
         ENDIF
 
+        IF (CntrPar%DT_Out .le. 0) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'DT_Out must be greater than 0'
+        ENDIF
+
+        IF (CntrPar%DT_Out < LocalVar%DT) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'DT_Out must be greater than or equal to DT in OpenFAST'
+        ENDIF
+
+        IF (ABS(CntrPar%DT_out - Localvar%DT * CntrPar%n_DT_Out) > 0.001_DbKi) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'DT_Out must be a factor of DT in OpenFAST'
+        ENDIF
         !------- CONTROLLER FLAGS -------------------------------------------------
 
         ! F_LPFType
@@ -1121,7 +1207,7 @@ CONTAINS
         ! --- Open loop control ---
         IF (CntrPar%OL_Mode > 0) THEN
             ! Get all open loop indices
-            ALLOCATE(All_OL_Indices(3))   ! Will need to increase to 5 when IPC
+            ALLOCATE(All_OL_Indices(5))   ! Will need to increase to 5 when IPC
             All_OL_Indices =    (/CntrPar%Ind_BldPitch, & 
                                 CntrPar%Ind_GenTq, &
                                 CntrPar%Ind_YawRate/)
@@ -1149,6 +1235,17 @@ CONTAINS
                 ErrVar%ErrMsg = 'At least one open loop input channel must be non-zero'
             ENDIF
 
+            IF (CntrPar%OL_Mode == 2) THEN
+                IF ((CntrPar%Ind_BldPitch(1) == 0) .OR. &
+                (CntrPar%Ind_BldPitch(2) == 0) .OR. &
+                (CntrPar%Ind_BldPitch(3) == 0) .OR. &
+                (CntrPar%Ind_GenTq == 0) .OR. &
+                (CntrPar%Ind_Azimuth == 0)) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = 'If OL_Mode = 2, Ind_BldPitch, Ind_GenTq, and Ind_Azimuth must be greater than zero'
+                ENDIF
+            ENDIF
+
             IF (ANY(CntrPar%Ind_CableControl > 0) .AND. CntrPar%CC_Mode .NE. 2) THEN
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg = 'CC_Mode must be 2 if using open loop cable control via Ind_CableControl'
@@ -1166,6 +1263,8 @@ CONTAINS
         IF (CntrPar%AWC_Mode > 0 .AND. CntrPar%IPC_ControlMode > 0) THEN
             PRINT *, "ROSCO WARNING: Individual pitch control and active wake control are both enabled. Performance may be compromised."
         ENDIF
+
+
 
         ! --- Pitch Actuator ---
         IF (CntrPar%PA_Mode > 0) THEN
