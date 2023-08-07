@@ -51,7 +51,7 @@ CONTAINS
         ! Define VS reference generator speed [rad/s]
         IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
             !VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
-            VS_RefSpd = (LocalVar%VS_GenPwr/CntrPar%VS_Rgn2K)**(1./3.) ! AKS: genspeed reference that doesnt depend on wind speed estimate
+            VS_RefSpd = (LocalVar%VS_GenPwr/CntrPar%VS_Rgn2K)**(1./3.) ! Genspeed reference that doesnt depend on wind speed estimate (https://doi.org/10.2172/1259805)
             VS_RefSpd = saturate(VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
         ELSE
             VS_RefSpd = CntrPar%VS_RefSpd
