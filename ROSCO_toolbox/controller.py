@@ -381,9 +381,10 @@ class Controller():
                 f_kp     = interpolate.interp1d(v,Kp_float)
                 self.Kp_float = f_kp(turbine.v_rated * (1.05))   # get Kp at v_rated + 0.5 m/s
 
-            # Turn on the notch filter if floating
-            self.F_NotchType = 2
-            
+            # Turn on the notch filter if floating and not already on
+            if not self.F_NotchType:
+                self.F_NotchType = 2      
+                      
             # And check for .yaml input inconsistencies
             if self.twr_freq == 0.0 or self.ptfm_freq == 0.0:
                 print('WARNING: twr_freq and ptfm_freq should be defined for floating turbine control!!')
