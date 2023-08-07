@@ -17,7 +17,8 @@ from ROSCO_toolbox.ofTools.case_gen.CaseGen_IEC         import CaseGen_IEC
 from ROSCO_toolbox.ofTools.case_gen.CaseGen_General     import CaseGen_General
 from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
 from wisdem.commonse.mpi_tools              import MPI
-import sys, os, platform
+import sys, os, platform, pickle
+import collections.abc
 import numpy as np
 from ROSCO_toolbox import utilities as ROSCO_utilities
 from ROSCO_toolbox.inputs.validation import load_rosco_yaml
@@ -25,7 +26,20 @@ from ROSCO_toolbox.inputs.validation import load_rosco_yaml
 from ROSCO_toolbox import controller as ROSCO_controller
 from ROSCO_toolbox import turbine as ROSCO_turbine
 
-this_dir            = os.path.dirname(os.path.abspath(__file__))
+# Globals
+this_dir        = os.path.dirname(os.path.abspath(__file__))
+tune_case_dir   = os.path.realpath(os.path.join(this_dir,'../../../Tune_Cases'))
+rosco_dir       = os.path.realpath(os.path.join(this_dir,'../../..'))
+
+# https://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth
+def update_deep(d, u):
+    for k, v in u.items():
+        if isinstance(v, collections.abc.Mapping):
+            d[k] = update_deep(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
+
 class run_FAST_ROSCO():
 
     def __init__(self):
@@ -48,7 +62,6 @@ class run_FAST_ROSCO():
         self.tune_case_dir  = ''
         self.rosco_dir      = ''
         self.save_dir       = ''
-
 
     def run_FAST(self):
 
@@ -87,7 +100,7 @@ class run_FAST_ROSCO():
         controller_params   = inps['controller_params']
 
         # Update user-defined controller_params
-        controller_params.update(self.controller_params)
+        update_deep(controller_params,self.controller_params)
 
         # Instantiate turbine, controller, and file processing classes
         turbine         = ROSCO_turbine.Turbine(turbine_params)
@@ -184,8 +197,8 @@ class run_FAST_ROSCO():
             fastBatch.channels          = channels
             fastBatch.FAST_runDirectory = run_dir
             fastBatch.case_list         = case_list
-            fastBatch.case_name_list    = case_name_list
             fastBatch.fst_vt            = self.fst_vt
+            fastBatch.case_name_list    = case_name_list
             fastBatch.FAST_exe          = self.openfast_exe
             fastBatch.use_exe           = True
 
@@ -212,7 +225,7 @@ class run_FAST_ROSCO():
 if __name__ == "__main__":
 
     # Simulation config
-    sim_config = 1
+    sim_config = 3
     
     r = run_FAST_ROSCO()
 
@@ -224,6 +237,22 @@ if __name__ == "__main__":
         r.wind_case_fcn = cl.simp_step
         r.sweep_mode  = None
         r.save_dir    = '/Users/dzalkind/Tools/ROSCO/outputs'
+
+    elif sim_config == 3:
+        # IEA-22 fixed bottom
+        r.tuning_yaml = '/Users/dzalkind/Projects/IEA-22MW/IEA-22-280-RWT/OpenFAST/IEA-22-280-RWT-Monopile/IEA-22-280-RWT-Monopile.yaml'
+        r.wind_case_fcn = cl.power_curve
+        r.sweep_mode  = None
+        r.wind_case_opts    = {
+            'U': [6,9,12,15],
+            'TMax': 100,
+            }
+        r.save_dir    = '/Users/dzalkind/Projects/IEA-22MW/MonopileControl/outputs/1_const_power'
+        r.openfast_exe = '/Users/dzalkind/opt/anaconda3/envs/rosco-new/bin/openfast'
+        # rosco_dll = '/Users/dzalkind/Tools/ROSCO1/ROSCO/build/libdiscon.dylib'
+        r.case_inputs = {}
+        # r.case_inputs[('ServoDyn','DLL_FileName')] = {'vals': [rosco_dll], 'group': 0}
+        r.n_cores = 4
     
     elif sim_config == 6:
 
@@ -251,60 +280,6 @@ if __name__ == "__main__":
         }
 
         r.n_cores = 4
-
-    elif sim_config == 8:
-
-        # RAAW IPC set up
-        r.tuning_yaml   = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/ROSCO/RAAW_rosco_BD.yaml'
-        r.wind_case_fcn = cl.power_curve
-        r.wind_case_opts    = {
-            'U': [16],
-            }
-        r.save_dir      = '/Users/dzalkind/Tools/ROSCO/outputs/offset_test'
-        r.control_sweep_fcn = cl.test_pitch_offset
-
-    elif sim_config == 9:
-
-        # RAAW FAD set up
-        r.tuning_yaml   = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/ROSCO/RAAW_rosco_BD.yaml'
-        r.wind_case_fcn = cl.simp_step
-        r.wind_case_opts    = {
-            'U_start': [13],
-            'U_end': [15],
-            'wind_dir': '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/outputs/FAD_play'
-            }
-        r.save_dir      = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/outputs/FAD_play'
-        r.control_sweep_fcn = cl.sweep_fad_gains
-        r.n_cores = 8
-
-    elif sim_config == 10:
-
-        # RAAW FAD set up
-        r.tuning_yaml   = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/ROSCO/RAAW_rosco_BD.yaml'
-        r.wind_case_fcn = cl.turb_bts
-        r.wind_case_opts    = {
-            'TMax': 720,
-            'wind_filenames': ['/Users/dzalkind/Tools/WEIS-2/outputs/02_RAAW_IPC/wind/RAAW_NTM_U12.000000_Seed1693606511.0.bts']
-            }
-        r.save_dir      = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/outputs/PS_BD'
-        r.control_sweep_fcn = cl.sweep_ps_percent
-        r.n_cores = 8
-
-    elif sim_config == 11:
-
-        # RAAW FAD set up
-        r.tuning_yaml   = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/ROSCO/RAAW_rosco_BD.yaml'
-        r.wind_case_fcn = cl.user_hh
-        r.wind_case_opts    = {
-            'TMax': 1000.,
-            'wind_filenames': ['/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/Performance/GE_P3_WindStep.asc']
-            }
-        r.save_dir      = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/outputs/PS_steps'
-        r.control_sweep_fcn = cl.sweep_ps_percent
-        r.n_cores = 4
-
-
-
 
     else:
         raise Exception('This simulation configuration is not supported.')

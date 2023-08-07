@@ -10,6 +10,8 @@ IMPLICIT NONE
 TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: LoggingLevel                ! 0 - write no debug files, 1 - write standard output .dbg-file, 2 - write standard output .dbg-file and complete avrSWAP-array .dbg2-file
     INTEGER(IntKi)                :: Echo                        ! 0 - no Echo, 1 - Echo input data to <RootName>.echo
+    REAL(DbKi)                    :: DT_Out                      ! Output time step
+    INTEGER(IntKi)                :: n_DT_Out                    ! output every this many steps
     INTEGER(IntKi)                :: F_LPFType                   ! Low pass filter on the rotor and generator speed {1 - first-order low-pass filter, 2 - second-order low-pass filter}, [rad/s]
     INTEGER(IntKi)                :: F_NotchType                 ! Notch on the measured generator speed {0 - disable, 1 - enable}
     INTEGER(IntKi)                :: GS_notch_n                  ! Number of notch filters to be placed on the generator speed signal
@@ -99,7 +101,9 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: SD_MaxPit                   ! Maximum blade pitch angle to initiate shutdown, [rad]
     REAL(DbKi)                    :: SD_CornerFreq               ! Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]
     INTEGER(IntKi)                :: Fl_Mode                     ! Floating specific feedback mode {0 - no nacelle velocity feedback, 1 - nacelle velocity feedback}
-    REAL(DbKi)                    :: Fl_Kp                       ! Nacelle velocity proportional feedback gain [s]
+    INTEGER(IntKi)                :: Fl_n                        ! Number of Fl_Kp for gain scheduling
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: Fl_Kp                       ! Nacelle velocity proportional feedback gain [s]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: Fl_U                        ! Wind speeds for scheduling Fl_Kp [m/s]
     INTEGER(IntKi)                :: Flp_Mode                    ! Flap actuator mode {0 - off, 1 - fixed flap position, 2 - PI flap control}
     REAL(DbKi)                    :: Flp_Angle                   ! Fixed flap angle (degrees)
     REAL(DbKi)                    :: Flp_Kp                      ! PI flap control proportional gain
@@ -108,22 +112,27 @@ TYPE, PUBLIC :: ControlParameters
     CHARACTER(1024)               :: OL_Filename                 ! Input file with open loop timeseries
     INTEGER(IntKi)                :: OL_Mode                     ! Open loop control mode {0 - no open loop control, 1 - open loop control vs. time, 2 - open loop control vs. wind speed}
     INTEGER(IntKi)                :: Ind_Breakpoint              ! The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)
-    INTEGER(IntKi)                :: Ind_BldPitch                ! The column in OL_Filename that contains the blade pitch input in rad
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: Ind_BldPitch                ! The columns in OL_Filename that contains the blade pitch inputs (1,2,3) in rad
     INTEGER(IntKi)                :: Ind_GenTq                   ! The column in OL_Filename that contains the generator torque in Nm
     INTEGER(IntKi)                :: Ind_YawRate                 ! The column in OL_Filename that contains the generator torque in Nm
+    INTEGER(IntKi)                :: Ind_Azimuth                 ! The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: RP_Gains                    ! PID gains for rotor position control (used if OL_Mode = 2)
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: Ind_CableControl            ! The column in OL_Filename that contains the cable control inputs in m
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: Ind_StructControl           ! The column in OL_Filename that contains the structural control inputs in various units
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_Breakpoints              ! Open loop breakpoints in timeseries
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_BldPitch                 ! Open blade pitch timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_BldPitch1                ! Open loop blade pitch 1 timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_BldPitch2                ! Open loop blade pitch 2 timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_BldPitch3                ! Open loop blade pitch 3 timeseries
     REAL(DbKi), DIMENSION(:,:), ALLOCATABLE     :: OL_CableControl             ! None
     REAL(DbKi), DIMENSION(:,:), ALLOCATABLE     :: OL_StructControl            ! None
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_GenTq                    ! Open generator torque timeseries
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_YawRate                  ! Open yaw rate timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_GenTq                    ! Open loop generator torque timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_YawRate                  ! Open loop yaw rate timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_Azimuth                  ! Open loop azimuth timeseries
     REAL(DbKi), DIMENSION(:,:), ALLOCATABLE     :: OL_Channels                 ! Open loop channels in timeseries
     INTEGER(IntKi)                :: PA_Mode                     ! Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
     REAL(DbKi)                    :: PA_CornerFreq               ! Pitch actuator bandwidth/cut-off frequency [rad/s]
     REAL(DbKi)                    :: PA_Damping                  ! Pitch actuator damping ratio [-, unused if PA_Mode = 1]
-    INTEGER(IntKi)                :: AWC_Mode                    ! Active wake control mode [0 - unused, 1 - SNL method, 2 - NREL method]
+    INTEGER(IntKi)                :: AWC_Mode                    ! Active wake control mode [0 - unused, 1 - complex number method, 2 - Coleman transform method]
     INTEGER(IntKi)                :: AWC_NumModes                ! AWC- Number of modes to include [-]
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: AWC_n                       ! AWC azimuthal mode [-]
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: AWC_harmonic                ! AWC AWC Coleman transform harmonic [-]
@@ -219,12 +228,16 @@ TYPE, PUBLIC :: piParams
     REAL(DbKi), DIMENSION(99)     :: ITermLast                   ! Previous integrator term
     REAL(DbKi), DIMENSION(99)     :: ITerm2                      ! Integrator term - second integrator
     REAL(DbKi), DIMENSION(99)     :: ITermLast2                  ! Previous integrator term - second integrator
+    REAL(DbKi), DIMENSION(99)     :: ELast                       ! Previous error term for derivative
 END TYPE piParams
 
 TYPE, PUBLIC :: LocalVariables
     INTEGER(IntKi)                :: iStatus                     ! Initialization status
     REAL(DbKi)                    :: Time                        ! Time [s]
     REAL(DbKi)                    :: DT                          ! Time step [s]
+    LOGICAL                       :: WriteThisStep               ! Write an output line this time step
+    INTEGER(IntKi)                :: n_DT                        ! number of timesteps since start
+    REAL(DbKi)                    :: Time_Last                   ! Last time [s]
     REAL(DbKi)                    :: VS_GenPwr                   ! Generator power [W]
     REAL(DbKi)                    :: GenSpeed                    ! Generator speed (HSS) [rad/s]
     REAL(DbKi)                    :: RotSpeed                    ! Rotor speed (LSS) [rad/s]
@@ -236,6 +249,11 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: BlPitch(3)                  ! Blade pitch [rad]
     REAL(DbKi)                    :: BlPitchCMeas                ! Mean (collective) blade pitch [rad]
     REAL(DbKi)                    :: Azimuth                     ! Rotor aziumuth angle [rad]
+    REAL(DbKi)                    :: OL_Azimuth                  ! Rotor aziumuth angle [rad]
+    REAL(DbKi)                    :: AzUnwrapped                 ! Rotor aziumuth angle [rad]
+    REAL(DbKi)                    :: AzError                     ! Azimuth error angle [rad]
+    REAL(DbKi)                    :: GenTqAz                     ! Gen torque command due to azimuth error
+    REAL(DbKi)                    :: AzBuffer(2)                 ! Current and last rotor aziumuth angles [rad]
     INTEGER(IntKi)                :: NumBl                       ! Number of blades [-]
     REAL(DbKi)                    :: FA_Acc                      ! Tower fore-aft acceleration [m/s^2]
     REAL(DbKi)                    :: NacIMU_FA_Acc               ! Tower fore-aft acceleration [rad/s^2]
@@ -279,6 +297,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: PitComAct(3)                ! Actuated pitch command of each blade [rad].
     REAL(DbKi)                    :: SS_DelOmegaF                ! Filtered setpoint shifting term defined in setpoint smoother [rad/s].
     REAL(DbKi)                    :: TestType                    ! Test variable, no use
+    REAL(DbKi)                    :: Kp_Float                    ! Local, instantaneous Kp_Float, scheduled on wind speed, if desired
     REAL(DbKi)                    :: VS_MaxTq                    ! Maximum allowable generator torque [Nm].
     REAL(DbKi)                    :: VS_LastGenTrq               ! Commanded electrical generator torque the last time the controller was called [Nm].
     REAL(DbKi)                    :: VS_LastGenPwr               ! Commanded electrical generator torque the last time the controller was called [Nm].

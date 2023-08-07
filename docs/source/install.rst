@@ -61,7 +61,7 @@ In order to download the most recently compiled version release, from an anacond
 .. code-block:: bash
 
     conda config --add channels conda-forge
-    conda create -y --name rosco-env python=3.8
+    conda create -y --name rosco-env python=3.9
     conda activate rosco-env
 
 navigate to your desired folder to save the compiled binary using:
@@ -201,7 +201,7 @@ Please follow the following steps to install the ROSCO tool-chain. You should do
     conda install compilers # (Mac/Linux only)
     conda install m2w64-toolchain libpython # (Windows only)
     conda env config vars set FC=gfortran # Sometimes needed for Windows
-    conda install -y wisdem=3.5.0  
+    conda install -y wisdem>3.7
     python setup.py install --compile-rosco 
 
 3. Clone and Install the ROSCO toolbox without ROSCO controller

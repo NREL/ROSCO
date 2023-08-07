@@ -106,20 +106,21 @@ def base_op_case():
     case_inputs[('ServoDyn', 'YCMode')] = {'vals': [5], 'group': 0}    
 
     # AeroDyn
-    case_inputs[("AeroDyn15", "WakeMod")] = {'vals': [1], 'group': 0}
-    case_inputs[("AeroDyn15", "AFAeroMod")] = {'vals': [2], 'group': 0}
-    case_inputs[("AeroDyn15", "TwrPotent")] = {'vals': [0], 'group': 0}
-    case_inputs[("AeroDyn15", "TwrShadow")] = {'vals': ['False'], 'group': 0}
-    case_inputs[("AeroDyn15", "TwrAero")] = {'vals': ['False'], 'group': 0}
-    case_inputs[("AeroDyn15", "SkewMod")] = {'vals': [1], 'group': 0}
-    case_inputs[("AeroDyn15", "TipLoss")] = {'vals': ['True'], 'group': 0}
-    case_inputs[("AeroDyn15", "HubLoss")] = {'vals': ['True'], 'group': 0}
-    case_inputs[("AeroDyn15", "TanInd")] = {'vals': ['True'], 'group': 0}
-    case_inputs[("AeroDyn15", "AIDrag")] = {'vals': ['True'], 'group': 0}
-    case_inputs[("AeroDyn15", "TIDrag")] = {'vals': ['True'], 'group': 0}
-    case_inputs[("AeroDyn15", "IndToler")] = {'vals': [1.e-5], 'group': 0}
-    case_inputs[("AeroDyn15", "MaxIter")] = {'vals': [5000], 'group': 0}
-    case_inputs[("AeroDyn15", "UseBlCm")] = {'vals': ['True'], 'group': 0}
+    if False:
+        case_inputs[("AeroDyn15", "WakeMod")] = {'vals': [1], 'group': 0}
+        case_inputs[("AeroDyn15", "AFAeroMod")] = {'vals': [2], 'group': 0}
+        case_inputs[("AeroDyn15", "TwrPotent")] = {'vals': [0], 'group': 0}
+        case_inputs[("AeroDyn15", "TwrShadow")] = {'vals': ['False'], 'group': 0}
+        case_inputs[("AeroDyn15", "TwrAero")] = {'vals': ['False'], 'group': 0}
+        case_inputs[("AeroDyn15", "SkewMod")] = {'vals': [1], 'group': 0}
+        case_inputs[("AeroDyn15", "TipLoss")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn15", "HubLoss")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn15", "TanInd")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn15", "AIDrag")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn15", "TIDrag")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn15", "IndToler")] = {'vals': [1.e-5], 'group': 0}
+        case_inputs[("AeroDyn15", "MaxIter")] = {'vals': [5000], 'group': 0}
+        case_inputs[("AeroDyn15", "UseBlCm")] = {'vals': ['True'], 'group': 0}
 
     return case_inputs
 
@@ -155,25 +156,10 @@ def simp_step(**wind_case_opts):
     # Set up cases for FIW-JIP project
     # 3.x in controller tuning register
 
-    if 'T_Max' in wind_case_opts:
-        T_max = wind_case_opts['T_Max']
-    else: #default
-        T_max   = 300.
-
-    if 'U_start' in wind_case_opts:
-        U_start = wind_case_opts['U_start']
-    else: #default
-        U_start   = [16]
-
-    if 'U_end' in wind_case_opts:
-        U_end = wind_case_opts['U_end']
-    else: #default
-        U_end   = [17]
-
-    if 'T_step' in wind_case_opts:
-        T_step = wind_case_opts['T_step']
-    else: #default
-        T_step   = 150
+    TMax    = wind_case_opts.get('TMax',300.)
+    T_step  = wind_case_opts.get('TStep',150.)
+    U_start = wind_case_opts.get('U_start',[16.])
+    U_end   = wind_case_opts.get('U_end',[17.])
 
     # Wind directory, default is run_dir
     wind_case_opts['wind_dir'] = wind_case_opts.get('wind_dir',wind_case_opts['run_dir'])
@@ -182,7 +168,7 @@ def simp_step(**wind_case_opts):
 
     # Make Default step wind object
     hh_step = HH_StepFile()
-    hh_step.t_max = T_max
+    hh_step.t_max = TMax
     hh_step.t_step = T_step
     hh_step.wind_directory = wind_case_opts['wind_dir']
 
@@ -200,7 +186,7 @@ def simp_step(**wind_case_opts):
 
     case_inputs = base_op_case()
     # simulation settings
-    case_inputs[("Fst","TMax")] = {'vals':[T_max], 'group':0}
+    case_inputs[("Fst","TMax")] = {'vals':[TMax], 'group':0}
     # case_inputs[("Fst","DT")]        = {'vals':[1/80], 'group':0}
     
     # wind inflow
