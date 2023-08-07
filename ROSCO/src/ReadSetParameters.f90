@@ -742,7 +742,6 @@ CONTAINS
             ErrVar%ErrMsg  = 'F_NotchType must be 0, 1, 2, or 3.'
         ENDIF
 
-
         ! IPC_ControlMode
         IF ((CntrPar%IPC_ControlMode < 0) .OR. (CntrPar%IPC_ControlMode > 2)) THEN
             ErrVar%aviFAIL = -1
