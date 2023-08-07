@@ -340,6 +340,7 @@ CONTAINS
         CALL ParseInput(FileLines,'F_NotchType',     CntrPar%F_NotchType,       accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'IPC_ControlMode', CntrPar%IPC_ControlMode,   accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'VS_ControlMode',  CntrPar%VS_ControlMode,    accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'VS_ConstPower',   CntrPar%VS_ConstPower,     accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'PC_ControlMode',  CntrPar%PC_ControlMode,    accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'Y_ControlMode',   CntrPar%Y_ControlMode,     accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'SS_Mode',         CntrPar%SS_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
@@ -404,12 +405,12 @@ CONTAINS
 
         !------------ VS TORQUE CONTROL CONSTANTS ----------------
         CALL ParseInput(FileLines,  'VS_GenEff',    CntrPar%VS_GenEff,                  accINFILE(1), ErrVar, .FALSE., UnEc)
-        CALL ParseInput(FileLines,  'VS_ArSatTq',   CntrPar%VS_ArSatTq,                 accINFILE(1), ErrVar, CntrPar%VS_ControlMode > 1, UnEc)
-        CALL ParseInput(FileLines,  'VS_MaxRat',    CntrPar%VS_MaxRat,                  accINFILE(1), ErrVar, CntrPar%VS_ControlMode > 1, UnEc)
+        CALL ParseInput(FileLines,  'VS_ArSatTq',   CntrPar%VS_ArSatTq,                 accINFILE(1), ErrVar, CntrPar%VS_ControlMode .NE. 1, UnEc)
+        CALL ParseInput(FileLines,  'VS_MaxRat',    CntrPar%VS_MaxRat,                  accINFILE(1), ErrVar, CntrPar%VS_ControlMode .NE. 1, UnEc)
         CALL ParseInput(FileLines,  'VS_MaxTq',     CntrPar%VS_MaxTq,                   accINFILE(1), ErrVar, .FALSE., UnEc)
         CALL ParseInput(FileLines,  'VS_MinTq',     CntrPar%VS_MinTq,                   accINFILE(1), ErrVar, .FALSE., UnEc)
         CALL ParseInput(FileLines,  'VS_MinOMSpd',  CntrPar%VS_MinOMSpd,                accINFILE(1), ErrVar)   ! Default 0 is fin, UnEce
-        CALL ParseInput(FileLines,  'VS_Rgn2K',     CntrPar%VS_Rgn2K,                   accINFILE(1), ErrVar, CntrPar%VS_ControlMode > 1, UnEc)
+        CALL ParseInput(FileLines,  'VS_Rgn2K',     CntrPar%VS_Rgn2K,                   accINFILE(1), ErrVar, CntrPar%VS_ControlMode == 2, UnEc)
         CALL ParseInput(FileLines,  'VS_RtPwr',     CntrPar%VS_RtPwr,                   accINFILE(1), ErrVar, .FALSE., UnEc)
         CALL ParseInput(FileLines,  'VS_RtTq',      CntrPar%VS_RtTq,                    accINFILE(1), ErrVar, .FALSE., UnEc)
         CALL ParseInput(FileLines,  'VS_RefSpd',    CntrPar%VS_RefSpd,                  accINFILE(1), ErrVar, .FALSE., UnEc)
@@ -838,9 +839,15 @@ CONTAINS
         ENDIF
 
         ! VS_ControlMode
-        IF ((CntrPar%VS_ControlMode < 0) .OR. (CntrPar%VS_ControlMode > 4)) THEN
+        IF ((CntrPar%VS_ControlMode < 0) .OR. (CntrPar%VS_ControlMode > 3)) THEN
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'VS_ControlMode must be 0, 1, 2, 3, or 4.'
+            ErrVar%ErrMsg  = 'VS_ControlMode must be 0, 1, 2, or 3.'
+        ENDIF
+
+        ! VS_ConstPower
+        IF ((CntrPar%VS_ConstPower < 0) .OR. (CntrPar%VS_ConstPower > 1)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'VS_ConstPower must be 0 or 1.'
         ENDIF
 
         ! PC_ControlMode

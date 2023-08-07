@@ -49,13 +49,15 @@ CONTAINS
         
         ! ----- Torque controller reference errors -----
         ! Define VS reference generator speed [rad/s]
-        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
-            !VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
+        IF (CntrPar%VS_ControlMode == 2) THEN
+            VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
+        ELSEIF (CntrPar%VS_ControlMode == 3) THEN
             VS_RefSpd = (LocalVar%VS_GenPwr/CntrPar%VS_Rgn2K)**(1./3.) ! Genspeed reference that doesnt depend on wind speed estimate (https://doi.org/10.2172/1259805)
-            VS_RefSpd = saturate(VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
         ELSE
             VS_RefSpd = CntrPar%VS_RefSpd
         ENDIF 
+
+        VS_RefSpd = saturate(VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
         
         ! Implement setpoint smoothing
         IF (LocalVar%SS_DelOmegaF > 0) THEN
@@ -108,7 +110,7 @@ CONTAINS
         IF (LocalVar%iStatus == 0) THEN ! .TRUE. if we're on the first call to the DLL
 
             IF (LocalVar%PitCom(1) >= LocalVar%VS_Rgn3Pitch) THEN ! We are in region 3
-                IF (CntrPar%VS_ControlMode == 1) THEN ! Constant power tracking
+                IF (CntrPar%VS_ConstPower == 1) THEN ! Constant power tracking
                     LocalVar%VS_State = 5
                     LocalVar%PC_State = 1
                 ELSE ! Constant torque tracking
@@ -132,7 +134,7 @@ CONTAINS
             ! --- Torque control state machine ---
             IF (LocalVar%PC_PitComT >= LocalVar%VS_Rgn3Pitch) THEN       
 
-                IF (CntrPar%VS_ControlMode == 1) THEN                   ! Region 3
+                IF (CntrPar%VS_ConstPower == 1) THEN                   ! Region 3
                     LocalVar%VS_State = 5 ! Constant power tracking
                 ELSE 
                     LocalVar%VS_State = 4 ! Constant torque tracking

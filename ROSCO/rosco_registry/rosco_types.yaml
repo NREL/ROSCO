@@ -226,7 +226,10 @@ ControlParameters:
     # Generator Torque Controller
     VS_ControlMode:
       <<: *integer
-      description: Generator torque control mode in above rated conditions {0 - constant torque, 1 - constant power, 2 - TSR Tracking, 3 - TSR Tracking w/ const power}
+      description: Generator torque control mode in above rated conditions {0 - no torque control, 1 - komega^2 with PI trans, 2 - WSE TSR Tracking, 3 - Power TSR Tracking}
+    VS_ConstPower:
+      <<: *integer
+      description: Constant power torque control
     VS_GenEff:
       <<: *real
       description: Generator efficiency mechanical power -> electrical power [-]

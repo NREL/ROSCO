@@ -128,9 +128,15 @@ properties:
             VS_ControlMode:     
                 type: number
                 minimum: 0
-                maximum: 4
+                maximum: 3
                 default: 2
-                description: Generator torque control mode in above rated conditions (0- constant torque, 1- constant power, 2- TSR tracking PI control with constant torque, 3- TSR tracking with constant power, 4- Fixed pitch variable speed PI torque controller)
+                description: Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking)
+            VS_ConstPower:     
+                type: number
+                minimum: 0
+                maximum: 1
+                default: 0
+                description: Do constant power torque control, where above rated torque varies, 0 for constant torque
             PC_ControlMode:     
                 type: number
                 minimum: 0
@@ -539,15 +545,22 @@ properties:
                     F_LPFType:
                         type: number
                         description: 1- first-order low-pass filter, 2- second-order low-pass filter (currently filters generator speed and pitch control signals
+                    VS_ControlMode:     
+                        type: number
+                        minimum: 0
+                        maximum: 3
+                        description: Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking)
+                    VS_ConstPower:     
+                        type: number
+                        minimum: 0
+                        maximum: 1
+                        description: Do constant power torque control, where above rated torque varies
                     F_NotchType:
                         type: number
                         description: Notch on the measured generator speed and/or tower fore-aft motion (for floating) (0- disable, 1- generator speed, 2- tower-top fore-aft motion, 3- generator speed and tower-top fore-aft motion)
                     IPC_ControlMode:
                         type: number
                         description: Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) (0- off, 1- 1P reductions, 2- 1P+2P reductions)
-                    VS_ControlMode:
-                        type: number
-                        description: Generator torque control mode in above rated conditions (0- constant torque, 1- constant power, 2- TSR tracking PI control with constant torque, 3- TSR tracking PI control with constant power)
                     PC_ControlMode:
                         type: number
                         description: Blade pitch control mode (0- No pitch, fix to fine pitch, 1- active PI blade pitch control)

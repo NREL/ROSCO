@@ -213,7 +213,7 @@ CONTAINS
         ! Optimal Tip-Speed-Ratio tracking controller
         IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
             ! Constant Power, update VS_MaxTq
-            IF (CntrPar%VS_ControlMode == 3) THEN
+            IF (CntrPar%VS_ConstPower == 1) THEN
                 LocalVar%VS_MaxTq = min((CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF, CntrPar%VS_MaxTq)
             END IF
 
@@ -222,7 +222,7 @@ CONTAINS
             LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, LocalVar%VS_MaxTq)
         
         ! K*Omega^2 control law with PI torque control in transition regions
-        ELSE
+        ELSEIF (CntrPar%VS_ControlMode == 1) THEN
             ! Update PI loops for region 1.5 and 2.5 PI control
             LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_MaxOMTq, LocalVar%piP, LocalVar%restart, objInst%instPI)
             LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, LocalVar%piP, LocalVar%restart, objInst%instPI)
@@ -242,6 +242,8 @@ CONTAINS
             
             ! Saturate
             LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, CntrPar%VS_MaxTq)
+        ELSE        ! VS_ControlMode of 0
+            LocalVar%GenTq = 0
         ENDIF
 
 

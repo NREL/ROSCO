@@ -54,7 +54,8 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: PC_RefSpd                   ! Desired (reference) HSS speed for pitch controller, [rad/s].
     REAL(DbKi)                    :: PC_FinePit                  ! Record 5 - Below-rated pitch angle set-point (deg) [used only with Bladed Interface]
     REAL(DbKi)                    :: PC_Switch                   ! Angle above lowest minimum pitch angle for switch [rad]
-    INTEGER(IntKi)                :: VS_ControlMode              ! Generator torque control mode in above rated conditions {0 - constant torque, 1 - constant power, 2 - TSR Tracking, 3 - TSR Tracking w/ const power}
+    INTEGER(IntKi)                :: VS_ControlMode              ! Generator torque control mode in above rated conditions {0 - no torque control, 1 - komega^2 with PI trans, 2 - WSE TSR Tracking, 3 - Power TSR Tracking}
+    INTEGER(IntKi)                :: VS_ConstPower               ! Constant power torque control
     REAL(DbKi)                    :: VS_GenEff                   ! Generator efficiency mechanical power -> electrical power [-]
     REAL(DbKi)                    :: VS_ArSatTq                  ! Above rated generator torque PI control saturation, [Nm] -- 212900
     REAL(DbKi)                    :: VS_MaxRat                   ! Maximum torque rate (in absolute value) in torque controller, [Nm/s].
@@ -116,7 +117,7 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: Ind_GenTq                   ! The column in OL_Filename that contains the generator torque in Nm
     INTEGER(IntKi)                :: Ind_YawRate                 ! The column in OL_Filename that contains the generator torque in Nm
     INTEGER(IntKi)                :: Ind_Azimuth                 ! The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: RP_Gains                    ! PID gains for rotor position control (used if OL_Mode = 2)
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: RP_Gains                    ! PID gains and Tf on derivative term for rotor position control (used if OL_Mode = 2)
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: Ind_CableControl            ! The column in OL_Filename that contains the cable control inputs in m
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: Ind_StructControl           ! The column in OL_Filename that contains the structural control inputs in various units
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_Breakpoints              ! Open loop breakpoints in timeseries

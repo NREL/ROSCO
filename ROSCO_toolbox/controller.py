@@ -54,6 +54,7 @@ class Controller():
         self.F_NotchType        = controller_params['F_NotchType']
         self.IPC_ControlMode    = controller_params['IPC_ControlMode']
         self.VS_ControlMode     = controller_params['VS_ControlMode']
+        self.VS_ConstPower      = controller_params['VS_ConstPower']
         self.PC_ControlMode     = controller_params['PC_ControlMode']
         self.Y_ControlMode      = controller_params['Y_ControlMode']
         self.SS_Mode            = controller_params['SS_Mode']
@@ -200,10 +201,7 @@ class Controller():
         rated_rotor_speed = turbine.rated_rotor_speed               # Rated rotor speed (rad/s)
 
         # ------------- Saturation Limits --------------- #
-        if self.VS_ControlMode == 4:
-            turbine.max_torque = turbine.rated_torque * 1.5 # If using fixed pitch variable speed controller in the above rated region, set max torque to be 1.5x rated torque
-        else:
-            turbine.max_torque = turbine.rated_torque * self.controller_params['max_torque_factor']
+        turbine.max_torque = turbine.rated_torque * self.controller_params['max_torque_factor']
 
         # -------------Define Operation Points ------------- #
         TSR_rated = rated_rotor_speed*R/turbine.v_rated  # TSR at rated
