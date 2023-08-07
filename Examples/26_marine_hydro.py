@@ -1,9 +1,8 @@
 '''
------------ 22_cable_control ------------------------
-Run openfast with ROSCO and cable control
+----------- 26_marine_hydro ------------------------
+Run openfast with ROSCO and a MHK turbine
 -----------------------------------------------
 
-Set up and run simulation with pitch offsets, check outputs
 
 '''
 
@@ -34,7 +33,7 @@ def main():
 
     # Input yaml and output directory
     parameter_filename = os.path.join(rosco_dir,'Tune_Cases/RM1_MHK.yaml')
-    run_dir = os.path.join(example_out_dir,'24_MHK/3_notch')
+    run_dir = os.path.join(example_out_dir,'26_MHK/0_baseline')
     os.makedirs(run_dir,exist_ok=True)
 
 
@@ -52,7 +51,7 @@ def main():
     # r.controller_params = controller_params
     r.save_dir      = run_dir
     r.rosco_dir     = rosco_dir
-    r.openfast_exe  = '/Users/dzalkind/Tools/WEIS-4/local/bin/openfast'
+    r.openfast_exe  = '/Users/dzalkind/opt/anaconda3/envs/rosco-env/bin/openfast'
 
     r.run_FAST()
 
@@ -74,10 +73,10 @@ def main():
     # [a.legend() for a in axs]
     # [a.grid() for a in axs]
 
-    if False:
-        plt.show()
-    else:
-        plt.savefig(os.path.join(example_out_dir,'22_cable_control.png'))
+    # if False:
+    #     plt.show()
+    # else:
+    #     plt.savefig(os.path.join(example_out_dir,'22_cable_control.png'))
 
     # Check that the last segment of line 1 shrinks by 10 m
     # np.testing.assert_almost_equal(md_out[0]['Seg20Lst'][-1] - md_out[0]['Seg20Lst'][0], line_ends[0], 2)

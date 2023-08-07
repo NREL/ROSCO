@@ -4,9 +4,9 @@ Floating MHK turbine, based on the RM1 tidal current rotor
 False         Echo            - Echo input data to <RootName>.ech (flag)
 "FATAL"       AbortLevel      - Error level when simulation should abort (string) {"WARNING", "SEVERE", "FATAL"}
         100   TMax            - Total run time (s)
-      0.02   DT              - Recommended module time step (s)
+      0.01   DT              - Recommended module time step (s)
           2   InterpOrder     - Interpolation order for input/output time history (-) {1=linear, 2=quadratic}
-          5   NumCrctn        - Number of correction iterations (-) {0=explicit calculation, i.e., no corrections}
+          2   NumCrctn        - Number of correction iterations (-) {0=explicit calculation, i.e., no corrections}
           1   DT_UJac         - Time between calls to get Jacobians (s)
       1E+06   UJacSclFact     - Scaling factor used in Jacobians (-)
 ---------------------- FEATURE SWITCHES AND FLAGS ------------------------------
@@ -14,7 +14,7 @@ False         Echo            - Echo input data to <RootName>.ech (flag)
           1   CompInflow      - Compute inflow wind velocities (switch) {0=still air; 1=InflowWind; 2=external from OpenFOAM}
           2   CompAero        - Compute aerodynamic loads (switch) {0=None; 1=AeroDyn v14; 2=AeroDyn v15}
           1   CompServo       - Compute control and electrical-drive dynamics (switch) {0=None; 1=ServoDyn}
-          0   CompHydro       - Compute hydrodynamic loads (switch) {0=None; 1=HydroDyn}
+          1   CompHydro       - Compute hydrodynamic loads (switch) {0=None; 1=HydroDyn}
           0   CompSub         - Compute sub-structural dynamics (switch) {0=None; 1=SubDyn; 2=External Platform MCKF}
           3   CompMooring     - Compute mooring system (switch) {0=None; 1=MAP++; 2=FEAMooring; 3=MoorDyn; 4=OrcaFlex}
           0   CompIce         - Compute ice loads (switch) {0=None; 1=IceFloe; 2=IceDyn}
