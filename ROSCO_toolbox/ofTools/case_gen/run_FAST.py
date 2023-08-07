@@ -7,7 +7,12 @@ Otherwise, the directories can be defined as attributes of the run_FAST_ROSCO
 
 """
 
-from ROSCO_toolbox.ofTools.case_gen.runFAST_pywrapper   import runFAST_pywrapper_batch
+try:
+    from weis.aeroelasticse.runFAST_pywrapper   import runFAST_pywrapper_batch
+    in_weis = True
+except:
+    from ROSCO_toolbox.ofTools.case_gen.runFAST_pywrapper   import runFAST_pywrapper_batch
+    in_weis = False
 from ROSCO_toolbox.ofTools.case_gen.CaseGen_IEC         import CaseGen_IEC
 from ROSCO_toolbox.ofTools.case_gen.CaseGen_General     import CaseGen_General
 from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
@@ -92,7 +97,6 @@ class run_FAST_ROSCO():
         tune_yaml_dir = os.path.split(self.tuning_yaml)[0]
         cp_filename = os.path.join(
             tune_yaml_dir,
-            path_params['FAST_directory'],
             path_params['rotor_performance_filename']
             )
         turbine.load_from_fast(
@@ -116,16 +120,25 @@ class run_FAST_ROSCO():
         case_inputs = self.wind_case_fcn(**self.wind_case_opts)
         case_inputs.update(control_base_case)
 
-        # Set up rosco_dll
-        if not self.rosco_dll: 
-            if platform.system() == 'Windows':
-                rosco_dll = os.path.join(self.rosco_dir, 'ROSCO/build/libdiscon.dll')
-            elif platform.system() == 'Darwin':
-                rosco_dll = os.path.join(self.rosco_dir, 'ROSCO/build/libdiscon.dylib')
-            else:
-                rosco_dll = os.path.join(self.rosco_dir, 'ROSCO/build/libdiscon.so')
+        # Set up dll:
+        #  OS platform
+        if platform.system() == 'Windows':
+            dll_ext = '.dll'
+        elif platform.system() == 'Darwin':
+            dll_ext = '.dylib'
+        else:
+            dll_ext = '.so'
 
-        case_inputs[('ServoDyn','DLL_FileName')] = {'vals': [rosco_dll], 'group': 0}
+        # lib dir
+        if not in_weis:  # in ROSCO
+            dll_dir = os.path.join(self.rosco_dir, 'ROSCO/build/')
+        else:
+            dll_dir = os.path.join(self.rosco_dir,'../local/lib/')
+        
+        if not self.rosco_dll:
+            self.rosco_dll = os.path.join(dll_dir,'libdiscon'+dll_ext)
+
+        case_inputs[('ServoDyn','DLL_FileName')] = {'vals': [self.rosco_dll], 'group': 0}
 
         # Sweep control parameter
         if self.control_sweep_fcn:
@@ -174,6 +187,7 @@ class run_FAST_ROSCO():
             fastBatch.case_name_list    = case_name_list
             fastBatch.fst_vt            = self.fst_vt
             fastBatch.FAST_exe          = self.openfast_exe
+            fastBatch.use_exe           = True
 
             if MPI:
                 fastBatch.run_mpi(comm_map_down)
@@ -288,6 +302,9 @@ if __name__ == "__main__":
         r.save_dir      = '/Users/dzalkind/Projects/RAAW/RAAW_OpenFAST/outputs/PS_steps'
         r.control_sweep_fcn = cl.sweep_ps_percent
         r.n_cores = 4
+
+
+
 
     else:
         raise Exception('This simulation configuration is not supported.')
