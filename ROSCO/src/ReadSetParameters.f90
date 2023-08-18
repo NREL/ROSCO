@@ -367,15 +367,22 @@ CONTAINS
         CALL ParseAry(  FileLines,  'F_NotchBetaNum',       CntrPar%F_NotchBetaNum,     CntrPar%F_NumNotchFilts, accINFILE(1), ErrVar, CntrPar%F_NumNotchFilts == 0, UnEc)
         CALL ParseAry(  FileLines,  'F_NotchBetaDen',       CntrPar%F_NotchBetaDen,     CntrPar%F_NumNotchFilts, accINFILE(1), ErrVar, CntrPar%F_NumNotchFilts == 0, UnEc)
         CALL ParseInput(FileLines,  'F_GenSpdNotch_N',      CntrPar%F_GenSpdNotch_N,                             accINFILE(1), ErrVar, CntrPar%F_NumNotchFilts == 0, UnEc)
-        CALL ParseAry(  FileLines,  'F_GenSpdNotch_Ind',    CntrPar%F_GenSpdNotch_Ind,  CntrPar%F_GenSpdNotch_N, accINFILE(1), ErrVar, CntrPar%F_GenSpdNotch_N == 0, UnEc)
         CALL ParseInput(FileLines,  'F_TwrTopNotch_N',      CntrPar%F_TwrTopNotch_N,                             accINFILE(1), ErrVar, CntrPar%F_NumNotchFilts == 0, UnEc)
-        CALL ParseAry(FileLines,    'F_TwrTopNotch_Ind',    CntrPar%F_TwrTopNotch_Ind,  CntrPar%F_TwrTopNotch_N, accINFILE(1), ErrVar, CntrPar%F_TwrTopNotch_N == 0, UnEc)
         CALL ParseInput(FileLines,  'F_SSCornerFreq',       CntrPar%F_SSCornerFreq,                              accINFILE(1), ErrVar, CntrPar%SS_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'F_WECornerFreq',       CntrPar%F_WECornerFreq,                              accINFILE(1), ErrVar, .FALSE., UnEc)
         CALL ParseInput(FileLines,  'F_YawErr',             CntrPar%F_YawErr,                                    accINFILE(1), ErrVar, CntrPar%Y_ControlMode == 0, UnEc)
         CALL ParseAry(  FileLines,  'F_FlCornerFreq',       CntrPar%F_FlCornerFreq,     2,                       accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'F_FlHighPassFreq',     CntrPar%F_FlHighPassFreq,                            accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
         CALL ParseAry(  FileLines,  'F_FlpCornerFreq',      CntrPar%F_FlpCornerFreq,    2,                       accINFILE(1), ErrVar, CntrPar%Flp_Mode == 0, UnEc)
+        
+        ! Optional filter inds
+        IF (CntrPar%F_GenSpdNotch_N > 0) THEN
+            CALL ParseAry(FileLines,    'F_GenSpdNotch_Ind',    CntrPar%F_GenSpdNotch_Ind,  CntrPar%F_GenSpdNotch_N, accINFILE(1), ErrVar, CntrPar%F_TwrTopNotch_N == 0, UnEc)
+        ENDIF
+        IF (CntrPar%F_TwrTopNotch_N > 0) THEN
+            CALL ParseAry(FileLines,    'F_TwrTopNotch_Ind',    CntrPar%F_TwrTopNotch_Ind,  CntrPar%F_TwrTopNotch_N, accINFILE(1), ErrVar, CntrPar%F_TwrTopNotch_N == 0, UnEc)
+        ENDIF
+
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !----------- BLADE PITCH CONTROLLER CONSTANTS -----------
