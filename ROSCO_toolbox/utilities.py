@@ -482,12 +482,14 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     # ------- FILTERS -------
     DISCON_dict['F_LPFCornerFreq']	    = turbine.bld_edgewise_freq * 1/4
     DISCON_dict['F_LPFDamping']		    = controller.F_LPFDamping
-    if controller.Flp_Mode > 0:
-        DISCON_dict['F_NotchCornerFreq'] = turbine.bld_flapwise_freq
-        DISCON_dict['F_NotchBetaNumDen'] = [0.0, 0.5]
-    else:
-        DISCON_dict['F_NotchCornerFreq'] = controller.twr_freq
-        DISCON_dict['F_NotchBetaNumDen'] = [0.0, 0.25]
+    DISCON_dict['F_NumNotchFilts']      = len(controller.f_notch_freqs)
+    DISCON_dict['F_NotchFreqs']         = controller.f_notch_freqs if controller.f_notch_freqs else [0.0]
+    DISCON_dict['F_NotchBetaNum']       = controller.f_notch_beta_nums if controller.f_notch_beta_nums else [0.0]
+    DISCON_dict['F_NotchBetaDen']       = controller.f_notch_beta_dens if controller.f_notch_beta_dens else [0.0]
+    DISCON_dict['F_GenSpdNotch_N']      = len(controller.f_notch_gen_inds)
+    DISCON_dict['F_GenSpdNotch_Ind']    = controller.f_notch_gen_inds if controller.f_notch_gen_inds else [0]
+    DISCON_dict['F_TwrTopNotch_N']      = len(controller.f_notch_twr_inds)
+    DISCON_dict['F_TwrTopNotch_Ind']    = controller.f_notch_twr_inds if controller.f_notch_twr_inds else [0]
     DISCON_dict['F_WECornerFreq'] = controller.f_we_cornerfreq
     DISCON_dict['F_SSCornerFreq'] = controller.f_ss_cornerfreq
     DISCON_dict['F_FlHighPassFreq'] = controller.f_fl_highpassfreq

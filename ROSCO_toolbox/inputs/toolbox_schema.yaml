@@ -598,13 +598,11 @@ properties:
                     F_NumNotchFilts:
                         type: number
                         description: Number of notch filters placed on sensors
-                        default: 1
                     F_NotchFreqs:
                         type: [array,number]
                         items:
                             type: number
                         description: Natural frequency of the notch filters. Array with length F_NumNotchFilts
-                        default: [1.00]
                         units: rad/s
                     F_NotchBetaNum:
                         type: [array, number]
@@ -618,23 +616,19 @@ properties:
                         description: Damping value of denominator (determines the depth of notch). Array with length F_NumNotchFilts, [-]
                     F_GenSpdNotch_N:
                         type: number
-                        default: 1
                         description: Number of notch filters on generator speed
                     F_TwrTopNotch_N:
                         type: number
-                        default: 1
                         description: Number of notch filters on tower top acceleration signal
                     F_GenSpdNotch_Ind:
                         type: [array, number]
                         items:
                             type: number                        
-                        default: [1]
                         description: Indices of notch filters on generator speed
                     F_TwrTopNotch_Ind:
                         type: [array, number]
                         items:
                             type: number                        
-                        default: [1]
                         description: Indices of notch filters on tower top acceleration signal
                     F_SSCornerFreq:
                         type: number

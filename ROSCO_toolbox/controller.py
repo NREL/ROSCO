@@ -139,6 +139,7 @@ class Controller():
         self.f_yawerr               = controller_params['filter_params']['f_yawerr']
         self.f_sd_cornerfreq        = controller_params['filter_params']['f_sd_cornerfreq']
 
+
         # Open loop parameters: set up and error catching
         self.OL_Mode            = controller_params['OL_Mode']
         self.OL_Filename        = controller_params['open_loop']['filename']
@@ -444,6 +445,29 @@ class Controller():
 
         # --- Set up filters ---
         self.f_lpf_cornerfreq = turbine.bld_edgewise_freq / 4
+
+        # Notch filters
+        self.f_notch_freqs = []
+        self.f_notch_beta_nums = []
+        self.f_notch_beta_dens = []
+        self.f_notch_gen_inds = []
+        self.f_notch_twr_inds = []
+
+        if self.F_NotchType:
+            if self.Flp_Mode:
+                self.f_notch_freqs.append(turbine.bld_flapwise_freq)
+                self.f_notch_beta_nums.append(0.0)
+                self.f_notch_beta_dens.append(0.50)
+            else:
+                self.f_notch_freqs.append(self.twr_freq)
+                self.f_notch_beta_nums.append(0.0)
+                self.f_notch_beta_dens.append(0.25)
+
+            if self.F_NotchType == 1 or self.F_NotchType == 3:
+                self.f_notch_gen_inds.append(1)
+            elif self.F_NotchType == 2:
+                self.f_notch_twr_inds.append(1)
+
 
         # --- Direct input passthrough ---
         if 'f_lpf_cornerfreq' in self.controller_params['filter_params']:
