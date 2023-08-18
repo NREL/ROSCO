@@ -57,6 +57,8 @@ controller_params:
   max_torque_factor:  1.5
   DISCON:
     F_LPFCornerFreq:  15.008  # 2P
-    GS_notch_n: 1
-    F_NotchCornerFreq_GS: [2.42] #0.918518
+    GS_notch_n: 2
+    F_NotchCornerFreq_GS: [1.00,2.42] #0.918518
+    TTM_notch_n: 2
+    F_NotchCornerFreq_TTM: [1.00,2.42] #0.918518
     F_FlHighPassFreq: 1.5
