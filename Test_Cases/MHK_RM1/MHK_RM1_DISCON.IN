@@ -31,10 +31,10 @@
 !------- FILTERS ----------------------------------------------------------
 15.00800            ! F_LPFCornerFreq	- Corner frequency (-3dB point) in the low-pass filters, [rad/s]
 0.00000             ! F_LPFDamping		- Damping coefficient {used only when F_FilterType = 2} [-]
-1                   ! GS_notch_n	- Number of notch filters to be placed on the generator speed
-1                   ! TTM_notch_n	- Number of notch filters to be placed on the tower-top motion
-2.420000                ! F_NotchCornerFreq_GS	- Natural frequency of the notch filters applied on the genrator speed signal [rad/s]
-1.000000                ! F_NotchCornerFreq_TTM	- Natural frequency of the notch filters applied on the tower-top motion signal [rad/s]
+2                   ! GS_notch_n	- Number of notch filters to be placed on the generator speed
+2                   ! TTM_notch_n	- Number of notch filters to be placed on the tower-top motion
+1.000000  2.420000        ! F_NotchCornerFreq_GS	- Natural frequency of the notch filters applied on the genrator speed signal [rad/s]
+1.000000  2.420000        ! F_NotchCornerFreq_TTM	- Natural frequency of the notch filters applied on the tower-top motion signal [rad/s]
 1.00000             ! F_NotchCornerFreq_RBM	- Natural frequency of the notch filter on the blade root moment signals, [rad/s]
 0.000000  0.250000  ! F_NotchBetaNumDen	- Two notch damping values (numerator and denominator, resp) - determines the width and depth of the notch, [-]
 0.62830             ! F_SSCornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother, [rad/s].
