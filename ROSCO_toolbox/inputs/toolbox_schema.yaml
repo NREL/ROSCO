@@ -595,38 +595,47 @@ properties:
                     F_LPFDamping:
                         type: number
                         description: Damping coefficient (used only when F_FilterType = 2 [-]
-                    GS_notch_n:
+                    F_NumNotchFilts:
                         type: number
-                        description: Number of notch filters to be placed on the generator speed signal
+                        description: Number of notch filters placed on sensors
                         default: 1
-                    TTM_notch_n:
-                        type: number
-                        description: Number of notch filters to be placed on the tower-top motion signal
-                        default: 1
-                    F_NotchCornerFreq_GS:
+                    F_NotchFreqs:
                         type: [array,number]
                         items:
                             type: number
-                        description: Natural frequency of the notch filters applied on the genrator speed signal corresponding to GS_notch_n
+                        description: Natural frequency of the notch filters. Array with length F_NumNotchFilts
                         default: [1.00]
                         units: rad/s
-                    F_NotchCornerFreq_TTM:
-                        type: [array,number]
+                    F_NotchBetaNum:
+                        type: [array, number]
                         items:
                             type: number
-                        description: Natural frequency of the notch filters applied on the tower-top motion signal corresponding to TTM_notch_n 
-                        default: [1.00]
-                        units: rad/s
-                    F_NotchCornerFreq_RBM:
+                        description: Damping value of numerator (determines the width of notch). Array with length F_NumNotchFilts, [-]
+                    F_NotchBetaDen:
+                        type: [array, number]
+                        items:
+                            type: number
+                        description: Damping value of denominator (determines the depth of notch). Array with length F_NumNotchFilts, [-]
+                    F_GenSpdNotch_N:
                         type: number
-                        description: Natural frequency of the notch filter for the root bending moment, 
                         default: 1
-                        units: rad/s
-                    F_NotchBetaNumDen:
-                        type: array
+                        description: Number of notch filters on generator speed
+                    F_TwrTopNotch_N:
+                        type: number
+                        default: 1
+                        description: Number of notch filters on tower top acceleration signal
+                    F_GenSpdNotch_Ind:
+                        type: [array, number]
                         items:
-                            type: number
-                        description: Two notch damping values (numerator and denominator, resp) - determines the width and depth of the notch, [-]
+                            type: number                        
+                        default: [1]
+                        description: Indices of notch filters on generator speed
+                    F_TwrTopNotch_Ind:
+                        type: [array, number]
+                        items:
+                            type: number                        
+                        default: [1]
+                        description: Indices of notch filters on tower top acceleration signal
                     F_SSCornerFreq:
                         type: number
                         description: Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother, 

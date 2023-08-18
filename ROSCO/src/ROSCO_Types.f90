@@ -14,14 +14,16 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: n_DT_Out                    ! output every this many steps
     INTEGER(IntKi)                :: F_LPFType                   ! Low pass filter on the rotor and generator speed {1 - first-order low-pass filter, 2 - second-order low-pass filter}, [rad/s]
     INTEGER(IntKi)                :: F_NotchType                 ! Notch on the measured generator speed {0 - disable, 1 - enable}
-    INTEGER(IntKi)                :: GS_notch_n                  ! Number of notch filters to be placed on the generator speed signal
-    INTEGER(IntKi)                :: TTM_notch_n                 ! Number of notch filters to be placed on the tower-top motion signal
     REAL(DbKi)                    :: F_LPFCornerFreq             ! Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
     REAL(DbKi)                    :: F_LPFDamping                ! Damping coefficient [used only when F_FilterType = 2]
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_NotchCornerFreq_GS           ! Natural frequency of the notch filters applied on the genrator speed signal corresponding to GS_notch_n
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_NotchCornerFreq_TTM           !Natural frequency of the notch filters applied on the tower-top motion corresponding to TTM_notch_n
-    REAL(DbKi)                    :: F_NotchCornerFreq_RBM           ! Natural frequency of the notch filter for root bending moment, [rad/s]
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_NotchBetaNumDen           ! These two notch damping values (numerator and denominator) determines the width and depth of the notch
+    INTEGER(IntKi)                :: F_NumNotchFilts             ! Number of notch filters
+    INTEGER(IntKi)                :: F_GenSpdNotch_N             ! Number of gen speed notch filters
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: F_GenSpdNotch_Ind           ! Indices of gen speed notch filters
+    INTEGER(IntKi)                :: F_TwrTopNotch_N             ! Number of tower top notch filters
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: F_TwrTopNotch_Ind           ! Indices of tower top notch filters
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_NotchFreqs                ! Natural frequencies of notch filters, [rad/s]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_NotchBetaNum              ! Notch Filter Numerator damping (determines width)
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_NotchBetaDen              ! Notch Filter Numerator damping (determines depth?)
     REAL(DbKi)                    :: F_SSCornerFreq              ! Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother [rad/s]
     REAL(DbKi)                    :: F_WECornerFreq              ! Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_FlCornerFreq              ! Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s].

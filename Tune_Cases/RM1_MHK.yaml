@@ -56,7 +56,13 @@ controller_params:
   Kp_float:           -0.3897
   max_torque_factor:  1.5
   DISCON:
-    F_LPFCornerFreq:  15.008  # 2P
-    GS_notch_n: 1
-    F_NotchCornerFreq_GS: [2.42] #0.918518
+    F_NumNotchFilts:  2 
+    F_NotchFreqs:  [1.0, 2.4200]  # 2P
+    F_NotchBetaNum: [0.0, 0.0]
+    F_NotchBetaDen: [0.25, 0.25]
+    F_GenSpdNotch_N: 1
+    F_GenSpdNotch_Ind: [2]
+    F_TwrTopNotch_N: 1
+    F_TwrTopNotch_Ind: [1]
+    F_NotchCornerFreq_GS: [2.42] 
     F_FlHighPassFreq: 1.5

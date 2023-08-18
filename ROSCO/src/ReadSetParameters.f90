@@ -337,7 +337,6 @@ CONTAINS
 
         !----------------- CONTROLLER FLAGS ---------------------
         CALL ParseInput(FileLines,'F_LPFType',       CntrPar%F_LPFType,         accINFILE(1), ErrVar, UnEc=UnEc)
-        CALL ParseInput(FileLines,'F_NotchType',     CntrPar%F_NotchType,       accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'IPC_ControlMode', CntrPar%IPC_ControlMode,   accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'VS_ControlMode',  CntrPar%VS_ControlMode,    accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'VS_ConstPower',   CntrPar%VS_ConstPower,     accINFILE(1), ErrVar, UnEc=UnEc)
@@ -361,20 +360,22 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !----------------- FILTER CONSTANTS ---------------------
-        CALL ParseInput(FileLines,  'F_LPFCornerFreq',      CntrPar%F_LPFCornerFreq,        accINFILE(1), ErrVar, .FALSE., UnEc)
-        CALL ParseInput(FileLines,  'F_LPFDamping',         CntrPar%F_LPFDamping,           accINFILE(1), ErrVar, CntrPar%F_LPFType == 1, UnEc)
-        CALL ParseInput(FileLines,  'GS_notch_n',           CntrPar%GS_notch_n,      accINFILE(1), ErrVar, CntrPar%F_NotchType == 0, UnEc)
-        CALL ParseInput(FileLines,  'TTM_notch_n',          CntrPar%TTM_notch_n,      accINFILE(1), ErrVar, CntrPar%F_NotchType == 0, UnEc)
-        CALL ParseAry(  FileLines,  'F_NotchCornerFreq_GS', CntrPar%F_NotchCornerFreq_GS,  CntrPar%GS_notch_n,  accINFILE(1), ErrVar, CntrPar%F_NotchType == 0, UnEc)
-        CALL ParseAry(  FileLines,  'F_NotchCornerFreq_TTM',CntrPar%F_NotchCornerFreq_TTM,  CntrPar%TTM_notch_n,  accINFILE(1), ErrVar, CntrPar%F_NotchType == 0, UnEc)
-        CALL ParseInput(FileLines,  'F_NotchCornerFreq_RBM',   CntrPar%F_NotchCornerFreq_RBM,      accINFILE(1), ErrVar, CntrPar%F_NotchType == 0, UnEc)
-        CALL ParseAry(  FileLines,  'F_NotchBetaNumDen',    CntrPar%F_NotchBetaNumDen,  2,  accINFILE(1), ErrVar, CntrPar%F_NotchType == 0, UnEc)
-        CALL ParseInput(FileLines,  'F_SSCornerFreq',       CntrPar%F_SSCornerFreq,         accINFILE(1), ErrVar, CntrPar%SS_Mode == 0, UnEc)
-        CALL ParseInput(FileLines,  'F_WECornerFreq',       CntrPar%F_WECornerFreq,         accINFILE(1), ErrVar, .FALSE., UnEc)
-        CALL ParseInput(FileLines,  'F_YawErr',             CntrPar%F_YawErr,               accINFILE(1), ErrVar, CntrPar%Y_ControlMode == 0, UnEc)
-        CALL ParseAry(  FileLines,  'F_FlCornerFreq',       CntrPar%F_FlCornerFreq,     2,  accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
-        CALL ParseInput(FileLines,  'F_FlHighPassFreq',     CntrPar%F_FlHighPassFreq,       accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
-        CALL ParseAry(  FileLines,  'F_FlpCornerFreq',      CntrPar%F_FlpCornerFreq,    2,  accINFILE(1), ErrVar, CntrPar%Flp_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'F_LPFCornerFreq',      CntrPar%F_LPFCornerFreq,                             accINFILE(1), ErrVar, .FALSE., UnEc)
+        CALL ParseInput(FileLines,  'F_LPFDamping',         CntrPar%F_LPFDamping,                                accINFILE(1), ErrVar, CntrPar%F_LPFType == 1, UnEc)
+        CALL ParseInput(FileLines,  'F_NumNotchFilts',      CntrPar%F_NumNotchFilts,                             accINFILE(1), ErrVar, .FALSE., UnEc)
+        CALL ParseAry(  FileLines,  'F_NotchFreqs',         CntrPar%F_NotchFreqs,       CntrPar%F_NumNotchFilts, accINFILE(1), ErrVar, CntrPar%F_NumNotchFilts == 0, UnEc)
+        CALL ParseAry(  FileLines,  'F_NotchBetaNum',       CntrPar%F_NotchBetaNum,     CntrPar%F_NumNotchFilts, accINFILE(1), ErrVar, CntrPar%F_NumNotchFilts == 0, UnEc)
+        CALL ParseAry(  FileLines,  'F_NotchBetaDen',       CntrPar%F_NotchBetaDen,     CntrPar%F_NumNotchFilts, accINFILE(1), ErrVar, CntrPar%F_NumNotchFilts == 0, UnEc)
+        CALL ParseInput(FileLines,  'F_GenSpdNotch_N',      CntrPar%F_GenSpdNotch_N,                             accINFILE(1), ErrVar, CntrPar%F_NumNotchFilts == 0, UnEc)
+        CALL ParseAry(  FileLines,  'F_GenSpdNotch_Ind',    CntrPar%F_GenSpdNotch_Ind,  CntrPar%F_GenSpdNotch_N, accINFILE(1), ErrVar, CntrPar%F_GenSpdNotch_N == 0, UnEc)
+        CALL ParseInput(FileLines,  'F_TwrTopNotch_N',      CntrPar%F_TwrTopNotch_N,                             accINFILE(1), ErrVar, CntrPar%F_NumNotchFilts == 0, UnEc)
+        CALL ParseAry(FileLines,    'F_TwrTopNotch_Ind',    CntrPar%F_TwrTopNotch_Ind,  CntrPar%F_TwrTopNotch_N, accINFILE(1), ErrVar, CntrPar%F_TwrTopNotch_N == 0, UnEc)
+        CALL ParseInput(FileLines,  'F_SSCornerFreq',       CntrPar%F_SSCornerFreq,                              accINFILE(1), ErrVar, CntrPar%SS_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'F_WECornerFreq',       CntrPar%F_WECornerFreq,                              accINFILE(1), ErrVar, .FALSE., UnEc)
+        CALL ParseInput(FileLines,  'F_YawErr',             CntrPar%F_YawErr,                                    accINFILE(1), ErrVar, CntrPar%Y_ControlMode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'F_FlCornerFreq',       CntrPar%F_FlCornerFreq,     2,                       accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'F_FlHighPassFreq',     CntrPar%F_FlHighPassFreq,                            accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'F_FlpCornerFreq',      CntrPar%F_FlpCornerFreq,    2,                       accINFILE(1), ErrVar, CntrPar%Flp_Mode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !----------- BLADE PITCH CONTROLLER CONSTANTS -----------
@@ -826,12 +827,6 @@ CONTAINS
             ErrVar%ErrMsg  = 'F_LPFType must be 1 or 2.'
         ENDIF
 
-        ! F_NotchType
-        IF ((CntrPar%F_NotchType < 0) .OR. (CntrPar%F_NotchType > 3)) THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'F_NotchType must be 0, 1, 2, or 3.'
-        ENDIF
-
         ! IPC_ControlMode
         IF ((CntrPar%IPC_ControlMode < 0) .OR. (CntrPar%IPC_ControlMode > 2)) THEN
             ErrVar%aviFAIL = -1
@@ -924,23 +919,18 @@ CONTAINS
         ENDIF
 
         ! Notch Filter Params
-        IF (CntrPar%F_NotchType > 0) THEN
+        IF (CntrPar%F_NumNotchFilts > 0) THEN
 
             ! F_NotchCornerFreq
-            IF (ANY(CntrPar%F_NotchCornerFreq_GS <= 0.0)) THEN
+            IF (ANY(CntrPar%F_NotchFreqs <= 0.0)) THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'F_NotchCornerFreq_GS must be greater than zero.'
+                ErrVar%ErrMsg  = 'F_NotchFreqs must be greater than zero.'
             ENDIF
 
-            IF (ANY(CntrPar%F_NotchCornerFreq_TTM <= 0.0)) THEN
+            ! F_NotchBetaDen
+            IF (ANY(CntrPar%F_NotchBetaDen <= 0.0)) THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'F_NotchCornerFreq_TTM must be greater than zero.'
-            ENDIF
-
-            ! F_NotchBetaNumDen(2)
-            IF (CntrPar%F_NotchBetaNumDen(2) <= 0.0) THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'F_NotchBetaNumDen(2) must be greater than zero.'
+                ErrVar%ErrMsg  = 'F_NotchBetaDen must be greater than zero.'
             ENDIF
         ENDIF
 
@@ -1212,13 +1202,6 @@ CONTAINS
 
         ENDIF
 
-        ! --- Floating Control ---
-        IF (CntrPar%Fl_Mode > 0) THEN
-            IF (CntrPar%F_NotchType < 1 .OR. ALL(CntrPar%F_NotchCornerFreq_TTM == 0.0)) THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg = 'F_NotchType and F_NotchCornerFreq must be specified for Fl_Mode greater than zero.'
-            ENDIF
-        ENDIF
 
         ! --- Open loop control ---
         IF (CntrPar%OL_Mode > 0) THEN

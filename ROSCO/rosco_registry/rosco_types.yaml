@@ -93,21 +93,40 @@ ControlParameters:
     F_LPFType:
       <<: *integer
       description: 'Low pass filter on the rotor and generator speed {1 - first-order low-pass filter, 2 - second-order low-pass filter}, [rad/s]'
-    F_NotchType:
-      <<: *integer
-      description: Notch on the measured generator speed {0 - disable, 1 - enable} 
     F_LPFCornerFreq:
       <<: *real
       description: Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
     F_LPFDamping:
       <<: *real
       description: Damping coefficient [used only when F_FilterType = 2]
-    F_NotchCornerFreq:
+    F_NumNotchFilts:
+      <<: *integer
+      description: Number of notch filters
+    F_GenSpdNotch_N:
+      <<: *integer
+      description: Number of gen speed notch filters
+    F_GenSpdNotch_Ind:
+      <<: *integer
+      description: Indices of gen speed notch filters
+      allocatable: True
+    F_TwrTopNotch_N:
+      <<: *integer
+      description: Number of tower top notch filters
+    F_TwrTopNotch_Ind:
+      <<: *integer
+      description: Indices of tower top notch filters
+      allocatable: True
+    F_NotchFreqs:
       <<: *real
-      description: Natural frequency of the notch filter, [rad/s]
-    F_NotchBetaNumDen:
+      description: Natural frequencies of notch filters, [rad/s]
+      allocatable: True
+    F_NotchBetaNum:
       <<: *real
-      description: These two notch damping values (numerator and denominator) determines the width and depth of the notch
+      description: Notch Filter Numerator damping (determines width)
+      allocatable: True
+    F_NotchBetaDen:
+      <<: *real
+      description: Notch Filter Numerator damping (determines depth?)
       allocatable: True
     F_SSCornerFreq:
       <<: *real
