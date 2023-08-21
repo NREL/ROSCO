@@ -113,8 +113,6 @@ def update_discon_version(file,tuning_yaml,new_discon_filename):
             new_discon['F_TwrTopNotch_N'] = 1
             new_discon['F_TwrTopNotch_Ind'] = [1]
     
-    print('here')
-
 
     # Make the DISCON
     write_DISCON(
