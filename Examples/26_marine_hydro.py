@@ -44,14 +44,13 @@ def main():
     r.wind_case_fcn = cl.power_curve
     r.wind_case_opts    = {
         'U': [2.5],
-        'TMax': 100,
+        'TMax': 100.0,
         }
     r.case_inputs = {}
     # r.fst_vt        = reader.fst_vt
     # r.controller_params = controller_params
     r.save_dir      = run_dir
     r.rosco_dir     = rosco_dir
-    r.openfast_exe  = '/Users/dzalkind/opt/anaconda3/envs/rosco-env/bin/openfast'
 
     r.run_FAST()
 
