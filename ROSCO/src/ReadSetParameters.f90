@@ -377,7 +377,7 @@ CONTAINS
         
         ! Optional filter inds
         IF (CntrPar%F_GenSpdNotch_N > 0) THEN
-            CALL ParseAry(FileLines,    'F_GenSpdNotch_Ind',    CntrPar%F_GenSpdNotch_Ind,  CntrPar%F_GenSpdNotch_N, accINFILE(1), ErrVar, CntrPar%F_TwrTopNotch_N == 0, UnEc)
+            CALL ParseAry(FileLines,    'F_GenSpdNotch_Ind',    CntrPar%F_GenSpdNotch_Ind,  CntrPar%F_GenSpdNotch_N, accINFILE(1), ErrVar, CntrPar%F_GenSpdNotch_N == 0, UnEc)
         ENDIF
         IF (CntrPar%F_TwrTopNotch_N > 0) THEN
             CALL ParseAry(FileLines,    'F_TwrTopNotch_Ind',    CntrPar%F_TwrTopNotch_Ind,  CntrPar%F_TwrTopNotch_N, accINFILE(1), ErrVar, CntrPar%F_TwrTopNotch_N == 0, UnEc)
