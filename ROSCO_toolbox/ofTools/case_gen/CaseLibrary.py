@@ -34,7 +34,7 @@ def set_channels():
                                "NcIMUTAxs", "NcIMUTAys", "NcIMUTAzs", "NcIMURAxs", "NcIMURAys", "NcIMURAzs", \
                                 "NacYaw", "Wind1VelX", "Wind1VelY", "Wind1VelZ", "LSSTipMxa","LSSTipMya",\
                                    "LSSTipMza","LSSTipMxs","LSSTipMys","LSSTipMzs","LSShftFys","LSShftFzs", \
-                                       "TipRDxr", "TipRDyr", "TipRDzr","RtVAvgxh","RtAeroFxh"]:
+                                       "TipRDxr", "TipRDyr", "TipRDzr","RtVAvgxh","RtAeroFxh", "RtTSR"]:
         channels[var] = True
     return channels
 
