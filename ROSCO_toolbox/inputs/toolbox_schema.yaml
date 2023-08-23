@@ -765,7 +765,7 @@ properties:
                         units: rad/s
                     VS_Rgn2K:
                         type: number
-                        description: Generator torque constant in Region 2 (HSS side)
+                        description: Generator torque constant in Region 2 (HSS side). Only used in VS_ControlMode = 1,3
                         units: Nm/(rad/s)^2
                     VS_RtPwr:
                         type: number
@@ -791,8 +791,13 @@ properties:
                         units: s
                     VS_TSRopt:
                         type: number
-                        description: Power-maximizing region 2 tip-speed-ratio 
+                        description: Power-maximizing region 2 tip-speed-ratio. Only used in VS_ControlMode = 2.
                         units: rad
+                    VS_PwrFiltF:
+                        type: number
+                        description: Low pass filter on power used to determine generator speed set point.  Only used in VS_ControlMode = 3.
+                        units: rad
+                        default: 0.314
                     SS_VSGain:
                         type: number
                         description: Variable speed torque controller setpoint smoother gain

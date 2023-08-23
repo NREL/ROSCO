@@ -293,6 +293,9 @@ ControlParameters:
     VS_TSRopt:
       <<: *real
       description: Power-maximizing region 2 tip-speed ratio [rad]
+    VS_PwrFiltF:
+      <<: *real
+      description: Cut-off frequency of filter on generator power for power-based tsr tracking control
     
     # Setpoint Smoother
     SS_Mode:
@@ -898,6 +901,9 @@ LocalVariables:
     VS_GenPwr: 
       <<: *real 
       description: Generator power [W]
+    VS_GenPwrF: 
+      <<: *real 
+      description: Generator power [W]
     GenSpeed: 
       <<: *real 
       description: Generator speed (HSS) [rad/s]
@@ -966,6 +972,9 @@ LocalVariables:
       <<: *real 
       description: Tower fore-aft vibration damping pitch contribution [rad]
       size: 3
+    VS_RefSpd:          
+      <<: *real 
+      description: Torque control generator speed set point [rad/s]
     RotSpeedF:                    
       <<: *real 
       description: Filtered LSS (generator) speed [rad/s].
