@@ -214,7 +214,6 @@ class Turbine():
             else:
                 fast.fst_vt['AeroDyn15']['AirDens'] = fast.fst_vt['Fst']['AirDens']
         self.rho                = fast.fst_vt['AeroDyn15']['AirDens']
-        # self.rho = 1.225
 
         # Kinematic viscosity
         if 'default' in str(fast.fst_vt['AeroDyn15']['KinVisc']):
