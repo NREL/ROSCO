@@ -156,6 +156,7 @@ class run_FAST_ROSCO():
         # Sweep control parameter
         if self.control_sweep_fcn:
             self.control_sweep_opts['tuning_yaml'] = self.tuning_yaml
+            self.control_sweep_opts['controller_params'] = controller_params
             case_inputs_control = self.control_sweep_fcn(cl.find_max_group(case_inputs)+1, **self.control_sweep_opts)
             sweep_name = self.control_sweep_fcn.__name__
             case_inputs.update(case_inputs_control)
@@ -225,7 +226,7 @@ class run_FAST_ROSCO():
 if __name__ == "__main__":
 
     # Simulation config
-    sim_config = 3
+    sim_config = 8
     
     r = run_FAST_ROSCO()
 
@@ -235,14 +236,12 @@ if __name__ == "__main__":
         # FOCAL single wind speed testing
         r.tuning_yaml = 'IEA15MW.yaml'
         r.wind_case_fcn = cl.simp_step
-        r.sweep_mode  = None
         r.save_dir    = '/Users/dzalkind/Tools/ROSCO/outputs'
 
     elif sim_config == 3:
         # IEA-22 fixed bottom
         r.tuning_yaml = '/Users/dzalkind/Projects/IEA-22MW/IEA-22-280-RWT/OpenFAST/IEA-22-280-RWT-Monopile/IEA-22-280-RWT-Monopile.yaml'
         r.wind_case_fcn = cl.power_curve
-        r.sweep_mode  = None
         r.wind_case_opts    = {
             'U': [6,9,12,15],
             'TMax': 100,
@@ -280,6 +279,26 @@ if __name__ == "__main__":
         }
 
         r.n_cores = 4
+
+    elif sim_config == 8:
+
+        # FOCAL rated wind speed tuning
+        r.tuning_yaml   = 'IEA15MW.yaml'
+        r.wind_case_fcn     = cl.simp_step
+        r.wind_case_opts    = {
+            'U_start': [7],
+            'U_end': [9],
+            }
+        r.sweep_mode    = None
+        r.save_dir      = '/Users/dzalkind/Tools/ROSCO1/outputs/VS_Mode_2'
+        r.control_sweep_fcn = cl.sweep_yaml_input
+        r.control_sweep_opts = {
+            'control_param': 'VS_ControlMode',
+            'param_values': [2,3]
+        }
+        # r.controller_params = {'VS_ControlMode': 3}
+
+        r.n_cores = 2
 
     else:
         raise Exception('This simulation configuration is not supported.')
