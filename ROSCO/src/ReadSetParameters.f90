@@ -340,7 +340,7 @@ CONTAINS
         CALL ParseInput(FileLines,'F_LPFType',       CntrPar%F_LPFType,         accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'IPC_ControlMode', CntrPar%IPC_ControlMode,   accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'VS_ControlMode',  CntrPar%VS_ControlMode,    accINFILE(1), ErrVar, UnEc=UnEc)
-        CALL ParseInput(FileLines,'VS_ConstPower',   CntrPar%VS_ConstPower,     accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'VS_ConstPower',   CntrPar%VS_ConstPower,     accINFILE(1), ErrVar, .TRUE., UnEc=UnEc)  ! Default is 0
         CALL ParseInput(FileLines,'PC_ControlMode',  CntrPar%PC_ControlMode,    accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'Y_ControlMode',   CntrPar%Y_ControlMode,     accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'SS_Mode',         CntrPar%SS_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
