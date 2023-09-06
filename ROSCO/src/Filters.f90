@@ -393,7 +393,7 @@ CONTAINS
         ENDIF
         
         ! Filter Wind Speed Estimator Signal
-        LocalVar%We_Vw_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT,CntrPar%F_WECornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) ! 30 second time constant
+        LocalVar%We_Vw_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT,CntrPar%F_WECornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
 
         ! Blade root bending moment for IPC
         DO K = 1,LocalVar%NumBl

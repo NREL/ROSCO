@@ -52,7 +52,7 @@ CONTAINS
         IF (CntrPar%VS_ControlMode == 2) THEN
             LocalVar%VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
         ELSEIF (CntrPar%VS_ControlMode == 3) THEN
-            LocalVar%VS_GenPwrF = LPFilter(LocalVar%VS_GenPwr, LocalVar%DT,CntrPar%VS_PwrFiltF, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) ! 30 second time constant
+            LocalVar%VS_GenPwrF = LPFilter(LocalVar%VS_GenPwr, LocalVar%DT,CntrPar%VS_PwrFiltF, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
             LocalVar%VS_RefSpd = (LocalVar%VS_GenPwrF/CntrPar%VS_Rgn2K)**(1./3.) ! Genspeed reference that doesnt depend on wind speed estimate (https://doi.org/10.2172/1259805)
         ELSE
             LocalVar%VS_RefSpd = CntrPar%VS_RefSpd
