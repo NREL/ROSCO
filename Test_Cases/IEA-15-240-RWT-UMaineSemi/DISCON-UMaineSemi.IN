@@ -1,5 +1,5 @@
 ! Controller parameter input file for the IEA-15-240-RWT-UMaineSemi wind turbine
-!    - File written using ROSCO version 2.8.0 controller tuning logic on 08/23/23
+!    - File written using ROSCO version 2.8.0 controller tuning logic on 09/06/23
 
 !------- SIMULATION CONTROL ------------------------------------------------------------
 2                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}
@@ -78,7 +78,7 @@
 21586451.33303      ! VS_MaxTq			- Maximum generator torque in Region 3 (HSS side), [Nm].
 0.000000000000      ! VS_MinTq			- Minimum generator torque (HSS side), [Nm].
 0.523600000000      ! VS_MinOMSpd		- Minimum generator speed [rad/s]
-36535083.47186      ! VS_Rgn2K		- Generator torque constant in Region 2 (HSS side). Only used in VS_ControlMode = 1,3
+31393135.82403      ! VS_Rgn2K		- Generator torque constant in Region 2 (HSS side). Only used in VS_ControlMode = 1,3
 15000000.00000      ! VS_RtPwr			- Wind turbine rated power [W]
 19624046.66639      ! VS_RtTq			- Rated torque, [Nm].
 0.791680000000      ! VS_RefSpd			- Rated generator speed [rad/s]

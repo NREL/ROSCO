@@ -284,7 +284,7 @@ class Controller():
         Pi_wind         = 1/2 * rho * Ar * v**2 * dCt_dTSR * dlambda_dv + rho * Ar * v * Ct_op
 
         # Second order system coefficients
-        if self.VS_ControlMode in [0,2,4]: # Constant torque above rated
+        if not self.VS_ConstPower:       # Constant torque above rated
             A = dtau_domega/J
         else:                            # Constant power above rated
             A = dtau_domega/J 
@@ -324,7 +324,7 @@ class Controller():
 
         # -- Find K for Komega_g^2 --
         self.vs_rgn2K = (pi*rho*R**5.0 * turbine.Cp.max * turbine.GBoxEff/100 * turbine.GenEff/100) / \
-              (2.0 * turbine.Cp.TSR_opt**3 * Ng**3)
+              (2.0 * turbine.Cp.TSR_opt**3 * Ng**3) * self.controller_params['rgn2k_factor']
         self.vs_refspd = min(turbine.TSR_operational * turbine.v_rated/R, turbine.rated_rotor_speed) * Ng
 
         # -- Define some setpoints --

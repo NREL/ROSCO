@@ -89,6 +89,14 @@ turbine_params
 
     *Minimum* = 0
 
+:code:`reynolds_ref` : Float
+    Reynolds number near rated speeds, used to interpolate airfoils,
+    if provided
+
+    *Default* = 0
+
+    *Minimum* = 0
+
 
 
 controller_params
@@ -136,13 +144,22 @@ controller_params
 
 
 :code:`VS_ControlMode` : Float
-    Generator torque control mode in above rated conditions (0-
-    constant torque, 1- constant power, 2- TSR tracking PI control
-    with constant torque, 3- TSR tracking with constant power)
+    Generator torque control mode in above rated conditions (0- no
+    torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR
+    Tracking, 3- Power-based TSR Tracking)
 
     *Default* = 2
 
     *Minimum* = 0    *Maximum* = 3
+
+
+:code:`VS_ConstPower` : Float
+    Do constant power torque control, where above rated torque varies,
+    0 for constant torque
+
+    *Default* = 0
+
+    *Minimum* = 0    *Maximum* = 1
 
 
 :code:`PC_ControlMode` : Float
@@ -272,6 +289,7 @@ controller_params
     *Default* = 0
 
     *Minimum* = 0    *Maximum* = 2
+
 
 :code:`AWC_Mode` : Float
     Active wake control mode {0 - not used, 1 - SNL method, 2 - NREL
@@ -490,6 +508,15 @@ controller_params
 
     *Minimum* = 0.0
 
+:code:`rgn2k_factor` : Float
+    Factor on VS_Rgn2K to increase/decrease optimal torque control
+    gain, default is 1.  Sometimes environmental conditions or
+    differences in BEM solvers necessitate this change.
+
+    *Default* = 1
+
+    *Minimum* = 0
+
 
 
 filter_params
@@ -596,6 +623,14 @@ open_loop
 
     *Default* = 0
 
+:code:`Ind_CableControl` : Array of Floats
+    The column in OL_Filename that contains the cable control inputs
+    in m
+
+:code:`Ind_StructControl` : Array of Floats
+    The column in OL_Filename that contains the structural control
+    inputs in various units
+
 :code:`PA_CornerFreq` : Float, rad/s
     Pitch actuator natural frequency [rad/s]
 
@@ -628,9 +663,29 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution. Do 
 
     *Default* = 0
 
+:code:`DT_Out` : Float
+    Time step to output .dbg* files, or 0 to match sampling period of
+    OpenFAST
+
+    *Default* = 0
+
 :code:`F_LPFType` : Float
     1- first-order low-pass filter, 2- second-order low-pass filter
     (currently filters generator speed and pitch control signals
+
+:code:`VS_ControlMode` : Float
+    Generator torque control mode in above rated conditions (0- no
+    torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR
+    Tracking, 3- Power-based TSR Tracking)
+
+    *Minimum* = 0    *Maximum* = 3
+
+
+:code:`VS_ConstPower` : Float
+    Do constant power torque control, where above rated torque varies
+
+    *Minimum* = 0    *Maximum* = 1
+
 
 :code:`F_NotchType` : Float
     Notch on the measured generator speed and/or tower fore-aft motion
@@ -641,12 +696,6 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution. Do 
     Turn Individual Pitch Control (IPC) for fatigue load reductions
     (pitch contribution) (0- off, 1- 1P reductions, 2- 1P+2P
     reductions)
-
-:code:`VS_ControlMode` : Float
-    Generator torque control mode in above rated conditions (0-
-    constant torque, 1- constant power, 2- TSR tracking PI control
-    with constant torque, 3- TSR tracking PI control with constant
-    power)
 
 :code:`PC_ControlMode` : Float
     Blade pitch control mode (0- No pitch, fix to fine pitch, 1-
@@ -692,12 +741,32 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution. Do 
 :code:`F_LPFDamping` : Float
     Damping coefficient (used only when F_FilterType = 2 [-]
 
-:code:`F_NotchCornerFreq` : Float, rad/s
-    Natural frequency of the notch filter,
+:code:`F_NumNotchFilts` : Float
+    Number of notch filters placed on sensors
 
-:code:`F_NotchBetaNumDen` : Array of Floats
-    Two notch damping values (numerator and denominator, resp) -
-    determines the width and depth of the notch, [-]
+:code:`F_NotchFreqs` : Array of Floats or Float, rad/s
+    Natural frequency of the notch filters. Array with length
+    F_NumNotchFilts
+
+:code:`F_NotchBetaNum` : Array of Floats or Float
+    Damping value of numerator (determines the width of notch). Array
+    with length F_NumNotchFilts, [-]
+
+:code:`F_NotchBetaDen` : Array of Floats or Float
+    Damping value of denominator (determines the depth of notch).
+    Array with length F_NumNotchFilts, [-]
+
+:code:`F_GenSpdNotch_N` : Float
+    Number of notch filters on generator speed
+
+:code:`F_TwrTopNotch_N` : Float
+    Number of notch filters on tower top acceleration signal
+
+:code:`F_GenSpdNotch_Ind` : Array of Floats or Float
+    Indices of notch filters on generator speed
+
+:code:`F_TwrTopNotch_Ind` : Array of Floats or Float
+    Indices of notch filters on tower top acceleration signal
 
 :code:`F_SSCornerFreq` : Float, rad/s.
     Corner frequency (-3dB point) in the first order low pass filter
@@ -802,7 +871,8 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution. Do 
     Minimum generator speed
 
 :code:`VS_Rgn2K` : Float, Nm/(rad/s)^2
-    Generator torque constant in Region 2 (HSS side)
+    Generator torque constant in Region 2 (HSS side). Only used in
+    VS_ControlMode = 1,3
 
 :code:`VS_RtPwr` : Float, W
     Wind turbine rated power
@@ -825,7 +895,14 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution. Do 
     the transitional 2.5 region if VS_ControlMode =/ 2)
 
 :code:`VS_TSRopt` : Float, rad
-    Power-maximizing region 2 tip-speed-ratio
+    Power-maximizing region 2 tip-speed-ratio. Only used in
+    VS_ControlMode = 2.
+
+:code:`VS_PwrFiltF` : Float, rad
+    Low pass filter on power used to determine generator speed set
+    point.  Only used in VS_ControlMode = 3.
+
+    *Default* = 0.314
 
 :code:`SS_VSGain` : Float
     Variable speed torque controller setpoint smoother gain
@@ -984,10 +1061,11 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution. Do 
     position in rad (used if OL_Mode = 2)
 
 :code:`RP_Gains` : Array of Floats
-    PID gains for rotor position control (used if OL_Mode = 2)
+    PID gains and Tf of derivative for rotor position control (used if
+    OL_Mode = 2)
 
-    *Default* = [0, 0, 0]
-    
+    *Default* = [0, 0, 0, 0]
+
 :code:`Ind_CableControl` : Array of Floats
     The column in OL_Filename that contains the cable control inputs
     in m

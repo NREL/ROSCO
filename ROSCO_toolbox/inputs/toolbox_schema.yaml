@@ -418,6 +418,11 @@ properties:
                     minimum: 0.0
                 default: [0.0, 0.0]
                 unit: m/s
+            rgn2k_factor:
+                type: number
+                description: Factor on VS_Rgn2K to increase/decrease optimal torque control gain, default is 1.  Sometimes environmental conditions or differences in BEM solvers necessitate this change.
+                default: 1
+                minimum: 0
 
             filter_params:
                 type: object
