@@ -660,7 +660,6 @@ CONTAINS
     END FUNCTION sigma
 
 
-
 !-------------------------------------------------------------------------------------------------------------------------------
     FUNCTION unwrap(x, ErrVar) result(y)
     ! Unwrap function
