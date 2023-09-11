@@ -330,21 +330,26 @@ def user_hh(**wind_case_opts):
     '''
      Uniform, hub-height wind file
      Expected inputs:
-        TMax            TODO: someday make all TMaxs TMax
-        wind_inputs (list of string wind inputs filenames)
+        TMax            (float or array) of simulation TMax
+        wind_filenames (list of string wind inputs filenames)
     '''
 
-    if 'TMax' in wind_case_opts:
-        TMax = wind_case_opts['TMax']
-    else:
-        TMax = 720
+    # Default is 720 for all cases
+    TMax = wind_case_opts.get('TMax', 720)
 
     if 'wind_filenames' not in wind_case_opts:
-        raise Exception('Define wind_filenames when using turb_bts case generator')
+        raise Exception('Define wind_filenames when using user_hh case generator')
+
+    # Make into array
+    if not hasattr(TMax,'__len__'):
+        TMax = len(wind_case_opts['wind_filenames']) * [TMax]
+
+
+
 
     # wind inflow
     case_inputs = base_op_case()
-    case_inputs[("Fst","TMax")] = {'vals':[TMax], 'group':0}
+    case_inputs[("Fst","TMax")] = {'vals':TMax, 'group':1}
     case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
     case_inputs[("InflowWind","Filename_Uni")] = {'vals':wind_case_opts['wind_filenames'], 'group':1}
 
