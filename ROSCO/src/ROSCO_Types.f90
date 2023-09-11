@@ -112,7 +112,7 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: Ind_GenTq                   ! The column in OL_Filename that contains the generator torque in Nm
     INTEGER(IntKi)                :: Ind_YawRate                 ! The column in OL_Filename that contains the generator torque in Nm
     INTEGER(IntKi)                :: Ind_Azimuth                 ! The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: RP_Gains                    ! PID gains for rotor position control (used if OL_Mode = 2)
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: RP_Gains                    ! PID gains and Tf on derivative term for rotor position control (used if OL_Mode = 2)
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: Ind_CableControl            ! The column in OL_Filename that contains the cable control inputs in m
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: Ind_StructControl           ! The column in OL_Filename that contains the structural control inputs in various units
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_Breakpoints              ! Open loop breakpoints in timeseries
