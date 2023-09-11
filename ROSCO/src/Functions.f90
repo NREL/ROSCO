@@ -22,13 +22,14 @@
 !       interp1d: 1-d interpolation
 !       interp2d: 2-d interpolation
 !       matinv3: 3x3 matrix inverse
-!       PIController: implement a PI controller
+!       PIDController: implement a PID controller
 !       ratelimit: Rate limit signal
 !       saturate: Saturate signal
 
 MODULE Functions
 
 USE Constants
+USE Filters
 
 IMPLICIT NONE
 
@@ -90,7 +91,7 @@ CONTAINS
 
     END FUNCTION ratelimit
 
-!-------------------------------------------------------------------------------------------------------------------------------
+    !-------------------------------------------------------------------------------------------------------------------------------
     REAL(DbKi) FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, piP, reset, inst)
         USE ROSCO_Types, ONLY : piParams
 
@@ -129,6 +130,66 @@ CONTAINS
         inst = inst + 1
         
     END FUNCTION PIController
+
+
+!-------------------------------------------------------------------------------------------------------------------------------
+    REAL(DbKi) FUNCTION PIDController(error, kp, ki, kd, tf, minValue, maxValue, DT, I0, piP, reset, objInst, LocalVar)
+        USE ROSCO_Types, ONLY : piParams, LocalVariables, ObjectInstances
+
+    ! PI controller, with output saturation
+
+        IMPLICIT NONE
+        ! Allocate Inputs
+        REAL(DbKi),    INTENT(IN)         :: error
+        REAL(DbKi),    INTENT(IN)         :: kp
+        REAL(DbKi),    INTENT(IN)         :: ki
+        REAL(DbKi),    INTENT(IN)         :: kd
+        REAL(DbKi),    INTENT(IN)         :: tf
+        REAL(DbKi),    INTENT(IN)         :: minValue
+        REAL(DbKi),    INTENT(IN)         :: maxValue
+        REAL(DbKi),    INTENT(IN)         :: DT
+        TYPE(ObjectInstances),      INTENT(INOUT)   :: objInst  ! all object instances (PI, filters used here)
+        TYPE(LocalVariables),       INTENT(INOUT)   :: LocalVar
+
+        REAL(DbKi),    INTENT(IN)           :: I0
+        TYPE(piParams), INTENT(INOUT)       :: piP
+        LOGICAL,    INTENT(IN)              :: reset     
+        
+        ! Allocate local variables
+        INTEGER(IntKi)                      :: i                                            ! Counter for making arrays
+        REAL(DbKi)                          :: PTerm, DTerm                                 ! Proportional, deriv. terms
+        REAL(DbKi)                          :: EFilt                    ! Filtered error for derivative
+
+        ! Always filter error
+        EFilt = LPFilter(error, DT, tf, LocalVar%FP, LocalVar%iStatus, reset, objInst%instLPF)
+
+        ! Initialize persistent variables/arrays, and set inital condition for integrator term
+        IF (reset) THEN
+            piP%ITerm(objInst%instPI) = I0
+            piP%ITermLast(objInst%instPI) = I0
+            piP%ELast(objInst%instPI) = 0.0_DbKi
+            PIDController = I0
+        ELSE
+            ! Proportional
+            PTerm = kp*error
+            
+            ! Integrate and saturate
+            piP%ITerm(objInst%instPI) = piP%ITerm(objInst%instPI) + DT*ki*error
+            piP%ITerm(objInst%instPI) = saturate(piP%ITerm(objInst%instPI), minValue, maxValue)
+
+            ! Derivative (filtered)
+            DTerm = kd * (EFilt - piP%ELast(objInst%instPI)) / DT
+            
+            ! Saturate all
+            PIDController = saturate(PTerm + piP%ITerm(objInst%instPI) + DTerm, minValue, maxValue)
+        
+            ! Save lasts
+            piP%ITermLast(objInst%instPI) = piP%ITerm(objInst%instPI)
+            piP%ELast(objInst%instPI) = EFilt
+        END IF
+        objInst%instPI = objInst%instPI + 1
+        
+    END FUNCTION PIDController
 
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL(DbKi) FUNCTION PIIController(error, error2, kp, ki, ki2, minValue, maxValue, DT, I0, piP, reset, inst)
@@ -601,68 +662,47 @@ CONTAINS
 
 
 !-------------------------------------------------------------------------------------------------------------------------------
-    ! Copied from NWTC_IO.f90
-!> This function returns a character string encoded with today's date in the form dd-mmm-ccyy.
-FUNCTION CurDate( )
+    FUNCTION unwrap(x, ErrVar) result(y)
+    ! Unwrap function
+    ! If difference between signal elements is < -pi, add 2 pi to reset of signal, and the opposite
+    ! Someday, generalize period and check difference is less than period/2
+        USE ROSCO_Types, ONLY : ErrorVariables
+        IMPLICIT NONE
+    
+        ! Inputs
+        TYPE(ErrorVariables), INTENT(INOUT) :: ErrVar
+        REAL(DbKi), DIMENSION(:), Intent(IN)  :: x
 
-    ! Function declaration.
+        ! Output
+        REAL(DbKi), DIMENSION(SIZE(x)) :: y
+            
+        ! Local
+        INTEGER(IntKi) :: i
 
-    CHARACTER(11)                :: CurDate                                      !< 'dd-mmm-yyyy' string with the current date
+        CHARACTER(*), PARAMETER                 :: RoutineName = 'unwrap'
 
+        y = x ! set initial
+        DO i = 2, SIZE(x)
+            DO while (y(i) - y(i-1) .LE. -PI)
+                y(i:SIZE(x)) = y(i:SIZE(x)) + 2 * PI
+            END DO
 
-    ! Local declarations.
+            DO while (y(i) - y(i-1) .GE. PI)
+                y(i:SIZE(x)) = y(i:SIZE(x)) - 2 * PI
+            END DO
+        END DO
 
-    CHARACTER(8)                 :: CDate                                        ! String to hold the returned value from the DATE_AND_TIME subroutine call.
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
 
-
-
-    !  Call the system date function.
-
-    CALL DATE_AND_TIME ( CDate )
-
-
-    !  Parse out the day.
-
-    CurDate(1:3) = CDate(7:8)//'-'
-
-
-    !  Parse out the month.
-
-    SELECT CASE ( CDate(5:6) )
-    CASE ( '01' )
-        CurDate(4:6) = 'Jan'
-    CASE ( '02' )
-        CurDate(4:6) = 'Feb'
-    CASE ( '03' )
-        CurDate(4:6) = 'Mar'
-    CASE ( '04' )
-        CurDate(4:6) = 'Apr'
-    CASE ( '05' )
-        CurDate(4:6) = 'May'
-    CASE ( '06' )
-        CurDate(4:6) = 'Jun'
-    CASE ( '07' )
-        CurDate(4:6) = 'Jul'
-    CASE ( '08' )
-        CurDate(4:6) = 'Aug'
-    CASE ( '09' )
-        CurDate(4:6) = 'Sep'
-    CASE ( '10' )
-        CurDate(4:6) = 'Oct'
-    CASE ( '11' )
-        CurDate(4:6) = 'Nov'
-    CASE ( '12' )
-        CurDate(4:6) = 'Dec'
-    END SELECT
+        ! Debug
+        ! write(400,*) x
+        ! write(401,*) y
+        
+    END FUNCTION unwrap
 
 
-    !  Parse out the year.
-
-    CurDate(7:11) = '-'//CDate(1:4)
-
-
-    RETURN
-    END FUNCTION CurDate
-
-
+!-------------------------------------------------------------------------------------------------------------------------------
 END MODULE Functions

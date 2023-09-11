@@ -44,16 +44,38 @@ class HH_WindFile(object):
 
         super(HH_WindFile, self).__init__()
 
+    def resample(self):
+        # Using time index, check if constant, otherwise throw a warning
+        if len(set(self.wind_dir)) != 1:   # all same
+            print('ROSCO Warning: all wind_dir elements not equal in resample')
+        if len(set(self.vert_speed)) != 1:   # all same
+            print('ROSCO Warning: all vert_speed elements not equal in resample')
+        if len(set(self.horiz_shear)) != 1:   # all same
+            print('ROSCO Warning: all horiz_shear elements not equal in resample')
+        if len(set(self.vert_shear)) != 1:   # all same
+            print('ROSCO Warning: all vert_shear elements not equal in resample')
+        if len(set(self.linv_shear)) != 1:   # all same
+            print('ROSCO Warning: all linv_shear elements not equal in resample')
+        if len(set(self.gust_speed)) != 1:   # all same
+            print('ROSCO Warning: all gust_speed elements not equal in resample')
+
+        self.wind_dir       = len(self.time) * [self.wind_dir[0]]
+        self.vert_speed     = len(self.time) * [self.vert_speed[0]]
+        self.horiz_shear    = len(self.time) * [self.horiz_shear[0]]
+        self.vert_shear     = len(self.time) * [self.vert_shear[0]]
+        self.linv_shear     = len(self.time) * [self.linv_shear[0]]
+        self.gust_speed     = len(self.time) * [self.gust_speed[0]]
+
 
     def write(self):
         if not os.path.isdir(os.path.dirname(self.filename)):
             os.makedirs(os.path.dirname(self.filename))
         with open(self.filename,'w') as f:
             f.write('!\tTime\tWind Speed\tWind Dir\tVert. Spd.\tHoriz. Shr.\t Vert. Shr.\t LinV. Shr.\tGust Speed\n')
-            for t, ws, wd, vs, hs, vs, ls, gs in zip(self.time,self.wind_speed,self.wind_dir,self.vert_speed, \
+            for t, ws, wd, vsp, hs, vsh, ls, gs in zip(self.time,self.wind_speed,self.wind_dir,self.vert_speed, \
                 self.horiz_shear, self.vert_shear, self.linv_shear, self.gust_speed):
                 f.write('{:6.6f}\t{:6.6f}\t{:6.6f}\t{:6.6f}\t{:6.6f}\t{:6.6f}\t{:6.6f}\t{:6.6f}\n'.format(
-                    t,ws,wd,vs,hs,vs,ls,gs))
+                    t,ws,wd,vsp,hs,vsh,ls,gs))
 
 
     def plot(self):

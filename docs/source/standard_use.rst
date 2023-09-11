@@ -16,12 +16,11 @@ Several OpenFAST inputs are located in `Test_Cases/ <https://github.com/NREL/ROS
 The controller tuning :code:`.yaml` are located in `Tune_Cases/ <https://github.com/NREL/ROSCO/tree/main/Tune_Cases>`_.
 A detailed description of the ROSCO control inputs and tuning :code:`.yaml` are provided in :ref:`discon_in` and :ref:`rt_tuning_yaml`, respectively.
 
-* :code:`example_01.py` loads an OpenFAST turbine model and displays a summary of its information
-* :code:`example_02.py` plots the :math:`C_p` surface of a turbine
+* :code:`01_turbine_model.py` loads an OpenFAST turbine model and displays a summary of its information
 
 ROSCO requires the power and thrust coefficients for tuning control inputs and running the extended Kalman filter wind speed estimator.
 
-* :code:`example_03.py` runs cc-blade, a blade element momentum solver from WISDEM, to generate a :math:`C_p` surface.
+* :code:`02_ccblade.py` runs cc-blade, a blade element momentum solver from WISDEM, to generate a :math:`C_p` surface.
   
 The :code:`Cp_Cq_Ct.txt` (or similar) file contains the rotor performance tables that are necessary to run the ROSCO controller. 
 This file can be located wherever you desire, just be sure to point to it properly with the :code:`PerfFileName` parameter in :code:`DISCON.IN`.
@@ -36,9 +35,9 @@ Generally :code:`omega_*` increases the responsiveness of the controller, reduci
 :code:`zeta_*` changes the damping of the controller and is generally less important of a tuning parameter, but could also help with loading.
 The default parameters in `Tune_Cases/ <https://github.com/NREL/ROSCO/tree/main/Tune_Cases>`_ are known to work well with the turbines in this repository.
 
-* :code:`example_04.py` loads a turbine and tunes the PI control gains
-* :code:`example_05.py` tunes a controller and runs a simple simualtion (not using OpenFAST)
-* :code:`example_06.py` loads a turbine, tunes a controller, and runs an OpenFAST simulation
+* :code:`03_tune_controller.py` loads a turbine and tunes the PI control gains
+* :code:`04_simple_sim.py` tunes a controller and runs a simple simualtion (not using OpenFAST)
+* :code:`05_openfast_sim.py` loads a turbine, tunes a controller, and runs an OpenFAST simulation
 
 Each of these examples generates a :code:`DISCON.IN` file, which is an input to libdiscon.*.
 When running the controller in OpenFAST, :code:`DISCON.IN` must be appropriately named using the :code:`DLL_FileName` parameter in ServoDyn. 
@@ -51,18 +50,18 @@ OpenFAST can be installed from `source <https://github.com/OpenFAST/openfast>`_ 
 
 ROSCO can implement peak shaving (or thrust clipping) by changing the minimum pitch angle based on the estimated wind speed:
 
-* :code:`example_07.py` loads a turbine and tunes a controller with peak shaving.
+* :code:`06_peak_shaving.py` loads a turbine and tunes a controller with peak shaving.
 
 By setting the :code:`ps_percent` value in the tuning yaml, the minimum pitch versus wind speed table changes and is updated in the :code:`DISCON.IN` file.
 
 ROSCO also contains a method for distributed aerodynamic control (e.g., via trailing edge flaps):
 
-* :code:`example_10.py` tunes a controller for distributed aerodynamic control
+* :code:`09_distributed_aero.py` tunes a controller for distributed aerodynamic control
 
 The ROSCO toolbox also contains methods for working with OpenFAST linear models
-* :code:`example_11.py` exports a file of the parameters used for the simplified linear models used to tune ROSCO
-* :code:`example_12.py` shows how linear models generated using OpenFAST can be used to tune controllers with robust stability properties. 
-* :code:`example_13.py` shows the tuning procedure for IPC
+* :code:`10_linear_params.py` exports a file of the parameters used for the simplified linear models used to tune ROSCO
+* :code:`11_robust_tuning.py` shows how linear models generated using OpenFAST can be used to tune controllers with robust stability properties. 
+* :code:`12_tune_ipc.py` shows the tuning procedure for IPC
 
 Running OpenFAST Simulations
 ----------------------------
@@ -81,10 +80,10 @@ The ROSCO_toolbox has methods for running OpenFAST (and other) binary executable
 
 Several example scripts are set up to quickly simulate ROSCO with OpenFAST:
 
-* :code:`example_06.py` loads a turbine, tunes a controller, and runs an OpenFAST simulation
-* :code:`example_08.py` loads the OpenFAST output files and plots the results
-* :code:`example_09.py` runs TurbSim, for generating turbulent wind inputs
-* :code:`example_14.py` runs an OpenFAST simulation with ROSCO providing open loop control inputs
+* :code:`05_openfast_sim.py` loads a turbine, tunes a controller, and runs an OpenFAST simulation
+* :code:`07_openfast_outputs.py` loads the OpenFAST output files and plots the results
+* :code:`08_run_turbsim.py` runs TurbSim, for generating turbulent wind inputs
+* :code:`14_open_loop_control.py` runs an OpenFAST simulation with ROSCO providing open loop control inputs
 
 
 Testing ROSCO

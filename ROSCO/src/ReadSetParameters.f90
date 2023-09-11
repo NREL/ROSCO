@@ -19,7 +19,6 @@ MODULE ReadSetParameters
     USE Functions
     USE SysSubs
     USE ROSCO_Helpers
-
     IMPLICIT NONE
 
 
@@ -34,7 +33,7 @@ CONTAINS
         TYPE(ControlParameters), INTENT(IN) :: CntrPar
 
         ! Allocate Variables:
-        INTEGER(IntKi)                                  :: K            ! Index used for looping through blades.
+        INTEGER(IntKi)                                  :: K         ! Index used for looping through blades.
 
         ! Load variables from calling program (See Appendix A of Bladed User's Guide):
         LocalVar%iStatus            = NINT(avrSWAP(1))
@@ -55,6 +54,32 @@ CONTAINS
         LocalVar%NacIMU_FA_Acc      = avrSWAP(83)
         LocalVar%Azimuth            = avrSWAP(60)
         LocalVar%NumBl              = NINT(avrSWAP(61))
+
+        ! Platform signals 
+        LocalVar%PtfmTDX            = avrSWAP(1001)
+        LocalVar%PtfmTDY            = avrSWAP(1002)
+        LocalVar%PtfmTDZ            = avrSWAP(1003)
+        LocalVar%PtfmRDX            = avrSWAP(1004)
+        LocalVar%PtfmRDY            = avrSWAP(1005)
+        LocalVar%PtfmRDZ            = avrSWAP(1006)
+        LocalVar%PtfmTVX            = avrSWAP(1007)
+        LocalVar%PtfmTVY            = avrSWAP(1008)
+        LocalVar%PtfmTVZ            = avrSWAP(1009)
+        LocalVar%PtfmRVX            = avrSWAP(1010)
+        LocalVar%PtfmRVY            = avrSWAP(1011)
+        LocalVar%PtfmRVZ            = avrSWAP(1012)
+        LocalVar%PtfmTAX            = avrSWAP(1013)
+        LocalVar%PtfmTAY            = avrSWAP(1014)
+        LocalVar%PtfmTAZ            = avrSWAP(1015)
+        LocalVar%PtfmRAX            = avrSWAP(1016)
+        LocalVar%PtfmRAY            = avrSWAP(1017)
+        LocalVar%PtfmRAZ            = avrSWAP(1018)
+
+        ! GenTemp = avrSWAP(1026)
+
+        ! WRITE(1000,*) LocalVar%GenSpeed*RPS2RPM, GenTemp
+
+        
 
         ! --- NJA: usually feedback back the previous pitch command helps for numerical stability, sometimes it does not...
         IF (LocalVar%iStatus == 0) THEN
@@ -85,10 +110,17 @@ CONTAINS
             LocalVar%restart = .False.
         ENDIF
 
+        ! Increment timestep counter
+        IF (LocalVar%iStatus == 0 .AND. LocalVar%Time == 0) THEN
+            LocalVar%n_DT = 0
+        ELSE
+            LocalVar%n_DT = LocalVar%n_DT + 1
+        ENDIF
+
     END SUBROUTINE ReadAvrSWAP    
 ! -----------------------------------------------------------------------------------
     ! Define parameters for control actions
-    SUBROUTINE SetParameters(avrSWAP, accINFILE, size_avcMSG, CntrPar, LocalVar, objInst, PerfData, zmqVar, ErrVar)
+    SUBROUTINE SetParameters(avrSWAP, accINFILE, size_avcMSG, CntrPar, LocalVar, objInst, PerfData, zmqVar, RootName, ErrVar)
                 
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData, ErrorVariables, ZMQ_Variables
         
@@ -102,9 +134,15 @@ CONTAINS
         TYPE(PerformanceData),      INTENT(INOUT)   :: PerfData
         TYPE(ZMQ_Variables),        INTENT(INOUT)   :: zmqVar
         TYPE(ErrorVariables),       INTENT(INOUT)   :: ErrVar
+        CHARACTER(NINT(avrSWAP(50))-1), INTENT(IN)  :: RootName 
 
         
-        INTEGER(IntKi)                              :: K    ! Index used for looping through blades.
+        INTEGER(IntKi)                              :: K, I, I_OL    ! Index used for looping through blades.
+        CHARACTER(1024)                             :: OL_String                    ! Open description loop string
+        INTEGER(IntKi)                              :: OL_Count                     ! Number of open loop channels
+        INTEGER(IntKi)                              :: UnOpenLoop       ! Open Loop file unit
+        INTEGER(IntKi)                              :: N_OL_Cables
+        INTEGER(IntKi)                              :: N_OL_StCs
 
         CHARACTER(*),               PARAMETER       :: RoutineName = 'SetParameters'
 
@@ -119,6 +157,7 @@ CONTAINS
         ! Initialize all filter instance counters at 1
         objInst%instLPF         = 1
         objInst%instSecLPF      = 1
+        objInst%instSecLPFV     = 1
         objInst%instHPF         = 1
         objInst%instNotchSlopes = 1
         objInst%instNotch       = 1
@@ -134,7 +173,7 @@ CONTAINS
         avrSWAP(56) = 0.0 ! Torque override: 0=yes
         avrSWAP(65) = 0.0 ! Number of variables returned for logging
         avrSWAP(72) = 0.0 ! Generator start-up resistance
-        avrSWAP(79) = 0.0 ! Request for loads: 0=none
+        avrSWAP(79) = 4.0 ! Request for loads: 0=none
         avrSWAP(80) = 0.0 ! Variable slip current status
         avrSWAP(81) = 0.0 ! Variable slip current demand
         
@@ -157,7 +196,7 @@ CONTAINS
             LocalVar%ACC_INFILE = accINFILE
 
             ! Read Control Parameter File
-            CALL ReadControlParameterFileSub(CntrPar, zmqVar, accINFILE, NINT(avrSWAP(50)),ErrVar)
+            CALL ReadControlParameterFileSub(CntrPar, LocalVar, zmqVar, accINFILE, NINT(avrSWAP(50)), RootName, ErrVar)
             ! If there's been an file reading error, don't continue
             ! Add RoutineName to error message
             IF (ErrVar%aviFAIL < 0) THEN
@@ -169,7 +208,7 @@ CONTAINS
                 CALL READCpFile(CntrPar,PerfData,ErrVar)
             ENDIF
         
-            ! Initialize the SAVED variables:
+            ! Initialize the Local variables:
             LocalVar%PitCom     = LocalVar%BlPitch ! This will ensure that the variable speed controller picks the correct control region and the pitch controller picks the correct gain on the first call
 
             ! Wind speed estimator initialization
@@ -188,6 +227,12 @@ CONTAINS
             LocalVar%VS_LastGenTrq = LocalVar%GenTq       
             LocalVar%VS_MaxTq      = CntrPar%VS_MaxTq
             
+            ! Initialize variables
+            LocalVar%CC_DesiredL = 0
+            LocalVar%CC_ActuatedL = 0
+            LocalVar%CC_ActuatedDL = 0
+            LocalVar%StC_Input = 0
+
             ! Check validity of input parameters:
             CALL CheckInputs(LocalVar, CntrPar, avrSWAP, ErrVar, size_avcMSG)
 
@@ -201,249 +246,351 @@ CONTAINS
                 zmqVar%ZMQ_Flag = .TRUE.
             ENDIF
 
+
         ENDIF
     END SUBROUTINE SetParameters
+    
     ! -----------------------------------------------------------------------------------
     ! Read all constant control parameters from DISCON.IN parameter file
-    SUBROUTINE ReadControlParameterFileSub(CntrPar, zmqVar, accINFILE, accINFILE_size,ErrVar)!, accINFILE_size)
+    ! Also, all computed CntrPar%* parameters should be computed in this subroutine
+    SUBROUTINE ReadControlParameterFileSub(CntrPar, LocalVar, zmqVar, accINFILE, accINFILE_size, RootName, ErrVar)!, accINFILE_size)
         USE, INTRINSIC :: ISO_C_Binding
-        USE ROSCO_Types, ONLY : ControlParameters, ErrorVariables, ZMQ_Variables
+        USE ROSCO_Types, ONLY : ControlParameters, ErrorVariables, ZMQ_Variables, LocalVariables
 
         INTEGER(IntKi)                                  :: accINFILE_size               ! size of DISCON input filename
         CHARACTER(accINFILE_size),  INTENT(IN   )       :: accINFILE(accINFILE_size)    ! DISCON input filename
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar                      ! Control parameter type
+        TYPE(LocalVariables),        INTENT(INOUT)       :: LocalVar                       ! Control parameter type
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar                       ! Control parameter type
         TYPE(ZMQ_Variables),        INTENT(INOUT)       :: zmqVar                       ! Control parameter type
+        CHARACTER(accINFILE_size),  INTENT(IN)          :: RootName 
+
         
         INTEGER(IntKi)                                  :: UnControllerParameters  ! Unit number to open file
-        INTEGER(IntKi)                                  :: CurLine 
-        ! INTEGER(IntKi), PARAMETER                       :: UnControllerParameters = 89  ! Unit number to open file
-
-        CHARACTER(1024)                                 :: OL_String                    ! Open description loop string
-        INTEGER(IntKi)                                  :: OL_Count                     ! Number of open loop channels
 
         CHARACTER(1024)                                 :: PriPath        ! Path name of the primary DISCON file
 
+        CHARACTER(2048)                                 :: TmpLine        ! Path name of the primary DISCON file
+        INTEGER(IntKi)                                  :: NumLines, IOS, I_LINE, ErrStat
+        INTEGER(IntKi)                                  :: UnEc
+        CHARACTER(128)                                  :: EchoFilename              ! Input checkpoint file
+        CHARACTER(MaxLineLength), DIMENSION(:), ALLOCATABLE      :: FileLines
 
+        INTEGER(IntKi)                                  :: I, I_OL    ! Index used for looping through blades.
+        CHARACTER(1024)                                 :: OL_String                    ! Open description loop string
+        INTEGER(IntKi)                                  :: OL_Count                     ! Number of open loop channels
+        INTEGER(IntKi)                                  :: UnOpenLoop       ! Open Loop file unit
+        INTEGER(IntKi)                                  :: N_OL_Cables
+        INTEGER(IntKi)                                  :: N_OL_StCs
+        
         CHARACTER(*),               PARAMETER           :: RoutineName = 'ReadControlParameterFileSub'
-
-        CurLine = 1
 
         ! Get primary path of DISCON.IN file (accINFILE(1) here)
         CALL GetPath( accINFILE(1), PriPath )     ! Input files will be relative to the path where the primary input file is located.
         CALL GetNewUnit(UnControllerParameters, ErrVar)
         OPEN(unit=UnControllerParameters, file=accINFILE(1), status='old', action='read')
-        
-        !----------------------- HEADER ------------------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
-        !----------------------- DEBUG --------------------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        ! Read all lines, first get the number of lines
+        NumLines = 0
+        IOS = 0
+        DO WHILE (IOS == 0)  ! read the rest of the file (until an error occurs)
+            NumLines = NumLines + 1
+            READ(UnControllerParameters,'(A)',IOSTAT=IOS) TmpLine        
+        END DO !WHILE
 
-        CALL ParseInput(UnControllerParameters,CurLine,'LoggingLevel',accINFILE(1),CntrPar%LoggingLevel,ErrVar)
+        ALLOCATE(FileLines(NumLines))
+        REWIND( UnControllerParameters )
 
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        DO I_LINE = 1,NumLines
+            READ(UnControllerParameters,'(A)',IOSTAT=IOS) FileLines(I_LINE)
+        END DO
+
+        ! Close Input File
+        CLOSE(UnControllerParameters)
+
+        ! Read Echo first, so file can be set up, if desired
+        CALL ParseInput(FileLines,'Echo',           CntrPar%Echo,               accINFILE(1), ErrVar)
+        IF (ErrVar%aviFAIL < 0) RETURN
+
+        ! Set up echo file
+        UnEc = 0
+        IF (CntrPar%Echo > 0) THEN
+            EchoFilename = TRIM(RootName)//'.RO.echo'
+            CALL GetNewUnit(UnEc, ErrVar)
+            OPEN(unit=UnEc, FILE=TRIM(EchoFilename), IOSTAT=ErrStat, ACTION='WRITE' )
+            IF ( ErrStat /= 0 ) THEN
+                ErrVar%ErrMsg  = 'Cannot open file '//TRIM( EchoFilename )//'. Another program may have locked it for writing.'
+                ErrVar%aviFAIL = 1
+            ELSE
+                WRITE( UnEc, *) 'ROSCO ECHO file'
+                WRITE( UnEc, *) 'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)
+                WRITE( UnEc, *)  NEW_LINE('A')
+                WRITE( UnEc, *) 'Line Number',Tab,'Parameter',Tab,'Value'
+                WRITE( UnEc, *) '-----------------------------------------'
+            ENDIF
+        ENDIF
+
+        !----------------------- Simulation Control --------------------------
+        CALL ParseInput(FileLines,'LoggingLevel',   CntrPar%LoggingLevel,       accINFILE(1), ErrVar, .TRUE., UnEc=UnEc)
+        CALL ParseInput(FileLines,'DT_Out',         CntrPar%DT_Out,             accINFILE(1), ErrVar, .TRUE., UnEc=UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !----------------- CONTROLLER FLAGS ---------------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ParseInput(UnControllerParameters,CurLine,'F_LPFType',accINFILE(1),CntrPar%F_LPFType,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'F_NotchType',accINFILE(1),CntrPar%F_NotchType,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'IPC_ControlMode',accINFILE(1),CntrPar%IPC_ControlMode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_ControlMode',accINFILE(1),CntrPar%VS_ControlMode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PC_ControlMode',accINFILE(1),CntrPar%PC_ControlMode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_ControlMode',accINFILE(1),CntrPar%Y_ControlMode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'SS_Mode',accINFILE(1),CntrPar%SS_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'WE_Mode',accINFILE(1),CntrPar%WE_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PS_Mode',accINFILE(1),CntrPar%PS_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'SD_Mode',accINFILE(1),CntrPar%SD_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'FL_Mode',accINFILE(1),CntrPar%FL_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'TD_Mode',accINFILE(1),CntrPar%TD_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Flp_Mode',accINFILE(1),CntrPar%Flp_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'OL_Mode',accINFILE(1),CntrPar%OL_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PA_Mode',accINFILE(1),CntrPar%PA_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PF_Mode',accINFILE(1),CntrPar%PF_Mode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Ext_Mode',accINFILE(1),CntrPar%Ext_Mode,ErrVar)
-		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_Mode',accINFILE(1), CntrPar%ZMQ_Mode,ErrVar)
-
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseInput(FileLines,'F_LPFType',       CntrPar%F_LPFType,         accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'F_NotchType',     CntrPar%F_NotchType,       accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'IPC_ControlMode', CntrPar%IPC_ControlMode,   accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'VS_ControlMode',  CntrPar%VS_ControlMode,    accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'PC_ControlMode',  CntrPar%PC_ControlMode,    accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'Y_ControlMode',   CntrPar%Y_ControlMode,     accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'SS_Mode',         CntrPar%SS_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'WE_Mode',         CntrPar%WE_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'PS_Mode',         CntrPar%PS_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'SD_Mode',         CntrPar%SD_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'FL_Mode',         CntrPar%FL_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'TD_Mode',         CntrPar%TD_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'Flp_Mode',        CntrPar%Flp_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'OL_Mode',         CntrPar%OL_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'PA_Mode',         CntrPar%PA_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'PF_Mode',         CntrPar%PF_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'AWC_Mode',        CntrPar%AWC_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'Ext_Mode',        CntrPar%Ext_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
+		CALL ParseInput(FileLines,'ZMQ_Mode',        CntrPar%ZMQ_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
+		CALL ParseInput(FileLines,'CC_Mode',         CntrPar%CC_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
+		CALL ParseInput(FileLines,'StC_Mode',        CntrPar%StC_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !----------------- FILTER CONSTANTS ---------------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ParseInput(UnControllerParameters,CurLine,'F_LPFCornerFreq',accINFILE(1),CntrPar%F_LPFCornerFreq,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'F_LPFDamping',accINFILE(1),CntrPar%F_LPFDamping,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'F_NotchCornerFreq',accINFILE(1),CntrPar%F_NotchCornerFreq,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'F_NotchBetaNumDen', CntrPar%F_NotchBetaNumDen, 2, accINFILE(1), ErrVar )
-        CALL ParseInput(UnControllerParameters,CurLine,'F_SSCornerFreq',accINFILE(1),CntrPar%F_SSCornerFreq,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'F_WECornerFreq',accINFILE(1),CntrPar%F_WECornerFreq,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'F_YawErr',accINFILE(1),CntrPar%F_YawErr, ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'F_FlCornerFreq', CntrPar%F_FlCornerFreq, 2, accINFILE(1), ErrVar )
-        CALL ParseInput(UnControllerParameters,CurLine,'F_FlHighPassFreq',accINFILE(1),CntrPar%F_FlHighPassFreq,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'F_FlpCornerFreq', CntrPar%F_FlpCornerFreq, 2, accINFILE(1), ErrVar )
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseInput(FileLines,  'F_LPFCornerFreq',      CntrPar%F_LPFCornerFreq,        accINFILE(1), ErrVar, .FALSE., UnEc)
+        CALL ParseInput(FileLines,  'F_LPFDamping',         CntrPar%F_LPFDamping,           accINFILE(1), ErrVar, CntrPar%F_LPFType == 1, UnEc)
+        CALL ParseInput(FileLines,  'F_NotchCornerFreq',    CntrPar%F_NotchCornerFreq,      accINFILE(1), ErrVar, CntrPar%F_NotchType == 0, UnEc)
+        CALL ParseAry(  FileLines,  'F_NotchBetaNumDen',    CntrPar%F_NotchBetaNumDen,  2,  accINFILE(1), ErrVar, CntrPar%F_NotchType == 0, UnEc)
+        CALL ParseInput(FileLines,  'F_SSCornerFreq',       CntrPar%F_SSCornerFreq,         accINFILE(1), ErrVar, CntrPar%SS_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'F_WECornerFreq',       CntrPar%F_WECornerFreq,         accINFILE(1), ErrVar, .FALSE., UnEc)
+        CALL ParseInput(FileLines,  'F_YawErr',             CntrPar%F_YawErr,               accINFILE(1), ErrVar, CntrPar%Y_ControlMode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'F_FlCornerFreq',       CntrPar%F_FlCornerFreq,     2,  accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'F_FlHighPassFreq',     CntrPar%F_FlHighPassFreq,       accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'F_FlpCornerFreq',      CntrPar%F_FlpCornerFreq,    2,  accINFILE(1), ErrVar, CntrPar%Flp_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !----------- BLADE PITCH CONTROLLER CONSTANTS -----------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ParseInput(UnControllerParameters,CurLine,'PC_GS_n',accINFILE(1),CntrPar%PC_GS_n,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'PC_GS_angles', CntrPar%PC_GS_angles, CntrPar%PC_GS_n, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'PC_GS_KP', CntrPar%PC_GS_KP, CntrPar%PC_GS_n, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'PC_GS_KI', CntrPar%PC_GS_KI, CntrPar%PC_GS_n, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'PC_GS_KD', CntrPar%PC_GS_KD, CntrPar%PC_GS_n, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'PC_GS_TF', CntrPar%PC_GS_TF, CntrPar%PC_GS_n, accINFILE(1), ErrVar )
-        CALL ParseInput(UnControllerParameters,CurLine,'PC_MaxPit',accINFILE(1),CntrPar%PC_MaxPit,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PC_MinPit',accINFILE(1),CntrPar%PC_MinPit,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PC_MaxRat',accINFILE(1),CntrPar%PC_MaxRat,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PC_MinRat',accINFILE(1),CntrPar%PC_MinRat,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PC_RefSpd',accINFILE(1),CntrPar%PC_RefSpd,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PC_FinePit',accINFILE(1),CntrPar%PC_FinePit,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PC_Switch',accINFILE(1),CntrPar%PC_Switch,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseInput(FileLines,  'PC_GS_n',      CntrPar%PC_GS_n,                        accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'PC_GS_angles', CntrPar%PC_GS_angles, CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'PC_GS_KP',     CntrPar%PC_GS_KP,     CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'PC_GS_KI',     CntrPar%PC_GS_KI,     CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'PC_GS_KD',     CntrPar%PC_GS_KD,     CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'PC_GS_TF',     CntrPar%PC_GS_TF,     CntrPar%PC_GS_n,  accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines,  'PC_MaxPit',    CntrPar%PC_MaxPit,                      accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines,  'PC_MinPit',    CntrPar%PC_MinPit,                      accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines,  'PC_MaxRat',    CntrPar%PC_MaxRat,                      accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines,  'PC_MinRat',    CntrPar%PC_MinRat,                      accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines,  'PC_RefSpd',    CntrPar%PC_RefSpd,                      accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines,  'PC_FinePit',   CntrPar%PC_FinePit,                     accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines,  'PC_Switch',    CntrPar%PC_Switch,                      accINFILE(1), ErrVar, CntrPar%PC_ControlMode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------------- IPC CONSTANTS -----------------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine) 
-        CALL ParseAry(UnControllerParameters, CurLine, 'IPC_Vramp', CntrPar%IPC_Vramp, 2, accINFILE(1), ErrVar )
-        CALL ParseInput(UnControllerParameters,CurLine,'IPC_SatMode',accINFILE(1),CntrPar%IPC_SatMode,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'IPC_IntSat',accINFILE(1),CntrPar%IPC_IntSat,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'IPC_KP', CntrPar%IPC_KP, 2, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'IPC_KI', CntrPar%IPC_KI, 2, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'IPC_aziOffset', CntrPar%IPC_aziOffset, 2, accINFILE(1), ErrVar )
-        CALL ParseInput(UnControllerParameters,CurLine,'IPC_CornerFreqAct',accINFILE(1),CntrPar%IPC_CornerFreqAct,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseAry(  FileLines,  'IPC_Vramp',        CntrPar%IPC_Vramp,          2,  accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines,  'IPC_SatMode',      CntrPar%IPC_SatMode,            accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines,  'IPC_IntSat',       CntrPar%IPC_IntSat,             accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'IPC_KP',           CntrPar%IPC_KP,             2,  accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'IPC_KI',           CntrPar%IPC_KI,             2,  accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'IPC_aziOffset',    CntrPar%IPC_aziOffset,      2,  accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines,  'IPC_CornerFreqAct',CntrPar%IPC_CornerFreqAct,      accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ VS TORQUE CONTROL CONSTANTS ----------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_GenEff',accINFILE(1),CntrPar%VS_GenEff,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_ArSatTq',accINFILE(1),CntrPar%VS_ArSatTq,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_MaxRat',accINFILE(1),CntrPar%VS_MaxRat,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_MaxTq',accINFILE(1),CntrPar%VS_MaxTq,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_MinTq',accINFILE(1),CntrPar%VS_MinTq,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_MinOMSpd',accINFILE(1),CntrPar%VS_MinOMSpd,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_Rgn2K',accINFILE(1),CntrPar%VS_Rgn2K,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_RtPwr',accINFILE(1),CntrPar%VS_RtPwr,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_RtTq',accINFILE(1),CntrPar%VS_RtTq,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_RefSpd',accINFILE(1),CntrPar%VS_RefSpd,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_n',accINFILE(1),CntrPar%VS_n,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'VS_KP', CntrPar%VS_KP, CntrPar%VS_n, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'VS_KI', CntrPar%VS_KI, CntrPar%VS_n, accINFILE(1), ErrVar )
-        CALL ParseInput(UnControllerParameters,CurLine,'VS_TSRopt',accINFILE(1),CntrPar%VS_TSRopt,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseInput(FileLines,  'VS_GenEff',    CntrPar%VS_GenEff,                  accINFILE(1), ErrVar, .FALSE., UnEc)
+        CALL ParseInput(FileLines,  'VS_ArSatTq',   CntrPar%VS_ArSatTq,                 accINFILE(1), ErrVar, CntrPar%VS_ControlMode > 1, UnEc)
+        CALL ParseInput(FileLines,  'VS_MaxRat',    CntrPar%VS_MaxRat,                  accINFILE(1), ErrVar, CntrPar%VS_ControlMode > 1, UnEc)
+        CALL ParseInput(FileLines,  'VS_MaxTq',     CntrPar%VS_MaxTq,                   accINFILE(1), ErrVar, .FALSE., UnEc)
+        CALL ParseInput(FileLines,  'VS_MinTq',     CntrPar%VS_MinTq,                   accINFILE(1), ErrVar, .FALSE., UnEc)
+        CALL ParseInput(FileLines,  'VS_MinOMSpd',  CntrPar%VS_MinOMSpd,                accINFILE(1), ErrVar)   ! Default 0 is fin, UnEce
+        CALL ParseInput(FileLines,  'VS_Rgn2K',     CntrPar%VS_Rgn2K,                   accINFILE(1), ErrVar, CntrPar%VS_ControlMode > 1, UnEc)
+        CALL ParseInput(FileLines,  'VS_RtPwr',     CntrPar%VS_RtPwr,                   accINFILE(1), ErrVar, .FALSE., UnEc)
+        CALL ParseInput(FileLines,  'VS_RtTq',      CntrPar%VS_RtTq,                    accINFILE(1), ErrVar, .FALSE., UnEc)
+        CALL ParseInput(FileLines,  'VS_RefSpd',    CntrPar%VS_RefSpd,                  accINFILE(1), ErrVar, .FALSE., UnEc)
+        CALL ParseInput(FileLines,  'VS_n',         CntrPar%VS_n,                       accINFILE(1), ErrVar, .FALSE., UnEc)
+        CALL ParseAry(  FileLines,  'VS_KP',        CntrPar%VS_KP,      CntrPar%VS_n,   accINFILE(1), ErrVar, .FALSE., UnEc)
+        CALL ParseAry(  FileLines,  'VS_KI',        CntrPar%VS_KI,      CntrPar%VS_n,   accINFILE(1), ErrVar, .FALSE., UnEc)
+        CALL ParseInput(FileLines,  'VS_TSRopt',    CntrPar%VS_TSRopt,                  accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 2, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------- Setpoint Smoother --------------------------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ParseInput(UnControllerParameters,CurLine,'SS_VSGain',accINFILE(1),CntrPar%SS_VSGain,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'SS_PCGain',accINFILE(1),CntrPar%SS_PCGain,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine) 
+        CALL ParseInput(FileLines,  'SS_VSGain',    CntrPar%SS_VSGain,  accINFILE(1), ErrVar, CntrPar%SS_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SS_PCGain',    CntrPar%SS_PCGain,  accINFILE(1), ErrVar, CntrPar%SS_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ WIND SPEED ESTIMATOR CONTANTS --------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ParseInput(UnControllerParameters,CurLine,'WE_BladeRadius',accINFILE(1),CntrPar%WE_BladeRadius,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'WE_CP_n',accINFILE(1),CntrPar%WE_CP_n,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'WE_CP', CntrPar%WE_CP, CntrPar%WE_CP_n, accINFILE(1), ErrVar, .FALSE. )
-        CALL ParseInput(UnControllerParameters,CurLine,'WE_Gamma',accINFILE(1),CntrPar%WE_Gamma,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'WE_GearboxRatio',accINFILE(1),CntrPar%WE_GearboxRatio,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'WE_Jtot',accINFILE(1),CntrPar%WE_Jtot,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'WE_RhoAir',accINFILE(1),CntrPar%WE_RhoAir,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PerfFileName',accINFILE(1),CntrPar%PerfFileName,ErrVar)        
-        CALL ParseAry(UnControllerParameters, CurLine, 'PerfTableSize', CntrPar%PerfTableSize, 2, accINFILE(1), ErrVar )
-        CALL ParseInput(UnControllerParameters,CurLine,'WE_FOPoles_N',accINFILE(1),CntrPar%WE_FOPoles_N,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'WE_FOPoles_v', CntrPar%WE_FOPoles_v, CntrPar%WE_FOPoles_N, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'WE_FOPoles', CntrPar%WE_FOPoles, CntrPar%WE_FOPoles_N, accINFILE(1), ErrVar )
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseInput(FileLines,  'WE_BladeRadius',   CntrPar%WE_BladeRadius,                         accINFILE(1), ErrVar, .FALSE., UnEc)
+        CALL ParseInput(FileLines,  'WE_Gamma',         CntrPar%WE_Gamma,                               accINFILE(1), ErrVar, CntrPar%WE_Mode .NE. 1, UnEc)
+        CALL ParseInput(FileLines,  'WE_GearboxRatio',  CntrPar%WE_GearboxRatio,                        accINFILE(1), ErrVar, .FALSE., UnEc)
+        CALL ParseInput(FileLines,  'WE_Jtot',          CntrPar%WE_Jtot,                                accINFILE(1), ErrVar, CntrPar%WE_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'WE_RhoAir',        CntrPar%WE_RhoAir,                              accINFILE(1), ErrVar, CntrPar%WE_Mode .NE. 2, UnEc)
+        CALL ParseInput(FileLines,  'PerfFileName',     CntrPar%PerfFileName,                           accINFILE(1), ErrVar, CntrPar%WE_Mode == 0, UnEc )
+        CALL ParseAry(  FileLines,  'PerfTableSize',    CntrPar%PerfTableSize,  2,                      accINFILE(1), ErrVar, CntrPar%WE_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'WE_FOPoles_N',     CntrPar%WE_FOPoles_N,                           accINFILE(1), ErrVar, CntrPar%WE_Mode .NE. 2, UnEc)
+        CALL ParseAry(FileLines,    'WE_FOPoles_v',     CntrPar%WE_FOPoles_v,   CntrPar%WE_FOPoles_N,   accINFILE(1), ErrVar, CntrPar%WE_Mode .NE. 2, UnEc)
+        CALL ParseAry(FileLines,    'WE_FOPoles',       CntrPar%WE_FOPoles,     CntrPar%WE_FOPoles_N,   accINFILE(1), ErrVar, CntrPar%WE_Mode .NE. 2, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
+
+        ! Retired WSE inputs:  not used anywhere in code
+        ! CALL ParseInput(FileLines,  'WE_CP_n',accINFILE(1),CntrPar%WE_CP_n,ErrVar, UnEc)
+        ! CALL ParseAry(  FileLines,  'WE_CP', CntrPar%WE_CP, CntrPar%WE_CP_n, accINFILE(1), ErrVar, .FALSE. , UnEc)
 
         !-------------- YAW CONTROLLER CONSTANTS -----------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_uSwitch',accINFILE(1),CntrPar%Y_uSwitch,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'Y_ErrThresh', CntrPar%Y_ErrThresh, 2, accINFILE(1), ErrVar )
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_Rate',accINFILE(1),CntrPar%Y_Rate,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_MErrSet',accINFILE(1),CntrPar%Y_MErrSet,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_IntSat',accINFILE(1),CntrPar%Y_IPC_IntSat,ErrVar)
-        CALL ParseInput(UnControllerParameters, CurLine,'Y_IPC_KP', accINFILE(1), CntrPar%Y_IPC_KP, ErrVar )
-        CALL ParseInput(UnControllerParameters, CurLine,'Y_IPC_KI', accINFILE(1), CntrPar%Y_IPC_KI, ErrVar )
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
+        CALL ParseInput(FileLines,  'Y_uSwitch',    CntrPar%Y_uSwitch,         accINFILE(1), ErrVar,    CntrPar%Y_ControlMode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'Y_ErrThresh',  CntrPar%Y_ErrThresh,    2, accINFILE(1), ErrVar,    CntrPar%Y_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines,  'Y_Rate',       CntrPar%Y_Rate,            accINFILE(1), ErrVar,    CntrPar%Y_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines,  'Y_MErrSet',    CntrPar%Y_MErrSet,         accINFILE(1), ErrVar,    CntrPar%Y_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines,  'Y_IPC_IntSat', CntrPar%Y_IPC_IntSat,      accINFILE(1), ErrVar,    CntrPar%Y_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines,  'Y_IPC_KP',     CntrPar%Y_IPC_KP,          accINFILE(1), ErrVar,    CntrPar%Y_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines,  'Y_IPC_KI',     CntrPar%Y_IPC_KI,          accINFILE(1), ErrVar,    CntrPar%Y_ControlMode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ FORE-AFT TOWER DAMPER CONSTANTS ------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters,CurLine,'FA_KI',accINFILE(1),CntrPar%FA_KI,ErrVar)
-        ! Don't check this name until we make an API change
-        CALL ParseInput(UnControllerParameters,CurLine,'FA_HPFCornerFreq',accINFILE(1),CntrPar%FA_HPFCornerFreq,ErrVar,.FALSE.)
-        CALL ParseInput(UnControllerParameters,CurLine,'FA_IntSat',accINFILE(1),CntrPar%FA_IntSat,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)      
+        CALL ParseInput(FileLines,  'FA_KI',            CntrPar%FA_KI,              accINFILE(1),   ErrVar, .NOT. ((CntrPar%TD_Mode > 0) .OR. (CntrPar%Y_ControlMode == 2)), UnEc)
+        CALL ParseInput(FileLines,  'FA_HPFCornerFreq', CntrPar%FA_HPFCornerFreq,   accINFILE(1),   ErrVar, .NOT. ((CntrPar%TD_Mode > 0) .OR. (CntrPar%Y_ControlMode == 2)), UnEc)
+        CALL ParseInput(FileLines,  'FA_IntSat',        CntrPar%FA_IntSat,          accINFILE(1),   ErrVar, .NOT. ((CntrPar%TD_Mode > 0) .OR. (CntrPar%Y_ControlMode == 2)), UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ PEAK SHAVING ------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters,CurLine,'PS_BldPitchMin_N',accINFILE(1),CntrPar%PS_BldPitchMin_N,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'PS_WindSpeeds', CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin_N, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'PS_BldPitchMin', CntrPar%PS_BldPitchMin, CntrPar%PS_BldPitchMin_N, accINFILE(1), ErrVar )
-        CALL ReadEmptyLine(UnControllerParameters,CurLine) 
+        CALL ParseInput(FileLines,  'PS_BldPitchMin_N', CntrPar%PS_BldPitchMin_N,                               accINFILE(1), ErrVar, CntrPar%PS_Mode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'PS_WindSpeeds',    CntrPar%PS_WindSpeeds,      CntrPar%PS_BldPitchMin_N,   accINFILE(1), ErrVar, CntrPar%PS_Mode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'PS_BldPitchMin',   CntrPar%PS_BldPitchMin,     CntrPar%PS_BldPitchMin_N,   accINFILE(1), ErrVar, CntrPar%PS_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ SHUTDOWN ------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters,CurLine,'SD_MaxPit',accINFILE(1),CntrPar%SD_MaxPit,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'SD_CornerFreq',accINFILE(1),CntrPar%SD_CornerFreq,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)      
+        CALL ParseInput(FileLines,  'SD_MaxPit',        CntrPar%SD_MaxPit,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_CornerFreq',    CntrPar%SD_CornerFreq,  accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ FLOATING ------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ParseInput(UnControllerParameters,CurLine,'Fl_Kp',accINFILE(1),CntrPar%Fl_Kp,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine) 
+        CALL ParseInput(FileLines,  'Fl_n',     CntrPar%Fl_n,                   accINFILE(1), ErrVar, .TRUE., UnEc)
+        IF (CntrPar%Fl_n == 0) CntrPar%Fl_n = 1   ! Default is 1
+        CALL ParseAry(FileLines,    'Fl_Kp',      CntrPar%Fl_Kp,  CntrPar%Fl_n,   accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
+        CALL ParseAry(FileLines,    'Fl_U',       CntrPar%Fl_U,  CntrPar%Fl_n,   accINFILE(1), ErrVar, CntrPar%Fl_n == 1, UnEc)  ! Allow default if only one Fl_Kp
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ Flaps ------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters,CurLine,'Flp_Angle',accINFILE(1),CntrPar%Flp_Angle,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Flp_Kp',accINFILE(1),CntrPar%Flp_Kp,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Flp_Ki',accINFILE(1),CntrPar%Flp_Ki,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Flp_MaxPit',accINFILE(1),CntrPar%Flp_MaxPit,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(FileLines, 'Flp_Angle',     CntrPar%Flp_Angle,      accINFILE(1), ErrVar,   CntrPar%Flp_Mode == 0, UnEc)
+        CALL ParseInput(FileLines, 'Flp_Kp',        CntrPar%Flp_Kp,         accINFILE(1), ErrVar,   CntrPar%Flp_Mode == 0, UnEc)
+        CALL ParseInput(FileLines, 'Flp_Ki',        CntrPar%Flp_Ki,         accINFILE(1), ErrVar,   CntrPar%Flp_Mode == 0, UnEc)
+        CALL ParseInput(FileLines, 'Flp_MaxPit',    CntrPar%Flp_MaxPit,     accINFILE(1), ErrVar,   CntrPar%Flp_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ Open loop input ------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters,CurLine,'OL_Filename',accINFILE(1),CntrPar%OL_Filename,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Ind_Breakpoint',accINFILE(1),CntrPar%Ind_Breakpoint,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Ind_BldPitch',accINFILE(1),CntrPar%Ind_BldPitch,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Ind_GenTq',accINFILE(1),CntrPar%Ind_GenTq,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Ind_YawRate',accINFILE(1),CntrPar%Ind_YawRate,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        ! Indices can be left 0 by default, checked later
+        CALL ParseInput(FileLines, 'OL_Filename',       CntrPar%OL_Filename,            accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0,   UnEc)
+        CALL ParseInput(FileLines, 'Ind_Breakpoint',    CntrPar%Ind_Breakpoint,         accINFILE(1),   ErrVar,                         UnEc=UnEc)
+        CALL ParseAry(  FileLines, 'Ind_BldPitch',      CntrPar%Ind_BldPitch,       3,  accINFILE(1),   ErrVar,                         UnEc=UnEc)
+        CALL ParseInput(FileLines, 'Ind_GenTq',         CntrPar%Ind_GenTq,              accINFILE(1),   ErrVar,                         UnEc=UnEc)
+        CALL ParseInput(FileLines, 'Ind_YawRate',       CntrPar%Ind_YawRate,            accINFILE(1),   ErrVar,                         UnEc=UnEc)
+        CALL ParseInput(FileLines, 'Ind_Azimuth',       CntrPar%Ind_Azimuth,            accINFILE(1),   ErrVar, CntrPar%OL_Mode .NE. 2, UnEc=UnEc)
+        CALL ParseAry(  FileLines, 'RP_Gains',          CntrPar%RP_Gains,           4,  accINFILE(1),   ErrVar, CntrPar%OL_Mode .NE. 2, UnEc=UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ Pitch Actuator Inputs ------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters,CurLine,'PA_CornerFreq',accINFILE(1),CntrPar%PA_CornerFreq,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'PA_Damping',accINFILE(1),CntrPar%PA_Damping,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)  
+        CALL ParseInput(FileLines, 'PA_CornerFreq',     CntrPar%PA_CornerFreq,  accINFILE(1),   ErrVar, CntrPar%PA_Mode == 0, UnEc)
+        CALL ParseInput(FileLines, 'PA_Damping',        CntrPar%PA_Damping,     accINFILE(1),   ErrVar, CntrPar%PA_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ Pitch Actuator Faults ------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseAry(UnControllerParameters, CurLine,'PF_Offsets', CntrPar%PF_Offsets, 3, accINFILE(1), ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        
+        CALL ParseAry(FileLines,    'PF_Offsets',   CntrPar%PF_Offsets,     3, accINFILE(1),    ErrVar, CntrPar%PF_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
+
+        !------------ AWC input ------------
+        CALL ParseInput(FileLines, 'AWC_NumModes',    CntrPar%AWC_NumModes,                           accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
+        CALL ParseAry(  FileLines, 'AWC_n',           CntrPar%AWC_n,          CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode /= 1, UnEc)
+        CALL ParseAry(  FileLines, 'AWC_harmonic',    CntrPar%AWC_harmonic,   CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode < 2,  UnEc)
+        CALL ParseAry(  FileLines, 'AWC_freq',        CntrPar%AWC_freq,       CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
+        CALL ParseAry(  FileLines, 'AWC_amp',         CntrPar%AWC_amp,        CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
+        CALL ParseAry(  FileLines, 'AWC_clockangle',  CntrPar%AWC_clockangle, CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
+
         !------------ External control interface ------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters,CurLine,'DLL_FileName',accINFILE(1),CntrPar%DLL_FileName,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'DLL_InFile',accINFILE(1),CntrPar%DLL_InFile,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'DLL_ProcName',accINFILE(1),CntrPar%DLL_ProcName,ErrVar)
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(FileLines, 'DLL_FileName',  CntrPar%DLL_FileName,   accINFILE(1), ErrVar,   CntrPar%Ext_Mode == 0, UnEc)
+        CALL ParseInput(FileLines, 'DLL_InFile',    CntrPar%DLL_InFile,     accINFILE(1), ErrVar,   CntrPar%Ext_Mode == 0, UnEc)
+        CALL ParseInput(FileLines, 'DLL_ProcName',  CntrPar%DLL_ProcName,   accINFILE(1), ErrVar,   CntrPar%Ext_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ ZeroMQ ------------
-        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
-        CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_CommAddress',accINFILE(1), CntrPar%ZMQ_CommAddress,ErrVar)
-		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_UpdatePeriod',accINFILE(1), CntrPar%ZMQ_UpdatePeriod,ErrVar)
+        CALL ParseInput(FileLines, 'ZMQ_CommAddress',   CntrPar%ZMQ_CommAddress,    accINFILE(1),   ErrVar,    CntrPar%ZMQ_Mode == 0, UnEc)
+        CALL ParseInput(FileLines, 'ZMQ_UpdatePeriod',  CntrPar%ZMQ_UpdatePeriod,   accINFILE(1),   ErrVar,    CntrPar%ZMQ_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
 
-        ! Fix Paths (add relative paths if called from another dir)
+        !------------- Cable Control ----- 
+        CALL ParseInput(FileLines,  'CC_Group_N',    CntrPar%CC_Group_N,                        accINFILE(1), ErrVar, CntrPar%CC_Mode == 0, UnEc)
+        CALL ParseAry( FileLines,   'CC_GroupIndex', CntrPar%CC_GroupIndex, CntrPar%CC_Group_N, accINFILE(1), ErrVar, CntrPar%CC_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'CC_ActTau',     CntrPar%CC_ActTau,                         accINFILE(1), ErrVar, CntrPar%CC_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
+
+        !------------- StC Control ----- 
+        CALL ParseInput(FileLines,  'StC_Group_N',      CntrPar%StC_Group_N,                            accINFILE(1), ErrVar, CntrPar%StC_Mode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'StC_GroupIndex',   CntrPar%StC_GroupIndex, CntrPar%StC_Group_N,    accINFILE(1), ErrVar, CntrPar%StC_Mode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
+
+        ! Open loop cable, structural control, needs number of groups
+        CALL ParseAry(  FileLines, 'Ind_CableControl',   CntrPar%Ind_CableControl,  CntrPar%CC_Group_N,     accINFILE(1),   ErrVar,  CntrPar%CC_Mode .NE. 2,    UnEc=UnEc)
+        CALL ParseAry(  FileLines, 'Ind_StructControl',  CntrPar%Ind_StructControl, CntrPar%StC_Group_N,    accINFILE(1),   ErrVar,  CntrPar%StC_Mode .NE. 2,   UnEc=UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
+
+        IF (UnEc > 0) CLOSE(UnEc)     ! Close echo file
+
+        !-------------------
+        !------------------- CALCULATED CONSTANTS -----------------------
+        !----------------------------------------------------------------
+
+        ! Fix defaults manually for now
+        IF (CntrPar%DT_Out == 0) THEN
+            CntrPar%DT_Out = LocalVar%DT
+        ENDIF
+
+        ! DT_Out
+        CntrPar%n_DT_Out = NINT(CntrPar%DT_Out / LocalVar%DT)
+
+
+        ! Fix Paths (add relative paths if called from another dir, UnEc)
         IF (PathIsRelative(CntrPar%PerfFileName)) CntrPar%PerfFileName = TRIM(PriPath)//TRIM(CntrPar%PerfFileName)
         IF (PathIsRelative(CntrPar%OL_Filename)) CntrPar%OL_Filename = TRIM(PriPath)//TRIM(CntrPar%OL_Filename)
         
+        ! Convert yaw rate to deg/s
+        CntrPar%Y_Rate = CntrPar%Y_Rate * R2D
+        
+
+        CntrPar%PC_RtTq99 = CntrPar%VS_RtTq*0.99
+        CntrPar%VS_MinOMTq = CntrPar%VS_Rgn2K*CntrPar%VS_MinOMSpd**2
+        CntrPar%VS_MaxOMTq = CntrPar%VS_Rgn2K*CntrPar%VS_RefSpd**2
+
         ! Read open loop input, if desired
-        IF (CntrPar%OL_Mode == 1) THEN
+        IF (CntrPar%OL_Mode > 0) THEN
             OL_String = ''      ! Display string
             OL_Count  = 1
-            IF (CntrPar%Ind_BldPitch > 0) THEN
-                OL_String   = TRIM(OL_String)//' BldPitch '
+            IF (CntrPar%Ind_BldPitch(1) > 0) THEN
+                OL_String   = TRIM(OL_String)//' BldPitch1 '
                 OL_Count    = OL_Count + 1
+            ENDIF
+
+            IF (CntrPar%Ind_BldPitch(2) > 0) THEN
+                OL_String   = TRIM(OL_String)//' BldPitch2 '
+                ! If there are duplicate indices, don't increment OL_Count
+                IF (.NOT. ((CntrPar%Ind_BldPitch(2) == CntrPar%Ind_BldPitch(1)) .OR. &
+                (CntrPar%Ind_BldPitch(2) == CntrPar%Ind_BldPitch(3)))) THEN
+                    OL_Count    = OL_Count + 1
+                ENDIF
+            ENDIF
+
+            IF (CntrPar%Ind_BldPitch(3) > 0) THEN
+                OL_String   = TRIM(OL_String)//' BldPitch3 '
+                ! If there are duplicate indices, don't increment OL_Count
+                IF (.NOT. ((CntrPar%Ind_BldPitch(3) == CntrPar%Ind_BldPitch(1)) .OR. &
+                (CntrPar%Ind_BldPitch(3) == CntrPar%Ind_BldPitch(2)))) THEN
+                    OL_Count    = OL_Count + 1
+                ENDIF
             ENDIF
 
             IF (CntrPar%Ind_GenTq > 0) THEN
                 OL_String   = TRIM(OL_String)//' GenTq '
-                OL_Count    = OL_Count + 1
+                OL_Count    = OL_Count + 1  ! Read channel still, so we don't have issues
             ENDIF
 
             IF (CntrPar%Ind_YawRate > 0) THEN
@@ -451,13 +598,57 @@ CONTAINS
                 OL_Count    = OL_Count + 1
             ENDIF
 
+            IF (CntrPar%Ind_Azimuth > 0) THEN
+                IF (CntrPar%OL_Mode == 2) THEN
+                    OL_String   = TRIM(OL_String)//' Azimuth '
+                    OL_Count    = OL_Count + 1
+                END IF
+            ENDIF
+
+            N_OL_Cables = 0
+            IF (ANY(CntrPar%Ind_CableControl > 0)) THEN
+                DO I = 1,SIZE(CntrPar%Ind_CableControl)
+                    IF (CntrPar%Ind_CableControl(I) > 0) THEN
+                        OL_String   = TRIM(OL_String)//' Cable'//TRIM(Int2LStr(I))//' '
+                        OL_Count    = OL_Count + 1
+                        N_OL_Cables = N_OL_Cables + 1
+                    ENDIF
+                ENDDO
+            ENDIF
+
+            N_OL_StCs = 0
+            IF (ANY(CntrPar%Ind_StructControl > 0)) THEN
+                DO I = 1,SIZE(CntrPar%Ind_StructControl)
+                    IF (CntrPar%Ind_StructControl(I) > 0) THEN
+                        OL_String   = TRIM(OL_String)//' StC'//TRIM(Int2LStr(I))//' '
+                        OL_Count    = OL_Count + 1
+                        N_OL_StCs   = N_OL_StCs + 1
+                    ENDIF
+                ENDDO
+            ENDIF
+
+
             PRINT *, 'ROSCO: Implementing open loop control for'//TRIM(OL_String)
-            CALL Read_OL_Input(CntrPar%OL_Filename,110_IntKi,OL_Count,CntrPar%OL_Channels, ErrVar)
+            IF (CntrPar%OL_Mode == 2) THEN
+                PRINT *, 'ROSCO: OL_Mode = 2 will change generator torque control for Azimuth tracking'
+            ENDIF
+
+            CALL GetNewUnit(UnOpenLoop, ErrVar)
+            CALL Read_OL_Input(CntrPar%OL_Filename,UnOpenLoop,OL_Count,CntrPar%OL_Channels, ErrVar)
 
             CntrPar%OL_Breakpoints = CntrPar%OL_Channels(:,CntrPar%Ind_Breakpoint)
 
-            IF (CntrPar%Ind_BldPitch > 0) THEN
-                CntrPar%OL_BldPitch = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch)
+            ! Set OL Inputs based on indices
+            IF (CntrPar%Ind_BldPitch(1) > 0) THEN
+                CntrPar%OL_BldPitch1 = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch(1))
+            ENDIF
+
+            IF (CntrPar%Ind_BldPitch(2) > 0) THEN
+                CntrPar%OL_BldPitch2 = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch(2))
+            ENDIF
+
+            IF (CntrPar%Ind_BldPitch(3) > 0) THEN
+                CntrPar%OL_BldPitch3 = CntrPar%OL_Channels(:,CntrPar%Ind_BldPitch(3))
             ENDIF
 
             IF (CntrPar%Ind_GenTq > 0) THEN
@@ -467,27 +658,39 @@ CONTAINS
             IF (CntrPar%Ind_YawRate > 0) THEN
                 CntrPar%OL_YawRate = CntrPar%OL_Channels(:,CntrPar%Ind_YawRate)
             ENDIF
+
+            IF (CntrPar%Ind_Azimuth > 0) THEN
+                CntrPar%OL_Azimuth = Unwrap(CntrPar%OL_Channels(:,CntrPar%Ind_Azimuth),ErrVar)
+            ENDIF
+            
+            IF (ANY(CntrPar%Ind_CableControl > 0)) THEN
+                ALLOCATE(CntrPar%OL_CableControl(N_OL_Cables,SIZE(CntrPar%OL_Channels,DIM=1)))
+                I_OL = 1
+                DO I = 1,SIZE(CntrPar%Ind_CableControl)
+                    IF (CntrPar%Ind_CableControl(I) > 0) THEN
+                        CntrPar%OL_CableControl(I_OL,:) = CntrPar%OL_Channels(:,CntrPar%Ind_CableControl(I))
+                        I_OL = I_OL + 1
+                    ENDIF
+                ENDDO
+            ENDIF
+
+            IF (ANY(CntrPar%Ind_StructControl > 0)) THEN
+                ALLOCATE(CntrPar%OL_StructControl(N_OL_StCs,SIZE(CntrPar%OL_Channels,DIM=1)))
+                I_OL = 1
+                DO I = 1,SIZE(CntrPar%Ind_StructControl)
+                    IF (CntrPar%Ind_StructControl(I) > 0) THEN
+                        CntrPar%OL_StructControl(I_OL,:) = CntrPar%OL_Channels(:,CntrPar%Ind_StructControl(I))
+                        I_OL = I_OL + 1
+                    ENDIF
+                ENDDO
+            ENDIF
+
         END IF
 
-        ! Convert yaw rate to deg/s
-        CntrPar%Y_Rate = CntrPar%Y_Rate * R2D
-
-        ! Debugging outputs (echo someday)
-        ! write(400,*) CntrPar%OL_YawRate
-
-        ! END OF INPUT FILE    
-
-        ! Close Input File
-        CLOSE(UnControllerParameters)
-
-        
-        !------------------- CALCULATED CONSTANTS -----------------------
-        CntrPar%PC_RtTq99 = CntrPar%VS_RtTq*0.99
-        CntrPar%VS_MinOMTq = CntrPar%VS_Rgn2K*CntrPar%VS_MinOMSpd**2
-        CntrPar%VS_MaxOMTq = CntrPar%VS_Rgn2K*CntrPar%VS_RefSpd**2
         
         !------------------- HOUSEKEEPING -----------------------
         CntrPar%PerfFileName = TRIM(CntrPar%PerfFileName)
+        
 
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN
@@ -571,14 +774,18 @@ CONTAINS
         IMPLICIT NONE
     
         ! Inputs
-        TYPE(ControlParameters),    INTENT(IN   )       :: CntrPar
-        TYPE(LocalVariables),       INTENT(IN   )       :: LocalVar
+        TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
         INTEGER(IntKi),                 INTENT(IN   )       :: size_avcMSG
+        INTEGER(IntKi)                                  :: Imode       ! Index used for looping through AWC modes
         REAL(ReKi),              INTENT(IN   )       :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
         
         CHARACTER(*), PARAMETER                         :: RoutineName = 'CheckInputs'
         ! Local
+
+        INTEGER(IntKi)                                  :: I
+        INTEGER(IntKi), ALLOCATABLE                     :: All_OL_Indices(:)
         
         !..............................................................................................................................
         ! Check validity of input parameters:
@@ -592,6 +799,20 @@ CONTAINS
             ErrVar%ErrMsg  = 'LoggingLevel must be 0 - 3.'
         ENDIF
 
+        IF (CntrPar%DT_Out .le. 0) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'DT_Out must be greater than 0'
+        ENDIF
+
+        IF (CntrPar%DT_Out < LocalVar%DT) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'DT_Out must be greater than or equal to DT in OpenFAST'
+        ENDIF
+
+        IF (ABS(CntrPar%DT_out - Localvar%DT * CntrPar%n_DT_Out) > 0.001_DbKi) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'DT_Out must be a factor of DT in OpenFAST'
+        ENDIF
         !------- CONTROLLER FLAGS -------------------------------------------------
 
         ! F_LPFType
@@ -604,12 +825,6 @@ CONTAINS
         IF ((CntrPar%F_NotchType < 0) .OR. (CntrPar%F_NotchType > 3)) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'F_NotchType must be 0, 1, 2, or 3.'
-        ENDIF
-
-        ! F_NotchType
-        IF ((CntrPar%F_NotchType < 0) .OR. (CntrPar%F_NotchType > 2)) THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'F_NotchType must be 0, 1, or 2.'
         ENDIF
 
         ! IPC_ControlMode
@@ -725,12 +940,6 @@ CONTAINS
             ErrVar%ErrMsg  = 'F_WECornerFreq must be greater than zero.'
         ENDIF
 
-        ! F_FlHighPassFreq
-        IF (CntrPar%F_FlHighPassFreq <= 0.0) THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'F_FlHighPassFreq must be greater than zero.'
-        ENDIF
-
         IF (CntrPar%Fl_Mode > 0) THEN
             ! F_FlCornerFreq(1)  (frequency)
             IF (CntrPar%F_FlCornerFreq(1) <= 0.0) THEN
@@ -742,6 +951,12 @@ CONTAINS
             IF (CntrPar%F_FlCornerFreq(2) <= 0.0) THEN
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg  = 'F_FlCornerFreq(2) must be greater than zero.'
+            ENDIF
+
+            ! F_FlHighPassFreq
+            IF (CntrPar%F_FlHighPassFreq <= 0.0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'F_FlHighPassFreq must be greater than zero.'
             ENDIF
         ENDIF
 
@@ -943,9 +1158,8 @@ CONTAINS
         ENDIF
 
         ! WE_FOPoles_v
-        IF (.NOT. NonDecreasing(CntrPar%WE_FOPoles_v)) THEN
+        IF (CntrPar%WE_Mode == 2 .AND. .NOT. NonDecreasing(CntrPar%WE_FOPoles_v)) THEN
             ErrVar%aviFAIL = -1
-            write(400,*) CntrPar%WE_FOPoles_v
             ErrVar%ErrMsg  = 'WE_FOPoles_v must be non-decreasing.'
         ENDIF
 
@@ -991,13 +1205,66 @@ CONTAINS
         ENDIF
 
         ! --- Open loop control ---
-        IF (((CntrPar%Ind_Breakpoint) < 0) .OR. &
-        (CntrPar%Ind_BldPitch < 0) .OR. &
-        (CntrPar%Ind_GenTq < 0) .OR. &
-        (CntrPar%Ind_YawRate < 0)) THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg = 'All open loop control indices must be greater than zero'
+        IF (CntrPar%OL_Mode > 0) THEN
+            ! Get all open loop indices
+            ALLOCATE(All_OL_Indices(5))   ! Will need to increase to 5 when IPC
+            All_OL_Indices =    (/CntrPar%Ind_BldPitch, & 
+                                CntrPar%Ind_GenTq, &
+                                CntrPar%Ind_YawRate/)
+
+            DO I = 1,SIZE(CntrPar%Ind_CableControl)
+                Call AddToList(All_OL_Indices, CntrPar%Ind_CableControl(I))           
+            ENDDO
+            
+            DO I = 1,SIZE(CntrPar%Ind_StructControl)
+                Call AddToList(All_OL_Indices, CntrPar%Ind_StructControl(I))             
+            ENDDO       
+
+            IF (ANY(All_OL_Indices < 0)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'All open loop control indices must be greater than zero'
+            ENDIF
+
+            IF (CntrPar%Ind_Breakpoint < 1) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'Ind_Breakpoint must be non-zero if OL_Mode is non-zero'
+            ENDIF
+
+            IF (ALL(All_OL_Indices < 1)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'At least one open loop input channel must be non-zero'
+            ENDIF
+
+            IF (CntrPar%OL_Mode == 2) THEN
+                IF ((CntrPar%Ind_BldPitch(1) == 0) .OR. &
+                (CntrPar%Ind_BldPitch(2) == 0) .OR. &
+                (CntrPar%Ind_BldPitch(3) == 0) .OR. &
+                (CntrPar%Ind_GenTq == 0) .OR. &
+                (CntrPar%Ind_Azimuth == 0)) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = 'If OL_Mode = 2, Ind_BldPitch, Ind_GenTq, and Ind_Azimuth must be greater than zero'
+                ENDIF
+            ENDIF
+
+            IF (ANY(CntrPar%Ind_CableControl > 0) .AND. CntrPar%CC_Mode .NE. 2) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'CC_Mode must be 2 if using open loop cable control via Ind_CableControl'
+            ENDIF
+
+            IF (ANY(CntrPar%Ind_StructControl > 0) .AND. CntrPar%StC_Mode .NE. 2) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'CC_Mode must be 2 if using open loop struct control via Ind_StructControl'
+            ENDIF
+
+
         ENDIF
+
+        ! ---- AWC vs. IPC
+        IF (CntrPar%AWC_Mode > 0 .AND. CntrPar%IPC_ControlMode > 0) THEN
+            PRINT *, "ROSCO WARNING: Individual pitch control and active wake control are both enabled. Performance may be compromised."
+        ENDIF
+
+
 
         ! --- Pitch Actuator ---
         IF (CntrPar%PA_Mode > 0) THEN
@@ -1013,6 +1280,88 @@ CONTAINS
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg = 'PA_Damping must be greater than 0'
             END IF
+        END IF
+
+        ! --- Active Wake Control ---
+        IF (CntrPar%AWC_Mode > 0) THEN
+            IF (CntrPar%AWC_NumModes < 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'AWC_NumModes must be a positive integer if AWC_Mode = 1'
+            END IF
+            DO Imode = 1,CntrPar%AWC_NumModes
+                IF (CntrPar%AWC_freq(Imode) < 0.0) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = 'AWC_freq cannot be less than 0'
+                END IF
+                IF (CntrPar%AWC_amp(Imode) < 0.0) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = 'AWC_amp cannot be less than 0'
+                END IF
+            END DO
+            IF (CntrPar%AWC_Mode == 1) THEN
+                DO Imode = 1,CntrPar%AWC_NumModes
+                    IF ((CntrPar%AWC_clockangle(Imode) > 360.0) .OR. (CntrPar%AWC_clockangle(Imode) < 0.0)) THEN
+                        ErrVar%aviFAIL = -1
+                        ErrVar%ErrMsg = 'AWC_clockangle must be between 0 and 360 in AWC_Mode = 1'
+                    END IF
+                END DO    
+            END IF
+
+            IF (CntrPar%AWC_Mode == 2) THEN
+                IF ((CntrPar%AWC_NumModes > 2) .OR. (CntrPar%AWC_NumModes < 1)) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = 'AWC_NumModes must be either 1 or 2 if AWC_Mode = 2'
+                END IF
+                DO Imode = 1,CntrPar%AWC_NumModes
+                    IF ((CntrPar%AWC_clockangle(Imode) > 360.0) .OR. (CntrPar%AWC_clockangle(Imode) < -360.0)) THEN
+                        ErrVar%aviFAIL = -1
+                        ErrVar%ErrMsg = 'AWC_clockangle must be between -360 and 360 in AWC_Mode = 2'
+                    END IF
+                    IF (CntrPar%AWC_harmonic(Imode) < 0) THEN
+                        ErrVar%aviFAIL = -1
+                        ErrVar%ErrMsg = 'AWC_harmonic must be a positive integer'
+                    END IF
+                END DO
+            END IF
+        END IF
+
+        IF ((CntrPar%CC_Mode < 0) .OR. (CntrPar%CC_Mode > 2)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg = 'CC_Mode must be 0 or 1'
+        END IF
+
+        IF (CntrPar%CC_Mode > 0) THEN
+            IF (CntrPar%CC_ActTau .LE. 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'CC_ActTau must be greater than 0.'
+            END IF
+
+            DO I = 1,CntrPar%CC_Group_N
+                IF (CntrPar%CC_GroupIndex(I) < 2601) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = 'CC_GroupIndices must be greater than 2601.'        !< Starting index for the cable control
+                END IF
+            END DO
+        END IF
+
+        IF (CntrPar%StC_Mode > 0) THEN
+            DO I = 1,CntrPar%StC_Group_N
+                IF (CntrPar%StC_GroupIndex(I) < 2801) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg = 'StC_GroupIndices must be greater than 2801.'        !< Starting index for the cable control
+                END IF
+            END DO
+        END IF
+
+        ! Check that open loop control active if using open loop cable/struct control
+        IF (CntrPar%CC_Mode == 2 .AND. CntrPar%OL_Mode .NE. 1) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg = 'OL_Mode must be 1 if using CC_Mode = 2 (open loop)'
+        END IF
+
+        IF (CntrPar%StC_Mode == 2 .AND. CntrPar%OL_Mode .NE. 1) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg = 'OL_Mode must be 1 if using StC_Mode = 2 (open loop)'
         END IF
             
 

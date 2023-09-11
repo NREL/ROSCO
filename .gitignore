@@ -81,6 +81,7 @@ Examples/*.p
 
 # Exclude testing results
 ROSCO_testing/results/
+ROSCO_testing/testing
 
 # Simulink/Matlab temp files
 *.slxc

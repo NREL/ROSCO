@@ -91,7 +91,6 @@ if __name__ == "__main__":
     rt_kwargs['wind_dir']   = os.path.join('/scratch/dzalkind/ROSCO_testing','wind','IEA-15_heavy')       # OpenFAST executable path
     rt_kwargs['Turbsim_exe']= 'turbsim'    # Turbsim executable path
     rt_kwargs['FAST_ver']   = 'OpenFAST'            # FAST version
-    rt_kwargs['dev_branch'] = True                  # dev branch of Openfast?
     rt_kwargs['debug_level']= 2                     # debug level. 0 - no outputs, 1 - minimal outputs, 2 - all outputs
     rt_kwargs['overwrite']  = False                 # overwite fast sims?
     rt_kwargs['cores']      = 36                     # number of cores if multiprocessing

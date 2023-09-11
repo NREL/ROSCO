@@ -54,7 +54,7 @@ def save_case_matrix(matrix_out, change_vars, dir_matrix):
         text_out.append(row_str)
 
     if not os.path.exists(dir_matrix):
-            os.makedirs(dir_matrix)
+        os.makedirs(dir_matrix)
     ofh = open(os.path.join(dir_matrix,'case_matrix.txt'),'w')
     for row in text_out:
         ofh.write(row)
@@ -155,10 +155,8 @@ def CaseGen_General(case_inputs, dir_matrix='', namebase='', save_matrix=True):
             for g in matrix_group_idx[j]:
                 row_out[g] = change_vals[g][val]
         matrix_out.append(row_out)
-    try:
-        matrix_out = np.asarray(matrix_out, dtype=str)
-    except:
-        matrix_out = np.asarray(matrix_out)
+
+    matrix_out = np.asarray(matrix_out, dtype=object)
     n_cases = np.shape(matrix_out)[0]
 
     # case naming

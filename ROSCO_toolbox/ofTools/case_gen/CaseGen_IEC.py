@@ -151,6 +151,9 @@ class CaseGen_IEC():
             iecwind_ex.setup()
             _, V_e50, V_e1, V_50, V_1   = iecwind_ex.EWM(0.)
 
+            if dlc == 1.4:
+                case_inputs_i[("AeroDyn15","AFAeroMod")]= {'vals':[1], 'group':0}
+
 
             if dlc == 5.1:
                 case_inputs_i[("ServoDyn","TPitManS1")]  = {'vals':[self.TStart], 'group':0}
@@ -187,7 +190,6 @@ class CaseGen_IEC():
                 case_inputs_i[("ElastoDyn","BlPitch2")] = {'vals':[90.], 'group':0}
                 case_inputs_i[("ElastoDyn","BlPitch3")] = {'vals':[90.], 'group':0}
                 case_inputs_i[("ServoDyn","PCMode")]    = {'vals':[0], 'group':0}
-                case_inputs_i[("AeroDyn15","AFAeroMod")]= {'vals':[1], 'group':0}
             elif dlc == 6.3:
                 self.dlc_inputs['U'][i] = [V_1]
                 self.dlc_inputs['Yaw'][i] = [-20.,20.]
@@ -198,11 +200,9 @@ class CaseGen_IEC():
                 case_inputs_i[("ElastoDyn","BlPitch2")] = {'vals':[90.], 'group':0}
                 case_inputs_i[("ElastoDyn","BlPitch3")] = {'vals':[90.], 'group':0}
                 case_inputs_i[("ServoDyn","PCMode")]    = {'vals':[0], 'group':0}
-                case_inputs_i[("AeroDyn15","AFAeroMod")]= {'vals':[1], 'group':0}
             else:
                 self.dlc_inputs['Yaw'][i] = [0.]
                 case_inputs_i[("ServoDyn","PCMode")]    = {'vals':[5], 'group':0}
-                case_inputs_i[("AeroDyn15","AFAeroMod")]= {'vals':[2], 'group':0}
                 case_inputs_i[("ElastoDyn","GenDOF")]   = {'vals':["True"], 'group':0}
 
 

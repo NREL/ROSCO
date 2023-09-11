@@ -12,7 +12,8 @@ if __name__=="__main__":
     map_rel = {
         'NREL5MW.yaml': 'NREL-5MW/DISCON.IN',
         'IEA15MW.yaml': 'IEA-15-240-RWT-UMaineSemi/DISCON-UMaineSemi.IN',
-        'BAR.yaml': 'BAR_10/BAR_10_DISCON.IN'
+        'BAR.yaml':     'BAR_10/BAR_10_DISCON.IN',
+        'NREL2p8.yaml': 'NREL_2p8_127/NREL-2p8-127_DISCON.IN',
     }
 
     # Directories

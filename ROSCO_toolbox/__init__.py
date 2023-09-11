@@ -2,5 +2,5 @@
 """Top-level package for ROSCO_toolbox Repo."""
 
 __author__ = """Nikhar J. Abbas and Daniel S. Zalkind"""
-__email__ = 'nikhar.abbas@nrel.gov'
-__version__ = '2.6.0'
+__email__ = 'daniel.zalkind@nrel.gov'
+__version__ = '2.8.0'

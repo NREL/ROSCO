@@ -54,7 +54,7 @@ def load_tuning_yaml(tuning_yaml):
     cp_filename = os.path.join(tune_case_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
     turbine.load_from_fast(path_params['FAST_InputFile'], \
         os.path.join(tune_case_dir,path_params['FAST_directory']), \
-        dev_branch=True,rot_source='txt',\
+        rot_source='txt',\
         txt_filename=cp_filename)
 
     return turbine, controller, cp_filename
@@ -106,20 +106,21 @@ def base_op_case():
     case_inputs[('ServoDyn', 'YCMode')] = {'vals': [5], 'group': 0}    
 
     # AeroDyn
-    case_inputs[("AeroDyn15", "WakeMod")] = {'vals': [1], 'group': 0}
-    case_inputs[("AeroDyn15", "AFAeroMod")] = {'vals': [2], 'group': 0}
-    case_inputs[("AeroDyn15", "TwrPotent")] = {'vals': [0], 'group': 0}
-    case_inputs[("AeroDyn15", "TwrShadow")] = {'vals': ['False'], 'group': 0}
-    case_inputs[("AeroDyn15", "TwrAero")] = {'vals': ['False'], 'group': 0}
-    case_inputs[("AeroDyn15", "SkewMod")] = {'vals': [1], 'group': 0}
-    case_inputs[("AeroDyn15", "TipLoss")] = {'vals': ['True'], 'group': 0}
-    case_inputs[("AeroDyn15", "HubLoss")] = {'vals': ['True'], 'group': 0}
-    case_inputs[("AeroDyn15", "TanInd")] = {'vals': ['True'], 'group': 0}
-    case_inputs[("AeroDyn15", "AIDrag")] = {'vals': ['True'], 'group': 0}
-    case_inputs[("AeroDyn15", "TIDrag")] = {'vals': ['True'], 'group': 0}
-    case_inputs[("AeroDyn15", "IndToler")] = {'vals': [1.e-5], 'group': 0}
-    case_inputs[("AeroDyn15", "MaxIter")] = {'vals': [5000], 'group': 0}
-    case_inputs[("AeroDyn15", "UseBlCm")] = {'vals': ['True'], 'group': 0}
+    if False:
+        case_inputs[("AeroDyn15", "WakeMod")] = {'vals': [1], 'group': 0}
+        case_inputs[("AeroDyn15", "AFAeroMod")] = {'vals': [2], 'group': 0}
+        case_inputs[("AeroDyn15", "TwrPotent")] = {'vals': [0], 'group': 0}
+        case_inputs[("AeroDyn15", "TwrShadow")] = {'vals': ['False'], 'group': 0}
+        case_inputs[("AeroDyn15", "TwrAero")] = {'vals': ['False'], 'group': 0}
+        case_inputs[("AeroDyn15", "SkewMod")] = {'vals': [1], 'group': 0}
+        case_inputs[("AeroDyn15", "TipLoss")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn15", "HubLoss")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn15", "TanInd")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn15", "AIDrag")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn15", "TIDrag")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn15", "IndToler")] = {'vals': [1.e-5], 'group': 0}
+        case_inputs[("AeroDyn15", "MaxIter")] = {'vals': [5000], 'group': 0}
+        case_inputs[("AeroDyn15", "UseBlCm")] = {'vals': ['True'], 'group': 0}
 
     return case_inputs
 
@@ -127,7 +128,7 @@ def power_curve(**wind_case_opts):
     # Constant wind speed, multiple wind speeds, define below
 
     # Runtime
-    T_max   = 400.
+    T_max   = wind_case_opts.get('TMax',400.)
 
     if 'U' in wind_case_opts:
         U = wind_case_opts['U']
@@ -155,25 +156,10 @@ def simp_step(**wind_case_opts):
     # Set up cases for FIW-JIP project
     # 3.x in controller tuning register
 
-    if 'T_Max' in wind_case_opts:
-        T_max = wind_case_opts['T_Max']
-    else: #default
-        T_max   = 300.
-
-    if 'U_start' in wind_case_opts:
-        U_start = wind_case_opts['U_start']
-    else: #default
-        U_start   = [16]
-
-    if 'U_end' in wind_case_opts:
-        U_end = wind_case_opts['U_end']
-    else: #default
-        U_end   = [17]
-
-    if 'T_step' in wind_case_opts:
-        T_step = wind_case_opts['T_step']
-    else: #default
-        T_step   = 150
+    TMax    = wind_case_opts.get('TMax',300.)
+    T_step  = wind_case_opts.get('TStep',150.)
+    U_start = wind_case_opts.get('U_start',[16.])
+    U_end   = wind_case_opts.get('U_end',[17.])
 
     # Wind directory, default is run_dir
     wind_case_opts['wind_dir'] = wind_case_opts.get('wind_dir',wind_case_opts['run_dir'])
@@ -182,7 +168,7 @@ def simp_step(**wind_case_opts):
 
     # Make Default step wind object
     hh_step = HH_StepFile()
-    hh_step.t_max = T_max
+    hh_step.t_max = TMax
     hh_step.t_step = T_step
     hh_step.wind_directory = wind_case_opts['wind_dir']
 
@@ -200,7 +186,7 @@ def simp_step(**wind_case_opts):
 
     case_inputs = base_op_case()
     # simulation settings
-    case_inputs[("Fst","TMax")] = {'vals':[T_max], 'group':0}
+    case_inputs[("Fst","TMax")] = {'vals':[TMax], 'group':0}
     # case_inputs[("Fst","DT")]        = {'vals':[1/80], 'group':0}
     
     # wind inflow
@@ -344,25 +330,66 @@ def user_hh(**wind_case_opts):
     '''
      Uniform, hub-height wind file
      Expected inputs:
-        TMax            TODO: someday make all TMaxs TMax
-        wind_inputs (list of string wind inputs filenames)
+        TMax            (float or array) of simulation TMax
+        wind_filenames (list of string wind inputs filenames)
     '''
 
-    if 'TMax' in wind_case_opts:
-        TMax = wind_case_opts['TMax']
-    else:
-        TMax = 720
+    # Default is 720 for all cases
+    TMax = wind_case_opts.get('TMax', 720)
 
     if 'wind_filenames' not in wind_case_opts:
-        raise Exception('Define wind_filenames when using turb_bts case generator')
+        raise Exception('Define wind_filenames when using user_hh case generator')
+
+    # Make into array
+    if not hasattr(TMax,'__len__'):
+        TMax = len(wind_case_opts['wind_filenames']) * [TMax]
+
+
+
 
     # wind inflow
     case_inputs = base_op_case()
-    case_inputs[("Fst","TMax")] = {'vals':[TMax], 'group':0}
+    case_inputs[("Fst","TMax")] = {'vals':TMax, 'group':1}
     case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
     case_inputs[("InflowWind","Filename_Uni")] = {'vals':wind_case_opts['wind_filenames'], 'group':1}
 
     return case_inputs
+
+def ramp(**wind_case_opts):
+    U_start     = wind_case_opts.get('U_start',8.)
+    U_end       = wind_case_opts.get('U_end',15.)
+    t_start     = wind_case_opts.get('t_start',100.)
+    t_end       = wind_case_opts.get('t_end',400.)
+    vert_shear  = wind_case_opts.get('vert_shear',.2) 
+    both_dir    = wind_case_opts.get('both_dir',False)  # ramp up and down
+
+    # Make Default step wind object
+    hh_wind = HH_WindFile()
+    hh_wind.t_max = t_end
+    hh_wind.filename = os.path.join(wind_case_opts['run_dir'],'ramp.hh')
+
+    # Step Wind Setup
+    if both_dir:
+        hh_wind.time = [0, t_start, (t_start + t_end) / 2, t_end]
+        hh_wind.wind_speed = [U_start, U_start, U_end, U_start]
+    else:
+        hh_wind.time = [0, t_start, t_end]
+        hh_wind.wind_speed = [U_start, U_start, U_end]
+
+    hh_wind.vert_shear = [vert_shear] * len(hh_wind.time)
+
+    hh_wind.resample()
+    hh_wind.write()
+
+    case_inputs = base_op_case()
+    case_inputs[("Fst","TMax")] = {'vals':[t_end], 'group':0}
+    case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
+    case_inputs[("InflowWind","Filename_Uni")] = {'vals':[hh_wind.filename], 'group':0}
+
+    return case_inputs
+
+
+
     
 ##############################################################################################
 #
@@ -395,7 +422,7 @@ def sweep_rated_torque(start_group, **control_sweep_opts):
         cp_filename = os.path.join(tune_case_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
         turbine.load_from_fast(path_params['FAST_InputFile'], \
             os.path.join(tune_case_dir,path_params['FAST_directory']), \
-            dev_branch=True,rot_source='txt',\
+            rot_source='txt',\
             txt_filename=cp_filename)
 
         controller.tune_controller(turbine)
@@ -432,9 +459,9 @@ def sweep_pitch_act(start_group, **control_sweep_opts):
 def sweep_ipc_gains(start_group, **control_sweep_opts):
     case_inputs_control = {}
 
-    kis = np.linspace(0,1,6).tolist()
+    kis = np.linspace(0,1,8).tolist()
     # kis = [0.,0.6,1.2,1.8,2.4,3.]
-    KIs = [[ki * 6e-9,0.] for ki in kis]
+    KIs = [[ki * 12e-9,0.] for ki in kis]
     case_inputs_control[('DISCON_in','IPC_ControlMode')] = {'vals': [1], 'group': 0}
     # case_inputs_control[('DISCON_in','IPC_KI')] = {'vals': [[0.,0.],[1e-8,0.]], 'group': start_group}
     case_inputs_control[('DISCON_in','IPC_KI')] = {'vals': KIs, 'group': start_group}
@@ -479,7 +506,7 @@ def sweep_ps_percent(start_group, **control_sweep_opts):
 
         # make default controller, turbine objects for ROSCO_toolbox
         turbine             = ROSCO_turbine.Turbine(turbine_params)
-        turbine.load_from_fast( path_params['FAST_InputFile'],path_params['FAST_directory'], dev_branch=True)
+        turbine.load_from_fast( path_params['FAST_InputFile'],path_params['FAST_directory'])
 
         controller          = ROSCO_controller.Controller(controller_params)
 
@@ -523,7 +550,7 @@ def test_pitch_offset(start_group, **control_sweep_opts):
 
 #     # make default controller, turbine objects for ROSCO_toolbox
 #     turbine             = ROSCO_turbine.Turbine(turbine_params)
-#     turbine.load_from_fast( path_params['FAST_InputFile'],path_params['FAST_directory'], dev_branch=True)
+#     turbine.load_from_fast( path_params['FAST_InputFile'],path_params['FAST_directory'])
 
 #     controller          = ROSCO_controller.Controller(controller_params)
 
