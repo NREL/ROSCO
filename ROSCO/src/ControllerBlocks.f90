@@ -46,36 +46,40 @@ CONTAINS
 
         LocalVar%PC_SpdErr = PC_RefSpd - LocalVar%GenSpeedF            ! Speed error
         LocalVar%PC_PwrErr = CntrPar%VS_RtPwr - LocalVar%VS_GenPwr             ! Power error
-        
+                
         ! ----- Torque controller reference errors -----
         ! Define VS reference generator speed [rad/s]
-        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
-            VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
-            VS_RefSpd = saturate(VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
+        IF (CntrPar%VS_ControlMode == 2) THEN
+            LocalVar%VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
+        ELSEIF (CntrPar%VS_ControlMode == 3) THEN
+            LocalVar%VS_GenPwrF = LPFilter(LocalVar%VS_GenPwr, LocalVar%DT,CntrPar%VS_PwrFiltF, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
+            LocalVar%VS_RefSpd = (LocalVar%VS_GenPwrF/CntrPar%VS_Rgn2K)**(1./3.) ! Genspeed reference that doesnt depend on wind speed estimate (https://doi.org/10.2172/1259805)
         ELSE
-            VS_RefSpd = CntrPar%VS_RefSpd
+            LocalVar%VS_RefSpd = CntrPar%VS_RefSpd
         ENDIF 
+
+        LocalVar%VS_RefSpd = saturate(LocalVar%VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
         
         ! Implement setpoint smoothing
         IF (LocalVar%SS_DelOmegaF > 0) THEN
-            VS_RefSpd = VS_RefSpd - LocalVar%SS_DelOmegaF
+            LocalVar%VS_RefSpd = LocalVar%VS_RefSpd - LocalVar%SS_DelOmegaF
         ENDIF
 
         ! Force zero torque in shutdown mode
         IF (LocalVar%SD) THEN
-            VS_RefSpd = CntrPar%VS_MinOMSpd
+            LocalVar%VS_RefSpd = CntrPar%VS_MinOMSpd
         ENDIF
 
         ! Force minimum rotor speed
-        VS_RefSpd = max(VS_RefSpd, CntrPar%VS_MinOmSpd)
+        LocalVar%VS_RefSpd = max(LocalVar%VS_RefSpd, CntrPar%VS_MinOmSpd)
 
         ! TSR-tracking reference error
         IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
-            LocalVar%VS_SpdErr = VS_RefSpd - LocalVar%GenSpeedF
+            LocalVar%VS_SpdErr = LocalVar%VS_RefSpd - LocalVar%GenSpeedF
         ENDIF
 
         ! Define transition region setpoint errors
-        LocalVar%VS_SpdErrAr = VS_RefSpd - LocalVar%GenSpeedF               ! Current speed error - Region 2.5 PI-control (Above Rated)
+        LocalVar%VS_SpdErrAr = LocalVar%VS_RefSpd - LocalVar%GenSpeedF               ! Current speed error - Region 2.5 PI-control (Above Rated)
         LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd - LocalVar%GenSpeedF     ! Current speed error - Region 1.5 PI-control (Below Rated)
         
         ! Region 3 minimum pitch angle for state machine
@@ -107,7 +111,7 @@ CONTAINS
         IF (LocalVar%iStatus == 0) THEN ! .TRUE. if we're on the first call to the DLL
 
             IF (LocalVar%PitCom(1) >= LocalVar%VS_Rgn3Pitch) THEN ! We are in region 3
-                IF (CntrPar%VS_ControlMode == 1) THEN ! Constant power tracking
+                IF (CntrPar%VS_ConstPower == 1) THEN ! Constant power tracking
                     LocalVar%VS_State = 5
                     LocalVar%PC_State = 1
                 ELSE ! Constant torque tracking
@@ -131,7 +135,7 @@ CONTAINS
             ! --- Torque control state machine ---
             IF (LocalVar%PC_PitComT >= LocalVar%VS_Rgn3Pitch) THEN       
 
-                IF (CntrPar%VS_ControlMode == 1) THEN                   ! Region 3
+                IF (CntrPar%VS_ConstPower == 1) THEN                   ! Region 3
                     LocalVar%VS_State = 5 ! Constant power tracking
                 ELSE 
                     LocalVar%VS_State = 4 ! Constant torque tracking
