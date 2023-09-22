@@ -95,8 +95,8 @@
 
 !------- POWER REFERENCE TRACKING --------------------------------------
 2                   ! PRC_n			    -  Number of elements in PRC_WindSpeeds and PRC_RotorSpeeds array
-3.000  25.000                ! PRC_WindSpeeds	- Array of wind speeds used in rotor speed vs. wind speed lookup table [m/s].
-0.792  0.792                ! PRC_RotorSpeeds	- Array of rotor speeds corresponding to PRC_WindSpeeds [rad/s].
+3.0000 25.0000      ! PRC_WindSpeeds   - Array of wind speeds used in rotor speed vs. wind speed lookup table
+0.7917 0.7917      ! PRC_RotorSpeeds   - Array of rotor speeds corresponding to PRC_WindSpeeds
 
 !------- WIND SPEED ESTIMATOR ---------------------------------------------
 63.000              ! WE_BladeRadius	- Blade length (distance from hub center to blade tip), [m]
