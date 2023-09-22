@@ -23,6 +23,8 @@ Set reference rotor speed as a function of wind speed (estimate in ROSCO)
 
 '''
 
+FULL_TEST = False
+
 
 #directories
 this_dir            = os.path.dirname(os.path.abspath(__file__))
@@ -74,12 +76,23 @@ def main():
     r = run_FAST_ROSCO()
     r.tuning_yaml   = parameter_filename
     r.wind_case_fcn = cl.ramp  # single step wind input
-    r.wind_case_opts    = {
-        'U_start': 5,  # from 10 to 15 m/s
-        'U_end': 35,
-        't_start': 100,
-        't_end': 2500,
-        }
+    
+    if FULL_TEST:
+        # Full test
+        r.wind_case_opts    = {
+            'U_start': 5,  # from 10 to 15 m/s
+            'U_end': 35,
+            't_start': 100,
+            't_end': 2500,
+            }
+    else:
+        r.wind_case_opts    = {
+            'U_start': 25,  # from 10 to 15 m/s
+            'U_end': 27,
+            't_start': 50,
+            't_end': 100,
+            }
+    # Short test for CI
     r.save_dir      = run_dir
     r.rosco_dir     = rosco_dir
     r.controller_params  = {
