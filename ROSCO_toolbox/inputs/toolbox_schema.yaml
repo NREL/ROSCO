@@ -90,6 +90,12 @@ properties:
                 unit: none
                 default: 0
                 minimum: 0
+            reynolds_ref:
+                type: number
+                description: Reynolds number near rated speeds, used to interpolate airfoils, if provided
+                unit: none
+                default: 0
+                minimum: 0
 
             
     controller_params:
@@ -124,7 +130,13 @@ properties:
                 minimum: 0
                 maximum: 3
                 default: 2
-                description: Generator torque control mode in above rated conditions (0- constant torque, 1- constant power, 2- TSR tracking PI control with constant torque, 3- TSR tracking with constant power)
+                description: Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking)
+            VS_ConstPower:     
+                type: number
+                minimum: 0
+                maximum: 1
+                default: 0
+                description: Do constant power torque control, where above rated torque varies, 0 for constant torque
             PC_ControlMode:     
                 type: number
                 minimum: 0
@@ -203,6 +215,12 @@ properties:
                 maximum: 1
                 default: 0
                 description: Pitch fault mode {0 - not used, 1 - constant offset on one or more blades}
+            OL_Mode:           
+                type: number
+                minimum: 0
+                maximum: 2
+                default: 0
+                description: Open loop control mode {0- no open loop control, 1- open loop control}
             AWC_Mode:
                 type: number
                 minimum: 0
@@ -400,6 +418,11 @@ properties:
                     minimum: 0.0
                 default: [0.0, 0.0]
                 unit: m/s
+            rgn2k_factor:
+                type: number
+                description: Factor on VS_Rgn2K to increase/decrease optimal torque control gain, default is 1.  Sometimes environmental conditions or differences in BEM solvers necessitate this change.
+                default: 1
+                minimum: 0
 
             filter_params:
                 type: object
@@ -458,22 +481,44 @@ properties:
                         description: Filename of open loop input that ROSCO reads
                         type: string
                         default: unused
-                    OL_Ind_Breakpoint:
+                    Ind_Breakpoint:
                         description: Index (column, 1-indexed) of breakpoint (time) in open loop index
                         type: number
                         default: 1
-                    OL_Ind_BldPitch:
-                        description: Index (column, 1-indexed) of breakpoint (time) in open loop index
+                        minimum: 0
+                    Ind_BldPitch:
+                        description: Indices (columns, 1-indexed) of pitch (1,2,3) inputs in open loop input
+                        type: array
+                        items:
+                            type: number
+                            minimum: 0
+                        default: [0, 0, 0]
+                    Ind_GenTq:
+                        description: Index (column, 1-indexed) of generator torque in open loop input
                         type: number
                         default: 0
-                    OL_Ind_GenTq:
-                        description: Index (column, 1-indexed) of breakpoint (time) in open loop index
+                        minimum: 0
+                    Ind_YawRate:
+                        description: Index (column, 1-indexed) of nacelle yaw in open loop input
                         type: number
                         default: 0
-                    OL_Ind_YawRate:
-                        description: Index (column, 1-indexed) of breakpoint (time) in open loop index
+                        minimum: 0
+                    Ind_Azimuth:
                         type: number
                         default: 0
+                        description: The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
+                    Ind_CableControl:
+                        type: array
+                        items:
+                            type: number
+                        description: The column in OL_Filename that contains the cable control inputs in m
+                        # default: [0] # No default because it's defined in controller and DISCON_Dict
+                    Ind_StructControl:
+                        type: array
+                        items:
+                            type: number
+                        description: The column in OL_Filename that contains the structural control inputs in various units
+                        # default: [0]  # No default because it's defined in controller and DISCON_Dict
             PA_CornerFreq:
                 type: number
                 description: Pitch actuator natural frequency [rad/s]
@@ -488,7 +533,7 @@ properties:
 
             DISCON:
                 type: object
-                description: These are pass-through parameters for the DISCON.IN file.  Use with caution.
+                description: These are pass-through parameters for the DISCON.IN file.  Use with caution. Do not set defaults in schema.
                 default: {}
                 properties:
                     LoggingLevel:
@@ -498,18 +543,29 @@ properties:
                         type: number
                         description: 0 - no Echo, 1 - Echo input data to <RootName>.echo
                         default: 0
+                    DT_Out:
+                        type: number
+                        description: Time step to output .dbg* files, or 0 to match sampling period of OpenFAST
+                        default: 0
                     F_LPFType:
                         type: number
                         description: 1- first-order low-pass filter, 2- second-order low-pass filter (currently filters generator speed and pitch control signals
+                    VS_ControlMode:     
+                        type: number
+                        minimum: 0
+                        maximum: 3
+                        description: Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking)
+                    VS_ConstPower:     
+                        type: number
+                        minimum: 0
+                        maximum: 1
+                        description: Do constant power torque control, where above rated torque varies
                     F_NotchType:
                         type: number
                         description: Notch on the measured generator speed and/or tower fore-aft motion (for floating) (0- disable, 1- generator speed, 2- tower-top fore-aft motion, 3- generator speed and tower-top fore-aft motion)
                     IPC_ControlMode:
                         type: number
                         description: Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) (0- off, 1- 1P reductions, 2- 1P+2P reductions)
-                    VS_ControlMode:
-                        type: number
-                        description: Generator torque control mode in above rated conditions (0- constant torque, 1- constant power, 2- TSR tracking PI control with constant torque, 3- TSR tracking PI control with constant power)
                     PC_ControlMode:
                         type: number
                         description: Blade pitch control mode (0- No pitch, fix to fine pitch, 1- active PI blade pitch control)
@@ -534,6 +590,9 @@ properties:
                     Flp_Mode:
                         type: number
                         description: Flap control mode (0- no flap control, 1- steady state flap angle, 2- Proportional flap control)
+                    OL_Mode:
+                        type: number
+                        description: Open loop control mode (0 - no open-loop control, 1 - direct open loop control, 2 - rotor position control)
                     F_LPFCornerFreq:
                         type: number
                         description: Corner frequency (-3dB point) in the low-pass filters, 
@@ -541,15 +600,41 @@ properties:
                     F_LPFDamping:
                         type: number
                         description: Damping coefficient (used only when F_FilterType = 2 [-]
-                    F_NotchCornerFreq:
+                    F_NumNotchFilts:
                         type: number
-                        description: Natural frequency of the notch filter, 
-                        units: rad/s
-                    F_NotchBetaNumDen:
-                        type: array
+                        description: Number of notch filters placed on sensors
+                    F_NotchFreqs:
+                        type: [array,number]
                         items:
                             type: number
-                        description: Two notch damping values (numerator and denominator, resp) - determines the width and depth of the notch, [-]
+                        description: Natural frequency of the notch filters. Array with length F_NumNotchFilts
+                        units: rad/s
+                    F_NotchBetaNum:
+                        type: [array, number]
+                        items:
+                            type: number
+                        description: Damping value of numerator (determines the width of notch). Array with length F_NumNotchFilts, [-]
+                    F_NotchBetaDen:
+                        type: [array, number]
+                        items:
+                            type: number
+                        description: Damping value of denominator (determines the depth of notch). Array with length F_NumNotchFilts, [-]
+                    F_GenSpdNotch_N:
+                        type: number
+                        description: Number of notch filters on generator speed
+                    F_TwrTopNotch_N:
+                        type: number
+                        description: Number of notch filters on tower top acceleration signal
+                    F_GenSpdNotch_Ind:
+                        type: [array, number]
+                        items:
+                            type: number                        
+                        description: Indices of notch filters on generator speed
+                    F_TwrTopNotch_Ind:
+                        type: [array, number]
+                        items:
+                            type: number                        
+                        description: Indices of notch filters on tower top acceleration signal
                     F_SSCornerFreq:
                         type: number
                         description: Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother, 
@@ -685,7 +770,7 @@ properties:
                         units: rad/s
                     VS_Rgn2K:
                         type: number
-                        description: Generator torque constant in Region 2 (HSS side)
+                        description: Generator torque constant in Region 2 (HSS side). Only used in VS_ControlMode = 1,3
                         units: Nm/(rad/s)^2
                     VS_RtPwr:
                         type: number
@@ -711,8 +796,13 @@ properties:
                         units: s
                     VS_TSRopt:
                         type: number
-                        description: Power-maximizing region 2 tip-speed-ratio 
+                        description: Power-maximizing region 2 tip-speed-ratio. Only used in VS_ControlMode = 2.
                         units: rad
+                    VS_PwrFiltF:
+                        type: number
+                        description: Low pass filter on power used to determine generator speed set point.  Only used in VS_ControlMode = 3.
+                        units: rad
+                        default: 0.314
                     SS_VSGain:
                         type: number
                         description: Variable speed torque controller setpoint smoother gain
@@ -894,7 +984,7 @@ properties:
                         description: Input file with open loop timeseries (absolute path or relative to this file)
                     Ind_Breakpoint:
                         type: number
-                        description: The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)
+                        description: The column in OL_Filename that contains the breakpoint (time if OL_Mode > 0)
                     Ind_BldPitch:
                         type: number
                         description: The column in OL_Filename that contains the blade pitch input in rad
@@ -904,6 +994,15 @@ properties:
                     Ind_YawRate:
                         type: number
                         description: The column in OL_Filename that contains the generator torque in Nm
+                    Ind_Azimuth:
+                        type: number
+                        description: The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
+                    RP_Gains:
+                        type: array
+                        description: PID gains and Tf of derivative for rotor position control (used if OL_Mode = 2)
+                        default: [0,0,0,0]
+                        items:
+                            type: number
                     Ind_CableControl:
                         type: array
                         items:

@@ -10,12 +10,19 @@ IMPLICIT NONE
 TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: LoggingLevel                ! 0 - write no debug files, 1 - write standard output .dbg-file, 2 - write standard output .dbg-file and complete avrSWAP-array .dbg2-file
     INTEGER(IntKi)                :: Echo                        ! 0 - no Echo, 1 - Echo input data to <RootName>.echo
+    REAL(DbKi)                    :: DT_Out                      ! Output time step
+    INTEGER(IntKi)                :: n_DT_Out                    ! output every this many steps
     INTEGER(IntKi)                :: F_LPFType                   ! Low pass filter on the rotor and generator speed {1 - first-order low-pass filter, 2 - second-order low-pass filter}, [rad/s]
-    INTEGER(IntKi)                :: F_NotchType                 ! Notch on the measured generator speed {0 - disable, 1 - enable}
     REAL(DbKi)                    :: F_LPFCornerFreq             ! Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
     REAL(DbKi)                    :: F_LPFDamping                ! Damping coefficient [used only when F_FilterType = 2]
-    REAL(DbKi)                    :: F_NotchCornerFreq           ! Natural frequency of the notch filter, [rad/s]
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_NotchBetaNumDen           ! These two notch damping values (numerator and denominator) determines the width and depth of the notch
+    INTEGER(IntKi)                :: F_NumNotchFilts             ! Number of notch filters
+    INTEGER(IntKi)                :: F_GenSpdNotch_N             ! Number of gen speed notch filters
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: F_GenSpdNotch_Ind           ! Indices of gen speed notch filters
+    INTEGER(IntKi)                :: F_TwrTopNotch_N             ! Number of tower top notch filters
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: F_TwrTopNotch_Ind           ! Indices of tower top notch filters
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_NotchFreqs                ! Natural frequencies of notch filters, [rad/s]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_NotchBetaNum              ! Notch Filter Numerator damping (determines width)
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_NotchBetaDen              ! Notch Filter Numerator damping (determines depth?)
     REAL(DbKi)                    :: F_SSCornerFreq              ! Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother [rad/s]
     REAL(DbKi)                    :: F_WECornerFreq              ! Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_FlCornerFreq              ! Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s].
@@ -48,7 +55,8 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: PC_RefSpd                   ! Desired (reference) HSS speed for pitch controller, [rad/s].
     REAL(DbKi)                    :: PC_FinePit                  ! Record 5 - Below-rated pitch angle set-point (deg) [used only with Bladed Interface]
     REAL(DbKi)                    :: PC_Switch                   ! Angle above lowest minimum pitch angle for switch [rad]
-    INTEGER(IntKi)                :: VS_ControlMode              ! Generator torque control mode in above rated conditions {0 - constant torque, 1 - constant power, 2 - TSR Tracking, 3 - TSR Tracking w/ const power}
+    INTEGER(IntKi)                :: VS_ControlMode              ! Generator torque control mode in above rated conditions {0 - no torque control, 1 - komega^2 with PI trans, 2 - WSE TSR Tracking, 3 - Power TSR Tracking}
+    INTEGER(IntKi)                :: VS_ConstPower               ! Constant power torque control
     REAL(DbKi)                    :: VS_GenEff                   ! Generator efficiency mechanical power -> electrical power [-]
     REAL(DbKi)                    :: VS_ArSatTq                  ! Above rated generator torque PI control saturation, [Nm] -- 212900
     REAL(DbKi)                    :: VS_MaxRat                   ! Maximum torque rate (in absolute value) in torque controller, [Nm/s].
@@ -63,6 +71,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: VS_KP                       ! Proportional gain for generator PI torque controller, used in the transitional 2.5 region
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: VS_KI                       ! Integral gain for generator PI torque controller, used in the transitional 2.5 region
     REAL(DbKi)                    :: VS_TSRopt                   ! Power-maximizing region 2 tip-speed ratio [rad]
+    REAL(DbKi)                    :: VS_PwrFiltF                 ! Cut-off frequency of filter on generator power for power-based tsr tracking control
     INTEGER(IntKi)                :: SS_Mode                     ! Setpoint Smoother mode {0 - no setpoint smoothing, 1 - introduce setpoint smoothing}
     REAL(DbKi)                    :: SS_VSGain                   ! Variable speed torque controller setpoint smoother gain, [-].
     REAL(DbKi)                    :: SS_PCGain                   ! Collective pitch controller setpoint smoother gain, [-].
@@ -110,17 +119,22 @@ TYPE, PUBLIC :: ControlParameters
     CHARACTER(1024)               :: OL_Filename                 ! Input file with open loop timeseries
     INTEGER(IntKi)                :: OL_Mode                     ! Open loop control mode {0 - no open loop control, 1 - open loop control vs. time, 2 - open loop control vs. wind speed}
     INTEGER(IntKi)                :: Ind_Breakpoint              ! The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)
-    INTEGER(IntKi)                :: Ind_BldPitch                ! The column in OL_Filename that contains the blade pitch input in rad
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: Ind_BldPitch                ! The columns in OL_Filename that contains the blade pitch inputs (1,2,3) in rad
     INTEGER(IntKi)                :: Ind_GenTq                   ! The column in OL_Filename that contains the generator torque in Nm
     INTEGER(IntKi)                :: Ind_YawRate                 ! The column in OL_Filename that contains the generator torque in Nm
+    INTEGER(IntKi)                :: Ind_Azimuth                 ! The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: RP_Gains                    ! PID gains and Tf on derivative term for rotor position control (used if OL_Mode = 2)
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: Ind_CableControl            ! The column in OL_Filename that contains the cable control inputs in m
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: Ind_StructControl           ! The column in OL_Filename that contains the structural control inputs in various units
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_Breakpoints              ! Open loop breakpoints in timeseries
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_BldPitch                 ! Open blade pitch timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_BldPitch1                ! Open loop blade pitch 1 timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_BldPitch2                ! Open loop blade pitch 2 timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_BldPitch3                ! Open loop blade pitch 3 timeseries
     REAL(DbKi), DIMENSION(:,:), ALLOCATABLE     :: OL_CableControl             ! None
     REAL(DbKi), DIMENSION(:,:), ALLOCATABLE     :: OL_StructControl            ! None
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_GenTq                    ! Open generator torque timeseries
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_YawRate                  ! Open yaw rate timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_GenTq                    ! Open loop generator torque timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_YawRate                  ! Open loop yaw rate timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_Azimuth                  ! Open loop azimuth timeseries
     REAL(DbKi), DIMENSION(:,:), ALLOCATABLE     :: OL_Channels                 ! Open loop channels in timeseries
     INTEGER(IntKi)                :: PA_Mode                     ! Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
     REAL(DbKi)                    :: PA_CornerFreq               ! Pitch actuator bandwidth/cut-off frequency [rad/s]
@@ -221,13 +235,18 @@ TYPE, PUBLIC :: piParams
     REAL(DbKi), DIMENSION(99)     :: ITermLast                   ! Previous integrator term
     REAL(DbKi), DIMENSION(99)     :: ITerm2                      ! Integrator term - second integrator
     REAL(DbKi), DIMENSION(99)     :: ITermLast2                  ! Previous integrator term - second integrator
+    REAL(DbKi), DIMENSION(99)     :: ELast                       ! Previous error term for derivative
 END TYPE piParams
 
 TYPE, PUBLIC :: LocalVariables
     INTEGER(IntKi)                :: iStatus                     ! Initialization status
     REAL(DbKi)                    :: Time                        ! Time [s]
     REAL(DbKi)                    :: DT                          ! Time step [s]
+    LOGICAL                       :: WriteThisStep               ! Write an output line this time step
+    INTEGER(IntKi)                :: n_DT                        ! number of timesteps since start
+    REAL(DbKi)                    :: Time_Last                   ! Last time [s]
     REAL(DbKi)                    :: VS_GenPwr                   ! Generator power [W]
+    REAL(DbKi)                    :: VS_GenPwrF                  ! Generator power [W]
     REAL(DbKi)                    :: GenSpeed                    ! Generator speed (HSS) [rad/s]
     REAL(DbKi)                    :: RotSpeed                    ! Rotor speed (LSS) [rad/s]
     REAL(DbKi)                    :: NacHeading                  ! Nacelle heading of the turbine w.r.t. north [deg]
@@ -238,14 +257,19 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: BlPitch(3)                  ! Blade pitch [rad]
     REAL(DbKi)                    :: BlPitchCMeas                ! Mean (collective) blade pitch [rad]
     REAL(DbKi)                    :: Azimuth                     ! Rotor aziumuth angle [rad]
+    REAL(DbKi)                    :: OL_Azimuth                  ! Rotor aziumuth angle [rad]
+    REAL(DbKi)                    :: AzUnwrapped                 ! Rotor aziumuth angle [rad]
+    REAL(DbKi)                    :: AzError                     ! Azimuth error angle [rad]
+    REAL(DbKi)                    :: GenTqAz                     ! Gen torque command due to azimuth error
+    REAL(DbKi)                    :: AzBuffer(2)                 ! Current and last rotor aziumuth angles [rad]
     INTEGER(IntKi)                :: NumBl                       ! Number of blades [-]
     REAL(DbKi)                    :: FA_Acc                      ! Tower fore-aft acceleration [m/s^2]
     REAL(DbKi)                    :: NacIMU_FA_Acc               ! Tower fore-aft acceleration [rad/s^2]
     REAL(DbKi)                    :: FA_AccHPF                   ! High-pass filtered fore-aft acceleration [m/s^2]
     REAL(DbKi)                    :: FA_AccHPFI                  ! Tower velocity, high-pass filtered and integrated fore-aft acceleration [m/s]
     REAL(DbKi)                    :: FA_PitCom(3)                ! Tower fore-aft vibration damping pitch contribution [rad]
-    REAL(DbKi)                    :: RotSpeedF                   ! Filtered LSS (generator) speed [rad/s].
     REAL(DbKi)                    :: VS_RefSpd                   ! Generator speed set point of torque controller [rad/s]
+    REAL(DbKi)                    :: RotSpeedF                   ! Filtered LSS (generator) speed [rad/s].
     REAL(DbKi)                    :: PC_RefSpd                   ! Generator speed set point of pitch controller [rad/s]
     REAL(DbKi)                    :: GenSpeedF                   ! Filtered HSS (generator) speed [rad/s].
     REAL(DbKi)                    :: GenTq                       ! Electrical generator torque, [Nm].

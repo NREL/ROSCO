@@ -12,30 +12,71 @@ Thus, be sure to implement each in order so that subsequent line numbers are cor
 2.8.0 to develop
 -------------------------------
 Gain scheduling of floating feedback
-- The floating feedback gain can be scheduled on the low pass filtered wind speed signal.  Note that Fl_Kp can now be an array.
+-  The floating feedback gain can be scheduled on the low pass filtered wind speed signal.  Note that Fl_Kp can now be an array.
+-  Control all three blade pitch inputs in open loop
+-  Rotor position control of azimuth position with PID (RP_Gains) control inputs
+
+New torque control mode settings
+-  VS_ControlMode determines how the generator speed set point is determined: using the WSE or (P/K)^(1/3)
+-  VS_ConstPower determines whether constant power is used
+
+Multiple notch filters
+-  Users can list any number of notch filters and apply them to either the generator speed and/or tower top accelleration signal based on their index
+
+====== =================    ======================================================================================================================================================================================================
+Removed in ROSCO develop
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Line    Input Name           Example Value
+====== =================    ======================================================================================================================================================================================================
+11      F_NotchType         2           ! F_NotchType - Notch on the measured generator speed and/or tower fore-aft motion (for floating) {0: disable, 1: generator speed, 2: tower-top fore-aft motion, 3: generator speed and tower-top fore-aft motion}
+35      F_NotchCornerFreq   3.35500     ! F_NotchCornerFreq - Natural frequency of the notch filter, [rad/s]
+36      F_NotchBetaNumDen   0.000000 0.250000 ! F_NotchBetaNumDen - Two notch damping values (numerator and denominator, resp) - determines the width and depth of the notch, [-]
+====== =================    ======================================================================================================================================================================================================
+
 
 ====== =================    ======================================================================================================================================================================================================
 New in ROSCO develop
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
-125     Fl_n                1           ! Fl_n              - Number of Fl_Kp gains in gain scheduling, optional with default of 1
-126     Fl_Kp               0.0000       ! Fl_Kp             - Nacelle velocity proportional feedback gain [s]
-127     Fl_U                0.0000       ! Fl_U              - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
+13      VS_ConstPower       0           ! VS_ConstPower - Do constant power torque control, where above rated torque varies, 0 for constant torque}
+35      F_NumNotchFilts     1           ! F_NumNotchFilts   - Number of notch filters placed on sensors
+36      F_NotchFreqs        3.3550      ! F_NotchFreqs      - Natural frequency of the notch filters. Array with length F_NumNotchFilts
+37      F_NotchBetaNum      0.0000      ! F_NotchBetaNum    - Damping value of numerator (determines the width of notch). Array with length F_NumNotchFilts, [-]
+38      F_NotchBetaDen      0.2500      ! F_NotchBetaDen    - Damping value of denominator (determines the depth of notch). Array with length F_NumNotchFilts, [-]
+39      F_GenSpdNotch_N     0           ! F_GenSpdNotch_N   - Number of notch filters on generator speed
+40      F_GenSpdNotch_Ind   0           ! F_GenSpdNotch_Ind - Indices of notch filters on generator speed
+41      F_TwrTopNotch_N     1           ! F_TwrTopNotch_N   - Number of notch filters on tower top acceleration signal
+42      F_TwrTopNotch_Ind   1           ! F_TwrTopNotch_Ind - Indices of notch filters on tower top acceleration signal
+89      VS_PwrFiltF         0.3140      ! VS_PwrFiltF       - Low pass filter on power used to determine generator speed set point. Only used in VS_ControlMode = 3.
+133     Fl_n                1           ! Fl_n          - Number of Fl_Kp gains in gain scheduling, optional with default of 1
+135     Fl_U                0.0000      ! Fl_U          - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
+149     Ind_Azimuth         0           ! Ind_Azimuth   - The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
+150     RP_Gains            0.0000 0.0000 0.0000 0.0000     ! RP_Gains - PID gains and Tf of derivative for rotor position control (used if OL_Mode = 2)
+====== =================    ======================================================================================================================================================================================================
+
+====== =================    ======================================================================================================================================================================================================
+Changed in ROSCO develop
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Line    Input Name           Example Value
+====== =================    ======================================================================================================================================================================================================
+12      VS_ControlMode      2           ! VS_ControlMode - Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking)}126     OL_mode             0           ! OL_Mode           - Open loop control mode {0: no open loop control, 1: open loop control vs. time, 2: rotor position control}
+134     Fl_Kp               0.0000      ! Fl_Kp             - Nacelle velocity proportional feedback gain [s]
+146     Ind_BldPitch        0   0   0   ! Ind_BldPitch      - The columns in OL_Filename that contains the blade pitch (1,2,3) inputs in rad [array]
 ====== =================    ======================================================================================================================================================================================================
 
 
 2.7.0 to 2.8.0
 -------------------------------
 Optional Inputs
-- ROSCO now reads in the whole input file and searches for keywords to set the inputs.  Blank spaces and specific ordering are no longer required.
-- Input requirements depend on control modes.  E.g., open loop inputs are not required if `OL_Mode = 0``
+-  ROSCO now reads in the whole input file and searches for keywords to set the inputs.  Blank spaces and specific ordering are no longer required.
+-  Input requirements depend on control modes.  E.g., open loop inputs are not required if `OL_Mode = 0``
 Cable Control
-- Can control OpenFAST cables (MoorDyn or SubDyn) using ROSCO
+-  Can control OpenFAST cables (MoorDyn or SubDyn) using ROSCO
 Structural Control
-- Can control OpenFAST structural control elements (ServoDyn) using ROSCO
+-  Can control OpenFAST structural control elements (ServoDyn) using ROSCO
 Active wake control
-- Added Active Wake Control (AWC) implementation
+-  Added Active Wake Control (AWC) implementation
 
 ====== =================    ======================================================================================================================================================================================================
 New in ROSCO 2.8.0
@@ -71,9 +112,9 @@ Line    Input Name           Example Value
 2.6.0 to 2.7.0
 -------------------------------
 Pitch Faults
-- Constant pitch actuator offsets (PF_Mode = 1)
+-  Constant pitch actuator offsets (PF_Mode = 1)
 IPC Saturation Modes
-- Added options for saturating the IPC command with the peak shaving limit
+-  Added options for saturating the IPC command with the peak shaving limit
 
 ====== =================    ======================================================================================================================================================================================================
 New in ROSCO 2.7.0
@@ -91,19 +132,19 @@ Line    Input Name           Example Value
 2.5.0 to 2.6.0
 -------------------------------
 IPC
-- A wind speed based soft cut-in using a sigma interpolation is added for the IPC controller
+-  A wind speed based soft cut-in using a sigma interpolation is added for the IPC controller
 
 Pitch Actuator
-- A first or second order filter can be used to model a pitch actuator
+-  A first or second order filter can be used to model a pitch actuator
 
 External Control Interface
-- Call another control library from ROSCO
+-  Call another control library from ROSCO
 
 ZeroMQ Interface
-- Communicate with an external routine via ZeroMQ. Only yaw control currently supported
+-  Communicate with an external routine via ZeroMQ. Only yaw control currently supported
 
 Updated yaw control
-- Filter wind direction with deadband, and yaw until direction error changes signs (https://iopscience.iop.org/article/10.1088/1742-6596/1037/3/032011)
+-  Filter wind direction with deadband, and yaw until direction error changes signs (https://iopscience.iop.org/article/10.1088/1742-6596/1037/3/032011)
 
 ====== =================    ======================================================================================================================================================================================================
 New in ROSCO 2.6.0
@@ -157,18 +198,18 @@ Line    Input Name           Example Value
 ROSCO v2.4.1 to ROSCO v2.5.0
 -------------------------------
 Two filter parameters were added to 
-- change the high pass filter in the floating feedback module
-- change the low pass filter of the wind speed estimator signal that is used in torque control
+-  change the high pass filter in the floating feedback module
+-  change the low pass filter of the wind speed estimator signal that is used in torque control
 
 Open loop control inputs, users must specify:
-- The open loop input filename, an example can be found in Examples/Example_OL_Input.dat
-- Indices (columns) of values specified in OL_Filename
+-  The open loop input filename, an example can be found in Examples/Example_OL_Input.dat
+-  Indices (columns) of values specified in OL_Filename
 
 IPC
-- Proportional Control capabilities were added, 1P and 2P gains should be specified
+-  Proportional Control capabilities were added, 1P and 2P gains should be specified
 
 ====== =================    ======================================================================================================================================================================================================
-Line    Flag Name           Example Value
+Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
 20     OL_Mode              0                   ! OL_Mode           - Open loop control mode {0: no open loop control, 1: open loop control vs. time, 2: open loop control vs. wind speed}
 27     F_WECornerFreq       0.20944             ! F_WECornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s].
