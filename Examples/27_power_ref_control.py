@@ -1,20 +1,18 @@
 '''
------------ 24_outdata_in_control ------------------------
+----------- 27_power_ref_control ------------------------
 Run openfast with ROSCO and cable control
 -----------------------------------------------
 
-Set up and run simulation with pitch offsets, check outputs
+Demonstrate a simulation with a generator reference speed that changes with estimated wind speed
+
 
 '''
 
 import os, platform
 from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
 from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
-from ROSCO_toolbox.ofTools.fast_io import output_processing
 from ROSCO_toolbox.tune import yaml_to_objs
 import numpy as np
-from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
-from ROSCO_toolbox.ofTools.fast_io.FAST_writer import InputWriter_OpenFAST
 from ROSCO_toolbox.inputs.validation import load_rosco_yaml
 import matplotlib.pyplot as plt
 
@@ -44,7 +42,7 @@ def main():
 
     # Input yaml and output directory
     parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW.yaml')
-    run_dir = os.path.join(example_out_dir,'24_PRC_0')
+    run_dir = os.path.join(example_out_dir,'27_PRC_0')
     os.makedirs(run_dir,exist_ok=True)
 
 
