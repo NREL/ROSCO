@@ -23,6 +23,10 @@ New torque control mode settings
 Multiple notch filters
 -  Users can list any number of notch filters and apply them to either the generator speed and/or tower top accelleration signal based on their index
 
+Power reference control via generator speed set points
+-  With this feature, enabled with `PRC_Mode`, a user can prescribe a set of generator speed set points (`PRC_GenSpeeds`) vs. the estimated wind speed (`PRC_WindSpeeds`), which can be used to avoid certain natural frequencies or implement a soft cut-out scheme.
+-  A low pass filter with frequency `PRC_LPF_Freq` is used to filter the wind speed estimate.  A lower value increases the stability of the generator speed reference signal.
+
 ====== =================    ======================================================================================================================================================================================================
 Removed in ROSCO develop
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -40,19 +44,26 @@ New in ROSCO develop
 Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
 13      VS_ConstPower       0           ! VS_ConstPower - Do constant power torque control, where above rated torque varies, 0 for constant torque}
-35      F_NumNotchFilts     1           ! F_NumNotchFilts   - Number of notch filters placed on sensors
-36      F_NotchFreqs        3.3550      ! F_NotchFreqs      - Natural frequency of the notch filters. Array with length F_NumNotchFilts
-37      F_NotchBetaNum      0.0000      ! F_NotchBetaNum    - Damping value of numerator (determines the width of notch). Array with length F_NumNotchFilts, [-]
-38      F_NotchBetaDen      0.2500      ! F_NotchBetaDen    - Damping value of denominator (determines the depth of notch). Array with length F_NumNotchFilts, [-]
-39      F_GenSpdNotch_N     0           ! F_GenSpdNotch_N   - Number of notch filters on generator speed
-40      F_GenSpdNotch_Ind   0           ! F_GenSpdNotch_Ind - Indices of notch filters on generator speed
-41      F_TwrTopNotch_N     1           ! F_TwrTopNotch_N   - Number of notch filters on tower top acceleration signal
-42      F_TwrTopNotch_Ind   1           ! F_TwrTopNotch_Ind - Indices of notch filters on tower top acceleration signal
-89      VS_PwrFiltF         0.3140      ! VS_PwrFiltF       - Low pass filter on power used to determine generator speed set point. Only used in VS_ControlMode = 3.
-133     Fl_n                1           ! Fl_n          - Number of Fl_Kp gains in gain scheduling, optional with default of 1
-135     Fl_U                0.0000      ! Fl_U          - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
-149     Ind_Azimuth         0           ! Ind_Azimuth   - The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
-150     RP_Gains            0.0000 0.0000 0.0000 0.0000     ! RP_Gains - PID gains and Tf of derivative for rotor position control (used if OL_Mode = 2)
+17      PRC_Mode            0           ! PRC_Mode          - Power reference tracking mode{0: use standard rotor speed set points, 1: use PRC rotor speed setpoints}
+36      F_NumNotchFilts     1           ! F_NumNotchFilts   - Number of notch filters placed on sensors
+37      F_NotchFreqs        3.3550      ! F_NotchFreqs      - Natural frequency of the notch filters. Array with length F_NumNotchFilts
+38      F_NotchBetaNum      0.0000      ! F_NotchBetaNum    - Damping value of numerator (determines the width of notch). Array with length F_NumNotchFilts, [-]
+39      F_NotchBetaDen      0.2500      ! F_NotchBetaDen    - Damping value of denominator (determines the depth of notch). Array with length F_NumNotchFilts, [-]
+40      F_GenSpdNotch_N     0           ! F_GenSpdNotch_N   - Number of notch filters on generator speed
+41      F_GenSpdNotch_Ind   0           ! F_GenSpdNotch_Ind - Indices of notch filters on generator speed
+42      F_TwrTopNotch_N     1           ! F_TwrTopNotch_N   - Number of notch filters on tower top acceleration signal
+43      F_TwrTopNotch_Ind   1           ! F_TwrTopNotch_Ind - Indices of notch filters on tower top acceleration signal
+90      VS_PwrFiltF         0.3140      ! VS_PwrFiltF       - Low pass filter on power used to determine generator speed set point. Only used in VS_ControlMode = 3.
+96      PRC_Section         !------- POWER REFERENCE TRACKING --------------------------------------
+97      PRC_n               2                   ! PRC_n			  - Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
+98      PRC_LPF_Freq        0.07854             ! PRC_LPF_Freq    - Frequency of the low pass filter on the wind speed estimate used to set PRC_GenSpeeds [rad/s]
+99      PRC_WindSpeeds      3.0000 25.0000      ! PRC_WindSpeeds  - Array of wind speeds used in rotor speed vs. wind speed lookup table [m/s]
+100     PRC_GenSpeeds       0.7917 0.7917       ! PRC_GenSpeeds   - Array of generator speeds corresponding to PRC_WindSpeeds [rad/s]
+101     Empty Line         
+140     Fl_n                1           ! Fl_n          - Number of Fl_Kp gains in gain scheduling, optional with default of 1
+142     Fl_U                0.0000      ! Fl_U          - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
+156     Ind_Azimuth         0           ! Ind_Azimuth   - The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
+157     RP_Gains            0.0000 0.0000 0.0000 0.0000     ! RP_Gains - PID gains and Tf of derivative for rotor position control (used if OL_Mode = 2)
 ====== =================    ======================================================================================================================================================================================================
 
 ====== =================    ======================================================================================================================================================================================================
@@ -61,8 +72,8 @@ Changed in ROSCO develop
 Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
 12      VS_ControlMode      2           ! VS_ControlMode - Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking)}126     OL_mode             0           ! OL_Mode           - Open loop control mode {0: no open loop control, 1: open loop control vs. time, 2: rotor position control}
-134     Fl_Kp               0.0000      ! Fl_Kp             - Nacelle velocity proportional feedback gain [s]
-146     Ind_BldPitch        0   0   0   ! Ind_BldPitch      - The columns in OL_Filename that contains the blade pitch (1,2,3) inputs in rad [array]
+141     Fl_Kp               0.0000      ! Fl_Kp             - Nacelle velocity proportional feedback gain [s]
+153     Ind_BldPitch        0   0   0   ! Ind_BldPitch      - The columns in OL_Filename that contains the blade pitch (1,2,3) inputs in rad [array]
 ====== =================    ======================================================================================================================================================================================================
 
 
