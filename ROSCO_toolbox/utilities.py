@@ -185,9 +185,10 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<13.5f}       ! SS_PCGain         - Collective pitch controller setpoint smoother gain, [-].\n'.format(rosco_vt['SS_PCGain']))
     file.write('\n')
     file.write('!------- POWER REFERENCE TRACKING --------------------------------------\n')
-    file.write('{:<11d}         ! PRC_n			    -  Number of elements in PRC_WindSpeeds and PRC_RotorSpeeds array\n'.format(int(rosco_vt['PRC_n'])))
+    file.write('{:<11d}         ! PRC_n			    -  Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array\n'.format(int(rosco_vt['PRC_n'])))
+    file.write('{:<13.5f}       ! PRC_LPF_Freq   - {}\n'.format(float(rosco_vt['PRC_LPF_Freq']), input_descriptions["PRC_LPF_Freq"]))
     file.write('{}     ! PRC_WindSpeeds   - {}\n'.format(write_array(rosco_vt["PRC_WindSpeeds"]), input_descriptions["PRC_WindSpeeds"]))
-    file.write('{}     ! PRC_RotorSpeeds   - {}\n'.format(write_array(rosco_vt["PRC_RotorSpeeds"]), input_descriptions["PRC_RotorSpeeds"]))
+    file.write('{}      ! PRC_GenSpeeds   - {}\n'.format(write_array(rosco_vt["PRC_GenSpeeds"]), input_descriptions["PRC_GenSpeeds"]))
     file.write('\n')
     file.write('!------- WIND SPEED ESTIMATOR ---------------------------------------------\n')
     file.write('{:<13.3f}       ! WE_BladeRadius	- Blade length (distance from hub center to blade tip), [m]\n'.format(rosco_vt['WE_BladeRadius']))
@@ -553,7 +554,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     # -------- POWER REFERENCE TRACKING ------
     DISCON_dict['PRC_n'] = 2
     DISCON_dict['PRC_WindSpeeds'] = [3,25]
-    DISCON_dict['PRC_RotorSpeeds'] = [rpm2RadSec * 7.56] * 2
+    DISCON_dict['PRC_GenSpeeds'] = [rpm2RadSec * 7.56] * 2
     
     # ------- WIND SPEED ESTIMATOR -------
     DISCON_dict['WE_BladeRadius']	= turbine.rotor_radius

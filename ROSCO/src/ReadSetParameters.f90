@@ -437,9 +437,10 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ POWER REFERENCE TRACKING SETPOINTS --------------
-        CALL ParseInput(FileLines,  'PRC_n',            CntrPar%PRC_n,                              accINFILE(1), ErrVar,   CntrPar%PRC_Mode == 0)
-        CALL ParseAry(  FileLines,  'PRC_WindSpeeds',   CntrPar%PRC_WindSpeeds,     CntrPar%PRC_n,  accINFILE(1), ErrVar,   CntrPar%PRC_Mode == 0)
-        CALL ParseAry(  FileLines,  'PRC_RotorSpeeds',  CntrPar%PRC_RotorSpeeds,    CntrPar%PRC_n,  accINFILE(1), ErrVar,   CntrPar%PRC_Mode == 0)
+        CALL ParseInput(FileLines,  'PRC_n',            CntrPar%PRC_n,                            accINFILE(1), ErrVar,   CntrPar%PRC_Mode == 0)
+        CALL ParseInput(FileLines,  'PRC_LPF_Freq',     CntrPar%PRC_LPF_Freq,                     accINFILE(1), ErrVar,   CntrPar%PRC_Mode == 0)
+        CALL ParseAry(  FileLines,  'PRC_WindSpeeds',   CntrPar%PRC_WindSpeeds,   CntrPar%PRC_n,  accINFILE(1), ErrVar,   CntrPar%PRC_Mode == 0)
+        CALL ParseAry(  FileLines,  'PRC_GenSpeeds',    CntrPar%PRC_GenSpeeds,    CntrPar%PRC_n,  accINFILE(1), ErrVar,   CntrPar%PRC_Mode == 0)
 
         !------------ WIND SPEED ESTIMATOR CONTANTS --------------
         CALL ParseInput(FileLines,  'WE_BladeRadius',   CntrPar%WE_BladeRadius,                         accINFILE(1), ErrVar, .FALSE., UnEc)

@@ -316,13 +316,16 @@ ControlParameters:
       <<: *real
       description: Array of wind speeds used in rotor speed vs. wind speed lookup table
       allocatable: True
-    PRC_RotorSpeeds:
+    PRC_GenSpeeds:
       <<: *real
       description: Array of rotor speeds corresponding to PRC_WindSpeeds
       allocatable: True
     PRC_n:
       <<: *integer
-      description: Number of elements in PRC_WindSpeeds and PRC_RotorSpeeds array
+      description: Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
+    PRC_LPF_Freq:
+      <<: *real
+      description: Frequency of the low pass filter on the wind speed estimate used to set PRC_GenSpeeds [rad/s]
     
     # Wind Speed Estimator
     WE_Mode:
@@ -1159,6 +1162,9 @@ LocalVariables:
     VS_LastGenTrqF:               
       <<: *real 
       description: Differentiated integrated wind speed quantity for estimation [m/s]
+    PRC_WSE_F:               
+      <<: *real 
+      description: Filtered wind speed estimate for power reference control
     SD:                           
       <<: *logical
       description: Shutdown, .FALSE. if inactive, .TRUE. if active

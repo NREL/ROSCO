@@ -137,6 +137,7 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%WE_VwI
         WRITE( Un, IOSTAT=ErrStat) LocalVar%WE_VwIdot
         WRITE( Un, IOSTAT=ErrStat) LocalVar%VS_LastGenTrqF
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%PRC_WSE_F
         WRITE( Un, IOSTAT=ErrStat) LocalVar%SD
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Fl_PitCom
         WRITE( Un, IOSTAT=ErrStat) LocalVar%NACIMU_FA_AccF
@@ -420,6 +421,7 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%WE_VwI
         READ( Un, IOSTAT=ErrStat) LocalVar%WE_VwIdot
         READ( Un, IOSTAT=ErrStat) LocalVar%VS_LastGenTrqF
+        READ( Un, IOSTAT=ErrStat) LocalVar%PRC_WSE_F
         READ( Un, IOSTAT=ErrStat) LocalVar%SD
         READ( Un, IOSTAT=ErrStat) LocalVar%Fl_PitCom
         READ( Un, IOSTAT=ErrStat) LocalVar%NACIMU_FA_AccF
@@ -649,7 +651,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       '[rad/s]', '[rad/s]', '[m/s]', '[rad]', '[rad]', & 
                                       '[N/A]', '[N/A]', '[N/A]', '[N/A]', '[rad/s]', & 
                                       '[deg]', '[deg]', '[deg]', '[N/A]']
-    nLocalVars = 111
+    nLocalVars = 112
     Allocate(LocalVarOutData(nLocalVars))
     Allocate(LocalVarOutStrings(nLocalVars))
     LocalVarOutData(1) = LocalVar%iStatus
@@ -734,35 +736,36 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(80) = LocalVar%WE_VwI
     LocalVarOutData(81) = LocalVar%WE_VwIdot
     LocalVarOutData(82) = LocalVar%VS_LastGenTrqF
-    LocalVarOutData(83) = LocalVar%Fl_PitCom
-    LocalVarOutData(84) = LocalVar%NACIMU_FA_AccF
-    LocalVarOutData(85) = LocalVar%FA_AccF
-    LocalVarOutData(86) = LocalVar%PtfmTDX
-    LocalVarOutData(87) = LocalVar%PtfmTDY
-    LocalVarOutData(88) = LocalVar%PtfmTDZ
-    LocalVarOutData(89) = LocalVar%PtfmRDX
-    LocalVarOutData(90) = LocalVar%PtfmRDY
-    LocalVarOutData(91) = LocalVar%PtfmRDZ
-    LocalVarOutData(92) = LocalVar%PtfmTVX
-    LocalVarOutData(93) = LocalVar%PtfmTVY
-    LocalVarOutData(94) = LocalVar%PtfmTVZ
-    LocalVarOutData(95) = LocalVar%PtfmRVX
-    LocalVarOutData(96) = LocalVar%PtfmRVY
-    LocalVarOutData(97) = LocalVar%PtfmRVZ
-    LocalVarOutData(98) = LocalVar%PtfmTAX
-    LocalVarOutData(99) = LocalVar%PtfmTAY
-    LocalVarOutData(100) = LocalVar%PtfmTAZ
-    LocalVarOutData(101) = LocalVar%PtfmRAX
-    LocalVarOutData(102) = LocalVar%PtfmRAY
-    LocalVarOutData(103) = LocalVar%PtfmRAZ
-    LocalVarOutData(104) = LocalVar%CC_DesiredL(1)
-    LocalVarOutData(105) = LocalVar%CC_ActuatedL(1)
-    LocalVarOutData(106) = LocalVar%CC_ActuatedDL(1)
-    LocalVarOutData(107) = LocalVar%StC_Input(1)
-    LocalVarOutData(108) = LocalVar%Flp_Angle(1)
-    LocalVarOutData(109) = LocalVar%RootMyb_Last(1)
-    LocalVarOutData(110) = LocalVar%ACC_INFILE_SIZE
-    LocalVarOutData(111) = LocalVar%AWC_complexangle(1)
+    LocalVarOutData(83) = LocalVar%PRC_WSE_F
+    LocalVarOutData(84) = LocalVar%Fl_PitCom
+    LocalVarOutData(85) = LocalVar%NACIMU_FA_AccF
+    LocalVarOutData(86) = LocalVar%FA_AccF
+    LocalVarOutData(87) = LocalVar%PtfmTDX
+    LocalVarOutData(88) = LocalVar%PtfmTDY
+    LocalVarOutData(89) = LocalVar%PtfmTDZ
+    LocalVarOutData(90) = LocalVar%PtfmRDX
+    LocalVarOutData(91) = LocalVar%PtfmRDY
+    LocalVarOutData(92) = LocalVar%PtfmRDZ
+    LocalVarOutData(93) = LocalVar%PtfmTVX
+    LocalVarOutData(94) = LocalVar%PtfmTVY
+    LocalVarOutData(95) = LocalVar%PtfmTVZ
+    LocalVarOutData(96) = LocalVar%PtfmRVX
+    LocalVarOutData(97) = LocalVar%PtfmRVY
+    LocalVarOutData(98) = LocalVar%PtfmRVZ
+    LocalVarOutData(99) = LocalVar%PtfmTAX
+    LocalVarOutData(100) = LocalVar%PtfmTAY
+    LocalVarOutData(101) = LocalVar%PtfmTAZ
+    LocalVarOutData(102) = LocalVar%PtfmRAX
+    LocalVarOutData(103) = LocalVar%PtfmRAY
+    LocalVarOutData(104) = LocalVar%PtfmRAZ
+    LocalVarOutData(105) = LocalVar%CC_DesiredL(1)
+    LocalVarOutData(106) = LocalVar%CC_ActuatedL(1)
+    LocalVarOutData(107) = LocalVar%CC_ActuatedDL(1)
+    LocalVarOutData(108) = LocalVar%StC_Input(1)
+    LocalVarOutData(109) = LocalVar%Flp_Angle(1)
+    LocalVarOutData(110) = LocalVar%RootMyb_Last(1)
+    LocalVarOutData(111) = LocalVar%ACC_INFILE_SIZE
+    LocalVarOutData(112) = LocalVar%AWC_complexangle(1)
     LocalVarOutStrings = [CHARACTER(15) ::  'iStatus', 'Time', 'DT', 'n_DT', 'Time_Last', & 
                                       'VS_GenPwr', 'VS_GenPwrF', 'GenSpeed', 'RotSpeed', 'NacHeading', & 
                                       'NacVane', 'HorWindV', 'rootMOOP', 'rootMOOPF', 'BlPitch', & 
@@ -779,13 +782,13 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       'SS_DelOmegaF', 'TestType', 'Kp_Float', 'VS_MaxTq', 'VS_LastGenTrq', & 
                                       'VS_LastGenPwr', 'VS_MechGenPwr', 'VS_SpdErrAr', 'VS_SpdErrBr', 'VS_SpdErr', & 
                                       'VS_State', 'VS_Rgn3Pitch', 'WE_Vw', 'WE_Vw_F', 'WE_VwI', & 
-                                      'WE_VwIdot', 'VS_LastGenTrqF', 'Fl_PitCom', 'NACIMU_FA_AccF', 'FA_AccF', & 
-                                      'PtfmTDX', 'PtfmTDY', 'PtfmTDZ', 'PtfmRDX', 'PtfmRDY', & 
-                                      'PtfmRDZ', 'PtfmTVX', 'PtfmTVY', 'PtfmTVZ', 'PtfmRVX', & 
-                                      'PtfmRVY', 'PtfmRVZ', 'PtfmTAX', 'PtfmTAY', 'PtfmTAZ', & 
-                                      'PtfmRAX', 'PtfmRAY', 'PtfmRAZ', 'CC_DesiredL', 'CC_ActuatedL', & 
-                                      'CC_ActuatedDL', 'StC_Input', 'Flp_Angle', 'RootMyb_Last', 'ACC_INFILE_SIZE', & 
-                                      'AWC_complexangle']
+                                      'WE_VwIdot', 'VS_LastGenTrqF', 'PRC_WSE_F', 'Fl_PitCom', 'NACIMU_FA_AccF', & 
+                                      'FA_AccF', 'PtfmTDX', 'PtfmTDY', 'PtfmTDZ', 'PtfmRDX', & 
+                                      'PtfmRDY', 'PtfmRDZ', 'PtfmTVX', 'PtfmTVY', 'PtfmTVZ', & 
+                                      'PtfmRVX', 'PtfmRVY', 'PtfmRVZ', 'PtfmTAX', 'PtfmTAY', & 
+                                      'PtfmTAZ', 'PtfmRAX', 'PtfmRAY', 'PtfmRAZ', 'CC_DesiredL', & 
+                                      'CC_ActuatedL', 'CC_ActuatedDL', 'StC_Input', 'Flp_Angle', 'RootMyb_Last', & 
+                                      'ACC_INFILE_SIZE', 'AWC_complexangle']
     ! Initialize debug file
     IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN ! .TRUE. if we're on the first call to the DLL
         IF (CntrPar%LoggingLevel > 0) THEN
@@ -800,8 +803,8 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
             CALL GetNewUnit(UnDb2, ErrVar)
             OPEN(unit=UnDb2, FILE=TRIM(RootName)//'.RO.dbg2')
             WRITE(UnDb2, *)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)
-            WRITE(UnDb2, '(112(a20,TR5:))') 'Time',   LocalVarOutStrings
-            WRITE(UnDb2, '(112(a20,TR5:))')
+            WRITE(UnDb2, '(113(a20,TR5:))') 'Time',   LocalVarOutStrings
+            WRITE(UnDb2, '(113(a20,TR5:))')
         END IF
 
         IF (CntrPar%LoggingLevel > 2) THEN
@@ -864,7 +867,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     END DO
     
     ! Write debug files
-    FmtDat = "(F20.5,TR5,111(ES20.5E2,TR5:))"   ! The format of the debugging data
+    FmtDat = "(F20.5,TR5,112(ES20.5E2,TR5:))"   ! The format of the debugging data
     IF ( MOD(LocalVar%n_DT, CntrPar%n_DT_Out) == 0) THEN
         IF(CntrPar%LoggingLevel > 0) THEN
             WRITE (UnDb, FmtDat)  LocalVar%Time, DebugOutData

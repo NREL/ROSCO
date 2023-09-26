@@ -36,9 +36,10 @@ CONTAINS
 
         ! ----- Pitch controller speed and power error -----
         
-        ! Power reference tracking rotor speed
+        ! Power reference tracking generator speed
         IF (CntrPar%PRC_Mode == 1) THEN
-            LocalVar%PC_RefSpd = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_RotorSpeeds,LocalVar%WE_Vw_F,ErrVar) * CntrPar%WE_GearboxRatio
+            LocalVar%PRC_WSE_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT,CntrPar%PRC_LPF_Freq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
+            LocalVar%PC_RefSpd = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_GenSpeeds,LocalVar%PRC_WSE_F,ErrVar)
         ELSE
             LocalVar%PC_RefSpd = CntrPar%PC_RefSpd
         ENDIF
@@ -65,7 +66,7 @@ CONTAINS
 
         ! Implement power reference rotor speed (overwrites above), convert to generator speed
         IF (CntrPar%PRC_Mode == 1) THEN
-            LocalVar%VS_RefSpd = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_RotorSpeeds,LocalVar%WE_Vw_F,ErrVar) * CntrPar%WE_GearboxRatio
+            LocalVar%VS_RefSpd = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_GenSpeeds,LocalVar%WE_Vw_F,ErrVar)
         ENDIF
         
         ! Implement setpoint smoothing
