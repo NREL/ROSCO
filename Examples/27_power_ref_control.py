@@ -99,7 +99,7 @@ def main():
             'PRC_Mode': 1,
             'PRC_n': len(v),
             'PRC_WindSpeeds': v,
-            'PRC_RotorSpeeds': omega,
+            'PRC_GenSpeeds': omega,
 
         }}   # Use OutData in control
     r.run_FAST()
