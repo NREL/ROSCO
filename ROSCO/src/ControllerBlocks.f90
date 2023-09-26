@@ -64,6 +64,9 @@ CONTAINS
             LocalVar%VS_RefSpd = CntrPar%VS_RefSpd
         ENDIF 
 
+        ! Saturate torque reference speed between min speed and rated speed
+        LocalVar%VS_RefSpd = saturate(LocalVar%VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
+
         ! Implement power reference rotor speed (overwrites above), convert to generator speed
         IF (CntrPar%PRC_Mode == 1) THEN
             LocalVar%VS_RefSpd = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_GenSpeeds,LocalVar%WE_Vw_F,ErrVar)
