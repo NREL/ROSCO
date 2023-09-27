@@ -34,7 +34,7 @@ MODULE ROSCO_Helpers
         ! MODULE PROCEDURE ParseInput_Log                                             ! Parses an LOGICAL from a string.
     END INTERFACE
 
-    INTERFACE ParseAry                                                          ! Parse an array of numbers from a string.
+    INTERFACE ParseAry                                                         ! Parse an array of numbers from a string.
         MODULE PROCEDURE ParseDbAry                                             ! Parse an array of double-precision REAL values.
         MODULE PROCEDURE ParseInAry                                             ! Parse an array of whole numbers.
         MODULE PROCEDURE ParseInAry_Opt                                         ! Parse an array of whole numbers. Optional inputs.
@@ -258,7 +258,7 @@ CONTAINS
                     ErrVar%aviFAIL  = -1
                     ErrVar%ErrMsg   =  NewLine//' >> A fatal error occurred when parsing data from "' &
                         //TRIM( FileName )//'".'//NewLine//  &
-                        ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid INTEGER value on line #' &
+                        ' >> The variable "'//TRIM( Words(2) )//'" was not assigned valid REAL value on line #' &
                         //TRIM( Int2LStr( CurLine ) )//'.'//NewLine//&
                         ' >> The text being parsed was :'//NewLine//'    "'//TRIM( Line )//'"'
                 ENDIF
@@ -697,7 +697,7 @@ CONTAINS
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg = RoutineName//':A fatal error occurred when parsing data from "' &
                             //TRIM( FileName )//'".'//NewLine//  &
-                            ' >> The "'//TRIM( ParamName )//'" array was not assigned valid REAL values on line #' &
+                            ' >> The "'//TRIM( ParamName )//'" array was not assigned valid INTEGER values on line #' &
                             //TRIM( Int2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
                             //'    "'//TRIM( Line )//'"' 
             RETURN
@@ -1013,6 +1013,8 @@ END SUBROUTINE ParseInAry_Opt
         END SUBROUTINE Cleanup
 
 END SUBROUTINE ParseDbAry_Opt
+
+
 
 !=======================================================================
 

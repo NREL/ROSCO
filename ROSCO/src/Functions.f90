@@ -22,13 +22,14 @@
 !       interp1d: 1-d interpolation
 !       interp2d: 2-d interpolation
 !       matinv3: 3x3 matrix inverse
-!       PIController: implement a PI controller
+!       PIDController: implement a PID controller
 !       ratelimit: Rate limit signal
 !       saturate: Saturate signal
 
 MODULE Functions
 
 USE Constants
+USE Filters
 
 IMPLICIT NONE
 
@@ -90,7 +91,7 @@ CONTAINS
 
     END FUNCTION ratelimit
 
-!-------------------------------------------------------------------------------------------------------------------------------
+    !-------------------------------------------------------------------------------------------------------------------------------
     REAL(DbKi) FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, piP, reset, inst)
         USE ROSCO_Types, ONLY : piParams
 
@@ -129,6 +130,66 @@ CONTAINS
         inst = inst + 1
         
     END FUNCTION PIController
+
+
+!-------------------------------------------------------------------------------------------------------------------------------
+    REAL(DbKi) FUNCTION PIDController(error, kp, ki, kd, tf, minValue, maxValue, DT, I0, piP, reset, objInst, LocalVar)
+        USE ROSCO_Types, ONLY : piParams, LocalVariables, ObjectInstances
+
+    ! PI controller, with output saturation
+
+        IMPLICIT NONE
+        ! Allocate Inputs
+        REAL(DbKi),    INTENT(IN)         :: error
+        REAL(DbKi),    INTENT(IN)         :: kp
+        REAL(DbKi),    INTENT(IN)         :: ki
+        REAL(DbKi),    INTENT(IN)         :: kd
+        REAL(DbKi),    INTENT(IN)         :: tf
+        REAL(DbKi),    INTENT(IN)         :: minValue
+        REAL(DbKi),    INTENT(IN)         :: maxValue
+        REAL(DbKi),    INTENT(IN)         :: DT
+        TYPE(ObjectInstances),      INTENT(INOUT)   :: objInst  ! all object instances (PI, filters used here)
+        TYPE(LocalVariables),       INTENT(INOUT)   :: LocalVar
+
+        REAL(DbKi),    INTENT(IN)           :: I0
+        TYPE(piParams), INTENT(INOUT)       :: piP
+        LOGICAL,    INTENT(IN)              :: reset     
+        
+        ! Allocate local variables
+        INTEGER(IntKi)                      :: i                                            ! Counter for making arrays
+        REAL(DbKi)                          :: PTerm, DTerm                                 ! Proportional, deriv. terms
+        REAL(DbKi)                          :: EFilt                    ! Filtered error for derivative
+
+        ! Always filter error
+        EFilt = LPFilter(error, DT, tf, LocalVar%FP, LocalVar%iStatus, reset, objInst%instLPF)
+
+        ! Initialize persistent variables/arrays, and set inital condition for integrator term
+        IF (reset) THEN
+            piP%ITerm(objInst%instPI) = I0
+            piP%ITermLast(objInst%instPI) = I0
+            piP%ELast(objInst%instPI) = 0.0_DbKi
+            PIDController = I0
+        ELSE
+            ! Proportional
+            PTerm = kp*error
+            
+            ! Integrate and saturate
+            piP%ITerm(objInst%instPI) = piP%ITerm(objInst%instPI) + DT*ki*error
+            piP%ITerm(objInst%instPI) = saturate(piP%ITerm(objInst%instPI), minValue, maxValue)
+
+            ! Derivative (filtered)
+            DTerm = kd * (EFilt - piP%ELast(objInst%instPI)) / DT
+            
+            ! Saturate all
+            PIDController = saturate(PTerm + piP%ITerm(objInst%instPI) + DTerm, minValue, maxValue)
+        
+            ! Save lasts
+            piP%ITermLast(objInst%instPI) = piP%ITerm(objInst%instPI)
+            piP%ELast(objInst%instPI) = EFilt
+        END IF
+        objInst%instPI = objInst%instPI + 1
+        
+    END FUNCTION PIDController
 
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL(DbKi) FUNCTION PIIController(error, error2, kp, ki, ki2, minValue, maxValue, DT, I0, piP, reset, inst)
@@ -599,5 +660,48 @@ CONTAINS
     END FUNCTION sigma
 
 
+!-------------------------------------------------------------------------------------------------------------------------------
+    FUNCTION unwrap(x, ErrVar) result(y)
+    ! Unwrap function
+    ! If difference between signal elements is < -pi, add 2 pi to reset of signal, and the opposite
+    ! Someday, generalize period and check difference is less than period/2
+        USE ROSCO_Types, ONLY : ErrorVariables
+        IMPLICIT NONE
+    
+        ! Inputs
+        TYPE(ErrorVariables), INTENT(INOUT) :: ErrVar
+        REAL(DbKi), DIMENSION(:), Intent(IN)  :: x
 
+        ! Output
+        REAL(DbKi), DIMENSION(SIZE(x)) :: y
+            
+        ! Local
+        INTEGER(IntKi) :: i
+
+        CHARACTER(*), PARAMETER                 :: RoutineName = 'unwrap'
+
+        y = x ! set initial
+        DO i = 2, SIZE(x)
+            DO while (y(i) - y(i-1) .LE. -PI)
+                y(i:SIZE(x)) = y(i:SIZE(x)) + 2 * PI
+            END DO
+
+            DO while (y(i) - y(i-1) .GE. PI)
+                y(i:SIZE(x)) = y(i:SIZE(x)) - 2 * PI
+            END DO
+        END DO
+
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
+
+        ! Debug
+        ! write(400,*) x
+        ! write(401,*) y
+        
+    END FUNCTION unwrap
+
+
+!-------------------------------------------------------------------------------------------------------------------------------
 END MODULE Functions

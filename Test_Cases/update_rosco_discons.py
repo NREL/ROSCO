@@ -14,6 +14,7 @@ if __name__=="__main__":
         'IEA15MW.yaml': 'IEA-15-240-RWT-UMaineSemi/DISCON-UMaineSemi.IN',
         'BAR.yaml':     'BAR_10/BAR_10_DISCON.IN',
         'NREL2p8.yaml': 'NREL_2p8_127/NREL-2p8-127_DISCON.IN',
+        'RM1_MHK.yaml': 'MHK_RM1/MHK_RM1_DISCON.IN',
     }
 
     # Directories

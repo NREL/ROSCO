@@ -90,7 +90,6 @@ IF (CntrPar%Ext_Mode > 0 .AND. ErrVar%aviFAIL >= 0) THEN
     ! Data from external dll is in ExtDLL%avrSWAP, it's unused in the following code
 END IF
 
-
 ! Filter signals
 CALL PreFilterMeasuredSignals(CntrPar, LocalVar, DebugVar, objInst, ErrVar)
 
@@ -103,7 +102,7 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
     ENDIF
     
     CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
-    CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
+    CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst, ErrVar)
     CALL StateMachine(CntrPar, LocalVar)
     CALL SetpointSmoother(LocalVar, CntrPar, objInst)
     CALL VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
