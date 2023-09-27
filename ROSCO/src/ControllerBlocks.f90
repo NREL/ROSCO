@@ -24,27 +24,33 @@ IMPLICIT NONE
 CONTAINS
 ! -----------------------------------------------------------------------------------
     ! Calculate setpoints for primary control actions    
-    SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+    SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar, objInst, ErrVar)
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, ErrorVariables
         USE Constants
         ! Allocate variables
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
         TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
+        TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
 
-        REAL(DbKi)                                      :: VS_RefSpd        ! Referece speed for variable speed torque controller, [rad/s] 
-        REAL(DbKi)                                      :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
-        REAL(DbKi)                                      :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
 
         ! ----- Pitch controller speed and power error -----
+        
+        ! Power reference tracking generator speed
+        IF (CntrPar%PRC_Mode == 1) THEN
+            LocalVar%PRC_WSE_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT,CntrPar%PRC_LPF_Freq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
+            LocalVar%PC_RefSpd = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_GenSpeeds,LocalVar%PRC_WSE_F,ErrVar)
+        ELSE
+            LocalVar%PC_RefSpd = CntrPar%PC_RefSpd
+        ENDIF
+        
         ! Implement setpoint smoothing
         IF (LocalVar%SS_DelOmegaF < 0) THEN
-            PC_RefSpd = CntrPar%PC_RefSpd - LocalVar%SS_DelOmegaF
-        ELSE
-            PC_RefSpd = CntrPar%PC_RefSpd
+            LocalVar%PC_RefSpd = LocalVar%PC_RefSpd - LocalVar%SS_DelOmegaF
         ENDIF
 
-        LocalVar%PC_SpdErr = PC_RefSpd - LocalVar%GenSpeedF            ! Speed error
+        ! Compute error for pitch controller
+        LocalVar%PC_SpdErr = LocalVar%PC_RefSpd - LocalVar%GenSpeedF            ! Speed error
         LocalVar%PC_PwrErr = CntrPar%VS_RtPwr - LocalVar%VS_GenPwr             ! Power error
                 
         ! ----- Torque controller reference errors -----
@@ -58,7 +64,13 @@ CONTAINS
             LocalVar%VS_RefSpd = CntrPar%VS_RefSpd
         ENDIF 
 
+        ! Saturate torque reference speed between min speed and rated speed
         LocalVar%VS_RefSpd = saturate(LocalVar%VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
+
+        ! Implement power reference rotor speed (overwrites above), convert to generator speed
+        IF (CntrPar%PRC_Mode == 1) THEN
+            LocalVar%VS_RefSpd = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_GenSpeeds,LocalVar%WE_Vw_F,ErrVar)
+        ENDIF
         
         ! Implement setpoint smoothing
         IF (LocalVar%SS_DelOmegaF > 0) THEN
@@ -73,7 +85,7 @@ CONTAINS
         ! Force minimum rotor speed
         LocalVar%VS_RefSpd = max(LocalVar%VS_RefSpd, CntrPar%VS_MinOmSpd)
 
-        ! TSR-tracking reference error
+        ! Reference error
         IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
             LocalVar%VS_SpdErr = LocalVar%VS_RefSpd - LocalVar%GenSpeedF
         ENDIF

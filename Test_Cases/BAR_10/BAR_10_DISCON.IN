@@ -1,5 +1,5 @@
 ! Controller parameter input file for the BAR_10 wind turbine
-!    - File written using ROSCO version 2.8.0 controller tuning logic on 08/23/23
+!    - File written using ROSCO version 2.8.0 controller tuning logic on 09/26/23
 
 !------- SIMULATION CONTROL ------------------------------------------------------------
 1                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}
@@ -14,6 +14,7 @@
 1                   ! PC_ControlMode  - Blade pitch control mode {0: No pitch, fix to fine pitch, 1: active PI blade pitch control}
 0                   ! Y_ControlMode   - Yaw control mode {0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}
 1                   ! SS_Mode         - Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
+0                   ! PRC_Mode        - Power reference tracking mode{0: use standard rotor speed set points, 1: use PRC rotor speed setpoints}
 2                   ! WE_Mode         - Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator, 2: Extended Kalman Filter}
 1                   ! PS_Mode         - Pitch saturation mode {0: no pitch saturation, 1: implement pitch saturation}
 0                   ! SD_Mode         - Shutdown mode {0: no shutdown procedure, 1: pitch to max pitch at shutdown}
@@ -92,6 +93,12 @@
 1.00000             ! SS_VSGain         - Variable speed torque controller setpoint smoother gain, [-].
 0.00100             ! SS_PCGain         - Collective pitch controller setpoint smoother gain, [-].
 
+!------- POWER REFERENCE TRACKING --------------------------------------
+2                   ! PRC_n			    -  Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
+0.07854             ! PRC_LPF_Freq   - Frequency of the low pass filter on the wind speed estimate used to set PRC_GenSpeeds [rad/s]
+3.0000 25.0000      ! PRC_WindSpeeds   - Array of wind speeds used in rotor speed vs. wind speed lookup table [m/s]
+0.7917 0.7917       ! PRC_GenSpeeds   - Array of generator speeds corresponding to PRC_WindSpeeds [rad/s]
+
 !------- WIND SPEED ESTIMATOR ---------------------------------------------
 102.996             ! WE_BladeRadius	- Blade length (distance from hub center to blade tip), [m]
 1                   ! WE_CP_n			- Amount of parameters in the Cp array
@@ -122,8 +129,8 @@
 
 !------- MINIMUM PITCH SATURATION -------------------------------------------
 60                  ! PS_BldPitchMin_N  - Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)
-3.0000 3.1818 3.3637 3.5455 3.7274 3.9092 4.0911 4.2729 4.4548 4.6366 4.8185 5.0003 5.1822 5.3640 5.5459 5.7277 5.9096 6.0914 6.2732 6.4551 6.6369 6.8188 7.0006 7.1825 7.3643 7.5462 7.7280 7.9099 8.0917 8.2736 8.8311 9.3887 9.9462 10.5038 11.0613 11.6188 12.1764 12.7339 13.2915 13.8490 14.4066 14.9641 15.5217 16.0792 16.6368 17.1943 17.7519 18.3094 18.8670 19.4245 19.9821 20.5396 21.0972 21.6547 22.2123 22.7698 23.3274 23.8849 24.4425 25.0000               ! PS_WindSpeeds     - Wind speeds corresponding to minimum blade pitch angles [m/s]
--0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01505486 -0.01247538 0.00009416 0.01064594 0.02025612 0.02875892 0.04130468 0.05575026 0.06941162 0.08245994 0.09516301 0.10759186 0.11974680 0.13166674 0.14343508 0.15503135 0.16644975 0.17776272 0.18893241 0.19997037 0.21092550 0.22173526 0.23245676 0.24309225 0.25359679 0.26404201 0.27436979 0.28461736 0.29478565 0.30484212 0.31485020 0.32473305 0.33456481 0.34429551 0.35395031 0.36352600 0.37300643               ! PS_BldPitchMin    - Minimum blade pitch angles [rad]
+3.000 3.182 3.364 3.546 3.727 3.909 4.091 4.273 4.455 4.637 4.818 5.000 5.182 5.364 5.546 5.728 5.910 6.091 6.273 6.455 6.637 6.819 7.001 7.182 7.364 7.546 7.728 7.910 8.092 8.274 8.831 9.389 9.946 10.504 11.061 11.619 12.176 12.734 13.291 13.849 14.407 14.964 15.522 16.079 16.637 17.194 17.752 18.309 18.867 19.425 19.982 20.540 21.097 21.655 22.212 22.770 23.327 23.885 24.442 25.000               ! PS_WindSpeeds     - Wind speeds corresponding to minimum blade pitch angles [m/s]
+-0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.012     0.000      0.011      0.020      0.029      0.041      0.056      0.069      0.082      0.095      0.108      0.120      0.132      0.143      0.155      0.166      0.178      0.189      0.200      0.211      0.222      0.232      0.243      0.254      0.264      0.274      0.285      0.295      0.305      0.315      0.325      0.335      0.344      0.354      0.364      0.373                    ! PS_BldPitchMin    - Minimum blade pitch angles [rad]
 
 !------- SHUTDOWN -----------------------------------------------------------
 0.698100000000      ! SD_MaxPit         - Maximum blade pitch angle to initiate shutdown, [rad]

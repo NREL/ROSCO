@@ -103,6 +103,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! PC_ControlMode  - Blade pitch control mode {{0: No pitch, fix to fine pitch, 1: active PI blade pitch control}}\n'.format(int(rosco_vt['PC_ControlMode'])))
     file.write('{0:<12d}        ! Y_ControlMode   - Yaw control mode {{0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}}\n'.format(int(rosco_vt['Y_ControlMode'])))
     file.write('{0:<12d}        ! SS_Mode         - Setpoint Smoother mode {{0: no setpoint smoothing, 1: introduce setpoint smoothing}}\n'.format(int(rosco_vt['SS_Mode'])))
+    file.write('{0:<12d}        ! PRC_Mode        - Power reference tracking mode{{0: use standard rotor speed set points, 1: use PRC rotor speed setpoints}}\n'.format(int(rosco_vt['PRC_Mode'])))
     file.write('{0:<12d}        ! WE_Mode         - Wind speed estimator mode {{0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator, 2: Extended Kalman Filter}}\n'.format(int(rosco_vt['WE_Mode'])))
     file.write('{0:<12d}        ! PS_Mode         - Pitch saturation mode {{0: no pitch saturation, 1: implement pitch saturation}}\n'.format(int(rosco_vt['PS_Mode'])))
     file.write('{0:<12d}        ! SD_Mode         - Shutdown mode {{0: no shutdown procedure, 1: pitch to max pitch at shutdown}}\n'.format(int(rosco_vt['SD_Mode'])))
@@ -183,6 +184,12 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<13.5f}       ! SS_VSGain         - Variable speed torque controller setpoint smoother gain, [-].\n'.format(rosco_vt['SS_VSGain']))
     file.write('{:<13.5f}       ! SS_PCGain         - Collective pitch controller setpoint smoother gain, [-].\n'.format(rosco_vt['SS_PCGain']))
     file.write('\n')
+    file.write('!------- POWER REFERENCE TRACKING --------------------------------------\n')
+    file.write('{:<11d}         ! PRC_n			    -  Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array\n'.format(int(rosco_vt['PRC_n'])))
+    file.write('{:<13.5f}       ! PRC_LPF_Freq   - {}\n'.format(float(rosco_vt['PRC_LPF_Freq']), input_descriptions["PRC_LPF_Freq"]))
+    file.write('{}     ! PRC_WindSpeeds   - {}\n'.format(write_array(rosco_vt["PRC_WindSpeeds"]), input_descriptions["PRC_WindSpeeds"]))
+    file.write('{}      ! PRC_GenSpeeds   - {}\n'.format(write_array(rosco_vt["PRC_GenSpeeds"]), input_descriptions["PRC_GenSpeeds"]))
+    file.write('\n')
     file.write('!------- WIND SPEED ESTIMATOR ---------------------------------------------\n')
     file.write('{:<13.3f}       ! WE_BladeRadius	- Blade length (distance from hub center to blade tip), [m]\n'.format(rosco_vt['WE_BladeRadius']))
     file.write('{:<11d}         ! WE_CP_n			- Amount of parameters in the Cp array\n'.format(int(rosco_vt['WE_CP_n'])))
@@ -213,8 +220,8 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('\n')
     file.write('!------- MINIMUM PITCH SATURATION -------------------------------------------\n')
     file.write('{:<11d}         ! PS_BldPitchMin_N  - Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)\n'.format(int(rosco_vt['PS_BldPitchMin_N'])))
-    file.write('{}              ! PS_WindSpeeds     - Wind speeds corresponding to minimum blade pitch angles [m/s]\n'.format(''.join('{:<4.4f} '.format(rosco_vt['PS_WindSpeeds'][i]) for i in range(len(rosco_vt['PS_WindSpeeds'])))))
-    file.write('{}              ! PS_BldPitchMin    - Minimum blade pitch angles [rad]\n'.format(''.join('{:<10.8f} '.format(rosco_vt['PS_BldPitchMin'][i]) for i in range(len(rosco_vt['PS_BldPitchMin'])))))
+    file.write('{}              ! PS_WindSpeeds     - Wind speeds corresponding to minimum blade pitch angles [m/s]\n'.format(''.join('{:<4.3f} '.format(rosco_vt['PS_WindSpeeds'][i]) for i in range(len(rosco_vt['PS_WindSpeeds'])))))
+    file.write('{}              ! PS_BldPitchMin    - Minimum blade pitch angles [rad]\n'.format(''.join('{:<10.3f} '.format(rosco_vt['PS_BldPitchMin'][i]) for i in range(len(rosco_vt['PS_BldPitchMin'])))))
     file.write('\n')
     file.write('!------- SHUTDOWN -----------------------------------------------------------\n')
     file.write('{:<014.5f}      ! SD_MaxPit         - Maximum blade pitch angle to initiate shutdown, [rad]\n'.format(rosco_vt['SD_MaxPit']))
@@ -466,6 +473,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['PC_ControlMode']   = int(controller.PC_ControlMode)
     DISCON_dict['Y_ControlMode']	= int(controller.Y_ControlMode)
     DISCON_dict['SS_Mode']          = int(controller.SS_Mode)
+    DISCON_dict['PRC_Mode']         = 0
     DISCON_dict['WE_Mode']          = int(controller.WE_Mode)
     DISCON_dict['PS_Mode']          = int(controller.PS_Mode > 0)
     DISCON_dict['SD_Mode']          = int(controller.SD_Mode)
@@ -543,6 +551,11 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     # ------- SETPOINT SMOOTHER -------
     DISCON_dict['SS_VSGain']         = controller.ss_vsgain
     DISCON_dict['SS_PCGain']         = controller.ss_pcgain
+    # -------- POWER REFERENCE TRACKING ------
+    DISCON_dict['PRC_n'] = 2
+    DISCON_dict['PRC_WindSpeeds'] = [3,25]
+    DISCON_dict['PRC_GenSpeeds'] = [rpm2RadSec * 7.56] * 2
+    
     # ------- WIND SPEED ESTIMATOR -------
     DISCON_dict['WE_BladeRadius']	= turbine.rotor_radius
     DISCON_dict['WE_CP_n']			= 1

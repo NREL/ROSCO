@@ -307,6 +307,25 @@ ControlParameters:
     SS_PCGain:
       <<: *real
       description: Collective pitch controller setpoint smoother gain, [-].
+
+    # Power reference tracking
+    PRC_Mode:
+      <<: *integer
+      description: Power reference tracking mode, 0- use standard rotor speed set points, 1- use PRC rotor speed setpoints
+    PRC_WindSpeeds:
+      <<: *real
+      description: Array of wind speeds used in rotor speed vs. wind speed lookup table
+      allocatable: True
+    PRC_GenSpeeds:
+      <<: *real
+      description: Array of rotor speeds corresponding to PRC_WindSpeeds
+      allocatable: True
+    PRC_n:
+      <<: *integer
+      description: Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
+    PRC_LPF_Freq:
+      <<: *real
+      description: Frequency of the low pass filter on the wind speed estimate used to set PRC_GenSpeeds [rad/s]
     
     # Wind Speed Estimator
     WE_Mode:
@@ -978,6 +997,12 @@ LocalVariables:
     RotSpeedF:                    
       <<: *real 
       description: Filtered LSS (generator) speed [rad/s].
+    VS_RefSpd:
+      <<: *real
+      description: Generator speed set point of torque controller [rad/s]
+    PC_RefSpd:
+      <<: *real
+      description: Generator speed set point of pitch controller [rad/s]
     GenSpeedF:                    
       <<: *real 
       description: Filtered HSS (generator) speed [rad/s].
@@ -1137,6 +1162,9 @@ LocalVariables:
     VS_LastGenTrqF:               
       <<: *real 
       description: Differentiated integrated wind speed quantity for estimation [m/s]
+    PRC_WSE_F:               
+      <<: *real 
+      description: Filtered wind speed estimate for power reference control
     SD:                           
       <<: *logical
       description: Shutdown, .FALSE. if inactive, .TRUE. if active

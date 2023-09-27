@@ -344,6 +344,7 @@ CONTAINS
         CALL ParseInput(FileLines,'PC_ControlMode',  CntrPar%PC_ControlMode,    accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'Y_ControlMode',   CntrPar%Y_ControlMode,     accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'SS_Mode',         CntrPar%SS_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'PRC_Mode',        CntrPar%PRC_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'WE_Mode',         CntrPar%WE_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'PS_Mode',         CntrPar%PS_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'SD_Mode',         CntrPar%SD_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
@@ -434,6 +435,12 @@ CONTAINS
         CALL ParseInput(FileLines,  'SS_VSGain',    CntrPar%SS_VSGain,  accINFILE(1), ErrVar, CntrPar%SS_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'SS_PCGain',    CntrPar%SS_PCGain,  accINFILE(1), ErrVar, CntrPar%SS_Mode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
+
+        !------------ POWER REFERENCE TRACKING SETPOINTS --------------
+        CALL ParseInput(FileLines,  'PRC_n',            CntrPar%PRC_n,                            accINFILE(1), ErrVar,   CntrPar%PRC_Mode == 0)
+        CALL ParseInput(FileLines,  'PRC_LPF_Freq',     CntrPar%PRC_LPF_Freq,                     accINFILE(1), ErrVar,   CntrPar%PRC_Mode == 0)
+        CALL ParseAry(  FileLines,  'PRC_WindSpeeds',   CntrPar%PRC_WindSpeeds,   CntrPar%PRC_n,  accINFILE(1), ErrVar,   CntrPar%PRC_Mode == 0)
+        CALL ParseAry(  FileLines,  'PRC_GenSpeeds',    CntrPar%PRC_GenSpeeds,    CntrPar%PRC_n,  accINFILE(1), ErrVar,   CntrPar%PRC_Mode == 0)
 
         !------------ WIND SPEED ESTIMATOR CONTANTS --------------
         CALL ParseInput(FileLines,  'WE_BladeRadius',   CntrPar%WE_BladeRadius,                         accINFILE(1), ErrVar, .FALSE., UnEc)
@@ -1126,6 +1133,10 @@ CONTAINS
         IF (CntrPar%SS_PCGain < 0.0) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'SS_PCGain must be greater than zero.'
+        ENDIF
+
+        IF (CntrPar%PRC_Mode > 0) THEN
+            PRINT *, "Note: PRC Mode = ", CntrPar%PRC_Mode, ", which will ignore VS_RefSpeed, VS_TSRopt, and PC_RefSpeed"
         ENDIF
         
         !------- WIND SPEED ESTIMATOR ---------------------------------------------
