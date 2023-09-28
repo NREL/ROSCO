@@ -9,7 +9,7 @@ dependencies:
   - scipy
   - pyYAML
   - pandas
-  - wisdem>3.5
+  - wisdem
   - cmake
   - pyparsing==2.4.7 
   - control
