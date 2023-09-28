@@ -150,9 +150,22 @@ ControlParameters:
       allocatable: True
     
     # Tower fore-aft damping
-    TD_Mode:
+    Twr_Mode:
       <<: *integer
-      description: Tower damper mode (0- no tower damper, 1- feed back translational nacelle accelleration to pitch angle
+      description: Tower Fore-Aft control mode {0 - no fore-aft control, 1 - Tower fore-aft damping, 2 -Frequency exclusion zone, 3- Options 1 and 2}
+    Twr_ExclSpeed:
+      <<: *real
+      description: Rotor speed for exclusion [LSS] [rad/s]
+    Twr_ExclBand:
+      <<: *real
+      description: One-half of the total frequency exclusion band. Torque controller reference will be Twr_ExclFreq +/- Twr_ExlBand [rad/s]
+    Twr_GainFactor:
+      <<: *real
+      allocatable: True
+      description: Factor to change PI torque control gains by [-]
+    Twr_GainTau:
+      <<: *real
+      description: Time constant for gain change when in exclusion zone [s]
     FA_HPFCornerFreq:
       <<: *real
       description: Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]
@@ -994,15 +1007,12 @@ LocalVariables:
     VS_RefSpd:          
       <<: *real 
       description: Torque control generator speed set point [rad/s]
-    RotSpeedF:                    
-      <<: *real 
-      description: Filtered LSS (generator) speed [rad/s].
-    VS_RefSpd:
-      <<: *real
-      description: Generator speed set point of torque controller [rad/s]
     PC_RefSpd:
       <<: *real
       description: Generator speed set point of pitch controller [rad/s]
+    RotSpeedF:                    
+      <<: *real 
+      description: Filtered LSS (generator) speed [rad/s].
     GenSpeedF:                    
       <<: *real 
       description: Filtered HSS (generator) speed [rad/s].
@@ -1043,6 +1053,9 @@ LocalVariables:
     PC_PitComT:                   
       <<: *real 
       description: Total command pitch based on the sum of the proportional and integral terms [rad].
+    PC_PitComC:                   
+      <<: *real 
+      description: Collective pitch commmand from PI control [rad].
     PC_PitComT_Last:                   
       <<: *real 
       description: Last total command pitch based on the sum of the proportional and integral terms [rad].
@@ -1175,6 +1188,27 @@ LocalVariables:
       <<: *real 
     FA_AccF:
       <<: *real 
+    FA_Hist:
+      <<: *integer 
+      description: Hysteresis state for tower resonance avoidance.
+    FA_LastRefSpd:
+      <<: *real 
+      description: Last reference generator speed
+    Twr_GainFact_P:
+      <<: *real
+      description: Tower gain factor for P term
+    Twr_GainFact_I:
+      <<: *real
+      description: Tower gain factor for I term
+    Twr_HistDist:
+      <<: *real
+      description: Distance from histeresis saturation [rad/s]
+    VS_RefSpeed_Excl:
+      <<: *real
+      description: Torque controller reference speed after exclusion zone shift
+    VS_RefSpeed:
+      <<: *real
+      description: Torque controller reference speed
     PtfmTDX:
       <<: *real
       description: Platform motion -- Displacement TDX (m)')
@@ -1405,6 +1439,12 @@ DebugVariables:
   YawState:
     <<: *real
     description: State of yaw controller
+  VS_RefSpd:          
+      <<: *real 
+      description: Torque control generator speed set point [rad/s]
+  PC_RefSpd:
+    <<: *real
+    description: Generator speed set point of pitch controller [rad/s]
 
 ErrorVariables:
   size_avcMSG: 

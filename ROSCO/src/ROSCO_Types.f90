@@ -273,9 +273,9 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: FA_AccHPF                   ! High-pass filtered fore-aft acceleration [m/s^2]
     REAL(DbKi)                    :: FA_AccHPFI                  ! Tower velocity, high-pass filtered and integrated fore-aft acceleration [m/s]
     REAL(DbKi)                    :: FA_PitCom(3)                ! Tower fore-aft vibration damping pitch contribution [rad]
-    REAL(DbKi)                    :: VS_RefSpd                   ! Generator speed set point of torque controller [rad/s]
-    REAL(DbKi)                    :: RotSpeedF                   ! Filtered LSS (generator) speed [rad/s].
+    REAL(DbKi)                    :: VS_RefSpd                   ! Torque control generator speed set point [rad/s]
     REAL(DbKi)                    :: PC_RefSpd                   ! Generator speed set point of pitch controller [rad/s]
+    REAL(DbKi)                    :: RotSpeedF                   ! Filtered LSS (generator) speed [rad/s].
     REAL(DbKi)                    :: GenSpeedF                   ! Filtered HSS (generator) speed [rad/s].
     REAL(DbKi)                    :: GenTq                       ! Electrical generator torque, [Nm].
     REAL(DbKi)                    :: GenTqMeas                   ! Measured generator torque [Nm]
@@ -288,8 +288,8 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: PC_TF                       ! First-order filter parameter for derivative action
     REAL(DbKi)                    :: PC_MaxPit                   ! Maximum pitch setting in pitch controller (variable) [rad].
     REAL(DbKi)                    :: PC_MinPit                   ! Minimum pitch setting in pitch controller (variable) [rad].
+    REAL(DbKi)                    :: PC_PitComT                  ! Total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(DbKi)                    :: PC_PitComC                  ! Collective pitch commmand from PI control [rad].
-    REAL(DbKi)                    :: PC_PitComT                  ! Total command pitch based on the sum of PI and floating feedback [rad].
     REAL(DbKi)                    :: PC_PitComT_Last             ! Last total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(DbKi)                    :: PC_PitComTF                 ! Filtered Total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(DbKi)                    :: PC_PitComT_IPC(3)           ! Total command pitch based on the sum of the proportional and integral terms, including IPC term [rad].
@@ -312,8 +312,6 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: PitCom(3)                   ! Commanded pitch of each blade the last time the controller was called [rad].
     REAL(DbKi)                    :: PitComAct(3)                ! Actuated pitch command of each blade [rad].
     REAL(DbKi)                    :: SS_DelOmegaF                ! Filtered setpoint shifting term defined in setpoint smoother [rad/s].
-    REAL(DbKi)                    :: VS_RefSpd                   ! Torque control generator speed set point [rad/s].
-    REAL(DbKi)                    :: PC_RefSpd                   ! Pitch control generator speed set point [rad/s].
     REAL(DbKi)                    :: TestType                    ! Test variable, no use
     REAL(DbKi)                    :: Kp_Float                    ! Local, instantaneous Kp_Float, scheduled on wind speed, if desired
     REAL(DbKi)                    :: VS_MaxTq                    ! Maximum allowable generator torque [Nm].
@@ -335,6 +333,13 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None
     REAL(DbKi)                    :: FA_AccF                     ! None
+    INTEGER(IntKi)                :: FA_Hist                     ! Hysteresis state for tower resonance avoidance.
+    REAL(DbKi)                    :: FA_LastRefSpd               ! Last reference generator speed
+    REAL(DbKi)                    :: Twr_GainFact_P              ! Tower gain factor for P term
+    REAL(DbKi)                    :: Twr_GainFact_I              ! Tower gain factor for I term
+    REAL(DbKi)                    :: Twr_HistDist                ! Distance from histeresis saturation [rad/s]
+    REAL(DbKi)                    :: VS_RefSpeed_Excl            ! Torque controller reference speed after exclusion zone shift
+    REAL(DbKi)                    :: VS_RefSpeed                 ! Torque controller reference speed
     REAL(DbKi)                    :: PtfmTDX                     ! Platform motion -- Displacement TDX (m)')
     REAL(DbKi)                    :: PtfmTDY                     ! Platform motion -- Displacement TDY (m)')
     REAL(DbKi)                    :: PtfmTDZ                     ! Platform motion -- Displacement TDZ (m)')
@@ -357,11 +362,6 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: CC_ActuatedL(12)            ! None
     REAL(DbKi)                    :: CC_ActuatedDL(12)           ! None
     REAL(DbKi)                    :: StC_Input(12)               ! None
-    INTEGER(IntKi)                :: FA_Hist                     ! Hysteresis state for tower resonance avoidance.
-    REAL(DbKi)                    :: FA_LastRefSpd               ! Last reference generator speed
-    REAL(DbKi)                    :: Twr_GainFact_P              ! Tower gain factor for P term
-    REAL(DbKi)                    :: Twr_GainFact_I              ! Tower gain factor for I term
-    REAL(DbKi)                    :: Twr_HistDist                ! Distance from histeresis saturation [rad/s]
     REAL(DbKi)                    :: Flp_Angle(3)                ! Flap Angle (rad)
     REAL(DbKi)                    :: RootMyb_Last(3)             ! Last blade root bending moment (Nm)
     INTEGER(IntKi)                :: ACC_INFILE_SIZE             ! Length of parameter input filename
@@ -413,13 +413,13 @@ TYPE, PUBLIC :: DebugVariables
     REAL(DbKi)                    :: axisYaw_1P                  ! Yaw component of coleman transformation, 1P
     REAL(DbKi)                    :: axisTilt_2P                 ! Tilt component of coleman transformation, 2P
     REAL(DbKi)                    :: axisYaw_2P                  ! Yaw component of coleman transformation, 2P
-    REAL(DbKi)                    :: VS_RefSpeed_Excl            ! Torque controller reference speed after exclusion zone shift
-    REAL(DbKi)                    :: VS_RefSpeed                 ! Torque controller reference speed
     REAL(DbKi)                    :: YawRateCom                  ! Commanded yaw rate [rad/s].
     REAL(DbKi)                    :: NacHeadingTarget            ! Target nacelle heading [deg].
     REAL(DbKi)                    :: NacVaneOffset               ! Nacelle vane angle with offset [deg].
     REAL(DbKi)                    :: Yaw_Err                     ! Yaw error [deg].
     REAL(DbKi)                    :: YawState                    ! State of yaw controller
+    REAL(DbKi)                    :: VS_RefSpd                   ! Torque control generator speed set point [rad/s]
+    REAL(DbKi)                    :: PC_RefSpd                   ! Generator speed set point of pitch controller [rad/s]
 END TYPE DebugVariables
 
 TYPE, PUBLIC :: ErrorVariables

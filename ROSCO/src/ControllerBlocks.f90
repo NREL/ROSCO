@@ -25,7 +25,7 @@ CONTAINS
 ! -----------------------------------------------------------------------------------
     ! Calculate setpoints for primary control actions    
     SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
         USE Constants
         ! Allocate variables
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
@@ -109,7 +109,8 @@ CONTAINS
         LocalVar%VS_Rgn3Pitch = LocalVar%PC_MinPit + CntrPar%PC_Switch
 
         ! Debug Vars
-        DebugVar%VS_RefSpeed = LocalVar%VS_RefSpd
+        DebugVar%VS_RefSpd = LocalVar%VS_RefSpd
+        DebugVar%PC_RefSpd = LocalVar%PC_RefSpd
 
 
     END SUBROUTINE ComputeVariablesSetpoints
@@ -476,8 +477,8 @@ CONTAINS
         ! Get LSS Ref speed
         VS_RefSpeed_LSS = LocalVar%VS_RefSpd/CntrPar%WE_GearboxRatio
 
-        IF ((VS_RefSpeed_LSS > CntrPar%Twr_ExclSpeed - CntrPar%Twr_ExclBand) .AND. &
-            (VS_RefSpeed_LSS < CntrPar%Twr_ExclSpeed + CntrPar%Twr_ExclBand)) THEN
+        IF ((VS_RefSpeed_LSS > CntrPar%Twr_ExclSpeed - CntrPar%Twr_ExclBand / 2) .AND. &
+            (VS_RefSpeed_LSS < CntrPar%Twr_ExclSpeed + CntrPar%Twr_ExclBand / 2)) THEN
             ! In hysteresis zone, hold reference speed
             LocalVar%FA_Hist = 1 ! Set negative hysteris if ref < exclusion band
             LocalVar%VS_RefSpd = LocalVar%FA_LastRefSpd
@@ -485,8 +486,6 @@ CONTAINS
             LocalVar%FA_Hist = 0
         END IF
         
-        DebugVar%VS_RefSpeed_Excl = LocalVar%VS_RefSpd
-
         ! Change PI gains if near hist zone
         IF (LocalVar%FA_Hist > 0) THEN
             LocalVar%Twr_GainFact_P = CntrPar%Twr_GainFactor(1)
