@@ -199,6 +199,7 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%StC_Input(11)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%StC_Input(12)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%FA_Hist
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%FA_LastRefSpd
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Twr_GainFact_P
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Twr_GainFact_I
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Twr_HistDist
@@ -476,6 +477,7 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%StC_Input(11)
         READ( Un, IOSTAT=ErrStat) LocalVar%StC_Input(12)
         READ( Un, IOSTAT=ErrStat) LocalVar%FA_Hist
+        READ( Un, IOSTAT=ErrStat) LocalVar%FA_LastRefSpd
         READ( Un, IOSTAT=ErrStat) LocalVar%Twr_GainFact_P
         READ( Un, IOSTAT=ErrStat) LocalVar%Twr_GainFact_I
         READ( Un, IOSTAT=ErrStat) LocalVar%Twr_HistDist
@@ -641,7 +643,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       '[N/A]', '[N/A]', '[N/A]', '[N/A]', '[N/A]', & 
                                       '[N/A]', '[rad/s]', '[deg]', '[deg]', '[deg]', & 
                                       '[N/A]']
-    nLocalVars = 108
+    nLocalVars = 109
     Allocate(LocalVarOutData(nLocalVars))
     Allocate(LocalVarOutStrings(nLocalVars))
     LocalVarOutData(1) = LocalVar%iStatus
@@ -745,13 +747,14 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(99) = LocalVar%CC_ActuatedDL(1)
     LocalVarOutData(100) = LocalVar%StC_Input(1)
     LocalVarOutData(101) = LocalVar%FA_Hist
-    LocalVarOutData(102) = LocalVar%Twr_GainFact_P
-    LocalVarOutData(103) = LocalVar%Twr_GainFact_I
-    LocalVarOutData(104) = LocalVar%Twr_HistDist
-    LocalVarOutData(105) = LocalVar%Flp_Angle(1)
-    LocalVarOutData(106) = LocalVar%RootMyb_Last(1)
-    LocalVarOutData(107) = LocalVar%ACC_INFILE_SIZE
-    LocalVarOutData(108) = LocalVar%AWC_complexangle(1)
+    LocalVarOutData(102) = LocalVar%FA_LastRefSpd
+    LocalVarOutData(103) = LocalVar%Twr_GainFact_P
+    LocalVarOutData(104) = LocalVar%Twr_GainFact_I
+    LocalVarOutData(105) = LocalVar%Twr_HistDist
+    LocalVarOutData(106) = LocalVar%Flp_Angle(1)
+    LocalVarOutData(107) = LocalVar%RootMyb_Last(1)
+    LocalVarOutData(108) = LocalVar%ACC_INFILE_SIZE
+    LocalVarOutData(109) = LocalVar%AWC_complexangle(1)
     LocalVarOutStrings = [CHARACTER(15) ::  'iStatus', 'Time', 'DT', 'VS_GenPwr', 'GenSpeed', & 
                                       'RotSpeed', 'NacHeading', 'NacVane', 'HorWindV', 'rootMOOP', & 
                                       'rootMOOPF', 'BlPitch', 'BlPitchCMeas', 'Azimuth', 'NumBl', & 
@@ -772,8 +775,8 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       'PtfmTVY', 'PtfmTVZ', 'PtfmRVX', 'PtfmRVY', 'PtfmRVZ', & 
                                       'PtfmTAX', 'PtfmTAY', 'PtfmTAZ', 'PtfmRAX', 'PtfmRAY', & 
                                       'PtfmRAZ', 'CC_DesiredL', 'CC_ActuatedL', 'CC_ActuatedDL', 'StC_Input', & 
-                                      'FA_Hist', 'Twr_GainFact_P', 'Twr_GainFact_I', 'Twr_HistDist', 'Flp_Angle', & 
-                                      'RootMyb_Last', 'ACC_INFILE_SIZE', 'AWC_complexangle']
+                                      'FA_Hist', 'FA_LastRefSpd', 'Twr_GainFact_P', 'Twr_GainFact_I', 'Twr_HistDist', & 
+                                      'Flp_Angle', 'RootMyb_Last', 'ACC_INFILE_SIZE', 'AWC_complexangle']
     ! Initialize debug file
     IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN ! .TRUE. if we're on the first call to the DLL
         IF (CntrPar%LoggingLevel > 0) THEN
@@ -788,8 +791,8 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
             CALL GetNewUnit(UnDb2, ErrVar)
             OPEN(unit=UnDb2, FILE=TRIM(RootName)//'.RO.dbg2')
             WRITE(UnDb2, *)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)
-            WRITE(UnDb2, '(109(a20,TR5:))') 'Time',   LocalVarOutStrings
-            WRITE(UnDb2, '(109(a20,TR5:))')
+            WRITE(UnDb2, '(110(a20,TR5:))') 'Time',   LocalVarOutStrings
+            WRITE(UnDb2, '(110(a20,TR5:))')
         END IF
 
         IF (CntrPar%LoggingLevel > 2) THEN
@@ -846,7 +849,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     END DO
     
     ! Write debug files
-    FmtDat = "(F20.5,TR5,108(ES20.5E2,TR5:))"   ! The format of the debugging data
+    FmtDat = "(F20.5,TR5,109(ES20.5E2,TR5:))"   ! The format of the debugging data
     IF(CntrPar%LoggingLevel > 0) THEN
         WRITE (UnDb, TRIM(FmtDat))  LocalVar%Time, DebugOutData
     END IF

@@ -446,34 +446,25 @@ CONTAINS
         
         ! Initialize hysteresis state
         IF (LocalVar%restart) THEN
-            IF (LocalVar%VS_RefSpd < CntrPar%Twr_ExclSpeed) THEN
-                LocalVar%FA_Hist = -1
-            ELSE
-                LocalVar%FA_Hist = 1
-            END IF
+            LocalVar%FA_LastRefSpd = LocalVar%VS_RefSpd
         END IF 
 
         ! Get LSS Ref speed
         VS_RefSpeed_LSS = LocalVar%VS_RefSpd/CntrPar%WE_GearboxRatio
 
-        IF (VS_RefSpeed_LSS < CntrPar%Twr_ExclSpeed - CntrPar%Twr_ExclBand) THEN
-            LocalVar%FA_Hist = -1 ! Set negative hysteris if ref < exclusion band
-        ELSEIF (VS_RefSpeed_LSS > CntrPar%Twr_ExclSpeed + CntrPar%Twr_ExclBand) THEN
-            LocalVar%FA_Hist = 1 ! Set positive hysteris if ref > exclusion band
-        END IF
-
-        IF (LocalVar%FA_Hist < 0) THEN
-            LocalVar%VS_RefSpd = min(LocalVar%VS_RefSpd, (CntrPar%Twr_ExclSpeed - CntrPar%Twr_ExclBand) * CntrPar%WE_GearboxRatio)
-            LocalVar%Twr_HistDist = ABS(LocalVar%VS_RefSpd - (CntrPar%Twr_ExclSpeed - CntrPar%Twr_ExclBand) * CntrPar%WE_GearboxRatio)
-        ELSE IF (LocalVar%FA_Hist > 0) THEN
-            LocalVar%VS_RefSpd = max(LocalVar%VS_RefSpd, (CntrPar%Twr_ExclSpeed + CntrPar%Twr_ExclBand) * CntrPar%WE_GearboxRatio)
-            LocalVar%Twr_HistDist = ABS(LocalVar%VS_RefSpd - (CntrPar%Twr_ExclSpeed + CntrPar%Twr_ExclBand) * CntrPar%WE_GearboxRatio)
+        IF ((VS_RefSpeed_LSS > CntrPar%Twr_ExclSpeed - CntrPar%Twr_ExclBand) .AND. &
+            (VS_RefSpeed_LSS < CntrPar%Twr_ExclSpeed + CntrPar%Twr_ExclBand)) THEN
+            ! In hysteresis zone, hold reference speed
+            LocalVar%FA_Hist = 1 ! Set negative hysteris if ref < exclusion band
+            LocalVar%VS_RefSpd = LocalVar%FA_LastRefSpd
+        ELSE
+            LocalVar%FA_Hist = 0
         END IF
         
         DebugVar%VS_RefSpeed_Excl = LocalVar%VS_RefSpd
 
         ! Change PI gains if near hist zone
-        IF (LocalVar%Twr_HistDist < 0.001) THEN
+        IF (LocalVar%FA_Hist > 0) THEN
             LocalVar%Twr_GainFact_P = CntrPar%Twr_GainFactor(1)
             LocalVar%Twr_GainFact_I = CntrPar%Twr_GainFactor(2)
         ELSE
@@ -484,7 +475,10 @@ CONTAINS
         IF (CntrPar%Twr_GainTau > 0) THEN
             LocalVar%Twr_GainFact_P = LPFilter(LocalVar%Twr_GainFact_P, LocalVar%DT, 2*PI/CntrPar%Twr_GainTau, LocalVar%FP, LocalVar%iStatus, LocalVar%restart,  objInst%instLPF)
             LocalVar%Twr_GainFact_I = LPFilter(LocalVar%Twr_GainFact_I, LocalVar%DT, 2*PI/CntrPar%Twr_GainTau, LocalVar%FP, LocalVar%iStatus, LocalVar%restart,  objInst%instLPF)
-        END IF           
+        END IF    
+
+        ! Save last reference speed       
+        LocalVar%FA_LastRefSpd = LocalVar%VS_RefSpd
 
         
     END SUBROUTINE RefSpeedExclusion

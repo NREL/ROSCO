@@ -1148,6 +1148,9 @@ LocalVariables:
     FA_Hist:
       <<: *integer 
       description: Hysteresis state for tower resonance avoidance.
+    FA_LastRefSpd:
+      <<: *real 
+      description: Last reference generator speed
     Twr_GainFact_P:
       <<: *real
       description: Tower gain factor for P term

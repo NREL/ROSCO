@@ -326,6 +326,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: CC_ActuatedDL(12)           ! None
     REAL(DbKi)                    :: StC_Input(12)               ! None
     INTEGER(IntKi)                :: FA_Hist                     ! Hysteresis state for tower resonance avoidance.
+    REAL(DbKi)                    :: FA_LastRefSpd               ! Last reference generator speed
     REAL(DbKi)                    :: Twr_GainFact_P              ! Tower gain factor for P term
     REAL(DbKi)                    :: Twr_GainFact_I              ! Tower gain factor for I term
     REAL(DbKi)                    :: Twr_HistDist                ! Distance from histeresis saturation [rad/s]
