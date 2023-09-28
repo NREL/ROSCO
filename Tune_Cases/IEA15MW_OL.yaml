@@ -39,6 +39,7 @@ controller_params:
   SD_Mode:            0                     # Shutdown mode {0: no shutdown procedure, 1: pitch to max pitch at shutdown}
   Fl_Mode:            1                     # Floating specific feedback mode {0: no nacelle velocity feedback, 1: nacelle velocity feedback}
   Flp_Mode:           0                     # Flap control mode {0: no flap control, 1: steady state flap angle, 2: Proportional flap control}
+  OL_Mode:            1
   # Controller parameters       
   zeta_pc:            1.0                   # Pitch controller desired damping ratio [-]
   omega_pc:           0.3                  # Pitch controller desired natural frequency [rad/s]
@@ -51,7 +52,7 @@ controller_params:
   open_loop:
     flag: True
     OL_Ind_Breakpoint: 1
-    OL_Ind_BldPitch: 2
+    OL_Ind_BldPitch: [2,2,2]
     filename: /Users/dzalkind/Downloads/pitch_LC2p2_4ROSCO.dat
     # dt: 0.05
     # t_max: 200

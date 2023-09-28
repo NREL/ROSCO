@@ -1,7 +1,8 @@
 default_types: 
   integer: &integer
     type: integer
-    description: 
+    description:
+    dimension: 
     allocatable: False
     equals: 
     size: 0
@@ -79,25 +80,53 @@ ControlParameters:
     Echo: 
       <<: *integer
       description: 0 - no Echo, 1 - Echo input data to <RootName>.echo
+    
+    DT_Out: 
+      <<: *real
+      description: Output time step
+
+    n_DT_Out:
+      <<: *integer 
+      description: output every this many steps
+
     # Filters
     F_LPFType:
       <<: *integer
       description: 'Low pass filter on the rotor and generator speed {1 - first-order low-pass filter, 2 - second-order low-pass filter}, [rad/s]'
-    F_NotchType:
-      <<: *integer
-      description: Notch on the measured generator speed {0 - disable, 1 - enable} 
     F_LPFCornerFreq:
       <<: *real
       description: Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
     F_LPFDamping:
       <<: *real
       description: Damping coefficient [used only when F_FilterType = 2]
-    F_NotchCornerFreq:
+    F_NumNotchFilts:
+      <<: *integer
+      description: Number of notch filters
+    F_GenSpdNotch_N:
+      <<: *integer
+      description: Number of gen speed notch filters
+    F_GenSpdNotch_Ind:
+      <<: *integer
+      description: Indices of gen speed notch filters
+      allocatable: True
+    F_TwrTopNotch_N:
+      <<: *integer
+      description: Number of tower top notch filters
+    F_TwrTopNotch_Ind:
+      <<: *integer
+      description: Indices of tower top notch filters
+      allocatable: True
+    F_NotchFreqs:
       <<: *real
-      description: Natural frequency of the notch filter, [rad/s]
-    F_NotchBetaNumDen:
+      description: Natural frequencies of notch filters, [rad/s]
+      allocatable: True
+    F_NotchBetaNum:
       <<: *real
-      description: These two notch damping values (numerator and denominator) determines the width and depth of the notch
+      description: Notch Filter Numerator damping (determines width)
+      allocatable: True
+    F_NotchBetaDen:
+      <<: *real
+      description: Notch Filter Numerator damping (determines depth?)
       allocatable: True
     F_SSCornerFreq:
       <<: *real
@@ -121,23 +150,9 @@ ControlParameters:
       allocatable: True
     
     # Tower fore-aft damping
-    Twr_Mode:
+    TD_Mode:
       <<: *integer
-      description: Tower Fore-Aft control mode {0 - no fore-aft control, 1 - Tower fore-aft damping, 2 -Frequency exclusion zone, 3- Options 1 and 2}
-    Twr_ExclSpeed:
-      <<: *real
-      description: Rotor speed for exclusion [LSS] [rad/s]
-    Twr_ExclBand:
-      <<: *real
-      description: One-half of the total frequency exclusion band. Torque controller reference will be Twr_ExclFreq +/- Twr_ExlBand [rad/s]
-    Twr_GainFactor:
-      <<: *real
-      allocatable: True
-      description: Factor to change PI torque control gains by [-]
-    Twr_GainTau:
-      <<: *real
-      description: Time constant for gain change when in exclusion zone [s]
-    
+      description: Tower damper mode (0- no tower damper, 1- feed back translational nacelle accelleration to pitch angle
     FA_HPFCornerFreq:
       <<: *real
       description: Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]
@@ -230,7 +245,10 @@ ControlParameters:
     # Generator Torque Controller
     VS_ControlMode:
       <<: *integer
-      description: Generator torque control mode in above rated conditions {0 - constant torque, 1 - constant power, 2 - TSR Tracking, 3 - TSR Tracking w/ const power}
+      description: Generator torque control mode in above rated conditions {0 - no torque control, 1 - komega^2 with PI trans, 2 - WSE TSR Tracking, 3 - Power TSR Tracking}
+    VS_ConstPower:
+      <<: *integer
+      description: Constant power torque control
     VS_GenEff:
       <<: *real
       description: Generator efficiency mechanical power -> electrical power [-]
@@ -275,6 +293,9 @@ ControlParameters:
     VS_TSRopt:
       <<: *real
       description: Power-maximizing region 2 tip-speed ratio [rad]
+    VS_PwrFiltF:
+      <<: *real
+      description: Cut-off frequency of filter on generator power for power-based tsr tracking control
     
     # Setpoint Smoother
     SS_Mode:
@@ -286,6 +307,25 @@ ControlParameters:
     SS_PCGain:
       <<: *real
       description: Collective pitch controller setpoint smoother gain, [-].
+
+    # Power reference tracking
+    PRC_Mode:
+      <<: *integer
+      description: Power reference tracking mode, 0- use standard rotor speed set points, 1- use PRC rotor speed setpoints
+    PRC_WindSpeeds:
+      <<: *real
+      description: Array of wind speeds used in rotor speed vs. wind speed lookup table
+      allocatable: True
+    PRC_GenSpeeds:
+      <<: *real
+      description: Array of rotor speeds corresponding to PRC_WindSpeeds
+      allocatable: True
+    PRC_n:
+      <<: *integer
+      description: Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
+    PRC_LPF_Freq:
+      <<: *real
+      description: Frequency of the low pass filter on the wind speed estimate used to set PRC_GenSpeeds [rad/s]
     
     # Wind Speed Estimator
     WE_Mode:
@@ -432,13 +472,21 @@ ControlParameters:
       description: The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)
     Ind_BldPitch:
       <<: *integer
-      description: The column in OL_Filename that contains the blade pitch input in rad
+      description: The columns in OL_Filename that contains the blade pitch inputs (1,2,3) in rad
+      allocatable: True
     Ind_GenTq:
       <<: *integer
       description: The column in OL_Filename that contains the generator torque in Nm
     Ind_YawRate:
       <<: *integer
       description: The column in OL_Filename that contains the generator torque in Nm
+    Ind_Azimuth:
+      <<: *integer
+      description: The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
+    RP_Gains:
+      <<: *real
+      description: PID gains and Tf on derivative term for rotor position control (used if OL_Mode = 2)
+      allocatable: True
     Ind_CableControl:
       <<: *integer
       allocatable: True
@@ -451,10 +499,18 @@ ControlParameters:
       <<: *real
       allocatable: True
       description: Open loop breakpoints in timeseries
-    OL_BldPitch:
+    OL_BldPitch1:
       <<: *real
       allocatable: True
-      description: Open blade pitch timeseries
+      description: Open loop blade pitch 1 timeseries
+    OL_BldPitch2:
+      <<: *real
+      allocatable: True
+      description: Open loop blade pitch 2 timeseries
+    OL_BldPitch3:
+      <<: *real
+      allocatable: True
+      description: Open loop blade pitch 3 timeseries
     OL_CableControl:
       <<: *real
       allocatable: True
@@ -466,11 +522,15 @@ ControlParameters:
     OL_GenTq:
       <<: *real
       allocatable: True
-      description: Open generator torque timeseries
+      description: Open loop generator torque timeseries
     OL_YawRate:
       <<: *real
       allocatable: True
-      description: Open yaw rate timeseries
+      description: Open loop yaw rate timeseries
+    OL_Azimuth:
+      <<: *real
+      allocatable: True
+      description: Open loop azimuth timeseries
     OL_Channels:
       <<: *real
       allocatable: True
@@ -515,7 +575,7 @@ ControlParameters:
       <<: *real
       allocatable: True
       description: AWC clocking angle [deg]
-    
+
     # Pitch actuator error
     PF_Mode:
       <<: *integer
@@ -524,6 +584,7 @@ ControlParameters:
       <<: *real
       description: Pitch actuator fault offsets for blade 1-3 [rad/s]
       allocatable: True
+    
     
     # External Control
     Ext_Mode:
@@ -832,6 +893,10 @@ piParams:
       <<: *real
       dimension: (99)
       description: Previous integrator term - second integrator
+    ELast:
+      <<: *real
+      dimension: (99)
+      description: Previous error term for derivative
 
 LocalVariables:
     iStatus: 
@@ -843,7 +908,19 @@ LocalVariables:
     DT: 
       <<: *real 
       description: Time step [s]
+    WriteThisStep:
+      <<: *logical
+      description: Write an output line this time step
+    n_DT:
+      <<: *integer
+      description: number of timesteps since start
+    Time_Last:
+      <<: *real
+      description: Last time [s]
     VS_GenPwr: 
+      <<: *real 
+      description: Generator power [W]
+    VS_GenPwrF: 
       <<: *real 
       description: Generator power [W]
     GenSpeed: 
@@ -879,6 +956,22 @@ LocalVariables:
     Azimuth: 
       <<: *real 
       description: Rotor aziumuth angle [rad]
+    OL_Azimuth: 
+      <<: *real 
+      description: Rotor aziumuth angle [rad]
+    AzUnwrapped: 
+      <<: *real 
+      description: Rotor aziumuth angle [rad]
+    AzError: 
+      <<: *real 
+      description: Azimuth error angle [rad]
+    GenTqAz: 
+      <<: *real 
+      description: Gen torque command due to azimuth error
+    AzBuffer: 
+      <<: *real 
+      size: 2
+      description: Current and last rotor aziumuth angles [rad]
     NumBl: 
       <<: *integer 
       description: Number of blades [-]
@@ -898,9 +991,18 @@ LocalVariables:
       <<: *real 
       description: Tower fore-aft vibration damping pitch contribution [rad]
       size: 3
+    VS_RefSpd:          
+      <<: *real 
+      description: Torque control generator speed set point [rad/s]
     RotSpeedF:                    
       <<: *real 
       description: Filtered LSS (generator) speed [rad/s].
+    VS_RefSpd:
+      <<: *real
+      description: Generator speed set point of torque controller [rad/s]
+    PC_RefSpd:
+      <<: *real
+      description: Generator speed set point of pitch controller [rad/s]
     GenSpeedF:                    
       <<: *real 
       description: Filtered HSS (generator) speed [rad/s].
@@ -938,12 +1040,9 @@ LocalVariables:
     PC_MinPit:                    
       <<: *real 
       description: Minimum pitch setting in pitch controller (variable) [rad].
-    PC_PitComC:                   
-      <<: *real 
-      description: Collective pitch commmand from PI control [rad].
     PC_PitComT:                   
       <<: *real 
-      description: Total command pitch based on the sum of PI and floating feedback [rad].
+      description: Total command pitch based on the sum of the proportional and integral terms [rad].
     PC_PitComT_Last:                   
       <<: *real 
       description: Last total command pitch based on the sum of the proportional and integral terms [rad].
@@ -1015,12 +1114,6 @@ LocalVariables:
     SS_DelOmegaF:                 
       <<: *real 
       description: Filtered setpoint shifting term defined in setpoint smoother [rad/s].
-    VS_RefSpd:                 
-      <<: *real 
-      description: Torque control generator speed set point [rad/s].
-    PC_RefSpd:                 
-      <<: *real 
-      description: Pitch control generator speed set point [rad/s].
     TestType:                     
       <<: *real 
       description: Test variable, no use
@@ -1069,6 +1162,9 @@ LocalVariables:
     VS_LastGenTrqF:               
       <<: *real 
       description: Differentiated integrated wind speed quantity for estimation [m/s]
+    PRC_WSE_F:               
+      <<: *real 
+      description: Filtered wind speed estimate for power reference control
     SD:                           
       <<: *logical
       description: Shutdown, .FALSE. if inactive, .TRUE. if active
@@ -1145,21 +1241,6 @@ LocalVariables:
     StC_Input:
       <<: *real
       size: 12
-    FA_Hist:
-      <<: *integer 
-      description: Hysteresis state for tower resonance avoidance.
-    FA_LastRefSpd:
-      <<: *real 
-      description: Last reference generator speed
-    Twr_GainFact_P:
-      <<: *real
-      description: Tower gain factor for P term
-    Twr_GainFact_I:
-      <<: *real
-      description: Tower gain factor for I term
-    Twr_HistDist:
-      <<: *real
-      description: Distance from histeresis saturation [rad/s]
     Flp_Angle:
       <<: *real 
       description: Flap Angle (rad)
@@ -1309,13 +1390,6 @@ DebugVariables:
   axisYaw_2P:
     <<: *real
     description: Yaw component of coleman transformation, 2P
-  VS_RefSpeed_Excl:
-    <<: *real
-    description: Torque controller reference speed after exclusion zone shift
-  VS_RefSpeed:
-    <<: *real
-    description: Torque controller reference speed
-
   YawRateCom:
     <<: *real
     description: Commanded yaw rate [rad/s].
