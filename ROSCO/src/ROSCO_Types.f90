@@ -391,6 +391,7 @@ END TYPE ExtDLL_Type
 TYPE, PUBLIC :: ZMQ_Variables
     LOGICAL                       :: ZMQ_Flag                    ! Flag if we're using zeroMQ at all (0-False, 1-True)
     REAL(DbKi)                    :: Yaw_Offset                  ! Yaw offsety command, [rad]
+    REAL(DbKi)                    :: PitComZMQ(3)            ! PIDE command, [rad]
 END TYPE ZMQ_Variables
 
 TYPE, PUBLIC :: ExtControlType

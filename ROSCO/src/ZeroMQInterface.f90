@@ -69,6 +69,9 @@ CONTAINS
 			! write (*,*) "ZeroMQInterface: pitch 2 setpoint from ssc: ", setpoints(4)
 			! write (*,*) "ZeroMQInterface: pitch 3 setpoint from ssc: ", setpoints(5)
 			zmqVar%Yaw_Offset = setpoints(2)
+            zmqVar%PitComZMQ(1) = setpoints(3)
+            zmqVar%PitComZMQ(2) = setpoints(4)
+            zmqVar%PitComZMQ(3) = setpoints(5)
 			
 		ENDIF
 
