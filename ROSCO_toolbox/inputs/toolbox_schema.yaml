@@ -191,6 +191,11 @@ properties:
                 maximum: 1
                 default: 0
                 description: ZMQ Mode (0 - ZMQ Inteface, 1 - ZMQ for yaw control)
+            ZMQ_UpdatePeriod:
+                type: number
+                minimum: 0
+                default: 2
+                description: Call ZeroMQ every [x] seconds, [s]
             PA_Mode:           
                 type: number
                 minimum: 0

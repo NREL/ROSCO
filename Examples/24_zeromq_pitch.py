@@ -34,7 +34,7 @@ def run_zmq():
         # Decide new control input based on measurements
         current_time = measurements['Time']
         if current_time >= 10.0:
-            col_pitch_command = np.deg2rad(3) # Set pitch to 3 degrees after 10 s
+            col_pitch_command = np.deg2rad(2) * np.sin(0.1 * current_time) + np.deg2rad(2) # Implement dynamic induction control
         else:
             col_pitch_command = 0.0
 
@@ -63,6 +63,7 @@ def sim_rosco():
     # Enable ZeroMQ & yaw control
     controller_params['Y_ControlMode'] = 1
     controller_params['ZMQ_Mode'] = 1
+    controller_params['ZMQ_UpdatePeriod'] = 0.125
 
     # Specify controller dynamic library path and name
     this_dir = os.path.dirname(os.path.abspath(__file__))
@@ -128,7 +129,7 @@ def sim_rosco():
     if False:
         plt.show()
     else:
-        plt.savefig(os.path.join(example_out_dir, '16_NREL5MW_zmqYaw.png'))
+        plt.savefig(os.path.join(example_out_dir, '24_NREL5MW_zmqPitch.png'))
 
 
 if __name__ == "__main__":

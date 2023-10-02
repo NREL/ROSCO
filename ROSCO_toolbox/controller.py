@@ -94,7 +94,8 @@ class Controller():
         self.Ki_ipc1p           = controller_params['IPC_Ki1p']
         self.Kp_ipc2p           = controller_params['IPC_Kp2p']
         self.Ki_ipc2p           = controller_params['IPC_Kp2p']
-        self.IPC_Vramp         = controller_params['IPC_Vramp']
+        self.IPC_Vramp          = controller_params['IPC_Vramp']
+        self.ZMQ_UpdatePeriod   = controller_params['ZMQ_UpdatePeriod']
 
         #  Optional parameters without defaults
         if self.Flp_Mode > 0:
