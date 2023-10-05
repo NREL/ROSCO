@@ -103,7 +103,6 @@ def sim_rosco():
         txt_filename=cp_filename
     )
 
-
     # Load controller library
     controller_int = ROSCO_ci.ControllerInterface(lib_name, param_filename=param_filename, sim_name='sim-zmq')
 

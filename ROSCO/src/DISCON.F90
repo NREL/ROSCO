@@ -98,7 +98,7 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
     IF ((LocalVar%iStatus == -8) .AND. (ErrVar%aviFAIL >= 0))  THEN ! Write restart files
         CALL WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, SIZE(avcOUTNAME))    
     ENDIF
-    IF (zmqVar%ZMQ_Flag) THEN
+    IF (CntrPar%ZMQ_Mode > 0) THEN
         CALL UpdateZeroMQ(LocalVar, CntrPar, zmqVar, ErrVar)
     ENDIF
     

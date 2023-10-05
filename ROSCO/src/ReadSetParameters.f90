@@ -320,9 +320,9 @@ CONTAINS
             ENDIF
             
             ! Check if we're using zeromq
-            IF (CntrPar%ZMQ_Mode == 1) THEN ! add .OR. statements as more functionality is built in
-                zmqVar%ZMQ_Flag = .TRUE.
-            ENDIF
+            !IF (CntrPar%ZMQ_Mode == 1) THEN ! add .OR. statements as more functionality is built in
+            !    zmqVar%ZMQ_Flag = .TRUE.
+            !ENDIF
 
 
         ENDIF
