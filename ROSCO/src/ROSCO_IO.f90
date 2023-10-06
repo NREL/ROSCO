@@ -870,11 +870,11 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     FmtDat = "(F20.5,TR5,112(ES20.5E2,TR5:))"   ! The format of the debugging data
     IF ( MOD(LocalVar%n_DT, CntrPar%n_DT_Out) == 0) THEN
         IF(CntrPar%LoggingLevel > 0) THEN
-            WRITE (UnDb, FmtDat)  LocalVar%Time, DebugOutData
+            WRITE (UnDb, TRIM(FmtDat))  LocalVar%Time, DebugOutData
         END IF
 
         IF(CntrPar%LoggingLevel > 1) THEN
-            WRITE (UnDb2, FmtDat)  LocalVar%Time, LocalVarOutData
+            WRITE (UnDb2, TRIM(FmtDat))  LocalVar%Time, LocalVarOutData
         END IF
 
         IF(CntrPar%LoggingLevel > 2) THEN
@@ -882,6 +882,12 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
         END IF
     END IF
 
+    ! Close all files when simulation finished
+    IF (LocalVar%iStatus < 0) THEN
+        CLOSE(UnDb)
+        CLOSE(UnDb2)
+        CLOSE(UnDb3)
+    ENDIF
 END SUBROUTINE Debug
 
 END MODULE ROSCO_IO
