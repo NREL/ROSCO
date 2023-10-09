@@ -25,6 +25,11 @@ all_scripts = [
     '20_active_wake_control',   
     '21_optional_inputs',
     '22_cable_control',
+    '23_structural_control',
+    '24_floating_feedback',
+    '25_rotor_position_control',
+    '26_marine_hydro',
+    '27_power_ref_control',
     'update_rosco_discons',     
 ]
 

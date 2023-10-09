@@ -34,7 +34,7 @@ def set_channels():
                                "NcIMUTAxs", "NcIMUTAys", "NcIMUTAzs", "NcIMURAxs", "NcIMURAys", "NcIMURAzs", \
                                 "NacYaw", "Wind1VelX", "Wind1VelY", "Wind1VelZ", "LSSTipMxa","LSSTipMya",\
                                    "LSSTipMza","LSSTipMxs","LSSTipMys","LSSTipMzs","LSShftFys","LSShftFzs", \
-                                       "TipRDxr", "TipRDyr", "TipRDzr","RtVAvgxh","RtAeroFxh"]:
+                                       "TipRDxr", "TipRDyr", "TipRDzr","RtVAvgxh","RtAeroFxh", "RtTSR"]:
         channels[var] = True
     return channels
 
@@ -106,20 +106,21 @@ def base_op_case():
     case_inputs[('ServoDyn', 'YCMode')] = {'vals': [5], 'group': 0}    
 
     # AeroDyn
-    case_inputs[("AeroDyn15", "WakeMod")] = {'vals': [1], 'group': 0}
-    case_inputs[("AeroDyn15", "AFAeroMod")] = {'vals': [2], 'group': 0}
-    case_inputs[("AeroDyn15", "TwrPotent")] = {'vals': [0], 'group': 0}
-    case_inputs[("AeroDyn15", "TwrShadow")] = {'vals': ['False'], 'group': 0}
-    case_inputs[("AeroDyn15", "TwrAero")] = {'vals': ['False'], 'group': 0}
-    case_inputs[("AeroDyn15", "SkewMod")] = {'vals': [1], 'group': 0}
-    case_inputs[("AeroDyn15", "TipLoss")] = {'vals': ['True'], 'group': 0}
-    case_inputs[("AeroDyn15", "HubLoss")] = {'vals': ['True'], 'group': 0}
-    case_inputs[("AeroDyn15", "TanInd")] = {'vals': ['True'], 'group': 0}
-    case_inputs[("AeroDyn15", "AIDrag")] = {'vals': ['True'], 'group': 0}
-    case_inputs[("AeroDyn15", "TIDrag")] = {'vals': ['True'], 'group': 0}
-    case_inputs[("AeroDyn15", "IndToler")] = {'vals': [1.e-5], 'group': 0}
-    case_inputs[("AeroDyn15", "MaxIter")] = {'vals': [5000], 'group': 0}
-    case_inputs[("AeroDyn15", "UseBlCm")] = {'vals': ['True'], 'group': 0}
+    if False:
+        case_inputs[("AeroDyn15", "WakeMod")] = {'vals': [1], 'group': 0}
+        case_inputs[("AeroDyn15", "AFAeroMod")] = {'vals': [2], 'group': 0}
+        case_inputs[("AeroDyn15", "TwrPotent")] = {'vals': [0], 'group': 0}
+        case_inputs[("AeroDyn15", "TwrShadow")] = {'vals': ['False'], 'group': 0}
+        case_inputs[("AeroDyn15", "TwrAero")] = {'vals': ['False'], 'group': 0}
+        case_inputs[("AeroDyn15", "SkewMod")] = {'vals': [1], 'group': 0}
+        case_inputs[("AeroDyn15", "TipLoss")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn15", "HubLoss")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn15", "TanInd")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn15", "AIDrag")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn15", "TIDrag")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn15", "IndToler")] = {'vals': [1.e-5], 'group': 0}
+        case_inputs[("AeroDyn15", "MaxIter")] = {'vals': [5000], 'group': 0}
+        case_inputs[("AeroDyn15", "UseBlCm")] = {'vals': ['True'], 'group': 0}
 
     return case_inputs
 
@@ -138,7 +139,10 @@ def power_curve(**wind_case_opts):
     else: # default
         # Run conditions
         U = np.arange(4,14.5,.5).tolist()
-        U = np.linspace(9.5,12,num=16)
+        U = np.linspace(3,25,num=16)
+
+    if 'T_max' in wind_case_opts:
+        T_max = wind_case_opts['T_max']
 
 
     case_inputs = base_op_case()
@@ -155,25 +159,10 @@ def simp_step(**wind_case_opts):
     # Set up cases for FIW-JIP project
     # 3.x in controller tuning register
 
-    if 'T_Max' in wind_case_opts:
-        T_max = wind_case_opts['T_Max']
-    else: #default
-        T_max   = 300.
-
-    if 'U_start' in wind_case_opts:
-        U_start = wind_case_opts['U_start']
-    else: #default
-        U_start   = [16]
-
-    if 'U_end' in wind_case_opts:
-        U_end = wind_case_opts['U_end']
-    else: #default
-        U_end   = [17]
-
-    if 'T_step' in wind_case_opts:
-        T_step = wind_case_opts['T_step']
-    else: #default
-        T_step   = 150
+    TMax    = wind_case_opts.get('TMax',300.)
+    T_step  = wind_case_opts.get('TStep',150.)
+    U_start = wind_case_opts.get('U_start',[16.])
+    U_end   = wind_case_opts.get('U_end',[17.])
 
     # Wind directory, default is run_dir
     wind_case_opts['wind_dir'] = wind_case_opts.get('wind_dir',wind_case_opts['run_dir'])
@@ -182,7 +171,7 @@ def simp_step(**wind_case_opts):
 
     # Make Default step wind object
     hh_step = HH_StepFile()
-    hh_step.t_max = T_max
+    hh_step.t_max = TMax
     hh_step.t_step = T_step
     hh_step.wind_directory = wind_case_opts['wind_dir']
 
@@ -200,7 +189,7 @@ def simp_step(**wind_case_opts):
 
     case_inputs = base_op_case()
     # simulation settings
-    case_inputs[("Fst","TMax")] = {'vals':[T_max], 'group':0}
+    case_inputs[("Fst","TMax")] = {'vals':[TMax], 'group':0}
     # case_inputs[("Fst","DT")]        = {'vals':[1/80], 'group':0}
     
     # wind inflow
@@ -545,6 +534,64 @@ def test_pitch_offset(start_group, **control_sweep_opts):
     case_inputs_control[('DISCON_in','PF_Mode')] = {'vals': [1], 'group': start_group}
     case_inputs_control[('DISCON_in','PF_Offsets')] = {'vals': [[0,float(np.radians(2)),0]], 'group': start_group}
     return case_inputs_control
+
+def sweep_yaml_input(start_group, **control_sweep_opts):
+    '''
+    Sweep any single tuning yaml input
+    
+    control_sweep_opts:
+        control_param: name of parameter
+        param_values: values of parameter (1D array)
+
+    '''
+
+    required_inputs = ['control_param', 'param_values']
+    check_inputs(control_sweep_opts,required_inputs)
+
+    # load default params          
+    control_param_yaml  = control_sweep_opts['tuning_yaml']
+    inps                = load_rosco_yaml(control_param_yaml)
+    path_params         = inps['path_params']
+    turbine_params      = inps['turbine_params']
+
+    # make default controller, turbine objects for ROSCO_toolbox
+    turbine             = ROSCO_turbine.Turbine(turbine_params)
+    yaml_dir            = os.path.dirname(control_param_yaml)
+    turbine.load_from_fast( path_params['FAST_InputFile'],os.path.join(yaml_dir,path_params['FAST_directory']))
+
+
+    case_inputs = {}
+    discon_lists = {}  
+
+    for param_value in control_sweep_opts['param_values']:
+        controller_params   = control_sweep_opts['controller_params'].copy()
+        controller_params[control_sweep_opts['control_param']] = param_value
+        controller          = ROSCO_controller.Controller(controller_params)
+
+        # tune default controller
+        controller.tune_controller(turbine)
+
+        discon_vt = ROSCO_utilities.DISCON_dict(turbine, controller, txt_filename=path_params['rotor_performance_filename'])
+    
+        for discon_input in discon_vt:
+            if discon_input not in discon_lists:        # initialize
+                discon_lists[discon_input] = []
+            discon_lists[discon_input].append(discon_vt[discon_input])
+        
+    for discon_input, input in discon_lists.items():
+        case_inputs[('DISCON_in',discon_input)] = {'vals': input, 'group': start_group+1}
+
+    case_inputs_control = case_inputs
+    return case_inputs_control
+
+
+def check_inputs(control_sweep_opts,required_inputs):
+    for ri in required_inputs:
+        if ri not in control_sweep_opts:
+            raise Exception(f'{ri} is required for this control sweep')
+
+
+
 
 
 

@@ -24,58 +24,74 @@ IMPLICIT NONE
 CONTAINS
 ! -----------------------------------------------------------------------------------
     ! Calculate setpoints for primary control actions    
-    SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+    SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar, objInst, ErrVar)
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, ErrorVariables
         USE Constants
         ! Allocate variables
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
         TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
+        TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
 
-        REAL(DbKi)                                      :: VS_RefSpd        ! Referece speed for variable speed torque controller, [rad/s] 
-        REAL(DbKi)                                      :: PC_RefSpd        ! Referece speed for pitch controller, [rad/s] 
-        REAL(DbKi)                                      :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
 
         ! ----- Pitch controller speed and power error -----
+        
+        ! Power reference tracking generator speed
+        IF (CntrPar%PRC_Mode == 1) THEN
+            LocalVar%PRC_WSE_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT,CntrPar%PRC_LPF_Freq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
+            LocalVar%PC_RefSpd = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_GenSpeeds,LocalVar%PRC_WSE_F,ErrVar)
+        ELSE
+            LocalVar%PC_RefSpd = CntrPar%PC_RefSpd
+        ENDIF
+        
         ! Implement setpoint smoothing
         IF (LocalVar%SS_DelOmegaF < 0) THEN
-            PC_RefSpd = CntrPar%PC_RefSpd - LocalVar%SS_DelOmegaF
-        ELSE
-            PC_RefSpd = CntrPar%PC_RefSpd
+            LocalVar%PC_RefSpd = LocalVar%PC_RefSpd - LocalVar%SS_DelOmegaF
         ENDIF
 
-        LocalVar%PC_SpdErr = PC_RefSpd - LocalVar%GenSpeedF            ! Speed error
+        ! Compute error for pitch controller
+        LocalVar%PC_SpdErr = LocalVar%PC_RefSpd - LocalVar%GenSpeedF            ! Speed error
         LocalVar%PC_PwrErr = CntrPar%VS_RtPwr - LocalVar%VS_GenPwr             ! Power error
-        
+                
         ! ----- Torque controller reference errors -----
         ! Define VS reference generator speed [rad/s]
-        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
-            VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
-            VS_RefSpd = saturate(VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
+        IF (CntrPar%VS_ControlMode == 2) THEN
+            LocalVar%VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
+        ELSEIF (CntrPar%VS_ControlMode == 3) THEN
+            LocalVar%VS_GenPwrF = LPFilter(LocalVar%VS_GenPwr, LocalVar%DT,CntrPar%VS_PwrFiltF, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
+            LocalVar%VS_RefSpd = (LocalVar%VS_GenPwrF/CntrPar%VS_Rgn2K)**(1./3.) ! Genspeed reference that doesnt depend on wind speed estimate (https://doi.org/10.2172/1259805)
         ELSE
-            VS_RefSpd = CntrPar%VS_RefSpd
+            LocalVar%VS_RefSpd = CntrPar%VS_RefSpd
         ENDIF 
+
+        ! Saturate torque reference speed between min speed and rated speed
+        LocalVar%VS_RefSpd = saturate(LocalVar%VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
+
+        ! Implement power reference rotor speed (overwrites above), convert to generator speed
+        IF (CntrPar%PRC_Mode == 1) THEN
+            LocalVar%VS_RefSpd = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_GenSpeeds,LocalVar%WE_Vw_F,ErrVar)
+        ENDIF
         
         ! Implement setpoint smoothing
         IF (LocalVar%SS_DelOmegaF > 0) THEN
-            VS_RefSpd = VS_RefSpd - LocalVar%SS_DelOmegaF
+            LocalVar%VS_RefSpd = LocalVar%VS_RefSpd - LocalVar%SS_DelOmegaF
         ENDIF
 
         ! Force zero torque in shutdown mode
         IF (LocalVar%SD) THEN
-            VS_RefSpd = CntrPar%VS_MinOMSpd
+            LocalVar%VS_RefSpd = CntrPar%VS_MinOMSpd
         ENDIF
 
         ! Force minimum rotor speed
-        VS_RefSpd = max(VS_RefSpd, CntrPar%VS_MinOmSpd)
+        LocalVar%VS_RefSpd = max(LocalVar%VS_RefSpd, CntrPar%VS_MinOmSpd)
 
-        ! TSR-tracking reference error
+        ! Reference error
         IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
-            LocalVar%VS_SpdErr = VS_RefSpd - LocalVar%GenSpeedF
+            LocalVar%VS_SpdErr = LocalVar%VS_RefSpd - LocalVar%GenSpeedF
         ENDIF
 
         ! Define transition region setpoint errors
-        LocalVar%VS_SpdErrAr = VS_RefSpd - LocalVar%GenSpeedF               ! Current speed error - Region 2.5 PI-control (Above Rated)
+        LocalVar%VS_SpdErrAr = LocalVar%VS_RefSpd - LocalVar%GenSpeedF               ! Current speed error - Region 2.5 PI-control (Above Rated)
         LocalVar%VS_SpdErrBr = CntrPar%VS_MinOMSpd - LocalVar%GenSpeedF     ! Current speed error - Region 1.5 PI-control (Below Rated)
         
         ! Region 3 minimum pitch angle for state machine
@@ -107,7 +123,7 @@ CONTAINS
         IF (LocalVar%iStatus == 0) THEN ! .TRUE. if we're on the first call to the DLL
 
             IF (LocalVar%PitCom(1) >= LocalVar%VS_Rgn3Pitch) THEN ! We are in region 3
-                IF (CntrPar%VS_ControlMode == 1) THEN ! Constant power tracking
+                IF (CntrPar%VS_ConstPower == 1) THEN ! Constant power tracking
                     LocalVar%VS_State = 5
                     LocalVar%PC_State = 1
                 ELSE ! Constant torque tracking
@@ -131,7 +147,7 @@ CONTAINS
             ! --- Torque control state machine ---
             IF (LocalVar%PC_PitComT >= LocalVar%VS_Rgn3Pitch) THEN       
 
-                IF (CntrPar%VS_ControlMode == 1) THEN                   ! Region 3
+                IF (CntrPar%VS_ConstPower == 1) THEN                   ! Region 3
                     LocalVar%VS_State = 5 ! Constant power tracking
                 ELSE 
                     LocalVar%VS_State = 4 ! Constant torque tracking
@@ -248,8 +264,8 @@ CONTAINS
                 ! Initialize recurring values
                 LocalVar%WE%om_r = WE_Inp_Speed
                 LocalVar%WE%v_t = 0.0
-                LocalVar%WE%v_m = LocalVar%HorWindV
-                LocalVar%WE%v_h = LocalVar%HorWindV
+                LocalVar%WE%v_m = max(LocalVar%HorWindV, 3.0_DbKi)   ! avoid divide by 0 below if HorWindV is 0, which some AMRWind setups create
+                LocalVar%WE%v_h = max(LocalVar%HorWindV, 3.0_DbKi)   ! avoid divide by 0 below if HorWindV is 0, which some AMRWind setups create
                 lambda = WE_Inp_Speed * CntrPar%WE_BladeRadius/LocalVar%WE%v_h
                 LocalVar%WE%xh = RESHAPE((/LocalVar%WE%om_r, LocalVar%WE%v_t, LocalVar%WE%v_m/),(/3,1/))
                 LocalVar%WE%P = RESHAPE((/0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 1.0/),(/3,3/))
