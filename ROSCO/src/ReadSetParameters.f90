@@ -1214,7 +1214,7 @@ CONTAINS
             ErrVar%ErrMsg  = 'Twr_Mode must be 0, 1, or 2.'
         END IF
 
-        IF (CntrPar%Twr_Mode > 0) THEN
+        IF (CntrPar%Twr_Mode > 1) THEN  ! Frequency avoidance is active
             IF (CntrPar%Twr_ExclSpeed < 0) THEN
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg  = 'Twr_ExclSpeed must be greater than 0.'
@@ -1229,6 +1229,15 @@ CONTAINS
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg  = 'Twr_GainTau must be greater than 0.'
             END IF
+
+            IF ((CntrPar%VS_ControlMode .NE. 2) .OR. (CntrPar%VS_ControlMode .NE. 3)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'VS_ControlMode must be 2 or 3 to use frequency avoidance control.'
+            END IF
+
+            IF (CntrPar%PRC_Mode == 1) THEN
+                PRINT *, "ROSCO Warning: Note that frequency avoidance control (Twr_Mode > 1) will affect PRC set points"
+            END IF           
 
         END IF
 
