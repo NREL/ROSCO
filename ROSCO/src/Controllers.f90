@@ -36,7 +36,7 @@ CONTAINS
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
         TYPE(DebugVariables),       INTENT(INOUT)       :: DebugVar
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
-		TYPE(ZMQ_Variables),        INTENT(INOUT)       :: zmqVar													 
+        TYPE(ZMQ_Variables),        INTENT(INOUT)       :: zmqVar													 
 
         ! Allocate Variables:
         INTEGER(IntKi)                                  :: K            ! Index used for looping through blades.
@@ -110,9 +110,9 @@ CONTAINS
             IF (CntrPar%IPC_SatMode == 1) THEN
                 LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)  
             END IF
-			
-			! Add ZeroMQ pitch commands
-			LocalVar%PitCom(K) = LocalVar%PitCom(K) + zmqVar%PitComZMQ(K)
+            
+            ! Add ZeroMQ pitch commands
+            LocalVar%PitCom(K) = LocalVar%PitCom(K) + zmqVar%PitComZMQ(K)
 
             ! Rate limit                  
             LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitch(K)) ! Saturate the overall command of blade K using the pitch rate limit
