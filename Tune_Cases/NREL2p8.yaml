@@ -22,7 +22,7 @@ controller_params:
     ps_percent: 0.8
     sd_maxpit: 0.4363
     DISCON: {PC_MinPit: -0.1745329, PC_FinePit: 0.0, DLL_FileName: unused, DLL_InFile: unused, DLL_ProcName: DISCON}
-    TD_Mode: 0
+    Twr_Mode: 0
     PwC_Mode: 0
     ZMQ_Mode: 0
     PA_Mode: 0
