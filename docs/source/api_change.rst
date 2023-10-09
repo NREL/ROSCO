@@ -60,10 +60,14 @@ Line    Input Name           Example Value
 99      PRC_WindSpeeds      3.0000 25.0000      ! PRC_WindSpeeds  - Array of wind speeds used in rotor speed vs. wind speed lookup table [m/s]
 100     PRC_GenSpeeds       0.7917 0.7917       ! PRC_GenSpeeds   - Array of generator speeds corresponding to PRC_WindSpeeds [rad/s]
 101     Empty Line         
-140     Fl_n                1           ! Fl_n          - Number of Fl_Kp gains in gain scheduling, optional with default of 1
-142     Fl_U                0.0000      ! Fl_U          - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
-156     Ind_Azimuth         0           ! Ind_Azimuth   - The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
-157     RP_Gains            0.0000 0.0000 0.0000 0.0000     ! RP_Gains - PID gains and Tf of derivative for rotor position control (used if OL_Mode = 2)
+126     Twr_ExclSpeed       0.00000             ! Twr_ExclSpeed	    - Rotor speed for exclusion [LSS, rad/s]
+127     Twr_ExclBand        0.00000             ! Twr_ExclBand	    - Size of the rotor frequency exclusion band [LSS, rad/s]. Torque controller reference will be Twr_ExclSpeed +/- Twr_ExlBand/2
+128     Twr_GainFactor      1.0000 1.0000       ! Twr_GainFactor    - Factor to change PI torque control gains by [-]
+129     Twr_GainTau         1.00000             ! Twr_GainTau       - Time constant for gain change when in exclusion zone [s]
+144     Fl_n                1           ! Fl_n          - Number of Fl_Kp gains in gain scheduling, optional with default of 1
+145     Fl_U                0.0000      ! Fl_U          - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
+146     Ind_Azimuth         0           ! Ind_Azimuth   - The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
+161     RP_Gains            0.0000 0.0000 0.0000 0.0000     ! RP_Gains - PID gains and Tf of derivative for rotor position control (used if OL_Mode = 2)
 ====== =================    ======================================================================================================================================================================================================
 
 ====== =================    ======================================================================================================================================================================================================
@@ -72,6 +76,9 @@ Changed in ROSCO develop
 Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
 12      VS_ControlMode      2           ! VS_ControlMode - Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking)}126     OL_mode             0           ! OL_Mode           - Open loop control mode {0: no open loop control, 1: open loop control vs. time, 2: rotor position control}
+22      Twr_Mode            0           ! Twr_Mode          - Tower control mode {0: no tower damper, 1: feed back translational nacelle accelleration to pitch angle, 2: speed exclusion zone, 3: options 1 and 2}
+125     Twr_Section         !------- TOWER CONTROL ------------------------------------------------------
+
 141     Fl_Kp               0.0000      ! Fl_Kp             - Nacelle velocity proportional feedback gain [s]
 153     Ind_BldPitch        0   0   0   ! Ind_BldPitch      - The columns in OL_Filename that contains the blade pitch (1,2,3) inputs in rad [array]
 ====== =================    ======================================================================================================================================================================================================
@@ -144,15 +151,6 @@ Line    Input Name           Example Value
 140    PF_Offsets           0.00000000 0.00000000 0.00000000                 ! PF_Offsets     - Constant blade pitch offsets for blades 1-3 [rad]
 141    Empty Line          
 ====== =================    ======================================================================================================================================================================================================
-
-====== =================    ======================================================================================================================================================================================================
-Modified in ROSCO develop
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-Line    Input Name           Example Value
-====== =================    ======================================================================================================================================================================================================
-97     Twr_Mode             0                   ! Twr_Mode          - Tower control mode {0: no tower damper, 1: feed back translational nacelle accelleration to pitch angle, 2: speed exclusion zone, 3: options 1 and 2}
-====== =================    ======================================================================================================================================================================================================
-
 
 
 2.5.0 to develop
