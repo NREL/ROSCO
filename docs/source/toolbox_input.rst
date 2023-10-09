@@ -218,13 +218,14 @@ controller_params
     *Minimum* = 0    *Maximum* = 1
 
 
-:code:`TD_Mode` : Float
+:code:`Twr_Mode` : Float
     Tower damper mode (0- no tower damper, 1- feed back translational
-    nacelle accelleration to pitch angle
+    nacelle accelleration to pitch angle, 2 - Frequency avoidance, 3 -
+    Options 1 and 2
 
     *Default* = 0
 
-    *Minimum* = 0    *Maximum* = 1
+    *Minimum* = 0    *Maximum* = 3
 
 
 :code:`Fl_Mode` : Float
@@ -496,6 +497,35 @@ controller_params
 
 :code:`IPC_Ki2p` : Float
     integral gain for IPC, 2P [-]
+
+    *Default* = 0.0
+
+    *Minimum* = 0
+
+:code:`Twr_ExclSpeed` : Float
+    Rotor speed for exclusion [LSS] [rad/s]
+
+    *Default* = 0.0
+
+    *Minimum* = 0
+
+:code:`Twr_ExclBand` : Float
+    One-half of the total frequency exclusion band. Torque controller
+    reference will be Twr_ExclFreq +/- Twr_ExlBand [rad/s]
+
+    *Default* = 0.0
+
+    *Minimum* = 0
+
+:code:`Twr_GainFactor` : Array of Floats
+    Factor to change PI torque control gains by [-]
+
+    *Default* = [1.0, 1.0]
+
+    *Minimum* = 0
+
+:code:`Twr_GainTau` : Float
+    Time constant for gain change when in exclusion zone [s]
 
     *Default* = 0.0
 
@@ -909,6 +939,26 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution. Do 
 
 :code:`SS_PCGain` : Float
     Collective pitch controller setpoint smoother gain
+
+:code:`PRC_Mode` : Float
+    Power reference tracking mode, 0- use standard rotor speed set
+    points, 1- use PRC rotor speed setpoints
+
+:code:`PRC_WindSpeeds` : Array of Floats
+    Array of wind speeds used in rotor speed vs. wind speed lookup
+    table [m/s]
+
+:code:`PRC_GenSpeeds` : Array of Floats
+    Array of generator speeds corresponding to PRC_WindSpeeds [rad/s]
+
+:code:`PRC_LPF_Freq` : Float
+    Frequency of the low pass filter on the wind speed estimate used
+    to set PRC_GenSpeeds [rad/s]
+
+    *Default* = 0.078539
+
+:code:`PRC_n` : Float
+    Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
 
 :code:`WE_BladeRadius` : Float, m
     Blade length (distance from hub center to blade tip)
