@@ -450,8 +450,8 @@ class turbine_zmq_server():
 
         Parameters:
         -----------
-        genTorques: float
-            Generator torque setpoint
+        genTorque: float
+            Generator torque setpoint (note that this is currently unused by ROSCO)
         nacelleHeadings: float
             Nacelle heading setpoint
         bladePitchAngles: List (len=3)
