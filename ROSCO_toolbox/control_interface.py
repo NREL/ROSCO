@@ -109,6 +109,9 @@ class ControllerInterface():
         # Code as not first run now that DISCON has been initialized
         self.avrSWAP[0] = 1
 
+        if self.aviFAIL.value < 0:
+            raise Exception('ROSCO dynamic library has returned an error')
+
 
     def call_discon(self):
         '''
