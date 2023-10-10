@@ -26,7 +26,7 @@ CONTAINS
  ! -----------------------------------------------------------------------------------
     ! Read avrSWAP array passed from ServoDyn    
     SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar, CntrPar)
-        USE ROSCO_Types, ONLY : LocalVariables, ZMQ_Variables
+        USE ROSCO_Types, ONLY : LocalVariables
 
         REAL(ReKi), INTENT(INOUT) :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
@@ -120,9 +120,9 @@ CONTAINS
     END SUBROUTINE ReadAvrSWAP    
 ! -----------------------------------------------------------------------------------
     ! Define parameters for control actions
-    SUBROUTINE SetParameters(avrSWAP, accINFILE, size_avcMSG, CntrPar, LocalVar, objInst, PerfData, zmqVar, RootName, ErrVar)
+    SUBROUTINE SetParameters(avrSWAP, accINFILE, size_avcMSG, CntrPar, LocalVar, objInst, PerfData, RootName, ErrVar)
                 
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData, ErrorVariables, ZMQ_Variables
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData, ErrorVariables
         
         REAL(ReKi),                 INTENT(INOUT)   :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
         CHARACTER(C_CHAR),          INTENT(IN   )   :: accINFILE(NINT(avrSWAP(50)))     ! The name of the parameter input file
@@ -132,7 +132,6 @@ CONTAINS
         TYPE(LocalVariables),       INTENT(INOUT)   :: LocalVar
         TYPE(ObjectInstances),      INTENT(INOUT)   :: objInst
         TYPE(PerformanceData),      INTENT(INOUT)   :: PerfData
-        TYPE(ZMQ_Variables),        INTENT(INOUT)   :: zmqVar
         TYPE(ErrorVariables),       INTENT(INOUT)   :: ErrVar
         CHARACTER(NINT(avrSWAP(50))-1), INTENT(IN)  :: RootName 
 
@@ -196,7 +195,7 @@ CONTAINS
             LocalVar%ACC_INFILE = accINFILE
 
             ! Read Control Parameter File
-            CALL ReadControlParameterFileSub(CntrPar, LocalVar, zmqVar, accINFILE, NINT(avrSWAP(50)), RootName, ErrVar)
+            CALL ReadControlParameterFileSub(CntrPar, LocalVar, accINFILE, NINT(avrSWAP(50)), RootName, ErrVar)
             ! If there's been an file reading error, don't continue
             ! Add RoutineName to error message
             IF (ErrVar%aviFAIL < 0) THEN
@@ -241,11 +240,6 @@ CONTAINS
             IF (ErrVar%aviFAIL < 0) THEN
                 ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
             ENDIF
-            
-            ! Check if we're using zeromq
-            !IF (CntrPar%ZMQ_Mode == 1) THEN ! add .OR. statements as more functionality is built in
-            !    zmqVar%ZMQ_Flag = .TRUE.
-            !ENDIF
 
 
         ENDIF
@@ -254,16 +248,15 @@ CONTAINS
     ! -----------------------------------------------------------------------------------
     ! Read all constant control parameters from DISCON.IN parameter file
     ! Also, all computed CntrPar%* parameters should be computed in this subroutine
-    SUBROUTINE ReadControlParameterFileSub(CntrPar, LocalVar, zmqVar, accINFILE, accINFILE_size, RootName, ErrVar)!, accINFILE_size)
+    SUBROUTINE ReadControlParameterFileSub(CntrPar, LocalVar, accINFILE, accINFILE_size, RootName, ErrVar)!, accINFILE_size)
         USE, INTRINSIC :: ISO_C_Binding
-        USE ROSCO_Types, ONLY : ControlParameters, ErrorVariables, ZMQ_Variables, LocalVariables
+        USE ROSCO_Types, ONLY : ControlParameters, ErrorVariables, LocalVariables
 
         INTEGER(IntKi)                                  :: accINFILE_size               ! size of DISCON input filename
         CHARACTER(accINFILE_size),  INTENT(IN   )       :: accINFILE(accINFILE_size)    ! DISCON input filename
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar                      ! Control parameter type
         TYPE(LocalVariables),        INTENT(INOUT)       :: LocalVar                       ! Control parameter type
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar                       ! Control parameter type
-        TYPE(ZMQ_Variables),        INTENT(INOUT)       :: zmqVar                       ! Control parameter type
         CHARACTER(accINFILE_size),  INTENT(IN)          :: RootName 
 
         

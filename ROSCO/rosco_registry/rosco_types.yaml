@@ -1264,6 +1264,13 @@ LocalVariables:
       <<: *complex
       description: Complex angle for each blade, sum of modes?
       size: 3
+    ZMQ_YawOffset:
+      <<: *real
+      description: Yaw offsety command, [rad]
+    ZMQ_PitOffset:
+      <<: *real
+      size: 3
+      description: Pitch command offset provided by ZeroMQ
     WE: 
       <<: *derived_type
       id: WE 
@@ -1448,9 +1455,7 @@ ZMQ_Variables:
   ZMQ_Flag:
     <<: *logical
     description: Flag if we're using zeroMQ at all (0-False, 1-True)
-  Yaw_Offset:
-    <<: *real
-    description: Yaw offsety command, [rad]
+  
     
 ExtControlType:
   avrSWAP:

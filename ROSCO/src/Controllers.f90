@@ -23,11 +23,11 @@ MODULE Controllers
 
 CONTAINS
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar, zmqVar)
+    SUBROUTINE PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
     ! Blade pitch controller, generally maximizes rotor speed below rated (region 2) and regulates rotor speed above rated (region 3)
     !       PC_State = 0, fix blade pitch to fine pitch angle (PC_FinePit)
     !       PC_State = 1, is gain scheduled PI controller 
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables, ZMQ_Variables
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
         
         ! Inputs
         REAL(ReKi),              INTENT(INOUT)       :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from the DLL controller.
@@ -36,7 +36,6 @@ CONTAINS
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
         TYPE(DebugVariables),       INTENT(INOUT)       :: DebugVar
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
-        TYPE(ZMQ_Variables),        INTENT(INOUT)       :: zmqVar													 
 
         ! Allocate Variables:
         INTEGER(IntKi)                                  :: K            ! Index used for looping through blades.
@@ -112,7 +111,7 @@ CONTAINS
             END IF
             
             ! Add ZeroMQ pitch commands
-            LocalVar%PitCom(K) = LocalVar%PitCom(K) + zmqVar%PitComZMQ(K)
+            LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%ZMQ_PitOffset(K)
 
             ! Rate limit                  
             LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitch(K)) ! Saturate the overall command of blade K using the pitch rate limit
@@ -303,14 +302,14 @@ CONTAINS
 
     END SUBROUTINE VariableSpeedControl
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, zmqVar, DebugVar, ErrVar)
+    SUBROUTINE YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
         ! Yaw rate controller
         !       Y_ControlMode = 0, No yaw control
         !       Y_ControlMode = 1, Yaw rate control using yaw drive
 
         ! TODO: Lots of R2D->D2R, this should be cleaned up.
         ! TODO: The constant offset implementation is sort of circular here as a setpoint is already being defined in SetVariablesSetpoints. This could also use cleanup
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables, ZMQ_Variables
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
     
         REAL(ReKi), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
     
@@ -319,7 +318,6 @@ CONTAINS
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
         TYPE(DebugVariables), INTENT(INOUT)       :: DebugVar
         TYPE(ErrorVariables), INTENT(INOUT)       :: ErrVar
-        TYPE(ZMQ_Variables), INTENT(INOUT)  :: zmqVar
 
         ! Allocate Variables
         REAL(DbKi), SAVE :: NacVaneOffset                          ! For offset control
@@ -348,7 +346,7 @@ CONTAINS
             
             ! Compute/apply offset
             IF (CntrPar%ZMQ_Mode == 1) THEN
-                NacVaneOffset = zmqVar%Yaw_Offset
+                NacVaneOffset = LocalVar%ZMQ_YawOffset
             ELSE
                 NacVaneOffset = CntrPar%Y_MErrSet ! (deg) # Offset from setpoint
             ENDIF

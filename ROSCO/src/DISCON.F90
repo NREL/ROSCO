@@ -58,7 +58,6 @@ TYPE(ObjectInstances),          SAVE           :: objInst
 TYPE(PerformanceData),          SAVE           :: PerfData
 TYPE(DebugVariables),           SAVE           :: DebugVar
 TYPE(ErrorVariables),           SAVE           :: ErrVar
-TYPE(ZMQ_Variables),            SAVE           :: zmqVar
 TYPE(ExtControlType),           SAVE           :: ExtDLL
 
 
@@ -72,7 +71,7 @@ CALL GetRoot(RootName,RootName)
 
 ! Check for restart
 IF ( (NINT(avrSWAP(1)) == -9) .AND. (aviFAIL >= 0))  THEN ! Read restart files
-    CALL ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootName, SIZE(avcOUTNAME), zmqVar, ErrVar)
+    CALL ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootName, SIZE(avcOUTNAME), ErrVar)
     IF ( CntrPar%LoggingLevel > 0 ) THEN
         CALL Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, SIZE(avcOUTNAME))
     END IF 
@@ -82,7 +81,7 @@ END IF
 CALL ReadAvrSWAP(avrSWAP, LocalVar, CntrPar)
 
 ! Set Control Parameters
-CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, zmqVar, RootName, ErrVar)
+CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, RootName, ErrVar)
 
 ! Call external controller, if desired
 IF (CntrPar%Ext_Mode > 0 .AND. ErrVar%aviFAIL >= 0) THEN
@@ -98,7 +97,7 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
         CALL WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, SIZE(avcOUTNAME))    
     ENDIF
     IF (CntrPar%ZMQ_Mode > 0) THEN
-        CALL UpdateZeroMQ(LocalVar, CntrPar, zmqVar, ErrVar)
+        CALL UpdateZeroMQ(LocalVar, CntrPar, ErrVar)
     ENDIF
     
     CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
@@ -106,10 +105,10 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
     CALL StateMachine(CntrPar, LocalVar)
     CALL SetpointSmoother(LocalVar, CntrPar, objInst)
     CALL VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
-    CALL PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar, zmqVar)
+    CALL PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
     
     IF (CntrPar%Y_ControlMode > 0) THEN
-        CALL YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, zmqVar, DebugVar, ErrVar)
+        CALL YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
     END IF
     
     IF (CntrPar%Flp_Mode > 0) THEN
@@ -129,8 +128,8 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
     IF ( CntrPar%LoggingLevel > 0 ) THEN
         CALL Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, SIZE(avcOUTNAME))
     END IF 
-ELSEIF ((LocalVar%iStatus == -1) .AND. (zmqVar%ZMQ_Flag)) THEN
-        CALL UpdateZeroMQ(LocalVar, CntrPar, zmqVar, ErrVar)
+ELSEIF ((LocalVar%iStatus == -1) .AND. (CntrPar%ZMQ_Mode > 0)) THEN
+        CALL UpdateZeroMQ(LocalVar, CntrPar, ErrVar)
 END IF
 
 

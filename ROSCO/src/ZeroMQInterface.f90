@@ -4,12 +4,11 @@ module ZeroMQInterface
     ! 
 
 CONTAINS
-    SUBROUTINE UpdateZeroMQ(LocalVar, CntrPar, zmqVar, ErrVar)
-        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ZMQ_Variables, ErrorVariables
+    SUBROUTINE UpdateZeroMQ(LocalVar, CntrPar, ErrVar)
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ErrorVariables
         IMPLICIT NONE
         TYPE(LocalVariables),    INTENT(INOUT) :: LocalVar
         TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
-        TYPE(ZMQ_Variables),     INTENT(INOUT) :: zmqVar
         TYPE(ErrorVariables),    INTENT(INOUT) :: ErrVar
 
         character(256) :: zmq_address
@@ -68,10 +67,10 @@ CONTAINS
 			! write (*,*) "ZeroMQInterface: pitch 1 setpoint from ssc: ", setpoints(3)
 			! write (*,*) "ZeroMQInterface: pitch 2 setpoint from ssc: ", setpoints(4)
 			! write (*,*) "ZeroMQInterface: pitch 3 setpoint from ssc: ", setpoints(5)
-			zmqVar%Yaw_Offset = setpoints(2)
-            zmqVar%PitComZMQ(1) = setpoints(3)
-            zmqVar%PitComZMQ(2) = setpoints(4)
-            zmqVar%PitComZMQ(3) = setpoints(5)
+			LocalVar%ZMQ_YawOffset = setpoints(2)
+            LocalVar%ZMQ_PitOffset(1) = setpoints(3)
+            LocalVar%ZMQ_PitOffset(2) = setpoints(4)
+            LocalVar%ZMQ_PitOffset(3) = setpoints(5)
 			
 		ENDIF
 
