@@ -425,10 +425,6 @@ TYPE, PUBLIC :: ExtDLL_Type
     CHARACTER(1024)               :: ProcName(3) = ""            ! The name of the procedure in the DLL that will be called.
 END TYPE ExtDLL_Type
 
-TYPE, PUBLIC :: ZMQ_Variables
-    LOGICAL                       :: ZMQ_Flag                    ! Flag if we're using zeroMQ at all (0-False, 1-True)
-END TYPE ZMQ_Variables
-
 TYPE, PUBLIC :: ExtControlType
     REAL(ReKi), DIMENSION(:), ALLOCATABLE     :: avrSWAP                     ! The swap array- used to pass data to and from the DLL controller [see Bladed DLL documentation]
 END TYPE ExtControlType

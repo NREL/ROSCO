@@ -1450,11 +1450,6 @@ ExtDLL_Type:
     size: 3
     length: 1024
     description: The name of the procedure in the DLL that will be called.
-
-ZMQ_Variables:
-  ZMQ_Flag:
-    <<: *logical
-    description: Flag if we're using zeroMQ at all (0-False, 1-True)
   
     
 ExtControlType:
