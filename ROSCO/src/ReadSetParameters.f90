@@ -232,6 +232,9 @@ CONTAINS
             LocalVar%CC_ActuatedL = 0
             LocalVar%CC_ActuatedDL = 0
             LocalVar%StC_Input = 0
+            
+            LocalVar%ZMQ_YawOffset = 0
+            LocalVar%ZMQ_PitOffset = 0
 
             ! Check validity of input parameters:
             CALL CheckInputs(LocalVar, CntrPar, avrSWAP, ErrVar, size_avcMSG)
