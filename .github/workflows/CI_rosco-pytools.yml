@@ -32,13 +32,14 @@ jobs:
         # https://github.com/marketplace/actions/setup-miniconda
         with:
           # To use mamba, uncomment here, comment out the miniforge line
-          # mamba-version: "*"
-          miniforge-version: "latest"
+          mamba-version: "*"
+          # miniforge-version: "latest"
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
           environment-file: environment.yml
           activate-environment: test
           auto-activate-base: false
+          miniforge-variant: Mambaforge
 
 
       # Install dependencies of ROSCO toolbox
