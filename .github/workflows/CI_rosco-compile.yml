@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: ["ubuntu-latest", "windows-latest"] # , "macOS-latest"
+        os: ["ubuntu-latest", "windows-latest" , "macOS-latest"]
         python-version: ["3.9"]    
 
     steps:
@@ -34,6 +34,7 @@ jobs:
           environment-file: environment.yml
           activate-environment: test
           auto-activate-base: false
+          miniforge-variant: Mambaforge
 
       # Install ROSCO toolbox
       - name: Install ROSCO toolbox
