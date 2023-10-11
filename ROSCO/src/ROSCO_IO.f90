@@ -17,7 +17,7 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
     TYPE(ObjectInstances), INTENT(INOUT)            :: objInst
     TYPE(ErrorVariables), INTENT(INOUT)             :: ErrVar
     INTEGER(IntKi), INTENT(IN)                      :: size_avcOUTNAME
-    CHARACTER(size_avcOUTNAME-1), INTENT(IN)        :: RootName 
+    CHARACTER(size_avcOUTNAME), INTENT(IN)          :: RootName 
     
     INTEGER(IntKi)               :: Un                  ! I/O unit for pack/unpack (checkpoint & restart)
     INTEGER(IntKi)               :: I                   ! Generic index.
@@ -605,7 +605,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     INTEGER(IntKi), SAVE            :: UnDb2                        ! I/O unit for the debugging information, avrSWAP
     INTEGER(IntKi), SAVE            :: UnDb3                        ! I/O unit for the debugging information, avrSWAP
     REAL(ReKi), INTENT(INOUT)       :: avrSWAP(*)                   ! The swap array, used to pass data to, and receive data from, the DLL controller.
-    CHARACTER(size_avcOUTNAME-1), INTENT(IN) :: RootName            ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
+    CHARACTER(size_avcOUTNAME), INTENT(IN) :: RootName            ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
     CHARACTER(200)                  :: Version                      ! git version of ROSCO
     CHARACTER(15), ALLOCATABLE      :: DebugOutStrings(:), DebugOutUnits(:)
 

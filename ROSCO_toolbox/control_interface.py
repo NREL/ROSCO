@@ -90,18 +90,18 @@ class ControllerInterface():
         # Code this as first call
         self.avrSWAP[0] = 0
 
-        # Put some values in
-        self.avrSWAP[58] = self.char_buffer
-        self.avrSWAP[49] = len(self.param_name)
-        self.avrSWAP[50] = self.char_buffer
-        self.avrSWAP[51] = self.char_buffer
-
         # Initialize DISCON and related
         self.aviFAIL = c_int32() # 1
         self.accINFILE = self.param_name.encode('utf-8')
-        self.avcOUTNAME = (self.sim_name + '.RO.dbg').encode('utf-8')
+        self.avcOUTNAME = (self.sim_name ).encode('utf-8')
         self.avcMSG = create_string_buffer(1000)
         self.discon.DISCON.argtypes = [POINTER(c_float), POINTER(c_int32), c_char_p, c_char_p, c_char_p] # (all defined by ctypes)
+
+        # Put some values in
+        self.avrSWAP[48] = self.char_buffer
+        self.avrSWAP[49] = len(self.param_name)
+        self.avrSWAP[50] = len(self.avcOUTNAME)
+        self.avrSWAP[51] = self.char_buffer
 
         # Run DISCON
         self.call_discon()
