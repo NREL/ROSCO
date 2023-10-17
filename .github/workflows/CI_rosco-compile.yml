@@ -15,21 +15,26 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: ["ubuntu-latest", "macOS-latest", "windows-latest"]
+        os: ["ubuntu-latest", "windows-latest" , "macOS-latest"]
         python-version: ["3.9"]    
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup environment
+      - name: Install conda/mamba
         uses: conda-incubator/setup-miniconda@v2
+        # https://github.com/marketplace/actions/setup-miniconda
         with:
-          miniconda-version: "latest"
-          channels: conda-forge, general
+          # To use mamba, uncomment here, comment out the miniforge line
+          mamba-version: "*"
+          # miniforge-version: "latest"
           auto-update-conda: true
-          python-version: 3.9
+          python-version: ${{ matrix.python-version }}
           environment-file: environment.yml
+          activate-environment: test
+          auto-activate-base: false
+          miniforge-variant: Mambaforge
 
       # Install ROSCO toolbox
       - name: Install ROSCO toolbox
