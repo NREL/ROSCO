@@ -9,8 +9,7 @@ version: 2
 build:
   os: ubuntu-22.04
   tools:
-    python: "mambaforge-22.9"
-      # version: "mambaforge-22.9"
+    python: "3.8"
     # nodejs: "18"
     # rust: "1.64"
     # golang: "1.19"
@@ -27,7 +26,6 @@ formats:
 
 # Optionally set the version of Python and requirements required to build your docs
 python:
-  version: 3.8
   install:
     - requirements: docs/requirements.txt
     - method: pip
