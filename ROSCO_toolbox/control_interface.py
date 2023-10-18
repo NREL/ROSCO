@@ -57,8 +57,11 @@ class ControllerInterface():
                 setattr(self, k, w)
             except:
                 pass
-
-        self.init_discon()
+        
+        try:
+            self.init_discon()
+        except ValueError:
+            pass
 
     def init_discon(self):
 
@@ -110,7 +113,7 @@ class ControllerInterface():
         self.avrSWAP[0] = 1
 
         if self.aviFAIL.value < 0:
-            raise Exception('ROSCO dynamic library has returned an error')
+            raise ValueError('ROSCO dynamic library has returned an error')
 
 
     def call_discon(self):
