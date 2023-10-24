@@ -209,8 +209,8 @@ class InputReader_OpenFAST(object):
         self.fst_vt['Fst']['TrimGain']   = f.readline().split()[0]
         self.fst_vt['Fst']['Twr_Kdmp']   = f.readline().split()[0]
         self.fst_vt['Fst']['Bld_Kdmp']   = f.readline().split()[0]
-        self.fst_vt['Fst']['NLinTimes']  = f.readline().split()[0]
-        self.fst_vt['Fst']['LinTimes']   = re.findall(r'[^,\s]+', f.readline())[0:2]
+        self.fst_vt['Fst']['NLinTimes']  = int_read(f.readline().split()[0])
+        self.fst_vt['Fst']['LinTimes']   = read_array(f,max(1,self.fst_vt['Fst']['NLinTimes']),int) # read at least 1
         self.fst_vt['Fst']['LinInputs']  = f.readline().split()[0]
         self.fst_vt['Fst']['LinOutputs'] = f.readline().split()[0]
         self.fst_vt['Fst']['LinOutJac']  = f.readline().split()[0]
@@ -1979,7 +1979,10 @@ class InputReader_OpenFAST(object):
             self.fst_vt['HydroDyn']['FillNumM'][i]  = int(ln[0])
             self.fst_vt['HydroDyn']['FillMList'][i] = [int(j) for j in ln[1:-2]]
             self.fst_vt['HydroDyn']['FillFSLoc'][i] = float(ln[-2])
-            self.fst_vt['HydroDyn']['FillDens'][i]  = float(ln[-1])
+            if ln[-1] == 'DEFAULT':
+                self.fst_vt['HydroDyn']['FillDens'][i]  = 'DEFAULT'
+            else:
+                self.fst_vt['HydroDyn']['FillDens'][i]  = float(ln[-1])
 
         #MARINE GROWTH
         f.readline()

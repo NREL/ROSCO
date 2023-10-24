@@ -213,7 +213,7 @@ CONTAINS
         ! Optimal Tip-Speed-Ratio tracking controller
         IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
             ! Constant Power, update VS_MaxTq
-            IF (CntrPar%VS_ControlMode == 3) THEN
+            IF (CntrPar%VS_ConstPower == 1) THEN
                 LocalVar%VS_MaxTq = min((CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF, CntrPar%VS_MaxTq)
             END IF
 
@@ -222,7 +222,7 @@ CONTAINS
             LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, LocalVar%VS_MaxTq)
         
         ! K*Omega^2 control law with PI torque control in transition regions
-        ELSE
+        ELSEIF (CntrPar%VS_ControlMode == 1) THEN
             ! Update PI loops for region 1.5 and 2.5 PI control
             LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_MaxOMTq, LocalVar%piP, LocalVar%restart, objInst%instPI)
             LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, LocalVar%piP, LocalVar%restart, objInst%instPI)
@@ -242,6 +242,8 @@ CONTAINS
             
             ! Saturate
             LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, CntrPar%VS_MaxTq)
+        ELSE        ! VS_ControlMode of 0
+            LocalVar%GenTq = 0
         ENDIF
 
 
@@ -702,7 +704,7 @@ CONTAINS
                 IF (CntrPar%AWC_NumModes == 1) THEN
                     AWC_TiltYaw(2) = PI/180*CntrPar%AWC_amp(1)*cos(LocalVar%Time*2*PI*CntrPar%AWC_freq(1) + 2*CntrPar%AWC_clockangle(1)*PI/180)
                 ENDIF
-                CALL ColemanTransformInverse(AWC_TiltYaw(1), AWC_TiltYaw(2), LocalVar%Azimuth, CntrPar%AWC_harmonic(Imode), 0.0, AWC_angle)
+                CALL ColemanTransformInverse(AWC_TiltYaw(1), AWC_TiltYaw(2), LocalVar%Azimuth, CntrPar%AWC_harmonic(Imode), REAL(0.0,DbKi), AWC_angle)
 
                 DO K = 1,LocalVar%NumBl ! Loop through all blades, apply AWC_angle
                     LocalVar%PitCom(K) = LocalVar%PitCom(K) + AWC_angle(K)
@@ -773,7 +775,7 @@ CONTAINS
         DO I_GROUP = 1, CntrPar%CC_Group_N
 
             ! Get Actuated deltaL
-            LocalVar%CC_ActuatedDL(I_GROUP) = SecLPFilter_Vel(LocalVar%CC_DesiredL(I_GROUP),LocalVar%DT,2*PI/CntrPar%CC_ActTau,1.0, &
+            LocalVar%CC_ActuatedDL(I_GROUP) = SecLPFilter_Vel(LocalVar%CC_DesiredL(I_GROUP),LocalVar%DT,2*PI/CntrPar%CC_ActTau,REAL(1.0,DbKi), &
                                                                 LocalVar%FP,LocalVar%iStatus,LocalVar%restart,objInst%instSecLPFV)
 
             ! Integrate

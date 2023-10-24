@@ -13,11 +13,16 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: DT_Out                      ! Output time step
     INTEGER(IntKi)                :: n_DT_Out                    ! output every this many steps
     INTEGER(IntKi)                :: F_LPFType                   ! Low pass filter on the rotor and generator speed {1 - first-order low-pass filter, 2 - second-order low-pass filter}, [rad/s]
-    INTEGER(IntKi)                :: F_NotchType                 ! Notch on the measured generator speed {0 - disable, 1 - enable}
     REAL(DbKi)                    :: F_LPFCornerFreq             ! Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
     REAL(DbKi)                    :: F_LPFDamping                ! Damping coefficient [used only when F_FilterType = 2]
-    REAL(DbKi)                    :: F_NotchCornerFreq           ! Natural frequency of the notch filter, [rad/s]
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_NotchBetaNumDen           ! These two notch damping values (numerator and denominator) determines the width and depth of the notch
+    INTEGER(IntKi)                :: F_NumNotchFilts             ! Number of notch filters
+    INTEGER(IntKi)                :: F_GenSpdNotch_N             ! Number of gen speed notch filters
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: F_GenSpdNotch_Ind           ! Indices of gen speed notch filters
+    INTEGER(IntKi)                :: F_TwrTopNotch_N             ! Number of tower top notch filters
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: F_TwrTopNotch_Ind           ! Indices of tower top notch filters
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_NotchFreqs                ! Natural frequencies of notch filters, [rad/s]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_NotchBetaNum              ! Notch Filter Numerator damping (determines width)
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_NotchBetaDen              ! Notch Filter Numerator damping (determines depth?)
     REAL(DbKi)                    :: F_SSCornerFreq              ! Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother [rad/s]
     REAL(DbKi)                    :: F_WECornerFreq              ! Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_FlCornerFreq              ! Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s].
@@ -50,7 +55,8 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: PC_RefSpd                   ! Desired (reference) HSS speed for pitch controller, [rad/s].
     REAL(DbKi)                    :: PC_FinePit                  ! Record 5 - Below-rated pitch angle set-point (deg) [used only with Bladed Interface]
     REAL(DbKi)                    :: PC_Switch                   ! Angle above lowest minimum pitch angle for switch [rad]
-    INTEGER(IntKi)                :: VS_ControlMode              ! Generator torque control mode in above rated conditions {0 - constant torque, 1 - constant power, 2 - TSR Tracking, 3 - TSR Tracking w/ const power}
+    INTEGER(IntKi)                :: VS_ControlMode              ! Generator torque control mode in above rated conditions {0 - no torque control, 1 - komega^2 with PI trans, 2 - WSE TSR Tracking, 3 - Power TSR Tracking}
+    INTEGER(IntKi)                :: VS_ConstPower               ! Constant power torque control
     REAL(DbKi)                    :: VS_GenEff                   ! Generator efficiency mechanical power -> electrical power [-]
     REAL(DbKi)                    :: VS_ArSatTq                  ! Above rated generator torque PI control saturation, [Nm] -- 212900
     REAL(DbKi)                    :: VS_MaxRat                   ! Maximum torque rate (in absolute value) in torque controller, [Nm/s].
@@ -65,9 +71,15 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: VS_KP                       ! Proportional gain for generator PI torque controller, used in the transitional 2.5 region
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: VS_KI                       ! Integral gain for generator PI torque controller, used in the transitional 2.5 region
     REAL(DbKi)                    :: VS_TSRopt                   ! Power-maximizing region 2 tip-speed ratio [rad]
+    REAL(DbKi)                    :: VS_PwrFiltF                 ! Cut-off frequency of filter on generator power for power-based tsr tracking control
     INTEGER(IntKi)                :: SS_Mode                     ! Setpoint Smoother mode {0 - no setpoint smoothing, 1 - introduce setpoint smoothing}
     REAL(DbKi)                    :: SS_VSGain                   ! Variable speed torque controller setpoint smoother gain, [-].
     REAL(DbKi)                    :: SS_PCGain                   ! Collective pitch controller setpoint smoother gain, [-].
+    INTEGER(IntKi)                :: PRC_Mode                    ! Power reference tracking mode, 0- use standard rotor speed set points, 1- use PRC rotor speed setpoints
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PRC_WindSpeeds              ! Array of wind speeds used in rotor speed vs. wind speed lookup table
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PRC_GenSpeeds               ! Array of rotor speeds corresponding to PRC_WindSpeeds
+    INTEGER(IntKi)                :: PRC_n                       ! Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
+    REAL(DbKi)                    :: PRC_LPF_Freq                ! Frequency of the low pass filter on the wind speed estimate used to set PRC_GenSpeeds [rad/s]
     INTEGER(IntKi)                :: WE_Mode                     ! Wind speed estimator mode {0 - One-second low pass filtered hub height wind speed, 1 - Imersion and Invariance Estimator (Ortega et al.)
     REAL(DbKi)                    :: WE_BladeRadius              ! Blade length [m]
     INTEGER(IntKi)                :: WE_CP_n                     ! Amount of parameters in the Cp array
@@ -235,6 +247,7 @@ TYPE, PUBLIC :: LocalVariables
     INTEGER(IntKi)                :: n_DT                        ! number of timesteps since start
     REAL(DbKi)                    :: Time_Last                   ! Last time [s]
     REAL(DbKi)                    :: VS_GenPwr                   ! Generator power [W]
+    REAL(DbKi)                    :: VS_GenPwrF                  ! Generator power [W]
     REAL(DbKi)                    :: GenSpeed                    ! Generator speed (HSS) [rad/s]
     REAL(DbKi)                    :: RotSpeed                    ! Rotor speed (LSS) [rad/s]
     REAL(DbKi)                    :: NacHeading                  ! Nacelle heading of the turbine w.r.t. north [deg]
@@ -256,7 +269,9 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: FA_AccHPF                   ! High-pass filtered fore-aft acceleration [m/s^2]
     REAL(DbKi)                    :: FA_AccHPFI                  ! Tower velocity, high-pass filtered and integrated fore-aft acceleration [m/s]
     REAL(DbKi)                    :: FA_PitCom(3)                ! Tower fore-aft vibration damping pitch contribution [rad]
+    REAL(DbKi)                    :: VS_RefSpd                   ! Generator speed set point of torque controller [rad/s]
     REAL(DbKi)                    :: RotSpeedF                   ! Filtered LSS (generator) speed [rad/s].
+    REAL(DbKi)                    :: PC_RefSpd                   ! Generator speed set point of pitch controller [rad/s]
     REAL(DbKi)                    :: GenSpeedF                   ! Filtered HSS (generator) speed [rad/s].
     REAL(DbKi)                    :: GenTq                       ! Electrical generator torque, [Nm].
     REAL(DbKi)                    :: GenTqMeas                   ! Measured generator torque [Nm]
@@ -308,6 +323,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: WE_VwI                      ! Integrated wind speed quantity for estimation [m/s]
     REAL(DbKi)                    :: WE_VwIdot                   ! Differentiated integrated wind speed quantity for estimation [m/s]
     REAL(DbKi)                    :: VS_LastGenTrqF              ! Differentiated integrated wind speed quantity for estimation [m/s]
+    REAL(DbKi)                    :: PRC_WSE_F                   ! Filtered wind speed estimate for power reference control
     LOGICAL                       :: SD                          ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None

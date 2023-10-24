@@ -74,6 +74,8 @@ def main():
     offset_3 = fastout[0]['BldPitch3'] - fastout[0]['BldPitch1']
 
     # check that offset (min,max) is very close to prescribed values
+    # Note that some OpenFAST configurations (e.g., fixed bottom) do not apply offet on
+    # first timestep and this example may fail
     np.testing.assert_almost_equal(offset_2.max(),pitch2_offset,decimal=3)
     np.testing.assert_almost_equal(offset_2.min(),pitch2_offset,decimal=3)
     np.testing.assert_almost_equal(offset_3.max(),pitch3_offset,decimal=3)

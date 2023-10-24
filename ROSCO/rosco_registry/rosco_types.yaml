@@ -93,21 +93,40 @@ ControlParameters:
     F_LPFType:
       <<: *integer
       description: 'Low pass filter on the rotor and generator speed {1 - first-order low-pass filter, 2 - second-order low-pass filter}, [rad/s]'
-    F_NotchType:
-      <<: *integer
-      description: Notch on the measured generator speed {0 - disable, 1 - enable} 
     F_LPFCornerFreq:
       <<: *real
       description: Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
     F_LPFDamping:
       <<: *real
       description: Damping coefficient [used only when F_FilterType = 2]
-    F_NotchCornerFreq:
+    F_NumNotchFilts:
+      <<: *integer
+      description: Number of notch filters
+    F_GenSpdNotch_N:
+      <<: *integer
+      description: Number of gen speed notch filters
+    F_GenSpdNotch_Ind:
+      <<: *integer
+      description: Indices of gen speed notch filters
+      allocatable: True
+    F_TwrTopNotch_N:
+      <<: *integer
+      description: Number of tower top notch filters
+    F_TwrTopNotch_Ind:
+      <<: *integer
+      description: Indices of tower top notch filters
+      allocatable: True
+    F_NotchFreqs:
       <<: *real
-      description: Natural frequency of the notch filter, [rad/s]
-    F_NotchBetaNumDen:
+      description: Natural frequencies of notch filters, [rad/s]
+      allocatable: True
+    F_NotchBetaNum:
       <<: *real
-      description: These two notch damping values (numerator and denominator) determines the width and depth of the notch
+      description: Notch Filter Numerator damping (determines width)
+      allocatable: True
+    F_NotchBetaDen:
+      <<: *real
+      description: Notch Filter Numerator damping (determines depth?)
       allocatable: True
     F_SSCornerFreq:
       <<: *real
@@ -226,7 +245,10 @@ ControlParameters:
     # Generator Torque Controller
     VS_ControlMode:
       <<: *integer
-      description: Generator torque control mode in above rated conditions {0 - constant torque, 1 - constant power, 2 - TSR Tracking, 3 - TSR Tracking w/ const power}
+      description: Generator torque control mode in above rated conditions {0 - no torque control, 1 - komega^2 with PI trans, 2 - WSE TSR Tracking, 3 - Power TSR Tracking}
+    VS_ConstPower:
+      <<: *integer
+      description: Constant power torque control
     VS_GenEff:
       <<: *real
       description: Generator efficiency mechanical power -> electrical power [-]
@@ -271,6 +293,9 @@ ControlParameters:
     VS_TSRopt:
       <<: *real
       description: Power-maximizing region 2 tip-speed ratio [rad]
+    VS_PwrFiltF:
+      <<: *real
+      description: Cut-off frequency of filter on generator power for power-based tsr tracking control
     
     # Setpoint Smoother
     SS_Mode:
@@ -282,6 +307,25 @@ ControlParameters:
     SS_PCGain:
       <<: *real
       description: Collective pitch controller setpoint smoother gain, [-].
+
+    # Power reference tracking
+    PRC_Mode:
+      <<: *integer
+      description: Power reference tracking mode, 0- use standard rotor speed set points, 1- use PRC rotor speed setpoints
+    PRC_WindSpeeds:
+      <<: *real
+      description: Array of wind speeds used in rotor speed vs. wind speed lookup table
+      allocatable: True
+    PRC_GenSpeeds:
+      <<: *real
+      description: Array of rotor speeds corresponding to PRC_WindSpeeds
+      allocatable: True
+    PRC_n:
+      <<: *integer
+      description: Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
+    PRC_LPF_Freq:
+      <<: *real
+      description: Frequency of the low pass filter on the wind speed estimate used to set PRC_GenSpeeds [rad/s]
     
     # Wind Speed Estimator
     WE_Mode:
@@ -876,6 +920,9 @@ LocalVariables:
     VS_GenPwr: 
       <<: *real 
       description: Generator power [W]
+    VS_GenPwrF: 
+      <<: *real 
+      description: Generator power [W]
     GenSpeed: 
       <<: *real 
       description: Generator speed (HSS) [rad/s]
@@ -944,9 +991,18 @@ LocalVariables:
       <<: *real 
       description: Tower fore-aft vibration damping pitch contribution [rad]
       size: 3
+    VS_RefSpd:          
+      <<: *real 
+      description: Torque control generator speed set point [rad/s]
     RotSpeedF:                    
       <<: *real 
       description: Filtered LSS (generator) speed [rad/s].
+    VS_RefSpd:
+      <<: *real
+      description: Generator speed set point of torque controller [rad/s]
+    PC_RefSpd:
+      <<: *real
+      description: Generator speed set point of pitch controller [rad/s]
     GenSpeedF:                    
       <<: *real 
       description: Filtered HSS (generator) speed [rad/s].
@@ -1106,6 +1162,9 @@ LocalVariables:
     VS_LastGenTrqF:               
       <<: *real 
       description: Differentiated integrated wind speed quantity for estimation [m/s]
+    PRC_WSE_F:               
+      <<: *real 
+      description: Filtered wind speed estimate for power reference control
     SD:                           
       <<: *logical
       description: Shutdown, .FALSE. if inactive, .TRUE. if active

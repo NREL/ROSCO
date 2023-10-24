@@ -54,6 +54,7 @@ class Controller():
         self.F_NotchType        = controller_params['F_NotchType']
         self.IPC_ControlMode    = controller_params['IPC_ControlMode']
         self.VS_ControlMode     = controller_params['VS_ControlMode']
+        self.VS_ConstPower      = controller_params['VS_ConstPower']
         self.PC_ControlMode     = controller_params['PC_ControlMode']
         self.Y_ControlMode      = controller_params['Y_ControlMode']
         self.SS_Mode            = controller_params['SS_Mode']
@@ -137,6 +138,7 @@ class Controller():
         self.f_ss_cornerfreq        = controller_params['filter_params']['f_ss_cornerfreq']
         self.f_yawerr               = controller_params['filter_params']['f_yawerr']
         self.f_sd_cornerfreq        = controller_params['filter_params']['f_sd_cornerfreq']
+
 
         # Open loop parameters: set up and error catching
         self.OL_Mode            = controller_params['OL_Mode']
@@ -282,7 +284,7 @@ class Controller():
         Pi_wind         = 1/2 * rho * Ar * v**2 * dCt_dTSR * dlambda_dv + rho * Ar * v * Ct_op
 
         # Second order system coefficients
-        if self.VS_ControlMode in [0,2]: # Constant torque above rated
+        if not self.VS_ConstPower:       # Constant torque above rated
             A = dtau_domega/J
         else:                            # Constant power above rated
             A = dtau_domega/J 
@@ -321,7 +323,8 @@ class Controller():
         self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A_vs,B_tau[0:len(v_below_rated)],linearize=False,v=v_below_rated)
 
         # -- Find K for Komega_g^2 --
-        self.vs_rgn2K = (pi*rho*R**5.0 * turbine.Cp.max) / (2.0 * turbine.Cp.TSR_opt**3 * Ng**3)/ (turbine.GBoxEff/100)
+        self.vs_rgn2K = (pi*rho*R**5.0 * turbine.Cp.max * turbine.GBoxEff/100 * turbine.GenEff/100) / \
+              (2.0 * turbine.Cp.TSR_opt**3 * Ng**3) * self.controller_params['rgn2k_factor']
         self.vs_refspd = min(turbine.TSR_operational * turbine.v_rated/R, turbine.rated_rotor_speed) * Ng
 
         # -- Define some setpoints --
@@ -413,9 +416,10 @@ class Controller():
 
 
 
-            # Turn on the notch filter if floating
-            self.F_NotchType = 2
-            
+            # Turn on the notch filter if floating and not already on
+            if not self.F_NotchType:
+                self.F_NotchType = 2      
+                      
             # And check for .yaml input inconsistencies
             if self.twr_freq == 0.0 or self.ptfm_freq == 0.0:
                 print('WARNING: twr_freq and ptfm_freq should be defined for floating turbine control!!')
@@ -442,6 +446,29 @@ class Controller():
 
         # --- Set up filters ---
         self.f_lpf_cornerfreq = turbine.bld_edgewise_freq / 4
+
+        # Notch filters
+        self.f_notch_freqs = []
+        self.f_notch_beta_nums = []
+        self.f_notch_beta_dens = []
+        self.f_notch_gen_inds = []
+        self.f_notch_twr_inds = []
+
+        if self.F_NotchType:
+            if self.Flp_Mode:
+                self.f_notch_freqs.append(turbine.bld_flapwise_freq)
+                self.f_notch_beta_nums.append(0.0)
+                self.f_notch_beta_dens.append(0.50)
+            else:
+                self.f_notch_freqs.append(self.twr_freq)
+                self.f_notch_beta_nums.append(0.0)
+                self.f_notch_beta_dens.append(0.25)
+
+            if self.F_NotchType == 1 or self.F_NotchType == 3:
+                self.f_notch_gen_inds.append(1)
+            elif self.F_NotchType == 2:
+                self.f_notch_twr_inds.append(1)
+
 
         # --- Direct input passthrough ---
         if 'f_lpf_cornerfreq' in self.controller_params['filter_params']:
