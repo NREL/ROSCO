@@ -635,6 +635,9 @@ CONTAINS
 
             CALL GetNewUnit(UnOpenLoop, ErrVar)
             CALL Read_OL_Input(CntrPar%OL_Filename,UnOpenLoop,OL_Count,CntrPar%OL_Channels, ErrVar)
+            IF (ErrVar%aviFAIL < 0) THEN
+                RETURN
+            ENDIF
 
             CntrPar%OL_Breakpoints = CntrPar%OL_Channels(:,CntrPar%Ind_Breakpoint)
 
