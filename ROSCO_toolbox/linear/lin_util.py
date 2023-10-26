@@ -216,6 +216,15 @@ def interp_plant(linturb, v, return_scipy=True):
         Cp = np.squeeze(linturb.C_ops, axis=2)
         Dp = np.squeeze(linturb.D_ops, axis=2)
 
+    print(f'linturb.A_ops = {linturb.A_ops}')
+    print(f'linturb.B_ops = {linturb.B_ops}')
+    print(f'linturb.C_ops = {linturb.C_ops}')
+    print(f'linturb.D_ops = {linturb.D_ops}')
+    print(f'Ap = {Ap}')
+    print(f'Bp = {Bp}')
+    print(f'Cp = {Cp}')
+    print(f'Dp = {Dp}')
+
     if return_scipy:
         P = sp.signal.StateSpace(Ap, Bp, Cp, Dp)
     else:
