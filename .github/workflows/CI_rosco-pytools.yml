@@ -115,6 +115,7 @@ jobs:
         run: |
           git clone http://github.com/OpenFAST/python-toolbox
           cd python-toolbox
+          git checkout v3.4.0
           python -m pip install -e .
         
       # Install ZeroMQ
