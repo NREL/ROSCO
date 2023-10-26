@@ -96,6 +96,10 @@ def pc_sensitivity(linturb, controller, u):
     P = interp_plant(linturb, u)
     Cs = interp_pitch_controller(controller, u)
 
+    print(f'P = {P}')
+    print(f'Cs = {Cs}')
+
+
     # Calculate sensitivity function
     sens = feedback(1, Cs*P)
 
@@ -315,8 +319,19 @@ def feedback(sys1, sys2, sign=-1):
     control toolbox, but made to work with scipy state space 
     objects.
     """
+
+    print('Starting to Debug feedback here')
+    print('Starting to Debug feedback here')
+    print('Starting to Debug feedback here')
+
+    print(f'sys2.D = {sys2.D}')
+
+
     sys1 = _convert_to_ss(sys1)
     sys2 = _convert_to_ss(sys2)
+
+    print(f'post convert sys2.D = {sys2.D}')
+
 
     # Check to make sure the dimensions are OK
     if (sys1.inputs != sys2.outputs) or (sys1.outputs != sys2.inputs):
@@ -337,9 +352,7 @@ def feedback(sys1, sys2, sign=-1):
     C2 = sys2.C
     D2 = sys2.D
 
-    print('Starting to Debug here')
-    print('Starting to Debug here')
-    print('Starting to Debug here')
+
     print(f'np.eye(sys1.inputs) = {np.eye(sys1.inputs)}')
     print(f'D2 = {D2}')
     print(f'D1 = {D1}')
