@@ -302,8 +302,16 @@ def add_pcomp(linturb, k_float):
 
 
 def interp_matrix(x, matrix_3D, q):
+    print(f'x = {x}')
+    print(f'q = {q}')
     q = np.clip(q, x.min(), x.max())
+    print(f'clipped q = {q}')
+    print(f'matrix_3d = {matrix_3d}')
+    print(f'matrix_3d.shape = {matrix_3d.shape}')
     f_m = sp.interpolate.interp1d(x, matrix_3D)
+
+    print(f'f_m(np.squeeze(q)) = {f_m(np.squeeze(q))}')
+
 
     return f_m(np.squeeze(q))
 
