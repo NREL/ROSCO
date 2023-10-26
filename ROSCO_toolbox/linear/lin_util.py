@@ -340,14 +340,13 @@ def feedback(sys1, sys2, sign=-1):
     print('Starting to Debug here')
     print('Starting to Debug here')
     print('Starting to Debug here')
-    print(f'F = {F}')
     print(f'np.eye(sys1.inputs) = {np.eye(sys1.inputs)}')
     print(f'D2 = {D2}')
     print(f'D1 = {D1}')
     print(f'np.dot(D2, D1) = {np.dot(D2, D1)}')
 
     F = np.eye(sys1.inputs) - sign * np.dot(D2, D1)
-    print(F)
+    print(f'F = {F}')
     if np.linalg.matrix_rank(F) != sys1.inputs:
         raise ValueError("I - sign * D2 * D1 is singular to working precision.")
 
