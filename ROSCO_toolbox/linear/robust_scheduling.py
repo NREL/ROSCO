@@ -226,7 +226,7 @@ class rsched_driver():
             self.om_doe.set_val('r_sched.u_eval', u)
             self.doe_logfile = os.path.join(
                 self.output_dir, self.output_name + '.' + str(u) + ".doe.sql")
-            # self.om_doe.driver.add_recorder(om.SqliteRecorder(self.doe_logfile))
+            self.om_doe.driver.add_recorder(om.SqliteRecorder(self.doe_logfile))
             self.om_doe.run_driver()
 
         elif self.opt_options['driver'] == 'optimization':
@@ -248,7 +248,7 @@ class rsched_driver():
                         u, self.opt_options['stability_margin'], self.opt_options['omega'], self.opt_options['k_float']))
                     opt_logfile = os.path.join(
                         self.output_dir, self.output_name + '.' + str(u) + ".opt.sql")
-                    # self.om_opt = self.setup_recorder(self.om_opt, opt_logfile)
+                    self.om_opt = self.setup_recorder(self.om_opt, opt_logfile)
                     self.om_opt.run_driver()
                     self.om_opt.cleanup()
 

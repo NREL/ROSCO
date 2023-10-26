@@ -96,10 +96,6 @@ def pc_sensitivity(linturb, controller, u):
     P = interp_plant(linturb, u)
     Cs = interp_pitch_controller(controller, u)
 
-    print(f'P = {P}')
-    print(f'Cs = {Cs}')
-
-
     # Calculate sensitivity function
     sens = feedback(1, Cs*P)
 
@@ -216,15 +212,6 @@ def interp_plant(linturb, v, return_scipy=True):
         Cp = np.squeeze(linturb.C_ops, axis=2)
         Dp = np.squeeze(linturb.D_ops, axis=2)
 
-    print(f'linturb.A_ops = {linturb.A_ops}')
-    print(f'linturb.B_ops = {linturb.B_ops}')
-    print(f'linturb.C_ops = {linturb.C_ops}')
-    print(f'linturb.D_ops = {linturb.D_ops}')
-    print(f'Ap = {Ap}')
-    print(f'Bp = {Bp}')
-    print(f'Cp = {Cp}')
-    print(f'Dp = {Dp}')
-
     if return_scipy:
         P = sp.signal.StateSpace(Ap, Bp, Cp, Dp)
     else:
@@ -302,16 +289,8 @@ def add_pcomp(linturb, k_float):
 
 
 def interp_matrix(x, matrix_3D, q):
-    print(f'x = {x}')
-    print(f'q = {q}')
     q = np.clip(q, x.min(), x.max())
-    print(f'clipped q = {q}')
-    print(f'matrix_3D = {matrix_3D}')
-    print(f'matrix_3D.shape = {matrix_3D.shape}')
     f_m = sp.interpolate.interp1d(x, matrix_3D)
-
-    print(f'f_m(np.squeeze(q)) = {f_m(np.squeeze(q))}')
-
 
     return f_m(np.squeeze(q))
 
@@ -336,19 +315,8 @@ def feedback(sys1, sys2, sign=-1):
     control toolbox, but made to work with scipy state space 
     objects.
     """
-
-    print('Starting to Debug feedback here')
-    print('Starting to Debug feedback here')
-    print('Starting to Debug feedback here')
-
-    print(f'sys2.D = {sys2.D}')
-
-
     sys1 = _convert_to_ss(sys1)
     sys2 = _convert_to_ss(sys2)
-
-    print(f'post convert sys2.D = {sys2.D}')
-
 
     # Check to make sure the dimensions are OK
     if (sys1.inputs != sys2.outputs) or (sys1.outputs != sys2.inputs):
@@ -369,14 +337,7 @@ def feedback(sys1, sys2, sign=-1):
     C2 = sys2.C
     D2 = sys2.D
 
-
-    print(f'np.eye(sys1.inputs) = {np.eye(sys1.inputs)}')
-    print(f'D2 = {D2}')
-    print(f'D1 = {D1}')
-    print(f'np.dot(D2, D1) = {np.dot(D2, D1)}')
-
     F = np.eye(sys1.inputs) - sign * np.dot(D2, D1)
-    print(f'F = {F}')
     if np.linalg.matrix_rank(F) != sys1.inputs:
         raise ValueError("I - sign * D2 * D1 is singular to working precision.")
 
