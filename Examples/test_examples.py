@@ -54,7 +54,7 @@ def execute_script(fscript):
     # Use runpy to execute examples
     s = time()
     runpy.run_path(os.path.realpath(fullpath), run_name='__main__')
-    print(time() - s, "seconds to run")
+    print(f"{fscript} took {time() - s} seconds to run")
 
 class TestExamples(unittest.TestCase):
 

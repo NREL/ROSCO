@@ -657,6 +657,9 @@ CONTAINS
 
             CALL GetNewUnit(UnOpenLoop, ErrVar)
             CALL Read_OL_Input(CntrPar%OL_Filename,UnOpenLoop,OL_Count,CntrPar%OL_Channels, ErrVar)
+            IF (ErrVar%aviFAIL < 0) THEN
+                RETURN
+            ENDIF
 
             CntrPar%OL_Breakpoints = CntrPar%OL_Channels(:,CntrPar%Ind_Breakpoint)
 
@@ -1392,7 +1395,12 @@ CONTAINS
             ErrVar%ErrMsg  = 'Pitch angle actuator not requested.'
         ENDIF
         
-        IF (NINT(avrSWAP(28)) == 0 .AND. ((CntrPar%IPC_ControlMode > 0) .OR. (CntrPar%Y_ControlMode > 1))) THEN
+        IF ((NINT(avrSWAP(28)) == 0) .AND. &
+            ((CntrPar%IPC_ControlMode > 0) .OR. &
+             (CntrPar%Y_ControlMode > 1) .OR. & 
+             (CntrPar%Ind_BldPitch(2) > 0) .OR. &
+             (CntrPar%Ind_BldPitch(3) > 0) &
+             )) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'IPC enabled, but Ptch_Cntrl in ServoDyn has a value of 0. Set it to 1 for individual pitch control.'
         ENDIF
