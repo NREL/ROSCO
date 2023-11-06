@@ -436,6 +436,7 @@ class turbine_zmq_server():
             'FA_Acc': measurements[13],
             'NacIMU_FA_Acc': measurements[14],
             'Azimuth': measurements[15],
+            'Identifier': measurements[16],
         })
 
         if self.verbose:

@@ -8,6 +8,7 @@ USE Constants
 IMPLICIT NONE
 
 TYPE, PUBLIC :: ControlParameters
+    INTEGER(IntKi)                :: Identifier                  ! 0000 - 9999, Identifier of the rosco, used for zeromq interface only
     INTEGER(IntKi)                :: LoggingLevel                ! 0 - write no debug files, 1 - write standard output .dbg-file, 2 - write standard output .dbg-file and complete avrSWAP-array .dbg2-file
     INTEGER(IntKi)                :: Echo                        ! 0 - no Echo, 1 - Echo input data to <RootName>.echo
     REAL(DbKi)                    :: DT_Out                      ! Output time step
