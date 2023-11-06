@@ -118,13 +118,12 @@ def write_roscoio(yfile):
     # ------------------------------------------------
     # ------------ ReadRestartFile ------------------
     # ------------------------------------------------
-    file.write('SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootName, size_avcOUTNAME, zmqVar, ErrVar)\n')
+    file.write('SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootName, size_avcOUTNAME, ErrVar)\n')
     file.write("    TYPE(LocalVariables), INTENT(INOUT)             :: LocalVar\n")
     file.write("    TYPE(ControlParameters), INTENT(INOUT)          :: CntrPar\n")
     file.write("    TYPE(ObjectInstances), INTENT(INOUT)            :: objInst\n")
     file.write("    TYPE(PerformanceData), INTENT(INOUT)            :: PerfData\n")
     file.write("    TYPE(ErrorVariables), INTENT(INOUT)             :: ErrVar\n")
-    file.write("    TYPE(ZMQ_Variables), INTENT(INOUT)              :: zmqVar\n")
     file.write("    REAL(ReKi), INTENT(IN)                          :: avrSWAP(*)\n")
     file.write("    INTEGER(IntKi), INTENT(IN)                      :: size_avcOUTNAME\n")
     file.write("    CHARACTER(size_avcOUTNAME-1), INTENT(IN)        :: RootName \n")
@@ -163,7 +162,7 @@ def write_roscoio(yfile):
     file.write('        Close ( Un )\n')
     file.write('    ENDIF\n')
     file.write('    ! Read Parameter files\n')
-    file.write('    CALL ReadControlParameterFileSub(CntrPar, LocalVar, zmqVar, LocalVar%ACC_INFILE, LocalVar%ACC_INFILE_SIZE, RootName, ErrVar)\n')
+    file.write('    CALL ReadControlParameterFileSub(CntrPar, LocalVar, LocalVar%ACC_INFILE, LocalVar%ACC_INFILE_SIZE, RootName, ErrVar)\n')
     file.write('    IF (CntrPar%WE_Mode > 0) THEN\n')
     file.write('        CALL READCpFile(CntrPar, PerfData, ErrVar)\n')
     file.write('    ENDIF\n')

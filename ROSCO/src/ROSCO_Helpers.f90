@@ -943,7 +943,7 @@ END SUBROUTINE ParseInAry_Opt
             ENDIF
 
             Ary = 0     ! Default of allocatable arrays is 0 for now
-            PRINT *, "ROSCO Warning: Did not find correct size"//TRIM( ParamName )//" in input file.  Using default value of [", Ary, "]"
+            PRINT *, "ROSCO Warning: Did not find correct size "//TRIM( ParamName )//" in input file.  Using default value of [", Ary, "]"
         ENDIF
 
         IF (FoundLine) THEN

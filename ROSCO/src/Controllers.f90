@@ -109,6 +109,9 @@ CONTAINS
             IF (CntrPar%IPC_SatMode == 1) THEN
                 LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)  
             END IF
+            
+            ! Add ZeroMQ pitch commands
+            LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%ZMQ_PitOffset(K)
 
             ! Rate limit                  
             LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitch(K)) ! Saturate the overall command of blade K using the pitch rate limit
@@ -299,14 +302,14 @@ CONTAINS
 
     END SUBROUTINE VariableSpeedControl
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, zmqVar, DebugVar, ErrVar)
+    SUBROUTINE YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
         ! Yaw rate controller
         !       Y_ControlMode = 0, No yaw control
         !       Y_ControlMode = 1, Yaw rate control using yaw drive
 
         ! TODO: Lots of R2D->D2R, this should be cleaned up.
         ! TODO: The constant offset implementation is sort of circular here as a setpoint is already being defined in SetVariablesSetpoints. This could also use cleanup
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables, ZMQ_Variables
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
     
         REAL(ReKi), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
     
@@ -315,7 +318,6 @@ CONTAINS
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
         TYPE(DebugVariables), INTENT(INOUT)       :: DebugVar
         TYPE(ErrorVariables), INTENT(INOUT)       :: ErrVar
-        TYPE(ZMQ_Variables), INTENT(INOUT)  :: zmqVar
 
         ! Allocate Variables
         REAL(DbKi), SAVE :: NacVaneOffset                          ! For offset control
@@ -344,7 +346,7 @@ CONTAINS
             
             ! Compute/apply offset
             IF (CntrPar%ZMQ_Mode == 1) THEN
-                NacVaneOffset = zmqVar%Yaw_Offset
+                NacVaneOffset = LocalVar%ZMQ_YawOffset
             ELSE
                 NacVaneOffset = CntrPar%Y_MErrSet ! (deg) # Offset from setpoint
             ENDIF

@@ -356,6 +356,8 @@ TYPE, PUBLIC :: LocalVariables
     CHARACTER, DIMENSION(:), ALLOCATABLE     :: ACC_INFILE                  ! Parameter input filename
     LOGICAL                       :: restart                     ! Restart flag
     COMPLEX(DbKi)                 :: AWC_complexangle(3)         ! Complex angle for each blade, sum of modes?
+    REAL(DbKi)                    :: ZMQ_YawOffset               ! Yaw offsety command, [rad]
+    REAL(DbKi)                    :: ZMQ_PitOffset(3)            ! Pitch command offset provided by ZeroMQ
     TYPE(WE)                      :: WE                          ! Wind speed estimator parameters derived type
     TYPE(FilterParameters)        :: FP                          ! Filter parameters derived type
     TYPE(piParams)                :: piP                         ! PI parameters derived type
@@ -422,11 +424,6 @@ TYPE, PUBLIC :: ExtDLL_Type
     CHARACTER(1024)               :: FileName                    ! The name of the DLL file including the full path to the current working directory.
     CHARACTER(1024)               :: ProcName(3) = ""            ! The name of the procedure in the DLL that will be called.
 END TYPE ExtDLL_Type
-
-TYPE, PUBLIC :: ZMQ_Variables
-    LOGICAL                       :: ZMQ_Flag                    ! Flag if we're using zeroMQ at all (0-False, 1-True)
-    REAL(DbKi)                    :: Yaw_Offset                  ! Yaw offsety command, [rad]
-END TYPE ZMQ_Variables
 
 TYPE, PUBLIC :: ExtControlType
     REAL(ReKi), DIMENSION(:), ALLOCATABLE     :: avrSWAP                     ! The swap array- used to pass data to and from the DLL controller [see Bladed DLL documentation]

@@ -1,5 +1,5 @@
 ! Controller parameter input file for the NREL-2p8-127 wind turbine
-!    - File written using ROSCO version 2.8.0 controller tuning logic on 09/26/23
+!    - File written using ROSCO version 2.8.0 controller tuning logic on 10/18/23
 
 !------- SIMULATION CONTROL ------------------------------------------------------------
 2                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}
@@ -180,7 +180,7 @@
 
 !------- ZeroMQ Interface ---------------------------------------------------------
 "tcp://localhost:5555"            ! ZMQ_CommAddress     - Communication address for ZMQ server, (e.g. "tcp://localhost:5555") 
-2                   ! ZMQ_UpdatePeriod    - Call ZeroMQ every [x] seconds, [s]
+2.000000            ! ZMQ_UpdatePeriod    - Call ZeroMQ every [x] seconds, [s]
 
 !------- Cable Control ---------------------------------------------------------
 1                   ! CC_Group_N        - Number of cable control groups

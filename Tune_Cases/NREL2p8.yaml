@@ -25,6 +25,7 @@ controller_params:
     TD_Mode: 0
     PwC_Mode: 0
     ZMQ_Mode: 0
+    ZMQ_UpdatePeriod: 2
     PA_Mode: 0
     Ext_Mode: 0
     U_pc: [12]
