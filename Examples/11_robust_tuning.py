@@ -45,6 +45,7 @@ def run_example():
 
     # Path options
     example_out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'examples_out')
+    os.makedirs(example_out_dir,exist_ok=True)
     output_name = '11_robust_scheduling'
     path_options = {'output_dir': example_out_dir,
                     'output_name': output_name

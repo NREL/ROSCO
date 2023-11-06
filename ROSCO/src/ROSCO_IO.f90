@@ -17,7 +17,7 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
     TYPE(ObjectInstances), INTENT(INOUT)            :: objInst
     TYPE(ErrorVariables), INTENT(INOUT)             :: ErrVar
     INTEGER(IntKi), INTENT(IN)                      :: size_avcOUTNAME
-    CHARACTER(size_avcOUTNAME-1), INTENT(IN)        :: RootName 
+    CHARACTER(size_avcOUTNAME), INTENT(IN)        :: RootName 
     
     INTEGER(IntKi)               :: Un                  ! I/O unit for pack/unpack (checkpoint & restart)
     INTEGER(IntKi)               :: I                   ! Generic index.
@@ -220,6 +220,11 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%AWC_complexangle(1)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%AWC_complexangle(2)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%AWC_complexangle(3)
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%ZMQ_YawOffset
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%ZMQ_TorqueOffset
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%ZMQ_PitOffset(1)
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%ZMQ_PitOffset(2)
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%ZMQ_PitOffset(3)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%WE%om_r
         WRITE( Un, IOSTAT=ErrStat) LocalVar%WE%v_t
         WRITE( Un, IOSTAT=ErrStat) LocalVar%WE%v_m
@@ -292,16 +297,15 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
 END SUBROUTINE WriteRestartFile
 
  
-SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootName, size_avcOUTNAME, zmqVar, ErrVar)
+SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootName, size_avcOUTNAME, ErrVar)
     TYPE(LocalVariables), INTENT(INOUT)             :: LocalVar
     TYPE(ControlParameters), INTENT(INOUT)          :: CntrPar
     TYPE(ObjectInstances), INTENT(INOUT)            :: objInst
     TYPE(PerformanceData), INTENT(INOUT)            :: PerfData
     TYPE(ErrorVariables), INTENT(INOUT)             :: ErrVar
-    TYPE(ZMQ_Variables), INTENT(INOUT)              :: zmqVar
     REAL(ReKi), INTENT(IN)                          :: avrSWAP(*)
     INTEGER(IntKi), INTENT(IN)                      :: size_avcOUTNAME
-    CHARACTER(size_avcOUTNAME-1), INTENT(IN)        :: RootName 
+    CHARACTER(size_avcOUTNAME), INTENT(IN)        :: RootName 
     
     INTEGER(IntKi)               :: Un                  ! I/O unit for pack/unpack (checkpoint & restart)
     INTEGER(IntKi)               :: I                   ! Generic index.
@@ -505,6 +509,11 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%AWC_complexangle(1)
         READ( Un, IOSTAT=ErrStat) LocalVar%AWC_complexangle(2)
         READ( Un, IOSTAT=ErrStat) LocalVar%AWC_complexangle(3)
+        READ( Un, IOSTAT=ErrStat) LocalVar%ZMQ_YawOffset
+        READ( Un, IOSTAT=ErrStat) LocalVar%ZMQ_TorqueOffset
+        READ( Un, IOSTAT=ErrStat) LocalVar%ZMQ_PitOffset(1)
+        READ( Un, IOSTAT=ErrStat) LocalVar%ZMQ_PitOffset(2)
+        READ( Un, IOSTAT=ErrStat) LocalVar%ZMQ_PitOffset(3)
         READ( Un, IOSTAT=ErrStat) LocalVar%WE%om_r
         READ( Un, IOSTAT=ErrStat) LocalVar%WE%v_t
         READ( Un, IOSTAT=ErrStat) LocalVar%WE%v_m
@@ -575,7 +584,7 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         Close ( Un )
     ENDIF
     ! Read Parameter files
-    CALL ReadControlParameterFileSub(CntrPar, LocalVar, zmqVar, LocalVar%ACC_INFILE, LocalVar%ACC_INFILE_SIZE, RootName, ErrVar)
+    CALL ReadControlParameterFileSub(CntrPar, LocalVar, LocalVar%ACC_INFILE, LocalVar%ACC_INFILE_SIZE, RootName, ErrVar)
     IF (CntrPar%WE_Mode > 0) THEN
         CALL READCpFile(CntrPar, PerfData, ErrVar)
     ENDIF
@@ -598,7 +607,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     INTEGER(IntKi), SAVE            :: UnDb2                        ! I/O unit for the debugging information, avrSWAP
     INTEGER(IntKi), SAVE            :: UnDb3                        ! I/O unit for the debugging information, avrSWAP
     REAL(ReKi), INTENT(INOUT)       :: avrSWAP(*)                   ! The swap array, used to pass data to, and receive data from, the DLL controller.
-    CHARACTER(size_avcOUTNAME-1), INTENT(IN) :: RootName            ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
+    CHARACTER(size_avcOUTNAME), INTENT(IN) :: RootName            ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
     CHARACTER(200)                  :: Version                      ! git version of ROSCO
     CHARACTER(15), ALLOCATABLE      :: DebugOutStrings(:), DebugOutUnits(:)
 
@@ -651,7 +660,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       '[rad/s]', '[rad/s]', '[m/s]', '[rad]', '[rad]', & 
                                       '[N/A]', '[N/A]', '[N/A]', '[N/A]', '[rad/s]', & 
                                       '[deg]', '[deg]', '[deg]', '[N/A]']
-    nLocalVars = 112
+    nLocalVars = 115
     Allocate(LocalVarOutData(nLocalVars))
     Allocate(LocalVarOutStrings(nLocalVars))
     LocalVarOutData(1) = LocalVar%iStatus
@@ -766,6 +775,9 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(110) = LocalVar%RootMyb_Last(1)
     LocalVarOutData(111) = LocalVar%ACC_INFILE_SIZE
     LocalVarOutData(112) = LocalVar%AWC_complexangle(1)
+    LocalVarOutData(113) = LocalVar%ZMQ_YawOffset
+    LocalVarOutData(114) = LocalVar%ZMQ_TorqueOffset
+    LocalVarOutData(115) = LocalVar%ZMQ_PitOffset(1)
     LocalVarOutStrings = [CHARACTER(15) ::  'iStatus', 'Time', 'DT', 'n_DT', 'Time_Last', & 
                                       'VS_GenPwr', 'VS_GenPwrF', 'GenSpeed', 'RotSpeed', 'NacHeading', & 
                                       'NacVane', 'HorWindV', 'rootMOOP', 'rootMOOPF', 'BlPitch', & 
@@ -788,7 +800,8 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       'PtfmRVX', 'PtfmRVY', 'PtfmRVZ', 'PtfmTAX', 'PtfmTAY', & 
                                       'PtfmTAZ', 'PtfmRAX', 'PtfmRAY', 'PtfmRAZ', 'CC_DesiredL', & 
                                       'CC_ActuatedL', 'CC_ActuatedDL', 'StC_Input', 'Flp_Angle', 'RootMyb_Last', & 
-                                      'ACC_INFILE_SIZE', 'AWC_complexangle']
+                                      'ACC_INFILE_SIZE', 'AWC_complexangle', 'ZMQ_YawOffset', 'ZMQ_TorqueOffset', 'ZMQ_PitOffset' & 
+                                     ]
     ! Initialize debug file
     IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN ! .TRUE. if we're on the first call to the DLL
         IF (CntrPar%LoggingLevel > 0) THEN
@@ -803,8 +816,8 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
             CALL GetNewUnit(UnDb2, ErrVar)
             OPEN(unit=UnDb2, FILE=TRIM(RootName)//'.RO.dbg2')
             WRITE(UnDb2, *)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)
-            WRITE(UnDb2, '(113(a20,TR5:))') 'Time',   LocalVarOutStrings
-            WRITE(UnDb2, '(113(a20,TR5:))')
+            WRITE(UnDb2, '(116(a20,TR5:))') 'Time',   LocalVarOutStrings
+            WRITE(UnDb2, '(116(a20,TR5:))')
         END IF
 
         IF (CntrPar%LoggingLevel > 2) THEN
@@ -867,7 +880,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     END DO
     
     ! Write debug files
-    FmtDat = "(F20.5,TR5,112(ES20.5E2,TR5:))"   ! The format of the debugging data
+    FmtDat = "(F20.5,TR5,115(ES20.5E2,TR5:))"   ! The format of the debugging data
     IF ( MOD(LocalVar%n_DT, CntrPar%n_DT_Out) == 0) THEN
         IF(CntrPar%LoggingLevel > 0) THEN
             WRITE (UnDb, TRIM(FmtDat))  LocalVar%Time, DebugOutData
