@@ -1266,7 +1266,10 @@ LocalVariables:
       size: 3
     ZMQ_YawOffset:
       <<: *real
-      description: Yaw offsety command, [rad]
+      description: Yaw offset command, [rad]
+    ZMQ_TorqueOffset:
+      <<: *real
+      description: Torque offset command, [Nm]
     ZMQ_PitOffset:
       <<: *real
       size: 3

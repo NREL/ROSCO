@@ -7,15 +7,15 @@
 
 void delete_blank_spaces_in_string(char *s)
 {
-	int  i,k=0;
-	 for(i=0;s[i];i++)
+    int  i,k=0;
+    for(i=0;s[i];i++)
     {
-     	s[i]=s[i+k];
-     	if(s[i]==' '|| s[i]=='\t')
-     	{
-		  k++;
-		  i--;
-	    }
+        s[i]=s[i+k];
+        if(s[i]==" "|| s[i]=="\t")
+        {
+        k++;
+        i--;
+        }
     }
 }
 
@@ -26,18 +26,17 @@ int zmq_client (
     double setpoints[5]
 )
 {
-	int num_measurements = 16;  // Number of setpoints and measurements, respectively, and float precision (character length)
-	int char_buffer_size_single = 20; // Char buffer for a single measurement
+    int num_measurements = 16;  // Number of setpoints and measurements, respectively, and float precision (character length)
+    int char_buffer_size_single = 20; // Char buffer for a single measurement
     int char_buffer_size_array = (num_measurements * (char_buffer_size_single + 1));  // Char buffer for full messages to and from ROSCO
-	char string_to_ssc[char_buffer_size_array];
+    char string_to_ssc[char_buffer_size_array];
     char string_from_ssc[char_buffer_size_array];
 
-	int verbose = 0; // Variable to define verbose
-	
+    int verbose = 0; // Variable to define verbose
+    
     if (verbose == 1) {
         printf ("Connecting to ZeroMQ server at %s...\n", zmq_address);
     }
-
     // Open connection with ZeroMQ server
     void *context = zmq_ctx_new ();
     void *requester = zmq_socket (context, ZMQ_REQ);
@@ -46,12 +45,12 @@ int zmq_client (
     // Create a string with measurements to be sent to ZeroMQ server (e.g., Python)
     char a[char_buffer_size_array], b[char_buffer_size_single];
     sprintf(b, "%.6e", measurements[0]);
-	strncpy(a, b, char_buffer_size_single);
+    strncpy(a, b, char_buffer_size_single);
     //printf ("zmq_client.c: a[char_buffer_size_single]: measurements[0]: %s\n", a);
     int i = 1;
     while (i < num_measurements) {
-		strcat(a, ",");  // Add a comma
-		sprintf(b, "%.6e", measurements[i]);  // Add value
+        strcat(a, ",");  // Add a comma
+        sprintf(b, "%.6e", measurements[i]);  // Add value
         strcat(a, b);  // Concatenate b to a
         //printf ("zmq_client.c: b[char_buffer_size_single]: measurements[i]: %s\n", b);
         //printf (" --> zmq_client.c: a[char_buffer_size_single]: measurements[i]: %s\n", a);
