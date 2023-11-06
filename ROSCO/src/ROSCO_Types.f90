@@ -356,7 +356,8 @@ TYPE, PUBLIC :: LocalVariables
     CHARACTER, DIMENSION(:), ALLOCATABLE     :: ACC_INFILE                  ! Parameter input filename
     LOGICAL                       :: restart                     ! Restart flag
     COMPLEX(DbKi)                 :: AWC_complexangle(3)         ! Complex angle for each blade, sum of modes?
-    REAL(DbKi)                    :: ZMQ_YawOffset               ! Yaw offsety command, [rad]
+    REAL(DbKi)                    :: ZMQ_YawOffset               ! Yaw offset command, [rad]
+    REAL(DbKi)                    :: ZMQ_TorqueOffset            ! Torque offset command, [Nm]
     REAL(DbKi)                    :: ZMQ_PitOffset(3)            ! Pitch command offset provided by ZeroMQ
     TYPE(WE)                      :: WE                          ! Wind speed estimator parameters derived type
     TYPE(FilterParameters)        :: FP                          ! Filter parameters derived type
