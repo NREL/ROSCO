@@ -48,14 +48,15 @@ def run_zmq():
         else:
             col_pitch_command = 0.0
 
-        # Send new commands back to ROSCO
-        pitch_command = 3 * [0] 
-        pitch_command[0] = col_pitch_command
-        pitch_command[1] = col_pitch_command
-        pitch_command[2] = col_pitch_command
-
         # Send new setpoints back to ROSCO
-        s.send_setpoints(bladePitch=pitch_command, nacelleHeading=yaw_setpoint)
+        setpoints = {}
+        setpoints['ZMQ_TorqueOffset'] = 0.0
+        setpoints['ZMQ_YawOffset'] = yaw_setpoint
+        setpoints['ZMQ_PitOffset(1)'] = col_pitch_command
+        setpoints['ZMQ_PitOffset(2)'] = col_pitch_command
+        setpoints['ZMQ_PitOffset(3)'] = col_pitch_command
+        
+        s.send_setpoints(setpoints)
 
         if measurements['iStatus'] == -1:
             connect_zmq = False

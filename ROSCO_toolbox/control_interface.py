@@ -13,6 +13,8 @@ from ctypes import byref, cdll, POINTER, c_float, c_char_p, c_double, create_str
 import numpy as np
 import platform, ctypes
 import zmq
+from ROSCO_toolbox.ofTools.util.FileTools import load_yaml
+
 
 # Some useful constants
 deg2rad = np.deg2rad(1)
@@ -376,6 +378,7 @@ class turbine_zmq_server():
         self.identifier = identifier
         self.timeout = timeout
         self.verbose = verbose
+        self.wfc_interface = load_yaml('/Users/dzalkind/Tools/ROSCO1/ROSCO/rosco_registry/wfc_interface.yaml')
         self._connect()
 
     def _connect(self):
@@ -420,48 +423,30 @@ class turbine_zmq_server():
                           % (self.identifier, self.network_address))
 
         # Convert to individual strings and then to floats
-        measurements = message_in
-        measurements = measurements.replace('\x00', '').split(',')
-        measurements = [float(m) for m in measurements]
+        meas_float = message_in
+        meas_float = meas_float.replace('\x00', '').split(',')
+        meas_float = [float(m) for m in meas_float]
+
 
         # Convert to a measurement dict
-        measurements = dict({
-            'iStatus': measurements[0],
-            'Time': measurements[1],
-            'VS_MechGenPwr':  measurements[2],
-            'VS_GenPwr': measurements[3],
-            'GenSpeed': measurements[4],
-            'RotSpeed': measurements[5],
-            'GenTqMeas': measurements[6],
-            'NacelleHeading': measurements[7],
-            'NacelleVane': measurements[8],
-            'HorWindV': measurements[9],
-            'rootMOOP1': measurements[10],
-            'rootMOOP2': measurements[11],
-            'rootMOOP3': measurements[12],
-            'FA_Acc': measurements[13],
-            'NacIMU_FA_Acc': measurements[14],
-            'Azimuth': measurements[15],
-        })
+        meas_dict = {}
+        for i_meas, meas in enumerate(self.wfc_interface['measurements']):
+            meas_dict[meas] = meas_float[i_meas]
 
         if self.verbose:
-            print('[%s] Measurements received:' % self.identifier, measurements)
+            print('[%s] Measurements received:' % self.identifier, meas_dict)
 
-        return measurements
+        return meas_dict
 
-    def send_setpoints(self, genTorque=0.0, nacelleHeading=0.0,
-                       bladePitch=[0.0, 0.0, 0.0]):
+    def send_setpoints(self, setpoints): 
+        # genTorque=0.0, nacelleHeading=0.0,
+                    #    bladePitch=[0.0, 0.0, 0.0]):
         '''
         Send setpoints to ROSCO .dll ffor individual turbine control
 
         Parameters:
         -----------
-        genTorque: float
-            Generator torque setpoint (note that this is currently unused by ROSCO)
-        nacelleHeadings: float
-            Nacelle heading setpoint
-        bladePitchAngles: List (len=3)
-            Blade pitch angle setpoint
+        setpoints (dict) corresponding to ZMQ_* LocalVars, defined by wfc_interface
         '''
         # Create a message with setpoints to send to ROSCO
         message_out = b"%016.5f, %016.5f, %016.5f, %016.5f, %016.5f" % (
