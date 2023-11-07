@@ -8,7 +8,7 @@ USE Constants
 IMPLICIT NONE
 
 TYPE, PUBLIC :: ControlParameters
-    INTEGER(IntKi)                :: Identifier                  ! 0000 - 9999, Identifier of the rosco, used for zeromq interface only
+    INTEGER(IntKi)                :: ZMQ_Identifier              ! 0000 - 9999, Identifier of the rosco, used for zeromq interface only
     INTEGER(IntKi)                :: LoggingLevel                ! 0 - write no debug files, 1 - write standard output .dbg-file, 2 - write standard output .dbg-file and complete avrSWAP-array .dbg2-file
     INTEGER(IntKi)                :: Echo                        ! 0 - no Echo, 1 - Echo input data to <RootName>.echo
     REAL(DbKi)                    :: DT_Out                      ! Output time step
@@ -357,6 +357,7 @@ TYPE, PUBLIC :: LocalVariables
     CHARACTER, DIMENSION(:), ALLOCATABLE     :: ACC_INFILE                  ! Parameter input filename
     LOGICAL                       :: restart                     ! Restart flag
     COMPLEX(DbKi)                 :: AWC_complexangle(3)         ! Complex angle for each blade, sum of modes?
+    INTEGER(IntKi)                :: ZMQ_Identifier              ! 0000 - 9999, Identifier of the rosco, used for zeromq interface only
     REAL(DbKi)                    :: ZMQ_YawOffset               ! Yaw offset command, [rad]
     REAL(DbKi)                    :: ZMQ_TorqueOffset            ! Torque offset command, [Nm]
     REAL(DbKi)                    :: ZMQ_PitOffset(3)            ! Pitch command offset provided by ZeroMQ

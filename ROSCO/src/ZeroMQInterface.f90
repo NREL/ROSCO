@@ -12,11 +12,10 @@ CONTAINS
         TYPE(ErrorVariables),    INTENT(INOUT) :: ErrVar
 
         character(256) :: zmq_address
-        real(C_DOUBLE) :: setpoints(5)
+        real(C_DOUBLE) :: setpoints(6)
         real(C_DOUBLE) :: turbine_measurements(17)
         CHARACTER(*), PARAMETER                 :: RoutineName = 'UpdateZeroMQ'
 
-        !Identifier = CntrPar%Identifier
         ! C interface with ZeroMQ client
 #ifdef ZMQ_CLIENT
         interface
@@ -25,50 +24,31 @@ CONTAINS
                 implicit none
                 character(C_CHAR), intent(out) :: zmq_address(*)
                 real(C_DOUBLE) :: measurements(17)
-                real(C_DOUBLE) :: setpoints(5)
+                real(C_DOUBLE) :: setpoints(6)
             end subroutine zmq_client
         end interface
 #endif
-		! Communicate if threshold has been reached
-		IF ((MODULO(LocalVar%Time, CntrPar%ZMQ_UpdatePeriod) == 0) .OR. (LocalVar%iStatus == -1)) THEN
-			! Collect measurements to be sent to ZeroMQ server
-			turbine_measurements(1) = LocalVar%iStatus
-			turbine_measurements(2) = LocalVar%Time
-			turbine_measurements(3) = LocalVar%VS_MechGenPwr
-			turbine_measurements(4) = LocalVar%VS_GenPwr
-			turbine_measurements(5) = LocalVar%GenSpeed
-			turbine_measurements(6) = LocalVar%RotSpeed
-			turbine_measurements(7) = LocalVar%GenTqMeas
-			turbine_measurements(8) = LocalVar%NacHeading
-			turbine_measurements(9) = LocalVar%NacVane
-			turbine_measurements(10) = LocalVar%HorWindV
-			turbine_measurements(11) = LocalVar%rootMOOP(1)
-			turbine_measurements(12) = LocalVar%rootMOOP(2)
-			turbine_measurements(13) = LocalVar%rootMOOP(3)
-			turbine_measurements(14) = LocalVar%FA_Acc
-			turbine_measurements(15) = LocalVar%NacIMU_FA_Acc
-			turbine_measurements(16) = LocalVar%Azimuth
-            turbine_measurements(17) = CntrPar%Identifier
 
         ! Communicate if threshold has been reached
         IF (ABS(MODULO(LocalVar%Time, CntrPar%ZMQ_UpdatePeriod)) < LocalVar%DT * CntrPar%ZMQ_UpdatePeriod .OR. LocalVar%iStatus == -1) THEN
             ! Collect measurements to be sent to ZeroMQ server
-            turbine_measurements(1) = LocalVar%iStatus
-            turbine_measurements(2) = LocalVar%Time
-            turbine_measurements(3) = LocalVar%VS_MechGenPwr
-            turbine_measurements(4) = LocalVar%VS_GenPwr
-            turbine_measurements(5) = LocalVar%GenSpeed
-            turbine_measurements(6) = LocalVar%RotSpeed
-            turbine_measurements(7) = LocalVar%GenTqMeas
-            turbine_measurements(8) = LocalVar%NacHeading
-            turbine_measurements(9) = LocalVar%NacVane
-            turbine_measurements(10) = LocalVar%HorWindV
-            turbine_measurements(11) = LocalVar%rootMOOP(1)
-            turbine_measurements(12) = LocalVar%rootMOOP(2)
-            turbine_measurements(13) = LocalVar%rootMOOP(3)
-            turbine_measurements(14) = LocalVar%FA_Acc
-            turbine_measurements(15) = LocalVar%NacIMU_FA_Acc
-            turbine_measurements(16) = LocalVar%Azimuth
+            turbine_measurements(1) = LocalVar%ZMQ_Identifier
+            turbine_measurements(2) = LocalVar%iStatus
+            turbine_measurements(3) = LocalVar%Time
+            turbine_measurements(4) = LocalVar%VS_MechGenPwr
+            turbine_measurements(5) = LocalVar%VS_GenPwr
+            turbine_measurements(6) = LocalVar%GenSpeed
+            turbine_measurements(7) = LocalVar%RotSpeed
+            turbine_measurements(8) = LocalVar%GenTqMeas
+            turbine_measurements(9) = LocalVar%NacHeading
+            turbine_measurements(10) = LocalVar%NacVane
+            turbine_measurements(11) = LocalVar%HorWindV
+            turbine_measurements(12) = LocalVar%rootMOOP(1)
+            turbine_measurements(13) = LocalVar%rootMOOP(2)
+            turbine_measurements(14) = LocalVar%rootMOOP(3)
+            turbine_measurements(15) = LocalVar%FA_Acc
+            turbine_measurements(16) = LocalVar%NacIMU_FA_Acc
+            turbine_measurements(17) = LocalVar%Azimuth
 
             write (zmq_address, '(A,A)') TRIM(CntrPar%ZMQ_CommAddress), C_NULL_CHAR
 #ifdef ZMQ_CLIENT
@@ -88,11 +68,12 @@ CONTAINS
             ! write (*,*) 'ZeroMQInterface: pitch 1 setpoint from ssc: ', setpoints(3)
             ! write (*,*) 'ZeroMQInterface: pitch 2 setpoint from ssc: ', setpoints(4)
             ! write (*,*) 'ZeroMQInterface: pitch 3 setpoint from ssc: ', setpoints(5)
-            LocalVar%ZMQ_TorqueOffset = setpoints(1)
-            LocalVar%ZMQ_YawOffset = setpoints(2)
-            LocalVar%ZMQ_PitOffset(1) = setpoints(3)
-            LocalVar%ZMQ_PitOffset(2) = setpoints(4)
-            LocalVar%ZMQ_PitOffset(3) = setpoints(5)
+            LocalVar%ZMQ_Identifier = setpoints(1)
+            LocalVar%ZMQ_TorqueOffset = setpoints(2)
+            LocalVar%ZMQ_YawOffset = setpoints(3)
+            LocalVar%ZMQ_PitOffset(1) = setpoints(4)
+            LocalVar%ZMQ_PitOffset(2) = setpoints(5)
+            LocalVar%ZMQ_PitOffset(3) = setpoints(6)
             
         ENDIF
 

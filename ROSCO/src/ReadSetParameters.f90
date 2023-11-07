@@ -235,6 +235,7 @@ CONTAINS
             
             LocalVar%ZMQ_YawOffset = 0
             LocalVar%ZMQ_PitOffset = 0
+            LocalVar%ZMQ_Identifier = CntrPar%ZMQ_Identifier
 
             ! Check validity of input parameters:
             CALL CheckInputs(LocalVar, CntrPar, avrSWAP, ErrVar, size_avcMSG)
@@ -328,7 +329,6 @@ CONTAINS
         ENDIF
 
         !----------------------- Simulation Control --------------------------
-        CALL ParseInput(FileLines,'Identifier',   CntrPar%Identifier,       accINFILE(1), ErrVar, .TRUE., UnEc=UnEc)
         CALL ParseInput(FileLines,'LoggingLevel',   CntrPar%LoggingLevel,       accINFILE(1), ErrVar, .TRUE., UnEc=UnEc)
         CALL ParseInput(FileLines,'DT_Out',         CntrPar%DT_Out,             accINFILE(1), ErrVar, .TRUE., UnEc=UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
@@ -533,6 +533,7 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ ZeroMQ ------------
+        CALL ParseInput(FileLines, 'ZMQ_Identifier',    CntrPar%ZMQ_Identifier,     accINFILE(1), ErrVar, .TRUE., UnEc=UnEc)
         CALL ParseInput(FileLines, 'ZMQ_CommAddress',   CntrPar%ZMQ_CommAddress,    accINFILE(1),   ErrVar,    CntrPar%ZMQ_Mode == 0, UnEc)
         CALL ParseInput(FileLines, 'ZMQ_UpdatePeriod',  CntrPar%ZMQ_UpdatePeriod,   accINFILE(1),   ErrVar,    CntrPar%ZMQ_Mode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN

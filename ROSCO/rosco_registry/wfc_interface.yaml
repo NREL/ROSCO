@@ -1,4 +1,5 @@
 measurements: [
+  ZMQ_Identifier,
   iStatus, 
   Time, 
   VS_MechGenPwr,
@@ -18,6 +19,7 @@ measurements: [
   ]
 
 setpoints: [
+  ZMQ_Identifier,
   ZMQ_TorqueOffset,
   ZMQ_YawOffset,
   ZMQ_PitOffset(1),

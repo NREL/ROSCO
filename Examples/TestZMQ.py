@@ -18,7 +18,7 @@ def run_zmq():
     while connect_zmq:
         #  Get latest measurements from ROSCO
         measurements = s.get_measurements()
-        identifier = measurements['Identifier']
+        identifier = measurements['ZMQ_Identifier']
 
         # Decide new control input based on measurements
         current_time = measurements['Time']

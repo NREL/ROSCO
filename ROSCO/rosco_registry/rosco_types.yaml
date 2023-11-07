@@ -74,7 +74,7 @@ default_types:
   
 
 ControlParameters:
-    Identifier:
+    ZMQ_Identifier:
       <<: *integer
       description: 0000 - 9999, Identifier of the rosco, used for zeromq interface only
     LoggingLevel: 
@@ -1267,6 +1267,9 @@ LocalVariables:
       <<: *complex
       description: Complex angle for each blade, sum of modes?
       size: 3
+    ZMQ_Identifier:
+      <<: *integer
+      description: 0000 - 9999, Identifier of the rosco, used for zeromq interface only
     ZMQ_YawOffset:
       <<: *real
       description: Yaw offset command, [rad]
