@@ -13,9 +13,10 @@ CONTAINS
 
         character(256) :: zmq_address
         real(C_DOUBLE) :: setpoints(5)
-        real(C_DOUBLE) :: turbine_measurements(16)
+        real(C_DOUBLE) :: turbine_measurements(17)
         CHARACTER(*), PARAMETER                 :: RoutineName = 'UpdateZeroMQ'
 
+        !Identifier = CntrPar%Identifier
         ! C interface with ZeroMQ client
 #ifdef ZMQ_CLIENT
         interface
@@ -23,11 +24,31 @@ CONTAINS
                 import :: C_CHAR, C_DOUBLE
                 implicit none
                 character(C_CHAR), intent(out) :: zmq_address(*)
-                real(C_DOUBLE) :: measurements(16)
+                real(C_DOUBLE) :: measurements(17)
                 real(C_DOUBLE) :: setpoints(5)
             end subroutine zmq_client
         end interface
 #endif
+		! Communicate if threshold has been reached
+		IF ((MODULO(LocalVar%Time, CntrPar%ZMQ_UpdatePeriod) == 0) .OR. (LocalVar%iStatus == -1)) THEN
+			! Collect measurements to be sent to ZeroMQ server
+			turbine_measurements(1) = LocalVar%iStatus
+			turbine_measurements(2) = LocalVar%Time
+			turbine_measurements(3) = LocalVar%VS_MechGenPwr
+			turbine_measurements(4) = LocalVar%VS_GenPwr
+			turbine_measurements(5) = LocalVar%GenSpeed
+			turbine_measurements(6) = LocalVar%RotSpeed
+			turbine_measurements(7) = LocalVar%GenTqMeas
+			turbine_measurements(8) = LocalVar%NacHeading
+			turbine_measurements(9) = LocalVar%NacVane
+			turbine_measurements(10) = LocalVar%HorWindV
+			turbine_measurements(11) = LocalVar%rootMOOP(1)
+			turbine_measurements(12) = LocalVar%rootMOOP(2)
+			turbine_measurements(13) = LocalVar%rootMOOP(3)
+			turbine_measurements(14) = LocalVar%FA_Acc
+			turbine_measurements(15) = LocalVar%NacIMU_FA_Acc
+			turbine_measurements(16) = LocalVar%Azimuth
+            turbine_measurements(17) = CntrPar%Identifier
 
         ! Communicate if threshold has been reached
         IF (ABS(MODULO(LocalVar%Time, CntrPar%ZMQ_UpdatePeriod)) < LocalVar%DT * CntrPar%ZMQ_UpdatePeriod .OR. LocalVar%iStatus == -1) THEN
