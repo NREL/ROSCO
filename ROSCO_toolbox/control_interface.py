@@ -379,6 +379,7 @@ class turbine_zmq_server():
         self.timeout = timeout
         self.verbose = verbose
         self.wfc_interface = load_yaml('/Users/dzalkind/Tools/ROSCO1/ROSCO/rosco_registry/wfc_interface.yaml')
+        self.setpoints = {s: 0.0 for s in self.wfc_interface['setpoints']}     # init setpoints with zeros
         self._connect()
 
     def _connect(self):
@@ -432,26 +433,25 @@ class turbine_zmq_server():
         meas_dict = {}
         for i_meas, meas in enumerate(self.wfc_interface['measurements']):
             meas_dict[meas] = meas_float[i_meas]
-
         if self.verbose:
             print('[%s] Measurements received:' % self.identifier, meas_dict)
 
         return meas_dict
 
-    def send_setpoints(self, setpoints): 
-        # genTorque=0.0, nacelleHeading=0.0,
-                    #    bladePitch=[0.0, 0.0, 0.0]):
+    def send_setpoints(self): 
         '''
         Send setpoints to ROSCO .dll ffor individual turbine control
 
         Parameters:
         -----------
-        setpoints (dict) corresponding to ZMQ_* LocalVars, defined by wfc_interface
+        self.setpoints (dict) corresponding to ZMQ_* LocalVars, defined by wfc_interface
         '''
-        # Create a message with setpoints to send to ROSCO
-        message_out = b"%016.5f, %016.5f, %016.5f, %016.5f, %016.5f" % (
-            genTorque, nacelleHeading, bladePitch[0], bladePitch[1],
-            bladePitch[2])
+
+        # Re-order setpoints again (to be sure) as ordered in wfc_interface.yaml
+        self.setpoints = {key: self.setpoints[key] for key in self.wfc_interface['setpoints']}
+
+        # Create a string message with setpoints to send to ROSCO
+        message_out = ', '.join([f'{s:016.5f}' for s in self.setpoints.values()]).encode('utf-8')
 
         #  Send reply back to client
         if self.verbose:
