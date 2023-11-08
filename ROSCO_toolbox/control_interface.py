@@ -306,7 +306,7 @@ class farm_zmq_server():
         # Initialize ZeroMQ servers
         self.zmq_servers = [None for _ in range(self.nturbs)]
         for ti, address in enumerate(self.network_addresses):
-            self.zmq_servers[ti] = turbine_zmq_server(
+            self.zmq_servers[ti] = wfc_zmq_server(
                 network_address=address,
                 identifier=identifiers[ti],
                 timeout=timeout,
@@ -353,9 +353,9 @@ class farm_zmq_server():
             )
 
 
-class turbine_zmq_server():
+class wfc_zmq_server():
     def __init__(self, network_address="tcp://*:5555", identifier="0",
-                 timeout=600.0, verbose=False):
+                 timeout=600.0, verbose=False, n_turbines = 1):
         """Python implementation of the ZeroMQ server side for the ROSCO
         ZeroMQ wind farm control interface. This class makes it easy for
         users to receive measurements from ROSCO and then send back control
@@ -373,6 +373,7 @@ class turbine_zmq_server():
             timeout (float, optional): Seconds to wait for a message from
             the ZeroMQ server before timing out. Defaults to 600.0.
             verbose (bool, optional): Print to console. Defaults to False.
+            n_turbines (int, optional): Number of turbines in server
         """
         self.network_address = network_address
         self.identifier = identifier
@@ -380,7 +381,8 @@ class turbine_zmq_server():
         self.verbose = verbose
         interface_file = os.path.realpath(os.path.join(os.path.dirname(__file__),'../ROSCO/rosco_registry/wfc_interface.yaml'))
         self.wfc_interface = load_yaml(interface_file)
-        self.setpoints = {s: 0.0 for s in self.wfc_interface['setpoints']}     # init setpoints with zeros
+        self.setpoints = n_turbines * [{s: 0.0 for s in self.wfc_interface['setpoints']}]     # init setpoints with zeros
+        self.measurements = n_turbines * [{s: 0.0 for s in self.wfc_interface['measurements']}]     # init measurements with zeros
         self._connect()
 
     def _connect(self):
@@ -439,20 +441,22 @@ class turbine_zmq_server():
 
         return meas_dict
 
-    def send_setpoints(self): 
+    def send_setpoints(self, id): 
         '''
         Send setpoints to ROSCO .dll ffor individual turbine control
 
         Parameters:
         -----------
         self.setpoints (dict) corresponding to ZMQ_* LocalVars, defined by wfc_interface
+        id (int) id of turbine that setpoints are sent to
         '''
+        setpoints_id = self.setpoints[id-1]
 
         # Re-order setpoints again (to be sure) as ordered in wfc_interface.yaml
-        self.setpoints = {key: self.setpoints[key] for key in self.wfc_interface['setpoints']}
+        setpoints_id = {key: setpoints_id[key] for key in self.wfc_interface['setpoints']}
 
         # Create a string message with setpoints to send to ROSCO
-        message_out = ', '.join([f'{s:016.5f}' for s in self.setpoints.values()]).encode('utf-8')
+        message_out = ', '.join([f'{s:016.5f}' for s in setpoints_id.values()]).encode('utf-8')
 
         #  Send reply back to client
         if self.verbose:

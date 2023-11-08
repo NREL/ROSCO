@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from ROSCO_toolbox.inputs.validation import load_rosco_yaml
 from ROSCO_toolbox.utilities import write_DISCON
 from ROSCO_toolbox import control_interface as ROSCO_ci
-from ROSCO_toolbox.control_interface import turbine_zmq_server
+from ROSCO_toolbox.control_interface import wfc_zmq_server
 from ROSCO_toolbox import sim as ROSCO_sim
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox import controller as ROSCO_controller
@@ -19,7 +19,7 @@ os.makedirs(example_out_dir,exist_ok=True)
 
 def run_zmq():
     connect_zmq = True
-    s = turbine_zmq_server(network_address="tcp://*:5555", timeout=10000.0, verbose=False)
+    s = wfc_zmq_server(network_address="tcp://*:5555", timeout=10000.0, verbose=False, n_turbines = 2)
     while connect_zmq:
         #  Get latest measurements from ROSCO
         measurements = s.get_measurements()
@@ -28,7 +28,14 @@ def run_zmq():
         # somewhere in the server code, we need to save the ID to setpoints
         # otherwise, it's initialized as 0 like everything else
         # do this here for now until the server code moves somewhere else
-        s.setpoints['ZMQ_ID'] = measurements['ZMQ_ID']
+        
+        # I think we need to build out this part of the code, next
+        id = int(identifier)
+
+        s.setpoints[id-1]['ZMQ_ID'] = measurements['ZMQ_ID']
+
+        # Maybe measurements needs to be a dict so we don't have this id-1 business
+        s.measurements[id-1] = measurements
 
         # Decide new control input based on measurements
         current_time = measurements['Time']
@@ -47,8 +54,8 @@ def run_zmq():
         #     yaw_setpoint1 = -20.0
 
             # Send new setpoints back to ROSCO
-        s.setpoints['ZMQ_YawOffset'] = yaw_setpoint
-        s.send_setpoints()
+        s.setpoints[id-1]['ZMQ_YawOffset'] = yaw_setpoint
+        s.send_setpoints(id)
         # s1.send_setpoints(nacelleHeading=yaw_setpoint1)
 
         if measurements['iStatus'] == -1:
