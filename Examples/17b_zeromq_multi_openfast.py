@@ -8,9 +8,14 @@ from ROSCO_toolbox.control_interface import turbine_zmq_server
 from ROSCO_toolbox import sim as ROSCO_sim
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox import controller as ROSCO_controller
+from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
 import numpy as np
 import multiprocessing as mp
+from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
 
+this_dir            = os.path.dirname(os.path.abspath(__file__))
+example_out_dir     = os.path.join(this_dir,'examples_out')
+os.makedirs(example_out_dir,exist_ok=True)
 
 def run_zmq():
     connect_zmq = True
@@ -20,6 +25,11 @@ def run_zmq():
         measurements = s.get_measurements()
         identifier = measurements['ZMQ_Identifier']
 
+        # somewhere in the server code, we need to save the ID to setpoints
+        # otherwise, it's initialized as 0 like everything else
+        # do this here for now until the server code moves somewhere else
+        s.setpoints['ZMQ_Identifier'] = measurements['ZMQ_Identifier']
+
         # Decide new control input based on measurements
         current_time = measurements['Time']
         if current_time <= 10.0:
@@ -28,7 +38,7 @@ def run_zmq():
             if identifier >= 1.5:
                 yaw_setpoint = -10.0
             else:
-                yaw_setpoint = -10.0
+                yaw_setpoint = 10.0
         
         # current_time1 = measurements1['Time']
         # if current_time1 <= 10.0:
@@ -37,7 +47,8 @@ def run_zmq():
         #     yaw_setpoint1 = -20.0
 
             # Send new setpoints back to ROSCO
-        s.send_setpoints(nacelleHeading=yaw_setpoint)
+        s.setpoints['ZMQ_YawOffset'] = yaw_setpoint
+        s.send_setpoints()
         # s1.send_setpoints(nacelleHeading=yaw_setpoint1)
 
         if measurements['iStatus'] == -1:
@@ -45,17 +56,45 @@ def run_zmq():
             s._disconnect()
     print('Done with run_zmq')
 
-def sim_openfast():
-    fstfile = '/Users/agupta/Projects/Tools/AG_ROSCO/Examples/IEA-3.4-130-RWT/openfast/IEA-3.4-130-RWT.fst'
-    of_exec = '/Users/agupta/Projects/Tools/AG_openfast/build_v3p5p0/glue-codes/openfast/openfast'
-    os.system(of_exec + ' ' + fstfile)
-    pass
+def sim_openfast_1():
+    # fstfile = '/Users/agupta/Projects/Tools/AG_ROSCO/Examples/IEA-3.4-130-RWT/openfast/IEA-3.4-130-RWT.fst'
+    # of_exec = '/Users/agupta/Projects/Tools/AG_openfast/build_v3p5p0/glue-codes/openfast/openfast'
+    # os.system(of_exec + ' ' + fstfile)
+    # pass
+    r = run_FAST_ROSCO()
+    r.tuning_yaml = 'NREL5MW.yaml'
+    r.wind_case_fcn = cl.power_curve
+    r.wind_case_opts    = {
+        'U': [8],
+        'TMax': 100,
+        }
+    run_dir = os.path.join(example_out_dir,'17b_zeromq_OF1')
+    r.controller_params = {}
+    r.controller_params['LoggingLevel'] = 2
+    r.controller_params['DISCON'] = {}
+    r.controller_params['DISCON']['ZMQ_Mode'] = 1
+    r.controller_params['DISCON']['ZMQ_Identifier'] = 1
+    r.save_dir    = run_dir
+    r.run_FAST()
 
-def sim_openfast1():
-    fstfile = '/Users/agupta/Projects/Tools/AG_ROSCO/Examples/IEA-3.4-130-RWT1/openfast/IEA-3.4-130-RWT.fst'
-    of_exec = '/Users/agupta/Projects/Tools/AG_openfast/build_v3p5p0/glue-codes/openfast/openfast'
-    os.system(of_exec + ' ' + fstfile)
-    pass
+
+
+def sim_openfast_2():
+    r = run_FAST_ROSCO()
+    r.tuning_yaml = 'NREL5MW.yaml'
+    r.wind_case_fcn = cl.power_curve
+    r.wind_case_opts    = {
+        'U': [8],
+        'TMax': 100,
+        }
+    run_dir = os.path.join(example_out_dir,'17b_zeromq_OF2')
+    r.save_dir    = run_dir
+    r.controller_params = {}
+    r.controller_params['DISCON'] = {}
+    r.controller_params['LoggingLevel'] = 2
+    r.controller_params['DISCON']['ZMQ_Mode'] = 1
+    r.controller_params['DISCON']['ZMQ_Identifier'] = 2
+    r.run_FAST()
 
 
 if __name__ == "__main__":
@@ -64,12 +103,12 @@ if __name__ == "__main__":
     # sim_openfast()
     p1 = mp.Process(target=run_zmq)
     p1.start()
-    # p2 = mp.Process(target=sim_openfast)
-    # p2.start()
-    p3 = mp.Process(target=sim_openfast1)
+    p2 = mp.Process(target=sim_openfast_1)
+    p2.start()
+    p3 = mp.Process(target=sim_openfast_2)
     p3.start()
     p1.join()
-    # p2.join()
+    p2.join()
     p3.join()
 
     
