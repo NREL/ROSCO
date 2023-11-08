@@ -11,7 +11,7 @@
 
 from ctypes import byref, cdll, POINTER, c_float, c_char_p, c_double, create_string_buffer, c_int32, c_void_p
 import numpy as np
-import platform, ctypes
+import platform, ctypes, os
 import zmq
 from ROSCO_toolbox.ofTools.util.FileTools import load_yaml
 
@@ -378,7 +378,8 @@ class turbine_zmq_server():
         self.identifier = identifier
         self.timeout = timeout
         self.verbose = verbose
-        self.wfc_interface = load_yaml('/Users/dzalkind/Tools/ROSCO1/ROSCO/rosco_registry/wfc_interface.yaml')
+        interface_file = os.path.realpath(os.path.join(os.path.dirname(__file__),'../ROSCO/rosco_registry/wfc_interface.yaml'))
+        self.wfc_interface = load_yaml(interface_file)
         self.setpoints = {s: 0.0 for s in self.wfc_interface['setpoints']}     # init setpoints with zeros
         self._connect()
 
