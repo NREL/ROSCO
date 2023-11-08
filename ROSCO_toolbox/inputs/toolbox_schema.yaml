@@ -1119,7 +1119,7 @@ properties:
                         type: number
                         description:  Update period at zmq interface to send measurements and wait for setpoint [sec.]
                         default: 1.0
-                    ZMQ_Identifier:
+                    ZMQ_ID:
                         type: number
                         description: Integer identifier of turbine
                         default: 0

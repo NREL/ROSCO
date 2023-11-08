@@ -23,12 +23,12 @@ def run_zmq():
     while connect_zmq:
         #  Get latest measurements from ROSCO
         measurements = s.get_measurements()
-        identifier = measurements['ZMQ_Identifier']
+        identifier = measurements['ZMQ_ID']
 
         # somewhere in the server code, we need to save the ID to setpoints
         # otherwise, it's initialized as 0 like everything else
         # do this here for now until the server code moves somewhere else
-        s.setpoints['ZMQ_Identifier'] = measurements['ZMQ_Identifier']
+        s.setpoints['ZMQ_ID'] = measurements['ZMQ_ID']
 
         # Decide new control input based on measurements
         current_time = measurements['Time']
@@ -73,7 +73,7 @@ def sim_openfast_1():
     r.controller_params['LoggingLevel'] = 2
     r.controller_params['DISCON'] = {}
     r.controller_params['DISCON']['ZMQ_Mode'] = 1
-    r.controller_params['DISCON']['ZMQ_Identifier'] = 1
+    r.controller_params['DISCON']['ZMQ_ID'] = 1
     r.save_dir    = run_dir
     r.run_FAST()
 
@@ -93,7 +93,7 @@ def sim_openfast_2():
     r.controller_params['DISCON'] = {}
     r.controller_params['LoggingLevel'] = 2
     r.controller_params['DISCON']['ZMQ_Mode'] = 1
-    r.controller_params['DISCON']['ZMQ_Identifier'] = 2
+    r.controller_params['DISCON']['ZMQ_ID'] = 2
     r.run_FAST()
 
 

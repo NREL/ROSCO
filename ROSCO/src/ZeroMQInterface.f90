@@ -32,7 +32,7 @@ CONTAINS
         ! Communicate if threshold has been reached
         IF (ABS(MODULO(LocalVar%Time, CntrPar%ZMQ_UpdatePeriod)) < LocalVar%DT * CntrPar%ZMQ_UpdatePeriod .OR. LocalVar%iStatus == -1) THEN
             ! Collect measurements to be sent to ZeroMQ server
-            turbine_measurements(1) = LocalVar%ZMQ_Identifier
+            turbine_measurements(1) = LocalVar%ZMQ_ID
             turbine_measurements(2) = LocalVar%iStatus
             turbine_measurements(3) = LocalVar%Time
             turbine_measurements(4) = LocalVar%VS_MechGenPwr
@@ -68,7 +68,7 @@ CONTAINS
             ! write (*,*) 'ZeroMQInterface: pitch 1 setpoint from ssc: ', setpoints(3)
             ! write (*,*) 'ZeroMQInterface: pitch 2 setpoint from ssc: ', setpoints(4)
             ! write (*,*) 'ZeroMQInterface: pitch 3 setpoint from ssc: ', setpoints(5)
-            LocalVar%ZMQ_Identifier = setpoints(1)
+            LocalVar%ZMQ_ID = setpoints(1)
             LocalVar%ZMQ_TorqueOffset = setpoints(2)
             LocalVar%ZMQ_YawOffset = setpoints(3)
             LocalVar%ZMQ_PitOffset(1) = setpoints(4)

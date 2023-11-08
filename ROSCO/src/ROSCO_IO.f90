@@ -220,7 +220,7 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%AWC_complexangle(1)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%AWC_complexangle(2)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%AWC_complexangle(3)
-        WRITE( Un, IOSTAT=ErrStat) LocalVar%ZMQ_Identifier
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%ZMQ_ID
         WRITE( Un, IOSTAT=ErrStat) LocalVar%ZMQ_YawOffset
         WRITE( Un, IOSTAT=ErrStat) LocalVar%ZMQ_TorqueOffset
         WRITE( Un, IOSTAT=ErrStat) LocalVar%ZMQ_PitOffset(1)
@@ -510,7 +510,7 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%AWC_complexangle(1)
         READ( Un, IOSTAT=ErrStat) LocalVar%AWC_complexangle(2)
         READ( Un, IOSTAT=ErrStat) LocalVar%AWC_complexangle(3)
-        READ( Un, IOSTAT=ErrStat) LocalVar%ZMQ_Identifier
+        READ( Un, IOSTAT=ErrStat) LocalVar%ZMQ_ID
         READ( Un, IOSTAT=ErrStat) LocalVar%ZMQ_YawOffset
         READ( Un, IOSTAT=ErrStat) LocalVar%ZMQ_TorqueOffset
         READ( Un, IOSTAT=ErrStat) LocalVar%ZMQ_PitOffset(1)
@@ -777,7 +777,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(110) = LocalVar%RootMyb_Last(1)
     LocalVarOutData(111) = LocalVar%ACC_INFILE_SIZE
     LocalVarOutData(112) = LocalVar%AWC_complexangle(1)
-    LocalVarOutData(113) = LocalVar%ZMQ_Identifier
+    LocalVarOutData(113) = LocalVar%ZMQ_ID
     LocalVarOutData(114) = LocalVar%ZMQ_YawOffset
     LocalVarOutData(115) = LocalVar%ZMQ_TorqueOffset
     LocalVarOutData(116) = LocalVar%ZMQ_PitOffset(1)
@@ -803,7 +803,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       'PtfmRVX', 'PtfmRVY', 'PtfmRVZ', 'PtfmTAX', 'PtfmTAY', & 
                                       'PtfmTAZ', 'PtfmRAX', 'PtfmRAY', 'PtfmRAZ', 'CC_DesiredL', & 
                                       'CC_ActuatedL', 'CC_ActuatedDL', 'StC_Input', 'Flp_Angle', 'RootMyb_Last', & 
-                                      'ACC_INFILE_SIZE', 'AWC_complexangle', 'ZMQ_Identifier', 'ZMQ_YawOffset', 'ZMQ_TorqueOffset', & 
+                                      'ACC_INFILE_SIZE', 'AWC_complexangle', 'ZMQ_ID', 'ZMQ_YawOffset', 'ZMQ_TorqueOffset', & 
                                       'ZMQ_PitOffset']
     ! Initialize debug file
     IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN ! .TRUE. if we're on the first call to the DLL
