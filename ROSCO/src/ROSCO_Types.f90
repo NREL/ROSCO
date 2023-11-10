@@ -119,7 +119,7 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: PA_Mode                     ! Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
     REAL(DbKi)                    :: PA_CornerFreq               ! Pitch actuator bandwidth/cut-off frequency [rad/s]
     REAL(DbKi)                    :: PA_Damping                  ! Pitch actuator damping ratio [-, unused if PA_Mode = 1]
-    INTEGER(IntKi)                :: AWC_Mode                    ! Active wake control mode [0 - unused, 1 - SNL method, 2 - NREL method]
+    INTEGER(IntKi)                :: AWC_Mode                    ! Active wake control mode [0 - unused, 1 - complex number method, 2 - Coleman transform method]
     INTEGER(IntKi)                :: AWC_NumModes                ! AWC- Number of modes to include [-]
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: AWC_n                       ! AWC azimuthal mode [-]
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: AWC_harmonic                ! AWC AWC Coleman transform harmonic [-]
@@ -270,6 +270,9 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: IPC_KI(2)                   ! Integral gain for IPC, after ramp [-]
     REAL(DbKi)                    :: IPC_KP(2)                   ! Proportional gain for IPC, after ramp [-]
     REAL(DbKi)                    :: IPC_IntSat                  ! Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
+    REAL(DbKi)                    :: Y_MErr                      ! Yaw error for yaw-by-ipc
+    REAL(DbKi)                    :: Y_MErrF                     ! Filtered yaw error for yaw-by-ipc
+    REAL(DbKi)                    :: Y_MErrF_IPC                 ! IPC command for yaw-by-ipc
     INTEGER(IntKi)                :: PC_State                    ! State of the pitch control system
     REAL(DbKi)                    :: PitCom(3)                   ! Commanded pitch of each blade the last time the controller was called [rad].
     REAL(DbKi)                    :: PitComAct(3)                ! Actuated pitch command of each blade [rad].

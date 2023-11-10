@@ -494,30 +494,6 @@ ControlParameters:
       allocatable: True
       description: AWC clocking angle [deg]
     
-    # Active wake control
-    AWC_Mode:
-      <<: *integer
-      description: Active wake control mode [0 - unused, 1 - SNL method, 2 - NREL method]
-    AWC_NumModes:
-      <<: *integer
-      description: AWC- Number of modes to include [-] 
-    AWC_n:
-      <<: *integer
-      allocatable: True
-      description: AWC azimuthal mode [-]
-    AWC_freq:
-      <<: *real
-      allocatable: True
-      description: AWC frequency [Hz]
-    AWC_amp:
-      <<: *real
-      allocatable: True
-      description: AWC amplitude [deg]
-    AWC_clockangle:
-      <<: *real
-      allocatable: True
-      description: AWC clocking angle [deg]
-    
     # Pitch actuator error
     PF_Mode:
       <<: *integer
@@ -1000,6 +976,15 @@ LocalVariables:
     IPC_IntSat:
       <<: *real
       description: Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
+    Y_MErr:
+      <<: *real
+      description: Yaw error for yaw-by-ipc
+    Y_MErrF:
+      <<: *real
+      description: Filtered yaw error for yaw-by-ipc
+    Y_MErrF_IPC:
+      <<: *real
+      description: IPC command for yaw-by-ipc
     PC_State:                     
       <<: *integer 
       description: State of the pitch control system

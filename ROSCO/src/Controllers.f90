@@ -371,6 +371,14 @@ CONTAINS
             ! Output yaw rate command in rad/s
             avrSWAP(48) = YawRateCom * D2R
 
+            ! If using open loop yaw rate control, overwrite controlled output
+            ! Open loop torque control
+            IF ((CntrPar%OL_Mode == 1) .AND. (CntrPar%Ind_YawRate > 0)) THEN
+                IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN
+                    avrSWAP(48) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_YawRate,LocalVar%Time, ErrVar)
+                ENDIF
+            ENDIF
+
             ! Save for debug
             DebugVar%YawRateCom       = YawRateCom
             DebugVar%NacHeadingTarget = NacHeadingTarget
@@ -396,7 +404,6 @@ CONTAINS
         ! Local variables
         REAL(DbKi)                  :: PitComIPC(3), PitComIPCF(3), PitComIPC_1P(3), PitComIPC_2P(3)
         INTEGER(IntKi)              :: i, K                                    ! Integer used to loop through gains and turbine blades
-        REAL(DbKi)                  :: axisYawIPC_1P                           ! IPC contribution with yaw-by-IPC component
         REAL(DbKi)                  :: Y_MErr, Y_MErrF, Y_MErrF_IPC            ! Unfiltered and filtered yaw alignment error [rad]
         
         CHARACTER(*),               PARAMETER           :: RoutineName = 'IPC'
@@ -408,13 +415,14 @@ CONTAINS
 
         ! High-pass filter the MBC yaw component and filter yaw alignment error, and compute the yaw-by-IPC contribution
         IF (CntrPar%Y_ControlMode == 2) THEN
-            Y_MErr = wrap_360(LocalVar%NacHeading + LocalVar%NacVane)
-            Y_MErrF = LPFilter(Y_MErr, LocalVar%DT, CntrPar%F_YawErr, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF)
-            Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP, CntrPar%Y_IPC_KI, -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
+            ! LocalVar%Y_MErr = D2R * wrap_180(LocalVar%NacVane)
+            LocalVar%Y_MErr = wrap_180(LocalVar%NacHeading)
+            LocalVar%Y_MErrF = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%F_YawErr, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF)
+            LocalVar%Y_MErrF_IPC = PIController(LocalVar%Y_MErrF, CntrPar%Y_IPC_KP, CntrPar%Y_IPC_KI, -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
         ELSE
             LocalVar%axisYawF_1P = LocalVar%axisYaw_1P
-            Y_MErrF = 0.0
-            Y_MErrF_IPC = 0.0
+            LocalVar%Y_MErrF = 0.0
+            LocalVar%Y_MErrF_IPC = 0.0
         END IF
 
         ! Soft cutin with sigma function 
@@ -451,10 +459,10 @@ CONTAINS
         ENDIF
         
         ! Add the yaw-by-IPC contribution
-        axisYawIPC_1P = LocalVar%IPC_axisYaw_1P + Y_MErrF_IPC
+        LocalVar%IPC_axisYaw_1P = LocalVar%IPC_axisYaw_1P + LocalVar%Y_MErrF_IPC
         
         ! Pass direct and quadrature axis through the inverse Coleman transform to get the commanded pitch angles
-        CALL ColemanTransformInverse(LocalVar%IPC_axisTilt_1P, axisYawIPC_1P, LocalVar%Azimuth, NP_1, CntrPar%IPC_aziOffset(1), PitComIPC_1P)
+        CALL ColemanTransformInverse(LocalVar%IPC_axisTilt_1P, LocalVar%IPC_axisYaw_1P, LocalVar%Azimuth, NP_1, CntrPar%IPC_aziOffset(1), PitComIPC_1P)
         CALL ColemanTransformInverse(LocalVar%IPC_axisTilt_2P, LocalVar%IPC_axisYaw_2P, LocalVar%Azimuth, NP_2, CntrPar%IPC_aziOffset(2), PitComIPC_2P)
         
         ! Sum nP IPC contributions and store to LocalVar data type
