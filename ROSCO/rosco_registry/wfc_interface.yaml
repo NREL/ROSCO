@@ -19,7 +19,6 @@ measurements: [
   ]
 
 setpoints: [
-  ZMQ_ID,
   ZMQ_TorqueOffset,
   ZMQ_YawOffset,
   ZMQ_PitOffset(1),

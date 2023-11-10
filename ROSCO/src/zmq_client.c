@@ -23,7 +23,7 @@ void delete_blank_spaces_in_string(char *s)
 int zmq_client (
     char *zmq_address,
     double measurements[17],
-    double setpoints[6]
+    double setpoints[5]
 )
 {
     int num_measurements = 17;  // Number of setpoints and measurements, respectively, and float precision (character length)
