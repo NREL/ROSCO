@@ -120,7 +120,6 @@ def main():
     r.controller_params = controller_params
     r.save_dir      = run_dir
     r.rosco_dir     = rosco_dir
-
     r.run_FAST()
 
 

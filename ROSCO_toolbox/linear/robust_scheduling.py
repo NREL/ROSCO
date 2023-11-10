@@ -101,6 +101,9 @@ class RobustScheduling(om.ExplicitComponent):
         self.add_output('omega_opt', val=0.01,      units='rad/s',
                         desc='Maximized controller bandwidth')
 
+    def setup_partials(self):
+        self.declare_partials('*', '*')
+
     def compute(self, inputs, outputs):
         '''
         Computes the stability margin for a given controller bandwidth (omega)

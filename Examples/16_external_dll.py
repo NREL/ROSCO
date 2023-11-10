@@ -43,7 +43,6 @@ def main():
     # Set DLL file and DISCON input dynamically (hard-coded in yaml)
     controller_params = {}
     controller_params['DISCON'] = {}
-    controller_params['OL_Mode'] = 2
     controller_params['DISCON']['DLL_FileName'] =  copy_lib
     controller_params['DISCON']['DLL_InFile'] =    os.path.join(rosco_dir,'Test_Cases/NREL-5MW/DISCON.IN')
     controller_params['DISCON']['DLL_ProcName'] =  'DISCON'

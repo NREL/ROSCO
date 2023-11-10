@@ -22,11 +22,11 @@ path_params
 
 :code:`FAST_directory` : String
     Main OpenFAST model directory, where the `*.fst` lives, relative
-    to ROSCO dir (if applicable)
+    to directory of this yaml (if applicable)
 
 :code:`rotor_performance_filename` : String
     Filename for rotor performance text file (if it has been generated
-    by ccblade already)
+    by ccblade already), relative to directory of this yaml
 
 
 
@@ -89,6 +89,14 @@ turbine_params
 
     *Minimum* = 0
 
+:code:`reynolds_ref` : Float
+    Reynolds number near rated speeds, used to interpolate airfoils,
+    if provided
+
+    *Default* = 0
+
+    *Minimum* = 0
+
 
 
 controller_params
@@ -136,13 +144,22 @@ controller_params
 
 
 :code:`VS_ControlMode` : Float
-    Generator torque control mode in above rated conditions (0-
-    constant torque, 1- constant power, 2- TSR tracking PI control
-    with constant torque, 3- TSR tracking with constant power)
+    Generator torque control mode in above rated conditions (0- no
+    torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR
+    Tracking, 3- Power-based TSR Tracking)
 
     *Default* = 2
 
     *Minimum* = 0    *Maximum* = 3
+
+
+:code:`VS_ConstPower` : Float
+    Do constant power torque control, where above rated torque varies,
+    0 for constant torque
+
+    *Default* = 0
+
+    *Minimum* = 0    *Maximum* = 1
 
 
 :code:`PC_ControlMode` : Float
@@ -265,6 +282,24 @@ controller_params
     *Minimum* = 0    *Maximum* = 1
 
 
+:code:`OL_Mode` : Float
+    Open loop control mode {0- no open loop control, 1- open loop
+    control}
+
+    *Default* = 0
+
+    *Minimum* = 0    *Maximum* = 2
+
+
+:code:`AWC_Mode` : Float
+    Active wake control mode {0 - not used, 1 - SNL method, 2 - NREL
+    method}
+
+    *Default* = 0
+
+    *Minimum* = 0    *Maximum* = 2
+
+
 :code:`Ext_Mode` : Float
     External control mode [0 - not used, 1 - call external dynamic
     library]
@@ -275,20 +310,21 @@ controller_params
 
 
 :code:`CC_Mode` : Float
-    Cable control mode [0- unused, 1- User defined, 2- Position
-    control (not yet implemented)]
+    Cable control mode [0- unused, 1- User defined, 2- Open loop
+    control]
 
     *Default* = 0
 
-    *Minimum* = 0    *Maximum* = 1
+    *Minimum* = 0    *Maximum* = 2
 
 
 :code:`StC_Mode` : Float
-    Structural control mode [0- unused, 1- User defined]
+    Structural control mode [0- unused, 1- User defined, 2- Open loop
+    control]
 
     *Default* = 0
 
-    *Minimum* = 0    *Maximum* = 1
+    *Minimum* = 0    *Maximum* = 2
 
 
 :code:`U_pc` : Array of Floats
@@ -396,13 +432,19 @@ controller_params
 
     *Minimum* = 0
 
-:code:`Kp_float` : Float, s
-    Gain of floating feedback control
+:code:`Kp_float` : Float, s or Array of Floats
+    Gain(s) of floating feedback control
 
 :code:`tune_Fl` : Boolean
     Whether to automatically tune Kp_float
 
     *Default* = True
+
+:code:`U_Fl` : Array of Floats or String or Float
+    List of wind speeds for tuning floating feedback, or "all" for all
+    above-rated wind speeds
+
+    *Default* = []
 
 :code:`zeta_flp` : Float
     Flap controller desired damping ratio [-]
@@ -465,6 +507,15 @@ controller_params
     *Default* = [0.0, 0.0]
 
     *Minimum* = 0.0
+
+:code:`rgn2k_factor` : Float
+    Factor on VS_Rgn2K to increase/decrease optimal torque control
+    gain, default is 1.  Sometimes environmental conditions or
+    differences in BEM solvers necessitate this change.
+
+    *Default* = 1
+
+    *Minimum* = 0
 
 
 
@@ -537,25 +588,48 @@ open_loop
 
     *Default* = unused
 
-:code:`OL_Ind_Breakpoint` : Float
+:code:`Ind_Breakpoint` : Float
     Index (column, 1-indexed) of breakpoint (time) in open loop index
 
     *Default* = 1
 
-:code:`OL_Ind_BldPitch` : Float
-    Index (column, 1-indexed) of breakpoint (time) in open loop index
+    *Minimum* = 0
+
+:code:`Ind_BldPitch` : Array of Floats
+    Indices (columns, 1-indexed) of pitch (1,2,3) inputs in open loop
+    input
+
+    *Default* = [0, 0, 0]
+
+    *Minimum* = 0
+
+:code:`Ind_GenTq` : Float
+    Index (column, 1-indexed) of generator torque in open loop input
 
     *Default* = 0
 
-:code:`OL_Ind_GenTq` : Float
-    Index (column, 1-indexed) of breakpoint (time) in open loop index
+    *Minimum* = 0
+
+:code:`Ind_YawRate` : Float
+    Index (column, 1-indexed) of nacelle yaw in open loop input
 
     *Default* = 0
 
-:code:`OL_Ind_YawRate` : Float
-    Index (column, 1-indexed) of breakpoint (time) in open loop index
+    *Minimum* = 0
+
+:code:`Ind_Azimuth` : Float
+    The column in OL_Filename that contains the desired azimuth
+    position in rad (used if OL_Mode = 2)
 
     *Default* = 0
+
+:code:`Ind_CableControl` : Array of Floats
+    The column in OL_Filename that contains the cable control inputs
+    in m
+
+:code:`Ind_StructControl` : Array of Floats
+    The column in OL_Filename that contains the structural control
+    inputs in various units
 
 :code:`PA_CornerFreq` : Float, rad/s
     Pitch actuator natural frequency [rad/s]
@@ -577,7 +651,7 @@ DISCON
 ########################################
 
 
-These are pass-through parameters for the DISCON.IN file.  Use with caution.
+These are pass-through parameters for the DISCON.IN file.  Use with caution. Do not set defaults in schema.
 
 :code:`LoggingLevel` : Float
     (0- write no debug files, 1- write standard output .dbg-file, 2-
@@ -589,9 +663,29 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
 
     *Default* = 0
 
+:code:`DT_Out` : Float
+    Time step to output .dbg* files, or 0 to match sampling period of
+    OpenFAST
+
+    *Default* = 0
+
 :code:`F_LPFType` : Float
     1- first-order low-pass filter, 2- second-order low-pass filter
     (currently filters generator speed and pitch control signals
+
+:code:`VS_ControlMode` : Float
+    Generator torque control mode in above rated conditions (0- no
+    torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR
+    Tracking, 3- Power-based TSR Tracking)
+
+    *Minimum* = 0    *Maximum* = 3
+
+
+:code:`VS_ConstPower` : Float
+    Do constant power torque control, where above rated torque varies
+
+    *Minimum* = 0    *Maximum* = 1
+
 
 :code:`F_NotchType` : Float
     Notch on the measured generator speed and/or tower fore-aft motion
@@ -602,12 +696,6 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
     Turn Individual Pitch Control (IPC) for fatigue load reductions
     (pitch contribution) (0- off, 1- 1P reductions, 2- 1P+2P
     reductions)
-
-:code:`VS_ControlMode` : Float
-    Generator torque control mode in above rated conditions (0-
-    constant torque, 1- constant power, 2- TSR tracking PI control
-    with constant torque, 3- TSR tracking PI control with constant
-    power)
 
 :code:`PC_ControlMode` : Float
     Blade pitch control mode (0- No pitch, fix to fine pitch, 1-
@@ -643,18 +731,42 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
     Flap control mode (0- no flap control, 1- steady state flap angle,
     2- Proportional flap control)
 
+:code:`OL_Mode` : Float
+    Open loop control mode (0 - no open-loop control, 1 - direct open
+    loop control, 2 - rotor position control)
+
 :code:`F_LPFCornerFreq` : Float, rad/s
     Corner frequency (-3dB point) in the low-pass filters,
 
 :code:`F_LPFDamping` : Float
     Damping coefficient (used only when F_FilterType = 2 [-]
 
-:code:`F_NotchCornerFreq` : Float, rad/s
-    Natural frequency of the notch filter,
+:code:`F_NumNotchFilts` : Float
+    Number of notch filters placed on sensors
 
-:code:`F_NotchBetaNumDen` : Array of Floats
-    Two notch damping values (numerator and denominator, resp) -
-    determines the width and depth of the notch, [-]
+:code:`F_NotchFreqs` : Array of Floats or Float, rad/s
+    Natural frequency of the notch filters. Array with length
+    F_NumNotchFilts
+
+:code:`F_NotchBetaNum` : Array of Floats or Float
+    Damping value of numerator (determines the width of notch). Array
+    with length F_NumNotchFilts, [-]
+
+:code:`F_NotchBetaDen` : Array of Floats or Float
+    Damping value of denominator (determines the depth of notch).
+    Array with length F_NumNotchFilts, [-]
+
+:code:`F_GenSpdNotch_N` : Float
+    Number of notch filters on generator speed
+
+:code:`F_TwrTopNotch_N` : Float
+    Number of notch filters on tower top acceleration signal
+
+:code:`F_GenSpdNotch_Ind` : Array of Floats or Float
+    Indices of notch filters on generator speed
+
+:code:`F_TwrTopNotch_Ind` : Array of Floats or Float
+    Indices of notch filters on tower top acceleration signal
 
 :code:`F_SSCornerFreq` : Float, rad/s.
     Corner frequency (-3dB point) in the first order low pass filter
@@ -759,7 +871,8 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
     Minimum generator speed
 
 :code:`VS_Rgn2K` : Float, Nm/(rad/s)^2
-    Generator torque constant in Region 2 (HSS side)
+    Generator torque constant in Region 2 (HSS side). Only used in
+    VS_ControlMode = 1,3
 
 :code:`VS_RtPwr` : Float, W
     Wind turbine rated power
@@ -782,7 +895,14 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
     the transitional 2.5 region if VS_ControlMode =/ 2)
 
 :code:`VS_TSRopt` : Float, rad
-    Power-maximizing region 2 tip-speed-ratio
+    Power-maximizing region 2 tip-speed-ratio. Only used in
+    VS_ControlMode = 2.
+
+:code:`VS_PwrFiltF` : Float, rad
+    Low pass filter on power used to determine generator speed set
+    point.  Only used in VS_ControlMode = 3.
+
+    *Default* = 0.314
 
 :code:`SS_VSGain` : Float
     Variable speed torque controller setpoint smoother gain
@@ -895,8 +1015,16 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
     Cutoff Frequency for first order low-pass filter for blade pitch
     angle
 
-:code:`Fl_Kp` : Float, s
+:code:`Fl_n` : Float, s
+    Number of Fl_Kp gains in gain scheduling, optional with default of
+    1
+
+:code:`Fl_Kp` : Array of Floats
     Nacelle velocity proportional feedback gain
+
+:code:`Fl_U` : Array of Floats
+    Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single
+    value [m/s]
 
 :code:`Flp_Angle` : Float, rad
     Initial or steady state flap angle
@@ -916,7 +1044,7 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
 
 :code:`Ind_Breakpoint` : Float
     The column in OL_Filename that contains the breakpoint (time if
-    OL_Mode = 1)
+    OL_Mode > 0)
 
 :code:`Ind_BldPitch` : Float
     The column in OL_Filename that contains the blade pitch input in
@@ -927,6 +1055,24 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
 
 :code:`Ind_YawRate` : Float
     The column in OL_Filename that contains the generator torque in Nm
+
+:code:`Ind_Azimuth` : Float
+    The column in OL_Filename that contains the desired azimuth
+    position in rad (used if OL_Mode = 2)
+
+:code:`RP_Gains` : Array of Floats
+    PID gains and Tf of derivative for rotor position control (used if
+    OL_Mode = 2)
+
+    *Default* = [0, 0, 0, 0]
+
+:code:`Ind_CableControl` : Array of Floats
+    The column in OL_Filename that contains the cable control inputs
+    in m
+
+:code:`Ind_StructControl` : Array of Floats
+    The column in OL_Filename that contains the structural control
+    inputs in various units
 
 :code:`DLL_FileName` : String
     Name/location of the dynamic library {.dll [Windows] or .so
@@ -946,6 +1092,8 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
 
 :code:`PF_Offsets` : Array of Floats
     Pitch angle offsets for each blade (array with length of 3)
+
+    *Default* = [0, 0, 0]
 
 :code:`CC_Group_N` : Float
     Number of cable control groups
@@ -970,6 +1118,46 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution.
 :code:`StC_GroupIndex` : Array of Floats
     First index for structural control group, options specified in
     ServoDyn summary output
+
+    *Default* = [0]
+
+:code:`AWC_Mode` : Float
+    Active wake control mode {0 - not used, 1 - complex number method,
+    2 - Coleman transformation method}
+
+    *Default* = 0
+
+    *Minimum* = 0    *Maximum* = 2
+
+
+:code:`AWC_NumModes` : Float, rad
+    Number of AWC modes
+
+    *Default* = 1
+
+:code:`AWC_n` : Array of Floats
+    AWC azimuthal number (only used in complex number method)
+
+    *Default* = [1]
+
+:code:`AWC_harmonic` : Array of Integers
+    AWC Coleman transform harmonic (only used in Coleman transform
+    method)
+
+    *Default* = [1]
+
+:code:`AWC_freq` : Array of Floats
+    AWC frequency [Hz]
+
+    *Default* = [0.05]
+
+:code:`AWC_amp` : Array of Floats
+    AWC amplitude [deg]
+
+    *Default* = [1.0]
+
+:code:`AWC_clockangle` : Array of Floats
+    AWC clock angle [deg]
 
     *Default* = [0]
 

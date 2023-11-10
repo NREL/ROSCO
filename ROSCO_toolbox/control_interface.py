@@ -57,8 +57,11 @@ class ControllerInterface():
                 setattr(self, k, w)
             except:
                 pass
-
-        self.init_discon()
+        
+        try:
+            self.init_discon()
+        except ValueError:
+            pass
 
     def init_discon(self):
 
@@ -90,24 +93,27 @@ class ControllerInterface():
         # Code this as first call
         self.avrSWAP[0] = 0
 
-        # Put some values in
-        self.avrSWAP[58] = self.char_buffer
-        self.avrSWAP[49] = len(self.param_name)
-        self.avrSWAP[50] = self.char_buffer
-        self.avrSWAP[51] = self.char_buffer
-
         # Initialize DISCON and related
         self.aviFAIL = c_int32() # 1
         self.accINFILE = self.param_name.encode('utf-8')
-        self.avcOUTNAME = (self.sim_name + '.RO.dbg').encode('utf-8')
+        self.avcOUTNAME = (self.sim_name ).encode('utf-8')
         self.avcMSG = create_string_buffer(1000)
         self.discon.DISCON.argtypes = [POINTER(c_float), POINTER(c_int32), c_char_p, c_char_p, c_char_p] # (all defined by ctypes)
+
+        # Put some values in
+        self.avrSWAP[48] = self.char_buffer
+        self.avrSWAP[49] = len(self.param_name)
+        self.avrSWAP[50] = len(self.avcOUTNAME)
+        self.avrSWAP[51] = self.char_buffer
 
         # Run DISCON
         self.call_discon()
 
         # Code as not first run now that DISCON has been initialized
         self.avrSWAP[0] = 1
+
+        if self.aviFAIL.value < 0:
+            raise ValueError('ROSCO dynamic library has returned an error')
 
 
     def call_discon(self):
@@ -315,6 +321,7 @@ class farm_zmq_server():
 
     def send_setpoints(self, genTorques=None, nacelleHeadings=None,
                        bladePitchAngles=None):
+
         '''
         Send setpoints to DLL via zmq server for farm level controls
 
@@ -449,8 +456,8 @@ class turbine_zmq_server():
 
         Parameters:
         -----------
-        genTorques: float
-            Generator torque setpoint
+        genTorque: float
+            Generator torque setpoint (note that this is currently unused by ROSCO)
         nacelleHeadings: float
             Nacelle heading setpoint
         bladePitchAngles: List (len=3)

@@ -4,12 +4,11 @@ module ZeroMQInterface
     ! 
 
 CONTAINS
-    SUBROUTINE UpdateZeroMQ(LocalVar, CntrPar, zmqVar, ErrVar)
-        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ZMQ_Variables, ErrorVariables
+    SUBROUTINE UpdateZeroMQ(LocalVar, CntrPar, ErrVar)
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ErrorVariables
         IMPLICIT NONE
         TYPE(LocalVariables),    INTENT(INOUT) :: LocalVar
         TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
-        TYPE(ZMQ_Variables),     INTENT(INOUT) :: zmqVar
         TYPE(ErrorVariables),    INTENT(INOUT) :: ErrVar
 
         character(256) :: zmq_address
@@ -29,9 +28,9 @@ CONTAINS
             end subroutine zmq_client
         end interface
 #endif
-		
+
 		! Communicate if threshold has been reached
-		IF ((MODULO(LocalVar%Time, CntrPar%ZMQ_UpdatePeriod) == 0) .OR. (LocalVar%iStatus == -1)) THEN
+		IF (ABS(MODULO(LocalVar%Time, CntrPar%ZMQ_UpdatePeriod)) < LocalVar%DT * CntrPar%ZMQ_UpdatePeriod .OR. LocalVar%iStatus == -1) THEN
 			! Collect measurements to be sent to ZeroMQ server
 			turbine_measurements(1) = LocalVar%iStatus
 			turbine_measurements(2) = LocalVar%Time
@@ -68,7 +67,10 @@ CONTAINS
 			! write (*,*) "ZeroMQInterface: pitch 1 setpoint from ssc: ", setpoints(3)
 			! write (*,*) "ZeroMQInterface: pitch 2 setpoint from ssc: ", setpoints(4)
 			! write (*,*) "ZeroMQInterface: pitch 3 setpoint from ssc: ", setpoints(5)
-			zmqVar%Yaw_Offset = setpoints(2)
+			LocalVar%ZMQ_YawOffset = setpoints(2)
+            LocalVar%ZMQ_PitOffset(1) = setpoints(3)
+            LocalVar%ZMQ_PitOffset(2) = setpoints(4)
+            LocalVar%ZMQ_PitOffset(3) = setpoints(5)
 			
 		ENDIF
 
