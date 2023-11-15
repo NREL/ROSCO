@@ -1,13 +1,18 @@
 import os
+import numpy as np
 import multiprocessing as mp
+import matplotlib.pyplot as plt
 from ROSCO_toolbox.control_interface import wfc_zmq_server
 from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
 from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
+from ROSCO_toolbox.ofTools.fast_io import output_processing
 
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 example_out_dir = os.path.join(this_dir, "examples_out")
 os.makedirs(example_out_dir, exist_ok=True)
+TIME_CHECK = 30
+DESIRED_YAW_OFFSET = [-10, 10]
 
 
 def run_zmq():
@@ -39,9 +44,9 @@ def wfc_controller(id, current_time, measurements):
         YawOffset = 0.0
     else:
         if id == 1:
-            YawOffset = -10.0
+            YawOffset = DESIRED_YAW_OFFSET[0]
         else:
-            YawOffset = 10
+            YawOffset = DESIRED_YAW_OFFSET[1]
     setpoints = {}
     setpoints["ZMQ_YawOffset"] = YawOffset
     return setpoints
@@ -99,3 +104,49 @@ if __name__ == "__main__":
     p0.join()
     p1.join()
     p2.join()
+
+    ## Run tests
+    # Check that info is passed to ROSCO for first simulation
+    op1 = output_processing.output_processing()
+    debug_file1 = os.path.join(
+        example_out_dir,
+        "17b_zeromq_OF1",
+        "NREL5MW",
+        "power_curve",
+        "base",
+        "NREL5MW_0.RO.dbg2",
+    )
+    local_vars1 = op1.load_fast_out(debug_file1, tmin=0)
+
+    # Check that info is passed to ROSCO for first simulation
+    op2 = output_processing.output_processing()
+    debug_file2 = os.path.join(
+        example_out_dir,
+        "17b_zeromq_OF2",
+        "NREL5MW",
+        "power_curve",
+        "base",
+        "NREL5MW_0.RO.dbg2",
+    )
+    local_vars2 = op2.load_fast_out(debug_file2, tmin=0)
+
+    # Generate plots
+    _, axs = plt.subplots(2, 1)
+    axs[0].plot(local_vars1[0]["Time"], local_vars1[0]["ZMQ_YawOffset"])
+    axs[1].plot(local_vars2[0]["Time"], local_vars2[0]["ZMQ_YawOffset"])
+
+    if False:
+        plt.show()
+    else:
+        plt.savefig(os.path.join(example_out_dir, "17b_NREL5MW_ZMQ_Setpoints.png"))
+
+    # Spot check input at time = 30 sec.
+    ind1_30 = local_vars1[0]["Time"] == TIME_CHECK
+    ind2_30 = local_vars2[0]["Time"] == TIME_CHECK
+
+    np.testing.assert_almost_equal(
+        local_vars1[0]["ZMQ_YawOffset"][ind1_30], DESIRED_YAW_OFFSET[0]
+    )
+    np.testing.assert_almost_equal(
+        local_vars2[0]["ZMQ_YawOffset"][ind2_30], DESIRED_YAW_OFFSET[1]
+    )
