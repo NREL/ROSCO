@@ -502,35 +502,6 @@ controller_params
 
     *Minimum* = 0
 
-:code:`Twr_ExclSpeed` : Float
-    Rotor speed for exclusion [LSS] [rad/s]
-
-    *Default* = 0.0
-
-    *Minimum* = 0
-
-:code:`Twr_ExclBand` : Float
-    One-half of the total frequency exclusion band. Torque controller
-    reference will be Twr_ExclFreq +/- Twr_ExlBand [rad/s]
-
-    *Default* = 0.0
-
-    *Minimum* = 0
-
-:code:`Twr_GainFactor` : Array of Floats
-    Factor to change PI torque control gains by [-]
-
-    *Default* = [1.0, 1.0]
-
-    *Minimum* = 0
-
-:code:`Twr_GainTau` : Float
-    Time constant for gain change when in exclusion zone [s]
-
-    *Default* = 0.0
-
-    *Minimum* = 0
-
 :code:`IPC_Vramp` : Array of Floats
     wind speeds for IPC cut-in sigma function [m/s]
 
@@ -959,6 +930,29 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution. Do 
 
 :code:`PRC_n` : Float
     Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
+
+:code:`Twr_ExclSpeed` : Float
+    Rotor speed for exclusion [LSS, rad/s]
+
+    *Default* = 0.0
+
+    *Minimum* = 0
+
+:code:`Twr_ExclBand` : Float
+    Size of the rotor frequency exclusion band [LSS, rad/s]. Torque
+    controller reference will be Twr_ExclSpeed +/- Twr_ExlBand/2
+
+    *Default* = 0.0
+
+    *Minimum* = 0
+
+:code:`Twr_RateLimit` : Float
+    Rate limit of change in rotor speed reference [LSS, rad/s].
+    Suggested to be VS_RefSpd/400.
+
+    *Default* = 0.0
+
+    *Minimum* = 0
 
 :code:`WE_BladeRadius` : Float, m
     Blade length (distance from hub center to blade tip)
