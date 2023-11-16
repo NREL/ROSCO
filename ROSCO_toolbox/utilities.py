@@ -211,10 +211,9 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<13.5f}       ! Y_IPC_KI			- Yaw-by-IPC integral controller gain Ki\n'.format(rosco_vt['Y_IPC_KI']))
     file.write('\n')
     file.write('!------- TOWER CONTROL ------------------------------------------------------\n')
-    file.write('{:<13.5f}       ! Twr_ExclSpeed	    - Rotor speed for exclusion [LSS, rad/s]\n'.format(rosco_vt['Twr_ExclSpeed'] ))
-    file.write('{:<13.5f}       ! Twr_ExclBand	    - Size of the rotor frequency exclusion band [LSS, rad/s]. Torque controller reference will be Twr_ExclSpeed +/- Twr_ExlBand/2\n'.format(rosco_vt['Twr_ExclBand'] ))
-    file.write('{}              ! Twr_GainFactor    - Factor to change PI torque control gains by [-]\n'.format(''.join([f'{gf:<4.4f} ' for gf in rosco_vt['Twr_GainFactor']])))
-    file.write('{:<13.5f}       ! Twr_GainTau       - Time constant for gain change when in exclusion zone [s]\n'.format(rosco_vt['Twr_GainTau'] ))
+    file.write('{:<13.5f}       ! Twr_ExclSpeed	    - {}\n'.format(rosco_vt['Twr_ExclSpeed'], input_descriptions['Twr_ExclSpeed'] ))
+    file.write('{:<13.5f}       ! Twr_ExclBand	    - {}\n'.format(rosco_vt['Twr_ExclBand'], input_descriptions['Twr_ExclBand'] ))
+    file.write('{:<13.5e}       ! Twr_RateLimit	    - {}\n'.format(rosco_vt['Twr_RateLimit'], input_descriptions['Twr_RateLimit'] ))
     file.write('{:<13.5f}       ! FA_KI				- Integral gain for the fore-aft tower damper controller,  [rad*s/m]\n'.format(rosco_vt['FA_KI'] ))
     file.write('{:<13.5f}       ! FA_HPFCornerFreq	- Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]\n'.format(rosco_vt['FA_HPFCornerFreq'] ))
     file.write('{:<13.5f}       ! FA_IntSat			- Integrator saturation (maximum signal amplitude contribution to pitch from FA damper), [rad]\n'.format(rosco_vt['FA_IntSat'] ))
@@ -579,10 +578,6 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['Y_IPC_KP'] = 0.0
     DISCON_dict['Y_IPC_KI'] = 0.0
     # ------- TOWER FORE-AFT DAMPING -------
-    DISCON_dict['Twr_ExclSpeed']    = controller.Twr_ExclSpeed
-    DISCON_dict['Twr_ExclBand']     = controller.Twr_ExclBand
-    DISCON_dict['Twr_GainFactor']   = [1.,1.]
-    DISCON_dict['Twr_GainTau']      = 1.
     DISCON_dict['FA_KI']            = 0.0
     DISCON_dict['FA_HPFCornerFreq'] = 0.0
     DISCON_dict['FA_IntSat']		= 0.0

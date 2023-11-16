@@ -59,20 +59,19 @@ CONTAINS
         ! ----- Torque controller reference errors -----
         ! Define VS reference generator speed [rad/s]
         IF (CntrPar%VS_ControlMode == 2) THEN
-            LocalVar%VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
+            LocalVar%VS_RefSpd_TSR = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
         ELSEIF (CntrPar%VS_ControlMode == 3) THEN
             LocalVar%VS_GenPwrF = LPFilter(LocalVar%VS_GenPwr, LocalVar%DT,CntrPar%VS_PwrFiltF, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
-            LocalVar%VS_RefSpd = (LocalVar%VS_GenPwrF/CntrPar%VS_Rgn2K)**(1./3.) ! Genspeed reference that doesnt depend on wind speed estimate (https://doi.org/10.2172/1259805)
+            LocalVar%VS_RefSpd_TSR = (LocalVar%VS_GenPwrF/CntrPar%VS_Rgn2K)**(1./3.) ! Genspeed reference that doesnt depend on wind speed estimate (https://doi.org/10.2172/1259805)
         ELSE
-            LocalVar%VS_RefSpd = CntrPar%VS_RefSpd
+            LocalVar%VS_RefSpd_TSR = CntrPar%VS_RefSpd
         ENDIF 
+
+        LocalVar%VS_RefSpd = LocalVar%VS_RefSpd_TSR
 
         ! Exclude reference speeds specified by user
         IF ((CntrPar%Twr_Mode == 2) .OR. (CntrPar%Twr_Mode == 3)) THEN
-                CALL RefSpeedExclusion(LocalVar, CntrPar, objInst, DebugVar)
-            ELSE
-                LocalVar%Twr_GainFact_P = 1
-                LocalVar%Twr_GainFact_I = 1
+            CALL RefSpeedExclusion(LocalVar, CntrPar, objInst, DebugVar)
         END IF
 
         ! Saturate torque reference speed between min speed and rated speed
@@ -469,11 +468,6 @@ CONTAINS
         
         REAL(DbKi)                             :: VS_RefSpeed_LSS
         
-        ! Initialize hysteresis state
-        IF (LocalVar%restart) THEN
-            LocalVar%FA_LastRefSpd = LocalVar%VS_RefSpd
-        END IF 
-
         ! Get LSS Ref speed
         VS_RefSpeed_LSS = LocalVar%VS_RefSpd/CntrPar%WE_GearboxRatio
 
@@ -481,27 +475,38 @@ CONTAINS
             (VS_RefSpeed_LSS < CntrPar%Twr_ExclSpeed + CntrPar%Twr_ExclBand / 2)) THEN
             ! In hysteresis zone, hold reference speed
             LocalVar%FA_Hist = 1 ! Set negative hysteris if ref < exclusion band
-            LocalVar%VS_RefSpd = LocalVar%FA_LastRefSpd
         ELSE
             LocalVar%FA_Hist = 0
         END IF
-        
-        ! Change PI gains if near hist zone
+
+        ! Initialize last reference speed state
+        IF (LocalVar%restart) THEN
+            ! If starting in hist band
+            IF (LocalVar%FA_Hist > 0) THEN
+                IF (VS_RefSpeed_LSS > CntrPar%Twr_ExclSpeed) THEN
+                    LocalVar%FA_LastRefSpd = CntrPar%Twr_ExclSpeed + CntrPar%Twr_ExclBand / 2
+                ELSE
+                    LocalVar%FA_LastRefSpd = CntrPar%Twr_ExclSpeed - CntrPar%Twr_ExclBand / 2
+                ENDIF
+            ELSE
+                LocalVar%FA_LastRefSpd = LocalVar%VS_RefSpd
+            END IF
+        END IF 
+
+
         IF (LocalVar%FA_Hist > 0) THEN
-            LocalVar%Twr_GainFact_P = CntrPar%Twr_GainFactor(1)
-            LocalVar%Twr_GainFact_I = CntrPar%Twr_GainFactor(2)
+            LocalVar%VS_RefSpd_TRA = LocalVar%FA_LastRefSpd
         ELSE
-            LocalVar%Twr_GainFact_P = 1
-            LocalVar%Twr_GainFact_I = 1
+            LocalVar%VS_RefSpd_TRA = LocalVar%VS_RefSpd
         END IF
 
-        IF (CntrPar%Twr_GainTau > 0) THEN
-            LocalVar%Twr_GainFact_P = LPFilter(LocalVar%Twr_GainFact_P, LocalVar%DT, 2*PI/CntrPar%Twr_GainTau, LocalVar%FP, LocalVar%iStatus, LocalVar%restart,  objInst%instLPF)
-            LocalVar%Twr_GainFact_I = LPFilter(LocalVar%Twr_GainFact_I, LocalVar%DT, 2*PI/CntrPar%Twr_GainTau, LocalVar%FP, LocalVar%iStatus, LocalVar%restart,  objInst%instLPF)
-        END IF    
-
         ! Save last reference speed       
-        LocalVar%FA_LastRefSpd = LocalVar%VS_RefSpd
+        LocalVar%FA_LastRefSpd = LocalVar%VS_RefSpd_TRA
+
+        ! Rate limit reference speed
+        LocalVar%VS_RefSpd_RL = ratelimit(LocalVar%VS_RefSpd_TRA, -CntrPar%Twr_RateLimit, CntrPar%Twr_RateLimit, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL)
+        LocalVar%VS_RefSpd = LocalVar%VS_RefSpd_RL * CntrPar%WE_GearboxRatio
+
 
         
     END SUBROUTINE RefSpeedExclusion

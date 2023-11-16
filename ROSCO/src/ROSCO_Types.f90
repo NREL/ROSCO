@@ -32,8 +32,7 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: Twr_Mode                    ! Tower Fore-Aft control mode {0 - no fore-aft control, 1 - Tower fore-aft damping, 2 -Frequency exclusion zone, 3- Options 1 and 2}
     REAL(DbKi)                    :: Twr_ExclSpeed               ! Rotor speed for exclusion [LSS] [rad/s]
     REAL(DbKi)                    :: Twr_ExclBand                ! One-half of the total frequency exclusion band. Torque controller reference will be Twr_ExclFreq +/- Twr_ExlBand [rad/s]
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: Twr_GainFactor              ! Factor to change PI torque control gains by [-]
-    REAL(DbKi)                    :: Twr_GainTau                 ! Time constant for gain change when in exclusion zone [s]
+    REAL(DbKi)                    :: Twr_RateLimit               ! Time constant for gain change when in exclusion zone [s]
     REAL(DbKi)                    :: FA_HPFCornerFreq            ! Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]
     REAL(DbKi)                    :: FA_IntSat                   ! Integrator saturation (maximum signal amplitude contrbution to pitch from FA damper), [rad]
     REAL(DbKi)                    :: FA_KI                       ! Integral gain for the fore-aft tower damper controller, -1 = off / >0 = on [rad s/m]
@@ -274,10 +273,15 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: FA_AccHPFI                  ! Tower velocity, high-pass filtered and integrated fore-aft acceleration [m/s]
     REAL(DbKi)                    :: FA_PitCom(3)                ! Tower fore-aft vibration damping pitch contribution [rad]
     REAL(DbKi)                    :: VS_RefSpd                   ! Torque control generator speed set point [rad/s]
+    REAL(DbKi)                    :: VS_RefSpd_TRA               ! Torque control generator speed set point AFTER freq avoidance [rad/s]
+    REAL(DbKi)                    :: VS_RefSpd_TSR               ! Torque control generator speed set point AFTER freq avoidance [rad/s]
+    REAL(DbKi)                    :: VS_RefSpd_RL                ! Torque control generator speed set point AFTER freq avoidance [rad/s]
     REAL(DbKi)                    :: PC_RefSpd                   ! Generator speed set point of pitch controller [rad/s]
     REAL(DbKi)                    :: RotSpeedF                   ! Filtered LSS (generator) speed [rad/s].
     REAL(DbKi)                    :: GenSpeedF                   ! Filtered HSS (generator) speed [rad/s].
     REAL(DbKi)                    :: GenTq                       ! Electrical generator torque, [Nm].
+    REAL(DbKi)                    :: GenTq_TRA                   ! Electrical generator torque, [Nm].
+    REAL(DbKi)                    :: GenTq_SPD                   ! Electrical generator torque, [Nm].
     REAL(DbKi)                    :: GenTqMeas                   ! Measured generator torque [Nm]
     REAL(DbKi)                    :: GenArTq                     ! Electrical generator torque, for above-rated PI-control [Nm].
     REAL(DbKi)                    :: GenBrTq                     ! Electrical generator torque, for below-rated PI-control [Nm].
@@ -321,6 +325,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: VS_SpdErrAr                 ! Current speed error for region 2.5 PI controller (generator torque control) [rad/s].
     REAL(DbKi)                    :: VS_SpdErrBr                 ! Current speed error for region 1.5 PI controller (generator torque control) [rad/s].
     REAL(DbKi)                    :: VS_SpdErr                   ! Current speed error for tip-speed-ratio tracking controller (generator torque control) [rad/s].
+    REAL(DbKi)                    :: VS_SpdErr_TRA               ! Current speed error for tip-speed-ratio tracking controller (generator torque control) [rad/s].
     INTEGER(IntKi)                :: VS_State                    ! State of the torque control system
     REAL(DbKi)                    :: VS_Rgn3Pitch                ! Pitch angle at which the state machine switches to region 3, [rad].
     REAL(DbKi)                    :: WE_Vw                       ! Estimated wind speed [m/s]

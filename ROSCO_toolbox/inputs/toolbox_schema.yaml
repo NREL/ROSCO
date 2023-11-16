@@ -410,28 +410,6 @@ properties:
                 minimum: 0
                 description: integral gain for IPC, 2P [-]
                 default: 0.0
-            Twr_ExclSpeed:
-                type: number
-                minimum: 0
-                description: Rotor speed for exclusion [LSS] [rad/s]
-                default: 0.0
-            Twr_ExclBand:
-                type: number
-                minimum: 0
-                description: One-half of the total frequency exclusion band. Torque controller reference will be Twr_ExclFreq +/- Twr_ExlBand [rad/s]
-                default: 0.0
-            Twr_GainFactor:
-                type: array
-                items:
-                    type: number
-                    minimum: 0
-                description: Factor to change PI torque control gains by [-]
-                default: [1.0,1.0]
-            Twr_GainTau:
-                type: number
-                minimum: 0
-                description: Time constant for gain change when in exclusion zone [s]
-                default: 0.0
             IPC_Vramp:                     
                 type: array
                 description: wind speeds for IPC cut-in sigma function [m/s]
@@ -851,6 +829,21 @@ properties:
                     PRC_n:
                         type: number
                         description: Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
+                    Twr_ExclSpeed:
+                        type: number
+                        minimum: 0
+                        description: Rotor speed for exclusion [LSS] [rad/s]
+                        default: 0.0
+                    Twr_ExclBand:
+                        type: number
+                        minimum: 0
+                        description: Size of the rotor frequency exclusion band [LSS, rad/s]. Torque controller reference will be Twr_ExclSpeed +/- Twr_ExlBand/2
+                        default: 0.0
+                    Twr_RateLimit:
+                        type: number
+                        minimum: 0
+                        description: Rate limit of change in rotor speed reference [LSS, rad/s].  Suggested to be VS_RefSpd/400.
+                        default: 0.0
                     WE_BladeRadius:
                         type: number
                         description: Blade length (distance from hub center to blade tip)

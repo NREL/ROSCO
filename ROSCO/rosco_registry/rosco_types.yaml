@@ -159,11 +159,7 @@ ControlParameters:
     Twr_ExclBand:
       <<: *real
       description: One-half of the total frequency exclusion band. Torque controller reference will be Twr_ExclFreq +/- Twr_ExlBand [rad/s]
-    Twr_GainFactor:
-      <<: *real
-      allocatable: True
-      description: Factor to change PI torque control gains by [-]
-    Twr_GainTau:
+    Twr_RateLimit:
       <<: *real
       description: Time constant for gain change when in exclusion zone [s]
     FA_HPFCornerFreq:
@@ -1007,6 +1003,15 @@ LocalVariables:
     VS_RefSpd:          
       <<: *real 
       description: Torque control generator speed set point [rad/s]
+    VS_RefSpd_TRA:          
+      <<: *real 
+      description: Torque control generator speed set point AFTER freq avoidance [rad/s]
+    VS_RefSpd_TSR:          
+      <<: *real 
+      description: Torque control generator speed set point AFTER freq avoidance [rad/s]
+    VS_RefSpd_RL:          
+      <<: *real 
+      description: Torque control generator speed set point AFTER freq avoidance [rad/s]
     PC_RefSpd:
       <<: *real
       description: Generator speed set point of pitch controller [rad/s]
@@ -1017,6 +1022,12 @@ LocalVariables:
       <<: *real 
       description: Filtered HSS (generator) speed [rad/s].
     GenTq:                        
+      <<: *real 
+      description: Electrical generator torque, [Nm].
+    GenTq_TRA:                        
+      <<: *real 
+      description: Electrical generator torque, [Nm].
+    GenTq_SPD:                        
       <<: *real 
       description: Electrical generator torque, [Nm].
     GenTqMeas:                    
@@ -1152,6 +1163,9 @@ LocalVariables:
       <<: *real 
       description: Current speed error for region 1.5 PI controller (generator torque control) [rad/s].
     VS_SpdErr:                    
+      <<: *real 
+      description: Current speed error for tip-speed-ratio tracking controller (generator torque control) [rad/s].
+    VS_SpdErr_TRA:                    
       <<: *real 
       description: Current speed error for tip-speed-ratio tracking controller (generator torque control) [rad/s].
     VS_State:                     

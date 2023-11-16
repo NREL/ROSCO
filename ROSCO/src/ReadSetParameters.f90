@@ -472,8 +472,7 @@ CONTAINS
         !------------ FORE-AFT TOWER DAMPER CONSTANTS ------------
         CALL ParseInput(FileLines,  'Twr_ExclSpeed',    CntrPar%Twr_ExclSpeed,          accINFILE(1),   ErrVar, .NOT. ((CntrPar%Twr_Mode == 2) .OR. (CntrPar%Twr_Mode == 3)), UnEc)
         CALL ParseInput(FileLines,  'Twr_ExclBand',     CntrPar%Twr_ExclBand,           accINFILE(1),   ErrVar, .NOT. ((CntrPar%Twr_Mode == 2) .OR. (CntrPar%Twr_Mode == 3)), UnEc)
-        CALL ParseAry(  FileLines,  'Twr_GainFactor',   CntrPar%Twr_GainFactor,     2,  accINFILE(1),   ErrVar, .NOT. ((CntrPar%Twr_Mode == 2) .OR. (CntrPar%Twr_Mode == 3)), UnEc)
-        CALL ParseInput(FileLines,  'Twr_GainTau',      CntrPar%Twr_GainTau,            accINFILE(1),   ErrVar, .NOT. ((CntrPar%Twr_Mode == 2) .OR. (CntrPar%Twr_Mode == 3)), UnEc)
+        CALL ParseInput(FileLines,  'Twr_RateLimit',    CntrPar%Twr_RateLimit,          accINFILE(1),   ErrVar, .NOT. ((CntrPar%Twr_Mode == 2) .OR. (CntrPar%Twr_Mode == 3)), UnEc)
         CALL ParseInput(FileLines,  'FA_KI',            CntrPar%FA_KI,                  accINFILE(1),   ErrVar, .NOT. ((CntrPar%Twr_Mode > 0) .OR. (CntrPar%Y_ControlMode == 2)), UnEc)
         CALL ParseInput(FileLines,  'FA_HPFCornerFreq', CntrPar%FA_HPFCornerFreq,       accINFILE(1),   ErrVar, .NOT. ((CntrPar%Twr_Mode > 0) .OR. (CntrPar%Y_ControlMode == 2)), UnEc)
         CALL ParseInput(FileLines,  'FA_IntSat',        CntrPar%FA_IntSat,              accINFILE(1),   ErrVar, .NOT. ((CntrPar%Twr_Mode > 0) .OR. (CntrPar%Y_ControlMode == 2)), UnEc)
@@ -1225,12 +1224,12 @@ CONTAINS
                 ErrVar%ErrMsg  = 'Twr_ExclBand must be greater than 0.'
             END IF
 
-            IF (CntrPar%Twr_GainTau < 0) THEN
+            IF (CntrPar%Twr_RateLimit < 0) THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'Twr_GainTau must be greater than 0.'
+                ErrVar%ErrMsg  = 'Twr_RateLimit must be greater than 0.'
             END IF
 
-            IF ((CntrPar%VS_ControlMode .NE. 2) .OR. (CntrPar%VS_ControlMode .NE. 3)) THEN
+            IF ( .NOT. ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3) )) THEN
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg  = 'VS_ControlMode must be 2 or 3 to use frequency avoidance control.'
             END IF
