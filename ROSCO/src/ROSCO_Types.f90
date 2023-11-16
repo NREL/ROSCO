@@ -273,15 +273,13 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: FA_AccHPFI                  ! Tower velocity, high-pass filtered and integrated fore-aft acceleration [m/s]
     REAL(DbKi)                    :: FA_PitCom(3)                ! Tower fore-aft vibration damping pitch contribution [rad]
     REAL(DbKi)                    :: VS_RefSpd                   ! Torque control generator speed set point [rad/s]
-    REAL(DbKi)                    :: VS_RefSpd_TRA               ! Torque control generator speed set point AFTER freq avoidance [rad/s]
-    REAL(DbKi)                    :: VS_RefSpd_TSR               ! Torque control generator speed set point AFTER freq avoidance [rad/s]
-    REAL(DbKi)                    :: VS_RefSpd_RL                ! Torque control generator speed set point AFTER freq avoidance [rad/s]
+    REAL(DbKi)                    :: VS_RefSpd_TSR               ! Torque control generator speed set point based on optimal TSR [rad/s]
+    REAL(DbKi)                    :: VS_RefSpd_TRA               ! Torque control generator speed set point after freq avoidance [rad/s]
+    REAL(DbKi)                    :: VS_RefSpd_RL                ! Torque control generator speed set point after rate limit [rad/s]
     REAL(DbKi)                    :: PC_RefSpd                   ! Generator speed set point of pitch controller [rad/s]
     REAL(DbKi)                    :: RotSpeedF                   ! Filtered LSS (generator) speed [rad/s].
     REAL(DbKi)                    :: GenSpeedF                   ! Filtered HSS (generator) speed [rad/s].
     REAL(DbKi)                    :: GenTq                       ! Electrical generator torque, [Nm].
-    REAL(DbKi)                    :: GenTq_TRA                   ! Electrical generator torque, [Nm].
-    REAL(DbKi)                    :: GenTq_SPD                   ! Electrical generator torque, [Nm].
     REAL(DbKi)                    :: GenTqMeas                   ! Measured generator torque [Nm]
     REAL(DbKi)                    :: GenArTq                     ! Electrical generator torque, for above-rated PI-control [Nm].
     REAL(DbKi)                    :: GenBrTq                     ! Electrical generator torque, for below-rated PI-control [Nm].
@@ -325,7 +323,6 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: VS_SpdErrAr                 ! Current speed error for region 2.5 PI controller (generator torque control) [rad/s].
     REAL(DbKi)                    :: VS_SpdErrBr                 ! Current speed error for region 1.5 PI controller (generator torque control) [rad/s].
     REAL(DbKi)                    :: VS_SpdErr                   ! Current speed error for tip-speed-ratio tracking controller (generator torque control) [rad/s].
-    REAL(DbKi)                    :: VS_SpdErr_TRA               ! Current speed error for tip-speed-ratio tracking controller (generator torque control) [rad/s].
     INTEGER(IntKi)                :: VS_State                    ! State of the torque control system
     REAL(DbKi)                    :: VS_Rgn3Pitch                ! Pitch angle at which the state machine switches to region 3, [rad].
     REAL(DbKi)                    :: WE_Vw                       ! Estimated wind speed [m/s]
@@ -339,11 +336,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None
     REAL(DbKi)                    :: FA_AccF                     ! None
     INTEGER(IntKi)                :: FA_Hist                     ! Hysteresis state for tower resonance avoidance.
-    REAL(DbKi)                    :: FA_LastRefSpd               ! Last reference generator speed
-    REAL(DbKi)                    :: Twr_GainFact_P              ! Tower gain factor for P term
-    REAL(DbKi)                    :: Twr_GainFact_I              ! Tower gain factor for I term
-    REAL(DbKi)                    :: Twr_HistDist                ! Distance from histeresis saturation [rad/s]
-    REAL(DbKi)                    :: VS_RefSpeed_Excl            ! Torque controller reference speed after exclusion zone shift
+    REAL(DbKi)                    :: Twr_LastRefSpd              ! Last reference generator speed
     REAL(DbKi)                    :: VS_RefSpeed                 ! Torque controller reference speed
     REAL(DbKi)                    :: PtfmTDX                     ! Platform motion -- Displacement TDX (m)')
     REAL(DbKi)                    :: PtfmTDY                     ! Platform motion -- Displacement TDY (m)')

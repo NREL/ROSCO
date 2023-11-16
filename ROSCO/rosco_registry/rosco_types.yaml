@@ -1003,15 +1003,15 @@ LocalVariables:
     VS_RefSpd:          
       <<: *real 
       description: Torque control generator speed set point [rad/s]
-    VS_RefSpd_TRA:          
-      <<: *real 
-      description: Torque control generator speed set point AFTER freq avoidance [rad/s]
     VS_RefSpd_TSR:          
       <<: *real 
-      description: Torque control generator speed set point AFTER freq avoidance [rad/s]
+      description: Torque control generator speed set point based on optimal TSR [rad/s]
+    VS_RefSpd_TRA:          
+      <<: *real 
+      description: Torque control generator speed set point after freq avoidance [rad/s]
     VS_RefSpd_RL:          
       <<: *real 
-      description: Torque control generator speed set point AFTER freq avoidance [rad/s]
+      description: Torque control generator speed set point after rate limit [rad/s]
     PC_RefSpd:
       <<: *real
       description: Generator speed set point of pitch controller [rad/s]
@@ -1022,12 +1022,6 @@ LocalVariables:
       <<: *real 
       description: Filtered HSS (generator) speed [rad/s].
     GenTq:                        
-      <<: *real 
-      description: Electrical generator torque, [Nm].
-    GenTq_TRA:                        
-      <<: *real 
-      description: Electrical generator torque, [Nm].
-    GenTq_SPD:                        
       <<: *real 
       description: Electrical generator torque, [Nm].
     GenTqMeas:                    
@@ -1165,9 +1159,6 @@ LocalVariables:
     VS_SpdErr:                    
       <<: *real 
       description: Current speed error for tip-speed-ratio tracking controller (generator torque control) [rad/s].
-    VS_SpdErr_TRA:                    
-      <<: *real 
-      description: Current speed error for tip-speed-ratio tracking controller (generator torque control) [rad/s].
     VS_State:                     
       <<: *integer 
       description: State of the torque control system
@@ -1205,21 +1196,9 @@ LocalVariables:
     FA_Hist:
       <<: *integer 
       description: Hysteresis state for tower resonance avoidance.
-    FA_LastRefSpd:
+    Twr_LastRefSpd:
       <<: *real 
       description: Last reference generator speed
-    Twr_GainFact_P:
-      <<: *real
-      description: Tower gain factor for P term
-    Twr_GainFact_I:
-      <<: *real
-      description: Tower gain factor for I term
-    Twr_HistDist:
-      <<: *real
-      description: Distance from histeresis saturation [rad/s]
-    VS_RefSpeed_Excl:
-      <<: *real
-      description: Torque controller reference speed after exclusion zone shift
     VS_RefSpeed:
       <<: *real
       description: Torque controller reference speed

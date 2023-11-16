@@ -484,24 +484,24 @@ CONTAINS
             ! If starting in hist band
             IF (LocalVar%FA_Hist > 0) THEN
                 IF (VS_RefSpeed_LSS > CntrPar%Twr_ExclSpeed) THEN
-                    LocalVar%FA_LastRefSpd = CntrPar%Twr_ExclSpeed + CntrPar%Twr_ExclBand / 2
+                    LocalVar%Twr_LastRefSpd = CntrPar%Twr_ExclSpeed + CntrPar%Twr_ExclBand / 2
                 ELSE
-                    LocalVar%FA_LastRefSpd = CntrPar%Twr_ExclSpeed - CntrPar%Twr_ExclBand / 2
+                    LocalVar%Twr_LastRefSpd = CntrPar%Twr_ExclSpeed - CntrPar%Twr_ExclBand / 2
                 ENDIF
             ELSE
-                LocalVar%FA_LastRefSpd = LocalVar%VS_RefSpd
+                LocalVar%Twr_LastRefSpd = LocalVar%VS_RefSpd
             END IF
         END IF 
 
 
         IF (LocalVar%FA_Hist > 0) THEN
-            LocalVar%VS_RefSpd_TRA = LocalVar%FA_LastRefSpd
+            LocalVar%VS_RefSpd_TRA = LocalVar%Twr_LastRefSpd
         ELSE
             LocalVar%VS_RefSpd_TRA = LocalVar%VS_RefSpd
         END IF
 
         ! Save last reference speed       
-        LocalVar%FA_LastRefSpd = LocalVar%VS_RefSpd_TRA
+        LocalVar%Twr_LastRefSpd = LocalVar%VS_RefSpd_TRA
 
         ! Rate limit reference speed
         LocalVar%VS_RefSpd_RL = ratelimit(LocalVar%VS_RefSpd_TRA, -CntrPar%Twr_RateLimit, CntrPar%Twr_RateLimit, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL)
