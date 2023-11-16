@@ -832,7 +832,7 @@ properties:
                     Twr_ExclSpeed:
                         type: number
                         minimum: 0
-                        description: Rotor speed for exclusion [LSS] [rad/s]
+                        description: Rotor speed for exclusion [LSS, rad/s]
                         default: 0.0
                     Twr_ExclBand:
                         type: number
