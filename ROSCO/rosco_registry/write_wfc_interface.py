@@ -85,7 +85,7 @@ def write_zmq_f90(wfc_int_yaml):
         f.write("#endif\n")
         f.write("\n")
         f.write("        ! Communicate if threshold has been reached\n")
-        f.write("        IF (ABS(MODULO(LocalVar%Time, CntrPar%ZMQ_UpdatePeriod)) < LocalVar%DT * CntrPar%ZMQ_UpdatePeriod .OR. LocalVar%iStatus == -1) THEN\n")
+        f.write("        IF ( MOD(LocalVar%n_DT, CntrPar%n_DT_ZMQ) == 0 .OR. LocalVar%iStatus == -1 ) THEN\n")
         f.write("            ! Collect measurements to be sent to ZeroMQ server\n")
         
         ## Write measurements

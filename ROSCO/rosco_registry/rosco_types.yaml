@@ -92,6 +92,10 @@ ControlParameters:
       <<: *integer 
       description: output every this many steps
 
+    n_DT_ZMQ:
+      <<: *integer 
+      description: Send measurements to ZMQ after this many time steps
+
     # Filters
     F_LPFType:
       <<: *integer
@@ -1000,9 +1004,6 @@ LocalVariables:
     RotSpeedF:                    
       <<: *real 
       description: Filtered LSS (generator) speed [rad/s].
-    VS_RefSpd:
-      <<: *real
-      description: Generator speed set point of torque controller [rad/s]
     PC_RefSpd:
       <<: *real
       description: Generator speed set point of pitch controller [rad/s]

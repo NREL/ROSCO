@@ -13,6 +13,7 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: Echo                        ! 0 - no Echo, 1 - Echo input data to <RootName>.echo
     REAL(DbKi)                    :: DT_Out                      ! Output time step
     INTEGER(IntKi)                :: n_DT_Out                    ! output every this many steps
+    INTEGER(IntKi)                :: n_DT_ZMQ                    ! Send measurements to ZMQ after this many time steps
     INTEGER(IntKi)                :: F_LPFType                   ! Low pass filter on the rotor and generator speed {1 - first-order low-pass filter, 2 - second-order low-pass filter}, [rad/s]
     REAL(DbKi)                    :: F_LPFCornerFreq             ! Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
     REAL(DbKi)                    :: F_LPFDamping                ! Damping coefficient [used only when F_FilterType = 2]

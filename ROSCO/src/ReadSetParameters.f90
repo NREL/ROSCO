@@ -567,6 +567,7 @@ CONTAINS
 
         ! DT_Out
         CntrPar%n_DT_Out = NINT(CntrPar%DT_Out / LocalVar%DT)
+        CntrPar%n_DT_ZMQ = NINT(CntrPar%ZMQ_UpdatePeriod / LocalVar%DT)
 
 
         ! Fix Paths (add relative paths if called from another dir, UnEc)
@@ -835,6 +836,11 @@ CONTAINS
         IF (ABS(CntrPar%DT_out - Localvar%DT * CntrPar%n_DT_Out) > 0.001_DbKi) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'DT_Out must be a factor of DT in OpenFAST'
+        ENDIF
+
+        IF (ABS(CntrPar%ZMQ_UpdatePeriod - Localvar%DT * CntrPar%n_DT_ZMQ) > 0.001_DbKi) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'ZMQ_UpdatePeriod must be a factor of DT in OpenFAST'
         ENDIF
         !------- CONTROLLER FLAGS -------------------------------------------------
 

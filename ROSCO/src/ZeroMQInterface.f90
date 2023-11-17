@@ -30,7 +30,7 @@ CONTAINS
 #endif
 
         ! Communicate if threshold has been reached
-        IF (ABS(MODULO(LocalVar%Time, CntrPar%ZMQ_UpdatePeriod)) < LocalVar%DT * CntrPar%ZMQ_UpdatePeriod .OR. LocalVar%iStatus == -1) THEN
+        IF ( MOD(LocalVar%n_DT, CntrPar%n_DT_ZMQ) == 0 .OR. LocalVar%iStatus == -1 ) THEN
             ! Collect measurements to be sent to ZeroMQ server
             turbine_measurements(1) = LocalVar%ZMQ_ID
             turbine_measurements(2) = LocalVar%iStatus
