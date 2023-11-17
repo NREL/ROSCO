@@ -15,12 +15,12 @@ TIME_CHECK = 30
 DESIRED_YAW_OFFSET = [-10, 10]
 
 
-def run_zmq():
+def run_zmq(logfile):
     """Start the ZeroMQ server for wind farm control"""
 
     # Start the server at the following address
     network_address = "tcp://*:5555"
-    server = wfc_zmq_server(network_address, timeout=60.0, verbose=True)
+    server = wfc_zmq_server(network_address, timeout=60.0, verbose=True, logfile = logfile)
 
     # Provide the wind farm control algorithm as the wfc_controller method of the server
     server.wfc_controller = wfc_controller
@@ -93,7 +93,8 @@ def sim_openfast_2():
 if __name__ == "__main__":
     # Start wind farm control server and two openfast simulation
     # as separate processes
-    p0 = mp.Process(target=run_zmq)
+    logfile = os.path.join(example_out_dir,os.path.splitext(os.path.basename(__file__))[0]+'.log')
+    p0 = mp.Process(target=run_zmq,args=(logfile,))
     p1 = mp.Process(target=sim_openfast_1)
     p2 = mp.Process(target=sim_openfast_2)
 
