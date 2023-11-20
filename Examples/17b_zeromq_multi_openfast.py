@@ -15,7 +15,7 @@ TIME_CHECK = 30
 DESIRED_YAW_OFFSET = [-10, 10]
 
 
-def run_zmq(logfile):
+def run_zmq(logfile=None):
     """Start the ZeroMQ server for wind farm control"""
 
     # Start the server at the following address

@@ -322,6 +322,8 @@ class wfc_zmq_server:
         Time till server time out
     verbose : bool
         Prints details of messages being passed using the server
+    logfile : string
+        Path of the logfile; if logfile is not provided, logging is disabled
 
     methods
     -------
@@ -339,7 +341,7 @@ class wfc_zmq_server:
     )
     wfc_interface = load_yaml(interface_file)
 
-    def __init__(self, network_address="tcp://*:5555", timeout=600.0, verbose=False,logfile=[]):
+    def __init__(self, network_address="tcp://*:5555", timeout=600.0, verbose=False,logfile=None):
         """Instanciate the server"""
         self.network_address = network_address
         self.timeout = timeout
@@ -361,6 +363,8 @@ class wfc_zmq_server:
             logger.addHandler(logger_filehandler)
         else:
             logging.disable()
+            if self.verbose:
+                print('Logging disabled')
 
         logger.info(
             f"Successfully established connection a ZeroMQ server at {network_address}"
