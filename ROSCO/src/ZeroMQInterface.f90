@@ -52,7 +52,6 @@ CONTAINS
 
             write (zmq_address, '(A,A)') TRIM(CntrPar%ZMQ_CommAddress), C_NULL_CHAR
 #ifdef ZMQ_CLIENT
-            write(*,*) 'Spawning a zeromq client and waiting for server...'
             call zmq_client(zmq_address, turbine_measurements, setpoints)
 #else
             ! Add RoutineName to error message

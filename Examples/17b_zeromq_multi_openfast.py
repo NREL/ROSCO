@@ -11,7 +11,7 @@ from ROSCO_toolbox.ofTools.fast_io import output_processing
 this_dir = os.path.dirname(os.path.abspath(__file__))
 example_out_dir = os.path.join(this_dir, "examples_out")
 os.makedirs(example_out_dir, exist_ok=True)
-TIME_CHECK = 30
+TIME_CHECK = 20
 DESIRED_YAW_OFFSET = [-10, 10]
 
 
@@ -20,7 +20,7 @@ def run_zmq(logfile=None):
 
     # Start the server at the following address
     network_address = "tcp://*:5555"
-    server = wfc_zmq_server(network_address, timeout=60.0, verbose=True, logfile = logfile)
+    server = wfc_zmq_server(network_address, timeout=60.0, verbose=False, logfile = logfile)
 
     # Provide the wind farm control algorithm as the wfc_controller method of the server
     server.wfc_controller = wfc_controller
@@ -42,13 +42,20 @@ def wfc_controller(id, current_time, measurements):
     """
     if current_time <= 10.0:
         YawOffset = 0.0
+        col_pitch_command = 0.0
     else:
+        col_pitch_command = np.deg2rad(2) * np.sin(0.1 * current_time) + np.deg2rad(2) # Implement dynamic induction control
         if id == 1:
             YawOffset = DESIRED_YAW_OFFSET[0]
         else:
             YawOffset = DESIRED_YAW_OFFSET[1]
+
+        
     setpoints = {}
     setpoints["ZMQ_YawOffset"] = YawOffset
+    setpoints['ZMQ_PitOffset(1)'] = col_pitch_command
+    setpoints['ZMQ_PitOffset(2)'] = col_pitch_command
+    setpoints['ZMQ_PitOffset(3)'] = col_pitch_command
     return setpoints
 
 
@@ -59,7 +66,7 @@ def sim_openfast_1():
     r.wind_case_fcn = cl.power_curve
     r.wind_case_opts = {
         "U": [8],
-        "TMax": 100,
+        "TMax": 25,
     }
     run_dir = os.path.join(example_out_dir, "17b_zeromq_OF1")
     r.controller_params = {}
@@ -78,7 +85,7 @@ def sim_openfast_2():
     r.wind_case_fcn = cl.power_curve
     r.wind_case_opts = {
         "U": [8],
-        "TMax": 100,
+        "TMax": 25,
     }
     run_dir = os.path.join(example_out_dir, "17b_zeromq_OF2")
     r.save_dir = run_dir

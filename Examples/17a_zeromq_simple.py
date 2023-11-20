@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from ROSCO_toolbox.inputs.validation import load_rosco_yaml
 from ROSCO_toolbox.utilities import write_DISCON
 from ROSCO_toolbox import control_interface as ROSCO_ci
-from ROSCO_toolbox.control_interface import turbine_zmq_server
+from ROSCO_toolbox.control_interface import wfc_zmq_server
 from ROSCO_toolbox import sim as ROSCO_sim
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox import controller as ROSCO_controller
@@ -22,21 +22,24 @@ from ROSCO_toolbox.ofTools.fast_io import output_processing
 import numpy as np
 import multiprocessing as mp
 
+this_dir = os.path.dirname(os.path.abspath(__file__))
+example_out_dir = os.path.join(this_dir, "examples_out")
 TIME_CHECK = 30
 DESIRED_YAW_OFFSET = 20
 DESIRED_PITCH_OFFSET = np.deg2rad(2) * np.sin(0.1 * TIME_CHECK) + np.deg2rad(2)
 
-def run_zmq():
-    connect_zmq = True
-    s = turbine_zmq_server(network_address="tcp://*:5555", timeout=10.0)
-    while connect_zmq:
-        #  Get latest measurements from ROSCO
-        measurements = s.get_measurements()
+def run_zmq(logfile=None):
+    # Start the server at the following address
+    network_address = "tcp://*:5555"
+    server = wfc_zmq_server(network_address, timeout=60.0, verbose=False, logfile=logfile)
 
-        # Decide new control input based on measurements
+    # Provide the wind farm control algorithm as the wfc_controller method of the server
+    server.wfc_controller = wfc_controller
 
-        # Yaw set point
-        current_time = measurements['Time']
+    # Run the server to receive measurements and send setpoints
+    server.runserver()
+    
+def wfc_controller(id,current_time,measurements):
         if current_time <= 10.0:
             yaw_setpoint = 0.0
         else:
@@ -49,18 +52,13 @@ def run_zmq():
             col_pitch_command = 0.0
 
         # Send new setpoints back to ROSCO
-        s.setpoints['ZMQ_TorqueOffset'] = 0.0
-        s.setpoints['ZMQ_YawOffset'] = yaw_setpoint
-        s.setpoints['ZMQ_PitOffset(1)'] = col_pitch_command
-        s.setpoints['ZMQ_PitOffset(2)'] = col_pitch_command
-        s.setpoints['ZMQ_PitOffset(3)'] = col_pitch_command
-        
-        s.send_setpoints()
-
-        if measurements['iStatus'] == -1:
-            connect_zmq = False
-            s._disconnect()
-
+        setpoints = {}
+        setpoints['ZMQ_TorqueOffset'] = 0.0
+        setpoints['ZMQ_YawOffset'] = yaw_setpoint
+        setpoints['ZMQ_PitOffset(1)'] = col_pitch_command
+        setpoints['ZMQ_PitOffset(2)'] = col_pitch_command
+        setpoints['ZMQ_PitOffset(3)'] = col_pitch_command
+        return setpoints
 
 def sim_rosco():
     # Load yaml file
@@ -168,7 +166,8 @@ def sim_rosco():
     np.testing.assert_almost_equal(local_vars[0]['ZMQ_PitOffset'][ind_30], DESIRED_PITCH_OFFSET, decimal=3)
 
 if __name__ == "__main__":
-    p1 = mp.Process(target=run_zmq)
+    logfile = os.path.join(example_out_dir,os.path.splitext(os.path.basename(__file__))[0]+'.log')
+    p1 = mp.Process(target=run_zmq,args=(logfile,))
     p1.start()
     p2 = mp.Process(target=sim_rosco)
     p2.start()
