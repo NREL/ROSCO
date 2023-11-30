@@ -29,8 +29,9 @@ from ROSCO_toolbox.ofTools.util.FileTools import load_yaml
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-# logger.setLevel(logging.DEBUG)
+# Choose logging level below
+logger.setLevel(logging.INFO)       # For a basic level of logs 
+# logger.setLevel(logging.DEBUG)    # For more detailed logs helpful for debugging
 
 
 
