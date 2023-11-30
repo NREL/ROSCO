@@ -276,7 +276,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('!------- ZeroMQ Interface ---------------------------------------------------------\n')
     file.write('"{}"            ! ZMQ_CommAddress     - {} \n'.format(rosco_vt['ZMQ_CommAddress'],input_descriptions['ZMQ_CommAddress']))
     file.write('{:<11f}         ! ZMQ_UpdatePeriod    - {}\n'.format(rosco_vt['ZMQ_UpdatePeriod'],input_descriptions['ZMQ_UpdatePeriod']))
-    file.write('{:<11d}         ! ZMQ_ID       - {}\n'.format(rosco_vt['ZMQ_ID'],input_descriptions['ZMQ_ID']))
+    file.write('{:<11d}         ! ZMQ_ID       - {}\n'.format(int(rosco_vt['ZMQ_ID']),input_descriptions['ZMQ_ID']))
     file.write('\n')
     file.write('!------- Cable Control ---------------------------------------------------------\n')
     file.write('{:<11d}         ! CC_Group_N        - {}\n'.format(len(rosco_vt['CC_GroupIndex']), input_descriptions['CC_Group_N']))
