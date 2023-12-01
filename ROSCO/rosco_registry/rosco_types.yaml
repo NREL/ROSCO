@@ -364,14 +364,20 @@ ControlParameters:
     # Shutdown 
     SD_Mode:
       <<: *integer
-      description: Shutdown mode {0 - no shutdown procedure, 1 - pitch to max pitch at shutdown}
+      description: Shutdown mode {0 - no shutdown procedure, 1 - pitch to max pitch at shutdown, 2- Yaw cutout, 3- Max. blade pitch misaligment, 4- 1 and 2, 5- 1 and 3, 6- 2 and 3, 7- all}
     SD_MaxPit:
       <<: *real
       description: Maximum blade pitch angle to initiate shutdown, [rad]
     SD_CornerFreq:
       <<: *real
       description: Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]
-    
+    SD_MaxYaw_Cutout:        # by Fekry   
+      <<: *real
+      description: Maximum Yaw cutout to initiate shutdown [rad], {default = 30 deg.}
+    SD_MaxBlade_Ptch_Misalign: # by Fekry
+      <<: *real          
+      description: Maximum blade pitch misaligment angle to initiate shutdown [rad], {default = 3 deg.}
+
     # Floating
     Fl_Mode:
       <<: *integer
@@ -863,6 +869,9 @@ LocalVariables:
     HorWindV: 
       <<: *real 
       description: Hub height wind speed m/s
+    YawErr: #! by Fekry
+      <<: *real 
+      description: (Wind Direction - Yaw Angle) radians
     rootMOOP: 
       <<: *real
       description: Blade root bending moment [Nm]
@@ -874,6 +883,10 @@ LocalVariables:
     BlPitch: 
       <<: *real
       description: Blade pitch [rad]
+      size: 3
+    BlPitch_OpenfAST: #by Fekry
+      <<: *real
+      description: Blade pitch imported from OpenFAST[rad]
       size: 3
     BlPitchCMeas: 
       <<: *real

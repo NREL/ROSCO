@@ -45,6 +45,7 @@ CONTAINS
         LocalVar%RotSpeed           = avrSWAP(21)
         LocalVar%GenTqMeas          = avrSWAP(23)
         LocalVar%NacVane            = avrSWAP(24) * R2D
+        LocalVar%YawErr             = avrSWAP(24)    ! by Fekry (same as NacVane)
         LocalVar%HorWindV           = avrSWAP(27)
         LocalVar%rootMOOP(1)        = avrSWAP(30)
         LocalVar%rootMOOP(2)        = avrSWAP(31)
@@ -101,6 +102,10 @@ CONTAINS
             END IF
 
         ENDIF
+        
+        LocalVar%BlPitch_OpenfAST(1) = avrSWAP(4)     ! by Fekry
+        LocalVar%BlPitch_OpenfAST(2) = avrSWAP(33)    ! by Fekry
+        LocalVar%BlPitch_OpenfAST(3) = avrSWAP(34)    ! by Fekry
 
         LocalVar%BlPitchCMeas = (1 / REAL(LocalVar%NumBl)) * (LocalVar%BlPitch(1) + LocalVar%BlPitch(2) + LocalVar%BlPitch(3)) 
 
@@ -523,6 +528,8 @@ CONTAINS
         !------------ SHUTDOWN ------------
         CALL ParseInput(FileLines,  'SD_MaxPit',        CntrPar%SD_MaxPit,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'SD_CornerFreq',    CntrPar%SD_CornerFreq,  accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_MaxYaw_Cutout',    CntrPar%SD_MaxYaw_Cutout,  accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc) !by Fekry
+        CALL ParseInput(FileLines,  'SD_MaxBlade_Ptch_Misalign',    CntrPar%SD_MaxBlade_Ptch_Misalign,  accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc) !by Fekry
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ FLOATING ------------
@@ -792,9 +799,9 @@ CONTAINS
         ENDIF
 
         ! SD_Mode
-        IF ((CntrPar%SD_Mode < 0) .OR. (CntrPar%SD_Mode > 1)) THEN
+        IF ((CntrPar%SD_Mode < 0) .OR. (CntrPar%SD_Mode > 7)) THEN !by Fekry
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'SD_Mode must be 0 or 1.'
+            ErrVar%ErrMsg  = 'SD_Mode must be integer between 0 and 7.'
         ENDIF
 
         ! Fl_Mode

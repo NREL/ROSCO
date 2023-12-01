@@ -206,7 +206,9 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('\n')
     file.write('!------- SHUTDOWN -----------------------------------------------------------\n')
     file.write('{:<014.5f}      ! SD_MaxPit         - Maximum blade pitch angle to initiate shutdown, [rad]\n'.format(rosco_vt['SD_MaxPit']))
-    file.write('{:<014.5f}      ! SD_CornerFreq     - Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]\n'.format(rosco_vt['SD_CornerFreq']))
+    file.write('{:<014.5f}      ! SD_CornerFreq     - Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]\n'.format(rosco_vt['SD_CornerFreq'])) 
+    file.write('{:<014.5f}      ! SD_MaxYaw_Cutout         - Maximum Yaw cutout to initiate shutdown, [rad]\n'.format(rosco_vt['SD_MaxYaw_Cutout']))  #by Fekry
+    file.write('{:<014.5f}      ! SD_MaxBlade_Ptch_Misalign         - Maximum blade pitch misaligment angle to initiate shutdown, [rad]\n'.format(rosco_vt['SD_MaxBlade_Ptch_Misalign'])) #by Fekry
     file.write('\n')
     file.write('!------- Floating -----------------------------------------------------------\n')
     if rosco_vt['Fl_Mode'] == 2:
@@ -552,6 +554,8 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     # ------- SHUTDOWN -------
     DISCON_dict['SD_MaxPit']        = controller.sd_maxpit
     DISCON_dict['SD_CornerFreq']    = controller.f_sd_cornerfreq
+    DISCON_dict['SD_MaxYaw_Cutout']    = controller.sd_maxyaw_cutout #by Fekry
+    DISCON_dict['SD_MaxBlade_Ptch_Misalign']    = controller.sd_maxblade_ptch_misalign #by Fekry
     # ------- Floating -------
     DISCON_dict['Fl_Kp']            = controller.Kp_float
     # ------- FLAP ACTUATION -------
