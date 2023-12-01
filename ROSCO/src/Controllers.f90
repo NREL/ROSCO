@@ -90,7 +90,7 @@ CONTAINS
         ENDIF
         
         ! Shutdown
-        IF (CntrPar%SD_Mode == 1) THEN
+        IF (CntrPar%SD_Mode > 0) THEN !by Fekry
             LocalVar%PC_PitComT = Shutdown(LocalVar, CntrPar, objInst)
         ENDIF
         
