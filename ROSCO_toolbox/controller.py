@@ -87,6 +87,8 @@ class Controller():
         self.ss_pcgain          = controller_params['ss_pcgain']
         self.ps_percent         = controller_params['ps_percent']
         self.sd_maxpit          = controller_params['sd_maxpit']
+        self.sd_maxyaw_cutout          = controller_params['sd_maxyaw_cutout'] #by Fekry
+        self.sd_maxblade_ptch_misalign          = controller_params['sd_maxblade_ptch_misalign'] #by Fekry
         self.WS_GS_n            = controller_params['WS_GS_n']
         self.PC_GS_n            = controller_params['PC_GS_n']
         self.flp_maxpit         = controller_params['flp_maxpit']
@@ -335,6 +337,18 @@ class Controller():
             self.sd_maxpit = self.sd_maxpit
         else:
             self.sd_maxpit = pitch_op[-1]
+            
+        # max Yaw cutout for shutdown  #by Fekry
+        if self.sd_maxyaw_cutout:
+            self.sd_maxyaw_cutout = self.sd_maxyaw_cutout
+        else:
+            self.sd_maxyaw_cutout = pitch_op[-1]    
+            
+        # max blade pitch misalignment for shutdown  #by Fekry
+        if self.sd_maxblade_ptch_misalign:
+            self.sd_maxblade_ptch_misalign = self.sd_maxblade_ptch_misalign
+        else:
+            self.sd_maxblade_ptch_misalign = pitch_op[-1] 
 
         # Set IPC ramp inputs if not already defined
         if max(self.IPC_Vramp) == 0.0:
