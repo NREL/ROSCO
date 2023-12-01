@@ -397,19 +397,60 @@ CONTAINS
         IF (LocalVar%iStatus == 0) THEN
             LocalVar%SD = .FALSE.
         ENDIF
-
+		!PRINT *,CntrPar%SD_Mode
         ! See if we should shutdown
         IF (.NOT. LocalVar%SD ) THEN
-            ! Filter pitch signal
-            SD_BlPitchF = LPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%SD_CornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
-            
-            ! Go into shutdown if above max pit
-            IF (SD_BlPitchF > CntrPar%SD_MaxPit) THEN
-                LocalVar%SD  = .TRUE.
-            ELSE
-                LocalVar%SD  = .FALSE.
-            ENDIF 
+        !By Fekry (New SD_Mode conditions)
+			IF ((CntrPar%SD_Mode == 1) .OR. (CntrPar%SD_Mode == 4) .OR. (CntrPar%SD_Mode == 5) .OR. (CntrPar%SD_Mode == 7)	) THEN
+				! Filter pitch signal
+				SD_BlPitchF = LPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%SD_CornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+				
+				! Go into shutdown if above max pit
+				IF (SD_BlPitchF > CntrPar%SD_MaxPit) THEN
+					LocalVar%SD  = .TRUE.
+					PRINT *,'Max. Pitch'
+				ELSE
+					LocalVar%SD  = .FALSE.
+				ENDIF 
+            ENDIF
         ENDIF
+        
+        !By Fekry
+        ! Go into shutdown if the misalignment between blade pitch exceeds SD_MaxBlade_Ptch_Misalign degrees
+    
+            IF (.NOT. LocalVar%SD ) 	THEN
+            !By Fekry (New SD_Mode conditions)
+				IF ((CntrPar%SD_Mode == 3) .OR. (CntrPar%SD_Mode == 5) .OR. (CntrPar%SD_Mode == 6) .OR. (CntrPar%SD_Mode == 7) ) THEN
+					! PRINT *,CntrPar%SD_MaxBlade_Ptch_Misalign
+					IF (abs(LocalVar%BlPitch_OpenfAST(1) - LocalVar%BlPitch_OpenfAST(2)) >= CntrPar%SD_MaxBlade_Ptch_Misalign*D2R) THEN
+						LocalVar%SD  = .TRUE.
+						PRINT *,'Blades Pitch angle Misalignment'
+					ELSEIF (abs(LocalVar%BlPitch_OpenfAST(1) - LocalVar%BlPitch_OpenfAST(3)) >= CntrPar%SD_MaxBlade_Ptch_Misalign*D2R) THEN
+						LocalVar%SD  = .TRUE.
+						PRINT *,'Blades Pitch angle Misalignment'
+					ELSEIF (abs(LocalVar%BlPitch_OpenfAST(3) - LocalVar%BlPitch_OpenfAST(2)) >= CntrPar%SD_MaxBlade_Ptch_Misalign*D2R) THEN
+						LocalVar%SD  = .TRUE.	
+						PRINT *,'Blades Pitch angle Misalignment'
+					ELSE
+						LocalVar%SD  = .FALSE.
+					ENDIF 
+				ENDIF
+
+		     ENDIF
+
+            !By Fekry
+            ! Go into shutdown if YawErr > SD_MaxYaw_Cutout
+            IF (.NOT. LocalVar%SD ) 	THEN
+				!By Fekry (New SD_Mode conditions)
+				IF ((CntrPar%SD_Mode == 2) .OR. (CntrPar%SD_Mode == 4) .OR. (CntrPar%SD_Mode == 6) .OR. (CntrPar%SD_Mode == 7)) THEN
+					IF (abs(LocalVar%YawErr*R2D) > CntrPar%SD_MaxYaw_Cutout) THEN
+						LocalVar%SD  = .TRUE.
+						PRINT *,'Yaw Cutout'
+					ELSE
+						LocalVar%SD  = .FALSE.
+					ENDIF 
+				ENDIF
+            ENDIF
 
         ! Pitch Blades to 90 degrees at max pitch rate if in shutdown mode
         IF (LocalVar%SD) THEN
