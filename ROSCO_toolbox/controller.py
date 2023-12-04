@@ -467,7 +467,8 @@ class Controller():
 
             if self.F_NotchType == 1 or self.F_NotchType == 3:
                 self.f_notch_gen_inds.append(1)
-            elif self.F_NotchType == 2:
+           
+            if self.F_NotchType == 2 or self.F_NotchType == 3:
                 self.f_notch_twr_inds.append(1)
 
 
