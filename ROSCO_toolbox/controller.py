@@ -411,11 +411,10 @@ class Controller():
             if not np.shape(self.U_Fl):
                 self.U_Fl = np.array([self.U_Fl])
             
+            
             # Check size of Kp_float and U_Fl
             if len(self.Kp_float) != len(self.U_Fl):
                 raise Exception('The sizes of Kp_float and U_Fl are not equal, please check your controller_params')
-
-
 
             # Turn on the notch filter if floating and not already on
             if not self.F_NotchType:

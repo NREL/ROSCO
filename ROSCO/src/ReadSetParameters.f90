@@ -836,12 +836,6 @@ CONTAINS
         ENDIF
         !------- CONTROLLER FLAGS -------------------------------------------------
 
-        ! F_LPFType
-        IF ((CntrPar%F_LPFType < 1) .OR. (CntrPar%F_LPFType > 2)) THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'F_LPFType must be 1 or 2.'
-        ENDIF
-
         ! IPC_ControlMode
         IF ((CntrPar%IPC_ControlMode < 0) .OR. (CntrPar%IPC_ControlMode > 2)) THEN
             ErrVar%aviFAIL = -1
