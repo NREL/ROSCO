@@ -119,7 +119,9 @@ jobs:
         
       # Install ZeroMQ
       - name: Install ZeroMQ
-        run: sudo apt-get install libzmq3-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install libzmq3-dev
 
       # Install ROSCO toolbox
       - name: Install ROSCO toolbox

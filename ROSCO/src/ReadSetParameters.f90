@@ -235,6 +235,7 @@ CONTAINS
             
             LocalVar%ZMQ_YawOffset = 0
             LocalVar%ZMQ_PitOffset = 0
+            LocalVar%ZMQ_ID = CntrPar%ZMQ_ID
 
             ! Check validity of input parameters:
             CALL CheckInputs(LocalVar, CntrPar, avrSWAP, ErrVar, size_avcMSG)
@@ -532,6 +533,7 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ ZeroMQ ------------
+        CALL ParseInput(FileLines, 'ZMQ_ID',    CntrPar%ZMQ_ID,     accINFILE(1), ErrVar, .TRUE., UnEc=UnEc)
         CALL ParseInput(FileLines, 'ZMQ_CommAddress',   CntrPar%ZMQ_CommAddress,    accINFILE(1),   ErrVar,    CntrPar%ZMQ_Mode == 0, UnEc)
         CALL ParseInput(FileLines, 'ZMQ_UpdatePeriod',  CntrPar%ZMQ_UpdatePeriod,   accINFILE(1),   ErrVar,    CntrPar%ZMQ_Mode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
@@ -565,6 +567,7 @@ CONTAINS
 
         ! DT_Out
         CntrPar%n_DT_Out = NINT(CntrPar%DT_Out / LocalVar%DT)
+        CntrPar%n_DT_ZMQ = NINT(CntrPar%ZMQ_UpdatePeriod / LocalVar%DT)
 
 
         ! Fix Paths (add relative paths if called from another dir, UnEc)
@@ -833,6 +836,11 @@ CONTAINS
         IF (ABS(CntrPar%DT_out - Localvar%DT * CntrPar%n_DT_Out) > 0.001_DbKi) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'DT_Out must be a factor of DT in OpenFAST'
+        ENDIF
+
+        IF (ABS(CntrPar%ZMQ_UpdatePeriod - Localvar%DT * CntrPar%n_DT_ZMQ) > 0.001_DbKi) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'ZMQ_UpdatePeriod must be a factor of DT in OpenFAST'
         ENDIF
         !------- CONTROLLER FLAGS -------------------------------------------------
 

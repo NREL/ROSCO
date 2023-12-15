@@ -74,6 +74,9 @@ default_types:
   
 
 ControlParameters:
+    ZMQ_ID:
+      <<: *integer
+      description: 0000 - 9999, Identifier of the rosco, used for zeromq interface only
     LoggingLevel: 
       <<: *integer
       description: 0 - write no debug files, 1 - write standard output .dbg-file, 2 - write standard output .dbg-file and complete avrSWAP-array .dbg2-file
@@ -88,6 +91,10 @@ ControlParameters:
     n_DT_Out:
       <<: *integer 
       description: output every this many steps
+
+    n_DT_ZMQ:
+      <<: *integer 
+      description: Send measurements to ZMQ after this many time steps
 
     # Filters
     F_LPFType:
@@ -997,9 +1004,6 @@ LocalVariables:
     RotSpeedF:                    
       <<: *real 
       description: Filtered LSS (generator) speed [rad/s].
-    VS_RefSpd:
-      <<: *real
-      description: Generator speed set point of torque controller [rad/s]
     PC_RefSpd:
       <<: *real
       description: Generator speed set point of pitch controller [rad/s]
@@ -1264,9 +1268,15 @@ LocalVariables:
       <<: *complex
       description: Complex angle for each blade, sum of modes?
       size: 3
+    ZMQ_ID:
+      <<: *integer
+      description: 0000 - 9999, Identifier of the rosco, used for zeromq interface only
     ZMQ_YawOffset:
       <<: *real
-      description: Yaw offsety command, [rad]
+      description: Yaw offset command, [rad]
+    ZMQ_TorqueOffset:
+      <<: *real
+      description: Torque offset command, [Nm]
     ZMQ_PitOffset:
       <<: *real
       size: 3
