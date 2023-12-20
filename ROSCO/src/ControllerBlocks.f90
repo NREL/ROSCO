@@ -40,21 +40,22 @@ CONTAINS
         ! Power reference tracking generator speed
         IF (CntrPar%PRC_Mode == 1) THEN
             LocalVar%PRC_WSE_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT,CntrPar%PRC_LPF_Freq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
-            LocalVar%PC_RefSpd = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_GenSpeeds,LocalVar%PRC_WSE_F,ErrVar)
+            LocalVar%PC_RefSpd_PRC = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_GenSpeeds,LocalVar%PRC_WSE_F,ErrVar)
         ELSE
-            LocalVar%PC_RefSpd = CntrPar%PC_RefSpd
+            LocalVar%PC_RefSpd_PRC = CntrPar%PC_RefSpd
         ENDIF
         
         ! Implement setpoint smoothing
         IF (LocalVar%SS_DelOmegaF < 0) THEN
-            LocalVar%PC_RefSpd = CntrPar%PC_RefSpd - LocalVar%SS_DelOmegaF
+            LocalVar%PC_RefSpd_SS = LocalVar%PC_RefSpd_PRC - LocalVar%SS_DelOmegaF
         ELSE
-            LocalVar%PC_RefSpd = CntrPar%PC_RefSpd
+            LocalVar%PC_RefSpd_SS = LocalVar%PC_RefSpd_PRC
         ENDIF
 
         ! Compute error for pitch controller
+        LocalVar%PC_RefSpd = LocalVar%PC_RefSpd_SS        
         LocalVar%PC_SpdErr = LocalVar%PC_RefSpd - LocalVar%GenSpeedF            ! Speed error
-        LocalVar%PC_PwrErr = CntrPar%VS_RtPwr - LocalVar%VS_GenPwr             ! Power error
+        LocalVar%PC_PwrErr = CntrPar%VS_RtPwr - LocalVar%VS_GenPwr             ! Power error, unused
                 
         ! ----- Torque controller reference errors -----
         ! Define VS reference generator speed [rad/s]

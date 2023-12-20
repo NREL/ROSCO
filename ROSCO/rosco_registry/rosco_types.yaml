@@ -1015,6 +1015,12 @@ LocalVariables:
     PC_RefSpd:
       <<: *real
       description: Generator speed set point of pitch controller [rad/s]
+    PC_RefSpd_SS:
+      <<: *real
+      description: Generator speed set point of pitch controller after setpoint smoothing [rad/s]
+    PC_RefSpd_PRC:
+      <<: *real
+      description: Generator speed set point of pitch controller after power ref control [rad/s]
     RotSpeedF:                    
       <<: *real 
       description: Filtered LSS (generator) speed [rad/s].
