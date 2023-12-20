@@ -62,7 +62,7 @@ Line    Input Name           Example Value
 101     Empty Line         
 126     Twr_ExclSpeed       0.00000             ! Twr_ExclSpeed	    - Rotor speed for exclusion [LSS, rad/s]
 127     Twr_ExclBand        0.00000             ! Twr_ExclBand	    - Size of the rotor frequency exclusion band [LSS, rad/s]. Torque controller reference will be Twr_ExclSpeed +/- Twr_ExlBand/2
-128     Twr_RateLimit       0.00000e+00         ! Twr_RateLimit	    - Rate limit of change in rotor speed reference [LSS, rad/s].  Suggested to be VS_RefSpd/400.
+128     Twr_RateLimit       0.00000e+00         ! Twr_RateLimit	    - Rate limit of change in rotor speed reference [LSS, rad/s].  Suggested to be VS_RefSpd/100.
 143     Fl_n                1           ! Fl_n          - Number of Fl_Kp gains in gain scheduling, optional with default of 1
 144     Fl_U                0.0000      ! Fl_U          - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
 159     Ind_Azimuth         0           ! Ind_Azimuth   - The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
