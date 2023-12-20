@@ -14,34 +14,51 @@ import matplotlib.pyplot as plt
 from ROSCO_toolbox.inputs.validation import load_rosco_yaml
 from ROSCO_toolbox.utilities import write_DISCON
 from ROSCO_toolbox import control_interface as ROSCO_ci
-from ROSCO_toolbox.control_interface import turbine_zmq_server
+from ROSCO_toolbox.control_interface import wfc_zmq_server
 from ROSCO_toolbox import sim as ROSCO_sim
 from ROSCO_toolbox import turbine as ROSCO_turbine
 from ROSCO_toolbox import controller as ROSCO_controller
+from ROSCO_toolbox.ofTools.fast_io import output_processing
 import numpy as np
 import multiprocessing as mp
 
-def run_zmq():
-    connect_zmq = True
-    s = turbine_zmq_server(network_address="tcp://*:5555", timeout=10.0, verbose=True)
-    while connect_zmq:
-        #  Get latest measurements from ROSCO
-        measurements = s.get_measurements()
+this_dir = os.path.dirname(os.path.abspath(__file__))
+example_out_dir = os.path.join(this_dir, "examples_out")
+TIME_CHECK = 30
+DESIRED_YAW_OFFSET = 20
+DESIRED_PITCH_OFFSET = np.deg2rad(2) * np.sin(0.1 * TIME_CHECK) + np.deg2rad(2)
 
-        # Decide new control input based on measurements
-        current_time = measurements['Time']
+def run_zmq(logfile=None):
+    # Start the server at the following address
+    network_address = "tcp://*:5555"
+    server = wfc_zmq_server(network_address, timeout=60.0, verbose=False, logfile=logfile)
+
+    # Provide the wind farm control algorithm as the wfc_controller method of the server
+    server.wfc_controller = wfc_controller
+
+    # Run the server to receive measurements and send setpoints
+    server.runserver()
+    
+def wfc_controller(id,current_time,measurements):
         if current_time <= 10.0:
             yaw_setpoint = 0.0
         else:
-            yaw_setpoint = 20.0
+            yaw_setpoint = DESIRED_YAW_OFFSET
 
-            # Send new setpoints back to ROSCO
-        s.send_setpoints(nacelleHeading=yaw_setpoint)
+        # Pitch offset
+        if current_time >= 10.0:
+            col_pitch_command = np.deg2rad(2) * np.sin(0.1 * current_time) + np.deg2rad(2) # Implement dynamic induction control
+        else:
+            col_pitch_command = 0.0
 
-        if measurements['iStatus'] == -1:
-            connect_zmq = False
-            s._disconnect()
-
+        # Send new setpoints back to ROSCO
+        setpoints = {}
+        setpoints['ZMQ_TorqueOffset'] = 0.0
+        setpoints['ZMQ_YawOffset'] = yaw_setpoint
+        setpoints['ZMQ_PitOffset(1)'] = col_pitch_command
+        setpoints['ZMQ_PitOffset(2)'] = col_pitch_command
+        setpoints['ZMQ_PitOffset(3)'] = col_pitch_command
+        return setpoints
 
 def sim_rosco():
     # Load yaml file
@@ -56,6 +73,7 @@ def sim_rosco():
     # Enable ZeroMQ & yaw control
     controller_params['Y_ControlMode'] = 1
     controller_params['ZMQ_Mode'] = 1
+    controller_params['ZMQ_UpdatePeriod'] = 0.025
 
     # Specify controller dynamic library path and name
     this_dir = os.path.dirname(os.path.abspath(__file__))
@@ -76,7 +94,7 @@ def sim_rosco():
 
     # Load turbine data from OpenFAST and rotor performance text file
     cp_filename = os.path.join(
-        tune_dir, path_params['FAST_directory'], path_params['rotor_performance_filename'])
+        tune_dir, path_params['rotor_performance_filename'])
     turbine.load_from_fast(
         path_params['FAST_InputFile'],
         os.path.join(tune_dir, path_params['FAST_directory']),
@@ -84,11 +102,14 @@ def sim_rosco():
     )
 
     # Tune controller
+    controller_params['LoggingLevel'] = 2
     controller = ROSCO_controller.Controller(controller_params)
     controller.tune_controller(turbine)
 
     # Write parameter input file
-    param_filename = os.path.join(this_dir, 'DISCON_zmq.IN')
+    sim_dir = os.path.join(example_out_dir,'17_ZeroMQ')
+    os.makedirs(sim_dir,exist_ok=True)
+    param_filename = os.path.join(sim_dir, 'DISCON_zmq.IN')
     write_DISCON(
         turbine, controller,
         param_file=param_filename,
@@ -97,7 +118,11 @@ def sim_rosco():
 
 
     # Load controller library
-    controller_int = ROSCO_ci.ControllerInterface(lib_name, param_filename=param_filename, sim_name='sim-zmq')
+    controller_int = ROSCO_ci.ControllerInterface(
+        lib_name, 
+        param_filename=param_filename, 
+        sim_name=os.path.join(sim_dir,'sim-zmq')
+        )
 
     # Load the simulator
     sim = ROSCO_sim.Sim(turbine, controller_int)
@@ -121,11 +146,28 @@ def sim_rosco():
     if False:
         plt.show()
     else:
-        plt.savefig(os.path.join(example_out_dir, '16_NREL5MW_zmqYaw.png'))
+        plt.savefig(os.path.join(example_out_dir, '17_NREL5MW_ZMQ.png'))
 
+    # Check that info is passed to ROSCO
+    op = output_processing.output_processing()
+    local_vars = op.load_fast_out([os.path.join(sim_dir,'sim-zmq.RO.dbg2')], tmin=0)
+    fig, axs = plt.subplots(2,1)
+    axs[0].plot(local_vars[0]['Time'],local_vars[0]['ZMQ_YawOffset'])
+    axs[1].plot(local_vars[0]['Time'],local_vars[0]['ZMQ_PitOffset'])
+
+    if False:
+        plt.show()
+    else:
+        plt.savefig(os.path.join(example_out_dir, '17_NREL5MW_ZMQ_Setpoints.png'))
+
+    # Spot check input at time = 30 sec.
+    ind_30 = local_vars[0]['Time'] == TIME_CHECK
+    np.testing.assert_almost_equal(local_vars[0]['ZMQ_YawOffset'][ind_30], DESIRED_YAW_OFFSET)
+    np.testing.assert_almost_equal(local_vars[0]['ZMQ_PitOffset'][ind_30], DESIRED_PITCH_OFFSET, decimal=3)
 
 if __name__ == "__main__":
-    p1 = mp.Process(target=run_zmq)
+    logfile = os.path.join(example_out_dir,os.path.splitext(os.path.basename(__file__))[0]+'.log')
+    p1 = mp.Process(target=run_zmq,args=(logfile,))
     p1.start()
     p2 = mp.Process(target=sim_rosco)
     p2.start()

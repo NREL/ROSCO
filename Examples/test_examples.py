@@ -19,7 +19,8 @@ all_scripts = [
     '14_open_loop_control',
     '15_pass_through',
     '16_external_dll',
-    '17_zeromq_interface',  # NJA: only runs on unix in CI
+    '17a_zeromq_simple',  # only runs on unix in CI
+    '17b_zeromq_multi_openfast',  # only runs on unix in CI
     '18_pitch_offsets',
     '19_update_discon_version', 
     '20_active_wake_control',   
@@ -54,7 +55,7 @@ def execute_script(fscript):
     # Use runpy to execute examples
     s = time()
     runpy.run_path(os.path.realpath(fullpath), run_name='__main__')
-    print(time() - s, "seconds to run")
+    print(f"{fscript} took {time() - s} seconds to run")
 
 class TestExamples(unittest.TestCase):
 

@@ -109,6 +109,9 @@ CONTAINS
             IF (CntrPar%IPC_SatMode == 1) THEN
                 LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)  
             END IF
+            
+            ! Add ZeroMQ pitch commands
+            LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%ZMQ_PitOffset(K)
 
             ! Rate limit                  
             LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitch(K)) ! Saturate the overall command of blade K using the pitch rate limit
@@ -304,14 +307,14 @@ CONTAINS
 
     END SUBROUTINE VariableSpeedControl
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, zmqVar, DebugVar, ErrVar)
+    SUBROUTINE YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
         ! Yaw rate controller
         !       Y_ControlMode = 0, No yaw control
         !       Y_ControlMode = 1, Yaw rate control using yaw drive
 
         ! TODO: Lots of R2D->D2R, this should be cleaned up.
         ! TODO: The constant offset implementation is sort of circular here as a setpoint is already being defined in SetVariablesSetpoints. This could also use cleanup
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables, ZMQ_Variables
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
     
         REAL(ReKi), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
     
@@ -320,7 +323,6 @@ CONTAINS
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
         TYPE(DebugVariables), INTENT(INOUT)       :: DebugVar
         TYPE(ErrorVariables), INTENT(INOUT)       :: ErrVar
-        TYPE(ZMQ_Variables), INTENT(INOUT)  :: zmqVar
 
         ! Allocate Variables
         REAL(DbKi), SAVE :: NacVaneOffset                          ! For offset control
@@ -349,7 +351,7 @@ CONTAINS
             
             ! Compute/apply offset
             IF (CntrPar%ZMQ_Mode == 1) THEN
-                NacVaneOffset = zmqVar%Yaw_Offset
+                NacVaneOffset = LocalVar%ZMQ_YawOffset
             ELSE
                 NacVaneOffset = CntrPar%Y_MErrSet ! (deg) # Offset from setpoint
             ENDIF
@@ -413,7 +415,7 @@ CONTAINS
 
             ! If using open loop yaw rate control, overwrite controlled output
             ! Open loop yaw rate control - control input in rad/s
-            IF ((CntrPar%OL_Mode == 1) .AND. (CntrPar%Ind_YawRate > 0)) THEN
+            IF ((CntrPar%OL_Mode > 0) .AND. (CntrPar%Ind_YawRate > 0)) THEN
                 IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN
                     avrSWAP(48) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_YawRate,LocalVar%Time, ErrVar)
                 ENDIF
@@ -709,7 +711,7 @@ CONTAINS
                 IF (CntrPar%AWC_NumModes == 1) THEN
                     AWC_TiltYaw(2) = PI/180*CntrPar%AWC_amp(1)*cos(LocalVar%Time*2*PI*CntrPar%AWC_freq(1) + 2*CntrPar%AWC_clockangle(1)*PI/180)
                 ENDIF
-                CALL ColemanTransformInverse(AWC_TiltYaw(1), AWC_TiltYaw(2), LocalVar%Azimuth, CntrPar%AWC_harmonic(Imode), 0.0, AWC_angle)
+                CALL ColemanTransformInverse(AWC_TiltYaw(1), AWC_TiltYaw(2), LocalVar%Azimuth, CntrPar%AWC_harmonic(Imode), REAL(0.0,DbKi), AWC_angle)
 
                 DO K = 1,LocalVar%NumBl ! Loop through all blades, apply AWC_angle
                     LocalVar%PitCom(K) = LocalVar%PitCom(K) + AWC_angle(K)
@@ -780,7 +782,7 @@ CONTAINS
         DO I_GROUP = 1, CntrPar%CC_Group_N
 
             ! Get Actuated deltaL
-            LocalVar%CC_ActuatedDL(I_GROUP) = SecLPFilter_Vel(LocalVar%CC_DesiredL(I_GROUP),LocalVar%DT,2*PI/CntrPar%CC_ActTau,1.0, &
+            LocalVar%CC_ActuatedDL(I_GROUP) = SecLPFilter_Vel(LocalVar%CC_DesiredL(I_GROUP),LocalVar%DT,2*PI/CntrPar%CC_ActTau,REAL(1.0,DbKi), &
                                                                 LocalVar%FP,LocalVar%iStatus,LocalVar%restart,objInst%instSecLPFV)
 
             ! Integrate

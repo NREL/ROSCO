@@ -8,10 +8,12 @@ USE Constants
 IMPLICIT NONE
 
 TYPE, PUBLIC :: ControlParameters
+    INTEGER(IntKi)                :: ZMQ_ID                      ! 0000 - 9999, Identifier of the rosco, used for zeromq interface only
     INTEGER(IntKi)                :: LoggingLevel                ! 0 - write no debug files, 1 - write standard output .dbg-file, 2 - write standard output .dbg-file and complete avrSWAP-array .dbg2-file
     INTEGER(IntKi)                :: Echo                        ! 0 - no Echo, 1 - Echo input data to <RootName>.echo
     REAL(DbKi)                    :: DT_Out                      ! Output time step
     INTEGER(IntKi)                :: n_DT_Out                    ! output every this many steps
+    INTEGER(IntKi)                :: n_DT_ZMQ                    ! Send measurements to ZMQ after this many time steps
     INTEGER(IntKi)                :: F_LPFType                   ! Low pass filter on the rotor and generator speed {1 - first-order low-pass filter, 2 - second-order low-pass filter}, [rad/s]
     REAL(DbKi)                    :: F_LPFCornerFreq             ! Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
     REAL(DbKi)                    :: F_LPFDamping                ! Damping coefficient [used only when F_FilterType = 2]
@@ -367,6 +369,10 @@ TYPE, PUBLIC :: LocalVariables
     CHARACTER, DIMENSION(:), ALLOCATABLE     :: ACC_INFILE                  ! Parameter input filename
     LOGICAL                       :: restart                     ! Restart flag
     COMPLEX(DbKi)                 :: AWC_complexangle(3)         ! Complex angle for each blade, sum of modes?
+    INTEGER(IntKi)                :: ZMQ_ID                      ! 0000 - 9999, Identifier of the rosco, used for zeromq interface only
+    REAL(DbKi)                    :: ZMQ_YawOffset               ! Yaw offset command, [rad]
+    REAL(DbKi)                    :: ZMQ_TorqueOffset            ! Torque offset command, [Nm]
+    REAL(DbKi)                    :: ZMQ_PitOffset(3)            ! Pitch command offset provided by ZeroMQ
     TYPE(WE)                      :: WE                          ! Wind speed estimator parameters derived type
     TYPE(FilterParameters)        :: FP                          ! Filter parameters derived type
     TYPE(piParams)                :: piP                         ! PI parameters derived type
@@ -435,11 +441,6 @@ TYPE, PUBLIC :: ExtDLL_Type
     CHARACTER(1024)               :: FileName                    ! The name of the DLL file including the full path to the current working directory.
     CHARACTER(1024)               :: ProcName(3) = ""            ! The name of the procedure in the DLL that will be called.
 END TYPE ExtDLL_Type
-
-TYPE, PUBLIC :: ZMQ_Variables
-    LOGICAL                       :: ZMQ_Flag                    ! Flag if we're using zeroMQ at all (0-False, 1-True)
-    REAL(DbKi)                    :: Yaw_Offset                  ! Yaw offsety command, [rad]
-END TYPE ZMQ_Variables
 
 TYPE, PUBLIC :: ExtControlType
     REAL(ReKi), DIMENSION(:), ALLOCATABLE     :: avrSWAP                     ! The swap array- used to pass data to and from the DLL controller [see Bladed DLL documentation]

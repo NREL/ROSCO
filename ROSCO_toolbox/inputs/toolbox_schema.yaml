@@ -203,6 +203,11 @@ properties:
                 maximum: 1
                 default: 0
                 description: ZMQ Mode (0 - ZMQ Inteface, 1 - ZMQ for yaw control)
+            ZMQ_UpdatePeriod:
+                type: number
+                minimum: 0
+                default: 2
+                description: Call ZeroMQ every [x] seconds, [s]
             PA_Mode:           
                 type: number
                 minimum: 0
@@ -1121,6 +1126,18 @@ properties:
                         description: AWC clock angle [deg]
                         units: deg
                         default: [0]
+                    ZMQ_CommAddress:
+                        type: string
+                        description: Communication address for ZMQ server, (e.g. "tcp://localhost:5555")
+                        default: tcp://localhost:5555
+                    ZMQ_UpdatePeriod:
+                        type: number
+                        description:  Update period at zmq interface to send measurements and wait for setpoint [sec.]
+                        default: 1.0
+                    ZMQ_ID:
+                        type: number
+                        description: Integer identifier of turbine
+                        default: 0
 
     linmodel_tuning:
         type: object
