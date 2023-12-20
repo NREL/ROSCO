@@ -277,6 +277,8 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: VS_RefSpd_TRA               ! Torque control generator speed set point after freq avoidance [rad/s]
     REAL(DbKi)                    :: VS_RefSpd_RL                ! Torque control generator speed set point after rate limit [rad/s]
     REAL(DbKi)                    :: PC_RefSpd                   ! Generator speed set point of pitch controller [rad/s]
+    REAL(DbKi)                    :: PC_RefSpd_SS                ! Generator speed set point of pitch controller after setpoint smoothing [rad/s]
+    REAL(DbKi)                    :: PC_RefSpd_PRC               ! Generator speed set point of pitch controller after power ref control [rad/s]
     REAL(DbKi)                    :: RotSpeedF                   ! Filtered LSS (generator) speed [rad/s].
     REAL(DbKi)                    :: GenSpeedF                   ! Filtered HSS (generator) speed [rad/s].
     REAL(DbKi)                    :: GenTq                       ! Electrical generator torque, [Nm].
