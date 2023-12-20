@@ -31,6 +31,10 @@ Thus, be sure to implement each in order so that subsequent line numbers are cor
 *  With this feature, enabled with `PRC_Mode`, a user can prescribe a set of generator speed set points (`PRC_GenSpeeds`) vs. the estimated wind speed (`PRC_WindSpeeds`), which can be used to avoid certain natural frequencies or implement a soft cut-out scheme.
 *  A low pass filter with frequency `PRC_LPF_Freq` is used to filter the wind speed estimate.  A lower value increases the stability of the generator speed reference signal.
 
+**ZeroMQ Interface**
+
+*  Each turbine is assigned a `ZMQ_ID` by the controller, which is tracked by a farm-level controller
+
 ====== =======================    ===============================================================================================================================================================================================================================================================
 Removed in ROSCO develop
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -68,9 +72,10 @@ Line    Input Name                 Example Value
 127     Twr_ExclBand              0.00000             ! Twr_ExclBand	    - Size of the rotor frequency exclusion band [LSS, rad/s]. Torque controller reference will be Twr_ExclSpeed +/- Twr_ExlBand/2
 128     Twr_RateLimit             0.00000e+00         ! Twr_RateLimit	    - Rate limit of change in rotor speed reference [LSS, rad/s].  Suggested to be VS_RefSpd/100.
 143     Fl_n                      1           ! Fl_n          - Number of Fl_Kp gains in gain scheduling, optional with default of 1
-144     Fl_U                      0.0000      ! Fl_U          - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
+145     Fl_U                      0.0000      ! Fl_U          - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
 159     Ind_Azimuth               0           ! Ind_Azimuth   - The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
 160     RP_Gains                  0.0000 0.0000 0.0000 0.0000     ! RP_Gains - PID gains and Tf of derivative for rotor position control (used if OL_Mode = 2)
+184     ZMQ_ID                    0     ! ZMQ_ID - Integer identifier of turbine
 ====== =================          ======================================================================================================================================================================================================
 
 ====== =================    ======================================================================================================================================================================================================
