@@ -31,6 +31,7 @@ all_scripts = [
     '25_rotor_position_control',
     '26_marine_hydro',
     '27_power_ref_control',
+    '28_tower_resonance',
     'update_rosco_discons',     
 ]
 

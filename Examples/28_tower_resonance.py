@@ -1,5 +1,5 @@
 '''
------------ 25_tower_resonance ------------------------
+----------- 28_tower_resonance ------------------------
 Demonstrate tower resonance avoidance controller
 -----------------------------------------------
 
@@ -37,7 +37,7 @@ def main():
 
     # Input yaml and output directory
     parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW.yaml')
-    run_dir = os.path.join(example_out_dir,'25_TRA_Steady')
+    run_dir = os.path.join(example_out_dir,'28_TRA_Steady')
     os.makedirs(run_dir,exist_ok=True)
 
     # Change tower programatically, read first
@@ -74,13 +74,13 @@ def main():
     # Wind case
     # A few different cases highlight TRA
     
-    # Ramp: good demo of functionality
+    # Ramp: good demo of functionality, short for CI
     r.wind_case_fcn = cl.ramp  
     r.wind_case_opts    = {
         'U_start': 4,  # from 10 to 15 m/s
         'U_end': 10,
         't_start': 100,
-        't_end': 400
+        't_end': 300
         }
 
     # # steady
