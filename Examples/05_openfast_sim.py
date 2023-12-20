@@ -52,7 +52,8 @@ param_file = os.path.join(this_dir,'DISCON.IN')   # This must be named DISCON.IN
 write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
 
 # Run OpenFAST
-# --- May need to change fastcall if you use a non-standard command to call openfast
+# --- May need to change fastcall if you use a non-standard, conda-installed command to call openfast
+# If you run the `fastcall` from the command line where you run this script, it should run OpenFAST
 fastcall = 'openfast'
 run_openfast(
   os.path.join(this_dir,path_params['FAST_directory']),
