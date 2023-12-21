@@ -71,7 +71,7 @@ CONTAINS
         LocalVar%VS_RefSpd = LocalVar%VS_RefSpd_TSR
 
         ! Exclude reference speeds specified by user
-        IF ((CntrPar%Twr_Mode == 2) .OR. (CntrPar%Twr_Mode == 3)) THEN
+        IF (CntrPar%TRA_Mode > 0) THEN
             CALL RefSpeedExclusion(LocalVar, CntrPar, objInst, DebugVar)
         END IF
 
@@ -472,8 +472,8 @@ CONTAINS
         ! Get LSS Ref speed
         VS_RefSpeed_LSS = LocalVar%VS_RefSpd/CntrPar%WE_GearboxRatio
 
-        IF ((VS_RefSpeed_LSS > CntrPar%Twr_ExclSpeed - CntrPar%Twr_ExclBand / 2) .AND. &
-            (VS_RefSpeed_LSS < CntrPar%Twr_ExclSpeed + CntrPar%Twr_ExclBand / 2)) THEN
+        IF ((VS_RefSpeed_LSS > CntrPar%TRA_ExclSpeed - CntrPar%TRA_ExclBand / 2) .AND. &
+            (VS_RefSpeed_LSS < CntrPar%TRA_ExclSpeed + CntrPar%TRA_ExclBand / 2)) THEN
             ! In hysteresis zone, hold reference speed
             LocalVar%FA_Hist = 1 ! Set negative hysteris if ref < exclusion band
         ELSE
@@ -484,28 +484,28 @@ CONTAINS
         IF (LocalVar%restart) THEN
             ! If starting in hist band
             IF (LocalVar%FA_Hist > 0) THEN
-                IF (VS_RefSpeed_LSS > CntrPar%Twr_ExclSpeed) THEN
-                    LocalVar%Twr_LastRefSpd = CntrPar%Twr_ExclSpeed + CntrPar%Twr_ExclBand / 2
+                IF (VS_RefSpeed_LSS > CntrPar%TRA_ExclSpeed) THEN
+                    LocalVar%TRA_LastRefSpd = CntrPar%TRA_ExclSpeed + CntrPar%TRA_ExclBand / 2
                 ELSE
-                    LocalVar%Twr_LastRefSpd = CntrPar%Twr_ExclSpeed - CntrPar%Twr_ExclBand / 2
+                    LocalVar%TRA_LastRefSpd = CntrPar%TRA_ExclSpeed - CntrPar%TRA_ExclBand / 2
                 ENDIF
             ELSE
-                LocalVar%Twr_LastRefSpd = LocalVar%VS_RefSpd
+                LocalVar%TRA_LastRefSpd = LocalVar%VS_RefSpd
             END IF
         END IF 
 
 
         IF (LocalVar%FA_Hist > 0) THEN
-            LocalVar%VS_RefSpd_TRA = LocalVar%Twr_LastRefSpd
+            LocalVar%VS_RefSpd_TRA = LocalVar%TRA_LastRefSpd
         ELSE
             LocalVar%VS_RefSpd_TRA = LocalVar%VS_RefSpd
         END IF
 
         ! Save last reference speed       
-        LocalVar%Twr_LastRefSpd = LocalVar%VS_RefSpd_TRA
+        LocalVar%TRA_LastRefSpd = LocalVar%VS_RefSpd_TRA
 
         ! Rate limit reference speed
-        LocalVar%VS_RefSpd_RL = ratelimit(LocalVar%VS_RefSpd_TRA, -CntrPar%Twr_RateLimit, CntrPar%Twr_RateLimit, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL)
+        LocalVar%VS_RefSpd_RL = ratelimit(LocalVar%VS_RefSpd_TRA, -CntrPar%TRA_RateLimit, CntrPar%TRA_RateLimit, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL)
         LocalVar%VS_RefSpd = LocalVar%VS_RefSpd_RL * CntrPar%WE_GearboxRatio
 
 

@@ -148,7 +148,7 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%NACIMU_FA_AccF
         WRITE( Un, IOSTAT=ErrStat) LocalVar%FA_AccF
         WRITE( Un, IOSTAT=ErrStat) LocalVar%FA_Hist
-        WRITE( Un, IOSTAT=ErrStat) LocalVar%Twr_LastRefSpd
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%TRA_LastRefSpd
         WRITE( Un, IOSTAT=ErrStat) LocalVar%VS_RefSpeed
         WRITE( Un, IOSTAT=ErrStat) LocalVar%PtfmTDX
         WRITE( Un, IOSTAT=ErrStat) LocalVar%PtfmTDY
@@ -445,7 +445,7 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%NACIMU_FA_AccF
         READ( Un, IOSTAT=ErrStat) LocalVar%FA_AccF
         READ( Un, IOSTAT=ErrStat) LocalVar%FA_Hist
-        READ( Un, IOSTAT=ErrStat) LocalVar%Twr_LastRefSpd
+        READ( Un, IOSTAT=ErrStat) LocalVar%TRA_LastRefSpd
         READ( Un, IOSTAT=ErrStat) LocalVar%VS_RefSpeed
         READ( Un, IOSTAT=ErrStat) LocalVar%PtfmTDX
         READ( Un, IOSTAT=ErrStat) LocalVar%PtfmTDY
@@ -777,7 +777,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(90) = LocalVar%NACIMU_FA_AccF
     LocalVarOutData(91) = LocalVar%FA_AccF
     LocalVarOutData(92) = LocalVar%FA_Hist
-    LocalVarOutData(93) = LocalVar%Twr_LastRefSpd
+    LocalVarOutData(93) = LocalVar%TRA_LastRefSpd
     LocalVarOutData(94) = LocalVar%VS_RefSpeed
     LocalVarOutData(95) = LocalVar%PtfmTDX
     LocalVarOutData(96) = LocalVar%PtfmTDY
@@ -827,7 +827,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       'VS_LastGenPwr', 'VS_MechGenPwr', 'VS_SpdErrAr', 'VS_SpdErrBr', 'VS_SpdErr', & 
                                       'VS_State', 'VS_Rgn3Pitch', 'WE_Vw', 'WE_Vw_F', 'WE_VwI', & 
                                       'WE_VwIdot', 'VS_LastGenTrqF', 'PRC_WSE_F', 'Fl_PitCom', 'NACIMU_FA_AccF', & 
-                                      'FA_AccF', 'FA_Hist', 'Twr_LastRefSpd', 'VS_RefSpeed', 'PtfmTDX', & 
+                                      'FA_AccF', 'FA_Hist', 'TRA_LastRefSpd', 'VS_RefSpeed', 'PtfmTDX', & 
                                       'PtfmTDY', 'PtfmTDZ', 'PtfmRDX', 'PtfmRDY', 'PtfmRDZ', & 
                                       'PtfmTVX', 'PtfmTVY', 'PtfmTVZ', 'PtfmRVX', 'PtfmRVY', & 
                                       'PtfmRVZ', 'PtfmTAX', 'PtfmTAY', 'PtfmTAZ', 'PtfmRAX', & 

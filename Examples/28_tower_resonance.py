@@ -37,7 +37,7 @@ def main():
 
     # Input yaml and output directory
     parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW.yaml')
-    run_dir = os.path.join(example_out_dir,'28_TRA_Steady')
+    run_dir = os.path.join(example_out_dir,'28_TRA_Ramp_0')
     os.makedirs(run_dir,exist_ok=True)
 
     # Change tower programatically, read first
@@ -57,15 +57,15 @@ def main():
     
     # Set DISCON input dynamically through yaml/dict
     controller_params = {}
-    controller_params['Twr_Mode'] = 2    
+    controller_params['TRA_Mode'] = 2    
     controller_params['vs_minspd'] = 0.    # Reduce minimum rotor speed so that saturation does not interfere with exclusion
     controller_params['VS_ControlMode'] = 3.   
     
     # TRA parameters
     controller_params['DISCON'] = {}
-    controller_params['DISCON']['Twr_ExclSpeed'] = 4.75 * rpm2RadSec
-    controller_params['DISCON']['Twr_ExclBand'] = 1 * rpm2RadSec
-    controller_params['DISCON']['Twr_RateLimit'] = 0.7916800 / 100
+    controller_params['DISCON']['TRA_ExclSpeed'] = 4.75 * rpm2RadSec
+    controller_params['DISCON']['TRA_ExclBand'] = 1 * rpm2RadSec
+    controller_params['DISCON']['TRA_RateLimit'] = 0.7916800 / 100
 
     # simulation set up
     r = run_FAST_ROSCO()
@@ -100,8 +100,8 @@ def main():
     # Do a run with both tower modes
     r.control_sweep_fcn = cl.sweep_yaml_input
     r.control_sweep_opts = {
-            'control_param': 'Twr_Mode',
-            'param_values': [0,2]
+            'control_param': 'TRA_Mode',
+            'param_values': [0,1]
         }
     
     r.controller_params = controller_params

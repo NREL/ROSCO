@@ -35,6 +35,11 @@ Thus, be sure to implement each in order so that subsequent line numbers are cor
 
 *  Each turbine is assigned a `ZMQ_ID` by the controller, which is tracked by a farm-level controller
 
+**Tower resonance avoidance
+
+*  When `TRA_Mode` is 1, change the torque control generator speed setpoint to avoid TRA_ExclSpeed +/- TRA_ExclBand.
+*  The set point is changed at a slow rate `TRA_RateLimit` to avoid generator power spikes.  `VS_RefSpd`/100 is recommended.
+
 ====== =======================    ===============================================================================================================================================================================================================================================================
 Removed in ROSCO develop
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -53,29 +58,29 @@ Line    Input Name                 Example Value
 ====== =======================    ===============================================================================================================================================================================================================================================================
 13      VS_ConstPower             0           ! VS_ConstPower - Do constant power torque control, where above rated torque varies, 0 for constant torque}
 17      PRC_Mode                  0           ! PRC_Mode          - Power reference tracking mode{0: use standard rotor speed set points, 1: use PRC rotor speed setpoints}
-36      F_NumNotchFilts           1           ! F_NumNotchFilts   - Number of notch filters placed on sensors
-37      F_NotchFreqs              3.3550      ! F_NotchFreqs      - Natural frequency of the notch filters. Array with length F_NumNotchFilts
-38      F_NotchBetaNum            0.0000      ! F_NotchBetaNum    - Damping value of numerator (determines the width of notch). Array with length F_NumNotchFilts, [-]
-39      F_NotchBetaDen            0.2500      ! F_NotchBetaDen    - Damping value of denominator (determines the depth of notch). Array with length F_NumNotchFilts, [-]
-40      F_GenSpdNotch_N           0           ! F_GenSpdNotch_N   - Number of notch filters on generator speed
-41      F_GenSpdNotch_Ind         0           ! F_GenSpdNotch_Ind - Indices of notch filters on generator speed
-42      F_TwrTopNotch_N           1           ! F_TwrTopNotch_N   - Number of notch filters on tower top acceleration signal
-43      F_TwrTopNotch_Ind         1           ! F_TwrTopNotch_Ind - Indices of notch filters on tower top acceleration signal
-90      VS_PwrFiltF               0.3140      ! VS_PwrFiltF       - Low pass filter on power used to determine generator speed set point. Only used in VS_ControlMode = 3.
-96      PRC_Section               !------- POWER REFERENCE TRACKING --------------------------------------
-97      PRC_n                     2                   ! PRC_n			  - Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
-98      PRC_LPF_Freq              0.07854             ! PRC_LPF_Freq    - Frequency of the low pass filter on the wind speed estimate used to set PRC_GenSpeeds [rad/s]
-99      PRC_WindSpeeds            3.0000 25.0000      ! PRC_WindSpeeds  - Array of wind speeds used in rotor speed vs. wind speed lookup table [m/s]
-100     PRC_GenSpeeds             0.7917 0.7917       ! PRC_GenSpeeds   - Array of generator speeds corresponding to PRC_WindSpeeds [rad/s]
-101     Empty Line         
-126     Twr_ExclSpeed             0.00000             ! Twr_ExclSpeed	    - Rotor speed for exclusion [LSS, rad/s]
-127     Twr_ExclBand              0.00000             ! Twr_ExclBand	    - Size of the rotor frequency exclusion band [LSS, rad/s]. Torque controller reference will be Twr_ExclSpeed +/- Twr_ExlBand/2
-128     Twr_RateLimit             0.00000e+00         ! Twr_RateLimit	    - Rate limit of change in rotor speed reference [LSS, rad/s].  Suggested to be VS_RefSpd/100.
-143     Fl_n                      1           ! Fl_n          - Number of Fl_Kp gains in gain scheduling, optional with default of 1
-145     Fl_U                      0.0000      ! Fl_U          - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
-159     Ind_Azimuth               0           ! Ind_Azimuth   - The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
-160     RP_Gains                  0.0000 0.0000 0.0000 0.0000     ! RP_Gains - PID gains and Tf of derivative for rotor position control (used if OL_Mode = 2)
-184     ZMQ_ID                    0     ! ZMQ_ID - Integer identifier of turbine
+37      F_NumNotchFilts           1           ! F_NumNotchFilts   - Number of notch filters placed on sensors
+38      F_NotchFreqs              3.3550      ! F_NotchFreqs      - Natural frequency of the notch filters. Array with length F_NumNotchFilts
+39      F_NotchBetaNum            0.0000      ! F_NotchBetaNum    - Damping value of numerator (determines the width of notch). Array with length F_NumNotchFilts, [-]
+40      F_NotchBetaDen            0.2500      ! F_NotchBetaDen    - Damping value of denominator (determines the depth of notch). Array with length F_NumNotchFilts, [-]
+41      F_GenSpdNotch_N           0           ! F_GenSpdNotch_N   - Number of notch filters on generator speed
+42      F_GenSpdNotch_Ind         0           ! F_GenSpdNotch_Ind - Indices of notch filters on generator speed
+43      F_TwrTopNotch_N           1           ! F_TwrTopNotch_N   - Number of notch filters on tower top acceleration signal
+44      F_TwrTopNotch_Ind         1           ! F_TwrTopNotch_Ind - Indices of notch filters on tower top acceleration signal
+91      VS_PwrFiltF               0.3140      ! VS_PwrFiltF       - Low pass filter on power used to determine generator speed set point. Only used in VS_ControlMode = 3.
+97      PRC_Section               !------- POWER REFERENCE TRACKING --------------------------------------
+98      PRC_n                     2                   ! PRC_n			  - Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
+99      PRC_LPF_Freq              0.07854             ! PRC_LPF_Freq    - Frequency of the low pass filter on the wind speed estimate used to set PRC_GenSpeeds [rad/s]
+100     PRC_WindSpeeds            3.0000 25.0000      ! PRC_WindSpeeds  - Array of wind speeds used in rotor speed vs. wind speed lookup table [m/s]
+101     PRC_GenSpeeds             0.7917 0.7917       ! PRC_GenSpeeds   - Array of generator speeds corresponding to PRC_WindSpeeds [rad/s]
+102     Empty Line         
+127     TRA_ExclSpeed             0.00000             ! TRA_ExclSpeed	    - Rotor speed for exclusion [LSS, rad/s]
+128     TRA_ExclBand              0.00000             ! TRA_ExclBand	    - Size of the rotor frequency exclusion band [LSS, rad/s]. Torque controller reference will be TRA_ExclSpeed +/- TRA_ExlBand/2
+129     TRA_RateLimit             0.00000e+00         ! TRA_RateLimit	    - Rate limit of change in rotor speed reference [LSS, rad/s].  Suggested to be VS_RefSpd/100.
+144     Fl_n                      1           ! Fl_n          - Number of Fl_Kp gains in gain scheduling, optional with default of 1
+146     Fl_U                      0.0000      ! Fl_U          - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
+160     Ind_Azimuth               0           ! Ind_Azimuth   - The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
+161     RP_Gains                  0.0000 0.0000 0.0000 0.0000     ! RP_Gains - PID gains and Tf of derivative for rotor position control (used if OL_Mode = 2)
+185     ZMQ_ID                    0     ! ZMQ_ID - Integer identifier of turbine
 ====== =================          ======================================================================================================================================================================================================
 
 ====== =================    ======================================================================================================================================================================================================
@@ -84,7 +89,6 @@ Changed in ROSCO develop
 Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
 12      VS_ControlMode      2           ! VS_ControlMode - Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking)}126     OL_mode             0           ! OL_Mode           - Open loop control mode {0: no open loop control, 1: open loop control vs. time, 2: rotor position control}
-22      Twr_Mode            0           ! Twr_Mode          - Tower control mode {0: no tower damper, 1: feed back translational nacelle accelleration to pitch angle, 2: speed exclusion zone, 3: options 1 and 2}
 125     Twr_Section         !------- TOWER CONTROL ------------------------------------------------------
 
 141     Fl_Kp               0.0000      ! Fl_Kp             - Nacelle velocity proportional feedback gain [s]
@@ -141,11 +145,6 @@ Pitch Faults
 -  Constant pitch actuator offsets (PF_Mode = 1)
 IPC Saturation Modes
 -  Added options for saturating the IPC command with the peak shaving limit
-
-Rotor speed exclusion zone
-- Use the generator torque control to avoid rotor speeds when Twr_Mode = 2 or 3.  The torque 
-control reference speed will avoid Twr_ExclSpeed +/- Twr_ExclBand
-- TD_Mode changed to Twr_Mode
 
 ====== =================    ======================================================================================================================================================================================================
 New in ROSCO 2.7.0

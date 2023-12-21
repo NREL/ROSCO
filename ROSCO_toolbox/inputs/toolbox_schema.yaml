@@ -173,12 +173,18 @@ properties:
                 maximum: 1
                 default: 0
                 description: Shutdown mode (0- no shutdown procedure, 1- pitch to max pitch at shutdown)
-            Twr_Mode:            
+            TD_Mode:            
                 type: number
                 minimum: 0
-                maximum: 3
+                maximum: 1
                 default: 0
-                description: Tower damper mode (0- no tower damper, 1- feed back translational nacelle accelleration to pitch angle, 2 - Frequency avoidance, 3 - Options 1 and 2
+                description: Tower damper mode (0- no tower damper, 1- feed back translational nacelle accelleration to pitch angle
+            TRA_Mode:            
+                type: number
+                minimum: 0
+                maximum: 1
+                default: 0
+                description: Tower resonance avoidance mode (0- no tower resonsnace avoidance, 1- use torque control setpoints to avoid a specific frequency 
             Fl_Mode:            
                 type: number
                 minimum: 0
@@ -834,17 +840,17 @@ properties:
                     PRC_n:
                         type: number
                         description: Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
-                    Twr_ExclSpeed:
+                    TRA_ExclSpeed:
                         type: number
                         minimum: 0
                         description: Rotor speed for exclusion [LSS, rad/s]
                         default: 0.0
-                    Twr_ExclBand:
+                    TRA_ExclBand:
                         type: number
                         minimum: 0
-                        description: Size of the rotor frequency exclusion band [LSS, rad/s]. Torque controller reference will be Twr_ExclSpeed +/- Twr_ExlBand/2
+                        description: Size of the rotor frequency exclusion band [LSS, rad/s]. Torque controller reference will be TRA_ExclSpeed +/- TRA_ExlBand/2
                         default: 0.0
-                    Twr_RateLimit:
+                    TRA_RateLimit:
                         type: number
                         minimum: 0
                         description: Rate limit of change in rotor speed reference [LSS, rad/s].  Suggested to be VS_RefSpd/400.
