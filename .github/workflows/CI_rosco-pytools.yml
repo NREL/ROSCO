@@ -155,14 +155,14 @@ jobs:
           cd Examples
           treon ROSCO_walkthrough.ipynb
 
-      # Archive artifacts
-      - name: Archive production artifacts
-        if: success() || failure()
-        uses: actions/upload-artifact@v3
-        with:
-          name: ROSCO-artifacts
-          path: |
-            ${{runner.workspace}}
+      # # Archive artifacts
+      # - name: Archive production artifacts
+      #   if: success() || failure()
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: ROSCO-artifacts
+      #     path: |
+      #       ${{runner.workspace}}
             
   run_testing:
     name: Run Testing
