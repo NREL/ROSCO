@@ -24,13 +24,14 @@ IMPLICIT NONE
 CONTAINS
 ! -----------------------------------------------------------------------------------
     ! Calculate setpoints for primary control actions    
-    SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar, objInst, ErrVar)
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, ErrorVariables
+    SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
         USE Constants
         ! Allocate variables
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
         TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
+        TYPE(DebugVariables),       INTENT(INOUT)       :: DebugVar
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
 
 
@@ -39,30 +40,40 @@ CONTAINS
         ! Power reference tracking generator speed
         IF (CntrPar%PRC_Mode == 1) THEN
             LocalVar%PRC_WSE_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT,CntrPar%PRC_LPF_Freq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
-            LocalVar%PC_RefSpd = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_GenSpeeds,LocalVar%PRC_WSE_F,ErrVar)
+            LocalVar%PC_RefSpd_PRC = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_GenSpeeds,LocalVar%PRC_WSE_F,ErrVar)
         ELSE
-            LocalVar%PC_RefSpd = CntrPar%PC_RefSpd
+            LocalVar%PC_RefSpd_PRC = CntrPar%PC_RefSpd
         ENDIF
         
         ! Implement setpoint smoothing
         IF (LocalVar%SS_DelOmegaF < 0) THEN
-            LocalVar%PC_RefSpd = LocalVar%PC_RefSpd - LocalVar%SS_DelOmegaF
+            LocalVar%PC_RefSpd_SS = LocalVar%PC_RefSpd_PRC - LocalVar%SS_DelOmegaF
+        ELSE
+            LocalVar%PC_RefSpd_SS = LocalVar%PC_RefSpd_PRC
         ENDIF
 
         ! Compute error for pitch controller
+        LocalVar%PC_RefSpd = LocalVar%PC_RefSpd_SS        
         LocalVar%PC_SpdErr = LocalVar%PC_RefSpd - LocalVar%GenSpeedF            ! Speed error
-        LocalVar%PC_PwrErr = CntrPar%VS_RtPwr - LocalVar%VS_GenPwr             ! Power error
+        LocalVar%PC_PwrErr = CntrPar%VS_RtPwr - LocalVar%VS_GenPwr             ! Power error, unused
                 
         ! ----- Torque controller reference errors -----
         ! Define VS reference generator speed [rad/s]
         IF (CntrPar%VS_ControlMode == 2) THEN
-            LocalVar%VS_RefSpd = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
+            LocalVar%VS_RefSpd_TSR = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
         ELSEIF (CntrPar%VS_ControlMode == 3) THEN
             LocalVar%VS_GenPwrF = LPFilter(LocalVar%VS_GenPwr, LocalVar%DT,CntrPar%VS_PwrFiltF, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
-            LocalVar%VS_RefSpd = (LocalVar%VS_GenPwrF/CntrPar%VS_Rgn2K)**(1./3.) ! Genspeed reference that doesnt depend on wind speed estimate (https://doi.org/10.2172/1259805)
+            LocalVar%VS_RefSpd_TSR = (LocalVar%VS_GenPwrF/CntrPar%VS_Rgn2K)**(1./3.) ! Genspeed reference that doesnt depend on wind speed estimate (https://doi.org/10.2172/1259805)
         ELSE
-            LocalVar%VS_RefSpd = CntrPar%VS_RefSpd
+            LocalVar%VS_RefSpd_TSR = CntrPar%VS_RefSpd
         ENDIF 
+
+        LocalVar%VS_RefSpd = LocalVar%VS_RefSpd_TSR
+
+        ! Exclude reference speeds specified by user
+        IF (CntrPar%TRA_Mode > 0) THEN
+            CALL RefSpeedExclusion(LocalVar, CntrPar, objInst, DebugVar)
+        END IF
 
         ! Saturate torque reference speed between min speed and rated speed
         LocalVar%VS_RefSpd = saturate(LocalVar%VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
@@ -96,6 +107,11 @@ CONTAINS
         
         ! Region 3 minimum pitch angle for state machine
         LocalVar%VS_Rgn3Pitch = LocalVar%PC_MinPit + CntrPar%PC_Switch
+
+        ! Debug Vars
+        DebugVar%VS_RefSpd = LocalVar%VS_RefSpd
+        DebugVar%PC_RefSpd = LocalVar%PC_RefSpd
+
 
     END SUBROUTINE ComputeVariablesSetpoints
 !-------------------------------------------------------------------------------------------------------------------------------
@@ -397,9 +413,7 @@ CONTAINS
     END FUNCTION PitchSaturation
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL(DbKi) FUNCTION Shutdown(LocalVar, CntrPar, objInst) 
-    ! PeakShaving defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
-    !       SS_Mode = 0, No setpoint smoothing
-    !       SS_Mode = 1, Implement setpoint smoothing
+    ! Shutdown controller 
         USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
         IMPLICIT NONE
         ! Inputs
@@ -439,5 +453,63 @@ CONTAINS
 
         
     END FUNCTION Shutdown
+!-------------------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE RefSpeedExclusion(LocalVar, CntrPar, objInst, DebugVar) 
+    ! Reference speed exclusion:
+    !   Changes torque controllerr reference speed to avoid specified frequencies by a prescribed bandwidth
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, DebugVariables, ObjectInstances
+        IMPLICIT NONE
+        ! Inputs
+        TYPE(ControlParameters),    INTENT(IN   )       :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar 
+        TYPE(DebugVariables),      INTENT(INOUT)        :: DebugVar
+        TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
+
+        
+        REAL(DbKi)                             :: VS_RefSpeed_LSS
+        
+        ! Get LSS Ref speed
+        VS_RefSpeed_LSS = LocalVar%VS_RefSpd/CntrPar%WE_GearboxRatio
+
+        IF ((VS_RefSpeed_LSS > CntrPar%TRA_ExclSpeed - CntrPar%TRA_ExclBand / 2) .AND. &
+            (VS_RefSpeed_LSS < CntrPar%TRA_ExclSpeed + CntrPar%TRA_ExclBand / 2)) THEN
+            ! In hysteresis zone, hold reference speed
+            LocalVar%FA_Hist = 1 ! Set negative hysteris if ref < exclusion band
+        ELSE
+            LocalVar%FA_Hist = 0
+        END IF
+
+        ! Initialize last reference speed state
+        IF (LocalVar%restart) THEN
+            ! If starting in hist band
+            IF (LocalVar%FA_Hist > 0) THEN
+                IF (VS_RefSpeed_LSS > CntrPar%TRA_ExclSpeed) THEN
+                    LocalVar%TRA_LastRefSpd = CntrPar%TRA_ExclSpeed + CntrPar%TRA_ExclBand / 2
+                ELSE
+                    LocalVar%TRA_LastRefSpd = CntrPar%TRA_ExclSpeed - CntrPar%TRA_ExclBand / 2
+                ENDIF
+            ELSE
+                LocalVar%TRA_LastRefSpd = LocalVar%VS_RefSpd
+            END IF
+        END IF 
+
+
+        IF (LocalVar%FA_Hist > 0) THEN
+            LocalVar%VS_RefSpd_TRA = LocalVar%TRA_LastRefSpd
+        ELSE
+            LocalVar%VS_RefSpd_TRA = LocalVar%VS_RefSpd
+        END IF
+
+        ! Save last reference speed       
+        LocalVar%TRA_LastRefSpd = LocalVar%VS_RefSpd_TRA
+
+        ! Rate limit reference speed
+        LocalVar%VS_RefSpd_RL = ratelimit(LocalVar%VS_RefSpd_TRA, -CntrPar%TRA_RateLimit, CntrPar%TRA_RateLimit, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL)
+        LocalVar%VS_RefSpd = LocalVar%VS_RefSpd_RL * CntrPar%WE_GearboxRatio
+
+
+        
+    END SUBROUTINE RefSpeedExclusion
 !-------------------------------------------------------------------------------------------------------------------------------
 END MODULE ControllerBlocks

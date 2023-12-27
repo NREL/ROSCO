@@ -347,6 +347,7 @@ CONTAINS
         CALL ParseInput(FileLines,'SD_Mode',         CntrPar%SD_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'FL_Mode',         CntrPar%FL_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'TD_Mode',         CntrPar%TD_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'TRA_Mode',        CntrPar%TRA_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'Flp_Mode',        CntrPar%Flp_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'OL_Mode',         CntrPar%OL_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'PA_Mode',         CntrPar%PA_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
@@ -467,9 +468,12 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ FORE-AFT TOWER DAMPER CONSTANTS ------------
-        CALL ParseInput(FileLines,  'FA_KI',            CntrPar%FA_KI,              accINFILE(1),   ErrVar, .NOT. ((CntrPar%TD_Mode > 0) .OR. (CntrPar%Y_ControlMode == 2)), UnEc)
-        CALL ParseInput(FileLines,  'FA_HPFCornerFreq', CntrPar%FA_HPFCornerFreq,   accINFILE(1),   ErrVar, .NOT. ((CntrPar%TD_Mode > 0) .OR. (CntrPar%Y_ControlMode == 2)), UnEc)
-        CALL ParseInput(FileLines,  'FA_IntSat',        CntrPar%FA_IntSat,          accINFILE(1),   ErrVar, .NOT. ((CntrPar%TD_Mode > 0) .OR. (CntrPar%Y_ControlMode == 2)), UnEc)
+        CALL ParseInput(FileLines,  'TRA_ExclSpeed',    CntrPar%TRA_ExclSpeed,          accINFILE(1),   ErrVar, CntrPar%TRA_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'TRA_ExclBand',     CntrPar%TRA_ExclBand,           accINFILE(1),   ErrVar, CntrPar%TRA_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'TRA_RateLimit',    CntrPar%TRA_RateLimit,          accINFILE(1),   ErrVar, CntrPar%TRA_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'FA_KI',            CntrPar%FA_KI,                  accINFILE(1),   ErrVar, CntrPar%TD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'FA_HPFCornerFreq', CntrPar%FA_HPFCornerFreq,       accINFILE(1),   ErrVar, CntrPar%TD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'FA_IntSat',        CntrPar%FA_IntSat,              accINFILE(1),   ErrVar, CntrPar%TD_Mode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ PEAK SHAVING ------------
@@ -1210,6 +1214,44 @@ CONTAINS
                 ENDIF
             ENDIF
         ENDIF
+
+        ! ---- Tower Control ----
+        IF (CntrPar%TD_Mode < 0 .OR. CntrPar%TD_Mode > 1) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'TD_Mode must be 0 or 1.'
+        END IF
+
+        IF (CntrPar%TRA_Mode < 0 .OR. CntrPar%TRA_Mode > 1) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'TRA_Mode must be 0 or 1.'
+        END IF
+
+        IF (CntrPar%TRA_Mode > 1) THEN  ! Frequency avoidance is active
+            IF (CntrPar%TRA_ExclSpeed < 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'TRA_ExclSpeed must be greater than 0.'
+            END IF
+
+            IF (CntrPar%TRA_ExclBand < 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'TRA_ExclBand must be greater than 0.'
+            END IF
+
+            IF (CntrPar%TRA_RateLimit < 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'TRA_RateLimit must be greater than 0.'
+            END IF
+
+            IF ( .NOT. ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3) )) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'VS_ControlMode must be 2 or 3 to use frequency avoidance control.'
+            END IF
+
+            IF (CntrPar%PRC_Mode == 1) THEN
+                PRINT *, "ROSCO Warning: Note that frequency avoidance control (TRA_Mode > 1) will affect PRC set points"
+            END IF           
+
+        END IF
 
         !------- MINIMUM PITCH SATURATION -------------------------------------------
         IF (CntrPar%PS_Mode > 0) THEN

@@ -157,9 +157,21 @@ ControlParameters:
       allocatable: True
     
     # Tower fore-aft damping
+    TRA_Mode:
+      <<: *integer
+      description: Tower Fore-Aft control mode {0 - no fore-aft control, 1 - Tower fore-aft damping, 2 -Frequency exclusion zone, 3- Options 1 and 2}
+    TRA_ExclSpeed:
+      <<: *real
+      description: Rotor speed for exclusion [LSS] [rad/s]
+    TRA_ExclBand:
+      <<: *real
+      description: One-half of the total frequency exclusion band. Torque controller reference will be TRA_ExclFreq +/- TRA_ExlBand [rad/s]
+    TRA_RateLimit:
+      <<: *real
+      description: Time constant for gain change when in exclusion zone [s]
     TD_Mode:
       <<: *integer
-      description: Tower damper mode (0- no tower damper, 1- feed back translational nacelle accelleration to pitch angle
+      description: Tower Fore-Aft control mode {0 - no fore-aft control, 1 - Tower fore-aft damping, 2 -Frequency exclusion zone, 3- Options 1 and 2}
     FA_HPFCornerFreq:
       <<: *real
       description: Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]
@@ -1001,12 +1013,27 @@ LocalVariables:
     VS_RefSpd:          
       <<: *real 
       description: Torque control generator speed set point [rad/s]
-    RotSpeedF:                    
+    VS_RefSpd_TSR:          
       <<: *real 
-      description: Filtered LSS (generator) speed [rad/s].
+      description: Torque control generator speed set point based on optimal TSR [rad/s]
+    VS_RefSpd_TRA:          
+      <<: *real 
+      description: Torque control generator speed set point after freq avoidance [rad/s]
+    VS_RefSpd_RL:          
+      <<: *real 
+      description: Torque control generator speed set point after rate limit [rad/s]
     PC_RefSpd:
       <<: *real
       description: Generator speed set point of pitch controller [rad/s]
+    PC_RefSpd_SS:
+      <<: *real
+      description: Generator speed set point of pitch controller after setpoint smoothing [rad/s]
+    PC_RefSpd_PRC:
+      <<: *real
+      description: Generator speed set point of pitch controller after power ref control [rad/s]
+    RotSpeedF:                    
+      <<: *real 
+      description: Filtered LSS (generator) speed [rad/s].
     GenSpeedF:                    
       <<: *real 
       description: Filtered HSS (generator) speed [rad/s].
@@ -1047,6 +1074,9 @@ LocalVariables:
     PC_PitComT:                   
       <<: *real 
       description: Total command pitch based on the sum of the proportional and integral terms [rad].
+    PC_PitComT:                   
+      <<: *real 
+      description: Collective pitch commmand from PI control [rad].
     PC_PitComT_Last:                   
       <<: *real 
       description: Last total command pitch based on the sum of the proportional and integral terms [rad].
@@ -1179,6 +1209,15 @@ LocalVariables:
       <<: *real 
     FA_AccF:
       <<: *real 
+    FA_Hist:
+      <<: *integer 
+      description: Hysteresis state for tower resonance avoidance.
+    TRA_LastRefSpd:
+      <<: *real 
+      description: Last reference generator speed
+    VS_RefSpeed:
+      <<: *real
+      description: Torque controller reference speed
     PtfmTDX:
       <<: *real
       description: Platform motion -- Displacement TDX (m)')
@@ -1422,6 +1461,12 @@ DebugVariables:
   YawState:
     <<: *real
     description: State of yaw controller
+  VS_RefSpd:          
+      <<: *real 
+      description: Torque control generator speed set point [rad/s]
+  PC_RefSpd:
+    <<: *real
+    description: Generator speed set point of pitch controller [rad/s]
 
 ErrorVariables:
   size_avcMSG: 

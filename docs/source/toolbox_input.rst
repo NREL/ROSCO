@@ -227,6 +227,15 @@ controller_params
     *Minimum* = 0    *Maximum* = 1
 
 
+:code:`TRA_Mode` : Float
+    Tower resonance avoidance mode (0- no tower resonsnace avoidance,
+    1- use torque control setpoints to avoid a specific frequency
+
+    *Default* = 0
+
+    *Minimum* = 0    *Maximum* = 1
+
+
 :code:`Fl_Mode` : Float
     Floating specific feedback mode (0- no nacelle velocity feedback,
     1 - nacelle velocity feedback, 2 - nacelle pitching acceleration
@@ -263,6 +272,13 @@ controller_params
 
     *Minimum* = 0    *Maximum* = 1
 
+
+:code:`ZMQ_UpdatePeriod` : Float
+    Call ZeroMQ every [x] seconds, [s]
+
+    *Default* = 2
+
+    *Minimum* = 0
 
 :code:`PA_Mode` : Float
     Pitch actuator mode {0 - not used, 1 - first order filter, 2 -
@@ -910,6 +926,49 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution. Do 
 :code:`SS_PCGain` : Float
     Collective pitch controller setpoint smoother gain
 
+:code:`PRC_Mode` : Float
+    Power reference tracking mode, 0- use standard rotor speed set
+    points, 1- use PRC rotor speed setpoints
+
+:code:`PRC_WindSpeeds` : Array of Floats
+    Array of wind speeds used in rotor speed vs. wind speed lookup
+    table [m/s]
+
+:code:`PRC_GenSpeeds` : Array of Floats
+    Array of generator speeds corresponding to PRC_WindSpeeds [rad/s]
+
+:code:`PRC_LPF_Freq` : Float
+    Frequency of the low pass filter on the wind speed estimate used
+    to set PRC_GenSpeeds [rad/s]
+
+    *Default* = 0.078539
+
+:code:`PRC_n` : Float
+    Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
+
+:code:`TRA_ExclSpeed` : Float
+    Rotor speed for exclusion [LSS, rad/s]
+
+    *Default* = 0.0
+
+    *Minimum* = 0
+
+:code:`TRA_ExclBand` : Float
+    Size of the rotor frequency exclusion band [LSS, rad/s]. Torque
+    controller reference will be TRA_ExclSpeed +/- TRA_ExlBand/2
+
+    *Default* = 0.0
+
+    *Minimum* = 0
+
+:code:`TRA_RateLimit` : Float
+    Rate limit of change in rotor speed reference [LSS, rad/s].
+    Suggested to be VS_RefSpd/400.
+
+    *Default* = 0.0
+
+    *Minimum* = 0
+
 :code:`WE_BladeRadius` : Float, m
     Blade length (distance from hub center to blade tip)
 
@@ -1160,6 +1219,23 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution. Do 
     AWC clock angle [deg]
 
     *Default* = [0]
+
+:code:`ZMQ_CommAddress` : String
+    Communication address for ZMQ server, (e.g.
+    "tcp://localhost:5555")
+
+    *Default* = tcp://localhost:5555
+
+:code:`ZMQ_UpdatePeriod` : Float
+    Update period at zmq interface to send measurements and wait for
+    setpoint [sec.]
+
+    *Default* = 1.0
+
+:code:`ZMQ_ID` : Float
+    Integer identifier of turbine
+
+    *Default* = 0
 
 
 

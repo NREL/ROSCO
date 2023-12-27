@@ -67,7 +67,7 @@ CONTAINS
         END IF
         
         ! Include tower fore-aft tower vibration damping control
-        IF ((CntrPar%TD_Mode > 0) .OR. (CntrPar%Y_ControlMode == 2)) THEN
+        IF (CntrPar%TD_Mode > 0) THEN
             CALL ForeAftDamping(CntrPar, LocalVar, objInst)
         ELSE
             LocalVar%FA_PitCom = 0.0 ! THIS IS AN ARRAY!!
@@ -221,7 +221,12 @@ CONTAINS
             END IF
 
             ! PI controller
-            LocalVar%GenTq = PIController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, LocalVar%VS_MaxTq, LocalVar%DT, LocalVar%VS_LastGenTrq, LocalVar%piP, LocalVar%restart, objInst%instPI)
+            LocalVar%GenTq = PIController( &
+                                        LocalVar%VS_SpdErr, &
+                                        CntrPar%VS_KP(1), &
+                                        CntrPar%VS_KI(1), &
+                                        CntrPar%VS_MinTq, LocalVar%VS_MaxTq, &
+                                        LocalVar%DT, LocalVar%VS_LastGenTrq, LocalVar%piP, LocalVar%restart, objInst%instPI)
             LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, LocalVar%VS_MaxTq)
         
         ! K*Omega^2 control law with PI torque control in transition regions

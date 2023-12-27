@@ -84,13 +84,13 @@ def main():
             't_end': 2500,
             }
     else:
+        # Short test for CI
         r.wind_case_opts    = {
             'U_start': 25,  # from 10 to 15 m/s
             'U_end': 27,
             't_start': 50,
             't_end': 100,
             }
-    # Short test for CI
     r.save_dir      = run_dir
     r.rosco_dir     = rosco_dir
     r.controller_params  = {

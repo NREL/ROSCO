@@ -80,9 +80,6 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
         rosco_vt['CC_GroupIndex'] = [rosco_vt['CC_GroupIndex']]     # make an array
     if not hasattr(rosco_vt['StC_GroupIndex'],'__len__'):
         rosco_vt['StC_GroupIndex'] = [rosco_vt['StC_GroupIndex']]   
-    # Get input descriptions
-    #input_schema = load_yaml(os.path.join(os.path.dirname(__file__),'inputs/toolbox_schema.yaml'))
-    #discon_props = input_schema['properties']['controller_params']['properties']['DISCON']['properties']
 
     print('Writing new controller parameter file parameter file: %s.' % param_file)
     # Should be obvious what's going on here...
@@ -108,7 +105,8 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! PS_Mode         - Pitch saturation mode {{0: no pitch saturation, 1: implement pitch saturation}}\n'.format(int(rosco_vt['PS_Mode'])))
     file.write('{0:<12d}        ! SD_Mode         - Shutdown mode {{0: no shutdown procedure, 1: pitch to max pitch at shutdown}}\n'.format(int(rosco_vt['SD_Mode'])))
     file.write('{0:<12d}        ! Fl_Mode         - Floating specific feedback mode {{0: no nacelle velocity feedback, 1: feed back translational velocity, 2: feed back rotational veloicty}}\n'.format(int(rosco_vt['Fl_Mode'])))
-    file.write('{0:<12d}        ! TD_Mode         - Tower damper mode {{0: no tower damper, 1: feed back translational nacelle accelleration to pitch angle}}\n'.format(int(rosco_vt['TD_Mode'])))
+    file.write('{:<12d}        ! TD_Mode         - {}\n'.format(int(rosco_vt['TD_Mode']),mode_descriptions['TD_Mode']))
+    file.write('{:<12d}        ! TRA_Mode        - {}\n'.format(int(rosco_vt['TRA_Mode']),mode_descriptions['TRA_Mode']))
     file.write('{0:<12d}        ! Flp_Mode        - Flap control mode {{0: no flap control, 1: steady state flap angle, 2: Proportional flap control, 2: Cyclic (1P) flap control}}\n'.format(int(rosco_vt['Flp_Mode'])))
     file.write('{0:<12d}        ! OL_Mode         - Open loop control mode {{0: no open loop control, 1: open loop control vs. time, 2: rotor position control}}\n'.format(int(rosco_vt['OL_Mode'])))
     file.write('{0:<12d}        ! PA_Mode         - Pitch actuator mode {{0 - not used, 1 - first order filter, 2 - second order filter}}\n'.format(int(rosco_vt['PA_Mode'])))
@@ -213,10 +211,13 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<13.5f}       ! Y_IPC_KP			- Yaw-by-IPC proportional controller gain Kp\n'.format(rosco_vt['Y_IPC_KP']))
     file.write('{:<13.5f}       ! Y_IPC_KI			- Yaw-by-IPC integral controller gain Ki\n'.format(rosco_vt['Y_IPC_KI']))
     file.write('\n')
-    file.write('!------- TOWER FORE-AFT DAMPING -------------------------------------------\n')
-    file.write('{:<13.5f}       ! FA_KI				- Integral gain for the fore-aft tower damper controller [rad s/m]\n'.format(rosco_vt['FA_KI'] ))
-    file.write('{:<13.1f}       ! FA_HPFCornerFreq	- Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]\n'.format(rosco_vt['FA_HPFCornerFreq'] ))
-    file.write('{:<13.1f}       ! FA_IntSat			- Integrator saturation (maximum signal amplitude contribution to pitch from FA damper), [rad]\n'.format(rosco_vt['FA_IntSat'] ))
+    file.write('!------- TOWER CONTROL ------------------------------------------------------\n')
+    file.write('{:<13.5f}       ! TRA_ExclSpeed	    - {}\n'.format(rosco_vt['TRA_ExclSpeed'], input_descriptions['TRA_ExclSpeed'] ))
+    file.write('{:<13.5f}       ! TRA_ExclBand	    - {}\n'.format(rosco_vt['TRA_ExclBand'], input_descriptions['TRA_ExclBand'] ))
+    file.write('{:<13.5e}       ! TRA_RateLimit	    - {}\n'.format(rosco_vt['TRA_RateLimit'], input_descriptions['TRA_RateLimit'] ))
+    file.write('{:<13.5f}       ! FA_KI				- Integral gain for the fore-aft tower damper controller,  [rad*s/m]\n'.format(rosco_vt['FA_KI'] ))
+    file.write('{:<13.5f}       ! FA_HPFCornerFreq	- Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]\n'.format(rosco_vt['FA_HPFCornerFreq'] ))
+    file.write('{:<13.5f}       ! FA_IntSat			- Integrator saturation (maximum signal amplitude contribution to pitch from FA damper), [rad]\n'.format(rosco_vt['FA_IntSat'] ))
     file.write('\n')
     file.write('!------- MINIMUM PITCH SATURATION -------------------------------------------\n')
     file.write('{:<11d}         ! PS_BldPitchMin_N  - Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)\n'.format(int(rosco_vt['PS_BldPitchMin_N'])))
@@ -480,6 +481,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['SD_Mode']          = int(controller.SD_Mode)
     DISCON_dict['Fl_Mode']          = int(controller.Fl_Mode)
     DISCON_dict['TD_Mode']          = int(controller.TD_Mode)
+    DISCON_dict['TRA_Mode']         = int(controller.TRA_Mode)
     DISCON_dict['Flp_Mode']         = int(controller.Flp_Mode)
     DISCON_dict['OL_Mode']          = int(controller.OL_Mode)
     DISCON_dict['PF_Mode']          = int(controller.PF_Mode)
@@ -579,9 +581,9 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['Y_IPC_KP'] = 0.0
     DISCON_dict['Y_IPC_KI'] = 0.0
     # ------- TOWER FORE-AFT DAMPING -------
-    DISCON_dict['FA_KI']                = -1
+    DISCON_dict['FA_KI']            = 0.0
     DISCON_dict['FA_HPFCornerFreq'] = 0.0
-    DISCON_dict['FA_IntSat']		 = 0.0
+    DISCON_dict['FA_IntSat']		= 0.0
     # ------- MINIMUM PITCH SATURATION -------
     DISCON_dict['PS_BldPitchMin_N'] = len(controller.ps_min_bld_pitch)
     DISCON_dict['PS_WindSpeeds']    = controller.v
