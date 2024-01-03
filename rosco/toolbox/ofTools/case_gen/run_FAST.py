@@ -28,8 +28,6 @@ from rosco.toolbox import turbine as ROSCO_turbine
 
 # Globals
 this_dir        = os.path.dirname(os.path.abspath(__file__))
-tune_case_dir   = os.path.realpath(os.path.join(this_dir,'../../../Tune_Cases'))
-rosco_dir       = os.path.realpath(os.path.join(this_dir,'../../..'))
 
 # https://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth
 def update_deep(d, u):
@@ -67,10 +65,11 @@ class run_FAST_ROSCO():
 
         # handle directories, set defaults
         if not self.rosco_dir:
-            self.rosco_dir = os.path.realpath(os.path.join(this_dir,'../../..'))
+            # Top ROSCO directory of whole repo
+            self.rosco_dir = os.path.realpath(os.path.join(this_dir,'../../../..'))
 
         if not self.tune_case_dir:
-            self.tune_case_dir = os.path.realpath(os.path.join(self.rosco_dir,'Tune_Cases'))
+            self.tune_case_dir = os.path.realpath(os.path.join(self.rosco_dir,'Examples/Tune_Cases'))
 
         if not self.save_dir:
             self.save_dir       = os.path.join(self.rosco_dir,'outputs')
@@ -144,7 +143,7 @@ class run_FAST_ROSCO():
 
         # lib dir
         if not in_weis:  # in ROSCO
-            dll_dir = os.path.join(self.rosco_dir, 'ROSCO/build/')
+            dll_dir = os.path.join(self.rosco_dir, 'rosco/controller/build/')
         else:
             dll_dir = os.path.join(self.rosco_dir,'../local/lib/')
         

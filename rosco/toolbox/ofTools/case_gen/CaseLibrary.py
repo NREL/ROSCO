@@ -14,7 +14,7 @@ from rosco.toolbox.inputs.validation import load_rosco_yaml
 
 # Globals
 this_dir        = os.path.dirname(os.path.abspath(__file__))
-tune_case_dir   = os.path.realpath(os.path.join(this_dir,'../../../Tune_Cases'))
+tune_case_dir   = os.path.realpath(os.path.join(this_dir,'../../../../Examples/Tune_Cases'))
 
 def find_max_group(case_inputs):
     max_group = 0
