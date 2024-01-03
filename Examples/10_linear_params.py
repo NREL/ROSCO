@@ -40,7 +40,7 @@ turbine         = ROSCO_turbine.Turbine(turbine_params)
 controller      = ROSCO_controller.Controller(controller_params)
 
 # Load turbine data from OpenFAST and rotor performance text file
-tune_dir =  os.path.join(this_dir,'../Tune_Cases')
+tune_dir =  os.path.join(this_dir,'Tune_Cases')
 turbine.load_from_fast(
   path_params['FAST_InputFile'],
   os.path.join(this_dir,path_params['FAST_directory']),

@@ -27,7 +27,7 @@ from rosco.toolbox import controller as ROSCO_controller
 def run_example():
     # Shorthand directories
     this_dir = os.path.dirname(os.path.abspath(__file__))
-    tune_dir = os.path.join(this_dir, '../Tune_Cases')
+    tune_dir = os.path.join(this_dir, 'Tune_Cases')
     test_dir = os.path.join(this_dir, '../Test_Cases')
 
     # ROSCO options

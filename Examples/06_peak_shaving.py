@@ -20,7 +20,7 @@ from rosco.toolbox.inputs.validation import load_rosco_yaml
 
 
 this_dir = os.path.dirname(__file__)
-tune_dir =  os.path.join(this_dir,'../Tune_Cases')
+tune_dir =  os.path.join(this_dir,'Tune_Cases')
 example_out_dir = os.path.join(this_dir,'examples_out')
 if not os.path.isdir(example_out_dir):
   os.makedirs(example_out_dir)
