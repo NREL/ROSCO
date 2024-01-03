@@ -10,12 +10,12 @@ import openmdao.api as om
 import matplotlib.pyplot as plt
 import pandas as pd
 import multiprocessing as mp
-from ROSCO_toolbox import controller as ROSCO_controller
-from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox.linear.linear_models import LinearTurbineModel
-from ROSCO_toolbox.linear.lin_util import add_pcomp, smargin
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
-from ROSCO_toolbox.utilities import list_check
+from rosco.toolbox import controller as ROSCO_controller
+from rosco.toolbox import turbine as ROSCO_turbine
+from rosco.toolbox.linear.linear_models import LinearTurbineModel
+from rosco.toolbox.linear.lin_util import add_pcomp, smargin
+from rosco.toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox.utilities import list_check
 
 
 class RobustScheduling(om.ExplicitComponent):

@@ -16,10 +16,10 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 # ROSCO toolbox modules 
-from ROSCO_toolbox import controller as ROSCO_controller
-from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox.utilities import write_DISCON, run_openfast
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox import controller as ROSCO_controller
+from rosco.toolbox import turbine as ROSCO_turbine
+from rosco.toolbox.utilities import write_DISCON, run_openfast
+from rosco.toolbox.inputs.validation import load_rosco_yaml
 
 
 this_dir = os.path.dirname(os.path.abspath(__file__))

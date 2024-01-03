@@ -1,6 +1,6 @@
-from ROSCO_toolbox.ofTools.fast_io.turbsim_io.turbsim_vartrees import turbsiminputs
-from ROSCO_toolbox.ofTools.fast_io.turbsim_io.turbulence_spectrum import turb_specs
-from ROSCO_toolbox.ofTools.fast_io.turbsim_io.wind_profile_writer import write_wind
+from rosco.toolbox.ofTools.fast_io.turbsim_io.turbsim_vartrees import turbsiminputs
+from rosco.toolbox.ofTools.fast_io.turbsim_io.turbulence_spectrum import turb_specs
+from rosco.toolbox.ofTools.fast_io.turbsim_io.wind_profile_writer import write_wind
 import os
 import numpy as np
 import random

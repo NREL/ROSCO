@@ -5,7 +5,7 @@ to the current version
 '''
 
 import os
-from ROSCO_toolbox.tune import update_discon_version
+from rosco.toolbox.tune import update_discon_version
 
 this_dir            = os.path.dirname(os.path.abspath(__file__))
 rosco_dir           = os.path.dirname(this_dir)

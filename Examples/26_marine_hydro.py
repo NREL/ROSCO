@@ -7,14 +7,14 @@ Run openfast with ROSCO and a MHK turbine
 '''
 
 import os, platform
-from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
-from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
-from ROSCO_toolbox.ofTools.fast_io import output_processing
+from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
+from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
+from rosco.toolbox.ofTools.fast_io import output_processing
 import numpy as np
-from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+from rosco.toolbox.inputs.validation import load_rosco_yaml
 import matplotlib.pyplot as plt
-from ROSCO_toolbox.controller import OpenLoopControl
+from rosco.toolbox.controller import OpenLoopControl
 
 '''
 Run MHK turbine in OpenFAST with ROSCO torque controller

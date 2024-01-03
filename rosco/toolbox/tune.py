@@ -10,10 +10,10 @@
 # specific language governing permissions and limitations under the License.
 
 import os
-from ROSCO_toolbox import controller as ROSCO_controller
-from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
-from ROSCO_toolbox.utilities import read_DISCON, write_DISCON, DISCON_dict
+from rosco.toolbox import controller as ROSCO_controller
+from rosco.toolbox import turbine as ROSCO_turbine
+from rosco.toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox.utilities import read_DISCON, write_DISCON, DISCON_dict
 
 
 def yaml_to_objs(tuning_yaml):

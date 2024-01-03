@@ -15,7 +15,7 @@ Note: need to run openfast model in '../Test_Cases/5MW_Land_DLL_WTurb/' to plot
 import numpy as np
 import matplotlib.pyplot as plt 
 # ROSCO toolbox modules 
-from ROSCO_toolbox.ofTools.fast_io import output_processing
+from rosco.toolbox.ofTools.fast_io import output_processing
 import os
 
 this_dir = os.path.dirname(os.path.abspath(__file__))

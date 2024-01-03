@@ -18,9 +18,9 @@ Note: You will need a turbine model with DAC capabilites in order to run this.
 # Python Modules
 import os
 # ROSCO Modules
-from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox import controller as ROSCO_controller
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox import turbine as ROSCO_turbine
+from rosco.toolbox import controller as ROSCO_controller
+from rosco.toolbox.inputs.validation import load_rosco_yaml
 
 
 this_dir =  os.path.dirname(os.path.abspath(__file__))

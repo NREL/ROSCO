@@ -18,16 +18,16 @@ import pickle
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from ROSCO_toolbox.utilities import load_from_txt
+from rosco.toolbox.utilities import load_from_txt
 
 # Load OpenFAST readers
 try:
     import weis.aeroelasticse
     use_weis = True
-    print('Using weis.aeroelasticse in ROSCO_toolbox...')
+    print('Using weis.aeroelasticse in rosco.toolbox...')
 except:
     use_weis = False
-    print('Using ofTools in ROSCO_toolbox...')
+    print('Using ofTools in rosco.toolbox...')
 
 
 # Some useful constants
@@ -158,7 +158,7 @@ class Turbine():
         if use_weis:
             from weis.aeroelasticse.FAST_reader import InputReader_OpenFAST
         else:
-            from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+            from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
 
         # Load OpenFAST model using the FAST_reader
         print('Loading FAST model: %s ' % FAST_InputFile)
@@ -351,8 +351,8 @@ class Turbine():
             from weis.aeroelasticse import runFAST_pywrapper, CaseGen_General
             from weis.aeroelasticse.Util import FileTools
         else:
-            from ROSCO_toolbox.ofTools.case_gen import runFAST_pywrapper, CaseGen_General
-            from ROSCO_toolbox.ofTools.util import FileTools
+            from rosco.toolbox.ofTools.case_gen import runFAST_pywrapper, CaseGen_General
+            from rosco.toolbox.ofTools.util import FileTools
         # Load pCrunch tools
         from pCrunch import Processing
 
@@ -536,7 +536,7 @@ class Turbine():
         if use_weis:
             from weis.aeroelasticse.FAST_reader import InputReader_OpenFAST
         else:
-            from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+            from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
         from wisdem.ccblade.ccblade import CCAirfoil, CCBlade
 
         # Create CC-Blade Rotor
@@ -633,7 +633,7 @@ class RotorPerformance():
         
         # If there is more than one max pitch angle:
         if len(self.max_ind[1]) > 1:
-            print('ROSCO_toolbox Warning: repeated maximum values in a performance table and the last one @ pitch = {} rad. was taken...'.format(self.pitch_opt[-1]))
+            print('rosco.toolbox Warning: repeated maximum values in a performance table and the last one @ pitch = {} rad. was taken...'.format(self.pitch_opt[-1]))
 
         # Find TSR that maximizes Cx at fine pitch
         # - TSR to satisfy: max( Cx(TSR, \beta_fine) ) = TSR_opt

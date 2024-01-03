@@ -1,6 +1,6 @@
 from numpy import zeros, array
 import numpy as np
-from ROSCO_toolbox.ofTools.fast_io.FAST_vars_out import FstOutput, Fst7Output
+from rosco.toolbox.ofTools.fast_io.FAST_vars_out import FstOutput, Fst7Output
 
 # This variable tree contains all parameters required to create a FAST model
 # for FAST versions 7 and 8.
@@ -619,7 +619,7 @@ ServoDyn['TabDelim']         = False
 ServoDyn['OutFmt']           = ''            
 ServoDyn['TStart']           = 0.0           
 
-# Bladed style Interface controller input file, intended for ROSCO https://github.com/NREL/ROSCO_toolbox
+# Bladed style Interface controller input file, intended for ROSCO https://github.com/NREL/rosco.toolbox
 DISCON_in = {}
 DISCON_in['LoggingLevel']      = 0
 DISCON_in['F_LPFType']         = 0

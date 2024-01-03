@@ -18,11 +18,11 @@ The example is put in a function call to show the ability to load linear models 
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
-from ROSCO_toolbox.linear.robust_scheduling import rsched_driver, load_linturb
-from ROSCO_toolbox.linear.lin_vis import lin_plotting
-from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox import controller as ROSCO_controller
+from rosco.toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox.linear.robust_scheduling import rsched_driver, load_linturb
+from rosco.toolbox.linear.lin_vis import lin_plotting
+from rosco.toolbox import turbine as ROSCO_turbine
+from rosco.toolbox import controller as ROSCO_controller
 
 def run_example():
     # Shorthand directories

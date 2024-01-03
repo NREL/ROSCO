@@ -13,16 +13,16 @@ Floating feedback methods available in ROSCO/ROSCO_Toolbox
 '''
 
 import os, platform
-from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
-from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
+from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
+from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 import numpy as np
-from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
-from ROSCO_toolbox.controller import OpenLoopControl
-from ROSCO_toolbox.tune import yaml_to_objs
-from ROSCO_toolbox.utilities import write_DISCON, read_DISCON
-from ROSCO_toolbox import controller as ROSCO_controller
-from ROSCO_toolbox.ofTools.fast_io import output_processing
+from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+from rosco.toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox.controller import OpenLoopControl
+from rosco.toolbox.tune import yaml_to_objs
+from rosco.toolbox.utilities import write_DISCON, read_DISCON
+from rosco.toolbox import controller as ROSCO_controller
+from rosco.toolbox.ofTools.fast_io import output_processing
 import matplotlib.pyplot as plt
 
 

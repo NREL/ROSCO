@@ -1,8 +1,8 @@
 import os
 # ROSCO toolbox modules 
 
-from ROSCO_toolbox.utilities import write_DISCON
-from ROSCO_toolbox.tune import yaml_to_objs
+from rosco.toolbox.utilities import write_DISCON
+from rosco.toolbox.tune import yaml_to_objs
 
 def update_discons(tune_to_test_map):
     # Update a set of discon files

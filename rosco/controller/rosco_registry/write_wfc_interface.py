@@ -1,6 +1,6 @@
-import ROSCO_toolbox
+import rosco.toolbox
 import os
-from ROSCO_toolbox.ofTools.util.FileTools import load_yaml
+from rosco.toolbox.ofTools.util.FileTools import load_yaml
 import re
 
 this_dir = os.path.dirname(__file__)

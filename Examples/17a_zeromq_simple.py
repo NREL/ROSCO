@@ -11,14 +11,14 @@ one could call ROSCO from OpenFAST, and communicate with ZeroMQ through that.
 import platform
 import os
 import matplotlib.pyplot as plt
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
-from ROSCO_toolbox.utilities import write_DISCON
-from ROSCO_toolbox import control_interface as ROSCO_ci
-from ROSCO_toolbox.control_interface import wfc_zmq_server
-from ROSCO_toolbox import sim as ROSCO_sim
-from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox import controller as ROSCO_controller
-from ROSCO_toolbox.ofTools.fast_io import output_processing
+from rosco.toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox.utilities import write_DISCON
+from rosco.toolbox import control_interface as ROSCO_ci
+from rosco.toolbox.control_interface import wfc_zmq_server
+from rosco.toolbox import sim as ROSCO_sim
+from rosco.toolbox import turbine as ROSCO_turbine
+from rosco.toolbox import controller as ROSCO_controller
+from rosco.toolbox.ofTools.fast_io import output_processing
 import numpy as np
 import multiprocessing as mp
 

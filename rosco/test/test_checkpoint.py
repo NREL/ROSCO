@@ -16,12 +16,12 @@ import platform
 from shutil import copyfile
 
 # ROSCO toolbox modules
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
-from ROSCO_toolbox.ofTools.fast_io import output_processing 
-from ROSCO_toolbox.ofTools.case_gen.CaseLibrary import set_channels
-from ROSCO_toolbox.ofTools.case_gen.CaseGen_General import CaseGen_General
-from ROSCO_toolbox.ofTools.fast_io.FAST_writer import InputReader_OpenFAST, InputWriter_OpenFAST
-from ROSCO_toolbox.utilities import run_openfast
+from rosco.toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox.ofTools.fast_io import output_processing 
+from rosco.toolbox.ofTools.case_gen.CaseLibrary import set_channels
+from rosco.toolbox.ofTools.case_gen.CaseGen_General import CaseGen_General
+from rosco.toolbox.ofTools.fast_io.FAST_writer import InputReader_OpenFAST, InputWriter_OpenFAST
+from rosco.toolbox.utilities import run_openfast
 
 
 class RegressionTesting(unittest.TestCase):

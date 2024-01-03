@@ -14,9 +14,9 @@ import os, platform
 import matplotlib.pyplot as plt
 
 # ROSCO toolbox modules 
-from ROSCO_toolbox.ofTools.fast_io import output_processing
-from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
-from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
+from rosco.toolbox.ofTools.fast_io import output_processing
+from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
+from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 
 def main():
   this_dir          = os.path.dirname(os.path.abspath(__file__))

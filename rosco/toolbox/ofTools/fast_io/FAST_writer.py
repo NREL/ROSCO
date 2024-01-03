@@ -4,9 +4,9 @@ import yaml
 import numpy as np
 from functools import reduce
 
-from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
 
-from ROSCO_toolbox.utilities import write_rotor_performance, write_DISCON
+from rosco.toolbox.utilities import write_rotor_performance, write_DISCON
 ROSCO = True
 
 
@@ -1374,7 +1374,7 @@ class InputWriter_OpenFAST(object):
         f.close()
 
     def write_DISCON_in(self):
-        # Generate Bladed style Interface controller input file, intended for ROSCO https://github.com/NREL/ROSCO_toolbox
+        # Generate Bladed style Interface controller input file, intended for ROSCO https://github.com/NREL/rosco.toolbox
 
         # Fill controller and turbine objects for ROSCO 
         # - controller

@@ -17,11 +17,11 @@ import os, platform
 import glob
 import multiprocessing as mp
 
-from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
-from ROSCO_toolbox.ofTools.case_gen.CaseGen_IEC import CaseGen_IEC
-from ROSCO_toolbox.ofTools.case_gen.runFAST_pywrapper import runFAST_pywrapper_batch
+from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+from rosco.toolbox.ofTools.case_gen.CaseGen_IEC import CaseGen_IEC
+from rosco.toolbox.ofTools.case_gen.runFAST_pywrapper import runFAST_pywrapper_batch
 from matplotlib.backends.backend_pdf import FigureCanvasPdf, PdfPages
-from ROSCO_toolbox.ofTools.fast_io import output_processing
+from rosco.toolbox.ofTools.fast_io import output_processing
 import matplotlib.pyplot as plt
 
 

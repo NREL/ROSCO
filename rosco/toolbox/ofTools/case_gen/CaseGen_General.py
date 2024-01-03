@@ -1,6 +1,6 @@
 import os, itertools
 import numpy as np
-from ROSCO_toolbox.ofTools.util.FileTools import save_yaml
+from rosco.toolbox.ofTools.util.FileTools import save_yaml
 
 def save_case_matrix_direct(case_list, dir_matrix):
     ### assumes all elements of the list are dict for that case that has the same keys!

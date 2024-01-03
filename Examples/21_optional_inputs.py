@@ -5,9 +5,9 @@ to the current version
 '''
 
 import os, platform
-from ROSCO_toolbox import control_interface as ROSCO_ci
-from ROSCO_toolbox import sim as ROSCO_sim
-from ROSCO_toolbox import turbine as ROSCO_turbine
+from rosco.toolbox import control_interface as ROSCO_ci
+from rosco.toolbox import sim as ROSCO_sim
+from rosco.toolbox import turbine as ROSCO_turbine
 import numpy as np
 
 

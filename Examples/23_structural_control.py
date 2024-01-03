@@ -8,12 +8,12 @@ Set up and run simulation with pitch offsets, check outputs
 '''
 
 import os, platform
-from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
-from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
+from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
+from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 import numpy as np
-from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
-from ROSCO_toolbox.controller import OpenLoopControl
+from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+from rosco.toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox.controller import OpenLoopControl
 
 
 '''

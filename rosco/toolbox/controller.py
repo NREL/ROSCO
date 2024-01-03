@@ -13,7 +13,7 @@ import numpy as np
 import os
 import datetime
 from scipy import interpolate, integrate
-from ROSCO_toolbox.utilities import list_check
+from rosco.toolbox.utilities import list_check
 from scipy import optimize
 
 # Some useful constants
@@ -106,14 +106,14 @@ class Controller():
                 self.flp_tau     = controller_params['flp_tau']
             except:
                 raise Exception(
-                    'ROSCO_toolbox:controller: flp_kp_norm and flp_tau must be set if Flp_Mode > 0')
+                    'rosco.toolbox:controller: flp_kp_norm and flp_tau must be set if Flp_Mode > 0')
 
         if self.Fl_Mode > 0:
             try:
                 self.twr_freq   = controller_params['twr_freq']
                 self.ptfm_freq  = controller_params['ptfm_freq']
             except:
-                raise Exception('ROSCO_toolbox:controller: twr_freq and ptfm_freq must be set if Fl_Mode > 0')
+                raise Exception('rosco.toolbox:controller: twr_freq and ptfm_freq must be set if Fl_Mode > 0')
 
             # Kp_float direct setting
             if 'Kp_float' in controller_params:

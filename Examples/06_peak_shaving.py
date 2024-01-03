@@ -14,9 +14,9 @@ In this example:
 import matplotlib.pyplot as plt 
 import os
 # ROSCO toolbox modules 
-from ROSCO_toolbox import controller as ROSCO_controller
-from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox import controller as ROSCO_controller
+from rosco.toolbox import turbine as ROSCO_turbine
+from rosco.toolbox.inputs.validation import load_rosco_yaml
 
 
 this_dir = os.path.dirname(__file__)

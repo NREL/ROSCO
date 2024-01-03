@@ -4,9 +4,9 @@ import numpy as np
 from functools import reduce
 import operator
 
-from ROSCO_toolbox.ofTools.fast_io.FAST_vars_out import FstOutput
-from ROSCO_toolbox.utilities import read_DISCON, load_from_txt
-from ROSCO_toolbox import turbine as ROSCO_turbine
+from rosco.toolbox.ofTools.fast_io.FAST_vars_out import FstOutput
+from rosco.toolbox.utilities import read_DISCON, load_from_txt
+from rosco.toolbox import turbine as ROSCO_turbine
 ROSCO = True
 
 def readline_filterComments(f):
@@ -1643,7 +1643,7 @@ class InputReader_OpenFAST(object):
         return StC_vt
     
     def read_DISCON_in(self):
-        # Read the Bladed style Interface controller input file, intended for ROSCO https://github.com/NREL/ROSCO_toolbox
+        # Read the Bladed style Interface controller input file, intended for ROSCO https://github.com/NREL/rosco.toolbox
 
         discon_in_file = os.path.normpath(os.path.join(self.FAST_directory, self.fst_vt['ServoDyn']['DLL_InFile']))
 

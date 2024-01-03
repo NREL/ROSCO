@@ -26,11 +26,11 @@ import datetime
 import os
 import numpy as np
 import subprocess
-import ROSCO_toolbox
+import rosco.toolbox
 from wisdem.inputs import load_yaml
 
 from wisdem.inputs import load_yaml
-from ROSCO_toolbox.ofTools.util.FileTools import remove_numpy
+from rosco.toolbox.ofTools.util.FileTools import remove_numpy
 
 # Some useful constants
 now = datetime.datetime.now()
@@ -85,7 +85,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     # Should be obvious what's going on here...
     file = open(param_file,'w')
     file.write('! Controller parameter input file for the %s wind turbine\n' % turbine.TurbineName)
-    file.write('!    - File written using ROSCO version {} controller tuning logic on {}\n'.format(ROSCO_toolbox.__version__, now.strftime('%m/%d/%y')))
+    file.write('!    - File written using ROSCO version {} controller tuning logic on {}\n'.format(rosco.toolbox.__version__, now.strftime('%m/%d/%y')))
     file.write('\n')
     file.write('!------- SIMULATION CONTROL ------------------------------------------------------------\n')
     file.write('{0:<12d}        ! LoggingLevel		- {{0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}}\n'.format(int(rosco_vt['LoggingLevel'])))

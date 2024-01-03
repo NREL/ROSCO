@@ -1,7 +1,7 @@
 '''
 Visualization helpers for linear models
 '''
-from ROSCO_toolbox.linear.lin_util import add_pcomp, pc_openloop
+from rosco.toolbox.linear.lin_util import add_pcomp, pc_openloop
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy as sp

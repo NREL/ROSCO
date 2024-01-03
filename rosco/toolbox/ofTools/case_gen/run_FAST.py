@@ -11,20 +11,20 @@ try:
     from weis.aeroelasticse.runFAST_pywrapper   import runFAST_pywrapper_batch
     in_weis = True
 except:
-    from ROSCO_toolbox.ofTools.case_gen.runFAST_pywrapper   import runFAST_pywrapper_batch
+    from rosco.toolbox.ofTools.case_gen.runFAST_pywrapper   import runFAST_pywrapper_batch
     in_weis = False
-from ROSCO_toolbox.ofTools.case_gen.CaseGen_IEC         import CaseGen_IEC
-from ROSCO_toolbox.ofTools.case_gen.CaseGen_General     import CaseGen_General
-from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
+from rosco.toolbox.ofTools.case_gen.CaseGen_IEC         import CaseGen_IEC
+from rosco.toolbox.ofTools.case_gen.CaseGen_General     import CaseGen_General
+from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 from wisdem.commonse.mpi_tools              import MPI
 import sys, os, platform, pickle
 import collections.abc
 import numpy as np
-from ROSCO_toolbox import utilities as ROSCO_utilities
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox import utilities as ROSCO_utilities
+from rosco.toolbox.inputs.validation import load_rosco_yaml
 
-from ROSCO_toolbox import controller as ROSCO_controller
-from ROSCO_toolbox import turbine as ROSCO_turbine
+from rosco.toolbox import controller as ROSCO_controller
+from rosco.toolbox import turbine as ROSCO_turbine
 
 # Globals
 this_dir        = os.path.dirname(os.path.abspath(__file__))

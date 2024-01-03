@@ -1,16 +1,16 @@
 import os, yaml
 import numpy as np
 
-from ROSCO_toolbox.ofTools.case_gen.CaseGen_General import CaseGen_General
-from ROSCO_toolbox.ofTools.case_gen.CaseGen_IEC import CaseGen_IEC
-from ROSCO_toolbox.ofTools.case_gen.HH_WindFile import HH_StepFile, HH_WindFile
+from rosco.toolbox.ofTools.case_gen.CaseGen_General import CaseGen_General
+from rosco.toolbox.ofTools.case_gen.CaseGen_IEC import CaseGen_IEC
+from rosco.toolbox.ofTools.case_gen.HH_WindFile import HH_StepFile, HH_WindFile
 
 # ROSCO 
-from ROSCO_toolbox import controller as ROSCO_controller
-from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox import utilities as ROSCO_utilities
+from rosco.toolbox import controller as ROSCO_controller
+from rosco.toolbox import turbine as ROSCO_turbine
+from rosco.toolbox import utilities as ROSCO_utilities
 
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox.inputs.validation import load_rosco_yaml
 
 # Globals
 this_dir        = os.path.dirname(os.path.abspath(__file__))
@@ -507,7 +507,7 @@ def sweep_ps_percent(start_group, **control_sweep_opts):
         turbine_params      = inps['turbine_params']
         controller_params   = inps['controller_params']
 
-        # make default controller, turbine objects for ROSCO_toolbox
+        # make default controller, turbine objects for rosco.toolbox
         turbine             = ROSCO_turbine.Turbine(turbine_params)
         turbine.load_from_fast( path_params['FAST_InputFile'],path_params['FAST_directory'])
 
@@ -559,7 +559,7 @@ def sweep_yaml_input(start_group, **control_sweep_opts):
     path_params         = inps['path_params']
     turbine_params      = inps['turbine_params']
 
-    # make default controller, turbine objects for ROSCO_toolbox
+    # make default controller, turbine objects for rosco.toolbox
     turbine             = ROSCO_turbine.Turbine(turbine_params)
     yaml_dir            = os.path.dirname(control_param_yaml)
     turbine.load_from_fast( path_params['FAST_InputFile'],os.path.join(yaml_dir,path_params['FAST_directory']))
@@ -609,7 +609,7 @@ def check_inputs(control_sweep_opts,required_inputs):
 #     turbine_params      = inps['turbine_params']
 #     controller_params   = inps['controller_params']
 
-#     # make default controller, turbine objects for ROSCO_toolbox
+#     # make default controller, turbine objects for rosco.toolbox
 #     turbine             = ROSCO_turbine.Turbine(turbine_params)
 #     turbine.load_from_fast( path_params['FAST_InputFile'],path_params['FAST_directory'])
 

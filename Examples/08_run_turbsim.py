@@ -8,7 +8,7 @@ In this example:
 '''
 
 # ROSCO toolbox modules 
-from ROSCO_toolbox.utilities import run_openfast
+from rosco.toolbox.utilities import run_openfast
 import os
 
 this_dir = os.path.dirname(os.path.abspath(__file__))

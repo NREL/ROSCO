@@ -9,11 +9,11 @@ Demonstrate a simulation with a generator reference speed that changes with esti
 '''
 
 import os, platform
-from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
-from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
-from ROSCO_toolbox.tune import yaml_to_objs
+from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
+from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
+from rosco.toolbox.tune import yaml_to_objs
 import numpy as np
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox.inputs.validation import load_rosco_yaml
 import matplotlib.pyplot as plt
 
 '''

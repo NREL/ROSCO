@@ -3,7 +3,7 @@ Update the DISCON.IN examples in the ROSCO repository using the Tune_Case/ .yaml
 
 '''
 import os
-from ROSCO_toolbox.ofTools.fast_io.update_discons import update_discons
+from rosco.toolbox.ofTools.fast_io.update_discons import update_discons
 
 
 if __name__=="__main__":

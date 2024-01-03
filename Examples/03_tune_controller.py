@@ -14,10 +14,10 @@ In this example:
 import matplotlib.pyplot as plt 
 import os 
 # ROSCO toolbox modules 
-from ROSCO_toolbox import controller as ROSCO_controller
-from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox.utilities import write_DISCON
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox import controller as ROSCO_controller
+from rosco.toolbox import turbine as ROSCO_turbine
+from rosco.toolbox.utilities import write_DISCON
+from rosco.toolbox.inputs.validation import load_rosco_yaml
 
 
 # Load yaml file 

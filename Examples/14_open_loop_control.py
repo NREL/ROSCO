@@ -16,14 +16,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # ROSCO toolbox modules 
-from ROSCO_toolbox import controller as ROSCO_controller
-from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox import utilities as ROSCO_utilities
-from ROSCO_toolbox.ofTools.fast_io import output_processing
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
-from ROSCO_toolbox.ofTools.case_gen.CaseLibrary import set_channels
-from ROSCO_toolbox.ofTools.case_gen.runFAST_pywrapper   import runFAST_pywrapper, runFAST_pywrapper_batch
-from ROSCO_toolbox.ofTools.case_gen.CaseGen_General     import CaseGen_General
+from rosco.toolbox import controller as ROSCO_controller
+from rosco.toolbox import turbine as ROSCO_turbine
+from rosco.toolbox import utilities as ROSCO_utilities
+from rosco.toolbox.ofTools.fast_io import output_processing
+from rosco.toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox.ofTools.case_gen.CaseLibrary import set_channels
+from rosco.toolbox.ofTools.case_gen.runFAST_pywrapper   import runFAST_pywrapper, runFAST_pywrapper_batch
+from rosco.toolbox.ofTools.case_gen.CaseGen_General     import CaseGen_General
 
 
 

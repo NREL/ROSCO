@@ -2,10 +2,10 @@ import os
 import numpy as np
 import multiprocessing as mp
 import matplotlib.pyplot as plt
-from ROSCO_toolbox.control_interface import wfc_zmq_server
-from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
-from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
-from ROSCO_toolbox.ofTools.fast_io import output_processing
+from rosco.toolbox.control_interface import wfc_zmq_server
+from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
+from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
+from rosco.toolbox.ofTools.fast_io import output_processing
 
 
 this_dir = os.path.dirname(os.path.abspath(__file__))

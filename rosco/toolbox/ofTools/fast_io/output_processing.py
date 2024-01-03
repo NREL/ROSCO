@@ -17,7 +17,7 @@ from itertools import takewhile
 import struct
 import multiprocessing as mp
 
-from ROSCO_toolbox.ofTools.util import spectral
+from rosco.toolbox.ofTools.util import spectral
 
 class output_processing():
     '''

@@ -12,9 +12,9 @@ In this example:
 # Python modules
 import os 
 # ROSCO toolbox modules 
-from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox.utilities import write_rotor_performance
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox import turbine as ROSCO_turbine
+from rosco.toolbox.utilities import write_rotor_performance
+from rosco.toolbox.inputs.validation import load_rosco_yaml
 # Initialize parameter dictionaries
 turbine_params = {}
 control_params = {}

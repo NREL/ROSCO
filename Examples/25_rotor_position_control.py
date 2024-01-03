@@ -8,10 +8,10 @@ Run a steady simulation, use the azimuth output as an input to the next steady s
 '''
 
 import os, platform
-from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
-from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
-from ROSCO_toolbox.ofTools.fast_io import output_processing
-from ROSCO_toolbox.controller import OpenLoopControl
+from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
+from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
+from rosco.toolbox.ofTools.fast_io import output_processing
+from rosco.toolbox.controller import OpenLoopControl
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
