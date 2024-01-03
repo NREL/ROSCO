@@ -337,7 +337,7 @@ class wfc_zmq_server:
     # Read the interface file to obtain the structure of measurements and setpoints
     interface_file = os.path.realpath(
         os.path.join(
-            os.path.dirname(__file__), "../ROSCO/rosco_registry/wfc_interface.yaml"
+            os.path.dirname(__file__), "../controller/rosco_registry/wfc_interface.yaml"
         )
     )
     wfc_interface = load_yaml(interface_file)

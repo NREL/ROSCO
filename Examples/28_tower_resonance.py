@@ -36,7 +36,7 @@ else:
 def main():
 
     # Input yaml and output directory
-    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW.yaml')
+    parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW.yaml')
     run_dir = os.path.join(example_out_dir,'28_TRA_Ramp_0')
     os.makedirs(run_dir,exist_ok=True)
 
@@ -47,7 +47,7 @@ def main():
 
     reader = InputReader_OpenFAST()
     reader.FAST_InputFile = path_params['FAST_InputFile']
-    reader.FAST_directory = os.path.join(rosco_dir,'Tune_Cases',path_params['FAST_directory'])
+    reader.FAST_directory = os.path.join(this_dir,'Tune_Cases',path_params['FAST_directory'])
     # reader.FAST_directory = '/Users/dzalkind/Tools/ROSCO1/Test_Cases/ptfm_control_archive/IEA-15-240-RWT-UMaineSemi_ballast'
     reader.execute()
 

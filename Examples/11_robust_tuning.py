@@ -28,7 +28,7 @@ def run_example():
     # Shorthand directories
     this_dir = os.path.dirname(os.path.abspath(__file__))
     tune_dir = os.path.join(this_dir, 'Tune_Cases')
-    test_dir = os.path.join(this_dir, '../Test_Cases')
+    test_dir = os.path.join(this_dir, 'Test_Cases')
 
     # ROSCO options
     parameter_filename = os.path.join(tune_dir, 'IEA15MW_robust.yaml')
@@ -81,7 +81,7 @@ def run_example():
     options['path_options'] = path_options
     options['opt_options'] = opt_options
 
-    options['linturb_options']['linfile_path'] = os.path.join(this_dir, options['linturb_options']['linfile_path'])
+    options['linturb_options']['linfile_path'] = os.path.join(tune_dir, options['linturb_options']['linfile_path'])
 
     # Run robust scheduling
     sd = rsched_driver(options)

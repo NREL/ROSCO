@@ -31,17 +31,17 @@ example_out_dir     = os.path.join(this_dir,'examples_out')
 os.makedirs(example_out_dir,exist_ok=True)
 
 if platform.system() == 'Windows':
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.dll'))
+    lib_name = os.path.realpath(os.path.join(this_dir, '../rosco/controller/build/libdiscon.dll'))
 elif platform.system() == 'Darwin':
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.dylib'))
+    lib_name = os.path.realpath(os.path.join(this_dir, '../rosco/controller/build/libdiscon.dylib'))
 else:
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.so'))
+    lib_name = os.path.realpath(os.path.join(this_dir, '../rosco/controller/build/libdiscon.so'))
 
 
 def main():
 
     # Input yaml and output directory
-    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW.yaml')
+    parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW.yaml')
     run_dir = os.path.join(example_out_dir,'27_PRC_0')
     os.makedirs(run_dir,exist_ok=True)
 

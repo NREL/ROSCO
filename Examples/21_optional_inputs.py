@@ -22,11 +22,11 @@ def main():
 
     # Set up rosco_dll
     if platform.system() == 'Windows':
-        rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.dll')
+        rosco_dll = os.path.join(rosco_dir, 'rosco/controller/build/libdiscon.dll')
     elif platform.system() == 'Darwin':
-        rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.dylib')
+        rosco_dll = os.path.join(rosco_dir, 'rosco/controller/build/libdiscon.dylib')
     else:
-        rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.so')
+        rosco_dll = os.path.join(rosco_dir, 'rosco/controller/build/libdiscon.so')
 
     # Load turbine model from saved pickle
     turbine         = ROSCO_turbine.Turbine

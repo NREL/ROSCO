@@ -28,6 +28,8 @@ from rosco.toolbox.ofTools.case_gen.CaseGen_General     import CaseGen_General
 
 
 this_dir          = os.path.dirname(os.path.abspath(__file__))
+tune_dir =  os.path.join(this_dir,'Tune_Cases')
+
 rosco_dir         = os.path.dirname(this_dir)
 example_out_dir   = os.path.join(this_dir,'examples_out')
 example_out_dir = os.path.join(this_dir,'examples_out')
@@ -35,7 +37,7 @@ if not os.path.isdir(example_out_dir):
   os.makedirs(example_out_dir)
 
 # Load yaml file (Open Loop Case)
-parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW_OL.yaml')
+parameter_filename = os.path.join(tune_dir, 'IEA15MW_OL.yaml')
 
 inps = load_rosco_yaml(parameter_filename)
 path_params         = inps['path_params']
@@ -75,9 +77,9 @@ controller      = ROSCO_controller.Controller(controller_params)
 
 # Load turbine data from OpenFAST and rotor performance text file
 turbine.load_from_fast(path_params['FAST_InputFile'], \
-  os.path.join(this_dir,path_params['FAST_directory']), \
+  os.path.join(tune_dir,path_params['FAST_directory']), \
     rot_source='txt',\
-      txt_filename=os.path.join(this_dir,path_params['rotor_performance_filename']))
+      txt_filename=os.path.join(tune_dir,path_params['rotor_performance_filename']))
 
 # Tune controller 
 controller.tune_controller(turbine)
@@ -103,7 +105,7 @@ case_inputs[('ServoDyn','DLL_FileName')] = {'vals': [rosco_dll], 'group': 0}
 discon_vt = ROSCO_utilities.DISCON_dict(
   turbine, 
 controller, 
-txt_filename=os.path.join(this_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
+txt_filename=os.path.join(tune_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
 )
 for discon_input in discon_vt:
     case_inputs[('DISCON_in',discon_input)] = {'vals': [discon_vt[discon_input]], 'group': 0}
@@ -124,7 +126,7 @@ channels = set_channels()
 # Run FAST cases
 fastBatch                   = runFAST_pywrapper_batch()
 
-fastBatch.FAST_directory    = os.path.realpath(os.path.join(rosco_dir,'Tune_Cases',path_params['FAST_directory']))
+fastBatch.FAST_directory    = os.path.realpath(os.path.join(tune_dir,path_params['FAST_directory']))
 fastBatch.FAST_InputFile    = path_params['FAST_InputFile']        
 fastBatch.channels          = channels
 fastBatch.FAST_runDirectory = run_dir

@@ -46,7 +46,7 @@ else:
 def main():
 
     # Input yaml and output directory
-    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW_ballast.yaml')
+    parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW_ballast.yaml')
     run_dir = os.path.join(example_out_dir,'23_structural_control')
     os.makedirs(run_dir,exist_ok=True)
 
@@ -57,7 +57,7 @@ def main():
     # Change inputs programatically, read first
     reader = InputReader_OpenFAST()
     reader.FAST_InputFile = path_params['FAST_InputFile']
-    reader.FAST_directory = os.path.join(rosco_dir,'Tune_Cases',path_params['FAST_directory'])
+    reader.FAST_directory = os.path.join(this_dir,'Tune_Cases',path_params['FAST_directory'])
     # reader.FAST_directory = '/Users/dzalkind/Tools/ROSCO1/Test_Cases/ptfm_control_archive/IEA-15-240-RWT-UMaineSemi_ballast'
     reader.execute()
 

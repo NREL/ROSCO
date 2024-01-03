@@ -43,11 +43,11 @@ if not os.path.isdir(example_out_dir):
   os.makedirs(example_out_dir)
 
 if platform.system() == 'Windows':
-    lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.dll')
+    lib_name = os.path.join(this_dir, '../rosco/controller/build/libdiscon.dll')
 elif platform.system() == 'Darwin':
-    lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.dylib')
+    lib_name = os.path.join(this_dir, '../rosco/controller/build/libdiscon.dylib')
 else:
-    lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.so')
+    lib_name = os.path.join(this_dir, '../rosco/controller/build/libdiscon.so')
 
 # # Load turbine model from saved pickle
 turbine         = ROSCO_turbine.Turbine

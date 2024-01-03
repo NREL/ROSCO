@@ -37,7 +37,7 @@ controller_params   = inps['controller_params']
 turbine = ROSCO_turbine.Turbine(turbine_params)
 turbine.load_from_fast(
     path_params['FAST_InputFile'],
-    os.path.join(this_dir,path_params['FAST_directory']),
+    os.path.join(tune_dir,path_params['FAST_directory']),
     rot_source='cc-blade',
     txt_filename=None)
 

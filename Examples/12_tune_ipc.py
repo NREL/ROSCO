@@ -26,12 +26,11 @@ def main():
   run_dir = os.path.join(example_out_dir, example_name)
 
   # Load yaml file (Open Loop Case)
-  parameter_filename = os.path.join(rosco_dir,'Tune_Cases/NREL2p8.yaml')
+  parameter_filename = os.path.join(this_dir,'Tune_Cases/NREL2p8.yaml')
 
   case_inputs = {}
   case_inputs[('ServoDyn','Ptch_Cntrl')]   = {'vals': [1], 'group': 0}
   case_inputs[('DISCON_in','IPC_SatMode')]   = {'vals': [0,1,2,3], 'group': 1}
-
   
 
   # simulation set up

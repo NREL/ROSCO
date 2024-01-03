@@ -32,7 +32,7 @@ os.makedirs(example_out_dir,exist_ok=True)
 def main():
 
     # Input yaml and output directory
-    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/RM1_MHK.yaml')
+    parameter_filename = os.path.join(this_dir,'Tune_Cases/RM1_MHK.yaml')
     run_dir = os.path.join(example_out_dir,'26_MHK/0_baseline')
     os.makedirs(run_dir,exist_ok=True)
 

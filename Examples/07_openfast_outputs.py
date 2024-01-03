@@ -8,7 +8,7 @@ In this example:
   - Trim the time series
   - Plot some available channels
 
-Note: need to run openfast model in '../Test_Cases/5MW_Land_DLL_WTurb/' to plot
+Note: need to run openfast model in 'Test_Cases/5MW_Land_DLL_WTurb/' to plot
 '''
 
 # Python Modules
@@ -24,7 +24,7 @@ if not os.path.isdir(example_out_dir):
   os.makedirs(example_out_dir)
 
 # Define openfast output filenames
-filenames = ["../Test_Cases/IEA-15-240-RWT-UMaineSemi/IEA-15-240-RWT-UMaineSemi.outb"]
+filenames = ["Test_Cases/IEA-15-240-RWT-UMaineSemi/IEA-15-240-RWT-UMaineSemi.outb"]
 # ---- Note: Could load and plot multiple cases, textfiles, and binaries...
 # filenames = ["../Test_Cases/NREL-5MW/NREL-5MW.outb",
 #             "../Test_Cases/NREL-5MW/NREL-5MW_ex8.outb"]

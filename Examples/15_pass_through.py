@@ -24,7 +24,7 @@ def main():
      # Simulation config    
     r = run_FAST_ROSCO()
 
-    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/NREL5MW_PassThrough.yaml')
+    parameter_filename = os.path.join(this_dir,'Tune_Cases/NREL5MW_PassThrough.yaml')
     run_dir = os.path.join(example_out_dir,'15_PassThrough')
     os.makedirs(run_dir,exist_ok=True)
 

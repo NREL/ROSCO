@@ -38,7 +38,7 @@ os.makedirs(example_out_dir,exist_ok=True)
 def main():
 
     # Input yaml and output directory
-    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW_cable.yaml')
+    parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW_cable.yaml')
     run_dir = os.path.join(example_out_dir,'22_cable_control')
     os.makedirs(run_dir,exist_ok=True)
 
@@ -49,7 +49,7 @@ def main():
     # Change inputs programatically, read first
     reader = InputReader_OpenFAST()
     reader.FAST_InputFile = path_params['FAST_InputFile']
-    reader.FAST_directory = os.path.join(rosco_dir,'Tune_Cases',path_params['FAST_directory'])
+    reader.FAST_directory = os.path.join(this_dir,'Tune_Cases',path_params['FAST_directory'])
     reader.execute()
 
     # Set control line mapping (ChannelID -> Line(s))
