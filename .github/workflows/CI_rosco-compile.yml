@@ -45,7 +45,7 @@ jobs:
       # Re-generate registry
       - name: Generate Registry
         shell: bash -l {0}
-        run: rosco/controller/rosco_registry/write_registry.py 
+        run: python rosco/controller/rosco_registry/write_registry.py 
           
       - name: Add dependencies windows 
         if: true == contains( matrix.os, 'windows')
