@@ -37,7 +37,7 @@ all_scripts = [
 
 def execute_script(fscript):
     examples_dir = os.path.dirname(os.path.realpath(__file__))
-    test_case_dir = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)),'../Test_Cases'))
+    test_case_dir = os.path.join(examples_dir,'Test_Cases')
 
     # Go to location due to relative path use for airfoil files
     print("\n\n")

@@ -92,11 +92,11 @@ ROSCO_utilities.write_DISCON(turbine,controller,param_file=param_file, txt_filen
 
 # Set rosco_dll
 if platform.system() == 'Windows':
-    rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.dll')
+    rosco_dll = os.path.join(rosco_dir, 'rosco/controller/build/libdiscon.dll')
 elif platform.system() == 'Darwin':
-    rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.dylib')
+    rosco_dll = os.path.join(rosco_dir, 'rosco/controller/build/libdiscon.dylib')
 else:
-    rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.so')
+    rosco_dll = os.path.join(rosco_dir, 'rosco/controller/build/libdiscon.so')
 
 case_inputs = {}
 case_inputs[('ServoDyn','DLL_FileName')] = {'vals': [rosco_dll], 'group': 0}
@@ -152,7 +152,7 @@ fo = fastout[0]
 tt = fo['Time']
 valid_ind = tt > 2  # first few timesteps can differ, depending on OpenFAST solve config
 
-# Computer errors
+# Compute errors
 nacelle_yaw_diff = fo['NacYaw'][valid_ind] - np.degrees(np.interp(tt[valid_ind],olc.ol_timeseries['time'],olc.ol_timeseries['nacelle_yaw']))
 bld_pitch_diff = fo['BldPitch1'][valid_ind] - np.degrees(np.interp(tt[valid_ind],olc.ol_timeseries['time'],olc.ol_timeseries['blade_pitch']))
 gen_tq_diff = fo['GenTq'][valid_ind] - np.interp(tt[valid_ind],olc.ol_timeseries['time'],olc.ol_timeseries['generator_torque'])/1e3
