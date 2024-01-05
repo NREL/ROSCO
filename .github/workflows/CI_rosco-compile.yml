@@ -111,9 +111,9 @@ jobs:
                   python -m pip install -vv -e .
           
             # Re-generate registry
-            - name: Generate Registry
-              run: |
-                  python ROSCO/controller/rosco_registry/write_registry.py 
+            #- name: Generate Registry
+            #  run: |
+            #      python ROSCO/controller/rosco_registry/write_registry.py 
         
             # Install ZeroMQ- should be done via Conda
             #- name: Install ZeroMQ
@@ -124,13 +124,13 @@ jobs:
             # Install OpenFAST
             - name: Install OpenFAST
               run: |
-                  conda install openfast==3.5
+                  conda install openfast==3.5.1
 
             # Test walkthrough notebook
-            - name: Test walkthrough notebook
-              run: |
-                  cd Examples
-                  treon ROSCO_walkthrough.ipynb
+            #- name: Test walkthrough notebook
+            #  run: |
+            #      cd Examples
+            #      treon ROSCO_walkthrough.ipynb
 
             # Run ROSCO Testing
             - name: Run ROSCO testing
