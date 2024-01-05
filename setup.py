@@ -68,7 +68,6 @@ class CMakeBuildExt(build_ext):
             cmake_args = ['-DBUILD_SHARED_LIBS=OFF']
             cmake_args += ['-DCMAKE_Fortran_FLAGS=-ffree-line-length-0']
             cmake_args += ['-DCMAKE_INSTALL_PREFIX={}'.format(this_directory)]
-            cmake_args += ['-DZMQ_CLIENT=ON']
             if "CONDA_PREFIX" in os.environ:
                 cmake_args += [f"-DCMAKE_PREFIX_PATH={os.environ['CONDA_PREFIX']}"]
                 

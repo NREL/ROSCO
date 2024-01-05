@@ -26,13 +26,6 @@ set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -libs:static -free -static -fpp 
 endif()
 endif()
 
-# Enable ZMQ_Client if compiler flag is set
-option(ZMQ_CLIENT "Enable use of ZeroMQ client" off)
-if(ZMQ_Client)
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -lzmq")
-endif()
-
-
 set(SOURCES
     src/Constants.f90
     src/ControllerBlocks.f90
@@ -69,11 +62,11 @@ else (NWTC_SYS_FILE)
   message(FATAL_ERROR "Cannot determine system file used with NWTC_Library")
 endif (NWTC_SYS_FILE)
 
-# Library
-if(ZMQ_CLIENT)
+# ZMQ Library
+find_package(PkgConfig)
+pkg_check_modules(PC_ZeroMQ libzmq)
+if(PC_ZeroMQ_FOUND)
 	# Find ZeroMQ installation
-	find_package(PkgConfig)
-	pkg_check_modules(PC_ZeroMQ libzmq)
 	find_path(ZeroMQ_INCLUDE_DIR
 			NAMES zmq.h
 			PATHS ${PC_ZeroMQ_INCLUDE_DIRS}
@@ -84,6 +77,7 @@ if(ZMQ_CLIENT)
 			)
 	include_directories(${ZeroMQ_INCLUDE_DIR})
 
+	set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -lzmq")
 
 	# Compile C-based ZeroMQ client as object library
 	add_compile_options(-I${ZeroMQ_INCLUDE_DIR} -l${ZeroMQ_LIBRARY} -fPIC)

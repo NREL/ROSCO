@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "cmake", "numpy", "wheel"]
+requires = ["setuptools", "cmake", "numpy", "wheel", "pyzmq"]
 build-backend = "setuptools.build_meta"
 
 [project]
