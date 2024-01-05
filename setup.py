@@ -73,6 +73,9 @@ class CMakeBuildExt(build_ext):
                 
 
             if platform.system() == 'Windows':
+                if not "FC" in os.environ:
+                    os.environ["FC"] = "gfortran"
+                    
                 if "gfortran" in os.environ["FC"].lower():
                     cmake_args += ['-G', 'MinGW Makefiles']
                 elif self.compiler.compiler_type == 'msvc':
