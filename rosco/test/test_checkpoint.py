@@ -27,11 +27,11 @@ from rosco.toolbox.utilities import run_openfast
 class RegressionTesting(unittest.TestCase):
     def test_restart(self):
         this_dir = os.path.dirname(os.path.abspath(__file__))
-        rosco_dir = os.path.dirname(this_dir)
+        rosco_dir = os.path.dirname(this_dir)   # ROSCO/rosco
         test_out_dir = os.path.join(this_dir, 'test_out')
 
         # Load yaml file (Open Loop Case)
-        parameter_filename = os.path.join(rosco_dir, 'Tune_Cases/IEA15MW.yaml')
+        parameter_filename = os.path.join(rosco_dir, '../Examples/Tune_Cases/IEA15MW.yaml')
 
         inps = load_rosco_yaml(parameter_filename)
         path_params = inps['path_params']
@@ -40,11 +40,11 @@ class RegressionTesting(unittest.TestCase):
 
         # Set rosco_dll
         if platform.system() == 'Windows':
-            rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.dll')
+            rosco_dll = os.path.join(rosco_dir, 'controller/build/libdiscon.dll')
         elif platform.system() == 'Darwin':
-            rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.dylib')
+            rosco_dll = os.path.join(rosco_dir, 'controller/build/libdiscon.dylib')
         else:
-            rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.so')
+            rosco_dll = os.path.join(rosco_dir, 'controller/build/libdiscon.so')
 
         case_inputs = {}
         case_inputs[('Fst', 'TMax')] = {'vals': [3.], 'group': 0}
@@ -67,7 +67,7 @@ class RegressionTesting(unittest.TestCase):
         reader = InputReader_OpenFAST()
         writer = InputWriter_OpenFAST()
         reader.FAST_InputFile = path_params['FAST_InputFile']
-        reader.FAST_directory = os.path.realpath(os.path.join( rosco_dir, 'Tune_Cases', path_params['FAST_directory']))
+        reader.FAST_directory = os.path.realpath(os.path.join( rosco_dir, '..', 'Examples', 'Tune_Cases', path_params['FAST_directory']))
         reader.execute()
         writer.fst_vt = reader.fst_vt
         writer.FAST_runDirectory = test_out_dir

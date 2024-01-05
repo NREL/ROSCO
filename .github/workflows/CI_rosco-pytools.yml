@@ -222,5 +222,5 @@ jobs:
       # Regression testing
       - name: Run regression testing
         run: |
-          cd ROSCO_testing
+          cd rosco/test
           python test_checkpoint.py
