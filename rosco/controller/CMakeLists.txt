@@ -77,7 +77,7 @@ if(PC_ZeroMQ_FOUND)
 			)
 	include_directories(${ZeroMQ_INCLUDE_DIR})
 
-	set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -L${PC_ZeroMQ_DIR} -lzmq")
+	set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -L${PC_ZeroMQ_LIBRARY_DIRS} -lzmq")
 
 	# Compile C-based ZeroMQ client as object library
 	add_compile_options(-I${ZeroMQ_INCLUDE_DIR} -l${ZeroMQ_LIBRARY} -fPIC)
