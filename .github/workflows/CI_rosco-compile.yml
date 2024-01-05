@@ -43,9 +43,9 @@ jobs:
                   '${{ steps.cp.outputs.python-path }}' -m pip install -vv -e .
           
             # Re-generate registry
-            - name: Generate Registry
-              run: |
-                  '${{ steps.cp.outputs.python-path }}' ROSCO/controller/rosco_registry/write_registry.py 
+            #- name: Generate Registry
+            #  run: |
+            #      '${{ steps.cp.outputs.python-path }}' ROSCO/controller/rosco_registry/write_registry.py 
 
             - name: Test run
               run: |
