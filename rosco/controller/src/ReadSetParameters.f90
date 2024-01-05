@@ -55,25 +55,29 @@ CONTAINS
         LocalVar%Azimuth            = avrSWAP(60)
         LocalVar%NumBl              = NINT(avrSWAP(61))
 
-        ! Platform signals 
-        LocalVar%PtfmTDX            = avrSWAP(1001)
-        LocalVar%PtfmTDY            = avrSWAP(1002)
-        LocalVar%PtfmTDZ            = avrSWAP(1003)
-        LocalVar%PtfmRDX            = avrSWAP(1004)
-        LocalVar%PtfmRDY            = avrSWAP(1005)
-        LocalVar%PtfmRDZ            = avrSWAP(1006)
-        LocalVar%PtfmTVX            = avrSWAP(1007)
-        LocalVar%PtfmTVY            = avrSWAP(1008)
-        LocalVar%PtfmTVZ            = avrSWAP(1009)
-        LocalVar%PtfmRVX            = avrSWAP(1010)
-        LocalVar%PtfmRVY            = avrSWAP(1011)
-        LocalVar%PtfmRVZ            = avrSWAP(1012)
-        LocalVar%PtfmTAX            = avrSWAP(1013)
-        LocalVar%PtfmTAY            = avrSWAP(1014)
-        LocalVar%PtfmTAZ            = avrSWAP(1015)
-        LocalVar%PtfmRAX            = avrSWAP(1016)
-        LocalVar%PtfmRAY            = avrSWAP(1017)
-        LocalVar%PtfmRAZ            = avrSWAP(1018)
+        if (CntrPar%Ext_Interface > 0) THEN ! Use extended bladed interface
+
+            ! Platform signals 
+            LocalVar%PtfmTDX            = avrSWAP(1001)
+            LocalVar%PtfmTDY            = avrSWAP(1002)
+            LocalVar%PtfmTDZ            = avrSWAP(1003)
+            LocalVar%PtfmRDX            = avrSWAP(1004)
+            LocalVar%PtfmRDY            = avrSWAP(1005)
+            LocalVar%PtfmRDZ            = avrSWAP(1006)
+            LocalVar%PtfmTVX            = avrSWAP(1007)
+            LocalVar%PtfmTVY            = avrSWAP(1008)
+            LocalVar%PtfmTVZ            = avrSWAP(1009)
+            LocalVar%PtfmRVX            = avrSWAP(1010)
+            LocalVar%PtfmRVY            = avrSWAP(1011)
+            LocalVar%PtfmRVZ            = avrSWAP(1012)
+            LocalVar%PtfmTAX            = avrSWAP(1013)
+            LocalVar%PtfmTAY            = avrSWAP(1014)
+            LocalVar%PtfmTAZ            = avrSWAP(1015)
+            LocalVar%PtfmRAX            = avrSWAP(1016)
+            LocalVar%PtfmRAY            = avrSWAP(1017)
+            LocalVar%PtfmRAZ            = avrSWAP(1018)
+
+        ENDIF
 
         ! GenTemp = avrSWAP(1026)
 
@@ -331,6 +335,7 @@ CONTAINS
         !----------------------- Simulation Control --------------------------
         CALL ParseInput(FileLines,'LoggingLevel',   CntrPar%LoggingLevel,       accINFILE(1), ErrVar, .TRUE., UnEc=UnEc)
         CALL ParseInput(FileLines,'DT_Out',         CntrPar%DT_Out,             accINFILE(1), ErrVar, .TRUE., UnEc=UnEc)
+        CALL ParseInput(FileLines,'Ext_Interface',  CntrPar%Ext_Interface,      accINFILE(1), ErrVar, .TRUE., UnEc=UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !----------------- CONTROLLER FLAGS ---------------------
@@ -1399,6 +1404,13 @@ CONTAINS
         END IF
 
         IF (CntrPar%CC_Mode > 0) THEN
+
+            ! Extended avrSWAP must be used
+            IF (CntrPar%Ext_Interface == 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'The OpenFAST extended bladed interface must be used with Ext_Interface > 0 in the DISCON'
+            ENDIF
+
             IF (CntrPar%CC_ActTau .LE. 0) THEN
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg = 'CC_ActTau must be greater than 0.'
@@ -1413,6 +1425,14 @@ CONTAINS
         END IF
 
         IF (CntrPar%StC_Mode > 0) THEN
+
+            ! Extended avrSWAP must be used
+            IF (CntrPar%Ext_Interface == 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'The OpenFAST extended bladed interface must be used with Ext_Interface > 0 in the DISCON'
+            ENDIF
+
+            ! Check indices
             DO I = 1,CntrPar%StC_Group_N
                 IF (CntrPar%StC_GroupIndex(I) < 2801) THEN
                     ErrVar%aviFAIL = -1
