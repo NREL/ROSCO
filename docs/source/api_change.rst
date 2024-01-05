@@ -11,7 +11,7 @@ Thus, be sure to implement each in order so that subsequent line numbers are cor
 
 2.8.0 to develop
 -------------------------------
-**Flag to use exteneded Bladed Interface
+**Flag to use exteneded Bladed Interface**
 
 *  Set `Ext_Interface` to 1 to use the extened bladed interface with OpenFAST v3.5.0 and greater
 
