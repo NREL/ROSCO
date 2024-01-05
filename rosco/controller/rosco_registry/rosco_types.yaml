@@ -83,6 +83,9 @@ ControlParameters:
     Echo: 
       <<: *integer
       description: 0 - no Echo, 1 - Echo input data to <RootName>.echo
+    Ext_Interface: 
+      <<: *integer
+      description: 0 - use standard bladed interface, 1 - Use the extened DLL interface introduced in OpenFAST 3.5.0.
     
     DT_Out: 
       <<: *real

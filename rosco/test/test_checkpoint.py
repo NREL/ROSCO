@@ -70,6 +70,7 @@ class RegressionTesting(unittest.TestCase):
         writer = InputWriter_OpenFAST()
         reader.FAST_InputFile = path_params['FAST_InputFile']
         reader.FAST_directory = os.path.realpath(os.path.join( tune_directory, path_params['FAST_directory']))
+
         reader.execute()
         writer.fst_vt = reader.fst_vt
         writer.FAST_runDirectory = test_out_dir
