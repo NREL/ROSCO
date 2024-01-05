@@ -72,9 +72,8 @@ endif (NWTC_SYS_FILE)
 # Library
 if(ZMQ_CLIENT)
 	# Find ZeroMQ installation
-	find_package(PC_ZeroMQ NAMES libzmq)
-	#find_package(PkgConfig)
-	#pkg_check_modules(PC_ZeroMQ libzmq)
+	find_package(PkgConfig)
+	pkg_check_modules(PC_ZeroMQ libzmq)
 	find_path(ZeroMQ_INCLUDE_DIR
 			NAMES zmq.h
 			PATHS ${PC_ZeroMQ_INCLUDE_DIRS}
