@@ -18,13 +18,15 @@ Thus, be sure to implement each in order so that subsequent line numbers are cor
 **Gain scheduling of floating feedback**
 
 *  The floating feedback gain can be scheduled on the low pass filtered wind speed signal.  Note that Fl_Kp can now be an array.
+
+**Rotor position tracking**
+*  Control the azimuth position of the rotor with `OL_Mode` of 2 using a PID torque controller with gains defined by `RP_Gains`.
 *  Control all three blade pitch inputs in open loop
-*  Rotor position control of azimuth position with PID (RP_Gains) control inputs
 
 **New torque control mode settings**
 
-*  VS_ControlMode determines how the generator speed set point is determined: using the WSE or (P/K)^(1/3)
-*  VS_ConstPower determines whether constant power is used
+*  VS_ControlMode determines how the generator speed set point is determined: using the WSE (mode 2) or (P/K)^(1/3) (mode 3).  The power signal in mode 3 is filtered using `VS_PwrFiltF`.
+*  VS_ConstPower determines whether constant power is used (0 is constant torque, 1 is constant power)
 
 **Multiple notch filters**
 
