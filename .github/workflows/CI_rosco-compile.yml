@@ -113,8 +113,33 @@ jobs:
             - name: Generate Registry
               run: |
                   python ROSCO/controller/rosco_registry/write_registry.py 
-                   
-            - name: Test run
+        
+            # Install ZeroMQ- should be done via Conda
+            #- name: Install ZeroMQ
+            #  run: |
+            #      sudo apt-get update
+            #      sudo apt-get install libzmq3-dev
+          
+            # Install OpenFAST
+            - name: Install OpenFAST
+              run: |
+                  conda install openfast==3.5
+
+            # Test walkthrough notebook
+            - name: Test walkthrough notebook
               run: |
                   cd Examples
-                  python 01_turbine_model.py
+                  treon ROSCO_walkthrough.ipynb
+
+            # Run ROSCO Testing
+            - name: Run ROSCO testing
+              run: |
+                  cd ROSCO/test
+                  python ROSCO_testing.py
+      
+            # Run checkpoint and all examples
+            - name: Run regression testing
+              run: |
+                  cd ROSCO/test
+                  pytest .
+
