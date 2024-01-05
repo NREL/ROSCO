@@ -367,7 +367,7 @@ CONTAINS
         !----------------- FILTER CONSTANTS ---------------------
         CALL ParseInput(FileLines,  'F_LPFCornerFreq',      CntrPar%F_LPFCornerFreq,                             accINFILE(1), ErrVar, .FALSE., UnEc)
         CALL ParseInput(FileLines,  'F_LPFDamping',         CntrPar%F_LPFDamping,                                accINFILE(1), ErrVar, CntrPar%F_LPFType == 1, UnEc)
-        CALL ParseInput(FileLines,  'F_NumNotchFilts',      CntrPar%F_NumNotchFilts,                             accINFILE(1), ErrVar, .FALSE., UnEc)
+        CALL ParseInput(FileLines,  'F_NumNotchFilts',      CntrPar%F_NumNotchFilts,                             accINFILE(1), ErrVar, .TRUE., UnEc)
         CALL ParseAry(  FileLines,  'F_NotchFreqs',         CntrPar%F_NotchFreqs,       CntrPar%F_NumNotchFilts, accINFILE(1), ErrVar, CntrPar%F_NumNotchFilts == 0, UnEc)
         CALL ParseAry(  FileLines,  'F_NotchBetaNum',       CntrPar%F_NotchBetaNum,     CntrPar%F_NumNotchFilts, accINFILE(1), ErrVar, CntrPar%F_NumNotchFilts == 0, UnEc)
         CALL ParseAry(  FileLines,  'F_NotchBetaDen',       CntrPar%F_NotchBetaDen,     CntrPar%F_NumNotchFilts, accINFILE(1), ErrVar, CntrPar%F_NumNotchFilts == 0, UnEc)
