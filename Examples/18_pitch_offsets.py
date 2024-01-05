@@ -8,9 +8,9 @@ Set up and run simulation with pitch offsets, check outputs
 '''
 
 import os, platform
-from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
-from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
-from ROSCO_toolbox.ofTools.fast_io import output_processing
+from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
+from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
+from rosco.toolbox.ofTools.fast_io import output_processing
 import numpy as np
 
 
@@ -31,7 +31,7 @@ else:
 def main():
 
     # Input yaml and output directory
-    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW.yaml')
+    parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW.yaml')
     run_dir = os.path.join(example_out_dir,'18_PitchFaults')
     os.makedirs(run_dir,exist_ok=True)
     

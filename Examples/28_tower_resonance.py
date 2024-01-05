@@ -8,11 +8,11 @@ Set up and run simulation with tower resonance avoidance
 '''
 
 import os, platform
-from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
-from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
-from ROSCO_toolbox.ofTools.fast_io import output_processing
-from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
+from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
+from rosco.toolbox.ofTools.fast_io import output_processing
+from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+from rosco.toolbox.inputs.validation import load_rosco_yaml
 
 import numpy as np
 
@@ -36,7 +36,7 @@ else:
 def main():
 
     # Input yaml and output directory
-    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW.yaml')
+    parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW.yaml')
     run_dir = os.path.join(example_out_dir,'28_TRA_Ramp_0')
     os.makedirs(run_dir,exist_ok=True)
 
@@ -47,7 +47,7 @@ def main():
 
     reader = InputReader_OpenFAST()
     reader.FAST_InputFile = path_params['FAST_InputFile']
-    reader.FAST_directory = os.path.join(rosco_dir,'Tune_Cases',path_params['FAST_directory'])
+    reader.FAST_directory = os.path.join(this_dir,'Tune_Cases',path_params['FAST_directory'])
     # reader.FAST_directory = '/Users/dzalkind/Tools/ROSCO1/Test_Cases/ptfm_control_archive/IEA-15-240-RWT-UMaineSemi_ballast'
     reader.execute()
 

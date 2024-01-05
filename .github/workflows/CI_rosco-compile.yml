@@ -45,7 +45,7 @@ jobs:
       # Re-generate registry
       - name: Generate Registry
         shell: bash -l {0}
-        run: python ROSCO/rosco_registry/write_registry.py
+        run: python rosco/controller/rosco_registry/write_registry.py 
           
       - name: Add dependencies windows 
         if: true == contains( matrix.os, 'windows')
@@ -60,15 +60,15 @@ jobs:
 
       - name: Setup Workspace
         run: |
-            cmake -E make_directory ${{runner.workspace}}/ROSCO/ROSCO/build
+            cmake -E make_directory ${{runner.workspace}}/ROSCO/rosco/controller/build
 
       - name: Configure and Build - unix
         if: false == contains( matrix.os, 'windows')
         shell: bash -l {0}
-        working-directory: "${{runner.workspace}}/ROSCO/ROSCO/build"
+        working-directory: "${{runner.workspace}}/ROSCO/rosco/controller/build"
         run: |
           cmake \
-            -DCMAKE_INSTALL_PREFIX:PATH=${{runner.workspace}}/ROSCO/ROSCO/install \
+            -DCMAKE_INSTALL_PREFIX:PATH=${{runner.workspace}}/ROSCO/rosco/controller/install \
             -DCMAKE_Fortran_COMPILER:STRING=${{env.FORTRAN_COMPILER}} \
             ..
           cmake --build . --target install
@@ -76,7 +76,7 @@ jobs:
       - name: Configure and Build - windows
         if: true == contains( matrix.os, 'windows')
         #shell: bash #-l {0}
-        working-directory: "${{runner.workspace}}/ROSCO/ROSCO/build"
+        working-directory: "${{runner.workspace}}/ROSCO/rosco/controller/build"
         run: |
-          cmake -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX="${{runner.workspace}}/ROSCO/ROSCO/build" ..
+          cmake -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX="${{runner.workspace}}/ROSCO/rosco/controller/build" ..
           cmake --build . --target install

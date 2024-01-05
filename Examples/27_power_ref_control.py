@@ -9,11 +9,11 @@ Demonstrate a simulation with a generator reference speed that changes with esti
 '''
 
 import os, platform
-from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
-from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
-from ROSCO_toolbox.tune import yaml_to_objs
+from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
+from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
+from rosco.toolbox.tune import yaml_to_objs
 import numpy as np
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox.inputs.validation import load_rosco_yaml
 import matplotlib.pyplot as plt
 
 '''
@@ -31,17 +31,17 @@ example_out_dir     = os.path.join(this_dir,'examples_out')
 os.makedirs(example_out_dir,exist_ok=True)
 
 if platform.system() == 'Windows':
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.dll'))
+    lib_name = os.path.realpath(os.path.join(this_dir, '../rosco/controller/build/libdiscon.dll'))
 elif platform.system() == 'Darwin':
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.dylib'))
+    lib_name = os.path.realpath(os.path.join(this_dir, '../rosco/controller/build/libdiscon.dylib'))
 else:
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.so'))
+    lib_name = os.path.realpath(os.path.join(this_dir, '../rosco/controller/build/libdiscon.so'))
 
 
 def main():
 
     # Input yaml and output directory
-    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW.yaml')
+    parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW.yaml')
     run_dir = os.path.join(example_out_dir,'27_PRC_0')
     os.makedirs(run_dir,exist_ok=True)
 

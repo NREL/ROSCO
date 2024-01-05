@@ -19,17 +19,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os, platform
 # ROSCO toolbox modules 
-from ROSCO_toolbox import controller as ROSCO_controller
-from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox import sim as ROSCO_sim
-from ROSCO_toolbox import control_interface as ROSCO_ci
-from ROSCO_toolbox.utilities import write_DISCON
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox import controller as ROSCO_controller
+from rosco.toolbox import turbine as ROSCO_turbine
+from rosco.toolbox import sim as ROSCO_sim
+from rosco.toolbox import control_interface as ROSCO_ci
+from rosco.toolbox.utilities import write_DISCON
+from rosco.toolbox.inputs.validation import load_rosco_yaml
 
 
 # Load yaml file 
 this_dir = os.path.dirname(os.path.abspath(__file__))
-tune_dir =  os.path.join(this_dir,'../Tune_Cases')
+tune_dir =  os.path.join(this_dir,'Tune_Cases')
 parameter_filename = os.path.join(tune_dir,'NREL5MW.yaml')
 inps = load_rosco_yaml(parameter_filename)
 path_params         = inps['path_params']
@@ -43,11 +43,11 @@ if not os.path.isdir(example_out_dir):
   os.makedirs(example_out_dir)
 
 if platform.system() == 'Windows':
-    lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.dll')
+    lib_name = os.path.join(this_dir, '../rosco/controller/build/libdiscon.dll')
 elif platform.system() == 'Darwin':
-    lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.dylib')
+    lib_name = os.path.join(this_dir, '../rosco/controller/build/libdiscon.dylib')
 else:
-    lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.so')
+    lib_name = os.path.join(this_dir, '../rosco/controller/build/libdiscon.so')
 
 # # Load turbine model from saved pickle
 turbine         = ROSCO_turbine.Turbine

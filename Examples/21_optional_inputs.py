@@ -5,9 +5,9 @@ to the current version
 '''
 
 import os, platform
-from ROSCO_toolbox import control_interface as ROSCO_ci
-from ROSCO_toolbox import sim as ROSCO_sim
-from ROSCO_toolbox import turbine as ROSCO_turbine
+from rosco.toolbox import control_interface as ROSCO_ci
+from rosco.toolbox import sim as ROSCO_sim
+from rosco.toolbox import turbine as ROSCO_turbine
 import numpy as np
 
 
@@ -22,11 +22,11 @@ def main():
 
     # Set up rosco_dll
     if platform.system() == 'Windows':
-        rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.dll')
+        rosco_dll = os.path.join(rosco_dir, 'rosco/controller/build/libdiscon.dll')
     elif platform.system() == 'Darwin':
-        rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.dylib')
+        rosco_dll = os.path.join(rosco_dir, 'rosco/controller/build/libdiscon.dylib')
     else:
-        rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.so')
+        rosco_dll = os.path.join(rosco_dir, 'rosco/controller/build/libdiscon.so')
 
     # Load turbine model from saved pickle
     turbine         = ROSCO_turbine.Turbine

@@ -18,15 +18,16 @@ Note: You will need a turbine model with DAC capabilites in order to run this.
 # Python Modules
 import os
 # ROSCO Modules
-from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox import controller as ROSCO_controller
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox import turbine as ROSCO_turbine
+from rosco.toolbox import controller as ROSCO_controller
+from rosco.toolbox.inputs.validation import load_rosco_yaml
 
 
 this_dir =  os.path.dirname(os.path.abspath(__file__))
+tune_dir =  os.path.join(this_dir,'Tune_Cases')
 
 # Load yaml file
-parameter_filename = os.path.join(os.path.dirname(this_dir),'Tune_Cases/BAR.yaml')
+parameter_filename = os.path.join(tune_dir,'BAR.yaml')
 inps = load_rosco_yaml(parameter_filename)
 path_params         = inps['path_params']
 turbine_params      = inps['turbine_params']
@@ -36,7 +37,7 @@ controller_params   = inps['controller_params']
 turbine = ROSCO_turbine.Turbine(turbine_params)
 turbine.load_from_fast(
     path_params['FAST_InputFile'],
-    os.path.join(this_dir,path_params['FAST_directory'])
+    os.path.join(tune_dir,path_params['FAST_directory'])
     )
 
 # Tune controller

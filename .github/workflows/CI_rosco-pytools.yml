@@ -104,7 +104,7 @@ jobs:
 
       # setup cmake
       - name: Setup Workspace
-        run: cmake -E make_directory ${{runner.workspace}}/ROSCO/ROSCO/build
+        run: cmake -E make_directory ${{runner.workspace}}/ROSCO/rosco/controller/build
 
       # Install dependencies of ROSCO toolbox
       - name: Add dependencies ubuntu specific
@@ -129,10 +129,10 @@ jobs:
           python setup.py develop 
 
       - name: Configure and Build ROSCO - unix
-        working-directory: ${{runner.workspace}}/ROSCO/ROSCO/build
+        working-directory: ${{runner.workspace}}/ROSCO/rosco/controller/build
         run: |
           cmake \
-            -DCMAKE_INSTALL_PREFIX:PATH=${{runner.workspace}}/ROSCO/ROSCO/install \
+            -DCMAKE_INSTALL_PREFIX:PATH=${{runner.workspace}}/ROSCO/rosco/controller/install \
             -DZMQ_CLIENT=ON \
             -DCMAKE_Fortran_COMPILER:STRING=${{env.FORTRAN_COMPILER}} \
             ..
@@ -216,7 +216,7 @@ jobs:
       # Run ROSCO Testing
       - name: Run ROSCO testing
         run: |
-          cd ROSCO_testing
+          cd rosco/test
           python ROSCO_testing.py
       
       # Regression testing

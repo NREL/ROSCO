@@ -8,13 +8,13 @@ In this example:
 '''
 
 # ROSCO toolbox modules 
-from ROSCO_toolbox.utilities import run_openfast
+from rosco.toolbox.utilities import run_openfast
 import os
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Define openfast output filenames
-wind_directory = os.path.join(this_dir,'../Test_Cases/Wind/')
+wind_directory = os.path.join(this_dir,'Test_Cases/Wind/')
 turbsim_infile = '90m_12mps_twr.inp'
 
 run_openfast(wind_directory, fastcall='turbsim',

@@ -23,8 +23,8 @@ copyright = '2021, NREL'
 author = 'Nikhar J. Abbas, Daniel S. Zalkind'
 
 # The full version, including alpha/beta/rc tags
-import ROSCO_toolbox
-release = str(ROSCO_toolbox.__version__)
+import rosco.toolbox
+release = str(rosco.toolbox.__version__)
 
 from unittest import mock
 class MockModule(mock.Mock):

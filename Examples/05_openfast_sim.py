@@ -16,17 +16,18 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 # ROSCO toolbox modules 
-from ROSCO_toolbox import controller as ROSCO_controller
-from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox.utilities import write_DISCON, run_openfast
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox import controller as ROSCO_controller
+from rosco.toolbox import turbine as ROSCO_turbine
+from rosco.toolbox.utilities import write_DISCON, run_openfast
+from rosco.toolbox.inputs.validation import load_rosco_yaml
 
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
+tune_dir =  os.path.join(this_dir,'Tune_Cases')
 example_out_dir = os.path.join(this_dir,'examples_out')
 
 # Load yaml file 
-parameter_filename = os.path.join(os.path.dirname(this_dir), 'Tune_Cases', 'IEA15MW_MultiOmega.yaml') 
+parameter_filename = os.path.join(tune_dir, 'IEA15MW_MultiOmega.yaml') 
 inps = load_rosco_yaml(parameter_filename)
 path_params         = inps['path_params']
 turbine_params      = inps['turbine_params']
@@ -39,9 +40,9 @@ controller      = ROSCO_controller.Controller(controller_params)
 # Load turbine data from OpenFAST and rotor performance text file
 turbine.load_from_fast(
   path_params['FAST_InputFile'],
-    os.path.join(this_dir,path_params['FAST_directory']),
+    os.path.join(tune_dir,path_params['FAST_directory']),
     rot_source='txt',
-    txt_filename=os.path.join(this_dir,path_params['rotor_performance_filename'])
+    txt_filename=os.path.join(tune_dir,path_params['rotor_performance_filename'])
     )
 
 # Tune controller 
@@ -56,7 +57,7 @@ write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params[
 # If you run the `fastcall` from the command line where you run this script, it should run OpenFAST
 fastcall = 'openfast'
 run_openfast(
-  os.path.join(this_dir,path_params['FAST_directory']),
+  os.path.join(tune_dir,path_params['FAST_directory']),
   fastcall=fastcall, 
   fastfile=path_params['FAST_InputFile'], 
   chdir=True

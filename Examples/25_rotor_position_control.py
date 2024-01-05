@@ -8,10 +8,10 @@ Run a steady simulation, use the azimuth output as an input to the next steady s
 '''
 
 import os, platform
-from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
-from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
-from ROSCO_toolbox.ofTools.fast_io import output_processing
-from ROSCO_toolbox.controller import OpenLoopControl
+from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
+from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
+from rosco.toolbox.ofTools.fast_io import output_processing
+from rosco.toolbox.controller import OpenLoopControl
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -23,17 +23,17 @@ example_out_dir     = os.path.join(this_dir,'examples_out')
 os.makedirs(example_out_dir,exist_ok=True)
 
 if platform.system() == 'Windows':
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.dll'))
+    lib_name = os.path.realpath(os.path.join(this_dir, '../rosco/controller/build/libdiscon.dll'))
 elif platform.system() == 'Darwin':
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.dylib'))
+    lib_name = os.path.realpath(os.path.join(this_dir, '../rosco/controller/build/libdiscon.dylib'))
 else:
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.so'))
+    lib_name = os.path.realpath(os.path.join(this_dir, '../rosco/controller/build/libdiscon.so'))
 
 def main():
 
 
     # Set up paths
-    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/NREL2p8.yaml')
+    parameter_filename = os.path.join(this_dir,'Tune_Cases/NREL2p8.yaml')
     run_dir = os.path.join(example_out_dir,'25_rotor_position_control')
     os.makedirs(run_dir,exist_ok=True)
    

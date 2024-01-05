@@ -11,7 +11,7 @@ A set of `example scripts <https://github.com/NREL/ROSCO/tree/main/Examples>`_ d
 Reading Turbine Models
 ----------------------
 Control parameters depend on the turbine model.
-The ROSCO_toolbox uses OpenFAST inputs and an additional :code:`.yaml` formatted file to set up a :code:`turbine` object in python.
+The rosco.toolbox uses OpenFAST inputs and an additional :code:`.yaml` formatted file to set up a :code:`turbine` object in python.
 Several OpenFAST inputs are located in `Test_Cases/ <https://github.com/NREL/ROSCO/tree/main/Test_Cases>`_.
 The controller tuning :code:`.yaml` are located in `Tune_Cases/ <https://github.com/NREL/ROSCO/tree/main/Tune_Cases>`_.
 A detailed description of the ROSCO control inputs and tuning :code:`.yaml` are provided in :ref:`discon_in` and :ref:`rt_tuning_yaml`, respectively.
@@ -76,7 +76,7 @@ For example in `Test_Cases/NREL-5MW`:
   Note that these file paths are relative to the path of the main fast input (:code:`NREL-5MW.fst`)
 * :code:`DISCON.IN` has :code:`"Cp_Ct_Cq.NREL5MW.txt"` as the :code:`PerfFileName` input
 
-The ROSCO_toolbox has methods for running OpenFAST (and other) binary executables using system calls, as well as post-processing tools in `ofTools/ <https://github.com/NREL/ROSCO/tree/main/ROSCO_toolbox/ofTools>`_.
+The rosco.toolbox has methods for running OpenFAST (and other) binary executables using system calls, as well as post-processing tools in `ofTools/ <https://github.com/NREL/ROSCO/tree/main/rosco.toolbox/ofTools>`_.
 
 Several example scripts are set up to quickly simulate ROSCO with OpenFAST:
 
@@ -89,7 +89,7 @@ Several example scripts are set up to quickly simulate ROSCO with OpenFAST:
 Testing ROSCO
 -------------
 
-The ROSCO_toolbox also contains tools for testing ROSCO in IEC design load cases (DLCs), located in `ROSCO_testing/ <https://github.com/NREL/ROSCO/tree/main/ROSCO_testing>`_.
+The rosco.toolbox also contains tools for testing ROSCO in IEC design load cases (DLCs), located in `ROSCO_testing/ <https://github.com/NREL/ROSCO/tree/main/ROSCO_testing>`_.
 The script :code:`run_Testing.py` allows the user to set up their own set of tests.
 By setting :code:`testtype`, the user can run a variety of tests:
 

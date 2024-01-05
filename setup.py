@@ -82,7 +82,7 @@ class CMakeBuildExt(build_ext):
                 raise RuntimeError('Cannot find CMake executable')
             
             # Refresh build directory
-            localdir = os.path.join(this_directory, 'ROSCO','install')
+            localdir = os.path.join(this_directory, 'rosco','controller','install')
             os.makedirs(localdir, exist_ok=True)
 
             cmake_args = ['-DBUILD_SHARED_LIBS=OFF']
@@ -97,7 +97,7 @@ class CMakeBuildExt(build_ext):
                 else:
                     raise ValueError("Unable to find the system's Fortran compiler.")
 
-            self.build_temp = os.path.join( os.path.dirname( os.path.realpath(__file__) ), 'ROSCO', 'build')
+            self.build_temp = os.path.join( os.path.dirname( os.path.realpath(__file__) ), 'rosco', 'controller', 'build')
             os.makedirs(localdir, exist_ok=True)
             # Need fresh build directory for CMake
             os.makedirs(self.build_temp, exist_ok=True)
@@ -108,7 +108,7 @@ class CMakeBuildExt(build_ext):
 
 
 # All of the extensions
-roscoExt   = CMakeExtension('rosco','ROSCO')
+roscoExt   = CMakeExtension('rosco',os.path.join('rosco','controller'))
 
 # The rest you shouldn't have to touch too much :)
 # ------------------------------------------------
