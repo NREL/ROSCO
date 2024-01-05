@@ -33,6 +33,7 @@ class BinaryDistribution(Distribution):
 
 # For the CMake Extensions
 this_directory = os.path.abspath(os.path.dirname(__file__))
+build_dir = os.path.join(this_directory, "build")
 
 class CMakeExtension(Extension):
 
@@ -77,17 +78,19 @@ class CMakeBuildExt(build_ext):
                 else:
                     raise ValueError("Unable to find the system's Fortran compiler.")
 
-            self.build_temp = os.path.join(this_directory, "build")
+            self.build_temp = build_dir
 
             # Need fresh build directory for CMake
-            shutil.rmtree(self.build_temp, ignore_errors=False)
             os.makedirs(self.build_temp, exist_ok=True)
 
             self.spawn(['cmake', '-B', self.build_temp, '-S', ext.sourcedir] + cmake_args)
-            self.spawn(['cmake', '--build', self.build_temp, '--clean-first', '--target', 'install', '--config', 'Release'])
+            self.spawn(['cmake', '--build', self.build_temp, '--target', 'install', '--config', 'Release'])
 
             
 if __name__ == "__main__":
+    # Start with clean build directory
+    shutil.rmtree(build_dir, ignore_errors=True)
+    
     setup(cmdclass={'bdist_wheel': bdist_wheel, 'build_ext': CMakeBuildExt},
           distclass=BinaryDistribution,
           ext_modules=[ CMakeExtension('rosco',os.path.join('rosco','controller')) ],
