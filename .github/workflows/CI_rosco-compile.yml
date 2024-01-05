@@ -53,7 +53,7 @@ jobs:
                   '${{ steps.cp.outputs.python-path }}' 01_turbine_model.py
 
 
-    build_conda:
+    build_and_test_conda:
         name: Conda Build (${{ matrix.os }}) - ${{ matrix.python-version }}
         runs-on: ${{ matrix.os }}
         defaults:

@@ -11,6 +11,7 @@
 
 import os
 import platform
+import shutil
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
@@ -79,6 +80,7 @@ class CMakeBuildExt(build_ext):
             self.build_temp = os.path.join(this_directory, "build")
 
             # Need fresh build directory for CMake
+            shutil.rmtree(self.build_temp)
             os.makedirs(self.build_temp, exist_ok=True)
 
             self.spawn(['cmake', '-S', ext.sourcedir, '-B', self.build_temp] + cmake_args)
