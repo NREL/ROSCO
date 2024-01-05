@@ -36,7 +36,9 @@ all_scripts = [
 ]
 
 def execute_script(fscript):
-    examples_dir = os.path.dirname(os.path.realpath(__file__))
+    this_dir = os.path.dirname(os.path.abspath(__file__))
+    rosco_dir = os.path.dirname( os.path.dirname(this_dir) )
+    examples_dir = os.path.join(rosco_dir,'Examples')
     test_case_dir = os.path.join(examples_dir,'Test_Cases')
 
     # Go to location due to relative path use for airfoil files

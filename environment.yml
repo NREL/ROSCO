@@ -11,7 +11,7 @@ dependencies:
   - pandas
   - wisdem
   - cmake
-  - pyparsing==2.4.7 
+  - pyparsing
   - control
   - pyzmq
   - mpi4py
