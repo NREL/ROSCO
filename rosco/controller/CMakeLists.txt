@@ -87,7 +87,7 @@ if(ZMQ_CLIENT)
 
 	# Compile C-based ZeroMQ client as object library
 	add_compile_options(-I${ZeroMQ_INCLUDE_DIR} -l${ZeroMQ_LIBRARY} -fPIC)
-	add_library(zmq_client OBJECT ../src/zmq_client.c)
+	add_library(zmq_client OBJECT src/zmq_client.c)
 
 	# Add definition
 	add_definitions(-DZMQ_CLIENT="TRUE")
