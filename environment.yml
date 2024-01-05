@@ -6,7 +6,6 @@ dependencies:
   - cmake
   - control
   - matplotlib
-  - mpi4py
   - numpy
   - pandas
   - pyYAML
