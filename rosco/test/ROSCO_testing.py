@@ -43,7 +43,7 @@ class ROSCO_testing():
         self.FAST_ver = 'OpenFAST'  # Fast version
         # Path to ROSCO controller - default to ROSCO Toolbox submodule
         try:
-            self.rosco_path = glob.glob(os.path.join(os.path.dirname(os.path.realpath(__file__)),'../ROSCO/build/libdiscon.*'))[0]
+            self.rosco_path = glob.glob(os.path.join(os.path.dirname(os.path.realpath(__file__)),'../rosco/controller/build/libdiscon.*'))[0]
         except:
             print('No compiled ROSCO version found, please provide ROSCO_testing.rosco_path.')
         self.debug_level = 2        # debug level. 0 - no outputs, 1 - minimal outputs, 2 - all outputs
@@ -58,7 +58,7 @@ class ROSCO_testing():
         #  - Default to NREL 5MW 
         self.Turbine_Class = 'I'
         self.Turbulence_Class = 'A'
-        self.FAST_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Test_Cases/NREL-5MW')
+        self.FAST_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../Examples/Test_Cases/NREL-5MW')
         self.FAST_InputFile = 'NREL-5MW.fst'
 
         # Desired output channesl
@@ -554,11 +554,11 @@ if __name__=='__main__':
     rt.Turbsim_exe = 'turbsim'   # Turbsim executable path
     # path to compiled ROSCO controller
     if platform.system() == 'Windows':
-        rt.rosco_path = os.path.join(this_dir, '../ROSCO/build/libdiscon.dll')
+        rt.rosco_path = os.path.join(this_dir, '../rosco/controller/build/libdiscon.dll')
     elif platform.system() == 'Darwin':
-        rt.rosco_path = os.path.join(this_dir, '../ROSCO/build/libdiscon.dylib')
+        rt.rosco_path = os.path.join(this_dir, '../rosco/controller/build/libdiscon.dylib')
     else:
-        rt.rosco_path = os.path.join(this_dir, '../ROSCO/build/libdiscon.so')
+        rt.rosco_path = os.path.join(this_dir, '../rosco/controller/build/libdiscon.so')
     rt.debug_level = 2           # debug level. 0 - no outputs, 1 - minimal outputs, 2 - all outputs
     rt.overwrite = True          # overwite fast sims?
     rt.cores = 1                 # number of cores if multiprocessings
@@ -569,7 +569,7 @@ if __name__=='__main__':
     # Setup turbine
     rt.Turbine_Class = 'I'
     rt.Turbulence_Class = 'B'
-    rt.FAST_directory = os.path.join(this_dir, '../Test_Cases/IEA-15-240-RWT-UMaineSemi')
+    rt.FAST_directory = os.path.join(this_dir, '../../Examples/Test_Cases/IEA-15-240-RWT-UMaineSemi')
     rt.FAST_InputFile = 'IEA-15-240-RWT-UMaineSemi.fst'
 
     # Additional inputs 

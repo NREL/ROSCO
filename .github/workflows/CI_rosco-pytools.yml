@@ -216,7 +216,7 @@ jobs:
       # Run ROSCO Testing
       - name: Run ROSCO testing
         run: |
-          cd ROSCO_testing
+          cd rosco/test
           python ROSCO_testing.py
       
       # Regression testing
