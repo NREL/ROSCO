@@ -125,7 +125,8 @@ jobs:
               run: |
                   conda install pyarrow chardet xarray
                   git clone http://github.com/OpenFAST/openfast_toolbox
-                  python -m pip install openfast_toolbox
+                  cd openfast_toolbox
+                  python -m pip install -e .
           
             # Re-generate registry
             - name: Generate Registry
