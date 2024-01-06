@@ -126,6 +126,12 @@ jobs:
               run: |
                   conda install openfast==3.5.1
 
+            - name: Add pyFAST dependency
+              run: |
+                  git clone http://github.com/OpenFAST/openfast_toolbox
+                  cd openfast_toolbox
+                  python -m pip install .
+                  
             # Test walkthrough notebook
             #- name: Test walkthrough notebook
             #  run: |
