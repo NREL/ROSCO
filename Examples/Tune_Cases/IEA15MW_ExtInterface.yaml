@@ -54,6 +54,6 @@ controller_params:
   ps_percent:         0.8                    # Percent peak shaving  [%, <= 1 ], {default = 80%}
 
   DISCON:
-    DLL_FileName:  /Users/dzalkind/Tools/ROSCO/ROSCO/build/libdiscon_copy.dylib
+    DLL_FileName:  /Users/dzalkind/Tools/ROSCO/lib/libdiscon_copy.dylib
     DLL_InFile:    /Users/dzalkind/Tools/ROSCO/Test_Cases/NREL-5MW/DISCON.IN
     DLL_ProcName:  DISCON
