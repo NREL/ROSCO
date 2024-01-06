@@ -37,15 +37,21 @@ jobs:
             #- name: Setup tmate session
             #  if: contains( matrix.os, 'windows')
             #  uses: mxschmitt/action-tmate@v3
+        
+            # Install ZeroMQ- should be done via Conda
+            #- name: Install ZeroMQ
+            #  run: |
+            #      sudo apt-get update
+            #      sudo apt-get install libzmq3-dev
               
             - name: Pip Install ROSCO
               run: |
                   '${{ steps.cp.outputs.python-path }}' -m pip install -vv -e .
           
             # Re-generate registry
-            #- name: Generate Registry
-            #  run: |
-            #      '${{ steps.cp.outputs.python-path }}' ROSCO/controller/rosco_registry/write_registry.py 
+            - name: Generate Registry
+              run: |
+                  '${{ steps.cp.outputs.python-path }}' rosco/controller/rosco_registry/write_registry.py 
 
             - name: Test run
               run: |
@@ -111,15 +117,9 @@ jobs:
                   python -m pip install -vv -e .
           
             # Re-generate registry
-            #- name: Generate Registry
-            #  run: |
-            #      python ROSCO/controller/rosco_registry/write_registry.py 
-        
-            # Install ZeroMQ- should be done via Conda
-            #- name: Install ZeroMQ
-            #  run: |
-            #      sudo apt-get update
-            #      sudo apt-get install libzmq3-dev
+            - name: Generate Registry
+              run: |
+                  python rosco/controller/rosco_registry/write_registry.py 
           
             # Install OpenFAST
             - name: Install OpenFAST
@@ -135,12 +135,12 @@ jobs:
             # Run ROSCO Testing
             - name: Run ROSCO testing
               run: |
-                  cd ROSCO/test
+                  cd rosco/test
                   python ROSCO_testing.py
       
             # Run checkpoint and all examples
             - name: Run regression testing
               run: |
-                  cd ROSCO/test
+                  cd rosco/test
                   pytest .
 

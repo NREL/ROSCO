@@ -3,7 +3,7 @@ requires = ["setuptools", "cmake", "numpy", "wheel", "pyzmq"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ROSCO"
+name = "rosco"
 version = "2.9.0"
 description = "A reference open source controller toolset for wind turbine applications."
 readme = "README.md"
@@ -89,7 +89,7 @@ include-package-data = true
 #find = {}
 
 [tool.setuptools.packages.find]
-#where = ["ROSCO"]
+#where = ["rosco"]
 exclude = ["Matlab_Toolbox"]
 namespaces = true
 
