@@ -134,5 +134,5 @@ atomic = true
 #src_paths=isort,test
 
 [tool.cibuildwheel]
-skip = ["cp36-*", "cp37-*", "cp38-*", "*-win32", "*arm64", "pp*"]
+skip = ["cp36-*", "cp37-*", "cp38-*", "*-win32"]
 build-frontend = "build"
