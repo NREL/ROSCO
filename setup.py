@@ -73,7 +73,7 @@ class CMakeBuildExt(build_ext):
             # Help Cmake find libraries in python locations
             python_root = os.path.dirname( os.path.dirname( sysconfig.get_path('stdlib') ) )
             user_root = sysconfig.get_config_var("userbase")
-            cmake_args += [f'-DCMAKE_PREFIX_PATH="{python_root};{user_root}"']
+            cmake_args += [f'-DCMAKE_PREFIX_PATH={python_root}']
 
             if platform.system() == 'Windows':
                 if not "FC" in os.environ:
