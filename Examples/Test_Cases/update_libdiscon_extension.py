@@ -1,6 +1,6 @@
 import glob
 import platform
-
+import os
 
 if platform.system() == 'Windows':
     sfx = 'dll'
@@ -10,8 +10,9 @@ else:
     sfx = 'so'
 
 if __name__ == "__main__":
-    servo_list = glob.glob('*/*Servo*.dat')
-    
+    this_dir   = os.path.dirname(os.path.abspath(__file__))
+    servo_list = glob.glob(os.path.join(this_dir, '*/*Servo*.dat'))
+
     for ifile in servo_list:
         # Read in current ServoDyn file
         with open(ifile, "r") as f:
