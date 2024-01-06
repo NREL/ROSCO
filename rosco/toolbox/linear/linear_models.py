@@ -15,11 +15,11 @@ from itertools import chain
 from scipy.io import loadmat
 
 try:
-    import pyFAST.linearization.mbc as mbc
+    import openfast_toolbox.linearization.mbc as mbc
 except ImportError:
     import weis.control.mbc.mbc3 as mbc
 except ImportError:
-    raise ImportError('Unable to load mbc3 from pyFAST or WEIS')
+    raise ImportError('Unable to load mbc3 from openfast_toolbox or WEIS')
 
 class LinearTurbineModel(object):
 
