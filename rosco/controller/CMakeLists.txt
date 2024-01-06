@@ -91,7 +91,7 @@ endif()
 
 add_library(discon SHARED ${SOURCES})
 
-if(ZMQ_CLIENT)
+if(PC_ZeroMQ_FOUND)
 	target_include_directories(discon PUBLIC ${ZeroMQ_INCLUDE_DIR})
 	target_link_libraries(discon PUBLIC ${ZeroMQ_LIBRARY})
 endif()
