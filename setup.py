@@ -12,6 +12,7 @@
 import os
 import platform
 import shutil
+import sysconfig
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
@@ -68,9 +69,11 @@ class CMakeBuildExt(build_ext):
             cmake_args = ['-DBUILD_SHARED_LIBS=OFF']
             cmake_args += ['-DCMAKE_Fortran_FLAGS=-ffree-line-length-0']
             cmake_args += ['-DCMAKE_INSTALL_PREFIX={}'.format(this_directory)]
-            if "CONDA_PREFIX" in os.environ:
-                cmake_args += [f"-DCMAKE_PREFIX_PATH={os.environ['CONDA_PREFIX']}"]
-                
+
+            # Help Cmake find libraries in python locations
+            python_root = os.path.dirname( os.path.dirname( sysconfig.get_path('stdlib') ) )
+            user_root = sysconfig.get_config_var("userbase")
+            cmake_args += [f'-DCMAKE_PREFIX_PATH="{python_root};{user_root}"']
 
             if platform.system() == 'Windows':
                 if not "FC" in os.environ:
