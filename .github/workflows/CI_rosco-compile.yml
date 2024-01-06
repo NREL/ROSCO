@@ -111,42 +111,32 @@ jobs:
             #      detached: true
             #  if: contains( matrix.os, 'windows')
                     
-            # Install 
             - name: Conda Install ROSCO
               run: |
                   python -m pip install -e .
           
-            # Install OpenFAST
             - name: Install OpenFAST
               run: |
                   conda install openfast==3.5.1
-
-            - name: Add pyFAST dependency
-              run: |
-                  conda install pyarrow chardet xarray
-                  git clone http://github.com/OpenFAST/openfast_toolbox
-                  cd openfast_toolbox
-                  python -m pip install -e .
           
-            # Re-generate registry
             - name: Generate Registry
               run: |
                   python rosco/controller/rosco_registry/write_registry.py 
+          
+            - name: Fix example file extensions
+              run: |
+                  python Examples/Test_Cases/update_libdiscon_extension.py
 
-            # Run ROSCO Testing
             - name: Run ROSCO testing
               run: |
                   cd rosco/test
                   python ROSCO_testing.py
       
-            # Run checkpoint and all examples
             - name: Run regression testing
-              if: contains( matrix.os, 'ubuntu')
               run: |
                   cd rosco/test
                   pytest .
                   
-            # Test walkthrough notebook
             - name: Test walkthrough notebook
               run: |
                   cd Examples
