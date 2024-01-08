@@ -54,6 +54,8 @@ jobs:
                   '${{ steps.cp.outputs.python-path }}' rosco/controller/rosco_registry/write_registry.py 
 
             - name: Test run
+            # skipping pip test on windows for now until wisdem pypi is ready
+              if: false == contains( matrix.os, 'windows')    
               run: |
                   cd Examples
                   '${{ steps.cp.outputs.python-path }}' 01_turbine_model.py
