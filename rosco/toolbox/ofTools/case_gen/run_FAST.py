@@ -143,7 +143,7 @@ class run_FAST_ROSCO():
 
         # lib dir
         if not in_weis:  # in ROSCO
-            dll_dir = os.path.join(self.rosco_dir, 'rosco/controller/build/')
+            dll_dir = os.path.join(self.rosco_dir, 'lib')
         else:
             dll_dir = os.path.join(self.rosco_dir,'../local/lib/')
         

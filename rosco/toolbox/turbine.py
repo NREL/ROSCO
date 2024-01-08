@@ -643,7 +643,7 @@ class RotorPerformance():
         f_performance = interpolate.interp1d(TSR_initial,performance_beta_max,bounds_error='False',kind='quadratic')    # interpolate function for Cx(tsr) values
         performance_fine = f_performance(TSR_fine_ind) # Cx values at fine pitch
         performance_max_ind = np.where(performance_fine == np.max(performance_fine)) # Find max performance at fine pitch
-        self.TSR_opt = float(TSR_fine[performance_max_ind[0]])  # TSR to maximize Cx at fine pitch
+        self.TSR_opt = float(TSR_fine[performance_max_ind[0]][0])  # TSR to maximize Cx at fine pitch
 
     def interp_surface(self,pitch,TSR):
         '''

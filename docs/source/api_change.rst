@@ -9,18 +9,25 @@ The changes are tabulated according to the line number, and flag name.
 The line number corresponds to the resulting line number after all changes are implemented.
 Thus, be sure to implement each in order so that subsequent line numbers are correct.
 
-2.8.0 to develop
+2.8.0 to 2.9.0
 -------------------------------
+**Flag to use exteneded Bladed Interface**
+
+*  Set `Ext_Interface` to 1 to use the extened bladed interface with OpenFAST v3.5.0 and greater
+
 **Gain scheduling of floating feedback**
 
 *  The floating feedback gain can be scheduled on the low pass filtered wind speed signal.  Note that Fl_Kp can now be an array.
+
+**Rotor position tracking**
+
+*  Control the azimuth position of the rotor with `OL_Mode` of 2 using a PID torque controller with gains defined by `RP_Gains`.
 *  Control all three blade pitch inputs in open loop
-*  Rotor position control of azimuth position with PID (RP_Gains) control inputs
 
 **New torque control mode settings**
 
-*  VS_ControlMode determines how the generator speed set point is determined: using the WSE or (P/K)^(1/3)
-*  VS_ConstPower determines whether constant power is used
+*  VS_ControlMode determines how the generator speed set point is determined: using the WSE (mode 2) or (P/K)^(1/3) (mode 3).  The power signal in mode 3 is filtered using `VS_PwrFiltF`.
+*  VS_ConstPower determines whether constant power is used (0 is constant torque, 1 is constant power)
 
 **Multiple notch filters**
 
@@ -56,31 +63,32 @@ New in ROSCO develop
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Line    Input Name                 Example Value
 ====== =======================    ===============================================================================================================================================================================================================================================================
-13      VS_ConstPower             0           ! VS_ConstPower - Do constant power torque control, where above rated torque varies, 0 for constant torque}
-17      PRC_Mode                  0           ! PRC_Mode          - Power reference tracking mode{0: use standard rotor speed set points, 1: use PRC rotor speed setpoints}
-37      F_NumNotchFilts           1           ! F_NumNotchFilts   - Number of notch filters placed on sensors
-38      F_NotchFreqs              3.3550      ! F_NotchFreqs      - Natural frequency of the notch filters. Array with length F_NumNotchFilts
-39      F_NotchBetaNum            0.0000      ! F_NotchBetaNum    - Damping value of numerator (determines the width of notch). Array with length F_NumNotchFilts, [-]
-40      F_NotchBetaDen            0.2500      ! F_NotchBetaDen    - Damping value of denominator (determines the depth of notch). Array with length F_NumNotchFilts, [-]
-41      F_GenSpdNotch_N           0           ! F_GenSpdNotch_N   - Number of notch filters on generator speed
-42      F_GenSpdNotch_Ind         0           ! F_GenSpdNotch_Ind - Indices of notch filters on generator speed
-43      F_TwrTopNotch_N           1           ! F_TwrTopNotch_N   - Number of notch filters on tower top acceleration signal
-44      F_TwrTopNotch_Ind         1           ! F_TwrTopNotch_Ind - Indices of notch filters on tower top acceleration signal
-91      VS_PwrFiltF               0.3140      ! VS_PwrFiltF       - Low pass filter on power used to determine generator speed set point. Only used in VS_ControlMode = 3.
-97      PRC_Section               !------- POWER REFERENCE TRACKING --------------------------------------
-98      PRC_n                     2                   ! PRC_n			  - Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
-99      PRC_LPF_Freq              0.07854             ! PRC_LPF_Freq    - Frequency of the low pass filter on the wind speed estimate used to set PRC_GenSpeeds [rad/s]
-100     PRC_WindSpeeds            3.0000 25.0000      ! PRC_WindSpeeds  - Array of wind speeds used in rotor speed vs. wind speed lookup table [m/s]
-101     PRC_GenSpeeds             0.7917 0.7917       ! PRC_GenSpeeds   - Array of generator speeds corresponding to PRC_WindSpeeds [rad/s]
-102     Empty Line         
-127     TRA_ExclSpeed             0.00000             ! TRA_ExclSpeed	    - Rotor speed for exclusion [LSS, rad/s]
-128     TRA_ExclBand              0.00000             ! TRA_ExclBand	    - Size of the rotor frequency exclusion band [LSS, rad/s]. Torque controller reference will be TRA_ExclSpeed +/- TRA_ExlBand/2
-129     TRA_RateLimit             0.00000e+00         ! TRA_RateLimit	    - Rate limit of change in rotor speed reference [LSS, rad/s].  Suggested to be VS_RefSpd/100.
-144     Fl_n                      1           ! Fl_n          - Number of Fl_Kp gains in gain scheduling, optional with default of 1
-146     Fl_U                      0.0000      ! Fl_U          - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
-160     Ind_Azimuth               0           ! Ind_Azimuth   - The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
-161     RP_Gains                  0.0000 0.0000 0.0000 0.0000     ! RP_Gains - PID gains and Tf of derivative for rotor position control (used if OL_Mode = 2)
-185     ZMQ_ID                    0     ! ZMQ_ID - Integer identifier of turbine
+7       Ext_Interface             1           ! Ext_Interface - (0 - use standard bladed interface, 1 - Use the extened DLL interface introduced in OpenFAST 3.5.0.)  
+14      VS_ConstPower             0           ! VS_ConstPower - Do constant power torque control, where above rated torque varies, 0 for constant torque}
+18      PRC_Mode                  0           ! PRC_Mode          - Power reference tracking mode{0: use standard rotor speed set points, 1: use PRC rotor speed setpoints}
+38      F_NumNotchFilts           1           ! F_NumNotchFilts   - Number of notch filters placed on sensors
+39      F_NotchFreqs              3.3550      ! F_NotchFreqs      - Natural frequency of the notch filters. Array with length F_NumNotchFilts
+40      F_NotchBetaNum            0.0000      ! F_NotchBetaNum    - Damping value of numerator (determines the width of notch). Array with length F_NumNotchFilts, [-]
+41      F_NotchBetaDen            0.2500      ! F_NotchBetaDen    - Damping value of denominator (determines the depth of notch). Array with length F_NumNotchFilts, [-]
+42      F_GenSpdNotch_N           0           ! F_GenSpdNotch_N   - Number of notch filters on generator speed
+43      F_GenSpdNotch_Ind         0           ! F_GenSpdNotch_Ind - Indices of notch filters on generator speed
+44      F_TwrTopNotch_N           1           ! F_TwrTopNotch_N   - Number of notch filters on tower top acceleration signal
+45      F_TwrTopNotch_Ind         1           ! F_TwrTopNotch_Ind - Indices of notch filters on tower top acceleration signal
+92      VS_PwrFiltF               0.3140      ! VS_PwrFiltF       - Low pass filter on power used to determine generator speed set point. Only used in VS_ControlMode = 3.
+98      PRC_Section               !------- POWER REFERENCE TRACKING --------------------------------------
+99      PRC_n                     2                   ! PRC_n			  - Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
+100     PRC_LPF_Freq              0.07854             ! PRC_LPF_Freq    - Frequency of the low pass filter on the wind speed estimate used to set PRC_GenSpeeds [rad/s]
+101     PRC_WindSpeeds            3.0000 25.0000      ! PRC_WindSpeeds  - Array of wind speeds used in rotor speed vs. wind speed lookup table [m/s]
+102     PRC_GenSpeeds             0.7917 0.7917       ! PRC_GenSpeeds   - Array of generator speeds corresponding to PRC_WindSpeeds [rad/s]
+103     Empty Line         
+128     TRA_ExclSpeed             0.00000             ! TRA_ExclSpeed	    - Rotor speed for exclusion [LSS, rad/s]
+129     TRA_ExclBand              0.00000             ! TRA_ExclBand	    - Size of the rotor frequency exclusion band [LSS, rad/s]. Torque controller reference will be TRA_ExclSpeed +/- TRA_ExlBand/2
+130     TRA_RateLimit             0.00000e+00         ! TRA_RateLimit	    - Rate limit of change in rotor speed reference [LSS, rad/s].  Suggested to be VS_RefSpd/100.
+145     Fl_n                      1           ! Fl_n          - Number of Fl_Kp gains in gain scheduling, optional with default of 1
+147     Fl_U                      0.0000      ! Fl_U          - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
+161     Ind_Azimuth               0           ! Ind_Azimuth   - The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
+162     RP_Gains                  0.0000 0.0000 0.0000 0.0000     ! RP_Gains - PID gains and Tf of derivative for rotor position control (used if OL_Mode = 2)
+186     ZMQ_ID                    0     ! ZMQ_ID - Integer identifier of turbine
 ====== =================          ======================================================================================================================================================================================================
 
 ====== =================    ======================================================================================================================================================================================================

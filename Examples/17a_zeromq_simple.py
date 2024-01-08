@@ -22,11 +22,23 @@ from rosco.toolbox.ofTools.fast_io import output_processing
 import numpy as np
 import multiprocessing as mp
 
-this_dir = os.path.dirname(os.path.abspath(__file__))
-example_out_dir = os.path.join(this_dir, "examples_out")
 TIME_CHECK = 30
 DESIRED_YAW_OFFSET = 20
 DESIRED_PITCH_OFFSET = np.deg2rad(2) * np.sin(0.1 * TIME_CHECK) + np.deg2rad(2)
+
+#directories
+this_dir            = os.path.dirname(os.path.abspath(__file__))
+rosco_dir           = os.path.dirname(this_dir)
+example_out_dir     = os.path.join(this_dir,'examples_out')
+os.makedirs(example_out_dir,exist_ok=True)
+
+if platform.system() == 'Windows':
+    sfx = 'dll'
+elif platform.system() == 'Darwin':
+    sfx = 'dylib'
+else:
+    sfx = 'so'
+lib_name = os.path.join(rosco_dir, 'lib', 'libdiscon.'+sfx)
 
 def run_zmq(logfile=None):
     # Start the server at the following address
@@ -74,19 +86,6 @@ def sim_rosco():
     controller_params['Y_ControlMode'] = 1
     controller_params['ZMQ_Mode'] = 1
     controller_params['ZMQ_UpdatePeriod'] = 0.025
-
-    # Specify controller dynamic library path and name
-    this_dir = os.path.dirname(os.path.abspath(__file__))
-    example_out_dir = os.path.join(this_dir, 'examples_out')
-    if not os.path.isdir(example_out_dir):
-        os.makedirs(example_out_dir)
-
-    if platform.system() == 'Windows':
-        lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.dll')
-    elif platform.system() == 'Darwin':
-        lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.dylib')
-    else:
-        lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.so')
 
     # # Load turbine model from saved pickle
     turbine = ROSCO_turbine.Turbine

@@ -13,17 +13,20 @@ Run ROSCO and test against baseline results:
 '''
 
 import numpy as np
-import os, platform
+import os
+import platform
 import glob
 import multiprocessing as mp
 
 from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
 from rosco.toolbox.ofTools.case_gen.CaseGen_IEC import CaseGen_IEC
 from rosco.toolbox.ofTools.case_gen.runFAST_pywrapper import runFAST_pywrapper_batch
-from matplotlib.backends.backend_pdf import FigureCanvasPdf, PdfPages
+from matplotlib.backends.backend_pdf import PdfPages #, FigureCanvasPdf
 from rosco.toolbox.ofTools.fast_io import output_processing
 import matplotlib.pyplot as plt
 
+this_dir = os.path.dirname(os.path.realpath(__file__))
+rosco_root = os.path.dirname( os.path.dirname( this_dir ) )
 
 
 class ROSCO_testing():
@@ -35,7 +38,7 @@ class ROSCO_testing():
 
 
         # Setup simulation parameters
-        self.runDir = os.path.join(os.path.dirname( os.path.realpath(__file__) ), 'testing' )   # directory to run simulations in
+        self.runDir = os.path.join(this_dir, 'testing' )   # directory to run simulations in
         self.wind_dir = None
         self.namebase = 'ROtest'    # root name for output simulations
         self.FAST_exe = 'openfast_single'       # name of openfast executable (may need full path)
@@ -43,8 +46,8 @@ class ROSCO_testing():
         self.FAST_ver = 'OpenFAST'  # Fast version
         # Path to ROSCO controller - default to ROSCO Toolbox submodule
         try:
-            self.rosco_path = glob.glob(os.path.join(os.path.dirname(os.path.realpath(__file__)),'../rosco/controller/build/libdiscon.*'))[0]
-        except:
+            self.rosco_path = glob.glob(os.path.join(rosco_root, 'lib', 'libdiscon.*'))[0]
+        except Exception:
             print('No compiled ROSCO version found, please provide ROSCO_testing.rosco_path.')
         self.debug_level = 2        # debug level. 0 - no outputs, 1 - minimal outputs, 2 - all outputs
         self.overwrite = False      # overwrite existing files? 
@@ -58,7 +61,7 @@ class ROSCO_testing():
         #  - Default to NREL 5MW 
         self.Turbine_Class = 'I'
         self.Turbulence_Class = 'A'
-        self.FAST_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../Examples/Test_Cases/NREL-5MW')
+        self.FAST_directory = os.path.join(rosco_root, 'Examples', 'Test_Cases','NREL-5MW')
         self.FAST_InputFile = 'NREL-5MW.fst'
 
         # Desired output channesl
@@ -544,9 +547,6 @@ class ROSCO_testing():
 if __name__=='__main__':
     rt = ROSCO_testing()
 
-    this_dir = os.path.dirname(__file__)
-
-
     ## =================== INITIALIZATION ===================
     # Setup simulation parameters
     rt.namebase = 'IEA-15MW'     # Base name for FAST files 
@@ -554,11 +554,13 @@ if __name__=='__main__':
     rt.Turbsim_exe = 'turbsim'   # Turbsim executable path
     # path to compiled ROSCO controller
     if platform.system() == 'Windows':
-        rt.rosco_path = os.path.join(this_dir, '../rosco/controller/build/libdiscon.dll')
+        sfx = 'dll'
     elif platform.system() == 'Darwin':
-        rt.rosco_path = os.path.join(this_dir, '../rosco/controller/build/libdiscon.dylib')
+        sfx = 'dylib'
     else:
-        rt.rosco_path = os.path.join(this_dir, '../rosco/controller/build/libdiscon.so')
+        sfx = 'so'
+    rt.rosco_path = os.path.join(rosco_root, 'lib', 'libdiscon.'+sfx)
+
     rt.debug_level = 2           # debug level. 0 - no outputs, 1 - minimal outputs, 2 - all outputs
     rt.overwrite = True          # overwite fast sims?
     rt.cores = 1                 # number of cores if multiprocessings
@@ -569,7 +571,7 @@ if __name__=='__main__':
     # Setup turbine
     rt.Turbine_Class = 'I'
     rt.Turbulence_Class = 'B'
-    rt.FAST_directory = os.path.join(this_dir, '../../Examples/Test_Cases/IEA-15-240-RWT-UMaineSemi')
+    rt.FAST_directory = os.path.join(rosco_root, 'Examples','Test_Cases','IEA-15-240-RWT-UMaineSemi')
     rt.FAST_InputFile = 'IEA-15-240-RWT-UMaineSemi.fst'
 
     # Additional inputs 

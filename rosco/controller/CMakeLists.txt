@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
-project(ROSCO VERSION 2.8.0 LANGUAGES Fortran C)
+project(ROSCO VERSION 2.9.0 LANGUAGES Fortran C)
 
 set(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/ftnmods")
 
@@ -25,13 +25,6 @@ set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -libs:static -free -static -fpp 
 #     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} /ffree-line-length-0 /static-libgcc /static-libgfortran /static /fdefault-real-8 /fdefault-double-8 /cpp")
 endif()
 endif()
-
-# Enable ZMQ_Client if compiler flag is set
-option(ZMQ_CLIENT "Enable use of ZeroMQ client" off)
-if(ZMQ_Client)
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -lzmq")
-endif()
-
 
 set(SOURCES
     src/Constants.f90
@@ -69,11 +62,11 @@ else (NWTC_SYS_FILE)
   message(FATAL_ERROR "Cannot determine system file used with NWTC_Library")
 endif (NWTC_SYS_FILE)
 
-# Library
-if(ZMQ_CLIENT)
+# ZMQ Library
+find_package(PkgConfig)
+pkg_check_modules(PC_ZeroMQ libzmq)
+if(PC_ZeroMQ_FOUND)
 	# Find ZeroMQ installation
-	find_package(PkgConfig)
-	pkg_check_modules(PC_ZeroMQ libzmq)
 	find_path(ZeroMQ_INCLUDE_DIR
 			NAMES zmq.h
 			PATHS ${PC_ZeroMQ_INCLUDE_DIRS}
@@ -84,20 +77,21 @@ if(ZMQ_CLIENT)
 			)
 	include_directories(${ZeroMQ_INCLUDE_DIR})
 
+	set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -L${PC_ZeroMQ_LIBRARY_DIRS} -lzmq")
 
 	# Compile C-based ZeroMQ client as object library
 	add_compile_options(-I${ZeroMQ_INCLUDE_DIR} -l${ZeroMQ_LIBRARY} -fPIC)
-	add_library(zmq_client OBJECT ../src/zmq_client.c)
+	add_library(zmq_client OBJECT src/zmq_client.c)
 
 	# Add definition
 	add_definitions(-DZMQ_CLIENT="TRUE")
-    set(SOURCES ${SOURCES}
+    	set(SOURCES ${SOURCES}
 	$<TARGET_OBJECTS:zmq_client>)
 endif()
 
 add_library(discon SHARED ${SOURCES})
 
-if(ZMQ_CLIENT)
+if(PC_ZeroMQ_FOUND)
 	target_include_directories(discon PUBLIC ${ZeroMQ_INCLUDE_DIR})
 	target_link_libraries(discon PUBLIC ${ZeroMQ_LIBRARY})
 endif()
@@ -114,5 +108,5 @@ set(linuxDefault ${CMAKE_INSTALL_PREFIX} STREQUAL "/usr/local")
 set(windowsDefault ${CMAKE_INSTALL_PREFIX} STREQUAL "C:\\Program Files (x86)")
 if(${linuxDefault} OR ${windowsDefault})
   message("TRUE")
-  set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/install")
+  set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/../../")
 endif()

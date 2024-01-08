@@ -90,13 +90,13 @@ ROSCO_utilities.write_DISCON(turbine,controller,param_file=param_file, txt_filen
 
 ### Run OpenFAST using aeroelasticse tools
 
-# Set rosco_dll
 if platform.system() == 'Windows':
-    rosco_dll = os.path.join(rosco_dir, 'rosco/controller/build/libdiscon.dll')
+    sfx = 'dll'
 elif platform.system() == 'Darwin':
-    rosco_dll = os.path.join(rosco_dir, 'rosco/controller/build/libdiscon.dylib')
+    sfx = 'dylib'
 else:
-    rosco_dll = os.path.join(rosco_dir, 'rosco/controller/build/libdiscon.so')
+    sfx = 'so'
+rosco_dll = os.path.join(rosco_dir, 'lib', 'libdiscon.'+sfx)
 
 case_inputs = {}
 case_inputs[('ServoDyn','DLL_FileName')] = {'vals': [rosco_dll], 'group': 0}

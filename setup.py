@@ -9,50 +9,32 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
-"""The setup script."""
-
-# This setup file was made to mimic the setup.py script for https://github.com/NREL/floris/
-# Accessed on January 9, 2020
-
-# Note: To use the 'upload' functionality of this file, you must:
-#   $ pip install twine
-
-import io
 import os
-import sys
-from shutil import rmtree, copy
-import glob 
 import platform
-from setuptools import find_packages, setup, Command, Extension
+import shutil
+import sysconfig
+from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
-from setuptools.command.install import install as _install
 
-from io import open
+#######
+# This forces wheels to be platform specific
+from setuptools.dist import Distribution
+from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 
-# Package meta-data.
-NAME = 'rosco'
-DESCRIPTION = 'A reference open source controller toolset for wind turbine applications.'
-URL = 'https://github.com/NREL/ROSCO'
-EMAIL = 'daniel.zalkind@nrel.gov'
-AUTHOR = 'NREL, National Wind Technology Center'
-REQUIRES_PYTHON = '>=3.8'
-VERSION = '2.8.0'
+class bdist_wheel(_bdist_wheel):
+    def finalize_options(self):
+        _bdist_wheel.finalize_options(self)
+        self.root_is_pure = False
 
-# These packages are required for all of the code to be executed. 
-# - Maybe you can get away with older versions...
-REQUIRED = [
-    'matplotlib',
-    'numpy',
-    #'pytest',
-    'scipy',
-    'pyYAML',
-    #'future',
-    'pandas'
-]
-
+class BinaryDistribution(Distribution):
+    """Distribution which always forces a binary package with platform name"""
+    def has_ext_modules(foo):
+        return True
+#######
 
 # For the CMake Extensions
 this_directory = os.path.abspath(os.path.dirname(__file__))
+build_dir = os.path.join(this_directory, "build")
 
 class CMakeExtension(Extension):
 
@@ -82,14 +64,21 @@ class CMakeBuildExt(build_ext):
                 raise RuntimeError('Cannot find CMake executable')
             
             # Refresh build directory
-            localdir = os.path.join(this_directory, 'rosco','controller','install')
-            os.makedirs(localdir, exist_ok=True)
+            #os.makedirs(localdir, exist_ok=True)
 
             cmake_args = ['-DBUILD_SHARED_LIBS=OFF']
             cmake_args += ['-DCMAKE_Fortran_FLAGS=-ffree-line-length-0']
-            cmake_args += ['-DCMAKE_INSTALL_PREFIX={}'.format(localdir)]
+            cmake_args += ['-DCMAKE_INSTALL_PREFIX={}'.format(this_directory)]
+
+            # Help Cmake find libraries in python locations
+            python_root = os.path.dirname( os.path.dirname( sysconfig.get_path('stdlib') ) )
+            user_root = sysconfig.get_config_var("userbase")
+            cmake_args += [f'-DCMAKE_PREFIX_PATH={python_root}']
 
             if platform.system() == 'Windows':
+                if not "FC" in os.environ:
+                    os.environ["FC"] = "gfortran"
+                    
                 if "gfortran" in os.environ["FC"].lower():
                     cmake_args += ['-G', 'MinGW Makefiles']
                 elif self.compiler.compiler_type == 'msvc':
@@ -97,100 +86,21 @@ class CMakeBuildExt(build_ext):
                 else:
                     raise ValueError("Unable to find the system's Fortran compiler.")
 
-            self.build_temp = os.path.join( os.path.dirname( os.path.realpath(__file__) ), 'rosco', 'controller', 'build')
-            os.makedirs(localdir, exist_ok=True)
+            self.build_temp = build_dir
+
             # Need fresh build directory for CMake
             os.makedirs(self.build_temp, exist_ok=True)
 
-            self.spawn(['cmake', '-S', ext.sourcedir, '-B', self.build_temp] + cmake_args)
+            self.spawn(['cmake', '-B', self.build_temp, '-S', ext.sourcedir] + cmake_args)
             self.spawn(['cmake', '--build', self.build_temp, '--target', 'install', '--config', 'Release'])
 
-
-
-# All of the extensions
-roscoExt   = CMakeExtension('rosco',os.path.join('rosco','controller'))
-
-# The rest you shouldn't have to touch too much :)
-# ------------------------------------------------
-# Except, perhaps the License and Trove Classifiers!
-# If you do change the License, remember to change the Trove Classifier for that!
-
-here = os.path.abspath(os.path.dirname(__file__))
-
-# Import the README and use it as the long-description.
-try:
-    with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
-        long_description = '\n' + f.read()
-except FileNotFoundError:
-    long_description = DESCRIPTION
-
-# Load the package's __version__.py module as a dictionary.
-about = {}
-if not VERSION:
-    project_slug = NAME.lower().replace("-", "_").replace(" ", "_")
-    with open(os.path.join(here, project_slug, '__version__.py')) as f:
-        exec(f.read(), about)
-else:
-    about['__version__'] = VERSION
-
-
-class UploadCommand(Command):
-    """Support setup.py upload."""
-
-    description = 'Build and publish the package.'
-    user_options = []
-
-    @staticmethod
-    def status(s):
-        """Prints things in bold."""
-        print('\033[1m{0}\033[0m'.format(s))
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        try:
-            self.status('Removing previous builds...')
-            rmtree(os.path.join(here, 'dist'))
-        except OSError:
-            pass
-
-        self.status('Building Source and Wheel (universal) distribution...')
-        os.system('{0} setup.py sdist bdist_wheel --universal'.format(sys.executable))
-
-        self.status('Uploading the package to PyPI via Twine...')
-        os.system('twine upload dist/*')
-
-        self.status('Pushing git tags...')
-        os.system('git tag v{0}'.format(about['__version__']))
-        os.system('git push --tags')
-        
-        sys.exit()
-
-
-
-metadata = dict(
-    name                          = NAME,
-    version                       = about['__version__'],
-    description                   = DESCRIPTION,
-    long_description              = long_description,
-    long_description_content_type = 'text/markdown',
-    author                        = AUTHOR,
-    author_email                  = EMAIL,
-    url                           = URL,
-    install_requires              = REQUIRED,
-    python_requires               = REQUIRES_PYTHON,
-    packages                      = find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
-    package_data                  = {'': ['*.yaml']},
-    license                       = 'Apache License, Version 2.0',
-    cmdclass                      = {'build_ext': CMakeBuildExt, 'upload': UploadCommand},
-    zip_safe                      = False,
-)
-if "--compile-rosco" in sys.argv:
-    metadata['ext_modules'] = [roscoExt]
-    sys.argv.remove("--compile-rosco")
-
-setup(**metadata)
+            
+if __name__ == "__main__":
+    # Start with clean build directory
+    shutil.rmtree(build_dir, ignore_errors=True)
+    
+    setup(cmdclass={'bdist_wheel': bdist_wheel, 'build_ext': CMakeBuildExt},
+          distclass=BinaryDistribution,
+          ext_modules=[ CMakeExtension('rosco',os.path.join('rosco','controller')) ],
+          )
+    

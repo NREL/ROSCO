@@ -3,16 +3,15 @@ channels:
   - defaults
 
 dependencies:
+  - cmake
+  - control
   - matplotlib
   - numpy
-  - pytest
-  - scipy
-  - pyYAML
   - pandas
-  - wisdem
-  - cmake
-  - pyparsing==2.4.7 
-  - control
+  - pyYAML
+  - pyparsing
+  - pytest
   - pyzmq
-  - mpi4py
+  - scipy
   - treon
+  - wisdem

@@ -27,11 +27,12 @@ from rosco.toolbox.utilities import run_openfast
 class RegressionTesting(unittest.TestCase):
     def test_restart(self):
         this_dir = os.path.dirname(os.path.abspath(__file__))
-        rosco_dir = os.path.dirname(this_dir)
+        rosco_dir = os.path.dirname( os.path.dirname(this_dir) )
         test_out_dir = os.path.join(this_dir, 'test_out')
 
         # Load yaml file (Open Loop Case)
-        parameter_filename = os.path.join(rosco_dir, 'Tune_Cases/IEA15MW.yaml')
+        tune_directory = os.path.join(rosco_dir,'Examples','Tune_Cases')
+        parameter_filename = os.path.join(tune_directory, 'IEA15MW.yaml')
 
         inps = load_rosco_yaml(parameter_filename)
         path_params = inps['path_params']
@@ -40,11 +41,12 @@ class RegressionTesting(unittest.TestCase):
 
         # Set rosco_dll
         if platform.system() == 'Windows':
-            rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.dll')
+            sfx = 'dll'
         elif platform.system() == 'Darwin':
-            rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.dylib')
+            sfx = 'dylib'
         else:
-            rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.so')
+            sfx = 'so'
+        rosco_dll = os.path.join(rosco_dir, 'lib', 'libdiscon.'+sfx)
 
         case_inputs = {}
         case_inputs[('Fst', 'TMax')] = {'vals': [3.], 'group': 0}
@@ -67,7 +69,8 @@ class RegressionTesting(unittest.TestCase):
         reader = InputReader_OpenFAST()
         writer = InputWriter_OpenFAST()
         reader.FAST_InputFile = path_params['FAST_InputFile']
-        reader.FAST_directory = os.path.realpath(os.path.join( rosco_dir, 'Tune_Cases', path_params['FAST_directory']))
+        reader.FAST_directory = os.path.realpath(os.path.join( tune_directory, path_params['FAST_directory']))
+
         reader.execute()
         writer.fst_vt = reader.fst_vt
         writer.FAST_runDirectory = test_out_dir
@@ -115,6 +118,7 @@ class RegressionTesting(unittest.TestCase):
             fig, ax = op.plot_fast_out(cases=cases, showplot=False)
             plt.show()
 
+        print(fastout[1]['GenPwr'], fastout[0]['GenPwr'])
         self.check_relative_error(fastout[1]['GenPwr'], fastout[0]['GenPwr'], 1e-3)
 
     def check_relative_error(self, meas, real, tol):

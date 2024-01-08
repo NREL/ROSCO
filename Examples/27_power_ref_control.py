@@ -31,11 +31,12 @@ example_out_dir     = os.path.join(this_dir,'examples_out')
 os.makedirs(example_out_dir,exist_ok=True)
 
 if platform.system() == 'Windows':
-    lib_name = os.path.realpath(os.path.join(this_dir, '../rosco/controller/build/libdiscon.dll'))
+    sfx = 'dll'
 elif platform.system() == 'Darwin':
-    lib_name = os.path.realpath(os.path.join(this_dir, '../rosco/controller/build/libdiscon.dylib'))
+    sfx = 'dylib'
 else:
-    lib_name = os.path.realpath(os.path.join(this_dir, '../rosco/controller/build/libdiscon.so'))
+    sfx = 'so'
+lib_name = os.path.join(rosco_dir, 'lib', 'libdiscon.'+sfx)
 
 
 def main():

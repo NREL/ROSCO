@@ -37,17 +37,19 @@ turbine_params      = inps['turbine_params']
 controller_params   = inps['controller_params']
 
 # Specify controller dynamic library path and name
-this_dir = os.path.dirname(os.path.abspath(__file__))
-example_out_dir = os.path.join(this_dir,'examples_out')
-if not os.path.isdir(example_out_dir):
-  os.makedirs(example_out_dir)
+
+#directories
+rosco_dir           = os.path.dirname(this_dir)
+example_out_dir     = os.path.join(this_dir,'examples_out')
+os.makedirs(example_out_dir,exist_ok=True)
 
 if platform.system() == 'Windows':
-    lib_name = os.path.join(this_dir, '../rosco/controller/build/libdiscon.dll')
+    sfx = 'dll'
 elif platform.system() == 'Darwin':
-    lib_name = os.path.join(this_dir, '../rosco/controller/build/libdiscon.dylib')
+    sfx = 'dylib'
 else:
-    lib_name = os.path.join(this_dir, '../rosco/controller/build/libdiscon.so')
+    sfx = 'so'
+lib_name = os.path.join(rosco_dir, 'lib', 'libdiscon.'+sfx)
 
 # # Load turbine model from saved pickle
 turbine         = ROSCO_turbine.Turbine

@@ -11,15 +11,9 @@ import scipy as sp
 import control as co
 import matplotlib.pyplot as plt
 import multiprocessing as mp
-from itertools import chain
 from scipy.io import loadmat
 
-try:
-    import pyFAST.linearization.mbc as mbc
-except ImportError:
-    import weis.control.mbc.mbc3 as mbc
-except ImportError:
-    raise ImportError('Unable to load mbc3 from pyFAST or WEIS')
+import rosco.toolbox.linear.mbc3 as mbc
 
 class LinearTurbineModel(object):
 
@@ -710,7 +704,7 @@ def run_mbc3(fnames):
     Helper function to run mbc3
     '''
     print('Loading linearizations from:', ''.join(fnames[0].split('.')[:-2]))
-    MBC, matData = mbc.fx_mbc3(fnames, verbose=False)
+    MBC, matData, _ = mbc.fx_mbc3(fnames, verbose=False)
 
     return MBC, matData
 

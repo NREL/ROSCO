@@ -106,7 +106,7 @@ if __name__ == "__main__":
     testtype     = 'heavy'       # lite, heavy, binary-comp, discon-comp
 
     # Only fill one of these if comparing controllers
-    rosco_binaries = [glob.glob(os.path.join(this_dir,'../ROSCO/build/libdiscon.*'))[0]] # Differently named libdiscons to compare
+    rosco_binaries = [glob.glob(os.path.join(this_dir,'..','..','lib','libdiscon.*'))[0]] # Differently named libdiscons to compare
     discon_files = []   # Differently named DISCON.IN files to compare
 
     # Run testing

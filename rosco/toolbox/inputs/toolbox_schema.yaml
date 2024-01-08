@@ -558,6 +558,12 @@ properties:
                         type: number
                         description: Time step to output .dbg* files, or 0 to match sampling period of OpenFAST
                         default: 0
+                    Ext_Interface:
+                        type: number
+                        description: 0 - use standard bladed interface, 1 - Use the extened DLL interface introduced in OpenFAST 3.5.0.
+                        minimum: 0
+                        maximum: 1
+                        default: 1
                     F_LPFType:
                         type: number
                         description: 1- first-order low-pass filter, 2- second-order low-pass filter (currently filters generator speed and pitch control signals
