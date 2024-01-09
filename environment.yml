@@ -6,6 +6,8 @@ dependencies:
   - cmake
   - cmake-build-extension
   - control
+  - make
+  - ninja
   - matplotlib
   - numpy
   - pandas
