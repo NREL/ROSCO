@@ -5,7 +5,7 @@ Run ROSCO lite testing scripts for controller functionality verification
 import os
 import glob
 import ROSCO_testing
-import importlib
+from rosco import discon_lib_path
 
 os.system("taskset -p 0xffffffffffff %d" % os.getpid())
 
@@ -52,12 +52,12 @@ def run_testing(turbine2test, testtype, rosco_binaries=[], discon_files=[], **kw
     if turbine2test == 'NREL-5MW':
         rt.Turbine_Class = 'I'
         rt.Turbulence_Class = 'A'
-        rt.FAST_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Test_Cases/NREL-5MW')
+        rt.FAST_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../Examples/Test_Cases/NREL-5MW')
         rt.FAST_InputFile = 'NREL-5MW.fst'
     elif turbine2test == 'IEA-15MW':
         rt.Turbine_Class = 'I'
         rt.Turbulence_Class = 'B'
-        rt.FAST_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Test_Cases/IEA-15-240-RWT-UMaineSemi')
+        rt.FAST_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../Examples/Test_Cases/IEA-15-240-RWT-UMaineSemi')
         rt.FAST_InputFile = 'IEA-15-240-RWT-UMaineSemi.fst'
     else:
         raise ValueError('{} is not an available turbine to test!'.format(turbine2test))
@@ -106,8 +106,8 @@ if __name__ == "__main__":
     testtype     = 'heavy'       # lite, heavy, binary-comp, discon-comp
 
     # Only fill one of these if comparing controllers
-    rosco_binaries = [glob.glob(os.path.join(this_dir,'..','..','lib','libdiscon.*'))[0]] # Differently named libdiscons to compare
     discon_files = []   # Differently named DISCON.IN files to compare
 
     # Run testing
-    run_testing(turbine2test, testtype, rosco_binaries=rosco_binaries, discon_files=discon_files, **rt_kwargs)
+    run_testing(turbine2test, testtype, rosco_binaries=discon_lib_path,
+                discon_files=discon_files, **rt_kwargs)

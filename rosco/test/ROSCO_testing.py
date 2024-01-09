@@ -15,9 +15,9 @@ Run ROSCO and test against baseline results:
 import numpy as np
 import os
 import platform
-import glob
 import multiprocessing as mp
 
+from rosco import discon_lib_path
 from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
 from rosco.toolbox.ofTools.case_gen.CaseGen_IEC import CaseGen_IEC
 from rosco.toolbox.ofTools.case_gen.runFAST_pywrapper import runFAST_pywrapper_batch
@@ -45,10 +45,7 @@ class ROSCO_testing():
         self.Turbsim_exe = 'turbsim_single'     # name of turbsim executable
         self.FAST_ver = 'OpenFAST'  # Fast version
         # Path to ROSCO controller - default to ROSCO Toolbox submodule
-        try:
-            self.rosco_path = glob.glob(os.path.join(rosco_root, 'lib', 'libdiscon.*'))[0]
-        except Exception:
-            print('No compiled ROSCO version found, please provide ROSCO_testing.rosco_path.')
+        self.rosco_path = discon_lib_path
         self.debug_level = 2        # debug level. 0 - no outputs, 1 - minimal outputs, 2 - all outputs
         self.overwrite = False      # overwrite existing files? 
         self.cores = 4              # number of cores to use
@@ -559,7 +556,7 @@ if __name__=='__main__':
         sfx = 'dylib'
     else:
         sfx = 'so'
-    rt.rosco_path = os.path.join(rosco_root, 'lib', 'libdiscon.'+sfx)
+    rt.rosco_path = discon_lib_path
 
     rt.debug_level = 2           # debug level. 0 - no outputs, 1 - minimal outputs, 2 - all outputs
     rt.overwrite = True          # overwite fast sims?

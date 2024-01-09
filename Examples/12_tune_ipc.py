@@ -10,7 +10,7 @@ In this example:
 
 '''
 # Python Modules
-import os, platform
+import os
 import matplotlib.pyplot as plt
 
 # ROSCO toolbox modules 

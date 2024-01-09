@@ -11,11 +11,12 @@ In this example:
 
 '''
 # Python Modules
-import yaml, os, platform
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 
 # ROSCO toolbox modules 
+from rosco import discon_lib_path
 from rosco.toolbox import controller as ROSCO_controller
 from rosco.toolbox import turbine as ROSCO_turbine
 from rosco.toolbox import utilities as ROSCO_utilities
@@ -89,17 +90,8 @@ param_file = os.path.join(this_dir,'DISCON.IN')   # This must be named DISCON.IN
 ROSCO_utilities.write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
 
 ### Run OpenFAST using aeroelasticse tools
-
-if platform.system() == 'Windows':
-    sfx = 'dll'
-elif platform.system() == 'Darwin':
-    sfx = 'dylib'
-else:
-    sfx = 'so'
-rosco_dll = os.path.join(rosco_dir, 'lib', 'libdiscon.'+sfx)
-
 case_inputs = {}
-case_inputs[('ServoDyn','DLL_FileName')] = {'vals': [rosco_dll], 'group': 0}
+case_inputs[('ServoDyn','DLL_FileName')] = {'vals': [discon_lib_path], 'group': 0}
 
 # Apply all discon variables as case inputs
 discon_vt = ROSCO_utilities.DISCON_dict(

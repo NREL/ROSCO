@@ -17,8 +17,9 @@ Notes - You will need to have a compiled controller in ROSCO, and
 # Python modules
 import matplotlib.pyplot as plt 
 import numpy as np
-import os, platform
+import os
 # ROSCO toolbox modules 
+from rosco import discon_lib_path as lib_name
 from rosco.toolbox import controller as ROSCO_controller
 from rosco.toolbox import turbine as ROSCO_turbine
 from rosco.toolbox import sim as ROSCO_sim
@@ -42,14 +43,6 @@ controller_params   = inps['controller_params']
 rosco_dir           = os.path.dirname(this_dir)
 example_out_dir     = os.path.join(this_dir,'examples_out')
 os.makedirs(example_out_dir,exist_ok=True)
-
-if platform.system() == 'Windows':
-    sfx = 'dll'
-elif platform.system() == 'Darwin':
-    sfx = 'dylib'
-else:
-    sfx = 'so'
-lib_name = os.path.join(rosco_dir, 'lib', 'libdiscon.'+sfx)
 
 # # Load turbine model from saved pickle
 turbine         = ROSCO_turbine.Turbine

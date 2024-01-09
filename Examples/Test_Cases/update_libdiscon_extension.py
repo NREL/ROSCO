@@ -1,13 +1,6 @@
 import glob
-import platform
 import os
-
-if platform.system() == 'Windows':
-    sfx = 'dll'
-elif platform.system() == 'Darwin':
-    sfx = 'dylib'
-else:
-    sfx = 'so'
+from rosco import discon_lib_path
 
 if __name__ == "__main__":
     this_dir   = os.path.dirname(os.path.abspath(__file__))
@@ -21,5 +14,8 @@ if __name__ == "__main__":
         # Write correction
         with open(ifile, "w") as f:
             for line in lines:
-                f.write(line.replace('libdiscon.so', f'libdiscon.{sfx}'))
+                if line.find("DLL_FileName") >= 0:
+                    f.write(f"\"{discon_lib_path}\"    DLL_FileName - Name/location of the dynamic library (.dll [Windows] or .so [Linux]) in the Bladed-DLL format (-) [used only with Bladed Interface]\n")
+                else:
+                    f.write(line)
                 
