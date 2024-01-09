@@ -7,13 +7,13 @@ Run a steady simulation, use the azimuth output as an input to the next steady s
 
 '''
 
-import os, platform
+import os
 from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
 from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 from rosco.toolbox.ofTools.fast_io import output_processing
 from rosco.toolbox.controller import OpenLoopControl
 import numpy as np
-import pandas as pd
+#import pandas as pd
 import matplotlib.pyplot as plt
 
 
@@ -22,14 +22,6 @@ this_dir            = os.path.dirname(os.path.abspath(__file__))
 rosco_dir           = os.path.dirname(this_dir)
 example_out_dir     = os.path.join(this_dir,'examples_out')
 os.makedirs(example_out_dir,exist_ok=True)
-
-if platform.system() == 'Windows':
-    sfx = 'dll'
-elif platform.system() == 'Darwin':
-    sfx = 'dylib'
-else:
-    sfx = 'so'
-lib_name = os.path.join(rosco_dir, 'lib', 'libdiscon.'+sfx)
 
 
 def main():

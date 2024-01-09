@@ -153,12 +153,12 @@ References:
 [2] - Frederik, Joeri A., et al. "The helix approach: Using dynamic individual pitch control to enhance wake mixing in wind farms." Wind Energy 23.8 (2020): 1739-1751.
 '''
 
-import os, platform
+import os
 from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
 from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
-from rosco.toolbox.ofTools.fast_io import output_processing
-from rosco.toolbox.utilities import read_DISCON, DISCON_dict
-import numpy as np
+#from rosco.toolbox.ofTools.fast_io import output_processing
+from rosco.toolbox.utilities import read_DISCON #, DISCON_dict
+#import numpy as np
 
 # Choose your implementation method
 AWC_Mode 			= 1 		# 1 for SNL implementation, 2 for Coleman Transformation implementation
@@ -169,14 +169,6 @@ this_dir            = os.path.dirname(os.path.abspath(__file__))
 rosco_dir           = os.path.dirname(this_dir)
 example_out_dir     = os.path.join(this_dir,'examples_out')
 os.makedirs(example_out_dir,exist_ok=True)
-
-if platform.system() == 'Windows':
-    sfx = 'dll'
-elif platform.system() == 'Darwin':
-    sfx = 'dylib'
-else:
-    sfx = 'so'
-lib_name = os.path.join(rosco_dir, 'lib', 'libdiscon.'+sfx)
 
 
 

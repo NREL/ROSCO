@@ -7,7 +7,7 @@ Set up and run simulation with pitch offsets, check outputs
 
 '''
 
-import os, platform
+import os
 from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
 from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 from rosco.toolbox.ofTools.fast_io import output_processing
@@ -19,14 +19,6 @@ this_dir            = os.path.dirname(os.path.abspath(__file__))
 rosco_dir           = os.path.dirname(this_dir)
 example_out_dir     = os.path.join(this_dir,'examples_out')
 os.makedirs(example_out_dir,exist_ok=True)
-
-if platform.system() == 'Windows':
-    sfx = 'dll'
-elif platform.system() == 'Darwin':
-    sfx = 'dylib'
-else:
-    sfx = 'so'
-lib_name = os.path.join(rosco_dir, 'lib', 'libdiscon.'+sfx)
 
 
 def main():

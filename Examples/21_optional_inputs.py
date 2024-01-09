@@ -4,12 +4,12 @@ Test and demonstrate update_discon_version() function for converting an old ROSC
 to the current version
 '''
 
-import os, platform
+import os
+from rosco import discon_lib_path
 from rosco.toolbox import control_interface as ROSCO_ci
-from rosco.toolbox import sim as ROSCO_sim
+#from rosco.toolbox import sim as ROSCO_sim
 from rosco.toolbox import turbine as ROSCO_turbine
-import numpy as np
-
+#import numpy as np
 
 #directories
 this_dir            = os.path.dirname(os.path.abspath(__file__))
@@ -17,15 +17,6 @@ rosco_dir           = os.path.dirname(this_dir)
 example_out_dir     = os.path.join(this_dir,'examples_out')
 example_in_dir      = os.path.join(this_dir,'example_inputs')
 os.makedirs(example_out_dir,exist_ok=True)
-
-if platform.system() == 'Windows':
-    sfx = 'dll'
-elif platform.system() == 'Darwin':
-    sfx = 'dylib'
-else:
-    sfx = 'so'
-rosco_dll = os.path.join(rosco_dir, 'lib', 'libdiscon.'+sfx)
-
 
 
 def main():
@@ -42,7 +33,9 @@ def main():
 
     avi_fail = []
     for param_filename in param_filenames:
-        controller_int = ROSCO_ci.ControllerInterface(rosco_dll,param_filename=param_filename,sim_name='sim1')
+        controller_int = ROSCO_ci.ControllerInterface(discon_lib_path,
+                                                      param_filename=param_filename,
+                                                      sim_name='sim1')
         controller_int.kill_discon()
         avi_fail.append(controller_int.aviFAIL.value)
 

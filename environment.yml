@@ -4,6 +4,7 @@ channels:
 
 dependencies:
   - cmake
+  - cmake-build-extension
   - control
   - matplotlib
   - numpy

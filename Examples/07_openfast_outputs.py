@@ -12,7 +12,7 @@ Note: need to run openfast model in 'Test_Cases/5MW_Land_DLL_WTurb/' to plot
 '''
 
 # Python Modules
-import numpy as np
+#import numpy as np
 import matplotlib.pyplot as plt 
 # ROSCO toolbox modules 
 from rosco.toolbox.ofTools.fast_io import output_processing

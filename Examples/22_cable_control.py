@@ -7,7 +7,7 @@ Set up and run simulation with pitch offsets, check outputs
 
 '''
 
-import os, platform
+import os
 from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
 from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 from rosco.toolbox.ofTools.fast_io import output_processing

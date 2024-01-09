@@ -9,19 +9,21 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
+import ctypes
 from ctypes import (
     byref,
     cdll,
     POINTER,
     c_float,
     c_char_p,
-    c_double,
+    #c_double,
     create_string_buffer,
     c_int32,
     c_void_p,
 )
 import numpy as np
-import platform, ctypes, os
+import platform
+import os
 import zmq
 import logging
 from rosco.toolbox.ofTools.util.FileTools import load_yaml

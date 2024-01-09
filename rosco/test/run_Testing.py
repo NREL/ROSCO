@@ -5,7 +5,7 @@ Run ROSCO lite testing scripts for controller functionality verification
 import os
 import glob
 import ROSCO_testing
-import importlib
+from rosco import discon_lib_path
 
 os.system("taskset -p 0xffffffffffff %d" % os.getpid())
 
@@ -106,8 +106,8 @@ if __name__ == "__main__":
     testtype     = 'heavy'       # lite, heavy, binary-comp, discon-comp
 
     # Only fill one of these if comparing controllers
-    rosco_binaries = [glob.glob(os.path.join(this_dir,'..','..','lib','libdiscon.*'))[0]] # Differently named libdiscons to compare
     discon_files = []   # Differently named DISCON.IN files to compare
 
     # Run testing
-    run_testing(turbine2test, testtype, rosco_binaries=rosco_binaries, discon_files=discon_files, **rt_kwargs)
+    run_testing(turbine2test, testtype, rosco_binaries=discon_lib_path,
+                discon_files=discon_files, **rt_kwargs)
