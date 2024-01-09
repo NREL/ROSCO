@@ -52,12 +52,12 @@ def run_testing(turbine2test, testtype, rosco_binaries=[], discon_files=[], **kw
     if turbine2test == 'NREL-5MW':
         rt.Turbine_Class = 'I'
         rt.Turbulence_Class = 'A'
-        rt.FAST_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Test_Cases/NREL-5MW')
+        rt.FAST_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../Examples/Test_Cases/NREL-5MW')
         rt.FAST_InputFile = 'NREL-5MW.fst'
     elif turbine2test == 'IEA-15MW':
         rt.Turbine_Class = 'I'
         rt.Turbulence_Class = 'B'
-        rt.FAST_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Test_Cases/IEA-15-240-RWT-UMaineSemi')
+        rt.FAST_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../Examples/Test_Cases/IEA-15-240-RWT-UMaineSemi')
         rt.FAST_InputFile = 'IEA-15-240-RWT-UMaineSemi.fst'
     else:
         raise ValueError('{} is not an available turbine to test!'.format(turbine2test))

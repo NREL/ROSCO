@@ -11,11 +11,10 @@ import unittest
 import numpy as np
 
 # Python Modules
-import os
-import platform
 from shutil import copyfile
 
 # ROSCO toolbox modules
+from rosco import discon_lib_path
 from rosco.toolbox.inputs.validation import load_rosco_yaml
 from rosco.toolbox.ofTools.fast_io import output_processing 
 from rosco.toolbox.ofTools.case_gen.CaseLibrary import set_channels
@@ -39,18 +38,9 @@ class RegressionTesting(unittest.TestCase):
         turbine_params = inps['turbine_params']
         controller_params = inps['controller_params']
 
-        # Set rosco_dll
-        if platform.system() == 'Windows':
-            sfx = 'dll'
-        elif platform.system() == 'Darwin':
-            sfx = 'dylib'
-        else:
-            sfx = 'so'
-        rosco_dll = os.path.join(rosco_dir, 'lib', 'libdiscon.'+sfx)
-
         case_inputs = {}
         case_inputs[('Fst', 'TMax')] = {'vals': [3.], 'group': 0}
-        case_inputs[('ServoDyn', 'DLL_FileName')] = {'vals': [rosco_dll], 'group': 0}
+        case_inputs[('ServoDyn', 'DLL_FileName')] = {'vals': [discon_lib_path], 'group': 0}
         case_inputs[('Fst', 'ChkptTime')] = {'vals': [1.], 'group': 1}
         case_inputs[('Fst', 'OutFileFmt')] = {'vals': [2], 'group': 1}
         case_inputs[('Fst', 'DT')] = {'vals': [0.025], 'group': 0}
