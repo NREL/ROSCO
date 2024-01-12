@@ -2,8 +2,8 @@
 
 .. _rosco:
 
-ROSCO Controller Structure
-==========================
+ROSCO Structure: Controller
+===========================
 Here, we give an overview of the structure of the ROSCO controller and how the code is implemented. 
 
 -----

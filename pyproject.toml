@@ -50,7 +50,7 @@ dependencies = [
   "pyYAML",
   "pyzmq",
   "treon",
-  "wisdem",
+  #"wisdem",
 ]
 
 # List additional groups of dependencies here (e.g. development

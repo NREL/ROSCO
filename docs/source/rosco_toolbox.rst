@@ -2,7 +2,7 @@
 
 .. _rosco_toolbox_main:
 
-ROSCO Toolbox Structure
+ROSCO Structure: Toolbox 
 ========================
 Here, we give an overview of the structure of the ROSCO toolbox and how the code is implemented. 
 
@@ -23,7 +23,7 @@ The source code for the ROSCO toolbox generic tuning implementations lives here.
 * :code:`sim.py` is a simple 1-DOF model simulator
 * **ofTools** is a folder containing a large set of tools to handle OpenFAST_ input files - this is primarily used to run large simulation sets and to handle reading and processing of OpenFAST input and output files. 
 
-Examples
+Exampl
 .........
 A number of examples are included to showcase the numerous capabilities of the ROSCO toolbox; they are described in the :ref:`standard_use`.
 
