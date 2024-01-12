@@ -8,12 +8,13 @@ Demonstrate a simulation with a generator reference speed that changes with esti
 
 '''
 
-import os, platform
+import os
+from rosco import discon_lib_path
 from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
 from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 from rosco.toolbox.tune import yaml_to_objs
 import numpy as np
-from rosco.toolbox.inputs.validation import load_rosco_yaml
+#from rosco.toolbox.inputs.validation import load_rosco_yaml
 import matplotlib.pyplot as plt
 
 '''
@@ -29,14 +30,7 @@ this_dir            = os.path.dirname(os.path.abspath(__file__))
 rosco_dir           = os.path.dirname(this_dir)
 example_out_dir     = os.path.join(this_dir,'examples_out')
 os.makedirs(example_out_dir,exist_ok=True)
-
-if platform.system() == 'Windows':
-    sfx = 'dll'
-elif platform.system() == 'Darwin':
-    sfx = 'dylib'
-else:
-    sfx = 'so'
-lib_name = os.path.join(rosco_dir, 'lib', 'libdiscon.'+sfx)
+lib_name = discon_lib_path
 
 
 def main():

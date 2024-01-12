@@ -8,9 +8,9 @@ one could call ROSCO from OpenFAST, and communicate with ZeroMQ through that.
 '''
 
 
-import platform
 import os
 import matplotlib.pyplot as plt
+from rosco import discon_lib_path
 from rosco.toolbox.inputs.validation import load_rosco_yaml
 from rosco.toolbox.utilities import write_DISCON
 from rosco.toolbox import control_interface as ROSCO_ci
@@ -31,14 +31,6 @@ this_dir            = os.path.dirname(os.path.abspath(__file__))
 rosco_dir           = os.path.dirname(this_dir)
 example_out_dir     = os.path.join(this_dir,'examples_out')
 os.makedirs(example_out_dir,exist_ok=True)
-
-if platform.system() == 'Windows':
-    sfx = 'dll'
-elif platform.system() == 'Darwin':
-    sfx = 'dylib'
-else:
-    sfx = 'so'
-lib_name = os.path.join(rosco_dir, 'lib', 'libdiscon.'+sfx)
 
 def run_zmq(logfile=None):
     # Start the server at the following address
@@ -118,7 +110,7 @@ def sim_rosco():
 
     # Load controller library
     controller_int = ROSCO_ci.ControllerInterface(
-        lib_name, 
+        discon_lib_path, 
         param_filename=param_filename, 
         sim_name=os.path.join(sim_dir,'sim-zmq')
         )

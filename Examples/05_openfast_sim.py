@@ -11,10 +11,10 @@ In this example:
 Note - you will need to have a compiled controller in ROSCO/build/ 
 '''
 # Python Modules
-import yaml
+#import yaml
 import os
-import numpy as np
-import matplotlib.pyplot as plt
+#import numpy as np
+#import matplotlib.pyplot as plt
 # ROSCO toolbox modules 
 from rosco.toolbox import controller as ROSCO_controller
 from rosco.toolbox import turbine as ROSCO_turbine
