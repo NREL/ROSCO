@@ -50,7 +50,7 @@ dependencies = [
   "pyYAML",
   "pyzmq",
   "treon",
-  #"wisdem",
+  "wisdem",
   "ruamel.yaml",
 ]
 
