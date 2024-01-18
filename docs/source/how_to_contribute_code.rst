@@ -1,7 +1,7 @@
 .. how_to_contribute_code:
 
 How to contribute code to ROSCO
-==============================
+===============================
 
 ROSCO is an open-source tool, thus we welcome users to submit additions or fixes to the code to make it better for everybody.
 When adding new features to ROSCO, we strive to make them as generic as possible, so they can be applied to a variety of turbines.
