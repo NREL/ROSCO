@@ -18,3 +18,5 @@ dependencies:
   - scipy
   - treon
   - wisdem
+  - compilers
+  - sphinx_rtd_theme

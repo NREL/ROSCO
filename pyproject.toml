@@ -51,6 +51,7 @@ dependencies = [
   "pyzmq",
   "treon",
   "wisdem",
+  "ruamel.yaml",
 ]
 
 # List additional groups of dependencies here (e.g. development

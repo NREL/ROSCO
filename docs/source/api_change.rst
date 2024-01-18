@@ -42,7 +42,7 @@ Thus, be sure to implement each in order so that subsequent line numbers are cor
 
 *  Each turbine is assigned a `ZMQ_ID` by the controller, which is tracked by a farm-level controller
 
-**Tower resonance avoidance
+**Tower resonance avoidance**
 
 *  When `TRA_Mode` is 1, change the torque control generator speed setpoint to avoid TRA_ExclSpeed +/- TRA_ExclBand.
 *  The set point is changed at a slow rate `TRA_RateLimit` to avoid generator power spikes.  `VS_RefSpd`/100 is recommended.
@@ -89,7 +89,7 @@ Line    Input Name                 Example Value
 161     Ind_Azimuth               0           ! Ind_Azimuth   - The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
 162     RP_Gains                  0.0000 0.0000 0.0000 0.0000     ! RP_Gains - PID gains and Tf of derivative for rotor position control (used if OL_Mode = 2)
 186     ZMQ_ID                    0     ! ZMQ_ID - Integer identifier of turbine
-====== =================          ======================================================================================================================================================================================================
+====== =======================    ===============================================================================================================================================================================================================================================================
 
 ====== =================    ======================================================================================================================================================================================================
 Changed in ROSCO develop
