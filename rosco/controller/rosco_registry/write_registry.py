@@ -95,7 +95,8 @@ def write_roscoio(yfile):
     file.write("    OPEN(unit=Un, FILE=TRIM(InFile), STATUS='UNKNOWN', FORM='UNFORMATTED' , ACCESS='STREAM', IOSTAT=ErrStat, ACTION='WRITE' )\n")
     file.write("\n")
     file.write("    IF ( ErrStat /= 0 ) THEN\n")
-    file.write("        ErrMsg  = 'Cannot open file "'//TRIM( InFile )//'". Another program may have locked it for writing.'\n")
+    file.write("        ErrVar%aviFAIL = 1\n")
+    file.write("        ErrVar%ErrMsg  = 'ROSCO_IO: Cannot open checkpoint file '//TRIM(InFile)//' for writing'\n")
     file.write("\n")
     file.write("    ELSE\n")
 
@@ -112,6 +113,10 @@ def write_roscoio(yfile):
     for var in reg['ObjectInstances']:
         file.write('        WRITE( Un, IOSTAT=ErrStat) objInst%{}\n'.format(var))
     file.write('        Close ( Un )\n')
+    file.write("        IF ( ErrStat /= 0 ) THEN\n")
+    file.write("            ErrVar%aviFAIL = 1\n")
+    file.write("            ErrVar%ErrMsg  = 'ROSCO_IO: Error writing checkpoint file.'\n")
+    file.write("        ENDIF\n")
     file.write('    ENDIF\n')
     file.write('END SUBROUTINE WriteRestartFile\n')
     file.write('\n \n')
@@ -141,7 +146,8 @@ def write_roscoio(yfile):
     file.write("    OPEN(unit=Un, FILE=TRIM(InFile), STATUS='UNKNOWN', FORM='UNFORMATTED' , ACCESS='STREAM', IOSTAT=ErrStat, ACTION='READ' )\n")
     file.write("\n")
     file.write("    IF ( ErrStat /= 0 ) THEN\n")
-    file.write("        ErrMsg  = 'Cannot open file "'//TRIM( InFile )//'". Another program may have locked it for writing.'\n")
+    file.write("        ErrVar%aviFAIL = 1\n")
+    file.write("        ErrVar%ErrMsg  = 'ROSCO_IO: Cannot open checkpoint file '//TRIM(InFile)//' for reading'\n")
     file.write("\n")
     file.write("    ELSE\n")
 
@@ -160,6 +166,10 @@ def write_roscoio(yfile):
     for var in reg['ObjectInstances']:
         file.write('        READ( Un, IOSTAT=ErrStat) objInst%{}\n'.format(var))
     file.write('        Close ( Un )\n')
+    file.write("        IF ( ErrStat /= 0 ) THEN\n")
+    file.write("            ErrVar%aviFAIL = 1\n")
+    file.write("            ErrVar%ErrMsg  = 'ROSCO_IO: Error reading checkpoint file.'\n")
+    file.write("        ENDIF\n")
     file.write('    ENDIF\n')
     file.write('    ! Read Parameter files\n')
     file.write('    CALL ReadControlParameterFileSub(CntrPar, LocalVar, LocalVar%ACC_INFILE, LocalVar%ACC_INFILE_SIZE, RootName, ErrVar)\n')

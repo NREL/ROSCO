@@ -847,9 +847,11 @@ CONTAINS
             ErrVar%ErrMsg  = 'DT_Out must be a factor of DT in OpenFAST'
         ENDIF
 
-        IF (ABS(CntrPar%ZMQ_UpdatePeriod - Localvar%DT * CntrPar%n_DT_ZMQ) > 0.001_DbKi) THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'ZMQ_UpdatePeriod must be a factor of DT in OpenFAST'
+        IF (CntrPar%ZMQ_Mode > 0) THEN
+            IF (ABS(CntrPar%ZMQ_UpdatePeriod - Localvar%DT * CntrPar%n_DT_ZMQ) > 0.001_DbKi) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'ZMQ_UpdatePeriod must be a factor of DT in OpenFAST'
+            ENDIF
         ENDIF
         !------- CONTROLLER FLAGS -------------------------------------------------
 

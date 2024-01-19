@@ -3,54 +3,39 @@ ROSCO Documentation
 :Version: |release|
 :Date: |today|
 
-NREL's Reference OpenSource Controller (ROSCO) tool-set for wind turbine applications designed to ease controller implementation for the wind turbine researcher. The purpose of these documents is to provide information for the use of the tool-set. 
+NREL's "Reference Open Source Controller" (ROSCO) is a reference controller framework that facilitates design and implementation of wind turbine and wind farm controllers for fixed and floating offshore wind turbines.
 
-:numref:`fig-RT` shows the general workflow for the ROSCO tool-chain. with OpenFAST
+ROSCO frameworks includes a large set of available controllers and advanced functionalities that can be combined in a modular fashion based on the intended application and can be easily adapted to a wide variety wind turbines.
+For example, ROSCO can be used to design turbine yaw controller along with an individual blade pitch controller with floating platform feedback for an offshore turbine while simulating a pitch actuator fault and running a user-defined torque controller.
 
-.. _fig-RT:
-.. figure:: /source/figures/ROSCO_toolbox.svg
-   :align: center
-   :width: 80%
+ROSCO provides a single framework for designing controllers for onshore and offshore turbines of varying sizes.
+It can be used to run representative dynamic simulations using OpenFAST.
+This helps researchers perform 'apples-to-apples' comparison of controller capabilities across turbines.
+Control engineers can also design their own controllers and compare them with reference controller design using ROSCO for existing and new turbines.
+ROSCO has been used to provide reference controllers for many recent reference turbines including the `IEA 3.4-MW <https://github.com/IEAWindTask37/IEA-3.4-130-RWT>`_ , `IEA 10-MW <https://github.com/IEAWindTask37/IEA-10.0-198-RWT>`_ , `IEA 15-MW <https://github.com/IEAWindTask37/IEA-15-240-RWT>`_ and the upcoming `IEA 22-MW <https://github.com/IEAWindTask37/IEA-22-280-RWT>`_ turbines.
 
-   ROSCO toolchain general workflow
+The ROSCO framework also includes a python based toolbox that primarily enables tuning the controllers.
+The tuning process is extemely simple where only a tuning parameters need to be provided.
+It is not necessary to run aeroelastic simulations or provide linearized state-space models to tune the controller to tune the controllers.
+The toolbox has other capabilities like simple 1-DOF turbine simulations for quick controller capability verifications, linear model analysis, and parsing of input and output files.
 
+Source code for ROSCO toolset can be found in this `github repository <https://github.com/NREL/ROSCO>`_ and it can be installed following the instructions provided in :ref:`install`.
 
-**ROSCO Toolbox**
-The python-based toolbox primarily used for tuning the controller and writing the DISCON.IN. 
+**Documentation Directory**
 
-* Generic tuning of NREL's ROSCO controller
-* Simple 1-DOF turbine simulations for quick controller capability verifications
-* Parsing of OpenFAST input and output files
-* Linear model analysis capability
-
-**ROSCO Controller**
-The controller implementation itself. This is compiled to :code:`libdiscon.*` file, reads the DISCON.IN file, and interfaces with OpenFAST using the Bladed-style interface. 
-
-* Fortran based
-* Follows Bladed-style control interface
-* Modular
-
-Standard Use
-------------
-
-For the standard use case in OpenFAST (or similar), ROSCO will need to be compiled. This is made possible via the instructions found in :ref:`install`. Once the controller is compiled, the turbine model needs to point to the compiled binary. In OpenFAST, this is ensured by changing the :code:`DLL_FileName` parameter in the ServoDyn input file. 
-
-Additionally, an additional input file is needed for the ROSCO controller. Though the controller only needs to be compiled once, each individual turbine/controller tuning requires an input file. This input file is generically dubbed "DISCON.IN''. In OpenFAST, the :code:`DLL_InFile` parameter should be set to point to the desired input file. The ROSCO toolbox is used to automatically generate the input file. These instructions are provided in the instructions for :ref:`standard_use`.
-
-Technical Documentation
------------------------
-A publication highlighting much of the theory behind the controller tuning and implementation methods can be found at:
-https://wes.copernicus.org/preprints/wes-2021-19/
-
-Survey
-------
-Please help us better understand the ROSCO user-base and how we can improve ROSCO through this brief survey:
-
-.. raw:: html
+.. toctree::
+   :maxdepth: 3
+   :numbered:
    
-   <iframe width="640px" height= "480px" src= "https://forms.office.com/Pages/ResponsePage.aspx?id=fp3yoM0oVE-EQniFrufAgGWnC45k8q5Kl90RBkHijqBUN0JTNzBJT1QwMjIzNDhCWDlDTUZPWDdMWC4u&embed=true" frameborder= "0" marginwidth= "0" marginheight= "0" style= "border: none; max-width:100%; max-height:100vh" allowfullscreen webkitallowfullscreen mozallowfullscreen msallowfullscreen> </iframe>
-   
-
+   source/standard_use.rst
+   source/install.rst
+   source/examples.rst
+   source/rosco.rst
+   source/rosco_toolbox.rst
+   source/api_change.rst
+   source/toolbox_input.rst
+   source/how_to_contribute_code.rst
+   source/ROSCO_instructions_for_Bladed.rst
 
 License
 -------
@@ -67,15 +52,3 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-.. toctree::
-   :maxdepth: 3
-   :numbered:
-   
-   source/install.rst
-   source/standard_use.rst
-   source/rosco_toolbox.rst
-   source/rosco.rst
-   source/api_change.rst
-   source/toolbox_input.rst
-   source/ROSCO_instructions_for_Bladed.rst
