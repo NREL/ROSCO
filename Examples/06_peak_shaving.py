@@ -14,13 +14,13 @@ In this example:
 import matplotlib.pyplot as plt 
 import os
 # ROSCO toolbox modules 
-from ROSCO_toolbox import controller as ROSCO_controller
-from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox import controller as ROSCO_controller
+from rosco.toolbox import turbine as ROSCO_turbine
+from rosco.toolbox.inputs.validation import load_rosco_yaml
 
 
 this_dir = os.path.dirname(__file__)
-tune_dir =  os.path.join(this_dir,'../Tune_Cases')
+tune_dir =  os.path.join(this_dir,'Tune_Cases')
 example_out_dir = os.path.join(this_dir,'examples_out')
 if not os.path.isdir(example_out_dir):
   os.makedirs(example_out_dir)
@@ -44,7 +44,7 @@ controller      = ROSCO_controller.Controller(controller_params)
 turbine.load_from_fast(
     path_params['FAST_InputFile'],
     os.path.join(tune_dir,path_params['FAST_directory']),
-    rot_source='txt',txt_filename=os.path.join(tune_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
+    rot_source='txt',txt_filename=os.path.join(tune_dir,path_params['rotor_performance_filename'])
     )
 # Tune controller 
 controller.tune_controller(turbine)

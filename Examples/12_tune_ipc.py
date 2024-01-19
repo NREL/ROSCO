@@ -10,13 +10,13 @@ In this example:
 
 '''
 # Python Modules
-import os, platform
+import os
 import matplotlib.pyplot as plt
 
 # ROSCO toolbox modules 
-from ROSCO_toolbox.ofTools.fast_io import output_processing
-from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
-from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
+from rosco.toolbox.ofTools.fast_io import output_processing
+from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
+from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 
 def main():
   this_dir          = os.path.dirname(os.path.abspath(__file__))
@@ -26,12 +26,11 @@ def main():
   run_dir = os.path.join(example_out_dir, example_name)
 
   # Load yaml file (Open Loop Case)
-  parameter_filename = os.path.join(rosco_dir,'Tune_Cases/NREL2p8.yaml')
+  parameter_filename = os.path.join(this_dir,'Tune_Cases/NREL2p8.yaml')
 
   case_inputs = {}
   case_inputs[('ServoDyn','Ptch_Cntrl')]   = {'vals': [1], 'group': 0}
   case_inputs[('DISCON_in','IPC_SatMode')]   = {'vals': [0,1,2,3], 'group': 1}
-
   
 
   # simulation set up

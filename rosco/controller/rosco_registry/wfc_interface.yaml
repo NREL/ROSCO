@@ -1,0 +1,27 @@
+measurements: [
+  ZMQ_ID,
+  iStatus, 
+  Time, 
+  VS_MechGenPwr,
+  VS_GenPwr,
+  GenSpeed,
+  RotSpeed,
+  GenTqMeas,
+  NacHeading,
+  NacVane,
+  HorWindV,
+  rootMOOP(1),
+  rootMOOP(2),
+  rootMOOP(3),
+  FA_Acc,
+  NacIMU_FA_Acc,
+  Azimuth,
+  ]
+
+setpoints: [
+  ZMQ_TorqueOffset,
+  ZMQ_YawOffset,
+  ZMQ_PitOffset(1),
+  ZMQ_PitOffset(2),
+  ZMQ_PitOffset(3),
+  ]

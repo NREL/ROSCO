@@ -2,8 +2,8 @@
 
 .. _rosco:
 
-ROSCO Controller Structure
-==========================
+ROSCO Structure: Controller
+===========================
 Here, we give an overview of the structure of the ROSCO controller and how the code is implemented. 
 
 -----
@@ -14,12 +14,15 @@ The primary functions of the ROSCO toolbox are separated into several files. The
 
 * :code:`DISCON.f90` is the primary driver function. 
 * :code:`ReadSetParameters.f90` primarily handles file I/O and the Bladed Interface.
-* :code:`ROSCO_Types.f90` allocates variables in memory.
+* :code:`ROSCO_Types.f90` allocates variables in memory; it is procedurally generated from :code:`rosco_registry`
 * :code:`Constants.f90` establishes some global constants.
 * :code:`Controllers.f90` contains the primary controller algorithms (e.g. blade pitch control)
 * :code:`ControllerBlocks.f90` contains additional control features that are not necessarily primary controllers (e.g. wind speed estimator)
 * :code:`Filters.f90` contains the various filter implementations.
 * :code:`Functions.f90` contains various functions used in the controller.
+* :code:`ExtControl.f90` contains subroutines for calling external dynamic libraries
+* :code:`ROSCO_Helpers.f90` contains subroutines for file I/O and other helpful routines, borrowed heavily from NWTC.IO in OpenFAST
+* :code:`ROSCO_IO.f90` is procedurally generated using the :code:`rosco_registry` for writing debug and checkpoint files
 
 .. _discon_in: 
 

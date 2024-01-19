@@ -153,15 +153,16 @@ References:
 [2] - Frederik, Joeri A., et al. "The helix approach: Using dynamic individual pitch control to enhance wake mixing in wind farms." Wind Energy 23.8 (2020): 1739-1751.
 '''
 
-import os, platform
-from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
-from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
-from ROSCO_toolbox.ofTools.fast_io import output_processing
-from ROSCO_toolbox.utilities import read_DISCON, DISCON_dict
-import numpy as np
+import os
+from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
+from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
+#from rosco.toolbox.ofTools.fast_io import output_processing
+from rosco.toolbox.utilities import read_DISCON #, DISCON_dict
+#import numpy as np
 
 # Choose your implementation method
 AWC_Mode 			= 1 		# 1 for SNL implementation, 2 for Coleman Transformation implementation
+
 
 #directories
 this_dir            = os.path.dirname(os.path.abspath(__file__))
@@ -169,23 +170,17 @@ rosco_dir           = os.path.dirname(this_dir)
 example_out_dir     = os.path.join(this_dir,'examples_out')
 os.makedirs(example_out_dir,exist_ok=True)
 
-if platform.system() == 'Windows':
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.dll'))
-elif platform.system() == 'Darwin':
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.dylib'))
-else:
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.so'))
 
 
 def main():
 
     # Input yaml and output directory
-    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/NREL2p8.yaml')  # will be dummy and overwritten with SNL DISCON params
+    parameter_filename = os.path.join(this_dir,'Tune_Cases/NREL2p8.yaml')  # will be dummy and overwritten with SNL DISCON params
     run_dir = os.path.join(example_out_dir,'20_active_wake_control/all_cases')
     os.makedirs(run_dir,exist_ok=True)
 
     # Read all DISCON inputs
-    rosco_vt = read_DISCON(os.path.join(rosco_dir,'Test_Cases','NREL_2p8_127/NREL-2p8-127_DISCON.IN'))
+    rosco_vt = read_DISCON(os.path.join(this_dir,'Test_Cases','NREL_2p8_127/NREL-2p8-127_DISCON.IN'))
 
     # Apply all discon variables as case inputs
     control_base_case = {}

@@ -1,0 +1,108 @@
+! ------------ AirfoilInfo v1.01.x Input File ----------------------------------
+! NACA6_1000 airfoil, data based on values used for the design of the RM1 tidal current turbine.
+! line
+! line
+! ------------------------------------------------------------------------------
+"default"                 InterpOrd   ! Interpolation order to use for quasi-steady table lookup {1=linear; 3=cubic spline; "default"} [default=1]
+        1.0               NonDimArea  ! The non-dimensional area of the airfoil (area/chord^2) (set to 1.0 if unsure or unneeded)
+@"NACA6_1000_coords.txt"  NumCoords   ! The number of coordinates in the airfoil shape file.  Set to zero if coordinates not included.
+"unused"                  BL_file     ! The file name including the boundary layer characteristics of the profile. Ignored if the aeroacoustic module is not called.
+          7               NumTabs     ! Number of airfoil tables in this file.
+! ------------------------------------------------------------------------------
+! data for table 1
+! ------------------------------------------------------------------------------
+        2.0               Re          ! Reynolds number in millions
+          0               UserProp    ! User property (control) setting
+False                     InclUAdata  ! Is unsteady aerodynamics data included in this table? If TRUE, then include 30 UA coefficients below this line
+!........................................
+! Table of aerodynamics coefficients
+          3               NumAlf      ! Number of data lines in the following table
+!   Alpha       Cl        Cd     Cpmin
+!   (deg)      (-)       (-)       (-)
+  -180.00      0.0       0.3  	  -3.0
+     0.00      0.0       0.3	    -3.0
+   180.00      0.0       0.3	    -3.0
+! ------------------------------------------------------------------------------
+! data for table 2
+! ------------------------------------------------------------------------------
+        4.0               Re          ! Reynolds number in millions
+          0               UserProp    ! User property (control) setting
+False                     InclUAdata  ! Is unsteady aerodynamics data included in this table? If TRUE, then include 30 UA coefficients below this line
+!........................................
+! Table of aerodynamics coefficients
+          3               NumAlf      ! Number of data lines in the following table
+!   Alpha       Cl        Cd     Cpmin
+!   (deg)      (-)       (-)       (-)
+  -180.00      0.0      0.67      -3.0
+     0.00      0.0      0.67      -3.0
+   180.00      0.0      0.67      -3.0
+! ------------------------------------------------------------------------------
+! data for table 3
+! ------------------------------------------------------------------------------
+        6.0               Re          ! Reynolds number in millions
+          0               UserProp    ! User property (control) setting
+False                     InclUAdata  ! Is unsteady aerodynamics data included in this table? If TRUE, then include 30 UA coefficients below this line
+!........................................
+! Table of aerodynamics coefficients
+          3               NumAlf      ! Number of data lines in the following table
+!   Alpha       Cl        Cd     Cpmin
+!   (deg)      (-)       (-)       (-)
+  -180.00      0.0       0.7      -3.0
+     0.00      0.0       0.7      -3.0
+   180.00      0.0       0.7      -3.0
+! ------------------------------------------------------------------------------
+! data for table 4
+! ------------------------------------------------------------------------------
+        8.0               Re          ! Reynolds number in millions
+          0               UserProp    ! User property (control) setting
+False                     InclUAdata  ! Is unsteady aerodynamics data included in this table? If TRUE, then include 30 UA coefficients below this line
+!........................................
+! Table of aerodynamics coefficients
+          3               NumAlf      ! Number of data lines in the following table
+!   Alpha       Cl        Cd     Cpmin
+!   (deg)      (-)       (-)       (-)
+  -180.00      0.0       0.7      -3.0
+     0.00      0.0       0.7      -3.0
+   180.00      0.0       0.7      -3.0
+! ------------------------------------------------------------------------------
+! data for table 5
+! ------------------------------------------------------------------------------
+       10.0               Re          ! Reynolds number in millions
+          0               UserProp    ! User property (control) setting
+False                     InclUAdata  ! Is unsteady aerodynamics data included in this table? If TRUE, then include 30 UA coefficients below this line
+!........................................
+! Table of aerodynamics coefficients
+          3               NumAlf      ! Number of data lines in the following table
+!   Alpha       Cl        Cd     Cpmin
+!   (deg)      (-)       (-)       (-)
+  -180.00      0.0       0.7      -3.0
+     0.00      0.0       0.7      -3.0
+   180.00      0.0       0.7      -3.0
+! ------------------------------------------------------------------------------
+! data for table 6
+! ------------------------------------------------------------------------------
+       12.0               Re          ! Reynolds number in millions
+          0               UserProp    ! User property (control) setting
+False                     InclUAdata  ! Is unsteady aerodynamics data included in this table? If TRUE, then include 30 UA coefficients below this line
+!........................................
+! Table of aerodynamics coefficients
+          3               NumAlf      ! Number of data lines in the following table
+!   Alpha       Cl        Cd     Cpmin
+!   (deg)      (-)       (-)       (-)
+  -180.00      0.0       0.7      -3.0
+     0.00      0.0       0.7      -3.0
+   180.00      0.0       0.7      -3.0
+! ------------------------------------------------------------------------------
+! data for table 7
+! ------------------------------------------------------------------------------
+       14.0               Re          ! Reynolds number in millions
+          0               UserProp    ! User property (control) setting
+False                     InclUAdata  ! Is unsteady aerodynamics data included in this table? If TRUE, then include 30 UA coefficients below this line
+!........................................
+! Table of aerodynamics coefficients
+          3               NumAlf      ! Number of data lines in the following table
+!   Alpha       Cl        Cd     Cpmin
+!   (deg)      (-)       (-)       (-)
+  -180.00      0.0       0.7      -3.0
+     0.00      0.0       0.7      -3.0
+   180.00      0.0       0.7      -3.0

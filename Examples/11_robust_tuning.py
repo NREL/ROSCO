@@ -3,6 +3,8 @@
 Controller tuning to satisfy a robustness criteria
 -------------------------------------
 NOTE: This example necessitates the mbc3 through either pyFAST or WEIS
+pyFAST is the easiest to install by cloning https://github.com/OpenFAST/openfast_toolbox and 
+running `python setup.py develop` from your conda environment
 
 In this example:
   - setup ROSCO's robust tuning methods for the IEA15MW on the UMaine Semi-sub
@@ -16,17 +18,17 @@ The example is put in a function call to show the ability to load linear models 
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
-from ROSCO_toolbox.linear.robust_scheduling import rsched_driver, load_linturb
-from ROSCO_toolbox.linear.lin_vis import lin_plotting
-from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox import controller as ROSCO_controller
+from rosco.toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox.linear.robust_scheduling import rsched_driver, load_linturb
+from rosco.toolbox.linear.lin_vis import lin_plotting
+from rosco.toolbox import turbine as ROSCO_turbine
+from rosco.toolbox import controller as ROSCO_controller
 
 def run_example():
     # Shorthand directories
     this_dir = os.path.dirname(os.path.abspath(__file__))
-    tune_dir = os.path.join(this_dir, '../Tune_Cases')
-    test_dir = os.path.join(this_dir, '../Test_Cases')
+    tune_dir = os.path.join(this_dir, 'Tune_Cases')
+    test_dir = os.path.join(this_dir, 'Test_Cases')
 
     # ROSCO options
     parameter_filename = os.path.join(tune_dir, 'IEA15MW_robust.yaml')
@@ -43,6 +45,7 @@ def run_example():
 
     # Path options
     example_out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'examples_out')
+    os.makedirs(example_out_dir,exist_ok=True)
     output_name = '11_robust_scheduling'
     path_options = {'output_dir': example_out_dir,
                     'output_name': output_name
@@ -53,12 +56,12 @@ def run_example():
     controller = ROSCO_controller.Controller(controller_params)
     turbine.load_from_fast(
         path_params['FAST_InputFile'],
-        os.path.join(this_dir, path_params['FAST_directory']),
-        rot_source='txt', txt_filename=os.path.join(this_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
+        os.path.join(tune_dir, path_params['FAST_directory']),
+        rot_source='txt', txt_filename=os.path.join(tune_dir,path_params['rotor_performance_filename'])
         )
 
     # Fix path params for robust setup
-    path_params['FAST_directory'] = os.path.join(this_dir, path_params['FAST_directory'])
+    path_params['FAST_directory'] = os.path.join(tune_dir, path_params['FAST_directory'])
 
     controller.tune_controller(turbine)
     k_float = controller.Kp_float
@@ -78,7 +81,7 @@ def run_example():
     options['path_options'] = path_options
     options['opt_options'] = opt_options
 
-    options['linturb_options']['linfile_path'] = os.path.join(this_dir, options['linturb_options']['linfile_path'])
+    options['linturb_options']['linfile_path'] = os.path.join(tune_dir, options['linturb_options']['linfile_path'])
 
     # Run robust scheduling
     sd = rsched_driver(options)
