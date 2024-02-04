@@ -13,8 +13,8 @@ void delete_blank_spaces_in_string(char *s)
         s[i]=s[i+k];
         if(s[i]==" "|| s[i]=="\t")
         {
-        k++;
-        i--;
+            k++;
+            i--;
         }
     }
 }
