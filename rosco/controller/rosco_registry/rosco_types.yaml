@@ -1,0 +1,1518 @@
+default_types: 
+  integer: &integer
+    type: integer
+    description:
+    dimension: 
+    allocatable: False
+    equals: 
+    size: 0
+  real: &real
+    type: real
+    description: 
+    dimension:             # Use this if a higher-dimensional allocatable array (dimension:(:,:) --> REAL(8), DIMESION(:,:), ALLOCATABLE)
+    size: 0                # Use this if the type IS an array (size:3 --> REAL(8), BldPitch(3))
+    allocatable: False
+    equals: 
+  complex: &complex
+    type: complex
+    description: 
+    dimension:             # Use this if a higher-dimensional allocatable array (dimension:(:,:) --> REAL(8), DIMESION(:,:), ALLOCATABLE)
+    size: 0                # Use this if the type IS an array (size:3 --> REAL(8), BldPitch(3))
+    allocatable: False
+    equals: 
+  float: &float
+    type: float
+    description: 
+    dimension:             # Use this if a higher-dimensional allocatable array (dimension:(:,:) --> REAL(8), DIMESION(:,:), ALLOCATABLE)
+    size: 0                # Use this if the type IS an array (size:3 --> REAL(8), BldPitch(3))
+    allocatable: False
+    equals: 
+  character: &character
+    type: character
+    description: 
+    allocatable: False
+    size: 0
+    length:
+    dimension: 
+    equals: 
+  logical: &logical
+    type: logical
+    description: 
+    size: 0
+    equals: 
+  c_integer: &c_integer
+    type: c_integer
+    description: 
+    size: 0
+    equals: 
+  c_float: &c_float
+    type: c_float
+    description: 
+    size: 0
+    equals: 
+  c_pointer: &c_pointer
+    type: c_pointer
+    description: 
+    size: 0
+    equals: 
+  c_funptr: &c_funptr
+    type: c_funptr
+    description: 
+    size: 0
+    equals: 
+  c_intptr_t: &c_intptr_t
+    type: c_intptr_t
+    description: 
+    size: 0
+    equals: 
+  type: &derived_type
+    type: derived_type
+    id: 
+    equals: 
+    description: 
+
+  
+
+ControlParameters:
+    ZMQ_ID:
+      <<: *integer
+      description: 0000 - 9999, Identifier of the rosco, used for zeromq interface only
+    LoggingLevel: 
+      <<: *integer
+      description: 0 - write no debug files, 1 - write standard output .dbg-file, 2 - write standard output .dbg-file and complete avrSWAP-array .dbg2-file
+    Echo: 
+      <<: *integer
+      description: 0 - no Echo, 1 - Echo input data to <RootName>.echo
+    Ext_Interface: 
+      <<: *integer
+      description: 0 - use standard bladed interface, 1 - Use the extened DLL interface introduced in OpenFAST 3.5.0.
+    
+    DT_Out: 
+      <<: *real
+      description: Output time step
+
+    n_DT_Out:
+      <<: *integer 
+      description: output every this many steps
+
+    n_DT_ZMQ:
+      <<: *integer 
+      description: Send measurements to ZMQ after this many time steps
+
+    # Filters
+    F_LPFType:
+      <<: *integer
+      description: 'Low pass filter on the rotor and generator speed {1 - first-order low-pass filter, 2 - second-order low-pass filter}, [rad/s]'
+    F_LPFCornerFreq:
+      <<: *real
+      description: Corner frequency (-3dB point) in the first-order low-pass filter, [rad/s]
+    F_LPFDamping:
+      <<: *real
+      description: Damping coefficient [used only when F_FilterType = 2]
+    F_NumNotchFilts:
+      <<: *integer
+      description: Number of notch filters
+    F_GenSpdNotch_N:
+      <<: *integer
+      description: Number of gen speed notch filters
+    F_GenSpdNotch_Ind:
+      <<: *integer
+      description: Indices of gen speed notch filters
+      allocatable: True
+    F_TwrTopNotch_N:
+      <<: *integer
+      description: Number of tower top notch filters
+    F_TwrTopNotch_Ind:
+      <<: *integer
+      description: Indices of tower top notch filters
+      allocatable: True
+    F_NotchFreqs:
+      <<: *real
+      description: Natural frequencies of notch filters, [rad/s]
+      allocatable: True
+    F_NotchBetaNum:
+      <<: *real
+      description: Notch Filter Numerator damping (determines width)
+      allocatable: True
+    F_NotchBetaDen:
+      <<: *real
+      description: Notch Filter Numerator damping (determines depth?)
+      allocatable: True
+    F_SSCornerFreq:
+      <<: *real
+      description: Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother [rad/s]
+    F_WECornerFreq:
+      <<: *real
+      description: Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s]
+    F_FlCornerFreq:
+      <<: *real
+      description: Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s].
+      allocatable: True
+    F_FlHighPassFreq:
+      <<: *real
+      description: Natural frequency of first-roder high-pass filter for nacelle fore-aft motion [rad/s].
+    F_YawErr:
+      <<: *real
+      description: Corner low pass filter corner frequency for yaw controller [rad/s].
+    F_FlpCornerFreq:
+      <<: *real
+      description: Corner frequency (-3dB point) in the second order low pass filter of the blade root bending moment for flap control [rad/s].
+      allocatable: True
+    
+    # Tower fore-aft damping
+    TRA_Mode:
+      <<: *integer
+      description: Tower Fore-Aft control mode {0 - no fore-aft control, 1 - Tower fore-aft damping, 2 -Frequency exclusion zone, 3- Options 1 and 2}
+    TRA_ExclSpeed:
+      <<: *real
+      description: Rotor speed for exclusion [LSS] [rad/s]
+    TRA_ExclBand:
+      <<: *real
+      description: One-half of the total frequency exclusion band. Torque controller reference will be TRA_ExclFreq +/- TRA_ExlBand [rad/s]
+    TRA_RateLimit:
+      <<: *real
+      description: Time constant for gain change when in exclusion zone [s]
+    TD_Mode:
+      <<: *integer
+      description: Tower Fore-Aft control mode {0 - no fore-aft control, 1 - Tower fore-aft damping, 2 -Frequency exclusion zone, 3- Options 1 and 2}
+    FA_HPFCornerFreq:
+      <<: *real
+      description: Corner frequency (-3dB point) in the high-pass filter on the fore-aft acceleration signal [rad/s]
+    FA_IntSat:
+      <<: *real
+      description: Integrator saturation (maximum signal amplitude contrbution to pitch from FA damper), [rad]
+    FA_KI:
+      <<: *real
+      description: Integral gain for the fore-aft tower damper controller, -1 = off / >0 = on [rad s/m]
+    
+    # Individual Pitch Control
+    IPC_ControlMode:
+      <<: *integer
+      description: Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {0 - off, 1 - 1P reductions, 2 - 1P+2P reductions}
+    IPC_Vramp:
+      <<: *real
+      description: Wind speeds for IPC cut-in sigma function [m/s]
+      allocatable: True
+    IPC_IntSat:
+      <<: *real
+      description: Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
+    IPC_SatMode:
+      <<: *integer
+      description: IPC Saturation method IPC Saturation method (0 - no saturation (except by PC_MinPit), 1 - saturate by PS_BldPitchMin, 2 - saturate sotfly (full IPC cycle) by PC_MinPit, 3 - saturate softly by PS_BldPitchMin)
+    IPC_KP:
+      <<: *real
+      description: Integral gain for the individual pitch controller, [-].
+      allocatable: True
+    IPC_KI:
+      <<: *real
+      description: Integral gain for the individual pitch controller, [-]. 
+      allocatable: True
+    IPC_aziOffset:
+      <<: *real
+      description: Phase offset added to the azimuth angle for the individual pitch controller, [rad].
+      allocatable: True
+    IPC_CornerFreqAct:
+      <<: *real
+      description: Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal {0 - Disable}, [rad/s]
+    
+    # Collective Pitch Controller
+    PC_ControlMode:
+      <<: *integer
+      description: Blade pitch control mode {0 - No pitch, fix to fine pitch, 1 - active PI blade pitch control}
+    PC_GS_n:
+      <<: *integer
+      description: Amount of gain-scheduling table entries
+    PC_GS_angles:
+      <<: *real
+      description: Gain-schedule table - pitch angles
+      allocatable: True
+    PC_GS_KP:
+      <<: *real
+      description: Gain-schedule table - pitch controller kp gains
+      allocatable: True
+    PC_GS_KI:
+      <<: *real
+      description: Gain-schedule table - pitch controller ki gains
+      allocatable: True
+    PC_GS_KD:
+      <<: *real
+      description: Gain-schedule table - pitch controller kd gains
+      allocatable: True
+    PC_GS_TF:
+      <<: *real
+      description: Gain-schedule table - pitch controller tf gains (derivative filter)
+      allocatable: True
+    PC_MaxPit:
+      <<: *real
+      description: Maximum physical pitch limit, [rad].
+    PC_MinPit:
+      <<: *real
+      description: Minimum physical pitch limit, [rad].
+    PC_MaxRat:
+      <<: *real
+      description: Maximum pitch rate (in absolute value) in pitch controller, [rad/s].
+    PC_MinRat:
+      <<: *real
+      description: Minimum pitch rate (in absolute value) in pitch controller, [rad/s].
+    PC_RefSpd:
+      <<: *real
+      description: Desired (reference) HSS speed for pitch controller, [rad/s].
+    PC_FinePit:
+      <<: *real
+      description: Record 5 - Below-rated pitch angle set-point (deg) [used only with Bladed Interface]
+    PC_Switch:
+      <<: *real
+      description: Angle above lowest minimum pitch angle for switch [rad]
+    
+    # Generator Torque Controller
+    VS_ControlMode:
+      <<: *integer
+      description: Generator torque control mode in above rated conditions {0 - no torque control, 1 - komega^2 with PI trans, 2 - WSE TSR Tracking, 3 - Power TSR Tracking}
+    VS_ConstPower:
+      <<: *integer
+      description: Constant power torque control
+    VS_GenEff:
+      <<: *real
+      description: Generator efficiency mechanical power -> electrical power [-]
+    VS_ArSatTq:
+      <<: *real
+      description: Above rated generator torque PI control saturation, [Nm] -- 212900
+    VS_MaxRat:
+      <<: *real
+      description: Maximum torque rate (in absolute value) in torque controller, [Nm/s].
+    VS_MaxTq:
+      <<: *real
+      description: Maximum generator torque in Region 3 (HSS side), [Nm]. -- chosen to be 10% above VS_RtTq
+    VS_MinTq:
+      <<: *real
+      description: Minimum generator (HSS side), [Nm].
+    VS_MinOMSpd:
+      <<: *real
+      description: Optimal mode minimum speed, [rad/s]
+    VS_Rgn2K:
+      <<: *real
+      description: Generator torque constant in Region 2 (HSS side), N-m/(rad/s)^2
+    VS_RtPwr:
+      <<: *real
+      description: Wind turbine rated power [W]
+    VS_RtTq:
+      <<: *real
+      description: Rated torque, [Nm].
+    VS_RefSpd:
+      <<: *real
+      description: Rated generator speed [rad/s]
+    VS_n:
+      <<: *integer
+      description: Number of controller gains
+    VS_KP:
+      <<: *real
+      description: Proportional gain for generator PI torque controller, used in the transitional 2.5 region
+      allocatable: True
+    VS_KI:
+      <<: *real
+      description: Integral gain for generator PI torque controller, used in the transitional 2.5 region
+      allocatable: True
+    VS_TSRopt:
+      <<: *real
+      description: Power-maximizing region 2 tip-speed ratio [rad]
+    VS_PwrFiltF:
+      <<: *real
+      description: Cut-off frequency of filter on generator power for power-based tsr tracking control
+    
+    # Setpoint Smoother
+    SS_Mode:
+      <<: *integer
+      description: Setpoint Smoother mode {0 - no setpoint smoothing, 1 - introduce setpoint smoothing}
+    SS_VSGain:
+      <<: *real
+      description: Variable speed torque controller setpoint smoother gain, [-].
+    SS_PCGain:
+      <<: *real
+      description: Collective pitch controller setpoint smoother gain, [-].
+
+    # Power reference tracking
+    PRC_Mode:
+      <<: *integer
+      description: Power reference tracking mode, 0- use standard rotor speed set points, 1- use PRC rotor speed setpoints
+    PRC_WindSpeeds:
+      <<: *real
+      description: Array of wind speeds used in rotor speed vs. wind speed lookup table
+      allocatable: True
+    PRC_GenSpeeds:
+      <<: *real
+      description: Array of rotor speeds corresponding to PRC_WindSpeeds
+      allocatable: True
+    PRC_n:
+      <<: *integer
+      description: Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
+    PRC_LPF_Freq:
+      <<: *real
+      description: Frequency of the low pass filter on the wind speed estimate used to set PRC_GenSpeeds [rad/s]
+    
+    # Wind Speed Estimator
+    WE_Mode:
+      <<: *integer
+      description: Wind speed estimator mode {0 - One-second low pass filtered hub height wind speed, 1 - Imersion and Invariance Estimator (Ortega et al.)
+    WE_BladeRadius:
+      <<: *real
+      description: Blade length [m]
+    WE_CP_n:
+      <<: *integer
+      description: Amount of parameters in the Cp array
+    WE_CP:
+      <<: *real
+      description: Parameters that define the parameterized CP(\lambda) function
+      allocatable: True
+    WE_Gamma:
+      <<: *real
+      description: Adaption gain of the wind speed estimator algorithm [m/rad]
+    WE_GearboxRatio:
+      <<: *real
+      description: Gearbox ratio, >=1  [-]
+    WE_Jtot:
+      <<: *real
+      description: Total drivetrain inertia, including blades, hub and casted generator inertia to LSS [kg m^2]
+    WE_RhoAir:
+      <<: *real
+      description: Air density [kg m^-3]
+    PerfFileName:
+      <<: *character
+      description: File containing rotor performance tables (Cp,Ct,Cq)
+      length: 1024
+    PerfTableSize:
+      <<: *integer
+      description: Size of rotor performance tables, first number refers to number of blade pitch angles, second number referse to number of tip-speed ratios
+      allocatable: True
+    WE_FOPoles_N:
+      <<: *integer
+      description: Number of first-order system poles used in EKF
+    WE_FOPoles_v:
+      <<: *real
+      description: Wind speeds corresponding to first-order system poles [m/s]
+      allocatable: True
+    WE_FOPoles:
+      <<: *real
+      description: First order system poles
+      allocatable: True
+    
+    # Yaw Controller
+    Y_ControlMode:
+      <<: *integer
+      description: Yaw control mode {0 - no yaw control, 1 - yaw rate control}
+    Y_uSwitch:
+      <<: *real
+      description: Wind speed to switch between Y_ErrThresh. If zero, only the first value of Y_ErrThresh is used [m/s]
+    Y_ErrThresh:
+      <<: *real
+      description: Error threshold [rad]. Turbine begins to yaw when it passes this
+      allocatable: True
+    Y_Rate:
+      <<: *real
+      description: Yaw rate [rad/s]
+    Y_MErrSet:
+      <<: *real
+      description: Yaw alignment error, setpoint (for wake steering) [rad]
+    Y_IPC_IntSat:
+      <<: *real
+      description: Integrator saturation (maximum signal amplitude contrbution to pitch from yaw-by-IPC)
+    Y_IPC_KP:
+      <<: *real
+      description: Yaw-by-IPC proportional controller gain Kp
+    Y_IPC_KI:
+      <<: *real
+      description: Yaw-by-IPC integral controller gain Ki
+    # Pitch Saturation
+    PS_Mode:
+      <<: *integer
+      description: Pitch saturation mode {0 - no peak shaving, 1 -  implement pitch saturation}
+    PS_BldPitchMin_N:
+      <<: *integer
+      description: Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)
+    PS_WindSpeeds:
+      <<: *real
+      description: Wind speeds corresponding to minimum blade pitch angles [m/s]
+      allocatable: True
+    PS_BldPitchMin:
+      <<: *real
+      description: Minimum blade pitch angles [rad]
+      allocatable: True
+    
+    # Shutdown 
+    SD_Mode:
+      <<: *integer
+      description: Shutdown mode {0 - no shutdown procedure, 1 - pitch to max pitch at shutdown}
+    SD_MaxPit:
+      <<: *real
+      description: Maximum blade pitch angle to initiate shutdown, [rad]
+    SD_CornerFreq:
+      <<: *real
+      description: Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]
+    
+    # Floating
+    Fl_Mode:
+      <<: *integer
+      description: Floating specific feedback mode {0 - no nacelle velocity feedback, 1 - nacelle velocity feedback}
+    Fl_n:
+      <<: *integer
+      description: Number of Fl_Kp for gain scheduling
+    Fl_Kp:
+      <<: *real
+      description: Nacelle velocity proportional feedback gain [s]
+      allocatable: True
+    Fl_U:
+      <<: *real
+      description: Wind speeds for scheduling Fl_Kp [m/s]
+      allocatable: True
+    
+    # Trailing edge flaps
+    Flp_Mode:
+      <<: *integer
+      description: Flap actuator mode {0 - off, 1 - fixed flap position, 2 - PI flap control}
+    Flp_Angle:
+      <<: *real
+      description: Fixed flap angle (degrees)
+    Flp_Kp:
+      <<: *real
+      description: PI flap control proportional gain 
+    Flp_Ki:
+      <<: *real
+      description: PI flap control integral gain 
+    Flp_MaxPit:
+      <<: *real
+      description: Maximum (and minimum) flap pitch angle [rad]
+    
+    # Open-loop Control
+    OL_Filename:
+      <<: *character
+      description: Input file with open loop timeseries
+      length: 1024
+    OL_Mode:
+      <<: *integer
+      description: Open loop control mode {0 - no open loop control, 1 - open loop control vs. time, 2 - open loop control vs. wind speed}
+    Ind_Breakpoint:
+      <<: *integer
+      description: The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)
+    Ind_BldPitch:
+      <<: *integer
+      description: The columns in OL_Filename that contains the blade pitch inputs (1,2,3) in rad
+      allocatable: True
+    Ind_GenTq:
+      <<: *integer
+      description: The column in OL_Filename that contains the generator torque in Nm
+    Ind_YawRate:
+      <<: *integer
+      description: The column in OL_Filename that contains the generator torque in Nm
+    Ind_Azimuth:
+      <<: *integer
+      description: The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
+    RP_Gains:
+      <<: *real
+      description: PID gains and Tf on derivative term for rotor position control (used if OL_Mode = 2)
+      allocatable: True
+    Ind_CableControl:
+      <<: *integer
+      allocatable: True
+      description: The column in OL_Filename that contains the cable control inputs in m
+    Ind_StructControl:
+      <<: *integer
+      allocatable: True
+      description: The column in OL_Filename that contains the structural control inputs in various units
+    OL_Breakpoints:
+      <<: *real
+      allocatable: True
+      description: Open loop breakpoints in timeseries
+    OL_BldPitch1:
+      <<: *real
+      allocatable: True
+      description: Open loop blade pitch 1 timeseries
+    OL_BldPitch2:
+      <<: *real
+      allocatable: True
+      description: Open loop blade pitch 2 timeseries
+    OL_BldPitch3:
+      <<: *real
+      allocatable: True
+      description: Open loop blade pitch 3 timeseries
+    OL_CableControl:
+      <<: *real
+      allocatable: True
+      dimension: (:,:)
+    OL_StructControl:
+      <<: *real
+      allocatable: True
+      dimension: (:,:)
+    OL_GenTq:
+      <<: *real
+      allocatable: True
+      description: Open loop generator torque timeseries
+    OL_YawRate:
+      <<: *real
+      allocatable: True
+      description: Open loop yaw rate timeseries
+    OL_Azimuth:
+      <<: *real
+      allocatable: True
+      description: Open loop azimuth timeseries
+    OL_Channels:
+      <<: *real
+      allocatable: True
+      dimension: (:,:)
+      description: Open loop channels in timeseries
+
+    # Pitch actuator
+    PA_Mode:
+      <<: *integer
+      description: Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
+    PA_CornerFreq:
+      <<: *real
+      description: Pitch actuator bandwidth/cut-off frequency [rad/s]
+    PA_Damping:
+      <<: *real
+      description: Pitch actuator damping ratio [-, unused if PA_Mode = 1]
+
+    # Active wake control
+    AWC_Mode:
+      <<: *integer
+      description: Active wake control mode [0 - unused, 1 - complex number method, 2 - Coleman transform method]
+    AWC_NumModes:
+      <<: *integer
+      description: AWC- Number of modes to include [-] 
+    AWC_n:
+      <<: *integer
+      allocatable: True
+      description: AWC azimuthal mode [-]
+    AWC_harmonic:
+      <<: *integer
+      allocatable: True
+      description: AWC AWC Coleman transform harmonic [-]
+    AWC_freq:
+      <<: *real
+      allocatable: True
+      description: AWC frequency [Hz]
+    AWC_amp:
+      <<: *real
+      allocatable: True
+      description: AWC amplitude [deg]
+    AWC_clockangle:
+      <<: *real
+      allocatable: True
+      description: AWC clocking angle [deg]
+
+    # Pitch actuator error
+    PF_Mode:
+      <<: *integer
+      description: Pitch actuator fault mode {0 - not used, 1 - offsets on one or more blades}
+    PF_Offsets:
+      <<: *real
+      description: Pitch actuator fault offsets for blade 1-3 [rad/s]
+      allocatable: True
+    
+    
+    # External Control
+    Ext_Mode:
+      <<: *integer
+      description: External control mode (0 - not used, 1 - call external control library)
+    DLL_FileName:
+      <<: *character
+      description: File name of external dynamic library
+      length: 1024
+    DLL_InFile:
+      <<: *character
+      description: Name of input file called by dynamic library (DISCON.IN, e.g.)
+      length: 1024
+    DLL_ProcName:
+      <<: *character
+      description: Process name of subprocess called in DLL_Filename (Usually DISCON)
+      length: 1024
+    
+    # ZeroMQ
+    ZMQ_Mode:
+      <<: *integer
+      description: Flag for ZeroMQ (0-off, 1-yaw}
+    ZMQ_CommAddress:
+      <<: *character
+      length: 256
+      description: Comm Address to zeroMQ client
+    ZMQ_UpdatePeriod:
+      <<: *real
+      description: Integer for zeromq update frequency
+
+    # Cable control 
+    CC_Mode:
+      <<: *integer
+      description: Flag for ZeroMQ (0-off, 1-yaw}
+
+    CC_Group_N:
+      <<: *integer
+      description: Number of cable control groups
+
+    CC_ActTau:
+      <<: *real
+      description: Time constant for line actuator [s]
+
+    CC_GroupIndex:
+      <<: *integer
+      description: Cable control group indices
+      allocatable: True
+
+    # StC Control
+    StC_Mode:
+      <<: *integer
+      description: Flag for StC Control
+
+    StC_Group_N:
+      <<: *integer
+      description: Number of cable control groups
+
+    StC_GroupIndex:
+      <<: *integer
+      description: Cable control group indices
+      allocatable: True
+
+    # Calculated
+    PC_RtTq99:
+      <<: *real
+      description: 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
+    VS_MaxOMTq:
+      <<: *real
+      description: Maximum torque at the end of the below-rated region 2, [Nm]
+    VS_MinOMTq:
+      <<: *real
+      description: Minimum torque at the beginning of the below-rated region 2, [Nm]
+
+WE:
+    om_r:
+      <<: *real
+      description: Estimated rotor speed [rad/s]
+    v_t:
+      <<: *real
+      description: Estimated wind speed, turbulent component [m/s]
+    v_m:
+      <<: *real
+      description: Estimated wind speed, 10-minute averaged [m/s]
+    v_h:
+      <<: *real
+      description: Combined estimated wind speed [m/s]
+    P:
+      <<: *real
+      dimension: (3,3)
+      description: Covariance estiamte 
+    xh:
+      <<: *real
+      dimension: (3,1)
+      description: Estimated state matrix
+    K:
+      <<: *real
+      dimension: (3,1)
+      description: Kalman gain matrix
+
+FilterParameters:
+    lpf1_a1:
+      <<: *real
+      dimension: (99)
+      description: First order filter - Denominator coefficient 1
+    lpf1_a0:
+      <<: *real
+      dimension: (99)
+      description: First order filter - Denominator coefficient 0
+    lpf1_b1:
+      <<: *real
+      dimension: (99)
+      description: First order filter - Numerator coefficient 1
+    lpf1_b0:
+      <<: *real
+      dimension: (99)
+      description: First order filter - Numerator coefficient 0
+    lpf1_InputSignalLast:
+      <<: *real
+      dimension: (99)
+      description: First order filter - Previous input
+    lpf1_OutputSignalLast:
+      <<: *real
+      dimension: (99)
+      description: First order filter - Previous output
+    lpf2_a2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Denominator coefficient 2
+    lpf2_a1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Denominator coefficient 1
+    lpf2_a0:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Denominator coefficient 0
+    lpf2_b2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Numerator coefficient 2
+    lpf2_b1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Numerator coefficient 1
+    lpf2_b0:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Numerator coefficient 0
+    lpf2_InputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous input 2
+    lpf2_OutputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous output 2
+    lpf2_InputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous input 1 
+    lpf2_OutputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous output 1
+    lpfV_a2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Denominator coefficient 1
+    lpfV_a1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Denominator coefficient 1
+    lpfV_a0:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Denominator coefficient 0
+    lpfV_b2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Numerator coefficient 2
+    lpfV_b1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Numerator coefficient 1
+    lpfV_b0:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Numerator coefficient 0
+    lpfV_InputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous input 2
+    lpfV_OutputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous output 2
+    lpfV_InputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous input 1 
+    lpfV_OutputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Second order filter - Previous output 1
+    hpf_InputSignalLast:
+      <<: *real
+      dimension: (99)
+      description: High pass filter - Previous output 1
+    hpf_OutputSignalLast:
+      <<: *real
+      dimension: (99)
+      description: High pass filter - Previous output 1
+    nfs_OutputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Notch filter slopes previous output 1
+    nfs_OutputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Notch filter slopes previous output 2
+    nfs_InputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Notch filter slopes previous input 1
+    nfs_InputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Notch filter slopes previous input 1
+    nfs_b2:
+      <<: *real
+      dimension: (99)
+      description: Notch filter slopes numerator coefficient 2
+    nfs_b0:
+      <<: *real
+      dimension: (99)
+      description: Notch filter slopes numerator coefficient 0
+    nfs_a2:
+      <<: *real
+      dimension: (99)
+      description: Notch filter slopes denominator coefficient 2
+    nfs_a1:
+      <<: *real
+      dimension: (99)
+      description: Notch filter slopes denominator coefficient 1
+    nfs_a0:
+      <<: *real
+      dimension: (99)
+      description: Notch filter slopes denominator coefficient 0
+    nf_OutputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Notch filter previous output 1
+    nf_OutputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Notch filter previous output 2
+    nf_InputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Notch filter previous input 1
+    nf_InputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Notch filter previous input 2
+    nf_b2:
+      <<: *real
+      dimension: (99)
+      description: Notch filter numerator coefficient 2
+    nf_b1:
+      <<: *real
+      dimension: (99)
+      description: Notch filter numerator coefficient 1
+    nf_b0:
+      <<: *real
+      dimension: (99)
+      description: Notch filter numerator coefficient 0
+    nf_a1:
+      <<: *real
+      dimension: (99)
+      description: Notch filter denominator coefficient 1
+    nf_a0:
+      <<: *real
+      dimension: (99)
+      description: Notch filter denominator coefficient 0  
+
+rlParams:
+    LastSignal:
+      <<: *real
+      dimension: (99)
+      description: Last input signal
+
+piParams:
+    ITerm:
+      <<: *real
+      dimension: (99)
+      description: Integrator term
+    ITermLast:
+      <<: *real
+      dimension: (99)
+      description: Previous integrator term
+    ITerm2:
+      <<: *real
+      dimension: (99)
+      description: Integrator term - second integrator
+    ITermLast2:
+      <<: *real
+      dimension: (99)
+      description: Previous integrator term - second integrator
+    ELast:
+      <<: *real
+      dimension: (99)
+      description: Previous error term for derivative
+
+LocalVariables:
+    iStatus: 
+      <<: *integer 
+      description: Initialization status
+    Time: 
+      <<: *real 
+      description: Time [s]
+    DT: 
+      <<: *real 
+      description: Time step [s]
+    WriteThisStep:
+      <<: *logical
+      description: Write an output line this time step
+    n_DT:
+      <<: *integer
+      description: number of timesteps since start
+    Time_Last:
+      <<: *real
+      description: Last time [s]
+    VS_GenPwr: 
+      <<: *real 
+      description: Generator power [W]
+    VS_GenPwrF: 
+      <<: *real 
+      description: Generator power [W]
+    GenSpeed: 
+      <<: *real 
+      description: Generator speed (HSS) [rad/s]
+    RotSpeed: 
+      <<: *real 
+      description: Rotor speed (LSS) [rad/s]
+    NacHeading: 
+      <<: *real 
+      description:  Nacelle heading of the turbine w.r.t. north [deg]
+    NacVane: 
+      <<: *real 
+      description:  Nacelle vane angle [deg]
+    HorWindV: 
+      <<: *real 
+      description: Hub height wind speed m/s
+    rootMOOP: 
+      <<: *real
+      description: Blade root bending moment [Nm]
+      size: 3
+    rootMOOPF: 
+      <<: *real
+      description: Filtered Blade root bending moment [Nm]
+      size: 3
+    BlPitch: 
+      <<: *real
+      description: Blade pitch [rad]
+      size: 3
+    BlPitchCMeas: 
+      <<: *real
+      description: Mean (collective) blade pitch [rad]
+    Azimuth: 
+      <<: *real 
+      description: Rotor aziumuth angle [rad]
+    OL_Azimuth: 
+      <<: *real 
+      description: Rotor aziumuth angle [rad]
+    AzUnwrapped: 
+      <<: *real 
+      description: Rotor aziumuth angle [rad]
+    AzError: 
+      <<: *real 
+      description: Azimuth error angle [rad]
+    GenTqAz: 
+      <<: *real 
+      description: Gen torque command due to azimuth error
+    AzBuffer: 
+      <<: *real 
+      size: 2
+      description: Current and last rotor aziumuth angles [rad]
+    NumBl: 
+      <<: *integer 
+      description: Number of blades [-]
+    FA_Acc:                       
+      <<: *real 
+      description: Tower fore-aft acceleration [m/s^2]
+    NacIMU_FA_Acc:                       
+      <<: *real 
+      description: Tower fore-aft acceleration [rad/s^2]
+    FA_AccHPF:                    
+      <<: *real 
+      description: High-pass filtered fore-aft acceleration [m/s^2]
+    FA_AccHPFI:                   
+      <<: *real 
+      description: Tower velocity, high-pass filtered and integrated fore-aft acceleration [m/s]
+    FA_PitCom:          
+      <<: *real 
+      description: Tower fore-aft vibration damping pitch contribution [rad]
+      size: 3
+    VS_RefSpd:          
+      <<: *real 
+      description: Torque control generator speed set point [rad/s]
+    VS_RefSpd_TSR:          
+      <<: *real 
+      description: Torque control generator speed set point based on optimal TSR [rad/s]
+    VS_RefSpd_TRA:          
+      <<: *real 
+      description: Torque control generator speed set point after freq avoidance [rad/s]
+    VS_RefSpd_RL:          
+      <<: *real 
+      description: Torque control generator speed set point after rate limit [rad/s]
+    PC_RefSpd:
+      <<: *real
+      description: Generator speed set point of pitch controller [rad/s]
+    PC_RefSpd_SS:
+      <<: *real
+      description: Generator speed set point of pitch controller after setpoint smoothing [rad/s]
+    PC_RefSpd_PRC:
+      <<: *real
+      description: Generator speed set point of pitch controller after power ref control [rad/s]
+    RotSpeedF:                    
+      <<: *real 
+      description: Filtered LSS (generator) speed [rad/s].
+    GenSpeedF:                    
+      <<: *real 
+      description: Filtered HSS (generator) speed [rad/s].
+    GenTq:                        
+      <<: *real 
+      description: Electrical generator torque, [Nm].
+    GenTqMeas:                    
+      <<: *real 
+      description: Measured generator torque [Nm]
+    GenArTq:                      
+      <<: *real 
+      description: Electrical generator torque, for above-rated PI-control [Nm].
+    GenBrTq:                      
+      <<: *real 
+      description: Electrical generator torque, for below-rated PI-control [Nm].
+    IPC_PitComF:     
+      <<: *real 
+      description: Commanded pitch of each blade as calculated by the individual pitch controller, F stands for low-pass filtered [rad].
+      size: 3
+    PC_KP:                        
+      <<: *real 
+      description: Proportional gain for pitch controller at rated pitch (zero) [s].
+    PC_KI:                        
+      <<: *real 
+      description: Integral gain for pitch controller at rated pitch (zero) [-].
+    PC_KD:                        
+      <<: *real 
+      description: Differential gain for pitch controller at rated pitch (zero) [-].
+    PC_TF:                        
+      <<: *real 
+      description: First-order filter parameter for derivative action
+    PC_MaxPit:                    
+      <<: *real 
+      description: Maximum pitch setting in pitch controller (variable) [rad].
+    PC_MinPit:                    
+      <<: *real 
+      description: Minimum pitch setting in pitch controller (variable) [rad].
+    PC_PitComT:                   
+      <<: *real 
+      description: Total command pitch based on the sum of the proportional and integral terms [rad].
+    PC_PitComT:                   
+      <<: *real 
+      description: Collective pitch commmand from PI control [rad].
+    PC_PitComT_Last:                   
+      <<: *real 
+      description: Last total command pitch based on the sum of the proportional and integral terms [rad].
+    PC_PitComTF:                   
+      <<: *real 
+      description: Filtered Total command pitch based on the sum of the proportional and integral terms [rad].
+    PC_PitComT_IPC:
+      <<: *real 
+      description: Total command pitch based on the sum of the proportional and integral terms, including IPC term [rad].
+      size: 3
+    PC_PwrErr:                    
+      <<: *real 
+      description: Power error with respect to rated power [W]
+    PC_SpdErr:                    
+      <<: *real 
+      description: Current speed error (pitch control) [rad/s].
+    IPC_AxisTilt_1P:
+      <<: *real
+      description: Integral of the direct axis, 1P
+    IPC_AxisYaw_1P:
+      <<: *real
+      description: Integral of quadrature, 1P
+    IPC_AxisTilt_2P:
+      <<: *real
+      description: Integral of the direct axis, 2P
+    IPC_AxisYaw_2P:
+      <<: *real
+      description: Integral of quadrature, 2P
+    axisTilt_1P:
+      <<: *real
+      description: Tilt moment, 1P
+    axisYaw_1P:
+      <<: *real
+      description: Yaw moment, 1P
+    axisYawF_1P:
+      <<: *real
+      description: Filtered yaw moment, 1P
+    axisTilt_2P:
+      <<: *real
+      description: Tilt moment, 2P
+    axisYaw_2P:
+      <<: *real
+      description: Yaw moment, 2P
+    axisYawF_2P:
+      <<: *real
+      description: Filtered yaw moment, 2P
+    IPC_KI:
+      <<: *real
+      description: Integral gain for IPC, after ramp [-]
+      size: 2
+    IPC_KP:
+      <<: *real
+      description: Proportional gain for IPC, after ramp [-]
+      size: 2
+    IPC_IntSat:
+      <<: *real
+      description: Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
+    PC_State:                     
+      <<: *integer 
+      description: State of the pitch control system
+    PitCom:                  
+      <<: *real 
+      description: Commanded pitch of each blade the last time the controller was called [rad].
+      size: 3
+    PitComAct:                  
+      <<: *real 
+      description: Actuated pitch command of each blade [rad].
+      size: 3
+    SS_DelOmegaF:                 
+      <<: *real 
+      description: Filtered setpoint shifting term defined in setpoint smoother [rad/s].
+    TestType:                     
+      <<: *real 
+      description: Test variable, no use
+    Kp_Float:
+      <<: *real
+      description: Local, instantaneous Kp_Float, scheduled on wind speed, if desired
+    VS_MaxTq:                     
+      <<: *real 
+      description: Maximum allowable generator torque [Nm].
+    VS_LastGenTrq:                
+      <<: *real 
+      description: Commanded electrical generator torque the last time the controller was called [Nm].
+    VS_LastGenPwr:                
+      <<: *real 
+      description: Commanded electrical generator torque the last time the controller was called [Nm].
+    VS_MechGenPwr:                
+      <<: *real 
+      description: Mechanical power on the generator axis [W]
+    VS_SpdErrAr:                  
+      <<: *real 
+      description: Current speed error for region 2.5 PI controller (generator torque control) [rad/s].
+    VS_SpdErrBr:                  
+      <<: *real 
+      description: Current speed error for region 1.5 PI controller (generator torque control) [rad/s].
+    VS_SpdErr:                    
+      <<: *real 
+      description: Current speed error for tip-speed-ratio tracking controller (generator torque control) [rad/s].
+    VS_State:                     
+      <<: *integer 
+      description: State of the torque control system
+    VS_Rgn3Pitch:                 
+      <<: *real 
+      description: Pitch angle at which the state machine switches to region 3, [rad].
+    WE_Vw:                        
+      <<: *real 
+      description: Estimated wind speed [m/s]
+    WE_Vw_F:                      
+      <<: *real 
+      description: Filtered estimated wind speed [m/s]
+    WE_VwI:                       
+      <<: *real 
+      description: Integrated wind speed quantity for estimation [m/s]
+    WE_VwIdot:                    
+      <<: *real 
+      description: Differentiated integrated wind speed quantity for estimation [m/s]
+    VS_LastGenTrqF:               
+      <<: *real 
+      description: Differentiated integrated wind speed quantity for estimation [m/s]
+    PRC_WSE_F:               
+      <<: *real 
+      description: Filtered wind speed estimate for power reference control
+    SD:                           
+      <<: *logical
+      description: Shutdown, .FALSE. if inactive, .TRUE. if active
+    Fl_PitCom:                           
+      <<: *real 
+      description: Shutdown, .FALSE. if inactive, .TRUE. if active
+    NACIMU_FA_AccF:
+      <<: *real 
+    FA_AccF:
+      <<: *real 
+    FA_Hist:
+      <<: *integer 
+      description: Hysteresis state for tower resonance avoidance.
+    TRA_LastRefSpd:
+      <<: *real 
+      description: Last reference generator speed
+    VS_RefSpeed:
+      <<: *real
+      description: Torque controller reference speed
+    PtfmTDX:
+      <<: *real
+      description: Platform motion -- Displacement TDX (m)')
+    PtfmTDY:
+      <<: *real
+      description: Platform motion -- Displacement TDY (m)')
+    PtfmTDZ:
+      <<: *real
+      description: Platform motion -- Displacement TDZ (m)')
+    PtfmRDX:
+      <<: *real
+      description: Platform motion -- Displacement RDX (rad)')
+    PtfmRDY:
+      <<: *real
+      description: Platform motion -- Displacement RDY (rad)')
+    PtfmRDZ:
+      <<: *real
+      description: Platform motion -- Displacement RDZ (rad)')
+    PtfmTVX:
+      <<: *real
+      description: Platform motion -- Velocity     TVX (m/s)')
+    PtfmTVY:
+      <<: *real
+      description: Platform motion -- Velocity     TVY (m/s)')
+    PtfmTVZ:
+      <<: *real
+      description: Platform motion -- Velocity     TVZ (m/s)')
+    PtfmRVX:
+      <<: *real
+      description: Platform motion -- Velocity     RVX (rad/s)')
+    PtfmRVY:
+      <<: *real
+      description: Platform motion -- Velocity     RVY (rad/s)')
+    PtfmRVZ:
+      <<: *real
+      description: Platform motion -- Velocity     RVZ (rad/s)')
+    PtfmTAX:
+      <<: *real
+      description: Platform motion -- Acceleration TAX (m/s^2)')
+    PtfmTAY:
+      <<: *real
+      description: Platform motion -- Acceleration TAY (m/s^2)')
+    PtfmTAZ:
+      <<: *real
+      description: Platform motion -- Acceleration TAZ (m/s^2)')
+    PtfmRAX:
+      <<: *real
+      description: Platform motion -- Acceleration RAX (rad/s^2)')
+    PtfmRAY:
+      <<: *real
+      description: Platform motion -- Acceleration RAY (rad/s^2)')
+    PtfmRAZ:
+      <<: *real
+      description: Platform motion -- Acceleration RAZ (rad/s^2)')
+    CC_DesiredL:
+      <<: *real
+      size: 12
+    CC_ActuatedL:
+      <<: *real
+      size: 12
+    CC_ActuatedDL:
+      <<: *real
+      size: 12
+    StC_Input:
+      <<: *real
+      size: 12
+    Flp_Angle:
+      <<: *real 
+      description: Flap Angle (rad)
+      size: 3
+    RootMyb_Last:
+      <<: *real 
+      description: Last blade root bending moment (Nm)
+      size: 3
+    ACC_INFILE_SIZE:
+      <<: *integer
+      description: Length of parameter input filename
+    ACC_INFILE:
+      <<: *character
+      description: Parameter input filename
+      dimension: (:)
+      allocatable: True
+    restart:
+      <<: *logical
+      description: Restart flag
+    AWC_complexangle:
+      <<: *complex
+      description: Complex angle for each blade, sum of modes?
+      size: 3
+    ZMQ_ID:
+      <<: *integer
+      description: 0000 - 9999, Identifier of the rosco, used for zeromq interface only
+    ZMQ_YawOffset:
+      <<: *real
+      description: Yaw offset command, [rad]
+    ZMQ_TorqueOffset:
+      <<: *real
+      description: Torque offset command, [Nm]
+    ZMQ_PitOffset:
+      <<: *real
+      size: 3
+      description: Pitch command offset provided by ZeroMQ
+    WE: 
+      <<: *derived_type
+      id: WE 
+      description: Wind speed estimator parameters derived type
+    FP:
+      <<: *derived_type
+      id: FilterParameters
+      description: Filter parameters derived type
+    piP:
+      <<: *derived_type
+      id: piParams
+      description: PI parameters derived type
+    rlP:
+      <<: *derived_type
+      id: rlParams
+      description: Rate limiter parameters derived type
+
+ObjectInstances:
+  instLPF:
+    <<: *integer
+    description: Low-pass filter instance
+  instSecLPF:
+    <<: *integer
+    description: Second order low-pass filter instance
+  instSecLPFV:
+    <<: *integer
+    description: Second order low-pass filter instance
+  instHPF:
+    <<: *integer
+    description: High-pass filter instance
+  instNotchSlopes:
+    <<: *integer
+    description: Notch filter slopes instance
+  instNotch:
+    <<: *integer
+    description: Notch filter instance
+  instPI:
+    <<: *integer
+    description: PI controller instance
+  instRL:
+    <<: *integer
+    description: Rate limiter instance
+
+PerformanceData:
+  TSR_vec:
+    <<: *real
+    allocatable: True
+    description: TSR vector for performance surfaces
+  Beta_vec:
+    <<: *real
+    allocatable: True
+    description: Blade pitch vector for performance surfaces [deg]
+  Cp_mat:
+    <<: *real
+    allocatable: True
+    dimension: (:,:)
+    description: Power coefficient surface
+  Ct_mat:
+    <<: *real
+    allocatable: True
+    dimension: (:,:)
+    description: Thrust coefficient surface
+  Cq_mat:
+    <<: *real
+    allocatable: True
+    dimension: (:,:)
+    description: Torque coefficient surface
+
+DebugVariables:                                       
+  WE_Cp: 
+    <<: *real  
+    description: Cp that WSE uses to determine aerodynamic torque [-]
+  WE_b: 
+    <<: *real  
+    description: Pitch that WSE uses to determine aerodynamic torque [-]
+  WE_w: 
+    <<: *real  
+    description: Rotor Speed that WSE uses to determine aerodynamic torque [-]
+  WE_t: 
+    <<: *real  
+    description: Torque that WSE uses [-]
+  WE_Vm: 
+    <<: *real  
+    description: Mean wind speed component in WSE [m/s]
+  WE_Vt: 
+    <<: *real  
+    description: Turbulent wind speed component in WSE [m/s]
+  WE_Vw: 
+    <<: *real  
+    description: Estimated wind speed in WSE [m/s]
+  WE_lambda: 
+    <<: *real  
+    description: TSR in WSE [rad]
+  PC_PICommand:
+    <<: *real 
+    description: Commanded collective pitch from pitch PI controller [rad]     
+  GenSpeedF:
+    <<: *real
+    description: Filtered generator speed [rad/s]
+  RotSpeedF:
+    <<: *real
+    description: Filtered rotor speed [rad/s]
+  NacIMU_FA_AccF:
+    <<: *real
+    description: Filtered NacIMU_FA_Acc [rad/s]
+  FA_AccF:
+    <<: *real
+    description: Filtered FA_Acc [m/s]
+  Fl_PitCom:
+    <<: *real
+    description: Floating contribution to the pitch command [rad]
+  PC_MinPit:
+    <<: *real
+    description: Minimum blade pitch angle [rad]
+  axisTilt_1P:
+    <<: *real
+    description: Tilt component of coleman transformation, 1P
+  axisYaw_1P:
+    <<: *real
+    description: Yaw component of coleman transformation, 1P
+  axisTilt_2P:
+    <<: *real
+    description: Tilt component of coleman transformation, 2P
+  axisYaw_2P:
+    <<: *real
+    description: Yaw component of coleman transformation, 2P
+  YawRateCom:
+    <<: *real
+    description: Commanded yaw rate [rad/s].
+  NacHeadingTarget:
+    <<: *real
+    description: Target nacelle heading [deg].
+  NacVaneOffset:
+    <<: *real
+    description: Nacelle vane angle with offset [deg].
+  Yaw_Err:
+    <<: *real
+    description: Yaw error [deg].
+  YawState:
+    <<: *real
+    description: State of yaw controller
+  VS_RefSpd:          
+      <<: *real 
+      description: Torque control generator speed set point [rad/s]
+  PC_RefSpd:
+    <<: *real
+    description: Generator speed set point of pitch controller [rad/s]
+
+ErrorVariables:
+  size_avcMSG: 
+    <<: *integer
+  aviFAIL: 
+    <<: *c_integer
+    description: 'A flag used to indicate the success of this DLL call set as follows: 0 if the DLL call was successful, >0 if the DLL call was successful but cMessage should be issued as a warning messsage, <0 if the DLL call was unsuccessful or for any other reason the simulation is to be stopped at this point with cMessage as the error message.'
+  ErrStat: 
+    <<: *c_integer
+    description: An error status flag used by OpenFAST processes
+  ErrMsg: 
+    <<: *character      
+    description: a Fortran version of the C string argument (not considered an array here) [subtract 1 for the C null-character]
+    allocatable: True
+
+ExtDLL_Type:
+  FileAddr:
+    <<: *c_intptr_t
+    description: The address of file FileName. (RETURN value from LoadLibrary ) [Windows]
+  FileAddrX:
+    <<: *c_pointer
+    equals: C_NULL_PTR
+    description: The address of file FileName. (RETURN value from dlopen ) [Linux]
+  ProcAddr:
+    <<: *c_funptr
+    size: 3
+    equals: C_NULL_FUNPTR
+    description: The address of procedure ProcName. (RETURN value from GetProcAddress or dlsym) [initialized to Null for pack/unpack]
+  FileName:
+    <<: *character
+    length: 1024
+    description: The name of the DLL file including the full path to the current working directory.
+  ProcName:
+    <<: *character
+    equals: '""'
+    size: 3
+    length: 1024
+    description: The name of the procedure in the DLL that will be called.
+  
+    
+ExtControlType:
+  avrSWAP:
+    <<: *float
+    description: The swap array- used to pass data to and from the DLL controller [see Bladed DLL documentation]
+    allocatable: True
+    dimension: (:)

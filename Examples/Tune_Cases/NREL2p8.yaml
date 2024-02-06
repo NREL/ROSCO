@@ -1,0 +1,66 @@
+path_params: {FAST_InputFile: NREL-2p8-127.fst, FAST_directory: ../Test_Cases/NREL_2p8_127, rotor_performance_filename: ../Test_Cases/NREL_2p8_127/NREL-2p8-127_Cp_Ct_Cq.txt}
+controller_params:
+    LoggingLevel: 2
+    F_LPFType: 1
+    F_NotchType: 0
+    IPC_ControlMode: 1
+    VS_ControlMode: 3
+    PC_ControlMode: 1
+    Y_ControlMode: 0
+    SS_Mode: 1
+    WE_Mode: 2
+    PS_Mode: 1
+    SD_Mode: 0
+    Fl_Mode: 0
+    Flp_Mode: 0
+    zeta_pc: [2.0062413749856227]
+    omega_pc: [0.13653659182284006]
+    zeta_vs: 0.465
+    omega_vs: 0.11
+    twr_freq: 0.4499
+    ptfm_freq: 0.2
+    ps_percent: 0.8
+    sd_maxpit: 0.4363
+    DISCON: {PC_MinPit: -0.1745329, PC_FinePit: 0.0, DLL_FileName: unused, DLL_InFile: unused, DLL_ProcName: DISCON}
+    TD_Mode: 0
+    PwC_Mode: 0
+    ZMQ_Mode: 0
+    ZMQ_UpdatePeriod: 2
+    PA_Mode: 0
+    Ext_Mode: 0
+    U_pc: [12]
+    interp_type: sigma
+    max_pitch: 1.57
+    min_pitch: 0.0
+    vs_minspd: 0.0
+    ss_vsgain: 1.0
+    ss_pcgain: 0.001
+    flp_maxpit: 0.1745
+    WS_GS_n: 60
+    PC_GS_n: 30
+    tune_Fl: true
+    max_torque_factor: 1.1
+    IPC_Kp1p: 0.0
+    IPC_Kp2p: 0.0
+    IPC_Ki1p: 5.2e-9
+    IPC_Ki2p: 0.0
+    IPC_Vramp: [0.0, 0.0]
+    filter_params: {f_we_cornerfreq: 0.20944, f_fl_highpassfreq: 0.01042, f_ss_cornerfreq: 0.6283, f_yawerr: 0.17952, f_sd_cornerfreq: 0.41888}
+    open_loop: {flag: false, filename: unused, OL_Ind_Breakpoint: 1, OL_Ind_BldPitch: 0, OL_Ind_GenTq: 0, OL_Ind_YawRate: 0}
+    PA_CornerFreq: 3.14
+    PA_Damping: 0.707
+    linmodel_tuning:
+        type: none
+        linfile_path: none
+        lintune_outpath: lintune_outfiles
+        load_parallel: false
+        stability_margin: 0.1
+        omega_pc: {}
+    flag: true
+    tuning_yaml: /home/dzalkind/Tools/ROSCO/Tune_Cases/NREL2p8.yaml
+    n_pitch: 30
+    n_tsr: 30
+    n_U: 1
+    omega_flp: 0.0
+    zeta_flp: 0.0
+turbine_params: {rotor_inertia: 19858184.0, rated_rotor_speed: 1.26711, v_min: 3.0, v_rated: 11.4, v_max: 25.0, max_pitch_rate: 0.1745, max_torque_rate: 1500000.0, rated_power: 2800000.0, bld_edgewise_freq: 8.2831853, bld_flapwise_freq: 0.0, TSR_operational: 0}

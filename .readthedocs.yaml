@@ -5,6 +5,15 @@
 # Required
 version: 2
 
+# Add build os (and other options)
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "mambaforge-22.9"
+
+conda:
+  environment: environment.yml
+
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
   builder: html
@@ -17,11 +26,9 @@ formats:
 
 # Optionally set the version of Python and requirements required to build your docs
 python:
-  version: 3.8
   install:
     - requirements: docs/requirements.txt
     - method: pip
       path: .
       extra_requirements:
         - docs
-  system_packages: true 
