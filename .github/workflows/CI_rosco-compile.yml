@@ -123,11 +123,11 @@ jobs:
               run: |
                   python Examples/Test_Cases/update_libdiscon_extension.py
 
-            - name: Setup tmate session
-              uses: mxschmitt/action-tmate@v3
-              with:
-                  detached: true
-              if: contains( matrix.os, 'windows')
+            #- name: Setup tmate session
+            #  uses: mxschmitt/action-tmate@v3
+            #  with:
+            #      detached: true
+            #  if: contains( matrix.os, 'windows')
 
             - name: Run ROSCO testing
               run: |
