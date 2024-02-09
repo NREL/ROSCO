@@ -114,6 +114,12 @@ jobs:
             - name: Install OpenFAST
               run: |
                   conda install openfast==3.5.2
+              
+            #- name: Check OpenFAST
+            #  # if: contains( matrix.os, 'windows')
+            #  run: |
+            #      openfast -v
+            #      which openfast
           
             - name: Generate Registry
               run: |

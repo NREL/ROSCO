@@ -5,16 +5,14 @@
 #include <zmq.h>
 
 
-void delete_blank_spaces_in_string(char *s)
-{
+void delete_blank_spaces_in_string(char *s) {
+    
     int  i,k=0;
-    for(i=0;s[i];i++)
-    {
+    for(i=0;s[i];i++) {
         s[i]=s[i+k];
-        if(s[i]==" "|| s[i]=="\t")
-        {
-        k++;
-        i--;
+        if(s[i]==" "|| s[i]=="\t") {
+            k++;
+            i--;
         }
     }
 }
@@ -24,8 +22,7 @@ int zmq_client (
     char *zmq_address,
     double measurements[17],
     double setpoints[5]
-)
-{
+) {
     int num_measurements = 17;  // Number of setpoints and measurements, respectively, and float precision (character length)
     int char_buffer_size_single = 20; // Char buffer for a single measurement
     int char_buffer_size_array = (num_measurements * (char_buffer_size_single + 1));  // Char buffer for full messages to and from ROSCO
