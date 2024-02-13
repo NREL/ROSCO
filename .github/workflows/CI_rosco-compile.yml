@@ -106,12 +106,6 @@ jobs:
               run: |
                   conda list
                   printenv
-
-            #- name: Setup tmate session
-            #  uses: mxschmitt/action-tmate@v3
-            #  with:
-            #      detached: true
-            #  if: contains( matrix.os, 'windows')
                     
             - name: Conda Install ROSCO
               run: |
@@ -119,7 +113,13 @@ jobs:
           
             - name: Install OpenFAST
               run: |
-                  conda install openfast==3.5.1
+                  conda install openfast==3.5.2
+              
+            #- name: Check OpenFAST
+            #  # if: contains( matrix.os, 'windows')
+            #  run: |
+            #      openfast -v
+            #      which openfast
           
             - name: Generate Registry
               run: |
@@ -128,6 +128,12 @@ jobs:
             - name: Fix example file extensions
               run: |
                   python Examples/Test_Cases/update_libdiscon_extension.py
+
+            #- name: Setup tmate session
+            #  uses: mxschmitt/action-tmate@v3
+            #  with:
+            #      detached: true
+            #  if: contains( matrix.os, 'windows')
 
             - name: Run ROSCO testing
               run: |

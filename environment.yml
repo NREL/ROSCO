@@ -7,8 +7,8 @@ dependencies:
   - cmake-build-extension
   - control
   - make
-  - ninja
   - matplotlib
+  - ninja
   - numpy
   - pandas
   - pyYAML
@@ -16,7 +16,6 @@ dependencies:
   - pytest
   - pyzmq
   - scipy
+  - sphinx_rtd_theme
   - treon
   - wisdem
-  - compilers
-  - sphinx_rtd_theme

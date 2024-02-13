@@ -746,8 +746,10 @@ CONTAINS
         INTEGER(IntKi)                                  :: i ! iteration index
 
         INTEGER(IntKi)                                  :: CurLine 
-        CHARACTER(*), PARAMETER                     :: RoutineName = 'ReadCpFile'
-        REAL(DbKi), DIMENSION(:), ALLOCATABLE          :: TmpPerf
+        INTEGER                                         :: IOS   
+        CHARACTER(256)                                  :: IOM
+        CHARACTER(*), PARAMETER                         :: RoutineName = 'ReadCpFile'
+        REAL(DbKi), DIMENSION(:), ALLOCATABLE           :: TmpPerf
 
         CurLine = 1
         CALL GetNewUnit(UnPerfParameters, ErrVar)
@@ -770,7 +772,13 @@ CONTAINS
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
         ALLOCATE(PerfData%Cp_mat(CntrPar%PerfTableSize(2),CntrPar%PerfTableSize(1)))
         DO i = 1,CntrPar%PerfTableSize(2)
-            READ(UnPerfParameters, *) PerfData%Cp_mat(i,:) ! Read Cp table
+            READ(UnPerfParameters, *,IOSTAT=IOS,IOMSG=IOM) PerfData%Cp_mat(i,:) ! Read Cp table
+            IF (IOS > 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = "Error reading "//TRIM(CntrPar%PerfFileName)//" Cp table, IOMSG="//IOM//"Please check formatting and size of matrices in that file."
+                CLOSE(UnPerfParameters)
+                RETURN
+            ENDIF
         END DO
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
@@ -778,7 +786,13 @@ CONTAINS
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
         ALLOCATE(PerfData%Ct_mat(CntrPar%PerfTableSize(2),CntrPar%PerfTableSize(1)))
         DO i = 1,CntrPar%PerfTableSize(2)
-            READ(UnPerfParameters, *) PerfData%Ct_mat(i,:) ! Read Ct table
+            READ(UnPerfParameters, *,IOSTAT=IOS,IOMSG=IOM) PerfData%Ct_mat(i,:) ! Read Ct table
+            IF (IOS > 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = "Error reading "//TRIM(CntrPar%PerfFileName)//" Cp table, IOMSG="//IOM//"Please check formatting and size of matrices in that file."
+                CLOSE(UnPerfParameters)
+                RETURN
+            ENDIF
         END DO
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
@@ -786,7 +800,13 @@ CONTAINS
         CALL ReadEmptyLine(UnPerfParameters,CurLine) 
         ALLOCATE(PerfData%Cq_mat(CntrPar%PerfTableSize(2),CntrPar%PerfTableSize(1)))
         DO i = 1,CntrPar%PerfTableSize(2)
-            READ(UnPerfParameters, *) PerfData%Cq_mat(i,:) ! Read Cq table
+            READ(UnPerfParameters, *,IOSTAT=IOS,IOMSG=IOM) PerfData%Cq_mat(i,:) ! Read Cq table
+            IF (IOS > 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = "Error reading "//TRIM(CntrPar%PerfFileName)//" Cp table IOMSG="//IOM//"Please check formatting and size of matrices in that file."
+                CLOSE(UnPerfParameters)
+                RETURN
+            ENDIF
         END DO
 
         ! Close file
