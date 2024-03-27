@@ -496,7 +496,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['CC_Mode']          = int(controller.CC_Mode)
     DISCON_dict['StC_Mode']          = int(controller.StC_Mode)
     # ------- FILTERS -------
-    DISCON_dict['F_LPFCornerFreq']	    = turbine.bld_edgewise_freq * 1/4
+    DISCON_dict['F_LPFCornerFreq']	    = turbine.bld_edgewise_freq * 0.25
     DISCON_dict['F_LPFDamping']		    = controller.F_LPFDamping
     DISCON_dict['F_NumNotchFilts']      = len(controller.f_notch_freqs)
     DISCON_dict['F_NotchFreqs']         = controller.f_notch_freqs if controller.f_notch_freqs else [0.0]
@@ -509,13 +509,12 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['F_WECornerFreq'] = controller.f_we_cornerfreq
     DISCON_dict['F_SSCornerFreq'] = controller.f_ss_cornerfreq
     DISCON_dict['F_FlHighPassFreq'] = controller.f_fl_highpassfreq
-    DISCON_dict['F_FlCornerFreq'] = [controller.ptfm_freq, 1.0]
     DISCON_dict['F_FlpCornerFreq'] = [turbine.bld_flapwise_freq*3, 1.0]
     DISCON_dict['F_WECornerFreq']       = controller.f_we_cornerfreq
     DISCON_dict['F_SSCornerFreq']       = controller.f_ss_cornerfreq
     DISCON_dict['F_YawErr']             = controller.f_yawerr
     DISCON_dict['F_FlHighPassFreq']     = controller.f_fl_highpassfreq
-    DISCON_dict['F_FlCornerFreq']       = [controller.ptfm_freq, 1.0]
+    DISCON_dict['F_FlCornerFreq']       = [controller.ptfm_freq*3, 1.0]
     # ------- BLADE PITCH CONTROL -------
     DISCON_dict['PC_GS_n']			= len(controller.pitch_op_pc)
     DISCON_dict['PC_GS_angles']	    = controller.pitch_op_pc

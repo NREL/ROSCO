@@ -301,7 +301,7 @@ class Controller():
         B_beta = dtau_dbeta/J         # Blade pitch input 
 
         # Wind Disturbance Input
-        dtau_dv = (0.5 * rho * Ar * 1/rated_rotor_speed) * (dCp_dTSR*dlambda_dv*v**3 + Cp_op*3*v**2) 
+        dtau_dv = (0.5 * rho * Ar * 1/(TSR_op*v/R)) * (dCp_dTSR*dlambda_dv*v**3 + Cp_op*3*v**2) 
         B_wind = dtau_dv/J # wind speed input - currently unused 
 
 
