@@ -7,15 +7,15 @@ Set up and run simulation with pitch offsets, check outputs
 
 '''
 
-import os, platform
-from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
-from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
-from ROSCO_toolbox.ofTools.fast_io import output_processing
+import os
+from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
+from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
+from rosco.toolbox.ofTools.fast_io import output_processing
 import numpy as np
-from ROSCO_toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+from rosco.toolbox.inputs.validation import load_rosco_yaml
 import matplotlib.pyplot as plt
-from ROSCO_toolbox.controller import OpenLoopControl
+from rosco.toolbox.controller import OpenLoopControl
 
 '''
 ROSCO currently supports user-defined hooks for cable control actuation, if CC_Mode = 1.
@@ -38,7 +38,7 @@ os.makedirs(example_out_dir,exist_ok=True)
 def main():
 
     # Input yaml and output directory
-    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW_cable.yaml')
+    parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW_cable.yaml')
     run_dir = os.path.join(example_out_dir,'22_cable_control')
     os.makedirs(run_dir,exist_ok=True)
 
@@ -49,7 +49,7 @@ def main():
     # Change inputs programatically, read first
     reader = InputReader_OpenFAST()
     reader.FAST_InputFile = path_params['FAST_InputFile']
-    reader.FAST_directory = os.path.join(rosco_dir,'Tune_Cases',path_params['FAST_directory'])
+    reader.FAST_directory = os.path.join(this_dir,'Tune_Cases',path_params['FAST_directory'])
     reader.execute()
 
     # Set control line mapping (ChannelID -> Line(s))

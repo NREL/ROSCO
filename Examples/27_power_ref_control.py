@@ -8,12 +8,13 @@ Demonstrate a simulation with a generator reference speed that changes with esti
 
 '''
 
-import os, platform
-from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
-from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
-from ROSCO_toolbox.tune import yaml_to_objs
+import os
+from rosco import discon_lib_path
+from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
+from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
+from rosco.toolbox.tune import yaml_to_objs
 import numpy as np
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+#from rosco.toolbox.inputs.validation import load_rosco_yaml
 import matplotlib.pyplot as plt
 
 '''
@@ -29,19 +30,13 @@ this_dir            = os.path.dirname(os.path.abspath(__file__))
 rosco_dir           = os.path.dirname(this_dir)
 example_out_dir     = os.path.join(this_dir,'examples_out')
 os.makedirs(example_out_dir,exist_ok=True)
-
-if platform.system() == 'Windows':
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.dll'))
-elif platform.system() == 'Darwin':
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.dylib'))
-else:
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.so'))
+lib_name = discon_lib_path
 
 
 def main():
 
     # Input yaml and output directory
-    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW.yaml')
+    parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW.yaml')
     run_dir = os.path.join(example_out_dir,'27_PRC_0')
     os.makedirs(run_dir,exist_ok=True)
 
@@ -84,13 +79,13 @@ def main():
             't_end': 2500,
             }
     else:
+        # Short test for CI
         r.wind_case_opts    = {
             'U_start': 25,  # from 10 to 15 m/s
             'U_end': 27,
             't_start': 50,
             't_end': 100,
             }
-    # Short test for CI
     r.save_dir      = run_dir
     r.rosco_dir     = rosco_dir
     r.controller_params  = {

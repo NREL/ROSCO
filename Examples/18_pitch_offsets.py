@@ -7,10 +7,10 @@ Set up and run simulation with pitch offsets, check outputs
 
 '''
 
-import os, platform
-from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
-from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
-from ROSCO_toolbox.ofTools.fast_io import output_processing
+import os
+from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
+from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
+from rosco.toolbox.ofTools.fast_io import output_processing
 import numpy as np
 
 
@@ -20,18 +20,11 @@ rosco_dir           = os.path.dirname(this_dir)
 example_out_dir     = os.path.join(this_dir,'examples_out')
 os.makedirs(example_out_dir,exist_ok=True)
 
-if platform.system() == 'Windows':
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.dll'))
-elif platform.system() == 'Darwin':
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.dylib'))
-else:
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.so'))
-
 
 def main():
 
     # Input yaml and output directory
-    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW.yaml')
+    parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW.yaml')
     run_dir = os.path.join(example_out_dir,'18_PitchFaults')
     os.makedirs(run_dir,exist_ok=True)
     

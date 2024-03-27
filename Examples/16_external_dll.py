@@ -8,8 +8,9 @@ IEA-15MW will call NREL-5MW controller and read control inputs
 '''
 
 import os, platform
-from ROSCO_toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
-from ROSCO_toolbox.ofTools.case_gen import CaseLibrary as cl
+from rosco import discon_lib_path as lib_name
+from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
+from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 import shutil
 
 
@@ -18,13 +19,6 @@ this_dir            = os.path.dirname(os.path.abspath(__file__))
 rosco_dir           = os.path.dirname(this_dir)
 example_out_dir     = os.path.join(this_dir,'examples_out')
 os.makedirs(example_out_dir,exist_ok=True)
-
-if platform.system() == 'Windows':
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.dll'))
-elif platform.system() == 'Darwin':
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.dylib'))
-else:
-    lib_name = os.path.realpath(os.path.join(this_dir, '../ROSCO/build/libdiscon.so'))
 
 
 def main():
@@ -36,7 +30,7 @@ def main():
 
 
     # Ensure external control paths are okay
-    parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW_ExtInterface.yaml')
+    parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW_ExtInterface.yaml')
     run_dir = os.path.join(example_out_dir,'16_ExtInterface')
     os.makedirs(run_dir,exist_ok=True)
 
@@ -44,7 +38,7 @@ def main():
     controller_params = {}
     controller_params['DISCON'] = {}
     controller_params['DISCON']['DLL_FileName'] =  copy_lib
-    controller_params['DISCON']['DLL_InFile'] =    os.path.join(rosco_dir,'Test_Cases/NREL-5MW/DISCON.IN')
+    controller_params['DISCON']['DLL_InFile'] =    os.path.join(this_dir,'Test_Cases/NREL-5MW/DISCON.IN')
     controller_params['DISCON']['DLL_ProcName'] =  'DISCON'
 
     # simulation set up

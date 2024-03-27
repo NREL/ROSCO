@@ -3,16 +3,20 @@ channels:
   - defaults
 
 dependencies:
-  - matplotlib
-  - numpy
-  - pytest
-  - scipy
-  - pyYAML
-  - pandas
-  - wisdem
   - cmake
-  - pyparsing==2.4.7 
+  - cmake-build-extension
   - control
+  - make
+  - matplotlib
+  - ninja
+  - numpy
+  - pandas
+  - pkg-config
+  - pyYAML
+  - pyparsing
+  - pytest
   - pyzmq
-  - mpi4py
+  - scipy
+  - sphinx_rtd_theme
   - treon
+  - wisdem

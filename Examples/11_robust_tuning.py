@@ -3,7 +3,7 @@
 Controller tuning to satisfy a robustness criteria
 -------------------------------------
 NOTE: This example necessitates the mbc3 through either pyFAST or WEIS
-pyFAST is the easiest to install by cloning https://github.com/OpenFAST/python-toolbox and 
+pyFAST is the easiest to install by cloning https://github.com/OpenFAST/openfast_toolbox and 
 running `python setup.py develop` from your conda environment
 
 In this example:
@@ -18,17 +18,17 @@ The example is put in a function call to show the ability to load linear models 
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
-from ROSCO_toolbox.linear.robust_scheduling import rsched_driver, load_linturb
-from ROSCO_toolbox.linear.lin_vis import lin_plotting
-from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox import controller as ROSCO_controller
+from rosco.toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox.linear.robust_scheduling import rsched_driver, load_linturb
+from rosco.toolbox.linear.lin_vis import lin_plotting
+from rosco.toolbox import turbine as ROSCO_turbine
+from rosco.toolbox import controller as ROSCO_controller
 
 def run_example():
     # Shorthand directories
     this_dir = os.path.dirname(os.path.abspath(__file__))
-    tune_dir = os.path.join(this_dir, '../Tune_Cases')
-    test_dir = os.path.join(this_dir, '../Test_Cases')
+    tune_dir = os.path.join(this_dir, 'Tune_Cases')
+    test_dir = os.path.join(this_dir, 'Test_Cases')
 
     # ROSCO options
     parameter_filename = os.path.join(tune_dir, 'IEA15MW_robust.yaml')
@@ -81,7 +81,7 @@ def run_example():
     options['path_options'] = path_options
     options['opt_options'] = opt_options
 
-    options['linturb_options']['linfile_path'] = os.path.join(this_dir, options['linturb_options']['linfile_path'])
+    options['linturb_options']['linfile_path'] = os.path.join(tune_dir, options['linturb_options']['linfile_path'])
 
     # Run robust scheduling
     sd = rsched_driver(options)

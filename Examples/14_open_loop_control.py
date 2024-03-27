@@ -11,23 +11,26 @@ In this example:
 
 '''
 # Python Modules
-import yaml, os, platform
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 
 # ROSCO toolbox modules 
-from ROSCO_toolbox import controller as ROSCO_controller
-from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox import utilities as ROSCO_utilities
-from ROSCO_toolbox.ofTools.fast_io import output_processing
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
-from ROSCO_toolbox.ofTools.case_gen.CaseLibrary import set_channels
-from ROSCO_toolbox.ofTools.case_gen.runFAST_pywrapper   import runFAST_pywrapper, runFAST_pywrapper_batch
-from ROSCO_toolbox.ofTools.case_gen.CaseGen_General     import CaseGen_General
+from rosco import discon_lib_path
+from rosco.toolbox import controller as ROSCO_controller
+from rosco.toolbox import turbine as ROSCO_turbine
+from rosco.toolbox import utilities as ROSCO_utilities
+from rosco.toolbox.ofTools.fast_io import output_processing
+from rosco.toolbox.inputs.validation import load_rosco_yaml
+from rosco.toolbox.ofTools.case_gen.CaseLibrary import set_channels
+from rosco.toolbox.ofTools.case_gen.runFAST_pywrapper   import runFAST_pywrapper, runFAST_pywrapper_batch
+from rosco.toolbox.ofTools.case_gen.CaseGen_General     import CaseGen_General
 
 
 
 this_dir          = os.path.dirname(os.path.abspath(__file__))
+tune_dir =  os.path.join(this_dir,'Tune_Cases')
+
 rosco_dir         = os.path.dirname(this_dir)
 example_out_dir   = os.path.join(this_dir,'examples_out')
 example_out_dir = os.path.join(this_dir,'examples_out')
@@ -35,7 +38,7 @@ if not os.path.isdir(example_out_dir):
   os.makedirs(example_out_dir)
 
 # Load yaml file (Open Loop Case)
-parameter_filename = os.path.join(rosco_dir,'Tune_Cases/IEA15MW_OL.yaml')
+parameter_filename = os.path.join(tune_dir, 'IEA15MW_OL.yaml')
 
 inps = load_rosco_yaml(parameter_filename)
 path_params         = inps['path_params']
@@ -75,9 +78,9 @@ controller      = ROSCO_controller.Controller(controller_params)
 
 # Load turbine data from OpenFAST and rotor performance text file
 turbine.load_from_fast(path_params['FAST_InputFile'], \
-  os.path.join(this_dir,path_params['FAST_directory']), \
+  os.path.join(tune_dir,path_params['FAST_directory']), \
     rot_source='txt',\
-      txt_filename=os.path.join(this_dir,path_params['rotor_performance_filename']))
+      txt_filename=os.path.join(tune_dir,path_params['rotor_performance_filename']))
 
 # Tune controller 
 controller.tune_controller(turbine)
@@ -87,23 +90,14 @@ param_file = os.path.join(this_dir,'DISCON.IN')   # This must be named DISCON.IN
 ROSCO_utilities.write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
 
 ### Run OpenFAST using aeroelasticse tools
-
-# Set rosco_dll
-if platform.system() == 'Windows':
-    rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.dll')
-elif platform.system() == 'Darwin':
-    rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.dylib')
-else:
-    rosco_dll = os.path.join(rosco_dir, 'ROSCO/build/libdiscon.so')
-
 case_inputs = {}
-case_inputs[('ServoDyn','DLL_FileName')] = {'vals': [rosco_dll], 'group': 0}
+case_inputs[('ServoDyn','DLL_FileName')] = {'vals': [discon_lib_path], 'group': 0}
 
 # Apply all discon variables as case inputs
 discon_vt = ROSCO_utilities.DISCON_dict(
   turbine, 
 controller, 
-txt_filename=os.path.join(this_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
+txt_filename=os.path.join(tune_dir,path_params['FAST_directory'],path_params['rotor_performance_filename'])
 )
 for discon_input in discon_vt:
     case_inputs[('DISCON_in',discon_input)] = {'vals': [discon_vt[discon_input]], 'group': 0}
@@ -124,7 +118,7 @@ channels = set_channels()
 # Run FAST cases
 fastBatch                   = runFAST_pywrapper_batch()
 
-fastBatch.FAST_directory    = os.path.realpath(os.path.join(rosco_dir,'Tune_Cases',path_params['FAST_directory']))
+fastBatch.FAST_directory    = os.path.realpath(os.path.join(tune_dir,path_params['FAST_directory']))
 fastBatch.FAST_InputFile    = path_params['FAST_InputFile']        
 fastBatch.channels          = channels
 fastBatch.FAST_runDirectory = run_dir
@@ -150,7 +144,7 @@ fo = fastout[0]
 tt = fo['Time']
 valid_ind = tt > 2  # first few timesteps can differ, depending on OpenFAST solve config
 
-# Computer errors
+# Compute errors
 nacelle_yaw_diff = fo['NacYaw'][valid_ind] - np.degrees(np.interp(tt[valid_ind],olc.ol_timeseries['time'],olc.ol_timeseries['nacelle_yaw']))
 bld_pitch_diff = fo['BldPitch1'][valid_ind] - np.degrees(np.interp(tt[valid_ind],olc.ol_timeseries['time'],olc.ol_timeseries['blade_pitch']))
 gen_tq_diff = fo['GenTq'][valid_ind] - np.interp(tt[valid_ind],olc.ol_timeseries['time'],olc.ol_timeseries['generator_torque'])/1e3

@@ -17,19 +17,20 @@ Notes - You will need to have a compiled controller in ROSCO, and
 # Python modules
 import matplotlib.pyplot as plt 
 import numpy as np
-import os, platform
+import os
 # ROSCO toolbox modules 
-from ROSCO_toolbox import controller as ROSCO_controller
-from ROSCO_toolbox import turbine as ROSCO_turbine
-from ROSCO_toolbox import sim as ROSCO_sim
-from ROSCO_toolbox import control_interface as ROSCO_ci
-from ROSCO_toolbox.utilities import write_DISCON
-from ROSCO_toolbox.inputs.validation import load_rosco_yaml
+from rosco import discon_lib_path as lib_name
+from rosco.toolbox import controller as ROSCO_controller
+from rosco.toolbox import turbine as ROSCO_turbine
+from rosco.toolbox import sim as ROSCO_sim
+from rosco.toolbox import control_interface as ROSCO_ci
+from rosco.toolbox.utilities import write_DISCON
+from rosco.toolbox.inputs.validation import load_rosco_yaml
 
 
 # Load yaml file 
 this_dir = os.path.dirname(os.path.abspath(__file__))
-tune_dir =  os.path.join(this_dir,'../Tune_Cases')
+tune_dir =  os.path.join(this_dir,'Tune_Cases')
 parameter_filename = os.path.join(tune_dir,'NREL5MW.yaml')
 inps = load_rosco_yaml(parameter_filename)
 path_params         = inps['path_params']
@@ -37,17 +38,11 @@ turbine_params      = inps['turbine_params']
 controller_params   = inps['controller_params']
 
 # Specify controller dynamic library path and name
-this_dir = os.path.dirname(os.path.abspath(__file__))
-example_out_dir = os.path.join(this_dir,'examples_out')
-if not os.path.isdir(example_out_dir):
-  os.makedirs(example_out_dir)
 
-if platform.system() == 'Windows':
-    lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.dll')
-elif platform.system() == 'Darwin':
-    lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.dylib')
-else:
-    lib_name = os.path.join(this_dir, '../ROSCO/build/libdiscon.so')
+#directories
+rosco_dir           = os.path.dirname(this_dir)
+example_out_dir     = os.path.join(this_dir,'examples_out')
+os.makedirs(example_out_dir,exist_ok=True)
 
 # # Load turbine model from saved pickle
 turbine         = ROSCO_turbine.Turbine
