@@ -105,9 +105,10 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! WE_Mode         - Wind speed estimator mode {{0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator, 2: Extended Kalman Filter}}\n'.format(int(rosco_vt['WE_Mode'])))
     file.write('{0:<12d}        ! PS_Mode         - Pitch saturation mode {{0: no pitch saturation, 1: implement pitch saturation}}\n'.format(int(rosco_vt['PS_Mode'])))
     file.write('{0:<12d}        ! SD_Mode         - Shutdown mode {{0: no shutdown procedure, 1: pitch to max pitch at shutdown}}\n'.format(int(rosco_vt['SD_Mode'])))
-    file.write('{0:<12d}        ! Fl_Mode         - Floating specific feedback mode {{0: no nacelle velocity feedback, 1: feed back translational velocity, 2: feed back rotational veloicty}}\n'.format(int(rosco_vt['Fl_Mode'])))
-    file.write('{:<12d}        ! TD_Mode         - {}\n'.format(int(rosco_vt['TD_Mode']),mode_descriptions['TD_Mode']))
-    file.write('{:<12d}        ! TRA_Mode        - {}\n'.format(int(rosco_vt['TRA_Mode']),mode_descriptions['TRA_Mode']))
+    file.write('{0:<12d}        ! Fl_Mode         - Floating specific feedback mode to blade pitch {{0: no nacelle velocity feedback, 1: feed back translational velocity, 2: feed back rotational veloicty}}\n'.format(int(rosco_vt['Fl_Mode'])))
+    file.write('{0:<12d}        ! FlTq_Mode       - Floating specific feedback mode to torque {{0: no nacelle velocity feedback, 1: feed back translational velocity, 2: feed back rotational veloicty}}\n'.format(int(rosco_vt['FlTq_Mode'])))
+    file.write('{:<12d}         ! TD_Mode         - {}\n'.format(int(rosco_vt['TD_Mode']),mode_descriptions['TD_Mode']))
+    file.write('{:<12d}         ! TRA_Mode        - {}\n'.format(int(rosco_vt['TRA_Mode']),mode_descriptions['TRA_Mode']))
     file.write('{0:<12d}        ! Flp_Mode        - Flap control mode {{0: no flap control, 1: steady state flap angle, 2: Proportional flap control, 2: Cyclic (1P) flap control}}\n'.format(int(rosco_vt['Flp_Mode'])))
     file.write('{0:<12d}        ! OL_Mode         - Open loop control mode {{0: no open loop control, 1: open loop control vs. time, 2: rotor position control}}\n'.format(int(rosco_vt['OL_Mode'])))
     file.write('{0:<12d}        ! PA_Mode         - Pitch actuator mode {{0 - not used, 1 - first order filter, 2 - second order filter}}\n'.format(int(rosco_vt['PA_Mode'])))
@@ -236,6 +237,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
         floatstr = 'velocity'
     file.write('{:<11d}         ! Fl_n              - Number of Fl_Kp gains in gain scheduling, optional with default of 1\n'.format(int(rosco_vt['Fl_n'])))
     file.write('{}        ! Fl_Kp             - Nacelle {} proportional feedback gain [s]\n'.format(write_array(rosco_vt['Fl_Kp'],'<6.4f'), floatstr))
+    file.write('{}        ! FlTq_Kp             - Nacelle {} proportional feedback gain [s]\n'.format(write_array(rosco_vt['FlTq_Kp'],'<6.4f'), floatstr))
     file.write('{}        ! Fl_U              - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]\n'.format(write_array(rosco_vt['Fl_U'],'<6.4f')))
     file.write('\n')
     file.write('!------- FLAP ACTUATION -----------------------------------------------------\n')
@@ -481,6 +483,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['PS_Mode']          = int(controller.PS_Mode > 0)
     DISCON_dict['SD_Mode']          = int(controller.SD_Mode)
     DISCON_dict['Fl_Mode']          = int(controller.Fl_Mode)
+    DISCON_dict['FlTq_Mode']        = int(controller.FlTq_Mode)
     DISCON_dict['TD_Mode']          = int(controller.TD_Mode)
     DISCON_dict['TRA_Mode']         = int(controller.TRA_Mode)
     DISCON_dict['Flp_Mode']         = int(controller.Flp_Mode)
@@ -595,6 +598,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     # ------- Floating -------
     DISCON_dict['Fl_n']             = len(controller.Kp_float)
     DISCON_dict['Fl_Kp']            = controller.Kp_float
+    DISCON_dict['FlTq_Kp']            = controller.Kp_floatTq
     DISCON_dict['Fl_U']             = controller.U_Fl
     # ------- FLAP ACTUATION -------
     DISCON_dict['Flp_Angle']        = controller.flp_angle

@@ -12,6 +12,7 @@ controller_params:
     PS_Mode: 1
     SD_Mode: 0
     Fl_Mode: 0
+    FlTq_Mode: 0
     Flp_Mode: 0
     zeta_pc: [2.0062413749856227]
     omega_pc: [0.13653659182284006]

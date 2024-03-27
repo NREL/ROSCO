@@ -198,7 +198,7 @@ ControlParameters:
       description: Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
     IPC_SatMode:
       <<: *integer
-      description: IPC Saturation method IPC Saturation method (0 - no saturation (except by PC_MinPit), 1 - saturate by PS_BldPitchMin, 2 - saturate sotfly (full IPC cycle) by PC_MinPit, 3 - saturate softly by PS_BldPitchMin)
+      description: IPC Saturation method IPC Saturation method (0 - no saturation (except by PC_MinPit), 1 - saturate by PS_BldPitchMin, 2 - saturate softly (full IPC cycle) by PC_MinPit, 3 - saturate softly by PS_BldPitchMin)
     IPC_KP:
       <<: *real
       description: Integral gain for the individual pitch controller, [-].
@@ -451,13 +451,20 @@ ControlParameters:
     # Floating
     Fl_Mode:
       <<: *integer
-      description: Floating specific feedback mode {0 - no nacelle velocity feedback, 1 - nacelle velocity feedback}
+      description: Floating specific feedback mode for blade pitch {0 - no nacelle velocity feedback, 1 - nacelle velocity feedback}
+    FlTq_Mode:
+      <<: *integer
+      description: Floating specific feedback mode for generator torque {0 - no nacelle velocity feedback, 1 - nacelle velocity feedback}
     Fl_n:
       <<: *integer
       description: Number of Fl_Kp for gain scheduling
     Fl_Kp:
       <<: *real
-      description: Nacelle velocity proportional feedback gain [s]
+      description: Nacelle velocity proportional feedback gain to blade pitch [s]
+      allocatable: True
+    FlTq_Kp:
+      <<: *real
+      description: Nacelle velocity proportional feedback gain to generator torque [s]
       allocatable: True
     Fl_U:
       <<: *real
@@ -1157,6 +1164,9 @@ LocalVariables:
     Kp_Float:
       <<: *real
       description: Local, instantaneous Kp_Float, scheduled on wind speed, if desired
+    Kp_FloatTq:
+      <<: *real
+      description: Local, instantaneous Kp_FloatTq, scheduled on wind speed, if desired
     VS_MaxTq:                     
       <<: *real 
       description: Maximum allowable generator torque [Nm].
@@ -1207,7 +1217,10 @@ LocalVariables:
       description: Shutdown, .FALSE. if inactive, .TRUE. if active
     Fl_PitCom:                           
       <<: *real 
-      description: Shutdown, .FALSE. if inactive, .TRUE. if active
+      description: Floating feedback signal from nacelle fore-aft velocity to blade pitch
+    Fl_TqCom:                           
+      <<: *real 
+      description: Floating feedback signal from nacelle fore-aft velocity to generator torque
     NACIMU_FA_AccF:
       <<: *real 
     FA_AccF:
@@ -1434,6 +1447,9 @@ DebugVariables:
   Fl_PitCom:
     <<: *real
     description: Floating contribution to the pitch command [rad]
+  Fl_TqCom:
+    <<: *real
+    description: Floating contribution to the generator torque command [Nm]
   PC_MinPit:
     <<: *real
     description: Minimum blade pitch angle [rad]

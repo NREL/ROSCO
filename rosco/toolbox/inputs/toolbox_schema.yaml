@@ -190,7 +190,13 @@ properties:
                 minimum: 0
                 maximum: 2
                 default: 0
-                description: Floating specific feedback mode (0- no nacelle velocity feedback, 1 - nacelle velocity feedback, 2 - nacelle pitching acceleration feedback)
+                description: Floating specific feedback mode to blade pitch (0- no nacelle velocity feedback, 1 - nacelle velocity feedback, 2 - nacelle pitching acceleration feedback)
+            FlTq_Mode:            
+                type: number
+                minimum: 0
+                maximum: 2
+                default: 0
+                description: Floating specific feedback mode to generator torque (0- no nacelle velocity feedback, 1 - nacelle velocity feedback, 2 - nacelle pitching acceleration feedback)
             Flp_Mode:           
                 type: number
                 minimum: 0
@@ -361,20 +367,49 @@ properties:
                 default: 30
             Kp_float:
                 type: [number, array]
-                description: Gain(s) of floating feedback control
+                description: Gain(s) of blade pitch floating feedback control
+                unit: s
+                items: 
+                    type: number
+            Kp_floatTq:
+                type: [number, array]
+                description: Gain(s) of generator floating feedback control
                 unit: s
                 items: 
                     type: number
             tune_Fl:
-                type: boolean
-                description: Whether to automatically tune Kp_float
-                default: True
+                type: number
+                description: Configuration to automatically tune Kp_float (0 - Disable auto-tuning, 1 - Auto-tune based on "parallel" compensation, 2 - Auto-tune based on platform pitch damping)
+                minimum: 0
+                maximum: 2
+                default: 1
+            tune_FlTq:
+                type: number
+                description: Configuration to automatically tune Kp_floatTq (0 - Disable auto-tuning, 1 - Auto-tune based on parallel compensation)
+                minimum: 0
+                maximum: 1
+                default: 1
             U_Fl:
                 type: [array, string, number]
                 description: List of wind speeds for tuning floating feedback, or "all" for all above-rated wind speeds
                 default: []
                 items:
                     type: number
+            U_FlTq:
+                type: [array,number]
+                description: List of wind speeds for tuning torque floating feedback
+                default: []
+                items:
+                    type: number
+            FlTq_scale:
+                type: [array,number]
+                description: List of scale parameters for scheduled tuning of torque floating feedback
+                unit: none
+                items:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+                default: [0.0]
             zeta_flp:                        
                 type: number
                 minimum: 0
@@ -603,7 +638,10 @@ properties:
                         description: Shutdown mode (0- no shutdown procedure, 1- pitch to max pitch at shutdown)
                     Fl_Mode:
                         type: number
-                        description: Floating specific feedback mode (0- no nacelle velocity feedback, 1- feed back translational velocity, 2- feed back rotational veloicty)
+                        description: Floating specific feedback mode to blade pitch (0- no nacelle velocity feedback, 1- feed back translational velocity, 2- feed back rotational veloicty)
+                    FlTq_Mode:
+                        type: number
+                        description: Floating specific feedback mode to generator torque (0- no nacelle velocity feedback, 1- feed back translational velocity, 2- feed back rotational veloicty)
                     Flp_Mode:
                         type: number
                         description: Flap control mode (0- no flap control, 1- steady state flap angle, 2- Proportional flap control)
@@ -990,7 +1028,13 @@ properties:
                         units: s
                     Fl_Kp:
                         type: array
-                        description: Nacelle velocity proportional feedback gain 
+                        description: Nacelle velocity proportional feedback gain to blade pitch
+                        units: s
+                        items:
+                            type: number
+                    FlTq_Kp:
+                        type: array
+                        description: Nacelle velocity proportional feedback gain to generator torque
                         units: s
                         items:
                             type: number
