@@ -207,17 +207,16 @@ CONTAINS
         ! -------- Variable-Speed Torque Controller --------
         ! Define max torque
         IF (LocalVar%VS_State == 4) THEN
-           LocalVar%VS_MaxTq = CntrPar%VS_RtTq
+           LocalVar%VS_MaxTq = CntrPar%VS_RtTq * LocalVar%PRC_R_Torque
         ELSE
-            ! VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
-            LocalVar%VS_MaxTq = CntrPar%VS_RtTq
+            LocalVar%VS_MaxTq = CntrPar%VS_RtTq * LocalVar%PRC_R_Torque
         ENDIF
         
         ! Optimal Tip-Speed-Ratio tracking controller
         IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
             ! Constant Power, update VS_MaxTq
             IF (CntrPar%VS_ConstPower == 1) THEN
-                LocalVar%VS_MaxTq = min((CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF, CntrPar%VS_MaxTq)
+                LocalVar%VS_MaxTq = min((CntrPar%VS_RtPwr * LocalVar%PRC_R_Torque /(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF, CntrPar%VS_MaxTq)
             END IF
 
             ! PI controller

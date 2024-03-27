@@ -843,9 +843,41 @@ properties:
                         type: number
                         description: Frequency of the low pass filter on the wind speed estimate used to set PRC_GenSpeeds [rad/s]
                         default: 0.078539
-                    PRC_n:
+                    PRC_n:      # figure out what to do with this!
                         type: number
                         description: Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
+                    PRC_Comm:
+                        type: number
+                        description: Power reference communication mode, 0- use constant DISCON inputs, 1- use open loop inputs, 2- use ZMQ inputs
+                        default: 0
+                    PRC_R_Torque:
+                        type: number
+                        description: Constant power rating through changing the rated torque, used if PRC_Comm = 0, default is 1, effective above rated [-]
+                        default: 1
+                    PRC_R_Speed:
+                        type: number
+                        description: Constant power rating through changing the rated generator speed, used if PRC_Comm = 0, default is 1, effective above rated [-]
+                        default: 1
+                    PRC_R_Pitch:
+                        type: number
+                        description: Constant power rating through changing the fine pitch angle, used if PRC_Comm = 0, default is 1, effective below rated [-]
+                        default: 1
+                    PRC_Table_n:
+                        type: number
+                        description: Number of elements in PRC_R to _Pitch table
+                        default: 1
+                    PRC_Pitch_Table:
+                        type: array
+                        items:
+                            type: number
+                        description: Table of fine pitch versus PRC_R_Table, length should be PRC_Table_n [rad]
+                        default: [0]
+                    PRC_R_Table:
+                        type: array
+                        items:
+                            type: number
+                        description: Table of turbine rating versus fine pitch (PRC_Pitch_Table), length should be PRC_Table_n, default is 1 [-]
+                        default: [1]
                     TRA_ExclSpeed:
                         type: number
                         minimum: 0

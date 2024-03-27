@@ -334,6 +334,9 @@ ControlParameters:
     PRC_Mode:
       <<: *integer
       description: Power reference tracking mode, 0- use standard rotor speed set points, 1- use PRC rotor speed setpoints
+    PRC_Comm:
+      <<: *integer
+      description: Power reference communication mode, 0- use constant DISCON inputs, 1- use open loop inputs, 2- use ZMQ inputs
     PRC_WindSpeeds:
       <<: *real
       description: Array of wind speeds used in rotor speed vs. wind speed lookup table
@@ -348,6 +351,28 @@ ControlParameters:
     PRC_LPF_Freq:
       <<: *real
       description: Frequency of the low pass filter on the wind speed estimate used to set PRC_GenSpeeds [rad/s]
+    PRC_R_Torque:
+      <<: *real
+      description: Power rating through changing the rated torque, default is 1, effective above rated [-]
+    PRC_R_Speed:
+      <<: *real
+      description: Power rating through changing the rated generator speed, default is 1, effective above rated [-]
+    PRC_R_Pitch:
+      <<: *real
+      description: Power rating through changing the fine pitch angle, default is 1, effective below rated [-]
+    PRC_Table_n:
+      <<: *integer
+      description: Number of elements in PRC_R to _Pitch table
+    PRC_Pitch_Table:
+      <<: *real
+      allocatable: True
+      description: Table of fine pitch versus PRC_R_Table, length should be PRC_Table_n [rad]
+    PRC_R_Table:
+      <<: *real
+      allocatable: True
+      description: Table of turbine rating versus fine pitch (PRC_Pitch_Table), length should be PRC_Table_n, default is 1 [-]
+
+
     
     # Wind Speed Estimator
     WE_Mode:
@@ -1077,9 +1102,6 @@ LocalVariables:
     PC_PitComT:                   
       <<: *real 
       description: Total command pitch based on the sum of the proportional and integral terms [rad].
-    PC_PitComT:                   
-      <<: *real 
-      description: Collective pitch commmand from PI control [rad].
     PC_PitComT_Last:                   
       <<: *real 
       description: Last total command pitch based on the sum of the proportional and integral terms [rad].
@@ -1202,6 +1224,18 @@ LocalVariables:
     PRC_WSE_F:               
       <<: *real 
       description: Filtered wind speed estimate for power reference control
+    PRC_R_Speed:
+      <<: *real
+      description: Instantaneous PRC_R_Speed
+    PRC_R_Torque:
+      <<: *real
+      description: Instantaneous PRC_R_Torque
+    PRC_R_Pitch:
+      <<: *real
+      description: Instantaneous PRC_R_Pitch
+    PRC_R_Total:
+      <<: *real
+      description: Instantaneous PRC_R_Total
     SD:                           
       <<: *logical
       description: Shutdown, .FALSE. if inactive, .TRUE. if active

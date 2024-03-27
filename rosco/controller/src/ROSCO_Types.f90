@@ -83,10 +83,17 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: SS_VSGain                   ! Variable speed torque controller setpoint smoother gain, [-].
     REAL(DbKi)                    :: SS_PCGain                   ! Collective pitch controller setpoint smoother gain, [-].
     INTEGER(IntKi)                :: PRC_Mode                    ! Power reference tracking mode, 0- use standard rotor speed set points, 1- use PRC rotor speed setpoints
+    INTEGER(IntKi)                :: PRC_Comm                    ! Power reference communication mode, 0- use constant DISCON inputs, 1- use open loop inputs, 2- use ZMQ inputs
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PRC_WindSpeeds              ! Array of wind speeds used in rotor speed vs. wind speed lookup table
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PRC_GenSpeeds               ! Array of rotor speeds corresponding to PRC_WindSpeeds
     INTEGER(IntKi)                :: PRC_n                       ! Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
     REAL(DbKi)                    :: PRC_LPF_Freq                ! Frequency of the low pass filter on the wind speed estimate used to set PRC_GenSpeeds [rad/s]
+    REAL(DbKi)                    :: PRC_R_Torque                ! Power rating through changing the rated torque, default is 1, effective above rated [-]
+    REAL(DbKi)                    :: PRC_R_Speed                 ! Power rating through changing the rated generator speed, default is 1, effective above rated [-]
+    REAL(DbKi)                    :: PRC_R_Pitch                 ! Power rating through changing the fine pitch angle, default is 1, effective below rated [-]
+    INTEGER(IntKi)                :: PRC_Table_n                 ! Number of elements in PRC_R to _Pitch table
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PRC_Pitch_Table             ! Table of fine pitch versus PRC_R_Table, length should be PRC_Table_n [rad]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PRC_R_Table                 ! Table of turbine rating versus fine pitch (PRC_Pitch_Table), length should be PRC_Table_n, default is 1 [-]
     INTEGER(IntKi)                :: WE_Mode                     ! Wind speed estimator mode {0 - One-second low pass filtered hub height wind speed, 1 - Imersion and Invariance Estimator (Ortega et al.)
     REAL(DbKi)                    :: WE_BladeRadius              ! Blade length [m]
     INTEGER(IntKi)                :: WE_CP_n                     ! Amount of parameters in the Cp array
@@ -296,7 +303,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: PC_TF                       ! First-order filter parameter for derivative action
     REAL(DbKi)                    :: PC_MaxPit                   ! Maximum pitch setting in pitch controller (variable) [rad].
     REAL(DbKi)                    :: PC_MinPit                   ! Minimum pitch setting in pitch controller (variable) [rad].
-    REAL(DbKi)                    :: PC_PitComT                  ! Collective pitch commmand from PI control [rad].
+    REAL(DbKi)                    :: PC_PitComT                  ! Total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(DbKi)                    :: PC_PitComT_Last             ! Last total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(DbKi)                    :: PC_PitComTF                 ! Filtered Total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(DbKi)                    :: PC_PitComT_IPC(3)           ! Total command pitch based on the sum of the proportional and integral terms, including IPC term [rad].
@@ -336,6 +343,10 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: WE_VwIdot                   ! Differentiated integrated wind speed quantity for estimation [m/s]
     REAL(DbKi)                    :: VS_LastGenTrqF              ! Differentiated integrated wind speed quantity for estimation [m/s]
     REAL(DbKi)                    :: PRC_WSE_F                   ! Filtered wind speed estimate for power reference control
+    REAL(DbKi)                    :: PRC_R_Speed                 ! Instantaneous PRC_R_Speed
+    REAL(DbKi)                    :: PRC_R_Torque                ! Instantaneous PRC_R_Torque
+    REAL(DbKi)                    :: PRC_R_Pitch                 ! Instantaneous PRC_R_Pitch
+    REAL(DbKi)                    :: PRC_R_Total                 ! Instantaneous PRC_R_Total
     LOGICAL                       :: SD                          ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None

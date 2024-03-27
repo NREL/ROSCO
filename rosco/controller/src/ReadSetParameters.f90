@@ -440,6 +440,15 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ POWER REFERENCE TRACKING SETPOINTS --------------
+        CALL ParseInput(FileLines,  'PRC_Comm',         CntrPar%PRC_Comm,                                   accINFILE(1), ErrVar, CntrPar%PRC_Mode .NE. 1, UnEc)
+        CALL ParseInput(FileLines,  'PRC_R_Torque',     CntrPar%PRC_R_Torque,                               accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 1) .OR. (CntrPar%PRC_Comm .NE. 0), UnEc)
+        CALL ParseInput(FileLines,  'PRC_R_Speed',      CntrPar%PRC_R_Speed,                                accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 1) .OR. (CntrPar%PRC_Comm .NE. 0), UnEc)
+        CALL ParseInput(FileLines,  'PRC_R_Pitch',      CntrPar%PRC_R_Pitch,                                accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 1) .OR. (CntrPar%PRC_Comm .NE. 0), UnEc)
+        CALL ParseInput(FileLines,  'PRC_Table_n',      CntrPar%PRC_Table_n,                                accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 1) .OR. (CntrPar%PRC_R_Pitch == 1.0), UnEc)
+        CALL ParseAry(FileLines,    'PRC_R_Table',      CntrPar%PRC_R_Table,        CntrPar%PRC_Table_n,    accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 1) .OR. (CntrPar%PRC_R_Pitch == 1.0), UnEc)
+        CALL ParseAry(FileLines,    'PRC_Pitch_Table',  CntrPar%PRC_Pitch_Table,    CntrPar%PRC_Table_n,    accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 1) .OR. (CntrPar%PRC_R_Pitch == 1.0), UnEc)
+
+        ! These need to be adapted
         CALL ParseInput(FileLines,  'PRC_n',            CntrPar%PRC_n,                            accINFILE(1), ErrVar,   CntrPar%PRC_Mode == 0)
         CALL ParseInput(FileLines,  'PRC_LPF_Freq',     CntrPar%PRC_LPF_Freq,                     accINFILE(1), ErrVar,   CntrPar%PRC_Mode == 0)
         CALL ParseAry(  FileLines,  'PRC_WindSpeeds',   CntrPar%PRC_WindSpeeds,   CntrPar%PRC_n,  accINFILE(1), ErrVar,   CntrPar%PRC_Mode == 0)
