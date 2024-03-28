@@ -1236,6 +1236,12 @@ LocalVariables:
     PRC_R_Total:
       <<: *real
       description: Instantaneous PRC_R_Total
+    PRC_Min_Pitch:
+      <<: *real
+      description: Instantaneous PRC_Min_Pitch
+    PS_Min_Pitch:
+      <<: *real
+      description: Instantaneous peak shaving 
     SD:                           
       <<: *logical
       description: Shutdown, .FALSE. if inactive, .TRUE. if active

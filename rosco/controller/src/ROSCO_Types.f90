@@ -347,6 +347,8 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: PRC_R_Torque                ! Instantaneous PRC_R_Torque
     REAL(DbKi)                    :: PRC_R_Pitch                 ! Instantaneous PRC_R_Pitch
     REAL(DbKi)                    :: PRC_R_Total                 ! Instantaneous PRC_R_Total
+    REAL(DbKi)                    :: PRC_Min_Pitch               ! Instantaneous PRC_Min_Pitch
+    REAL(DbKi)                    :: PS_Min_Pitch                ! Instantaneous peak shaving
     LOGICAL                       :: SD                          ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None

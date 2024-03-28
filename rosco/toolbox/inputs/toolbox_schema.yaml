@@ -865,19 +865,19 @@ properties:
                     PRC_Table_n:
                         type: number
                         description: Number of elements in PRC_R to _Pitch table
-                        default: 1
+                        default: 20
                     PRC_Pitch_Table:
                         type: array
                         items:
                             type: number
                         description: Table of fine pitch versus PRC_R_Table, length should be PRC_Table_n [rad]
-                        default: [0]
+                        default: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
                     PRC_R_Table:
                         type: array
                         items:
                             type: number
                         description: Table of turbine rating versus fine pitch (PRC_Pitch_Table), length should be PRC_Table_n, default is 1 [-]
-                        default: [1]
+                        default: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
                     TRA_ExclSpeed:
                         type: number
                         minimum: 0

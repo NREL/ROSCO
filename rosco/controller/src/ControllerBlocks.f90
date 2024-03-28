@@ -51,10 +51,14 @@ CONTAINS
 
             ENDIF
 
+            ! Set min pitch for power control, will be combined with peak shaving min pitch
+            LocalVar%PRC_Min_Pitch = interp1d(CntrPar%PRC_R_Table,CntrPar%PRC_Pitch_Table,LocalVar%PRC_R_Pitch, ErrVar)
+
         ELSE
             LocalVar%PRC_R_Speed = 1.0_DbKi
             LocalVar%PRC_R_Torque = 1.0_DbKi
             LocalVar%PRC_R_Pitch = 1.0_DbKi
+            LocalVar%PRC_Min_Pitch = CntrPar%PC_FinePit
         ENDIF
 
         !   Change pitch reference speed
@@ -412,8 +416,9 @@ CONTAINS
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL(DbKi) FUNCTION PitchSaturation(LocalVar, CntrPar, objInst, DebugVar, ErrVar) 
     ! PitchSaturation defines a minimum blade pitch angle based on a lookup table provided by DISCON.IN
-    !       SS_Mode = 0, No setpoint smoothing
-    !       SS_Mode = 1, Implement pitch saturation
+    ! Minimum pitch for power control also happens here
+
+
         USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances, DebugVariables, ErrorVariables
         IMPLICIT NONE
         ! Inputs
@@ -425,8 +430,11 @@ CONTAINS
 
         CHARACTER(*),               PARAMETER           :: RoutineName = 'PitchSaturation'
 
-        ! Define minimum blade pitch angle as a function of estimated wind speed
-        PitchSaturation = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, LocalVar%WE_Vw_F, ErrVar)
+        ! Define minimum blade pitch angle for peak shaving as a function of estimated wind speed
+        LocalVar%PS_Min_Pitch = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, LocalVar%WE_Vw_F, ErrVar)
+
+        ! Total min pitch limit is greater of peak shaving and power control pitch
+        PitchSaturation = max(LocalVar%PS_Min_Pitch, LocalVar%PRC_Min_Pitch)
 
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN

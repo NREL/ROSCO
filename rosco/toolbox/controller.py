@@ -381,6 +381,23 @@ class Controller():
             self.ps.peak_shaving(self, turbine)
             self.ps.min_pitch_saturation(self,turbine)
 
+        # --- Power control ---
+        
+        PRC_Table_n = self.controller_params['DISCON']['PRC_Table_n']
+        pitch_range = np.linspace(self.min_pitch,self.max_pitch, num=100)  # radians
+        
+        # Cp at optimal TSR
+        Cp_TSR_opt = turbine.Cp.interp_surface(pitch_range,turbine.Cp.TSR_opt)
+        
+        # Solve for pitch that decreases Cp by R_range using linear interpolation
+        R_range = np.linspace(0,1,num=PRC_Table_n)
+        Cp_R = R_range * turbine.Cp.max
+        pitch_R = np.interp(Cp_R,np.flip(Cp_TSR_opt),np.flip(pitch_range))  # need to flip because interp wants xp to be increasing
+        
+        # Save values back to DISCON dict
+        self.controller_params['DISCON']['PRC_R_Table'] = R_range
+        self.controller_params['DISCON']['PRC_Pitch_Table'] = pitch_R
+
         # --- Floating feedback term ---
 
         if self.Fl_Mode >= 1: # Floating feedback
@@ -476,6 +493,7 @@ class Controller():
         if 'f_lpf_cornerfreq' in self.controller_params['filter_params']:
             self.f_lpf_cornerfreq = self.controller_params['filter_params']['f_lpf_cornerfreq']
 
+    
     def tune_flap_controller(self,turbine):
         '''
         Tune controller for distributed aerodynamic control
