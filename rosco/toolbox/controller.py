@@ -128,11 +128,13 @@ class Controller():
                 self.Kp_floatTq = np.array([0])
 
             self.tune_Fl = controller_params['tune_Fl']
+            self.tune_FlTq = controller_params['tune_Fl']
 
 
         else:
             self.twr_freq   = 0
             self.ptfm_freq  = 0
+            
 
         # Use critical damping if LPFType = 2
         if controller_params['F_LPFType'] == 2:
@@ -389,6 +391,7 @@ class Controller():
 
         # --- Floating feedback term ---
         self.U_Fl = np.array([0.0]) # Will be overwritten if either floating feedback mode is active
+        self.U_FlTq = np.array([0.0]) # Will be overwritten if either floating feedback mode is active
 
         if self.Fl_Mode >= 1: # Floating feedback
 
@@ -436,35 +439,40 @@ class Controller():
         if self.FlTq_Mode >= 1: # Generator torque floating feedback
 
             # Wind speed gain scheduling
-            self.U_Fl = self.controller_params['U_Fl']
-            if self.U_Fl:  # default is [], only have one Fl_Kp
-                if type(self.U_Fl) == str:
-                    if self.U_Fl == 'all':  
+            self.U_FlTq = self.controller_params['U_FlTq']
+            if self.U_FlTq:  # default is [], only have one Fl_Kp
+                if type(self.U_FlTq) == str:
+                    if self.U_FlTq == 'all':  
                         # Mod by A. Wright: get the array of Kp_float values at the values of v-above rated (see self.v_for_gs calculated around line 344).
-                        self.U_Fl = self.v_for_gs
+                        self.U_FlTq = self.v_for_gs
                     else:
-                        raise Exception("Invalid entry in controller_params for U_Fl, please see schema")
+                        raise Exception("Invalid entry in controller_params for U_FlTq, please see schema")
             else:
-                self.U_Fl = np.array([turbine.v_rated * (1.05)])
+                self.U_FlTq = np.array([turbine.v_rated * (1.05)])
 
+            self.FlTq_param = self.controller_params['FlTq_param']
+            if len(self.FlTq_param) != len(self.U_FlTq):
+                raise Exception('The sizes of FlTq_param and U_FlTq are not equal, please check your controller_params')
 
             # If we haven't set Kp_floatTq as a control parameter, we tune it automatically here
-            if self.tune_Fl:
+            if self.tune_FlTq:
+                f_TqParam = interpolate.interp1d(self.U_FlTq, self.FlTq_param, fill_value=(self.FlTq_param[0], self.FlTq_param[-1]), bounds_error=False)
                 Kp_floatTq = dtau_dv # * Ng / Ng
+                Kp_floatTq *= f_TqParam(v)
                 if self.FlTq_Mode == 2:
                     Kp_floatTq *= turbine.TowerHt      
                 f_kp     = interpolate.interp1d(v,Kp_floatTq)
-                self.Kp_floatTq = f_kp(self.U_Fl)   # get Kp at v_rated + 0.5 m/s
+                self.Kp_floatTq = f_kp(self.U_FlTq)   # get Kp at v_rated + 0.5 m/s
 
             # Make arrays if not
             if not np.shape(self.Kp_floatTq):
                 self.Kp_floatTq = np.array([self.Kp_floatTq])
-            if not np.shape(self.U_Fl):
-                self.U_Fl = np.array([self.U_Fl])
+            if not np.shape(self.U_FlTq):
+                self.U_FlTq = np.array([self.U_FlTq])
 
-            # Check size of Kp_floatTq and U_Fl
-            if len(self.Kp_floatTq) != len(self.U_Fl):
-                raise Exception('The sizes of Kp_floatTq and U_Fl are not equal, please check your controller_params')
+            # Check size of Kp_floatTq and U_FlTq
+            if len(self.Kp_floatTq) != len(self.U_FlTq):
+                raise Exception('The sizes of Kp_floatTq and U_FlTq are not equal, please check your controller_params')
 
             # Turn on the notch filter if floating and not already on
             if not self.F_NotchType:
@@ -480,8 +488,8 @@ class Controller():
         # Ensure lengths are correct, if not then repeat the last value until they are
         if len(self.Kp_float) < len(self.U_Fl):
             self.Kp_float = np.append(self.Kp_float, np.repeat(self.Kp_float[-1], len(self.U_Fl) - len(self.Kp_float)))
-        if len(self.Kp_floatTq) < len(self.U_Fl):
-            self.Kp_floatTq = np.append(self.Kp_floatTq, np.repeat(self.Kp_floatTq[-1], len(self.U_Fl) - len(self.Kp_floatTq)))
+        if len(self.Kp_floatTq) < len(self.U_FlTq):
+            self.Kp_floatTq = np.append(self.Kp_floatTq, np.repeat(self.Kp_floatTq[-1], len(self.U_FlTq) - len(self.Kp_floatTq)))
 
 
         # If using both blade pitch and generator torque for parallel compensation, then share the load equally

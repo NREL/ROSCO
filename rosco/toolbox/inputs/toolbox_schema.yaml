@@ -401,15 +401,15 @@ properties:
                 default: []
                 items:
                     type: number
-            FlTq_scale:
+            FlTq_param:
                 type: [array,number]
-                description: List of scale parameters for scheduled tuning of torque floating feedback
+                description: List of scale parameters for detuning torque floating feedback (fractional parallel compensation)
                 unit: none
                 items:
                     type: number
                     minimum: 0
                     maximum: 1
-                default: [0.0]
+                default: [0.5]
             zeta_flp:                        
                 type: number
                 minimum: 0
