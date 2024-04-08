@@ -52,6 +52,7 @@ def main():
     controller_params_1['U_Fl']      = 'all'
     controller_params_1['tune_Fl']   = True
     controller_params_1['tune_FlTq']   = True
+    controller_params_1['FlTq_param']   = [0.2] # Low tuning
     controller = ROSCO_controller.Controller(controller_params_1)
     controller.tune_controller(turbine)
     # Reduce gain
@@ -69,7 +70,7 @@ def main():
     controller_params_2['U_Fl']      = 'all'
     controller_params_2['tune_Fl']   = True
     controller_params_2['tune_FlTq']   = True
-    controller_params_2['FlTq_param']   = [0.2]
+    controller_params_2['FlTq_param']   = [0.5] # Moderate tuning
     controller = ROSCO_controller.Controller(controller_params_1)
     controller.tune_controller(turbine)
     param_file = os.path.join(run_dir,'DISCON_Fl_2.IN')
@@ -86,7 +87,7 @@ def main():
     controller_params_3['U_Fl']      = 'all'
     controller_params_3['tune_Fl']   = True
     controller_params_3['tune_FlTq']   = True
-    controller_params_3['FlTq_param']   = [0.8]
+    controller_params_3['FlTq_param']   = [0.8] # Aggressive tuning
     controller = ROSCO_controller.Controller(controller_params_1)
     controller.tune_controller(turbine)
     param_file = os.path.join(run_dir,'DISCON_Fl_3.IN')
