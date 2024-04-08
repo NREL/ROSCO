@@ -236,8 +236,8 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     else:
         floatstr = 'velocity'
     file.write('{:<11d}         ! Fl_n              - Number of Fl_Kp gains in gain scheduling, optional with default of 1\n'.format(int(rosco_vt['Fl_n'])))
-    file.write('{}        ! Fl_Kp             - Nacelle {} proportional feedback gain [s]\n'.format(write_array(rosco_vt['Fl_Kp'],'<6.4f'), floatstr))
-    file.write('{}        ! FlTq_Kp             - Nacelle {} proportional feedback gain [s]\n'.format(write_array(rosco_vt['FlTq_Kp'],'<6.4f'), floatstr))
+    file.write('{}        ! Fl_Kp             - Nacelle {} proportional feedback gain to blade pitch [s]\n'.format(write_array(rosco_vt['Fl_Kp'],'<6.4f'), floatstr))
+    file.write('{}        ! FlTq_Kp             - Nacelle {} proportional feedback gain to generator torque [s]\n'.format(write_array(rosco_vt['FlTq_Kp'],'<6.4f'), floatstr))
     file.write('{}        ! Fl_U              - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]\n'.format(write_array(rosco_vt['Fl_U'],'<6.4f')))
     file.write('\n')
     file.write('!------- FLAP ACTUATION -----------------------------------------------------\n')
@@ -514,7 +514,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['F_SSCornerFreq']       = controller.f_ss_cornerfreq
     DISCON_dict['F_YawErr']             = controller.f_yawerr
     DISCON_dict['F_FlHighPassFreq']     = controller.f_fl_highpassfreq
-    DISCON_dict['F_FlCornerFreq']       = [controller.ptfm_freq*3, 1.0]
+    DISCON_dict['F_FlCornerFreq']       = [controller.ptfm_freq, 1.0]
     # ------- BLADE PITCH CONTROL -------
     DISCON_dict['PC_GS_n']			= len(controller.pitch_op_pc)
     DISCON_dict['PC_GS_angles']	    = controller.pitch_op_pc
