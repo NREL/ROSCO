@@ -29,6 +29,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: F_SSCornerFreq              ! Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother [rad/s]
     REAL(DbKi)                    :: F_WECornerFreq              ! Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_FlCornerFreq              ! Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s].
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_FlTqCornerFreq              ! Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s].
     REAL(DbKi)                    :: F_FlHighPassFreq            ! Natural frequency of first-roder high-pass filter for nacelle fore-aft motion [rad/s].
     REAL(DbKi)                    :: F_YawErr                    ! Corner low pass filter corner frequency for yaw controller [rad/s].
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_FlpCornerFreq             ! Corner frequency (-3dB point) in the second order low pass filter of the blade root bending moment for flap control [rad/s].
@@ -344,6 +345,8 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: Fl_TqCom                    ! Floating feedback signal from nacelle fore-aft velocity to generator torque
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None
     REAL(DbKi)                    :: FA_AccF                     ! None
+    REAL(DbKi)                    :: NACIMU_FA_AccFTq            ! None
+    REAL(DbKi)                    :: FA_AccFTq                   ! None
     INTEGER(IntKi)                :: FA_Hist                     ! Hysteresis state for tower resonance avoidance.
     REAL(DbKi)                    :: TRA_LastRefSpd              ! Last reference generator speed
     REAL(DbKi)                    :: VS_RefSpeed                 ! Torque controller reference speed
@@ -416,8 +419,10 @@ TYPE, PUBLIC :: DebugVariables
     REAL(DbKi)                    :: PC_PICommand                ! Commanded collective pitch from pitch PI controller [rad]
     REAL(DbKi)                    :: GenSpeedF                   ! Filtered generator speed [rad/s]
     REAL(DbKi)                    :: RotSpeedF                   ! Filtered rotor speed [rad/s]
-    REAL(DbKi)                    :: NacIMU_FA_AccF              ! Filtered NacIMU_FA_Acc [rad/s]
-    REAL(DbKi)                    :: FA_AccF                     ! Filtered FA_Acc [m/s]
+    REAL(DbKi)                    :: NacIMU_FA_AccF              ! Filtered NacIMU_FA_Acc for blade pitch FF [rad/s]
+    REAL(DbKi)                    :: FA_AccF                     ! Filtered FA_Acc for blade pitch FF [m/s]
+    REAL(DbKi)                    :: NacIMU_FA_AccFTq            ! Filtered NacIMU_FA_Acc for generator torque FF [rad/s]
+    REAL(DbKi)                    :: FA_AccFTq                   ! Filtered FA_Acc for generator torque FF [m/s]
     REAL(DbKi)                    :: Fl_PitCom                   ! Floating contribution to the pitch command [rad]
     REAL(DbKi)                    :: Fl_TqCom                    ! Floating contribution to the generator torque command [Nm]
     REAL(DbKi)                    :: PC_MinPit                   ! Minimum blade pitch angle [rad]

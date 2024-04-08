@@ -409,9 +409,14 @@ class Controller():
 
             # If we haven't set Kp_float as a control parameter, we tune it automatically here
             if self.tune_Fl:
-                Kp_float = (dtau_dv/dtau_dbeta) * Ng 
+                if self.tune_Fl == 1: # "Parallel" compensation tuning
+                    Kp_float = (dtau_dv/dtau_dbeta) * Ng
+                # elif self.tune_Fl == 2:
+                #     f_Param = interpolate.interp1d(self.U_Fl, self.Fl_param, fill_value=(self.Fl_param[0], self.Fl_param[-1]), bounds_error=False)
+                #     Kp_float = (2 * self.ptfm_freq / ()) * Ng
+                #     Kp_float *= f_TqParam(v)
                 if self.Fl_Mode == 2:
-                    Kp_float *= turbine.TowerHt      
+                    Kp_float *= turbine.TowerHt
                 f_kp     = interpolate.interp1d(v,Kp_float)
                 self.Kp_float = f_kp(self.U_Fl)   # get Kp at v_rated + 0.5 m/s
 
@@ -427,7 +432,7 @@ class Controller():
 
             # Turn on the notch filter if floating and not already on
             if not self.F_NotchType:
-                self.F_NotchType = 2      
+                self.F_NotchType = 2
 
             # And check for .yaml input inconsistencies
             if self.twr_freq == 0.0 or self.ptfm_freq == 0.0:
@@ -460,7 +465,7 @@ class Controller():
                 Kp_floatTq = dtau_dv # * Ng / Ng
                 Kp_floatTq *= f_TqParam(v)
                 if self.FlTq_Mode == 2:
-                    Kp_floatTq *= turbine.TowerHt      
+                    Kp_floatTq *= turbine.TowerHt
                 f_kp     = interpolate.interp1d(v,Kp_floatTq)
                 self.Kp_floatTq = f_kp(self.U_FlTq)   # get Kp at v_rated + 0.5 m/s
 
@@ -492,11 +497,11 @@ class Controller():
             self.Kp_floatTq = np.append(self.Kp_floatTq, np.repeat(self.Kp_floatTq[-1], len(self.U_FlTq) - len(self.Kp_floatTq)))
 
 
-        # If using both blade pitch and generator torque for parallel compensation, then share the load equally
-        # DBS: In future work, have tuning options to allow the user to choose how to manage this exchange
-        if self.Fl_Mode > 0 and self.FlTq_Mode > 0:
-            self.Kp_float = self.Kp_float / 2.0
-            self.KpTq_float = self.KpTq_float / 2.0
+        # # If using both blade pitch and generator torque for parallel compensation, then share the load equally
+        # # DBS: In future work, have tuning options to allow the user to choose how to manage this exchange
+        # if self.Fl_Mode > 0 and self.FlTq_Mode > 0:
+        #     self.Kp_float = self.Kp_float / 2.0
+        #     self.KpTq_float = self.KpTq_float / 2.0
         
         # Flap actuation 
         if self.Flp_Mode >= 1:

@@ -146,7 +146,11 @@ ControlParameters:
       description: Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s]
     F_FlCornerFreq:
       <<: *real
-      description: Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s].
+      description: Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for blade pitch floating feedback control [rad/s].
+      allocatable: True
+    F_FlTqCornerFreq:
+      <<: *real
+      description: Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for generator torque floating feedback control [rad/s].
       allocatable: True
     F_FlHighPassFreq:
       <<: *real
@@ -1225,6 +1229,10 @@ LocalVariables:
       <<: *real 
     FA_AccF:
       <<: *real 
+    NACIMU_FA_AccFTq:
+      <<: *real 
+    FA_AccFTq:
+      <<: *real 
     FA_Hist:
       <<: *integer 
       description: Hysteresis state for tower resonance avoidance.
@@ -1440,10 +1448,16 @@ DebugVariables:
     description: Filtered rotor speed [rad/s]
   NacIMU_FA_AccF:
     <<: *real
-    description: Filtered NacIMU_FA_Acc [rad/s]
+    description: Filtered NacIMU_FA_Acc for blade pitch FF [rad/s]
   FA_AccF:
     <<: *real
-    description: Filtered FA_Acc [m/s]
+    description: Filtered FA_Acc for blade pitch FF [m/s]
+  NacIMU_FA_AccFTq:
+    <<: *real
+    description: Filtered NacIMU_FA_Acc for generator torque FF [rad/s]
+  FA_AccFTq:
+    <<: *real
+    description: Filtered FA_Acc for generator torque FF [m/s]
   Fl_PitCom:
     <<: *real
     description: Floating contribution to the pitch command [rad]

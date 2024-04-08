@@ -20,7 +20,7 @@
 1                   ! PS_Mode         - Pitch saturation mode {0: no pitch saturation, 1: implement pitch saturation}
 0                   ! SD_Mode         - Shutdown mode {0: no shutdown procedure, 1: pitch to max pitch at shutdown}
 0                   ! Fl_Mode         - Floating specific feedback mode to blade pitch {0: no nacelle velocity feedback, 1: feed back translational velocity, 2: feed back rotational veloicty}
-0                   ! FlTq_Mode       - Floating specific feedback mode to torque {0: no nacelle velocity feedback, 1: feed back translational velocity, 2: feed back rotational veloicty}
+0                   ! FlTq_Mode       - Floating specific feedback mode to generator torque {0: no nacelle velocity feedback, 1: feed back translational velocity, 2: feed back rotational veloicty}
 0                    ! TD_Mode         - Tower damper mode (0- no tower damper, 1- feed back translational nacelle accelleration to pitch angle
 0                    ! TRA_Mode        - Tower resonance avoidance mode (0- no tower resonsnace avoidance, 1- use torque control setpoints to avoid a specific frequency
 2                   ! Flp_Mode        - Flap control mode {0: no flap control, 1: steady state flap angle, 2: Proportional flap control, 2: Cyclic (1P) flap control}
@@ -47,7 +47,8 @@
 0.62830             ! F_SSCornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother, [rad/s].
 0.20944             ! F_WECornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s].
 0.17952             ! F_YawErr          - Low pass filter corner frequency for yaw controller [rad/s].
-0.000000  1.000000  ! F_FlCornerFreq    - Natural frequency and damping in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s, -].
+0.000000  1.000000  ! F_FlCornerFreq    - Natural frequency and damping in the second order low pass filter of the tower-top fore-aft motion for blade pitch floating feedback control [rad/s, -].
+0.000000  1.000000  ! F_FlTqCornerFreq  - Natural frequency and damping in the second order low pass filter of the tower-top fore-aft motion for generator torque floating feedback control [rad/s, -].
 0.01042             ! F_FlHighPassFreq  - Natural frequency of first-order high-pass filter for nacelle fore-aft motion [rad/s].
 7.8480 1.0000      ! F_FlpCornerFreq   - Corner frequency and damping in the second order low pass filter of the blade root bending moment for flap control
 
@@ -145,7 +146,7 @@
 !------- Floating -----------------------------------------------------------
 1                   ! Fl_n              - Number of Fl_Kp gains in gain scheduling, optional with default of 1
 0.0000              ! Fl_Kp             - Nacelle velocity proportional feedback gain to blade pitch [s]
-0.0000              ! FlTq_Kp             - Nacelle velocity proportional feedback gain to generator torque [s]
+0.0000              ! FlTq_Kp           - Nacelle velocity proportional feedback gain to generator torque [s]
 0.0000              ! Fl_U              - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
 
 !------- FLAP ACTUATION -----------------------------------------------------

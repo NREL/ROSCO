@@ -1,5 +1,5 @@
 '''
------------ 28_floating_feedback_torque ------------------------
+----------- 29_floating_feedback_torque ------------------------
 Run openfast with ROSCO and torque floating feedback
 -----------------------------------------------
 
@@ -125,8 +125,8 @@ def main():
     r.wind_case_opts    = {
         'U_start': [13],
         'U_end': [16],
-        'TMax': 400,
-        'TStep': 200,
+        'TMax': 800,
+        'TStep': 400,
         }
     r.case_inputs       = case_inputs
     r.save_dir          = run_dir

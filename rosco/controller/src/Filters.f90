@@ -367,11 +367,17 @@ CONTAINS
         ! Low pass
         LocalVar%NacIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
         LocalVar%FA_AccF = SecLPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
-        
+
+        LocalVar%NacIMU_FA_AccFTq = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlTqCornerFreq(1), CntrPar%F_FlTqCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
+        LocalVar%FA_AccFTq = SecLPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%F_FlTqCornerFreq(1), CntrPar%F_FlTqCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
+
         ! High pass
-        LocalVar%NacIMU_FA_AccF = HPFilter(LocalVar%NacIMU_FA_AccF, LocalVar%DT, CntrPar%F_FlHighPassFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF) 
-        LocalVar%FA_AccF = HPFilter(LocalVar%FA_AccF, LocalVar%DT, CntrPar%F_FlHighPassFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF) 
-        
+        LocalVar%NacIMU_FA_AccF = HPFilter(LocalVar%NacIMU_FA_AccF, LocalVar%DT, CntrPar%F_FlHighPassFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF)
+        LocalVar%FA_AccF = HPFilter(LocalVar%FA_AccF, LocalVar%DT, CntrPar%F_FlHighPassFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF)
+
+        LocalVar%NacIMU_FA_AccFTq = HPFilter(LocalVar%NacIMU_FA_AccF, LocalVar%DT, CntrPar%F_FlHighPassFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF)
+        LocalVar%FA_AccFTq = HPFilter(LocalVar%FA_AccF, LocalVar%DT, CntrPar%F_FlHighPassFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF)
+
         ! Notch filters
         DO n = 1,CntrPar%F_TwrTopNotch_N
             LocalVar%NACIMU_FA_AccF = NotchFilter(LocalVar%NacIMU_FA_AccF, LocalVar%DT, &
@@ -379,19 +385,31 @@ CONTAINS
                                                   CntrPar%F_NotchBetaNum(CntrPar%F_TwrTopNotch_Ind(n)), &
                                                   CntrPar%F_NotchBetaDen(CntrPar%F_TwrTopNotch_Ind(n)), &
                                                   LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch)
-            
+
             LocalVar%FA_AccF = NotchFilter(LocalVar%FA_AccF, LocalVar%DT, &
                                            CntrPar%F_NotchFreqs(CntrPar%F_TwrTopNotch_Ind(n)), &
                                            CntrPar%F_NotchBetaNum(CntrPar%F_TwrTopNotch_Ind(n)), &
                                            CntrPar%F_NotchBetaDen(CntrPar%F_TwrTopNotch_Ind(n)), &
                                            LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch)
+
+            LocalVar%NACIMU_FA_AccFTq = NotchFilter(LocalVar%NacIMU_FA_AccFTq, LocalVar%DT, &
+                                                  CntrPar%F_NotchFreqs(CntrPar%F_TwrTopNotch_Ind(n)), &
+                                                  CntrPar%F_NotchBetaNum(CntrPar%F_TwrTopNotch_Ind(n)), &
+                                                  CntrPar%F_NotchBetaDen(CntrPar%F_TwrTopNotch_Ind(n)), &
+                                                  LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch)
+
+            LocalVar%FA_AccFTq = NotchFilter(LocalVar%FA_AccFTq, LocalVar%DT, &
+                                           CntrPar%F_NotchFreqs(CntrPar%F_TwrTopNotch_Ind(n)), &
+                                           CntrPar%F_NotchBetaNum(CntrPar%F_TwrTopNotch_Ind(n)), &
+                                           CntrPar%F_NotchBetaDen(CntrPar%F_TwrTopNotch_Ind(n)), &
+                                           LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch)
         END DO
-        
+
         ! FA acc for ForeAft damping, condition matches whether it's used in Controllers.f90
         IF (CntrPar%TD_Mode > 0) THEN
             LocalVar%FA_AccHPF = HPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%FA_HPFCornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF)
         ENDIF
-        
+
         ! Filter Wind Speed Estimator Signal
         LocalVar%We_Vw_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT,CntrPar%F_WECornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
 
@@ -426,5 +444,7 @@ CONTAINS
         DebugVar%RotSpeedF = LocalVar%RotSpeedF
         DebugVar%NacIMU_FA_AccF = LocalVar%NacIMU_FA_AccF
         DebugVar%FA_AccF = LocalVar%FA_AccF
+        DebugVar%NacIMU_FA_AccFTq = LocalVar%NacIMU_FA_AccFTq
+        DebugVar%FA_AccFTq = LocalVar%FA_AccFTq
     END SUBROUTINE PreFilterMeasuredSignals
     END MODULE Filters
