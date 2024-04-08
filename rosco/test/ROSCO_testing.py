@@ -77,7 +77,7 @@ class ROSCO_testing():
                         'Wind1VelX', 'Wind1VelY', 'Wind1VelZ',
                         'RtVAvgxh', 'RtVAvgyh', 'RtVAvgzh'
                         ]
-                        
+
         if self.cores > mp.cpu_count():
             self.parallel_cores = mp.cpu_count()
 
