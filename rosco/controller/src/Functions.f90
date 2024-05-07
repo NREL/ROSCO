@@ -595,7 +595,7 @@ CONTAINS
         
     END FUNCTION AeroDynTorque
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION wrap_180(x) 
+    REAL(DbKi) FUNCTION wrap_180(x) 
     ! Function modifies input angle, x, such that -180<=x<=180, preventing windup
         REAL(DbKi), INTENT(IN) :: x         ! angle, degrees
 
@@ -609,7 +609,7 @@ CONTAINS
 
     END FUNCTION wrap_180
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION wrap_360(x) 
+    REAL(DbKi) FUNCTION wrap_360(x) 
     ! Function modifies input angle, x, such that 0<=x<=360, preventing windup
         REAL(DbKi), INTENT(IN) :: x         ! angle, degrees
 
