@@ -23,6 +23,8 @@ jobs:
             - name: Setup GNU Fortran
               if: false == contains( matrix.os, 'windows')
               uses: fortran-lang/setup-fortran@v1.6
+              with:
+                compiler: intel-classic
 
             - name: Install compiler
               if: false == contains( matrix.os, 'windows')
