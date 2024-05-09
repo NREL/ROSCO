@@ -50,15 +50,27 @@ CONTAINS
             LocalVar%PC_MaxPit = CntrPar%PC_FinePit
         END IF
         
-        ! Compute (interpolate) the gains based on previously commanded blade pitch angles and lookup table:
-        LocalVar%PC_KP = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KP, LocalVar%PC_PitComTF, ErrVar) ! Proportional gain
-        LocalVar%PC_KI = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KI, LocalVar%PC_PitComTF, ErrVar) ! Integral gain
-        LocalVar%PC_KD = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KD, LocalVar%PC_PitComTF, ErrVar) ! Derivative gain
-        LocalVar%PC_TF = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_TF, LocalVar%PC_PitComTF, ErrVar) ! TF gains (derivative filter) !NJA - need to clarify
-        
-        ! Compute the collective pitch command associated with the proportional and integral gains:
-        LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, LocalVar%PC_MinPit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%BlPitch(1), LocalVar%piP, LocalVar%restart, objInst%instPI)
-        DebugVar%PC_PICommand = LocalVar%PC_PitComT
+        IF (CntrPar%VS_ControlMode .NE. 4) THEN
+            ! Compute (interpolate) the gains based on previously commanded blade pitch angles and lookup table:
+            LocalVar%PC_KP = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KP, LocalVar%PC_PitComTF, ErrVar) ! Proportional gain
+            LocalVar%PC_KI = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KI, LocalVar%PC_PitComTF, ErrVar) ! Integral gain
+            LocalVar%PC_KD = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KD, LocalVar%PC_PitComTF, ErrVar) ! Derivative gain
+            LocalVar%PC_TF = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_TF, LocalVar%PC_PitComTF, ErrVar) ! TF gains (derivative filter) !NJA - need to clarify
+            
+            ! Compute the collective pitch command associated with the proportional and integral gains:
+            LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, LocalVar%PC_MinPit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%BlPitch(1), LocalVar%piP, LocalVar%restart, objInst%instPI)
+            DebugVar%PC_PICommand = LocalVar%PC_PitComT
+        ELSE
+            ! Avoid the need to interpolate and compute gains for fixed-pitch control
+            LocalVar%PC_KP = 0.0
+            LocalVar%PC_KI = 0.0
+            LocalVar%PC_KD = 0.0
+            LocalVar%PC_TF = 0.0
+
+            LocalVar%PC_PitComT = CntrPar%PC_FinePit
+            DebugVar%PC_PICommand = LocalVar%PC_PitComT
+        ENDIF
+
         ! Find individual pitch control contribution
         IF ((CntrPar%IPC_ControlMode >= 1) .OR. (CntrPar%Y_ControlMode == 2)) THEN
             CALL IPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
@@ -203,7 +215,7 @@ CONTAINS
         CHARACTER(*),               PARAMETER           :: RoutineName = 'VariableSpeedControl'
 
         ! Allocate Variables
-        
+
         ! -------- Variable-Speed Torque Controller --------
         ! Define max torque
         IF (LocalVar%VS_State == 4) THEN
@@ -212,12 +224,17 @@ CONTAINS
             ! VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
             LocalVar%VS_MaxTq = CntrPar%VS_RtTq
         ENDIF
-        
+
         ! Optimal Tip-Speed-Ratio tracking controller
-        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
+        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3) .OR. (CntrPar%VS_ControlMode == 4)) THEN
             ! Constant Power, update VS_MaxTq
             IF (CntrPar%VS_ConstPower == 1) THEN
                 LocalVar%VS_MaxTq = min((CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF, CntrPar%VS_MaxTq)
+            END IF
+
+            IF (CntrPar%VS_ControlMode == 4) THEN
+                ! DBS: In the future, look into combining FBP with constant power
+                LocalVar%VS_MaxTq = CntrPar%VS_MaxTq
             END IF
 
             ! PI controller
@@ -228,7 +245,7 @@ CONTAINS
                                         CntrPar%VS_MinTq, LocalVar%VS_MaxTq, &
                                         LocalVar%DT, LocalVar%VS_LastGenTrq, LocalVar%piP, LocalVar%restart, objInst%instPI)
             LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, LocalVar%VS_MaxTq)
-        
+
         ! K*Omega^2 control law with PI torque control in transition regions
         ELSEIF (CntrPar%VS_ControlMode == 1) THEN
             ! Update PI loops for region 1.5 and 2.5 PI control

@@ -182,6 +182,13 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<13.2f}       ! VS_TSRopt		    - {}\n'.format(float(rosco_vt['VS_TSRopt']),input_descriptions['VS_TSRopt']))
     file.write('{:<014.5f}      ! VS_PwrFiltF		- {}\n'.format(float(rosco_vt['VS_PwrFiltF']),input_descriptions['VS_PwrFiltF']))
     file.write('\n')
+    file.write('!------- FIXED PITCH REGION 3 TORQUE CONTROL ------------------------------------------------\n')
+    file.write('{:<11d}         ! FBP_RefMode	- Reference control mode (0 - Use wind speed estimator, 1 - Use torque feedback)\n'.format(int(rosco_vt['FBP_RefMode'])))
+    file.write('{:<11d}         ! FBP_n			- Number of gain-scheduling table entries\n'.format(int(rosco_vt['FBP_n'])))
+    file.write('{}              ! FBP_U	        - Operating schedule table: Wind speeds [m/s].\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['FBP_U'][i]) for i in range(len(rosco_vt['FBP_U'])))))
+    file.write('{}              ! FBP_Omega	    - Operating schedule table: Generator speeds [rad/s].\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['FBP_Omega'][i]) for i in range(len(rosco_vt['FBP_Omega'])))))
+    file.write('{}              ! FBP_Tau		- Operating schedule table: Generator torques [N m].\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['FBP_Tau'][i]) for i in range(len(rosco_vt['FBP_Tau'])))))
+    file.write('\n')
     file.write('!------- SETPOINT SMOOTHER ---------------------------------------------\n')
     file.write('{:<13.5f}       ! SS_VSGain         - Variable speed torque controller setpoint smoother gain, [-].\n'.format(rosco_vt['SS_VSGain']))
     file.write('{:<13.5f}       ! SS_PCGain         - Collective pitch controller setpoint smoother gain, [-].\n'.format(rosco_vt['SS_PCGain']))
@@ -555,6 +562,12 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['VS_KP']			= controller.vs_gain_schedule.Kp[-1]
     DISCON_dict['VS_KI']			= controller.vs_gain_schedule.Ki[-1]
     DISCON_dict['VS_TSRopt']		= turbine.TSR_operational
+    # ------- FIXED BLADE PITCH TORQUE CONTROL -------
+    DISCON_dict['FBP_RefMode']      = controller.fbp_ref_mode
+    DISCON_dict['FBP_n']            = len(controller.v)
+    DISCON_dict['FBP_U']            = controller.v
+    DISCON_dict['FBP_Omega']        = controller.omega_gen_op
+    DISCON_dict['FBP_Tau']          = controller.tau_op
     # ------- SETPOINT SMOOTHER -------
     DISCON_dict['SS_VSGain']         = controller.ss_vsgain
     DISCON_dict['SS_PCGain']         = controller.ss_pcgain

@@ -34,6 +34,7 @@ CONTAINS
         TYPE(DebugVariables),       INTENT(INOUT)       :: DebugVar
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
 
+        REAL(DbKi)                 :: VS_RefSpdRaw   ! Temporary variable for applying LPF to the reference speed after it is generated
 
         ! ----- Pitch controller speed and power error -----
         
@@ -62,8 +63,22 @@ CONTAINS
         IF (CntrPar%VS_ControlMode == 2) THEN
             LocalVar%VS_RefSpd_TSR = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
         ELSEIF (CntrPar%VS_ControlMode == 3) THEN
-            LocalVar%VS_GenPwrF = LPFilter(LocalVar%VS_GenPwr, LocalVar%DT,CntrPar%VS_PwrFiltF, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
-            LocalVar%VS_RefSpd_TSR = (LocalVar%VS_GenPwrF/CntrPar%VS_Rgn2K)**(1./3.) ! Genspeed reference that doesnt depend on wind speed estimate (https://doi.org/10.2172/1259805)
+            LocalVar%VS_GenPwrF = LPFilter(LocalVar%VS_GenPwr, LocalVar%DT, CntrPar%VS_PwrFiltF, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
+            LocalVar%VS_RefSpd_TSR = (LocalVar%VS_GenPwrF/CntrPar%VS_Rgn2K)**(1./3.) ! Genspeed reference that doesn't depend on wind speed estimate (https://doi.org/10.2172/1259805)
+        ELSEIF (CntrPar%VS_ControlMode == 4) THEN
+            IF (CntrPar%FBP_RefMode == 0) THEN
+                ! Use WSE to look up speed reference
+                VS_RefSpdRaw = interp1d(CntrPar%FBP_U, CntrPar%FBP_Omega, LocalVar%WE_Vw, ErrVar)
+            ELSEIF (CntrPar%FBP_RefMode == 1) THEN
+                ! Use LocalVar%GenTq or LocalVar%GenTqMeas, Omega must be expressed as a function of Tau
+                VS_RefSpdRaw = interp1d(CntrPar%FBP_Tau, CntrPar%FBP_Omega, LocalVar%GenTq, ErrVar)
+            ENDIF
+
+            ! VS_RefSpdRaw = (LocalVar%GenTq/CntrPar%VS_Rgn2K)**(1./2.) ! WSE-independent below-rated generator speed reference based on torque instead of power
+            ! VS_RefSpdRaw = min(VS_RefSpdRaw, (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenTq) ! Above-rated underspeed reference
+            ! VS_RefSpdRaw = min(VS_RefSpdRaw, CntrPar%VS_RefSpd) ! Saturate to rated speed
+
+            LocalVar%VS_RefSpd_TSR = LPFilter(VS_RefSpdRaw, LocalVar%DT, CntrPar%VS_PwrFiltF, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
         ELSE
             LocalVar%VS_RefSpd_TSR = CntrPar%VS_RefSpd
         ENDIF 
@@ -97,7 +112,7 @@ CONTAINS
         LocalVar%VS_RefSpd = max(LocalVar%VS_RefSpd, CntrPar%VS_MinOmSpd)
 
         ! Reference error
-        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
+        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3) .OR. (CntrPar%VS_ControlMode == 4)) THEN
             LocalVar%VS_SpdErr = LocalVar%VS_RefSpd - LocalVar%GenSpeedF
         ENDIF
 

@@ -128,7 +128,7 @@ properties:
             VS_ControlMode:     
                 type: number
                 minimum: 0
-                maximum: 3
+                maximum: 4
                 default: 2
                 description: Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking)
             VS_ConstPower:     
@@ -434,6 +434,34 @@ properties:
                 description: Factor on VS_Rgn2K to increase/decrease optimal torque control gain, default is 1.  Sometimes environmental conditions or differences in BEM solvers necessitate this change.
                 default: 1
                 minimum: 0
+            FBP_ref_mode:
+                type: number
+                description: Method of identifying operating point reference during operation (0- Use WSE, 1- Use filtered torque signal)
+                minimum: 0
+                maximum: 1
+            FBP_P_mode:
+                type: number
+                description: Interpretation mode for P_FBP (0- scale relative to rated power, 1- absolute power)
+                default: 0
+                minimum: 0
+                maximum: 1
+            FBP_U:
+                type: array
+                description: List of wind speeds to schedule user-defined power curve for fixed blade pitch (FBP) control in Region 3
+                unit: m/s
+                items:
+                    type: number
+                    minimum: 0
+                    uniqueItems: True
+                default: [12]
+            FBP_P:
+                type: [array,number]
+                description: List of points defining power curve for fixed blade pitch (FBP) control in Region 3, relative or absolute based on FBP_mode
+                unit: none
+                items:
+                    type: number
+                    minimum: 0
+                default: [1.0]
 
             filter_params:
                 type: object
@@ -570,8 +598,8 @@ properties:
                     VS_ControlMode:     
                         type: number
                         minimum: 0
-                        maximum: 3
-                        description: Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking)
+                        maximum: 4
+                        description: Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking, 4- Torque-based TSR tracking in Region 2 + torque control with user-defined power curve in Region 3)
                     VS_ConstPower:     
                         type: number
                         minimum: 0

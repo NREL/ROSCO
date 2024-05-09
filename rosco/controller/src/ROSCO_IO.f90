@@ -82,7 +82,6 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%PC_RefSpd_SS
         WRITE( Un, IOSTAT=ErrStat) LocalVar%PC_RefSpd_PRC
         WRITE( Un, IOSTAT=ErrStat) LocalVar%RotSpeedF
-        WRITE( Un, IOSTAT=ErrStat) LocalVar%PC_RefSpd
         WRITE( Un, IOSTAT=ErrStat) LocalVar%GenSpeedF
         WRITE( Un, IOSTAT=ErrStat) LocalVar%GenTq
         WRITE( Un, IOSTAT=ErrStat) LocalVar%GenTqMeas
@@ -385,7 +384,6 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%PC_RefSpd_SS
         READ( Un, IOSTAT=ErrStat) LocalVar%PC_RefSpd_PRC
         READ( Un, IOSTAT=ErrStat) LocalVar%RotSpeedF
-        READ( Un, IOSTAT=ErrStat) LocalVar%PC_RefSpd
         READ( Un, IOSTAT=ErrStat) LocalVar%GenSpeedF
         READ( Un, IOSTAT=ErrStat) LocalVar%GenTq
         READ( Un, IOSTAT=ErrStat) LocalVar%GenTqMeas

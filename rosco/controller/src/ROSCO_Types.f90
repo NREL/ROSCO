@@ -79,6 +79,11 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: VS_KI                       ! Integral gain for generator PI torque controller, used in the transitional 2.5 region
     REAL(DbKi)                    :: VS_TSRopt                   ! Power-maximizing region 2 tip-speed ratio [rad]
     REAL(DbKi)                    :: VS_PwrFiltF                 ! Cut-off frequency of filter on generator power for power-based tsr tracking control
+    INTEGER(IntKi)                :: FBP_RefMode                 ! Fixed blade pitch reference interpolation mode (0 for WSE, 1 for torque feedback)
+    INTEGER(IntKi)                :: FBP_n                       ! Amount of fixed blade pitch operating schedule table entries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: FBP_U           ! FBP Operating-schedule table - Wind speeds
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: FBP_Omega       ! FBP Operating-schedule table - Generator speeds
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: FBP_Tau         ! FBP Operating-schedule table - Generator torques
     INTEGER(IntKi)                :: SS_Mode                     ! Setpoint Smoother mode {0 - no setpoint smoothing, 1 - introduce setpoint smoothing}
     REAL(DbKi)                    :: SS_VSGain                   ! Variable speed torque controller setpoint smoother gain, [-].
     REAL(DbKi)                    :: SS_PCGain                   ! Collective pitch controller setpoint smoother gain, [-].
@@ -284,7 +289,6 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: PC_RefSpd_SS                ! Generator speed set point of pitch controller after setpoint smoothing [rad/s]
     REAL(DbKi)                    :: PC_RefSpd_PRC               ! Generator speed set point of pitch controller after power ref control [rad/s]
     REAL(DbKi)                    :: RotSpeedF                   ! Filtered LSS (generator) speed [rad/s].
-    REAL(DbKi)                    :: PC_RefSpd                   ! Generator speed set point of pitch controller [rad/s]
     REAL(DbKi)                    :: GenSpeedF                   ! Filtered HSS (generator) speed [rad/s].
     REAL(DbKi)                    :: GenTq                       ! Electrical generator torque, [Nm].
     REAL(DbKi)                    :: GenTqMeas                   ! Measured generator torque [Nm]
