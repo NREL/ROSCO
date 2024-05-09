@@ -22,7 +22,7 @@ jobs:
         steps:
             - name: Setup GNU Fortran
               if: false == contains( matrix.os, 'windows')
-              uses: awvwgk/setup-fortran@v1 #modflowpy/install-intelfortran-action@v1 #
+              uses: fortran-lang/setup-fortran@v1.6
 
             - name: Install compiler
               if: false == contains( matrix.os, 'windows')
