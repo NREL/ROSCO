@@ -103,7 +103,8 @@ class Controller():
         if self.VS_ControlMode == 4:
             try:
                 self.fbp_ref_mode = controller_params['FBP_ref_mode']
-                self.fbp_P_mode = controller_params['FBP_P_mode']
+                self.fbp_power_mode = controller_params['FBP_power_mode']
+                self.fbp_speed_mode = controller_params['FBP_speed_mode']
                 self.fbp_U = controller_params['FBP_U'] # Should we set this default based on rated speed? 
                 self.fbp_P = controller_params['FBP_P']
             except:
@@ -250,7 +251,7 @@ class Controller():
             # Begin with user-defined power curve
             f_P_user_defined = interpolate.interp1d(self.fbp_U, self.fbp_P, fill_value=(self.fbp_P[0], self.fbp_P[-1]), bounds_error=False)
             P_user_defined = f_P_user_defined(v)
-            if self.fbp_P_mode == 0:
+            if self.fbp_power_mode == 0:
                 P_user_defined *= turbine.rated_power
             P_max = 0.5 * turbine.rho * np.pi*turbine.rotor_radius**2 * turbine.Cp.max * v**3 * turbine.GBoxEff/100 * turbine.GenEff/100
             P_op = np.min([P_user_defined, P_max], axis=0)
@@ -261,15 +262,15 @@ class Controller():
             # Identify TSR matching the Cp values
             Cp_FBP = np.ndarray.flatten(turbine.Cp.interp_surface(0, turbine.TSR_initial))     # all Cp values for fine blade pitch (assumed 0)
             Cp_maxidx = Cp_FBP.argmax()    
-            # if underspeed
-            Cp_op = np.clip(Cp_op, np.min(Cp_FBP[:Cp_maxidx+1]), np.max(Cp_FBP[:Cp_maxidx+1]))            # saturate Cp values to be on Cp surface                                                             # Find maximum Cp value for this TSR
-            f_cp_TSR = interpolate.interp1d(Cp_FBP[:Cp_maxidx+1], turbine.TSR_initial[:Cp_maxidx+1])             # interpolate function for Cp(tsr) values
-            # if overspeed
-            # Cp_op = np.clip(Cp_op, np.min(Cp_FBP[Cp_maxidx:]), np.max(Cp_FBP[Cp_maxidx:]))            # saturate Cp values to be on Cp surface                                                             # Find maximum Cp value for this TSR
-            # f_cp_TSR = interpolate.interp1d(Cp_FBP[Cp_maxidx:], turbine.TSR_initial[Cp_maxidx:])             # interpolate function for Cp(tsr) values
+            if self.fbp_speed_mode: # Overspeed
+                Cp_op = np.clip(Cp_op, np.min(Cp_FBP[Cp_maxidx:]), np.max(Cp_FBP[Cp_maxidx:]))            # saturate Cp values to be on Cp surface                                                             # Find maximum Cp value for this TSR
+                f_cp_TSR = interpolate.interp1d(Cp_FBP[Cp_maxidx:], turbine.TSR_initial[Cp_maxidx:])             # interpolate function for Cp(tsr) values
+            else: # Underspeed
+                Cp_op = np.clip(Cp_op, np.min(Cp_FBP[:Cp_maxidx+1]), np.max(Cp_FBP[:Cp_maxidx+1]))            # saturate Cp values to be on Cp surface                                                             # Find maximum Cp value for this TSR
+                f_cp_TSR = interpolate.interp1d(Cp_FBP[:Cp_maxidx+1], turbine.TSR_initial[:Cp_maxidx+1])             # interpolate function for Cp(tsr) values
             TSR_op = f_cp_TSR(Cp_op)
-            TSR_op_br = TSR_op[:len(v_below_rated)]
-            TSR_op_ar = TSR_op[len(v_below_rated):]
+            TSR_below_rated = TSR_op[:len(v_below_rated)]
+            TSR_above_rated = TSR_op[len(v_below_rated):]
 
 
         # initialize variables
