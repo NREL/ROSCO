@@ -1,10 +1,10 @@
 ! Controller parameter input file for the IEA-15-240-RWT-UMaineSemi wind turbine
-!    - File written using ROSCO version 2.8.0 controller tuning logic on 01/05/24
+!    - File written using ROSCO version 2.9.0 controller tuning logic on 05/10/24
 
 !------- SIMULATION CONTROL ------------------------------------------------------------
 2                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}
 0                   ! DT_Out    		  - {Time step to output .dbg* files, or 0 to match sampling period of OpenFAST}
-1                   ! Ext_Interface		        - (0 - use standard bladed interface, 1 - Use the extened DLL interface introduced in OpenFAST 3.5.0.)
+1                   ! Ext_Interface		- (0 - use standard bladed interface, 1 - Use the extened DLL interface introduced in OpenFAST 3.5.0.)
 0                   ! Echo		        - (0 - no Echo, 1 - Echo input data to <RootName>.echo)
 
 !------- CONTROLLER FLAGS -------------------------------------------------
@@ -90,6 +90,13 @@
 -4588245.18720      ! VS_KI				- Integral gain for generator PI torque controller [s]. (Only used in the transitional 2.5 region if VS_ControlMode =/ 2)
 9.00                ! VS_TSRopt		    - Power-maximizing region 2 tip-speed-ratio. Only used in VS_ControlMode = 2.
 0.314000000000      ! VS_PwrFiltF		- Low pass filter on power used to determine generator speed set point.  Only used in VS_ControlMode = 3.
+
+!------- FIXED PITCH REGION 3 TORQUE CONTROL ------------------------------------------------
+0                   ! FBP_RefMode	- Reference control mode (0 - Use wind speed estimator, 1 - Use torque feedback)
+60                  ! FBP_n			- Number of gain-scheduling table entries
+3.000000  3.266897  3.533793  3.800690  4.067586  4.334483  4.601379  4.868276  5.135172  5.402069  5.668966  5.935862  6.202759  6.469655  6.736552  7.003448  7.270345  7.537241  7.804138  8.071034  8.337931  8.604828  8.871724  9.138621  9.405517  9.672414  9.939310  10.206207  10.473103  10.740000  11.215333  11.690667  12.166000  12.641333  13.116667  13.592000  14.067333  14.542667  15.018000  15.493333  15.968667  16.444000  16.919333  17.394667  17.870000  18.345333  18.820667  19.296000  19.771333  20.246667  20.722000  21.197333  21.672667  22.148000  22.623333  23.098667  23.574000  24.049333  24.524667  25.000000                ! FBP_U	        - Operating schedule table: Wind speeds [m/s].
+0.523599  0.523599  0.523599  0.523599  0.523599  0.523599  0.523599  0.523599  0.523599  0.523599  0.523599  0.523599  0.523599  0.523599  0.523599  0.525259  0.545276  0.565293  0.585310  0.605328  0.625345  0.645362  0.665379  0.685397  0.705414  0.725431  0.745448  0.765466  0.785483  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681  0.791681                ! FBP_Omega	    - Operating schedule table: Generator speeds [rad/s].
+670491.743806  865836.356288  1095854.831758  1363379.930396  1671244.412384  2022281.037902  2419322.567131  2865201.760252  3362751.377446  3914804.178893  4524192.924774  5193750.375270  5926309.290562  6724702.430830  7591762.556256  8503366.146143  9163830.508856  9848994.075161  10558856.845058  11293418.818547  12052679.995627  12836640.376300  13645299.960564  14478658.748420  15336716.739867  16219473.934907  17126930.333538  18059085.935762  19015940.741577  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242  20378439.244242                ! FBP_Tau		- Operating schedule table: Generator torques [N m].
 
 !------- SETPOINT SMOOTHER ---------------------------------------------
 1.00000             ! SS_VSGain         - Variable speed torque controller setpoint smoother gain, [-].
