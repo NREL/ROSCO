@@ -4,7 +4,8 @@ controller_params:
     F_LPFType: 1
     F_NotchType: 0
     IPC_ControlMode: 1
-    VS_ControlMode: 3
+    VS_ControlMode: 2
+    VS_ConstPower: 1
     PC_ControlMode: 1
     Y_ControlMode: 0
     SS_Mode: 1
@@ -12,6 +13,7 @@ controller_params:
     PS_Mode: 1
     SD_Mode: 0
     Fl_Mode: 0
+    FlTq_Mode: 0
     Flp_Mode: 0
     zeta_pc: [2.0062413749856227]
     omega_pc: [0.13653659182284006]
@@ -38,7 +40,7 @@ controller_params:
     flp_maxpit: 0.1745
     WS_GS_n: 60
     PC_GS_n: 30
-    tune_Fl: true
+    tune_Fl: 0
     max_torque_factor: 1.1
     IPC_Kp1p: 0.0
     IPC_Kp2p: 0.0

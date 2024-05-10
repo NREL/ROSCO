@@ -1,6 +1,6 @@
 '''
------------ 24_floating_feedback ------------------------
-Run openfast with ROSCO and all the floating feedback methods
+----------- 29_floating_feedback_torque ------------------------
+Run openfast with ROSCO and torque floating feedback
 -----------------------------------------------
 
 Floating feedback methods available in ROSCO/ROSCO_Toolbox
@@ -37,7 +37,7 @@ def main():
 
     # Input yaml and output directory
     parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW.yaml')
-    run_dir = os.path.join(example_out_dir,'24_floating_feedback')
+    run_dir = os.path.join(example_out_dir,'29_floating_feedback_torque')
     os.makedirs(run_dir,exist_ok=True)
 
     controller, turbine, path_params = yaml_to_objs(parameter_filename)
@@ -45,20 +45,33 @@ def main():
     # First, let's write the DISCONs for each method
     param_files = []
 
-    # Method 1: Automated tuning, constant for all wind speeds
+    # Method 1: Automated tuning, constant for all wind speeds (default param = 0.5)
     controller_params_1 = controller.controller_params      # numbers correspond to methods above
+    controller_params_1['Fl_Mode']   = 0
+    controller_params_1['FlTq_Mode'] = 2
+    controller_params_1['U_Fl']      = 'all'
+    controller_params_1['tune_Fl']   = True
+    controller_params_1['tune_FlTq']   = True
+    controller_params_1['FlTq_param']   = [0.2] # Low tuning
+    controller = ROSCO_controller.Controller(controller_params_1)
+    controller.tune_controller(turbine)
+    # Reduce gain
+    # controller.Kp_floatTq = controller.Kp_floatTq/2
     param_file = os.path.join(run_dir,'DISCON_Fl_1.IN')
     param_files.append(param_file)
     write_DISCON(turbine,controller,
                  param_file=param_file, 
                  txt_filename=path_params['rotor_performance_filename'])
 
-
-    # Method 2: Automated tuning, all wind speeds
-    controller_params_2 = controller_params_1.copy()
-    controller_params_2['U_Fl'] = 'all'
-    controller_params_2['tune_Fl'] = True
-    controller      = ROSCO_controller.Controller(controller_params_2)
+    # Automated tuning, constant for all wind speeds, with smaller scaling param
+    controller_params_2 = controller.controller_params      # numbers correspond to methods above
+    controller_params_2['Fl_Mode']   = 0
+    controller_params_2['FlTq_Mode'] = 2
+    controller_params_2['U_Fl']      = 'all'
+    controller_params_2['tune_Fl']   = True
+    controller_params_2['tune_FlTq']   = True
+    controller_params_2['FlTq_param']   = [0.5] # Moderate tuning
+    controller = ROSCO_controller.Controller(controller_params_1)
     controller.tune_controller(turbine)
     param_file = os.path.join(run_dir,'DISCON_Fl_2.IN')
     param_files.append(param_file)
@@ -66,33 +79,24 @@ def main():
                  param_file=param_file, 
                  txt_filename=path_params['rotor_performance_filename'])
 
-    # Method 3: Direct tuning, constant for all wind speeds
-    controller_params_3 = controller_params_1.copy()
-    Kp_float = -18
-    controller_params_3['Kp_float'] = Kp_float
-    controller_params_3['tune_Fl'] = False
-    controller      = ROSCO_controller.Controller(controller_params_3)
+
+    # Automated tuning, constant for all wind speeds, with smaller scaling param
+    controller_params_3 = controller.controller_params      # numbers correspond to methods above
+    controller_params_3['Fl_Mode']   = 0
+    controller_params_3['FlTq_Mode'] = 2
+    controller_params_3['U_Fl']      = 'all'
+    controller_params_3['tune_Fl']   = True
+    controller_params_3['tune_FlTq']   = True
+    controller_params_3['FlTq_param']   = [0.8] # Aggressive tuning
+    controller = ROSCO_controller.Controller(controller_params_1)
     controller.tune_controller(turbine)
-    np.testing.assert_almost_equal(Kp_float,controller.Kp_float)        # Check that it's passed through correctly
     param_file = os.path.join(run_dir,'DISCON_Fl_3.IN')
     param_files.append(param_file)
     write_DISCON(turbine,controller,
                  param_file=param_file, 
                  txt_filename=path_params['rotor_performance_filename'])
 
-    # Method 4: Direct tuning, varies with wind speeds
-    controller_params_4 = controller_params_1.copy()
-    controller_params_4['U_Fl'] = [12,16,25]
-    controller_params_4['Kp_float'] = [-12,-6,-3]
-    controller_params_4['tune_Fl'] = False
-    controller      = ROSCO_controller.Controller(controller_params_4)
-    controller.tune_controller(turbine)
-    param_file = os.path.join(run_dir,'DISCON_Fl_4.IN')
-    param_files.append(param_file)
-    write_DISCON(turbine,controller,
-                 param_file=os.path.join(run_dir,'DISCON_Fl_4.IN'), 
-                 txt_filename=path_params['rotor_performance_filename'])
-    
+
     # Read all DISCONs and make into case_inputs
     case_inputs = {}
     discon_lists = {}  
@@ -102,10 +106,17 @@ def main():
             if discon_input not in discon_lists:        # initialize
                 discon_lists[discon_input] = []
             discon_lists[discon_input].append(discon_vt[discon_input])
-        
+
     for discon_input, input in discon_lists.items():
         case_inputs[('DISCON_in',discon_input)] = {'vals': input, 'group': 2}
 
+
+    # Additional config for the torque controller
+    case_inputs[('DISCON_in', 'VS_MaxTq')] = {'vals': [turbine.rated_torque * 1.5], 'group': 0} # 29436069.9996
+    case_inputs[('ElastoDyn', 'RotSpeed')] = {'vals': [7.56], 'group': 0}
+    case_inputs[('ElastoDyn', 'BlPitch1')] = {'vals': [10], 'group': 0}
+    case_inputs[('ElastoDyn', 'BlPitch2')] = {'vals': [10], 'group': 0}
+    case_inputs[('ElastoDyn', 'BlPitch3')] = {'vals': [10], 'group': 0}
 
     # simulation set up
     r = run_FAST_ROSCO()
@@ -114,8 +125,8 @@ def main():
     r.wind_case_opts    = {
         'U_start': [13],
         'U_end': [16],
-        'TMax': 100,
-        'TStep': 50,
+        'TMax': 800,
+        'TStep': 400,
         }
     r.case_inputs       = case_inputs
     r.save_dir          = run_dir
@@ -127,9 +138,9 @@ def main():
     op_dbg = output_processing.output_processing()
     op_dbg2 = output_processing.output_processing()
 
-    out_files = [os.path.join(run_dir,f'IEA15MW/simp_step/base/IEA15MW_{i_case}.outb') for i_case in range(4)]
-    dbg_files = [os.path.join(run_dir,f'IEA15MW/simp_step/base/IEA15MW_{i_case}.RO.dbg') for i_case in range(4)]
-    dbg2_files = [os.path.join(run_dir,f'IEA15MW/simp_step/base/IEA15MW_{i_case}.RO.dbg2') for i_case in range(4)]
+    out_files = [os.path.join(run_dir,f'IEA15MW/simp_step/base/IEA15MW_{i_case}.outb') for i_case in range(len(param_files))]
+    dbg_files = [os.path.join(run_dir,f'IEA15MW/simp_step/base/IEA15MW_{i_case}.RO.dbg') for i_case in range(len(param_files))]
+    dbg2_files = [os.path.join(run_dir,f'IEA15MW/simp_step/base/IEA15MW_{i_case}.RO.dbg2') for i_case in range(len(param_files))]
 
     fst_out = op.load_fast_out(out_files, tmin=0)
     debug_vars = op_dbg.load_fast_out(dbg_files, tmin=0)
@@ -144,14 +155,15 @@ def main():
         comb_out[i] = r_out2
 
     cases = {}
-    cases['Fl Sigs.'] = ['Wind1VelX','Kp_Float', 'Fl_PitCom', 'BldPitch1','PtfmPitch']#,'PtfmPitch','PtfmYaw','NacYaw']
-    fig, ax = op.plot_fast_out(comb_out,cases, showplot=True)
+    cases['Fl Sigs.'] = ['Wind1VelX', 'GenSpeed', 'BldPitch1', 'PtfmPitch', 'Fl_TqCom', 'GenTq'] # , 'NcIMURAys']#,'PtfmPitch','PtfmYaw','NacYaw']
+    fig, ax = op.plot_fast_out(comb_out,cases, showplot=False)
 
     if False:
         plt.show()
     else:
-        plt.savefig(os.path.join(run_dir,'24_floating_feedback.png'))
+        plt.savefig(os.path.join(run_dir,'29_floating_feedback_torque.png'))
 
+    plt.show()
 
 if __name__=="__main__":
     main()

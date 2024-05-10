@@ -350,7 +350,8 @@ CONTAINS
         CALL ParseInput(FileLines,'WE_Mode',         CntrPar%WE_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'PS_Mode',         CntrPar%PS_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'SD_Mode',         CntrPar%SD_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
-        CALL ParseInput(FileLines,'FL_Mode',         CntrPar%FL_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'Fl_Mode',         CntrPar%Fl_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'FlTq_Mode',       CntrPar%FlTq_Mode,         accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'TD_Mode',         CntrPar%TD_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'TRA_Mode',        CntrPar%TRA_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'Flp_Mode',        CntrPar%Flp_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
@@ -377,9 +378,10 @@ CONTAINS
         CALL ParseInput(FileLines,  'F_WECornerFreq',       CntrPar%F_WECornerFreq,                              accINFILE(1), ErrVar, .FALSE., UnEc)
         CALL ParseInput(FileLines,  'F_YawErr',             CntrPar%F_YawErr,                                    accINFILE(1), ErrVar, CntrPar%Y_ControlMode == 0, UnEc)
         CALL ParseAry(  FileLines,  'F_FlCornerFreq',       CntrPar%F_FlCornerFreq,     2,                       accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'F_FlTqCornerFreq',     CntrPar%F_FlTqCornerFreq,   2,                       accINFILE(1), ErrVar, CntrPar%FLTq_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'F_FlHighPassFreq',     CntrPar%F_FlHighPassFreq,                            accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
         CALL ParseAry(  FileLines,  'F_FlpCornerFreq',      CntrPar%F_FlpCornerFreq,    2,                       accINFILE(1), ErrVar, CntrPar%Flp_Mode == 0, UnEc)
-        
+
         ! Optional filter inds
         IF (CntrPar%F_GenSpdNotch_N > 0) THEN
             CALL ParseAry(FileLines,    'F_GenSpdNotch_Ind',    CntrPar%F_GenSpdNotch_Ind,  CntrPar%F_GenSpdNotch_N, accINFILE(1), ErrVar, CntrPar%F_GenSpdNotch_N == 0, UnEc)
@@ -496,6 +498,7 @@ CONTAINS
         CALL ParseInput(FileLines,  'Fl_n',     CntrPar%Fl_n,                   accINFILE(1), ErrVar, .TRUE., UnEc)
         IF (CntrPar%Fl_n == 0) CntrPar%Fl_n = 1   ! Default is 1
         CALL ParseAry(FileLines,    'Fl_Kp',      CntrPar%Fl_Kp,  CntrPar%Fl_n,   accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
+        CALL ParseAry(FileLines,    'FlTq_Kp',    CntrPar%FlTq_Kp,  CntrPar%Fl_n,   accINFILE(1), ErrVar, CntrPar%FLTq_Mode == 0, UnEc)
         CALL ParseAry(FileLines,    'Fl_U',       CntrPar%Fl_U,  CntrPar%Fl_n,   accINFILE(1), ErrVar, CntrPar%Fl_n == 1, UnEc)  ! Allow default if only one Fl_Kp
         IF (ErrVar%aviFAIL < 0) RETURN
 
@@ -946,6 +949,12 @@ CONTAINS
             ErrVar%ErrMsg  = 'Fl_Mode must be 0, 1, or 2.'
         ENDIF
 
+        ! FlTq_Mode
+        IF ((CntrPar%FlTq_Mode < 0) .OR. (CntrPar%FlTq_Mode > 2)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'FlTq_Mode must be 0, 1, or 2.'
+        ENDIF
+
         ! Flp_Mode
         IF ((CntrPar%Flp_Mode < 0) .OR. (CntrPar%Flp_Mode > 3)) THEN
             ErrVar%aviFAIL = -1
@@ -1000,6 +1009,14 @@ CONTAINS
             ErrVar%ErrMsg  = 'F_WECornerFreq must be greater than zero.'
         ENDIF
 
+        IF ((CntrPar%Fl_Mode > 0) .OR. (CntrPar%FlTq_Mode > 0)) THEN
+            ! F_FlHighPassFreq
+            IF (CntrPar%F_FlHighPassFreq <= 0.0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'F_FlHighPassFreq must be greater than zero.'
+            ENDIF
+        ENDIF
+
         IF (CntrPar%Fl_Mode > 0) THEN
             ! F_FlCornerFreq(1)  (frequency)
             IF (CntrPar%F_FlCornerFreq(1) <= 0.0) THEN
@@ -1012,11 +1029,19 @@ CONTAINS
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg  = 'F_FlCornerFreq(2) must be greater than zero.'
             ENDIF
+        ENDIF
 
-            ! F_FlHighPassFreq
-            IF (CntrPar%F_FlHighPassFreq <= 0.0) THEN
+        IF (CntrPar%FlTq_Mode > 0) THEN
+            ! F_FlTqCornerFreq(1)  (frequency)
+            IF (CntrPar%F_FlTqCornerFreq(1) <= 0.0) THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'F_FlHighPassFreq must be greater than zero.'
+                ErrVar%ErrMsg  = 'F_FlTqCornerFreq(1) must be greater than zero.'
+            ENDIF
+
+            ! F_FlTqCornerFreq(2)  (damping)
+            IF (CntrPar%F_FlTqCornerFreq(2) <= 0.0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'F_FlTqCornerFreq(2) must be greater than zero.'
             ENDIF
         ENDIF
 

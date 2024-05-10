@@ -104,7 +104,7 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
     CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
     CALL StateMachine(CntrPar, LocalVar)
     CALL SetpointSmoother(LocalVar, CntrPar, objInst)
-    CALL VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
+    CALL VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
     CALL PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
     
     IF (CntrPar%Y_ControlMode > 0) THEN

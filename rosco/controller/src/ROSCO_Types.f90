@@ -29,6 +29,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: F_SSCornerFreq              ! Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother [rad/s]
     REAL(DbKi)                    :: F_WECornerFreq              ! Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_FlCornerFreq              ! Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s].
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_FlTqCornerFreq              ! Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s].
     REAL(DbKi)                    :: F_FlHighPassFreq            ! Natural frequency of first-roder high-pass filter for nacelle fore-aft motion [rad/s].
     REAL(DbKi)                    :: F_YawErr                    ! Corner low pass filter corner frequency for yaw controller [rad/s].
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_FlpCornerFreq             ! Corner frequency (-3dB point) in the second order low pass filter of the blade root bending moment for flap control [rad/s].
@@ -43,7 +44,7 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: IPC_ControlMode             ! Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {0 - off, 1 - 1P reductions, 2 - 1P+2P reductions}
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: IPC_Vramp                   ! Wind speeds for IPC cut-in sigma function [m/s]
     REAL(DbKi)                    :: IPC_IntSat                  ! Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
-    INTEGER(IntKi)                :: IPC_SatMode                 ! IPC Saturation method IPC Saturation method (0 - no saturation (except by PC_MinPit), 1 - saturate by PS_BldPitchMin, 2 - saturate sotfly (full IPC cycle) by PC_MinPit, 3 - saturate softly by PS_BldPitchMin)
+    INTEGER(IntKi)                :: IPC_SatMode                 ! IPC Saturation method IPC Saturation method (0 - no saturation (except by PC_MinPit), 1 - saturate by PS_BldPitchMin, 2 - saturate softly (full IPC cycle) by PC_MinPit, 3 - saturate softly by PS_BldPitchMin)
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: IPC_KP                      ! Integral gain for the individual pitch controller, [-].
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: IPC_KI                      ! Integral gain for the individual pitch controller, [-].
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: IPC_aziOffset               ! Phase offset added to the azimuth angle for the individual pitch controller, [rad].
@@ -115,9 +116,11 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: SD_Mode                     ! Shutdown mode {0 - no shutdown procedure, 1 - pitch to max pitch at shutdown}
     REAL(DbKi)                    :: SD_MaxPit                   ! Maximum blade pitch angle to initiate shutdown, [rad]
     REAL(DbKi)                    :: SD_CornerFreq               ! Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]
-    INTEGER(IntKi)                :: Fl_Mode                     ! Floating specific feedback mode {0 - no nacelle velocity feedback, 1 - nacelle velocity feedback}
+    INTEGER(IntKi)                :: Fl_Mode                     ! Floating specific feedback mode for blade pitch {0 - no nacelle velocity feedback, 1 - nacelle velocity feedback}
+    INTEGER(IntKi)                :: FlTq_Mode                   ! Floating specific feedback mode for generator torque {0 - no nacelle velocity feedback, 1 - nacelle velocity feedback}
     INTEGER(IntKi)                :: Fl_n                        ! Number of Fl_Kp for gain scheduling
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: Fl_Kp                       ! Nacelle velocity proportional feedback gain [s]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: FlTq_Kp                     ! Nacelle velocity proportional feedback gain [s]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: Fl_U                        ! Wind speeds for scheduling Fl_Kp [m/s]
     INTEGER(IntKi)                :: Flp_Mode                    ! Flap actuator mode {0 - off, 1 - fixed flap position, 2 - PI flap control}
     REAL(DbKi)                    :: Flp_Angle                   ! Fixed flap angle (degrees)
@@ -321,6 +324,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: SS_DelOmegaF                ! Filtered setpoint shifting term defined in setpoint smoother [rad/s].
     REAL(DbKi)                    :: TestType                    ! Test variable, no use
     REAL(DbKi)                    :: Kp_Float                    ! Local, instantaneous Kp_Float, scheduled on wind speed, if desired
+    REAL(DbKi)                    :: Kp_FloatTq                  ! Local, instantaneous Kp_FloatTq, scheduled on wind speed, if desired
     REAL(DbKi)                    :: VS_MaxTq                    ! Maximum allowable generator torque [Nm].
     REAL(DbKi)                    :: VS_LastGenTrq               ! Commanded electrical generator torque the last time the controller was called [Nm].
     REAL(DbKi)                    :: VS_LastGenPwr               ! Commanded electrical generator torque the last time the controller was called [Nm].
@@ -337,9 +341,12 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: VS_LastGenTrqF              ! Differentiated integrated wind speed quantity for estimation [m/s]
     REAL(DbKi)                    :: PRC_WSE_F                   ! Filtered wind speed estimate for power reference control
     LOGICAL                       :: SD                          ! Shutdown, .FALSE. if inactive, .TRUE. if active
-    REAL(DbKi)                    :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
+    REAL(DbKi)                    :: Fl_PitCom                   ! Floating feedback signal from nacelle fore-aft velocity to blade pitch
+    REAL(DbKi)                    :: Fl_TqCom                    ! Floating feedback signal from nacelle fore-aft velocity to generator torque
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None
     REAL(DbKi)                    :: FA_AccF                     ! None
+    REAL(DbKi)                    :: NACIMU_FA_AccFTq            ! None
+    REAL(DbKi)                    :: FA_AccFTq                   ! None
     INTEGER(IntKi)                :: FA_Hist                     ! Hysteresis state for tower resonance avoidance.
     REAL(DbKi)                    :: TRA_LastRefSpd              ! Last reference generator speed
     REAL(DbKi)                    :: VS_RefSpeed                 ! Torque controller reference speed
@@ -412,9 +419,12 @@ TYPE, PUBLIC :: DebugVariables
     REAL(DbKi)                    :: PC_PICommand                ! Commanded collective pitch from pitch PI controller [rad]
     REAL(DbKi)                    :: GenSpeedF                   ! Filtered generator speed [rad/s]
     REAL(DbKi)                    :: RotSpeedF                   ! Filtered rotor speed [rad/s]
-    REAL(DbKi)                    :: NacIMU_FA_AccF              ! Filtered NacIMU_FA_Acc [rad/s]
-    REAL(DbKi)                    :: FA_AccF                     ! Filtered FA_Acc [m/s]
+    REAL(DbKi)                    :: NacIMU_FA_AccF              ! Filtered NacIMU_FA_Acc for blade pitch FF [rad/s]
+    REAL(DbKi)                    :: FA_AccF                     ! Filtered FA_Acc for blade pitch FF [m/s]
+    REAL(DbKi)                    :: NacIMU_FA_AccFTq            ! Filtered NacIMU_FA_Acc for generator torque FF [rad/s]
+    REAL(DbKi)                    :: FA_AccFTq                   ! Filtered FA_Acc for generator torque FF [m/s]
     REAL(DbKi)                    :: Fl_PitCom                   ! Floating contribution to the pitch command [rad]
+    REAL(DbKi)                    :: Fl_TqCom                    ! Floating contribution to the generator torque command [Nm]
     REAL(DbKi)                    :: PC_MinPit                   ! Minimum blade pitch angle [rad]
     REAL(DbKi)                    :: axisTilt_1P                 ! Tilt component of coleman transformation, 1P
     REAL(DbKi)                    :: axisYaw_1P                  ! Yaw component of coleman transformation, 1P
