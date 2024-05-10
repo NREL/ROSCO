@@ -221,7 +221,7 @@ CONTAINS
             ! Setpoint Smoother initialization to zero
             LocalVar%SS_DelOmegaF = 0
 
-            IF (CntrPar%VS_ControlMode < 4) THEN
+            IF (CntrPar%VS_ControlMode < VS_Mode_FBP) THEN
                 ! Generator Torque at K omega^2 or rated
                 IF (LocalVar%GenSpeed > 0.98 * CntrPar%PC_RefSpd) THEN
                     LocalVar%GenTq = CntrPar%VS_RtTq
@@ -440,11 +440,11 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ Fixed-Pitch Region 3 Control ------------
-        CALL ParseInput(FileLines,  'FBP_RefMode', CntrPar%FBP_RefMode,              accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 4, UnEc)
-        CALL ParseInput(FileLines,  'FBP_n',       CntrPar%FBP_n,                    accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 4, UnEc)
-        CALL ParseAry(  FileLines,  'FBP_U',       CntrPar%FBP_U,     CntrPar%FBP_n, accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 4, UnEc)
-        CALL ParseAry(  FileLines,  'FBP_Omega',   CntrPar%FBP_Omega, CntrPar%FBP_n, accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 4, UnEc)
-        CALL ParseAry(  FileLines,  'FBP_Tau',     CntrPar%FBP_Tau,   CntrPar%FBP_n, accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 4, UnEc)
+        CALL ParseInput(FileLines,  'FBP_RefMode', CntrPar%FBP_RefMode,              accINFILE(1), ErrVar, CntrPar%VS_ControlMode .NE. VS_Mode_FBP, UnEc)
+        CALL ParseInput(FileLines,  'FBP_n',       CntrPar%FBP_n,                    accINFILE(1), ErrVar, CntrPar%VS_ControlMode .NE. VS_Mode_FBP, UnEc)
+        CALL ParseAry(  FileLines,  'FBP_U',       CntrPar%FBP_U,     CntrPar%FBP_n, accINFILE(1), ErrVar, CntrPar%VS_ControlMode .NE. VS_Mode_FBP, UnEc)
+        CALL ParseAry(  FileLines,  'FBP_Omega',   CntrPar%FBP_Omega, CntrPar%FBP_n, accINFILE(1), ErrVar, CntrPar%VS_ControlMode .NE. VS_Mode_FBP, UnEc)
+        CALL ParseAry(  FileLines,  'FBP_Tau',     CntrPar%FBP_Tau,   CntrPar%FBP_n, accINFILE(1), ErrVar, CntrPar%VS_ControlMode .NE. VS_Mode_FBP, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------- Setpoint Smoother --------------------------------
@@ -1282,7 +1282,7 @@ CONTAINS
                 ErrVar%ErrMsg  = 'TRA_RateLimit must be greater than 0.'
             END IF
 
-            IF ( .NOT. ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3) )) THEN
+            IF ( .NOT. ((CntrPar%VS_ControlMode == VS_Mode_WSE_TSR) .OR. (CntrPar%VS_ControlMode == VS_Mode_Power_TSR) )) THEN
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg  = 'VS_ControlMode must be 2 or 3 to use frequency avoidance control.'
             END IF

@@ -60,12 +60,12 @@ CONTAINS
                 
         ! ----- Torque controller reference errors -----
         ! Define VS reference generator speed [rad/s]
-        IF (CntrPar%VS_ControlMode == 2) THEN
+        IF (CntrPar%VS_ControlMode == VS_Mode_WSE_TSR) THEN
             LocalVar%VS_RefSpd_TSR = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
-        ELSEIF (CntrPar%VS_ControlMode == 3) THEN
+        ELSEIF (CntrPar%VS_ControlMode == VS_Mode_Power_TSR) THEN
             LocalVar%VS_GenPwrF = LPFilter(LocalVar%VS_GenPwr, LocalVar%DT, CntrPar%VS_PwrFiltF, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
             LocalVar%VS_RefSpd_TSR = (LocalVar%VS_GenPwrF/CntrPar%VS_Rgn2K)**(1./3.) ! Genspeed reference that doesn't depend on wind speed estimate (https://doi.org/10.2172/1259805)
-        ELSEIF (CntrPar%VS_ControlMode == 4) THEN
+        ELSEIF (CntrPar%VS_ControlMode == VS_Mode_FBP) THEN
             IF (CntrPar%FBP_RefMode == 0) THEN
                 ! Use WSE to look up speed reference
                 VS_RefSpdRaw = interp1d(CntrPar%FBP_U, CntrPar%FBP_Omega, LocalVar%WE_Vw, ErrVar)
@@ -112,7 +112,9 @@ CONTAINS
         LocalVar%VS_RefSpd = max(LocalVar%VS_RefSpd, CntrPar%VS_MinOmSpd)
 
         ! Reference error
-        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3) .OR. (CntrPar%VS_ControlMode == 4)) THEN
+        IF ((CntrPar%VS_ControlMode == VS_Mode_WSE_TSR) .OR. \
+            (CntrPar%VS_ControlMode == VS_Mode_Power_TSR) .OR. \
+            (CntrPar%VS_ControlMode == VS_Mode_FBP)) THEN
             LocalVar%VS_SpdErr = LocalVar%VS_RefSpd - LocalVar%GenSpeedF
         ENDIF
 
