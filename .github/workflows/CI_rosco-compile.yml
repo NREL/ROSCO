@@ -16,15 +16,15 @@ jobs:
         strategy:
             fail-fast: false #true
             matrix:
-                os: ["ubuntu-latest", "macOS-13", "windows-latest"] #mac-13 intel, mac-14 arm
+                os: ["ubuntu-latest", "macOS-latest", "windows-latest"] #mac-13 intel, mac-14 arm
                 python-version: ["3.9", "3.10", "3.11", "3.12"]
 
         steps:
             - name: Setup GNU Fortran
               if: false == contains( matrix.os, 'windows')
               uses: fortran-lang/setup-fortran@v1.6
-              with:
-                compiler: intel-classic
+              # with:
+              #   compiler: intel-classic
 
             - name: Install compiler
               if: false == contains( matrix.os, 'windows')
