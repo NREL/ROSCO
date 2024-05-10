@@ -294,8 +294,8 @@ class Turbine():
             self.load_blade_info()
         
         # Generate the look-up tables, mesh the grid and flatten the arrays for cc_rotor aerodynamic analysis
-        TSR_initial = np.arange(2, 15,0.5)
-        pitch_initial = np.arange(-5,31,1.)
+        TSR_initial = np.arange(0.5, 15, 0.5)
+        pitch_initial = np.arange(-5, 31, 1.)
         pitch_initial_rad = pitch_initial * deg2rad
         ws_array = np.ones_like(TSR_initial) * self.v_rated # evaluate at rated wind speed
         omega_array = (TSR_initial * ws_array / self.rotor_radius) * RadSec2rpm

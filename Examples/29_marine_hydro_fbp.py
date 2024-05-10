@@ -12,6 +12,7 @@ from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 from rosco.toolbox.ofTools.fast_io import output_processing
 from rosco.toolbox import controller as ROSCO_controller
 from rosco.toolbox import turbine as ROSCO_turbine
+from rosco.toolbox import utilities as ROSCO_utilities
 from rosco.toolbox.utilities import write_DISCON
 from rosco.toolbox.inputs.validation import load_rosco_yaml
 import matplotlib.pyplot as plt
@@ -26,14 +27,15 @@ Run MHK turbine in OpenFAST with ROSCO torque controller
 #directories
 this_dir            = os.path.dirname(os.path.abspath(__file__))
 rosco_dir           = os.path.dirname(this_dir)
-example_out_dir     = os.path.join(this_dir,'examples_out')
+example_out_dir     = os.path.join(this_dir, 'examples_out')
 os.makedirs(example_out_dir,exist_ok=True)
 
 def main():
 
     # Input yaml and output directory
-    parameter_filename = os.path.join(this_dir,'Tune_Cases/RM1_MHK_FBP.yaml')
-    run_dir = os.path.join(example_out_dir,'29_MHK/0_baseline')
+    parameter_filename = os.path.join(this_dir, 'Tune_Cases/RM1_MHK_FBP.yaml')
+    param_dir = os.path.dirname(parameter_filename)
+    run_dir = os.path.join(example_out_dir, '29_MHK/0_baseline')
     os.makedirs(run_dir,exist_ok=True)
 
     inps = load_rosco_yaml(parameter_filename)
@@ -46,15 +48,69 @@ def main():
     controller      = ROSCO_controller.Controller(controller_params)
 
     # Load turbine data from OpenFAST and rotor performance text file
-    cp_filename = os.path.join(this_dir,path_params['rotor_performance_filename'])
-    turbine.load_from_fast(
-        path_params['FAST_InputFile'],
-        os.path.join(this_dir,path_params['FAST_directory']),
-        rot_source='txt',txt_filename= cp_filename
-        )
+    cp_filename = os.path.join(param_dir, path_params['rotor_performance_filename'])
+    if False:
+        turbine.load_from_fast(
+            path_params['FAST_InputFile'],
+            os.path.join(param_dir, path_params['FAST_directory']),
+            rot_source='cc-blade', txt_filename=cp_filename
+            )
+        ROSCO_utilities.write_rotor_performance(turbine, cp_filename)
+    else:
+        turbine.load_from_fast(
+            path_params['FAST_InputFile'],
+            os.path.join(param_dir, path_params['FAST_directory']),
+            rot_source='txt', txt_filename= cp_filename
+            )
 
-    # Tune controller 
+    # Tune controller cases
     controller.tune_controller(turbine)
+
+    fig, axs = plt.subplots(3,1)
+    axs[0].plot(controller.v, controller.power_op, label='Gen Power')
+    axs[0].set_xlabel('Gen Power [W]')
+    axs[1].plot(controller.v, controller.omega_gen_op, label='Gen Speed')
+    axs[0].set_xlabel('Gen Speed [rad/s]')
+    axs[2].plot(controller.v, controller.tau_op ,label='Gen Torque')
+    axs[0].set_xlabel('Gen Torque [N m]')
+    fig.suptitle('Constant Power')
+
+
+    controller_params['FBP_P'] = [1.0, 2.0]
+    controller      = ROSCO_controller.Controller(controller_params)
+    controller.tune_controller(turbine)
+
+    fig, axs = plt.subplots(3,1)
+    axs[0].plot(controller.v, controller.power_op, label='Gen Power')
+    axs[0].set_xlabel('Gen Power [W]')
+    axs[1].plot(controller.v, controller.omega_gen_op, label='Gen Speed')
+    axs[0].set_xlabel('Gen Speed [rad/s]')
+    axs[2].plot(controller.v, controller.tau_op ,label='Gen Torque')
+    axs[0].set_xlabel('Gen Torque [N m]')
+    fig.suptitle('Linear Increasing Power')
+
+
+    controller_params['FBP_U'] = [2.0, 3.0]
+    controller_params['FBP_P'] = [1.0, 2.0]
+    controller      = ROSCO_controller.Controller(controller_params)
+    controller.tune_controller(turbine)
+
+    fig, axs = plt.subplots(3,1)
+    axs[0].plot(controller.v, controller.power_op, label='Gen Power')
+    axs[0].set_xlabel('Gen Power [W]')
+    axs[1].plot(controller.v, controller.omega_gen_op, label='Gen Speed')
+    axs[0].set_xlabel('Gen Speed [rad/s]')
+    axs[2].plot(controller.v, controller.tau_op ,label='Gen Torque')
+    axs[0].set_xlabel('Gen Torque [N m]')
+    fig.suptitle('Linear Increasing Leveled Power')
+
+
+    if True:
+        # plt.show()
+        plt.show(block=False)
+        0
+    else:
+        plt.savefig(os.path.join(example_out_dir,'29_marine_hydro_fbp_sched.png'))
 
     # Write parameter input file
     param_file = os.path.join(run_dir,'DISCON.IN')
@@ -84,30 +140,30 @@ def main():
     # plt.suptitle('Pitch Controller Gains')
 
 
-    # simulation set up
-    r = run_FAST_ROSCO()
-    r.tuning_yaml   = parameter_filename
-    # r.wind_case_fcn = cl.simp_step  # single step wind input
-    r.wind_case_fcn = cl.power_curve
-    r.wind_case_opts    = {
-        'U': [3.5],
-        'TMax': 100.0,
-        }
-    r.case_inputs = {}
-    # r.fst_vt        = reader.fst_vt
-    # r.controller_params = controller_params
-    r.save_dir      = run_dir
-    r.rosco_dir     = rosco_dir
+    # # simulation set up
+    # r = run_FAST_ROSCO()
+    # r.tuning_yaml   = parameter_filename
+    # # r.wind_case_fcn = cl.simp_step  # single step wind input
+    # r.wind_case_fcn = cl.power_curve
+    # r.wind_case_opts    = {
+    #     'U': [3.5],
+    #     'TMax': 100.0,
+    #     }
+    # r.case_inputs = {}
+    # # r.fst_vt        = reader.fst_vt
+    # # r.controller_params = controller_params
+    # r.save_dir      = run_dir
+    # r.rosco_dir     = rosco_dir
 
-    r.run_FAST()
+    # r.run_FAST()
 
-    op = output_processing.output_processing()
-    fast_out = op.load_fast_out([os.path.join(run_dir,'RM1_MHK_FBP/power_curve/base/RM1_MHK_FBP_0.out')], tmin=0)
-    fig, axs = plt.subplots(4,1)
-    axs[0].plot(fast_out[0]['Time'],fast_out[0]['Wind1VelX'],label='Flow Speed')
-    axs[1].plot(fast_out[0]['Time'],fast_out[0]['GenSpeed'],label='Gen Speed')
-    axs[2].plot(fast_out[0]['Time'],fast_out[0]['GenTq'],label='Gen Torque')
-    axs[3].plot(fast_out[0]['Time'],fast_out[0]['GenPwr'],label='Gen Power')
+    # op = output_processing.output_processing()
+    # fast_out = op.load_fast_out([os.path.join(run_dir,'RM1_MHK_FBP/power_curve/base/RM1_MHK_FBP_0.out')], tmin=0)
+    # fig, axs = plt.subplots(4,1)
+    # axs[0].plot(fast_out[0]['Time'],fast_out[0]['Wind1VelX'],label='Flow Speed')
+    # axs[1].plot(fast_out[0]['Time'],fast_out[0]['GenSpeed'],label='Gen Speed')
+    # axs[2].plot(fast_out[0]['Time'],fast_out[0]['GenTq'],label='Gen Torque')
+    # axs[3].plot(fast_out[0]['Time'],fast_out[0]['GenPwr'],label='Gen Power')
 
 
     # op = output_processing.output_processing()
