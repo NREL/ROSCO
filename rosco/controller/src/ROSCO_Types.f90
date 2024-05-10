@@ -81,9 +81,9 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: VS_PwrFiltF                 ! Cut-off frequency of filter on generator power for power-based tsr tracking control
     INTEGER(IntKi)                :: FBP_RefMode                 ! Fixed blade pitch reference interpolation mode (0 for WSE, 1 for torque feedback)
     INTEGER(IntKi)                :: FBP_n                       ! Amount of fixed blade pitch operating schedule table entries
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: FBP_U           ! FBP Operating-schedule table - Wind speeds
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: FBP_Omega       ! FBP Operating-schedule table - Generator speeds
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: FBP_Tau         ! FBP Operating-schedule table - Generator torques
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: FBP_U                       ! FBP Operating-schedule table - Wind speeds
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: FBP_Omega                   ! FBP Operating-schedule table - Generator speeds
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: FBP_Tau                     ! FBP Operating-schedule table - Generator torques
     INTEGER(IntKi)                :: SS_Mode                     ! Setpoint Smoother mode {0 - no setpoint smoothing, 1 - introduce setpoint smoothing}
     REAL(DbKi)                    :: SS_VSGain                   ! Variable speed torque controller setpoint smoother gain, [-].
     REAL(DbKi)                    :: SS_PCGain                   ! Collective pitch controller setpoint smoother gain, [-].
@@ -301,7 +301,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: PC_TF                       ! First-order filter parameter for derivative action
     REAL(DbKi)                    :: PC_MaxPit                   ! Maximum pitch setting in pitch controller (variable) [rad].
     REAL(DbKi)                    :: PC_MinPit                   ! Minimum pitch setting in pitch controller (variable) [rad].
-    REAL(DbKi)                    :: PC_PitComT                  ! Collective pitch commmand from PI control [rad].
+    REAL(DbKi)                    :: PC_PitComT                  ! Total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(DbKi)                    :: PC_PitComT_Last             ! Last total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(DbKi)                    :: PC_PitComTF                 ! Filtered Total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(DbKi)                    :: PC_PitComT_IPC(3)           ! Total command pitch based on the sum of the proportional and integral terms, including IPC term [rad].
