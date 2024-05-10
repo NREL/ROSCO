@@ -27,14 +27,15 @@ Run MHK turbine in OpenFAST with ROSCO torque controller
 #directories
 this_dir            = os.path.dirname(os.path.abspath(__file__))
 rosco_dir           = os.path.dirname(this_dir)
-example_out_dir     = os.path.join(this_dir,'examples_out')
+example_out_dir     = os.path.join(this_dir, 'examples_out')
 os.makedirs(example_out_dir,exist_ok=True)
 
 def main():
 
     # Input yaml and output directory
-    parameter_filename = os.path.join(this_dir,'Tune_Cases/RM1_MHK_FBP.yaml')
-    run_dir = os.path.join(example_out_dir,'29_MHK/0_baseline')
+    parameter_filename = os.path.join(this_dir, 'Tune_Cases/RM1_MHK_FBP.yaml')
+    param_dir = os.path.dirname(parameter_filename)
+    run_dir = os.path.join(example_out_dir, '29_MHK/0_baseline')
     os.makedirs(run_dir,exist_ok=True)
 
     inps = load_rosco_yaml(parameter_filename)
@@ -47,18 +48,18 @@ def main():
     controller      = ROSCO_controller.Controller(controller_params)
 
     # Load turbine data from OpenFAST and rotor performance text file
-    cp_filename = os.path.join(this_dir,path_params['rotor_performance_filename'])
+    cp_filename = os.path.join(param_dir, path_params['rotor_performance_filename'])
     if False:
         turbine.load_from_fast(
             path_params['FAST_InputFile'],
-            os.path.join(this_dir, path_params['FAST_directory']),
+            os.path.join(param_dir, path_params['FAST_directory']),
             rot_source='cc-blade', txt_filename=cp_filename
             )
         ROSCO_utilities.write_rotor_performance(turbine, cp_filename)
     else:
         turbine.load_from_fast(
             path_params['FAST_InputFile'],
-            os.path.join(this_dir, path_params['FAST_directory']),
+            os.path.join(param_dir, path_params['FAST_directory']),
             rot_source='txt', txt_filename= cp_filename
             )
 
