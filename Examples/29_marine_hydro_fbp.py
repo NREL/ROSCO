@@ -76,6 +76,21 @@ def main():
     fig.suptitle('Constant Power')
 
 
+    controller_params['FBP_speed_mode'] = 1
+    controller      = ROSCO_controller.Controller(controller_params)
+    controller.tune_controller(turbine)
+
+    fig, axs = plt.subplots(3,1)
+    axs[0].plot(controller.v, controller.power_op, label='Gen Power')
+    axs[0].set_xlabel('Gen Power [W]')
+    axs[1].plot(controller.v, controller.omega_gen_op, label='Gen Speed')
+    axs[0].set_xlabel('Gen Speed [rad/s]')
+    axs[2].plot(controller.v, controller.tau_op ,label='Gen Torque')
+    axs[0].set_xlabel('Gen Torque [N m]')
+    fig.suptitle('Constant Power Overspeed')
+
+
+    controller_params['FBP_speed_mode'] = 0
     controller_params['FBP_P'] = [1.0, 2.0]
     controller      = ROSCO_controller.Controller(controller_params)
     controller.tune_controller(turbine)

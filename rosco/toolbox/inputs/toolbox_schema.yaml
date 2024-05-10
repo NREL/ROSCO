@@ -439,9 +439,15 @@ properties:
                 description: Method of identifying operating point reference during operation (0- Use WSE, 1- Use filtered torque signal)
                 minimum: 0
                 maximum: 1
-            FBP_P_mode:
+            FBP_power_mode:
                 type: number
-                description: Interpretation mode for P_FBP (0- scale relative to rated power, 1- absolute power)
+                description: Interpretation mode for FBP_P (0- scale relative to rated power, 1- absolute power)
+                default: 0
+                minimum: 0
+                maximum: 1
+            FBP_speed_mode:
+                type: number
+                description: Overspeed or underspeed operating schedule (0- underspeed, 1- overspeed)
                 default: 0
                 minimum: 0
                 maximum: 1
