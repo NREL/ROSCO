@@ -64,7 +64,7 @@ def main():
     controller_1      = ROSCO_controller.Controller(controller_params)
     controller_1.tune_controller(turbine)
 
-    # Constant power overspeedspeed
+    # Constant power overspeed
     controller_params['FBP_speed_mode'] = 1
     controller_params['FBP_P'] = [1.0, 1.0]
     controller_2      = ROSCO_controller.Controller(controller_params)

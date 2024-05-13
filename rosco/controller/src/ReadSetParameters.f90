@@ -234,7 +234,7 @@ CONTAINS
             ENDIF
             LocalVar%VS_LastGenTrq = LocalVar%GenTq
             LocalVar%VS_MaxTq      = CntrPar%VS_MaxTq
-            LocalVar%VS_GenPwr     = LocalVar%GenTq * LocalVar%GenSpeed
+            LocalVar%VS_GenPwr     = LocalVar%GenTq * LocalVar%GenSpeed * CntrPar%VS_GenEff/100.0
 
             ! Initialize variables
             LocalVar%CC_DesiredL = 0

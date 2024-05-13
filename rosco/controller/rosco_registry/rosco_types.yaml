@@ -158,6 +158,9 @@ ControlParameters:
       <<: *real
       description: Corner frequency (-3dB point) in the second order low pass filter of the blade root bending moment for flap control [rad/s].
       allocatable: True
+    F_VSRefSpdCornerFreq:
+      <<: *real
+      description: Corner frequency (-3dB point) in the first order low pass filter of the generator speed reference used for TSR tracking torque control [rad/s].
     
     # Tower fore-aft damping
     TRA_Mode:
@@ -315,9 +318,6 @@ ControlParameters:
     VS_TSRopt:
       <<: *real
       description: Power-maximizing region 2 tip-speed ratio [rad]
-    VS_PwrFiltF:
-      <<: *real
-      description: Cut-off frequency of filter on generator power for power-based tsr tracking control
     
     # Setpoint Smoother
     SS_Mode:
