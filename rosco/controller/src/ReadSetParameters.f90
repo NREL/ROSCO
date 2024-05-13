@@ -385,7 +385,7 @@ CONTAINS
         CALL ParseInput(FileLines,  'F_FlHighPassFreq',     CntrPar%F_FlHighPassFreq,                            accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
         CALL ParseAry(  FileLines,  'F_FlpCornerFreq',      CntrPar%F_FlpCornerFreq,    2,                       accINFILE(1), ErrVar, CntrPar%Flp_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'F_VSRefSpdCornerFreq', CntrPar%F_VSRefSpdCornerFreq,                        accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 2, UnEc)
-        
+
         ! Optional filter inds
         IF (CntrPar%F_GenSpdNotch_N > 0) THEN
             CALL ParseAry(FileLines,    'F_GenSpdNotch_Ind',    CntrPar%F_GenSpdNotch_Ind,  CntrPar%F_GenSpdNotch_N, accINFILE(1), ErrVar, CntrPar%F_GenSpdNotch_N == 0, UnEc)

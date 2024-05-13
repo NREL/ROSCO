@@ -1,5 +1,5 @@
 ! Controller parameter input file for the MHK_RM1_Floating wind turbine
-!    - File written using ROSCO version 2.9.0 controller tuning logic on 05/10/24
+!    - File written using ROSCO version 2.9.0 controller tuning logic on 05/13/24
 
 !------- SIMULATION CONTROL ------------------------------------------------------------
 2                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}
@@ -49,6 +49,7 @@
 0.661300  1.000000  ! F_FlCornerFreq    - Natural frequency and damping in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s, -].
 1.50000             ! F_FlHighPassFreq  - Natural frequency of first-order high-pass filter for nacelle fore-aft motion [rad/s].
 0.0000 1.0000      ! F_FlpCornerFreq   - Corner frequency and damping in the second order low pass filter of the blade root bending moment for flap control
+0.05000000000      ! F_VSRefSpdCornerFreq		- Corner frequency (-3dB point) in the first order low pass filter of the generator speed reference used for TSR tracking torque control [rad/s].
 
 !------- BLADE PITCH CONTROL ----------------------------------------------
 30                  ! PC_GS_n			- Amount of gain-scheduling table entries
@@ -80,8 +81,8 @@
 1500000.000000      ! VS_MaxRat			- Maximum torque rate (in absolute value) in torque controller, [Nm/s].
 12450.50344000      ! VS_MaxTq			- Maximum generator torque in Region 3 (HSS side), [Nm].
 0.000000000000      ! VS_MinTq			- Minimum generator torque (HSS side), [Nm].
-19.01313000000      ! VS_MinOMSpd		- Minimum generator speed [rad/s]
-1.137080000000      ! VS_Rgn2K		- Generator torque constant in Region 2 (HSS side). Only used in VS_ControlMode = 1,3
+19.00787000000      ! VS_MinOMSpd		- Minimum generator speed [rad/s]
+1.310360000000      ! VS_Rgn2K		- Generator torque constant in Region 2 (HSS side). Only used in VS_ControlMode = 1,3
 500000.0000000      ! VS_RtPwr			- Wind turbine rated power [W]
 8300.335630000      ! VS_RtTq			- Rated torque, [Nm].
 63.81200000000      ! VS_RefSpd			- Rated generator speed [rad/s]
@@ -89,14 +90,13 @@
 -64.2578900000      ! VS_KP				- Proportional gain for generator PI torque controller [-]. (Only used in the transitional 2.5 region if VS_ControlMode =/ 2)
 -84.4329000000      ! VS_KI				- Integral gain for generator PI torque controller [s]. (Only used in the transitional 2.5 region if VS_ControlMode =/ 2)
 7.17                ! VS_TSRopt		    - Power-maximizing region 2 tip-speed-ratio. Only used in VS_ControlMode = 2.
-0.314000000000      ! VS_PwrFiltF		- Low pass filter on power used to determine generator speed set point.  Only used in VS_ControlMode = 3.
 
 !------- FIXED PITCH REGION 3 TORQUE CONTROL ------------------------------------------------
-0                   ! FBP_RefMode	- Reference control mode (0 - Use wind speed estimator, 1 - Use torque feedback)
-60                  ! FBP_n			- Number of gain-scheduling table entries
-0.500000  0.551724  0.603448  0.655172  0.706897  0.758621  0.810345  0.862069  0.913793  0.965517  1.017241  1.068966  1.120690  1.172414  1.224138  1.275862  1.327586  1.379310  1.431034  1.482759  1.534483  1.586207  1.637931  1.689655  1.741379  1.793103  1.844828  1.896552  1.948276  2.000000  2.033333  2.066667  2.100000  2.133333  2.166667  2.200000  2.233333  2.266667  2.300000  2.333333  2.366667  2.400000  2.433333  2.466667  2.500000  2.533333  2.566667  2.600000  2.633333  2.666667  2.700000  2.733333  2.766667  2.800000  2.833333  2.866667  2.900000  2.933333  2.966667  3.000000                ! FBP_U	        - Operating schedule table: Wind speeds [m/s].
-19.013134  20.980010  22.946886  24.913762  26.880638  28.847514  30.814390  32.781266  34.748142  36.715018  38.681894  40.648770  42.615646  44.582522  46.549398  48.516274  50.483150  52.450026  54.416902  56.383778  58.350654  60.317530  62.284406  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000                ! FBP_Omega	    - Operating schedule table: Generator speeds [rad/s].
-473.300280  576.289520  689.408850  812.658269  946.037777  1089.547374  1243.187061  1406.956837  1580.856702  1764.886656  1959.046699  2163.336832  2377.757054  2602.307365  2836.987765  3081.798255  3336.738834  3601.809502  3877.010259  4162.341105  4457.802041  4763.393066  5079.114180  5442.173156  5953.593744  6483.496857  7051.903239  7643.209401  8252.348857  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880                ! FBP_Tau		- Operating schedule table: Generator torques [N m].
+0                   ! VS_FBP_RefMode	- Reference control mode (0 - Use wind speed estimator, 1 - Use torque feedback)
+60                  ! VS_FBP_n			- Number of gain-scheduling table entries
+0.500000  0.551724  0.603448  0.655172  0.706897  0.758621  0.810345  0.862069  0.913793  0.965517  1.017241  1.068966  1.120690  1.172414  1.224138  1.275862  1.327586  1.379310  1.431034  1.482759  1.534483  1.586207  1.637931  1.689655  1.741379  1.793103  1.844828  1.896552  1.948276  2.000000  2.033333  2.066667  2.100000  2.133333  2.166667  2.200000  2.233333  2.266667  2.300000  2.333333  2.366667  2.400000  2.433333  2.466667  2.500000  2.533333  2.566667  2.600000  2.633333  2.666667  2.700000  2.733333  2.766667  2.800000  2.833333  2.866667  2.900000  2.933333  2.966667  3.000000                ! VS_FBP_U	        - Operating schedule table: Wind speeds [m/s].
+19.007868  20.974199  22.940530  24.906861  26.873192  28.839524  30.805855  32.772186  34.738517  36.704848  38.671179  40.637511  42.603842  44.570173  46.536504  48.502835  50.469166  52.435498  54.401829  56.368160  58.334491  60.300822  62.267153  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000  63.812000                ! VS_FBP_Omega	    - Operating schedule table: Generator speeds [rad/s].
+473.431417  576.449193  689.599865  812.883432  946.299896  1089.849256  1243.531511  1407.346663  1581.294710  1765.375654  1959.589493  2163.936229  2378.415860  2603.028388  2837.773811  3082.652130  3337.663346  3602.807457  3878.084464  4163.494367  4459.037166  4764.712862  5080.521453  5442.173156  5953.593744  6483.496857  7051.903239  7643.209401  8252.348857  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880  8797.474880                ! VS_FBP_Tau		- Operating schedule table: Generator torques [N m].
 
 !------- SETPOINT SMOOTHER ---------------------------------------------
 1.00000             ! SS_VSGain         - Variable speed torque controller setpoint smoother gain, [-].
@@ -117,10 +117,10 @@
 484024.50000       ! WE_Jtot			- Total drivetrain inertia, including blades, hub and casted generator inertia to LSS, [kg m^2]
 1025.000            ! WE_RhoAir			- Air density, [kg m^-3]
 "MHK_RM1_Cp_Ct_Cq.txt"      ! PerfFileName      - File containing rotor performance tables (Cp,Ct,Cq) (absolute path or relative to this file)
-36      29          ! PerfTableSize     - Size of rotor performance tables, first number refers to number of blade pitch angles, second number referse to number of tip-speed ratios
+36      49          ! PerfTableSize     - Size of rotor performance tables, first number refers to number of blade pitch angles, second number referse to number of tip-speed ratios
 60                  ! WE_FOPoles_N      - Number of first-order system poles used in EKF
 0.5000 0.5517 0.6034 0.6552 0.7069 0.7586 0.8103 0.8621 0.9138 0.9655 1.0172 1.0690 1.1207 1.1724 1.2241 1.2759 1.3276 1.3793 1.4310 1.4828 1.5345 1.5862 1.6379 1.6897 1.7414 1.7931 1.8448 1.8966 1.9483 2.0000 2.0333 2.0667 2.1000 2.1333 2.1667 2.2000 2.2333 2.2667 2.3000 2.3333 2.3667 2.4000 2.4333 2.4667 2.5000 2.5333 2.5667 2.6000 2.6333 2.6667 2.7000 2.7333 2.7667 2.8000 2.8333 2.8667 2.9000 2.9333 2.9667 3.0000               ! WE_FOPoles_v      - Wind speeds corresponding to first-order system poles [m/s]
--0.14308393 -0.15788571 -0.17268750 -0.18748928 -0.20229107 -0.21709285 -0.23189464 -0.24669643 -0.26149821 -0.27630000 -0.29110178 -0.30590357 -0.32070535 -0.33550714 -0.35030892 -0.36511071 -0.37991250 -0.39471428 -0.40951607 -0.42431785 -0.43911964 -0.45392142 -0.46872321 -0.48487459 -0.50420905 -0.51897473 -0.60027681 -0.60489437 -0.60708415 -0.55452329 0.18039231 0.15353375 0.11034116 0.05930222 0.00360074 -0.05616070 -0.11594248 -0.17921755 -0.24424769 -0.31180903 -0.38057365 -0.45117734 -0.52158847 -0.59317066 -0.66628530 -0.74082760 -0.81629342 -0.89295334 -0.97099163 -1.04925592 -1.12788429 -1.20781665 -1.28757103 -1.36845961 -1.45107295 -1.53364806 -1.61655483 -1.70142184 -1.78767141 -1.87248964               ! WE_FOPoles        - First order system poles [1/s]
+-0.14309872 -0.15790204 -0.17270536 -0.18750867 -0.20231199 -0.21711530 -0.23191862 -0.24672194 -0.26152525 -0.27632857 -0.29113188 -0.30593520 -0.32073852 -0.33554183 -0.35034515 -0.36514847 -0.37995178 -0.39475510 -0.40955841 -0.42436173 -0.43916505 -0.45396836 -0.46877168 -0.48487459 -0.50420905 -0.51897473 -0.60027681 -0.60489437 -0.60708415 -0.55452329 0.18039231 0.15353375 0.11034116 0.05930222 0.00360074 -0.05616070 -0.11594248 -0.17921755 -0.24424769 -0.31180903 -0.38057365 -0.45117734 -0.52158847 -0.59317066 -0.66628530 -0.74082760 -0.81629342 -0.89295334 -0.97099163 -1.04925592 -1.12788429 -1.20781665 -1.28757103 -1.36845961 -1.45107295 -1.53364806 -1.61655483 -1.70142184 -1.78767141 -1.87248964               ! WE_FOPoles        - First order system poles [1/s]
 
 !------- YAW CONTROL ------------------------------------------------------
 0.00000             ! Y_uSwitch		- Wind speed to switch between Y_ErrThresh. If zero, only the second value of Y_ErrThresh is used [m/s]
