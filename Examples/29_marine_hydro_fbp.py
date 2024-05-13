@@ -1,6 +1,6 @@
 '''
------------ 26_marine_hydro ------------------------
-Run openfast with ROSCO and a MHK turbine
+----------- 29_marine_hydro_fbp ---------------
+Run openfast with ROSCO and a MHK turbine with fixed blade pitch control
 -----------------------------------------------
 
 
@@ -58,30 +58,31 @@ def main():
 
 
     ### Tune controller cases
-    # Constant power underspeed
-    controller_params['FBP_speed_mode'] = 0
-    controller_params['FBP_P'] = [1.0, 1.0]
+    # Constant power underspeed (should be the default)
+    controller_params['VS_FBP_speed_mode'] = 0
+    controller_params['VS_FBP_P'] = [1.0, 1.0]
     controller_1      = ROSCO_controller.Controller(controller_params)
     controller_1.tune_controller(turbine)
 
     # Constant power overspeed
-    controller_params['FBP_speed_mode'] = 1
-    controller_params['FBP_P'] = [1.0, 1.0]
+    controller_params['VS_FBP_ref_mode'] = 0 # Switch to WSE reference
+    controller_params['VS_FBP_speed_mode'] = 1
+    controller_params['VS_FBP_P'] = [1.0, 1.0]
     controller_2      = ROSCO_controller.Controller(controller_params)
     controller_2.tune_controller(turbine)
 
     # Linear increasing power
-    controller_params['FBP_speed_mode'] = 0
-    controller_params['FBP_P'] = [1.0, 2.0]
+    controller_params['VS_FBP_speed_mode'] = 0
+    controller_params['VS_FBP_P'] = [1.0, 2.0]
     controller_3      = ROSCO_controller.Controller(controller_params)
     controller_3.tune_controller(turbine)
 
     # Linear increasing power, leveling out
-    controller_params['FBP_U'] = [2.0, 3.0]
-    controller_params['FBP_P'] = [1.0, 2.0]
+    controller_params['VS_FBP_U'] = [2.0, 3.0]
+    controller_params['VS_FBP_P'] = [1.0, 2.0]
     controller_4      = ROSCO_controller.Controller(controller_params)
     controller_4.tune_controller(turbine)
-    
+
 
     fig, axs = plt.subplots(3,1)
     axs[0].plot(controller_1.v, controller_1.power_op, label='Constant Power Underspeed')

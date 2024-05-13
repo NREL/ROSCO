@@ -107,17 +107,17 @@ class Controller():
                 raise Exception(
                     'rosco.toolbox:controller: PC_ControlMode must be 0 if VS_ControlMode == 4')
 
-            if 'FBP_ref_mode' in controller_params:
-                self.fbp_ref_mode = controller_params['FBP_ref_mode']
+            if 'VS_FBP_ref_mode' in controller_params:
+                self.fbp_ref_mode = controller_params['VS_FBP_ref_mode']
             else:
                 raise Exception(
-                    'rosco.toolbox:controller: FBP options (FBP_ref_mode) must be set if VS_ControlMode == 4')
+                    'rosco.toolbox:controller: FBP options (VS_FBP_ref_mode) must be set if VS_ControlMode == 4')
 
             # Defaults to constant power, underspeed
-            self.fbp_power_mode = controller_params['FBP_power_mode']
-            self.fbp_speed_mode = controller_params['FBP_speed_mode']
-            self.fbp_U = controller_params['FBP_U'] # Should we set this default based on rated speed? 
-            self.fbp_P = controller_params['FBP_P']
+            self.fbp_power_mode = controller_params['VS_FBP_power_mode']
+            self.fbp_speed_mode = controller_params['VS_FBP_speed_mode']
+            self.fbp_U = controller_params['VS_FBP_U'] # Should we set this default based on rated speed? 
+            self.fbp_P = controller_params['VS_FBP_P']
         else:
             self.fbp_ref_mode = 0
 
@@ -161,6 +161,7 @@ class Controller():
         self.f_ss_cornerfreq        = controller_params['filter_params']['f_ss_cornerfreq']
         self.f_yawerr               = controller_params['filter_params']['f_yawerr']
         self.f_sd_cornerfreq        = controller_params['filter_params']['f_sd_cornerfreq']
+        self.f_vs_refspd_cornerfreq = controller_params['filter_params']['f_vs_refspd_cornerfreq']
 
 
         # Open loop parameters: set up and error catching
@@ -355,6 +356,12 @@ class Controller():
         if np.max(tau_op) > turbine.max_torque: # turbine.max_torque * 1.2 # DBS: Should we include additional margin? 
             print('WARNING: Torque operating schedule is above maximum generator torque and may not be realizable within saturation limits.')
             # DBS: Do we want to saturate maximum torque and recompute equilibrium points? 
+
+        # Check if options allow a nonmonotonic torque schedule
+        if self.fbp_ref_mode == 1:
+            # The simulation will crash if we have a nonmonotonic schedule, so fail to generate the config and alert the user
+            if np.any(np.diff(tau_op) <= 0):
+                raise Exception("VS controller reference torque interpolation is selected (VS_FBP_ref_mode == 1), but computed generator torque schedule is not monotonically increasing. Reconfigure power curve, ensure VS_FBP_speed_mode == 0, or switch VS_FBP_ref_mode to 0.")
 
 
         # Full Cx surface gradients

@@ -69,10 +69,10 @@ CONTAINS
             LocalVar%VS_RefSpd_TSR = (LocalVar%VS_GenPwr/CntrPar%VS_Rgn2K)**(1./3.)
 
         ELSEIF (CntrPar%VS_ControlMode == 4) THEN ! Generic lookup table for genspeed reference
-            IF (CntrPar%FBP_RefMode == 0) THEN ! Use WSE to look up speed reference
-                VS_RefSpdRaw = interp1d(CntrPar%FBP_U, CntrPar%FBP_Omega, LocalVar%WE_Vw, ErrVar)
-            ELSEIF (CntrPar%FBP_RefMode == 1) THEN ! Use LocalVar%GenTq or LocalVar%GenTqMeas, Omega must be expressed as a function of Tau
-                VS_RefSpdRaw = interp1d(CntrPar%FBP_Tau, CntrPar%FBP_Omega, LocalVar%GenTq, ErrVar)
+            IF (CntrPar%VS_FBP_RefMode == 0) THEN ! Use WSE to look up speed reference
+                VS_RefSpdRaw = interp1d(CntrPar%VS_FBP_U, CntrPar%VS_FBP_Omega, LocalVar%WE_Vw, ErrVar)
+            ELSEIF (CntrPar%VS_FBP_RefMode == 1) THEN ! Use LocalVar%GenTq or LocalVar%GenTqMeas, Omega must be expressed as a function of Tau
+                VS_RefSpdRaw = interp1d(CntrPar%VS_FBP_Tau, CntrPar%VS_FBP_Omega, LocalVar%GenTq, ErrVar)
             ENDIF
 
         ELSE ! Generate constant reference
@@ -80,7 +80,7 @@ CONTAINS
         ENDIF 
 
         ! Filter reference signal
-        LocalVar%VS_RefSpd = LPFilter(LocalVar%VS_RefSpd_TSR, LocalVar%DT, CntrPar%VS_RefSpdFiltF, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+        LocalVar%VS_RefSpd = LPFilter(LocalVar%VS_RefSpd_TSR, LocalVar%DT, CntrPar%F_VSRefSpdCornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
 
         ! Exclude reference speeds specified by user
         IF (CntrPar%TRA_Mode > 0) THEN
