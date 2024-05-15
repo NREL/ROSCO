@@ -55,10 +55,11 @@ controller_params:
   sd_maxpit:          0.4363                # Maximum blade pitch angle to initiate shutdown [rad], {default = bld pitch at v_max}
   Kp_float:           -0.3897
   max_torque_factor:  5
-  VS_FBP_ref_mode: 1
-  VS_FBP_P_mode:   0
-  VS_FBP_U:        [2.0, 4.0]
-  VS_FBP_P:        [1.0, 1.0]
+  VS_FBP_ref_mode:    1
+  VS_FBP_power_mode:  0
+  VS_FBP_speed_mode:  0
+  VS_FBP_U:           [2.0, 4.0]
+  VS_FBP_P:           [1.0, 1.0]
   DISCON:
     F_NumNotchFilts:  0
     F_NotchFreqs:  [1.0, 2.4200]  # 2P

@@ -34,8 +34,6 @@ CONTAINS
         TYPE(DebugVariables),       INTENT(INOUT)       :: DebugVar
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
 
-        REAL(DbKi)                 :: VS_RefSpdRaw   ! Temporary variable for applying LPF to the reference speed after it is generated
-
         ! ----- Pitch controller speed and power error -----
         
         ! Power reference tracking generator speed
@@ -70,9 +68,9 @@ CONTAINS
 
         ELSEIF (CntrPar%VS_ControlMode == 4) THEN ! Generic lookup table for genspeed reference
             IF (CntrPar%VS_FBP_RefMode == 0) THEN ! Use WSE to look up speed reference
-                VS_RefSpdRaw = interp1d(CntrPar%VS_FBP_U, CntrPar%VS_FBP_Omega, LocalVar%WE_Vw, ErrVar)
+                LocalVar%VS_RefSpd_TSR = interp1d(CntrPar%VS_FBP_U, CntrPar%VS_FBP_Omega, LocalVar%WE_Vw, ErrVar)
             ELSEIF (CntrPar%VS_FBP_RefMode == 1) THEN ! Use LocalVar%GenTq or LocalVar%GenTqMeas, Omega must be expressed as a function of Tau
-                VS_RefSpdRaw = interp1d(CntrPar%VS_FBP_Tau, CntrPar%VS_FBP_Omega, LocalVar%GenTq, ErrVar)
+                LocalVar%VS_RefSpd_TSR = interp1d(CntrPar%VS_FBP_Tau, CntrPar%VS_FBP_Omega, LocalVar%GenTq, ErrVar)
             ENDIF
 
         ELSE ! Generate constant reference
@@ -88,7 +86,8 @@ CONTAINS
         END IF
 
         ! Saturate torque reference speed between min speed and rated speed
-        LocalVar%VS_RefSpd = saturate(LocalVar%VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
+        ! LocalVar%VS_RefSpd = saturate(LocalVar%VS_RefSpd, CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
+        ! Saturate torque reference speed above lower bound (below)
 
         ! Implement power reference rotor speed (overwrites above), convert to generator speed
         IF (CntrPar%PRC_Mode == 1) THEN
