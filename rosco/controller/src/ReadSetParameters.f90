@@ -221,22 +221,27 @@ CONTAINS
             ! Setpoint Smoother initialization to zero
             LocalVar%SS_DelOmegaF = 0
 
-            ! Generator Torque at K omega^2 or rated
-            IF (LocalVar%GenSpeed > 0.98 * CntrPar%PC_RefSpd) THEN
-                LocalVar%GenTq = CntrPar%VS_RtTq
+            IF (CntrPar%VS_ControlMode < VS_Mode_FBP) THEN
+                ! Generator Torque at K omega^2 or rated
+                IF (LocalVar%GenSpeed > 0.98 * CntrPar%PC_RefSpd) THEN
+                    LocalVar%GenTq = CntrPar%VS_RtTq
+                ELSE
+                    LocalVar%GenTq = min(CntrPar%VS_RtTq, CntrPar%VS_Rgn2K*LocalVar%GenSpeed*LocalVar%GenSpeed)
+                ENDIF
             ELSE
-                LocalVar%GenTq = min(CntrPar%VS_RtTq, CntrPar%VS_Rgn2K*LocalVar%GenSpeed*LocalVar%GenSpeed)
-            ENDIF            
-            LocalVar%VS_LastGenTrq = LocalVar%GenTq       
+                ! Set torque initial condition based on operating schedule at current wind speed
+                LocalVar%GenTq = interp1d(CntrPar%VS_FBP_U, CntrPar%VS_FBP_Tau, LocalVar%HorWindV, ErrVar)
+            ENDIF
+            LocalVar%VS_LastGenTrq = LocalVar%GenTq
             LocalVar%VS_MaxTq      = CntrPar%VS_MaxTq
-            LocalVar%VS_GenPwr     = LocalVar%GenTq * LocalVar%GenSpeed
-            
+            LocalVar%VS_GenPwr     = LocalVar%GenTq * LocalVar%GenSpeed * CntrPar%VS_GenEff/100.0
+
             ! Initialize variables
             LocalVar%CC_DesiredL = 0
             LocalVar%CC_ActuatedL = 0
             LocalVar%CC_ActuatedDL = 0
             LocalVar%StC_Input = 0
-            
+
             LocalVar%ZMQ_YawOffset = 0
             LocalVar%ZMQ_PitOffset = 0
             LocalVar%ZMQ_ID = CntrPar%ZMQ_ID
@@ -379,7 +384,8 @@ CONTAINS
         CALL ParseAry(  FileLines,  'F_FlCornerFreq',       CntrPar%F_FlCornerFreq,     2,                       accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'F_FlHighPassFreq',     CntrPar%F_FlHighPassFreq,                            accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
         CALL ParseAry(  FileLines,  'F_FlpCornerFreq',      CntrPar%F_FlpCornerFreq,    2,                       accINFILE(1), ErrVar, CntrPar%Flp_Mode == 0, UnEc)
-        
+        CALL ParseInput(FileLines,  'F_VSRefSpdCornerFreq', CntrPar%F_VSRefSpdCornerFreq,                        accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 2, UnEc)
+
         ! Optional filter inds
         IF (CntrPar%F_GenSpdNotch_N > 0) THEN
             CALL ParseAry(FileLines,    'F_GenSpdNotch_Ind',    CntrPar%F_GenSpdNotch_Ind,  CntrPar%F_GenSpdNotch_N, accINFILE(1), ErrVar, CntrPar%F_GenSpdNotch_N == 0, UnEc)
@@ -431,7 +437,14 @@ CONTAINS
         CALL ParseAry(  FileLines,  'VS_KP',        CntrPar%VS_KP,      CntrPar%VS_n,   accINFILE(1), ErrVar, .FALSE., UnEc)
         CALL ParseAry(  FileLines,  'VS_KI',        CntrPar%VS_KI,      CntrPar%VS_n,   accINFILE(1), ErrVar, .FALSE., UnEc)
         CALL ParseInput(FileLines,  'VS_TSRopt',    CntrPar%VS_TSRopt,                  accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 2, UnEc)
-        CALL ParseInput(FileLines,  'VS_PwrFiltF',  CntrPar%VS_PwrFiltF,                accINFILE(1), ErrVar, CntrPar%VS_ControlMode .NE. 3, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
+
+        !------------ Fixed-Pitch Region 3 Control ------------
+        CALL ParseInput(FileLines,  'VS_FBP_RefMode', CntrPar%VS_FBP_RefMode,                    accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 4, UnEc)
+        CALL ParseInput(FileLines,  'VS_FBP_n',       CntrPar%VS_FBP_n,                          accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 4, UnEc)
+        CALL ParseAry(  FileLines,  'VS_FBP_U',       CntrPar%VS_FBP_U,        CntrPar%VS_FBP_n, accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 4, UnEc)
+        CALL ParseAry(  FileLines,  'VS_FBP_Omega',   CntrPar%VS_FBP_Omega,    CntrPar%VS_FBP_n, accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 4, UnEc)
+        CALL ParseAry(  FileLines,  'VS_FBP_Tau',     CntrPar%VS_FBP_Tau,      CntrPar%VS_FBP_n, accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 4, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------- Setpoint Smoother --------------------------------
@@ -888,7 +901,7 @@ CONTAINS
         ENDIF
 
         ! VS_ControlMode
-        IF ((CntrPar%VS_ControlMode < 0) .OR. (CntrPar%VS_ControlMode > 3)) THEN
+        IF ((CntrPar%VS_ControlMode < 0) .OR. (CntrPar%VS_ControlMode > 4)) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'VS_ControlMode must be 0, 1, 2, or 3.'
         ENDIF
@@ -1044,7 +1057,7 @@ CONTAINS
         ENDIF
 
         ! PC_GS_angles
-        IF (.NOT. NonDecreasing(CntrPar%PC_GS_angles)) THEN
+        IF (CntrPar%PC_ControlMode .NE. 0 .AND. .NOT. NonDecreasing(CntrPar%PC_GS_angles)) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'PC_GS_angles must be non-decreasing'
         ENDIF
@@ -1269,7 +1282,7 @@ CONTAINS
                 ErrVar%ErrMsg  = 'TRA_RateLimit must be greater than 0.'
             END IF
 
-            IF ( .NOT. ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3) )) THEN
+            IF ( .NOT. ((CntrPar%VS_ControlMode == VS_Mode_WSE_TSR) .OR. (CntrPar%VS_ControlMode == VS_Mode_Power_TSR) )) THEN
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg  = 'VS_ControlMode must be 2 or 3 to use frequency avoidance control.'
             END IF

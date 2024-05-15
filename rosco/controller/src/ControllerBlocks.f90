@@ -34,6 +34,7 @@ CONTAINS
         TYPE(DebugVariables),       INTENT(INOUT)       :: DebugVar
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
 
+        REAL(DbKi)                 :: VS_RefSpdRaw   ! Temporary variable for applying LPF to the reference speed after it is generated
 
         ! ----- Pitch controller speed and power error -----
         
@@ -59,16 +60,27 @@ CONTAINS
                 
         ! ----- Torque controller reference errors -----
         ! Define VS reference generator speed [rad/s]
-        IF (CntrPar%VS_ControlMode == 2) THEN
-            LocalVar%VS_RefSpd_TSR = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
-        ELSEIF (CntrPar%VS_ControlMode == 3) THEN
-            LocalVar%VS_GenPwrF = LPFilter(LocalVar%VS_GenPwr, LocalVar%DT,CntrPar%VS_PwrFiltF, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
-            LocalVar%VS_RefSpd_TSR = (LocalVar%VS_GenPwrF/CntrPar%VS_Rgn2K)**(1./3.) ! Genspeed reference that doesnt depend on wind speed estimate (https://doi.org/10.2172/1259805)
-        ELSE
+        IF (CntrPar%VS_ControlMode == VS_Mode_WSE_TSR) THEN
+            ! LocalVar%VS_RefSpd_TSR = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
+            ! Use unfiltered wind speed estimate, then filter below
+            LocalVar%VS_RefSpd_TSR = (CntrPar%VS_TSRopt * LocalVar%WE_Vw / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
+
+        ELSEIF (CntrPar%VS_ControlMode == VS_Mode_Power_TSR) THEN ! Genspeed reference that doesn't depend on wind speed estimate (https://doi.org/10.2172/1259805)
+            LocalVar%VS_RefSpd_TSR = (LocalVar%VS_GenPwr/CntrPar%VS_Rgn2K)**(1./3.)
+
+        ELSEIF (CntrPar%VS_ControlMode == VS_Mode_FBP) THEN ! Generic lookup table for genspeed reference
+            IF (CntrPar%VS_FBP_RefMode == 0) THEN ! Use WSE to look up speed reference
+                VS_RefSpdRaw = interp1d(CntrPar%VS_FBP_U, CntrPar%VS_FBP_Omega, LocalVar%WE_Vw, ErrVar)
+            ELSEIF (CntrPar%VS_FBP_RefMode == 1) THEN ! Use LocalVar%GenTq or LocalVar%GenTqMeas, Omega must be expressed as a function of Tau
+                VS_RefSpdRaw = interp1d(CntrPar%VS_FBP_Tau, CntrPar%VS_FBP_Omega, LocalVar%GenTq, ErrVar)
+            ENDIF
+
+        ELSE ! Generate constant reference
             LocalVar%VS_RefSpd_TSR = CntrPar%VS_RefSpd
         ENDIF 
 
-        LocalVar%VS_RefSpd = LocalVar%VS_RefSpd_TSR
+        ! Filter reference signal
+        LocalVar%VS_RefSpd = LPFilter(LocalVar%VS_RefSpd_TSR, LocalVar%DT, CntrPar%F_VSRefSpdCornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
 
         ! Exclude reference speeds specified by user
         IF (CntrPar%TRA_Mode > 0) THEN
@@ -96,8 +108,10 @@ CONTAINS
         ! Force minimum rotor speed
         LocalVar%VS_RefSpd = max(LocalVar%VS_RefSpd, CntrPar%VS_MinOmSpd)
 
-        ! Reference error
-        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
+        ! Compute speed error from reference
+        IF ((CntrPar%VS_ControlMode == VS_Mode_WSE_TSR) .OR. \
+            (CntrPar%VS_ControlMode == VS_Mode_Power_TSR) .OR. \
+            (CntrPar%VS_ControlMode == VS_Mode_FBP)) THEN
             LocalVar%VS_SpdErr = LocalVar%VS_RefSpd - LocalVar%GenSpeedF
         ENDIF
 

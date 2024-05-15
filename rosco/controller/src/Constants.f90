@@ -37,4 +37,13 @@ MODULE Constants
 
     CHARACTER(1), PARAMETER       :: Tab      = CHAR( 9 ) 
 
+    ! Control Modes
+
+    ! VS_ControlMode
+    INTEGER(IntKi), PARAMETER     :: VS_Mode_Disabled = 0  
+    INTEGER(IntKi), PARAMETER     :: VS_Mode_KOmega = 1  
+    INTEGER(IntKi), PARAMETER     :: VS_Mode_WSE_TSR = 2  
+    INTEGER(IntKi), PARAMETER     :: VS_Mode_Power_TSR = 3  
+    INTEGER(IntKi), PARAMETER     :: VS_Mode_FBP = 4  
+
 END MODULE Constants

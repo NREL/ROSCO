@@ -59,6 +59,7 @@ CONTAINS
         ! Compute the collective pitch command associated with the proportional and integral gains:
         LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, LocalVar%PC_MinPit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%BlPitch(1), LocalVar%piP, LocalVar%restart, objInst%instPI)
         DebugVar%PC_PICommand = LocalVar%PC_PitComT
+
         ! Find individual pitch control contribution
         IF ((CntrPar%IPC_ControlMode >= 1) .OR. (CntrPar%Y_ControlMode == 2)) THEN
             CALL IPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
@@ -203,7 +204,7 @@ CONTAINS
         CHARACTER(*),               PARAMETER           :: RoutineName = 'VariableSpeedControl'
 
         ! Allocate Variables
-        
+
         ! -------- Variable-Speed Torque Controller --------
         ! Define max torque
         IF (LocalVar%VS_State == 4) THEN
@@ -212,12 +213,19 @@ CONTAINS
             ! VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
             LocalVar%VS_MaxTq = CntrPar%VS_RtTq
         ENDIF
-        
+
         ! Optimal Tip-Speed-Ratio tracking controller
-        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
+        IF ((CntrPar%VS_ControlMode == VS_Mode_WSE_TSR) .OR. \
+            (CntrPar%VS_ControlMode == VS_Mode_Power_TSR) .OR. \
+            (CntrPar%VS_ControlMode == VS_Mode_FBP)) THEN
             ! Constant Power, update VS_MaxTq
             IF (CntrPar%VS_ConstPower == 1) THEN
                 LocalVar%VS_MaxTq = min((CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF, CntrPar%VS_MaxTq)
+            END IF
+
+            IF (CntrPar%VS_ControlMode == VS_Mode_FBP) THEN
+                ! DBS: In the future, look into combining FBP with constant power
+                LocalVar%VS_MaxTq = CntrPar%VS_MaxTq
             END IF
 
             ! PI controller
@@ -227,14 +235,13 @@ CONTAINS
                                         CntrPar%VS_KI(1), &
                                         CntrPar%VS_MinTq, LocalVar%VS_MaxTq, &
                                         LocalVar%DT, LocalVar%VS_LastGenTrq, LocalVar%piP, LocalVar%restart, objInst%instPI)
-            LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, LocalVar%VS_MaxTq)
-        
+
         ! K*Omega^2 control law with PI torque control in transition regions
-        ELSEIF (CntrPar%VS_ControlMode == 1) THEN
+        ELSEIF (CntrPar%VS_ControlMode == VS_Mode_KOmega) THEN
             ! Update PI loops for region 1.5 and 2.5 PI control
             LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_MaxOMTq, LocalVar%piP, LocalVar%restart, objInst%instPI)
             LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, LocalVar%piP, LocalVar%restart, objInst%instPI)
-            
+
             ! The action
             IF (LocalVar%VS_State == 1) THEN ! Region 1.5
                 LocalVar%GenTq = LocalVar%GenBrTq
@@ -247,20 +254,17 @@ CONTAINS
             ELSEIF (LocalVar%VS_State == 5) THEN ! Region 3, constant power
                 LocalVar%GenTq = (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF
             END IF
-            
-            ! Saturate
-            LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, CntrPar%VS_MaxTq)
+
         ELSE        ! VS_ControlMode of 0
             LocalVar%GenTq = 0
         ENDIF
 
+        ! Saturate based on most stringent defined maximum
+        LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, MIN(CntrPar%VS_MaxTq, LocalVar%VS_MaxTq))
 
-        ! Saturate the commanded torque using the maximum torque limit:
-        LocalVar%GenTq = MIN(LocalVar%GenTq, CntrPar%VS_MaxTq)                    ! Saturate the command using the maximum torque limit
-        
-        ! Saturate the commanded torque using the torque rate limit:
+        ! Saturate the commanded torque using the torque rate limit
         LocalVar%GenTq = ratelimit(LocalVar%GenTq, -CntrPar%VS_MaxRat, CntrPar%VS_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL)    ! Saturate the command using the torque rate limit
-        
+
         ! Open loop torque control
         IF ((CntrPar%OL_Mode > 0) .AND. (CntrPar%Ind_GenTq > 0)) THEN
             ! Get current OL GenTq, applies for OL_Mode 1 and 2
