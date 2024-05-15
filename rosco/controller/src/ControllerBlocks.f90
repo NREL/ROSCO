@@ -58,15 +58,15 @@ CONTAINS
                 
         ! ----- Torque controller reference errors -----
         ! Define VS reference generator speed [rad/s]
-        IF (CntrPar%VS_ControlMode == 2) THEN
+        IF (CntrPar%VS_ControlMode == VS_Mode_WSE_TSR) THEN
             ! LocalVar%VS_RefSpd_TSR = (CntrPar%VS_TSRopt * LocalVar%We_Vw_F / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
             ! Use unfiltered wind speed estimate, then filter below
             LocalVar%VS_RefSpd_TSR = (CntrPar%VS_TSRopt * LocalVar%WE_Vw / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
 
-        ELSEIF (CntrPar%VS_ControlMode == 3) THEN ! Genspeed reference that doesn't depend on wind speed estimate (https://doi.org/10.2172/1259805)
+        ELSEIF (CntrPar%VS_ControlMode == VS_Mode_Power_TSR) THEN ! Genspeed reference that doesn't depend on wind speed estimate (https://doi.org/10.2172/1259805)
             LocalVar%VS_RefSpd_TSR = (LocalVar%VS_GenPwr/CntrPar%VS_Rgn2K)**(1./3.)
 
-        ELSEIF (CntrPar%VS_ControlMode == 4) THEN ! Generic lookup table for genspeed reference
+        ELSEIF (CntrPar%VS_ControlMode == VS_Mode_FBP) THEN ! Generic lookup table for genspeed reference
             IF (CntrPar%VS_FBP_RefMode == 0) THEN ! Use WSE to look up speed reference
                 LocalVar%VS_RefSpd_TSR = interp1d(CntrPar%VS_FBP_U, CntrPar%VS_FBP_Omega, LocalVar%WE_Vw, ErrVar)
             ELSEIF (CntrPar%VS_FBP_RefMode == 1) THEN ! Use LocalVar%GenTq or LocalVar%GenTqMeas, Omega must be expressed as a function of Tau
@@ -108,7 +108,9 @@ CONTAINS
         LocalVar%VS_RefSpd = max(LocalVar%VS_RefSpd, CntrPar%VS_MinOmSpd)
 
         ! Compute speed error from reference
-        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3) .OR. (CntrPar%VS_ControlMode == 4)) THEN
+        IF ((CntrPar%VS_ControlMode == VS_Mode_WSE_TSR) .OR. \
+            (CntrPar%VS_ControlMode == VS_Mode_Power_TSR) .OR. \
+            (CntrPar%VS_ControlMode == VS_Mode_FBP)) THEN
             LocalVar%VS_SpdErr = LocalVar%VS_RefSpd - LocalVar%GenSpeedF
         ENDIF
 

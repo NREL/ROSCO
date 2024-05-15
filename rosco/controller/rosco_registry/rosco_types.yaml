@@ -1055,9 +1055,6 @@ LocalVariables:
     RotSpeedF:                    
       <<: *real 
       description: Filtered LSS (generator) speed [rad/s].
-    PC_RefSpd:
-      <<: *real
-      description: Generator speed set point of pitch controller [rad/s]
     GenSpeedF:                    
       <<: *real 
       description: Filtered HSS (generator) speed [rad/s].
