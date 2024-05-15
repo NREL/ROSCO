@@ -32,6 +32,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: F_FlHighPassFreq            ! Natural frequency of first-roder high-pass filter for nacelle fore-aft motion [rad/s].
     REAL(DbKi)                    :: F_YawErr                    ! Corner low pass filter corner frequency for yaw controller [rad/s].
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_FlpCornerFreq             ! Corner frequency (-3dB point) in the second order low pass filter of the blade root bending moment for flap control [rad/s].
+    REAL(DbKi)                    :: F_VSRefSpdCornerFreq        ! Corner frequency (-3dB point) in the first order low pass filter of the generator speed reference used for TSR tracking torque control [rad/s].
     INTEGER(IntKi)                :: TRA_Mode                    ! Tower Fore-Aft control mode {0 - no fore-aft control, 1 - Tower fore-aft damping, 2 -Frequency exclusion zone, 3- Options 1 and 2}
     REAL(DbKi)                    :: TRA_ExclSpeed               ! Rotor speed for exclusion [LSS] [rad/s]
     REAL(DbKi)                    :: TRA_ExclBand                ! One-half of the total frequency exclusion band. Torque controller reference will be TRA_ExclFreq +/- TRA_ExlBand [rad/s]
@@ -62,7 +63,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: PC_RefSpd                   ! Desired (reference) HSS speed for pitch controller, [rad/s].
     REAL(DbKi)                    :: PC_FinePit                  ! Record 5 - Below-rated pitch angle set-point (deg) [used only with Bladed Interface]
     REAL(DbKi)                    :: PC_Switch                   ! Angle above lowest minimum pitch angle for switch [rad]
-    INTEGER(IntKi)                :: VS_ControlMode              ! Generator torque control mode in above rated conditions {0 - no torque control, 1 - komega^2 with PI trans, 2 - WSE TSR Tracking, 3 - Power TSR Tracking}
+    INTEGER(IntKi)                :: VS_ControlMode              ! Generator torque control mode in below rated conditions {0 - no torque control, 1 - komega^2 with PI trans, 2 - WSE TSR Tracking, 3 - Power TSR Tracking, 4 - Fixed pitch, generic operating schedule for torque controller in Regions 2 and 3}
     INTEGER(IntKi)                :: VS_ConstPower               ! Constant power torque control
     REAL(DbKi)                    :: VS_GenEff                   ! Generator efficiency mechanical power -> electrical power [-]
     REAL(DbKi)                    :: VS_ArSatTq                  ! Above rated generator torque PI control saturation, [Nm] -- 212900
@@ -78,12 +79,11 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: VS_KP                       ! Proportional gain for generator PI torque controller, used in the transitional 2.5 region
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: VS_KI                       ! Integral gain for generator PI torque controller, used in the transitional 2.5 region
     REAL(DbKi)                    :: VS_TSRopt                   ! Power-maximizing region 2 tip-speed ratio [rad]
-    REAL(DbKi)                    :: VS_PwrFiltF                 ! Cut-off frequency of filter on generator power for power-based tsr tracking control
-    INTEGER(IntKi)                :: FBP_RefMode                 ! Fixed blade pitch reference interpolation mode (0 for WSE, 1 for torque feedback)
-    INTEGER(IntKi)                :: FBP_n                       ! Amount of fixed blade pitch operating schedule table entries
-    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: FBP_U                       ! FBP Operating-schedule table - Wind speeds
-    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: FBP_Omega                   ! FBP Operating-schedule table - Generator speeds
-    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: FBP_Tau                     ! FBP Operating-schedule table - Generator torques
+    INTEGER(IntKi)                :: VS_FBP_RefMode              ! Reference interpolation control mode for fixed blade pitch in above rated conditions {0 - no torque control, 1 - komega^2 with PI trans, 2 - WSE TSR Tracking, 3 - Power TSR Tracking}
+    INTEGER(IntKi)                :: VS_FBP_n                    ! Number of operating schedule entries for fixed blade pitch control
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: VS_FBP_U                    ! Operating schedule for fixed blade pitch control - Wind speed
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: VS_FBP_Omega                ! Operating schedule for fixed blade pitch control - Generator speed
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: VS_FBP_Tau                  ! Operating schedule for fixed blade pitch control - Generator torque
     INTEGER(IntKi)                :: SS_Mode                     ! Setpoint Smoother mode {0 - no setpoint smoothing, 1 - introduce setpoint smoothing}
     REAL(DbKi)                    :: SS_VSGain                   ! Variable speed torque controller setpoint smoother gain, [-].
     REAL(DbKi)                    :: SS_PCGain                   ! Collective pitch controller setpoint smoother gain, [-].
@@ -282,7 +282,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: FA_AccHPFI                  ! Tower velocity, high-pass filtered and integrated fore-aft acceleration [m/s]
     REAL(DbKi)                    :: FA_PitCom(3)                ! Tower fore-aft vibration damping pitch contribution [rad]
     REAL(DbKi)                    :: VS_RefSpd                   ! Torque control generator speed set point [rad/s]
-    REAL(DbKi)                    :: VS_RefSpd_TSR               ! Torque control generator speed set point based on optimal TSR [rad/s]
+    REAL(DbKi)                    :: VS_RefSpd_TSR               ! Torque control generator speed set point based on optimal TSR (unfiltered) [rad/s]
     REAL(DbKi)                    :: VS_RefSpd_TRA               ! Torque control generator speed set point after freq avoidance [rad/s]
     REAL(DbKi)                    :: VS_RefSpd_RL                ! Torque control generator speed set point after rate limit [rad/s]
     REAL(DbKi)                    :: PC_RefSpd                   ! Generator speed set point of pitch controller [rad/s]
@@ -301,7 +301,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: PC_TF                       ! First-order filter parameter for derivative action
     REAL(DbKi)                    :: PC_MaxPit                   ! Maximum pitch setting in pitch controller (variable) [rad].
     REAL(DbKi)                    :: PC_MinPit                   ! Minimum pitch setting in pitch controller (variable) [rad].
-    REAL(DbKi)                    :: PC_PitComT                  ! Total command pitch based on the sum of the proportional and integral terms [rad].
+    REAL(DbKi)                    :: PC_PitComT                  ! Collective pitch commmand from PI control [rad].
     REAL(DbKi)                    :: PC_PitComT_Last             ! Last total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(DbKi)                    :: PC_PitComTF                 ! Filtered Total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(DbKi)                    :: PC_PitComT_IPC(3)           ! Total command pitch based on the sum of the proportional and integral terms, including IPC term [rad].

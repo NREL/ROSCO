@@ -158,6 +158,9 @@ ControlParameters:
       <<: *real
       description: Corner frequency (-3dB point) in the second order low pass filter of the blade root bending moment for flap control [rad/s].
       allocatable: True
+    F_VSRefSpdCornerFreq:
+      <<: *real
+      description: Corner frequency (-3dB point) in the first order low pass filter of the generator speed reference used for TSR tracking torque control [rad/s].
     
     # Tower fore-aft damping
     TRA_Mode:
@@ -267,7 +270,7 @@ ControlParameters:
     # Generator Torque Controller
     VS_ControlMode:
       <<: *integer
-      description: Generator torque control mode in above rated conditions {0 - no torque control, 1 - komega^2 with PI trans, 2 - WSE TSR Tracking, 3 - Power TSR Tracking}
+      description: Generator torque control mode in below rated conditions {0 - no torque control, 1 - komega^2 with PI trans, 2 - WSE TSR Tracking, 3 - Power TSR Tracking, 4 - Fixed pitch, generic operating schedule for torque controller in Regions 2 and 3}
     VS_ConstPower:
       <<: *integer
       description: Constant power torque control
@@ -315,10 +318,25 @@ ControlParameters:
     VS_TSRopt:
       <<: *real
       description: Power-maximizing region 2 tip-speed ratio [rad]
-    VS_PwrFiltF:
+    VS_FBP_RefMode:
+      <<: *integer
+      description: Reference interpolation control mode for fixed blade pitch in above rated conditions {0 - no torque control, 1 - komega^2 with PI trans, 2 - WSE TSR Tracking, 3 - Power TSR Tracking}
+    VS_FBP_n:
+      <<: *integer
+      description: Number of operating schedule entries for fixed blade pitch control
+    VS_FBP_U:
       <<: *real
-      description: Cut-off frequency of filter on generator power for power-based tsr tracking control
-    
+      description: Operating schedule for fixed blade pitch control - Wind speed
+      allocatable: True
+    VS_FBP_Omega:
+      <<: *real
+      description: Operating schedule for fixed blade pitch control - Generator speed
+      allocatable: True
+    VS_FBP_Tau:
+      <<: *real
+      description: Operating schedule for fixed blade pitch control - Generator torque
+      allocatable: True
+
     # Setpoint Smoother
     SS_Mode:
       <<: *integer
@@ -1018,7 +1036,7 @@ LocalVariables:
       description: Torque control generator speed set point [rad/s]
     VS_RefSpd_TSR:          
       <<: *real 
-      description: Torque control generator speed set point based on optimal TSR [rad/s]
+      description: Torque control generator speed set point based on optimal TSR (unfiltered) [rad/s]
     VS_RefSpd_TRA:          
       <<: *real 
       description: Torque control generator speed set point after freq avoidance [rad/s]

@@ -230,11 +230,11 @@ CONTAINS
                 ENDIF
             ELSE
                 ! Set torque initial condition based on operating schedule at current wind speed
-                LocalVar%GenTq = interp1d(CntrPar%FBP_U, CntrPar%FBP_Tau, LocalVar%HorWindV, ErrVar)
+                LocalVar%GenTq = interp1d(CntrPar%VS_FBP_U, CntrPar%VS_FBP_Tau, LocalVar%HorWindV, ErrVar)
             ENDIF
             LocalVar%VS_LastGenTrq = LocalVar%GenTq
             LocalVar%VS_MaxTq      = CntrPar%VS_MaxTq
-            LocalVar%VS_GenPwr     = LocalVar%GenTq * LocalVar%GenSpeed
+            LocalVar%VS_GenPwr     = LocalVar%GenTq * LocalVar%GenSpeed * CntrPar%VS_GenEff/100.0
 
             ! Initialize variables
             LocalVar%CC_DesiredL = 0
@@ -384,7 +384,8 @@ CONTAINS
         CALL ParseAry(  FileLines,  'F_FlCornerFreq',       CntrPar%F_FlCornerFreq,     2,                       accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'F_FlHighPassFreq',     CntrPar%F_FlHighPassFreq,                            accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
         CALL ParseAry(  FileLines,  'F_FlpCornerFreq',      CntrPar%F_FlpCornerFreq,    2,                       accINFILE(1), ErrVar, CntrPar%Flp_Mode == 0, UnEc)
-        
+        CALL ParseInput(FileLines,  'F_VSRefSpdCornerFreq', CntrPar%F_VSRefSpdCornerFreq,                        accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 2, UnEc)
+
         ! Optional filter inds
         IF (CntrPar%F_GenSpdNotch_N > 0) THEN
             CALL ParseAry(FileLines,    'F_GenSpdNotch_Ind',    CntrPar%F_GenSpdNotch_Ind,  CntrPar%F_GenSpdNotch_N, accINFILE(1), ErrVar, CntrPar%F_GenSpdNotch_N == 0, UnEc)
@@ -436,15 +437,14 @@ CONTAINS
         CALL ParseAry(  FileLines,  'VS_KP',        CntrPar%VS_KP,      CntrPar%VS_n,   accINFILE(1), ErrVar, .FALSE., UnEc)
         CALL ParseAry(  FileLines,  'VS_KI',        CntrPar%VS_KI,      CntrPar%VS_n,   accINFILE(1), ErrVar, .FALSE., UnEc)
         CALL ParseInput(FileLines,  'VS_TSRopt',    CntrPar%VS_TSRopt,                  accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 2, UnEc)
-        CALL ParseInput(FileLines,  'VS_PwrFiltF',  CntrPar%VS_PwrFiltF,                accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 3, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ Fixed-Pitch Region 3 Control ------------
-        CALL ParseInput(FileLines,  'FBP_RefMode', CntrPar%FBP_RefMode,              accINFILE(1), ErrVar, CntrPar%VS_ControlMode .NE. VS_Mode_FBP, UnEc)
-        CALL ParseInput(FileLines,  'FBP_n',       CntrPar%FBP_n,                    accINFILE(1), ErrVar, CntrPar%VS_ControlMode .NE. VS_Mode_FBP, UnEc)
-        CALL ParseAry(  FileLines,  'FBP_U',       CntrPar%FBP_U,     CntrPar%FBP_n, accINFILE(1), ErrVar, CntrPar%VS_ControlMode .NE. VS_Mode_FBP, UnEc)
-        CALL ParseAry(  FileLines,  'FBP_Omega',   CntrPar%FBP_Omega, CntrPar%FBP_n, accINFILE(1), ErrVar, CntrPar%VS_ControlMode .NE. VS_Mode_FBP, UnEc)
-        CALL ParseAry(  FileLines,  'FBP_Tau',     CntrPar%FBP_Tau,   CntrPar%FBP_n, accINFILE(1), ErrVar, CntrPar%VS_ControlMode .NE. VS_Mode_FBP, UnEc)
+        CALL ParseInput(FileLines,  'VS_FBP_RefMode', CntrPar%VS_FBP_RefMode,                    accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 4, UnEc)
+        CALL ParseInput(FileLines,  'VS_FBP_n',       CntrPar%VS_FBP_n,                          accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 4, UnEc)
+        CALL ParseAry(  FileLines,  'VS_FBP_U',       CntrPar%VS_FBP_U,        CntrPar%VS_FBP_n, accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 4, UnEc)
+        CALL ParseAry(  FileLines,  'VS_FBP_Omega',   CntrPar%VS_FBP_Omega,    CntrPar%VS_FBP_n, accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 4, UnEc)
+        CALL ParseAry(  FileLines,  'VS_FBP_Tau',     CntrPar%VS_FBP_Tau,      CntrPar%VS_FBP_n, accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 4, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------- Setpoint Smoother --------------------------------
