@@ -10,7 +10,7 @@ True                   Echo        - Echo input data to <RootName>.ech (flag)
 99999.0                DT_UJac     - Time between calls to get Jacobians (s)
 1000000.0              UJacSclFact - Scaling factor used in Jacobians (-)
 ---------------------- FEATURE SWITCHES AND FLAGS ------------------------------
-1                      CompElast   - Compute structural dynamics (switch) {1=ElastoDyn; 2=ElastoDyn + BeamDyn for blades}
+2                      CompElast   - Compute structural dynamics (switch) {1=ElastoDyn; 2=ElastoDyn + BeamDyn for blades}
 1                      CompInflow  - Compute inflow wind velocities (switch) {0=still air; 1=InflowWind; 2=external from OpenFOAM}
 2                      CompAero    - Compute aerodynamic loads (switch) {0=None; 1=AeroDyn v14; 2=AeroDyn v15}
 1                      CompServo   - Compute control and electrical-drive dynamics (switch) {0=None; 1=ServoDyn}
