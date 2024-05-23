@@ -15,6 +15,12 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-12, macos-13, macos-14]
 
     steps:
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
+        
       - name: Setup GNU Fortran
         if: false == contains( matrix.os, 'windows')
         uses: awvwgk/setup-fortran@v1
