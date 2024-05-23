@@ -138,7 +138,7 @@ atomic = true
 [tool.cibuildwheel]
 skip = ["pp*", "cp36-*", "cp37-*", "cp38-*", "*-win32", "*-win_arm64"] #, "*-musllinux*"]
 build-frontend = { name = "build", args = ["-w","-n"] }
-before-build = "pip install setuptools cmake numpy pyzmq cmake-build-extension"
+before-build = "pip install setuptools cmake numpy pyzmq cmake-build-extension wheel"
 build-verbosity = "3"
 
 # https://github.com/pdfo/pdfo
