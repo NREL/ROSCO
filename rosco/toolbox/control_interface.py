@@ -418,7 +418,7 @@ class wfc_zmq_server:
         logger.debug(
             f"Asking wfc_controller for setpoints at time = {current_time} for id = {id}"
         )
-        setpoints = self.wfc_controller(id, current_time, measurements)
+        setpoints = self.wfc_controller.update(id, current_time, measurements)
         logger.info(f"Received setpoints {setpoints} from wfc_controller for time = {current_time} and id = {id}")
 
         for s in self.wfc_interface["setpoints"]:

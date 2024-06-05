@@ -38,12 +38,16 @@ def run_zmq(logfile=None):
     server = wfc_zmq_server(network_address, timeout=60.0, verbose=False, logfile=logfile)
 
     # Provide the wind farm control algorithm as the wfc_controller method of the server
-    server.wfc_controller = wfc_controller
+    server.wfc_controller = wfc_controller()
 
     # Run the server to receive measurements and send setpoints
     server.runserver()
     
-def wfc_controller(id,current_time,measurements):
+class wfc_controller():
+    def __init__(self):
+        return None
+    
+    def update(self, id,current_time,measurements):
         if current_time <= 10.0:
             yaw_setpoint = 0.0
         else:
@@ -62,7 +66,9 @@ def wfc_controller(id,current_time,measurements):
         setpoints['ZMQ_PitOffset(1)'] = col_pitch_command
         setpoints['ZMQ_PitOffset(2)'] = col_pitch_command
         setpoints['ZMQ_PitOffset(3)'] = col_pitch_command
+
         return setpoints
+
 
 def sim_rosco():
     # Load yaml file
