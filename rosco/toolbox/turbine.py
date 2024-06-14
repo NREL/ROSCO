@@ -171,10 +171,18 @@ class Turbine():
 
         # file
         ed_file = os.path.join(fast.FAST_directory, fast.fst_vt['Fst']['EDFile'])
-
         fast.read_ElastoDyn(ed_file)
         ed_blade_file = os.path.join(os.path.dirname(ed_file), fast.fst_vt['ElastoDyn']['BldFile1'])
-        fast.read_ElastoDynBlade(ed_blade_file)
+        
+        if fast.fst_vt['Fst']['CompElast'] ==1:
+            fast.read_ElastoDynBlade(ed_blade_file)
+        elif fast.fst_vt['Fst']['CompElast'] ==2:
+            bd_file = os.path.join(fast.FAST_directory, fast.fst_vt['Fst']['BDBldFile(1)'])
+            fast.read_BeamDyn(bd_file)
+            bd_blade_file = os.path.join(os.path.dirname(bd_file), fast.fst_vt['BeamDyn']['BldFile'])
+            fast.read_BeamDynBlade(bd_blade_file)
+        else:
+            Warning('No ElastoDyn or BeamDyn files were provided')
 
         fast.read_AeroDyn15()
 
@@ -588,8 +596,12 @@ class Turbine():
         self.span = r 
         self.chord = chord
         self.twist = theta
-        self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade']['BldFlDmp1']/100
-
+        
+        if self.fast.fst_vt['Fst']['CompElast'] ==1:
+            self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade']['BldFlDmp1']/100
+        elif self.fast.fst_vt['Fst']['CompElast'] ==2:
+            self.bld_flapwise_damp = self.fast.fst_vt['BeamDynBlade']['mu5']
+        
 class RotorPerformance():
     '''
     Class RotorPerformance used to find details from rotor performance 
