@@ -13,6 +13,7 @@ example_out_dir = os.path.join(this_dir, "examples_out")
 os.makedirs(example_out_dir, exist_ok=True)
 TIME_CHECK = 20
 DESIRED_YAW_OFFSET = [-10, 10]
+DESIRED_R_PITCH = 0.9
 
 
 def run_zmq(logfile=None):
@@ -40,6 +41,7 @@ def wfc_controller(id, current_time, measurements):
     should be overwriten with this fuction, otherwise, an exception is raised and
     the simulation stops.
     """
+    R_Pitch = 1.0
     if current_time <= 10.0:
         YawOffset = 0.0
         col_pitch_command = 0.0
@@ -47,6 +49,7 @@ def wfc_controller(id, current_time, measurements):
         col_pitch_command = np.deg2rad(2) * np.sin(0.1 * current_time) + np.deg2rad(2) # Implement dynamic induction control
         if id == 1:
             YawOffset = DESIRED_YAW_OFFSET[0]
+            R_Pitch = DESIRED_R_PITCH
         else:
             YawOffset = DESIRED_YAW_OFFSET[1]
 
@@ -56,6 +59,7 @@ def wfc_controller(id, current_time, measurements):
     setpoints['ZMQ_PitOffset(1)'] = col_pitch_command
     setpoints['ZMQ_PitOffset(2)'] = col_pitch_command
     setpoints['ZMQ_PitOffset(3)'] = col_pitch_command
+    setpoints['ZMQ_R_Pitch'] = R_Pitch
     return setpoints
 
 
@@ -74,6 +78,8 @@ def sim_openfast_1():
     r.controller_params["DISCON"] = {}
     r.controller_params["DISCON"]["ZMQ_Mode"] = 1
     r.controller_params["DISCON"]["ZMQ_ID"] = 1
+    r.controller_params['DISCON']['PRC_Mode'] = 1
+    r.controller_params['DISCON']['PRC_Comm'] = 2
     r.save_dir = run_dir
     r.run_FAST()
 
@@ -94,6 +100,8 @@ def sim_openfast_2():
     r.controller_params["LoggingLevel"] = 2
     r.controller_params["DISCON"]["ZMQ_Mode"] = 1
     r.controller_params["DISCON"]["ZMQ_ID"] = 2
+    r.controller_params['DISCON']['PRC_Mode'] = 1
+    r.controller_params['DISCON']['PRC_Comm'] = 2
     r.run_FAST()
 
 
@@ -148,13 +156,19 @@ if __name__ == "__main__":
     else:
         plt.savefig(os.path.join(example_out_dir, "17b_NREL5MW_ZMQ_Setpoints.png"))
 
-    # Spot check input at time = 30 sec.
-    ind1_30 = local_vars1[0]["Time"] == TIME_CHECK
-    ind2_30 = local_vars2[0]["Time"] == TIME_CHECK
+    # Spot check input at time = TIME_CHECK
+    ind1_TC = local_vars1[0]["Time"] == TIME_CHECK
+    ind2_TC = local_vars2[0]["Time"] == TIME_CHECK
 
     np.testing.assert_almost_equal(
-        local_vars1[0]["ZMQ_YawOffset"][ind1_30], DESIRED_YAW_OFFSET[0]
+        local_vars1[0]["ZMQ_YawOffset"][ind1_TC], DESIRED_YAW_OFFSET[0]
     )
     np.testing.assert_almost_equal(
-        local_vars2[0]["ZMQ_YawOffset"][ind2_30], DESIRED_YAW_OFFSET[1]
+        local_vars2[0]["ZMQ_YawOffset"][ind2_TC], DESIRED_YAW_OFFSET[1]
     )
+
+    np.testing.assert_almost_equal(
+        local_vars1[0]["ZMQ_R_Pitch"][ind1_TC], DESIRED_R_PITCH
+    )
+
+

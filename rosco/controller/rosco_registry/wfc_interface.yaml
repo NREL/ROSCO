@@ -24,4 +24,18 @@ setpoints: [
   ZMQ_PitOffset(1),
   ZMQ_PitOffset(2),
   ZMQ_PitOffset(3),
+  ZMQ_R_Speed,
+  ZMQ_R_Torque,
+  ZMQ_R_Pitch,
   ]
+
+setpoints_default: [  # order should match setpoints
+  0,
+  0,
+  0,
+  0,
+  0,
+  1,
+  1,
+  1,
+]

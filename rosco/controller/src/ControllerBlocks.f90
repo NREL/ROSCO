@@ -37,12 +37,12 @@ CONTAINS
 
         ! Set up power reference
         IF (CntrPar%PRC_Mode == 1) THEN  ! Using power reference control
-            IF (CntrPar%PRC_Comm == 0) THEN  ! Constant, from DISCON
+            IF (CntrPar%PRC_Comm == PRC_Comm_Constant) THEN  ! Constant, from DISCON
                 LocalVar%PRC_R_Speed = CntrPar%PRC_R_Speed
                 LocalVar%PRC_R_Torque = CntrPar%PRC_R_Torque
                 LocalVar%PRC_R_Pitch = CntrPar%PRC_R_Pitch
 
-            ELSEIF (CntrPar%PRC_Comm == 1) THEN  ! Open loop
+            ELSEIF (CntrPar%PRC_Comm == PRC_Comm_OpenLoop) THEN  ! Open loop
 
                 IF (CntrPar%Ind_R_Speed > 0) THEN
                     LocalVar%PRC_R_Speed = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_R_Speed,LocalVar%Time,ErrVar)
@@ -63,9 +63,10 @@ CONTAINS
                     LocalVar%PRC_R_Pitch = 1.0_DbKi
                 ENDIF
 
-            ELSEIF (CntrPar%PRC_Comm == 2) THEN  ! ZeroMQ
-                ! TODO
-                ! Check when ZMQ is called, should be before this!
+            ELSEIF (CntrPar%PRC_Comm == PRC_Comm_ZMQ) THEN  ! ZeroMQ
+                LocalVar%PRC_R_Speed    = LocalVar%ZMQ_R_Speed
+                LocalVar%PRC_R_Torque   = LocalVar%ZMQ_R_Torque
+                LocalVar%PRC_R_Pitch    = LocalVar%ZMQ_R_Pitch
 
             ENDIF
 

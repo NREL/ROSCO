@@ -394,6 +394,9 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: ZMQ_YawOffset               ! Yaw offset command, [rad]
     REAL(DbKi)                    :: ZMQ_TorqueOffset            ! Torque offset command, [Nm]
     REAL(DbKi)                    :: ZMQ_PitOffset(3)            ! Pitch command offset provided by ZeroMQ
+    REAL(DbKi)                    :: ZMQ_R_Speed                 ! R_Speed command provided by ZeroMQ
+    REAL(DbKi)                    :: ZMQ_R_Torque                ! R_Torque command provided by ZeroMQ
+    REAL(DbKi)                    :: ZMQ_R_Pitch                 ! R_Pitch command provided by ZeroMQ
     TYPE(WE)                      :: WE                          ! Wind speed estimator parameters derived type
     TYPE(FilterParameters)        :: FP                          ! Filter parameters derived type
     TYPE(piParams)                :: piP                         ! PI parameters derived type

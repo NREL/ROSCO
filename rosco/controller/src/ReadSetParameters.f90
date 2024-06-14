@@ -441,9 +441,9 @@ CONTAINS
 
         !------------ POWER REFERENCE TRACKING SETPOINTS --------------
         CALL ParseInput(FileLines,  'PRC_Comm',         CntrPar%PRC_Comm,                                   accINFILE(1), ErrVar, CntrPar%PRC_Mode .NE. 1, UnEc)
-        CALL ParseInput(FileLines,  'PRC_R_Torque',     CntrPar%PRC_R_Torque,                               accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 1) .OR. (CntrPar%PRC_Comm .NE. 0), UnEc)
-        CALL ParseInput(FileLines,  'PRC_R_Speed',      CntrPar%PRC_R_Speed,                                accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 1) .OR. (CntrPar%PRC_Comm .NE. 0), UnEc)
-        CALL ParseInput(FileLines,  'PRC_R_Pitch',      CntrPar%PRC_R_Pitch,                                accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 1) .OR. (CntrPar%PRC_Comm .NE. 0), UnEc)
+        CALL ParseInput(FileLines,  'PRC_R_Torque',     CntrPar%PRC_R_Torque,                               accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 1) .OR. (CntrPar%PRC_Comm .NE. PRC_Comm_Constant), UnEc)
+        CALL ParseInput(FileLines,  'PRC_R_Speed',      CntrPar%PRC_R_Speed,                                accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 1) .OR. (CntrPar%PRC_Comm .NE. PRC_Comm_Constant), UnEc)
+        CALL ParseInput(FileLines,  'PRC_R_Pitch',      CntrPar%PRC_R_Pitch,                                accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 1) .OR. (CntrPar%PRC_Comm .NE. PRC_Comm_Constant), UnEc)
         CALL ParseInput(FileLines,  'PRC_Table_n',      CntrPar%PRC_Table_n,                                accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 1) .OR. (CntrPar%PRC_R_Pitch == 1.0), UnEc)
         CALL ParseAry(FileLines,    'PRC_R_Table',      CntrPar%PRC_R_Table,        CntrPar%PRC_Table_n,    accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 1) .OR. (CntrPar%PRC_R_Pitch == 1.0), UnEc)
         CALL ParseAry(FileLines,    'PRC_Pitch_Table',  CntrPar%PRC_Pitch_Table,    CntrPar%PRC_Table_n,    accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 1) .OR. (CntrPar%PRC_R_Pitch == 1.0), UnEc)
@@ -1220,7 +1220,14 @@ CONTAINS
         ENDIF
 
         IF (CntrPar%PRC_Mode > 0) THEN
-            PRINT *, "Note: PRC Mode = ", CntrPar%PRC_Mode, ", which will ignore VS_RefSpeed, VS_TSRopt, and PC_RefSpeed"
+            PRINT *, "Note: PRC Mode = ", CntrPar%PRC_Mode, ", which will affect VS_RefSpeed, VS_TSRopt, and PC_RefSpeed"
+
+            ! TODO: All PRC checks
+            ! ZMQ_Mode and PRC_Comm
+            ! OL_Mode and PRC_Comm
+            
+
+
         ENDIF
         
         !------- WIND SPEED ESTIMATOR ---------------------------------------------

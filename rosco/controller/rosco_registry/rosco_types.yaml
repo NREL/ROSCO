@@ -1384,6 +1384,15 @@ LocalVariables:
       <<: *real
       size: 3
       description: Pitch command offset provided by ZeroMQ
+    ZMQ_R_Speed:
+      <<: *real
+      description: R_Speed command provided by ZeroMQ
+    ZMQ_R_Torque:
+      <<: *real
+      description: R_Torque command provided by ZeroMQ
+    ZMQ_R_Pitch:
+      <<: *real
+      description: R_Pitch command provided by ZeroMQ
     WE: 
       <<: *derived_type
       id: WE 

@@ -421,8 +421,8 @@ class wfc_zmq_server:
         setpoints = self.wfc_controller(id, current_time, measurements)
         logger.info(f"Received setpoints {setpoints} from wfc_controller for time = {current_time} and id = {id}")
 
-        for s in self.wfc_interface["setpoints"]:
-            self.connections.setpoints[id][s] = setpoints.get(s, 0)
+        for i, s in enumerate(self.wfc_interface["setpoints"]):
+            self.connections.setpoints[id][s] = setpoints.get(s, self.wfc_interface['setpoints_default'][i])
             logger.debug(f'Set setpoint {s} in the connections list to {setpoints.get(s,0)} for id = {id}')
 
     def wfc_controller(self, id, current_time, measurements):

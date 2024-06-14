@@ -241,6 +241,9 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%ZMQ_PitOffset(1)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%ZMQ_PitOffset(2)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%ZMQ_PitOffset(3)
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%ZMQ_R_Speed
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%ZMQ_R_Torque
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%ZMQ_R_Pitch
         WRITE( Un, IOSTAT=ErrStat) LocalVar%WE%om_r
         WRITE( Un, IOSTAT=ErrStat) LocalVar%WE%v_t
         WRITE( Un, IOSTAT=ErrStat) LocalVar%WE%v_m
@@ -550,6 +553,9 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%ZMQ_PitOffset(1)
         READ( Un, IOSTAT=ErrStat) LocalVar%ZMQ_PitOffset(2)
         READ( Un, IOSTAT=ErrStat) LocalVar%ZMQ_PitOffset(3)
+        READ( Un, IOSTAT=ErrStat) LocalVar%ZMQ_R_Speed
+        READ( Un, IOSTAT=ErrStat) LocalVar%ZMQ_R_Torque
+        READ( Un, IOSTAT=ErrStat) LocalVar%ZMQ_R_Pitch
         READ( Un, IOSTAT=ErrStat) LocalVar%WE%om_r
         READ( Un, IOSTAT=ErrStat) LocalVar%WE%v_t
         READ( Un, IOSTAT=ErrStat) LocalVar%WE%v_m
@@ -704,7 +710,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       '[N/A]', '[N/A]', '[N/A]', '[N/A]', '[rad/s]', & 
                                       '[deg]', '[deg]', '[deg]', '[N/A]', '[rad/s]', & 
                                       '[rad/s]']
-    nLocalVars = 130
+    nLocalVars = 133
     Allocate(LocalVarOutData(nLocalVars))
     Allocate(LocalVarOutStrings(nLocalVars))
     LocalVarOutData(1) = LocalVar%iStatus
@@ -837,6 +843,9 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(128) = LocalVar%ZMQ_YawOffset
     LocalVarOutData(129) = LocalVar%ZMQ_TorqueOffset
     LocalVarOutData(130) = LocalVar%ZMQ_PitOffset(1)
+    LocalVarOutData(131) = LocalVar%ZMQ_R_Speed
+    LocalVarOutData(132) = LocalVar%ZMQ_R_Torque
+    LocalVarOutData(133) = LocalVar%ZMQ_R_Pitch
     LocalVarOutStrings = [CHARACTER(15) ::  'iStatus', 'Time', 'DT', 'n_DT', 'Time_Last', & 
                                       'VS_GenPwr', 'VS_GenPwrF', 'GenSpeed', 'RotSpeed', 'NacHeading', & 
                                       'NacVane', 'HorWindV', 'rootMOOP', 'rootMOOPF', 'BlPitch', & 
@@ -862,8 +871,8 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       'PtfmRVY', 'PtfmRVZ', 'PtfmTAX', 'PtfmTAY', 'PtfmTAZ', & 
                                       'PtfmRAX', 'PtfmRAY', 'PtfmRAZ', 'CC_DesiredL', 'CC_ActuatedL', & 
                                       'CC_ActuatedDL', 'StC_Input', 'Flp_Angle', 'RootMyb_Last', 'ACC_INFILE_SIZE', & 
-                                      'AWC_complexangle', 'ZMQ_ID', 'ZMQ_YawOffset', 'ZMQ_TorqueOffset', 'ZMQ_PitOffset' & 
-                                     ]
+                                      'AWC_complexangle', 'ZMQ_ID', 'ZMQ_YawOffset', 'ZMQ_TorqueOffset', 'ZMQ_PitOffset', & 
+                                      'ZMQ_R_Speed', 'ZMQ_R_Torque', 'ZMQ_R_Pitch']
     ! Initialize debug file
     IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN ! .TRUE. if we're on the first call to the DLL
         IF (CntrPar%LoggingLevel > 0) THEN
@@ -878,8 +887,8 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
             CALL GetNewUnit(UnDb2, ErrVar)
             OPEN(unit=UnDb2, FILE=TRIM(RootName)//'.RO.dbg2')
             WRITE(UnDb2, *)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)
-            WRITE(UnDb2, '(131(a20,TR5:))') 'Time',   LocalVarOutStrings
-            WRITE(UnDb2, '(131(a20,TR5:))')
+            WRITE(UnDb2, '(134(a20,TR5:))') 'Time',   LocalVarOutStrings
+            WRITE(UnDb2, '(134(a20,TR5:))')
         END IF
 
         IF (CntrPar%LoggingLevel > 2) THEN
@@ -942,7 +951,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     END DO
     
     ! Write debug files
-    FmtDat = "(F20.5,TR5,130(ES20.5E2,TR5:))"   ! The format of the debugging data
+    FmtDat = "(F20.5,TR5,133(ES20.5E2,TR5:))"   ! The format of the debugging data
     IF ( MOD(LocalVar%n_DT, CntrPar%n_DT_Out) == 0) THEN
         IF(CntrPar%LoggingLevel > 0) THEN
             WRITE (UnDb, TRIM(FmtDat))  LocalVar%Time, DebugOutData

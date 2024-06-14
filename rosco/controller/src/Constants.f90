@@ -37,4 +37,10 @@ MODULE Constants
 
     CHARACTER(1), PARAMETER       :: Tab      = CHAR( 9 ) 
 
+    ! PRC Mode constants
+    REAL(IntKi), PARAMETER      :: PRC_Comm_Constant    = 0     ! Constant based on discon input
+    REAL(IntKi), PARAMETER      :: PRC_Comm_OpenLoop    = 1     ! Based on open loop input
+    REAL(IntKi), PARAMETER      :: PRC_Comm_ZMQ         = 2     ! Determined using ZMQ input
+
+
 END MODULE Constants
