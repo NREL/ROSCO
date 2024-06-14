@@ -146,6 +146,7 @@ class Controller():
         self.OL_Mode            = controller_params['OL_Mode']
         self.OL_Filename        = controller_params['open_loop']['filename']
         self.OL_Ind_Breakpoint  = self.OL_Ind_GenTq = self.OL_Ind_YawRate = self.OL_Ind_Azimuth = 0
+        self.OL_Ind_R_Speed = self.OL_Ind_R_Torque = self.OL_Ind_R_Pitch = 0
         self.OL_Ind_BldPitch    = [0,0,0]
         self.OL_Ind_CableControl = [0]
         self.OL_Ind_StructControl = [0]
@@ -157,6 +158,9 @@ class Controller():
             self.OL_Ind_GenTq       = ol_params['OL_Ind_GenTq']
             self.OL_Ind_YawRate     = ol_params['OL_Ind_YawRate']
             self.OL_Ind_Azimuth     = ol_params['OL_Ind_Azimuth']
+            self.OL_Ind_R_Speed     = ol_params['OL_Ind_R_Speed']
+            self.OL_Ind_R_Torque    = ol_params['OL_Ind_R_Torque']
+            self.OL_Ind_R_Pitch     = ol_params['OL_Ind_R_Pitch']
             self.OL_Ind_CableControl     = ol_params['OL_Ind_CableControl']
             self.OL_Ind_StructControl    = ol_params['OL_Ind_StructControl']
 
@@ -752,7 +756,17 @@ class OpenLoopControl(object):
         self.ol_timeseries = {}
         self.ol_timeseries['time'] = np.arange(0,self.t_max,self.dt)
 
-        self.allowed_controls = ['blade_pitch','generator_torque','nacelle_yaw','nacelle_yaw_rate','cable_control','struct_control']
+        self.allowed_controls = [
+            'blade_pitch',
+            'generator_torque',
+            'nacelle_yaw',
+            'nacelle_yaw_rate',
+            'cable_control',
+            'struct_control',
+            'R_speed',
+            'R_torque',
+            'R_pitch',
+            ]
 
         
     def const_timeseries(self,control,value):
@@ -839,7 +853,7 @@ class OpenLoopControl(object):
 
         # Init indices
         OL_Ind_Breakpoint = 1
-        OL_Ind_Azimuth = OL_Ind_GenTq = OL_Ind_YawRate = 0
+        OL_Ind_Azimuth = OL_Ind_GenTq = OL_Ind_YawRate = OL_Ind_R_Speed = OL_Ind_R_Torque = OL_Ind_R_Pitch = 0
         OL_Ind_BldPitch = 3*[0]
         OL_Ind_CableControl = []
         OL_Ind_StructControl = []
@@ -882,6 +896,12 @@ class OpenLoopControl(object):
                 OL_Ind_BldPitch[2] = ol_index_counter
             elif channel == 'azimuth':
                 OL_Ind_Azimuth = ol_index_counter
+            elif channel == 'R_speed':
+                OL_Ind_R_Speed = ol_index_counter
+            elif channel == 'R_torque':
+                OL_Ind_R_Torque = ol_index_counter
+            elif channel == 'R_pitch':
+                OL_Ind_R_Pitch = ol_index_counter
             elif 'cable_control' in channel or 'struct_control' in channel:
                 skip_write = True
                 ol_index_counter -= 1  # don't increment counter
@@ -972,6 +992,18 @@ class OpenLoopControl(object):
             else:
                 OL_Ind_StructControl = [0]
 
+            if OL_Ind_R_Speed:
+                headers[OL_Ind_R_Speed-1] = 'R_speed'
+                units[OL_Ind_R_Speed-1] = '(-)'
+
+            if OL_Ind_R_Torque:
+                headers[OL_Ind_R_Torque-1] = 'R_Torque'
+                units[OL_Ind_R_Torque-1] = '(-)'
+
+            if OL_Ind_R_Pitch:
+                headers[OL_Ind_R_Pitch-1] = 'R_Pitch'
+                units[OL_Ind_R_Pitch-1] = '(-)'
+
             # Join headers and units
             header_line = '!' + '\t\t'.join(headers) + '\n'
             unit_line = '!' + '\t\t'.join(units) + '\n'
@@ -994,6 +1026,9 @@ class OpenLoopControl(object):
         open_loop['OL_Ind_Azimuth']     = OL_Ind_Azimuth
         open_loop['OL_Ind_CableControl']     = OL_Ind_CableControl
         open_loop['OL_Ind_StructControl']    = OL_Ind_StructControl
+        open_loop['OL_Ind_R_Speed']     = OL_Ind_R_Speed
+        open_loop['OL_Ind_R_Torque']    = OL_Ind_R_Torque
+        open_loop['OL_Ind_R_Pitch']     = OL_Ind_R_Pitch
 
 
         return open_loop

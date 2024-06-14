@@ -527,6 +527,15 @@ ControlParameters:
     Ind_YawRate:
       <<: *integer
       description: The column in OL_Filename that contains the generator torque in Nm
+    Ind_R_Speed:
+      <<: *integer
+      description: The column in OL_Filename that contains the generator torque in Nm
+    Ind_R_Torque:
+      <<: *integer
+      description: The column in OL_Filename that contains the generator torque in Nm
+    Ind_R_Pitch:
+      <<: *integer
+      description: The column in OL_Filename that contains the generator torque in Nm
     Ind_Azimuth:
       <<: *integer
       description: The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
@@ -578,6 +587,18 @@ ControlParameters:
       <<: *real
       allocatable: True
       description: Open loop azimuth timeseries
+    OL_R_Speed:
+      <<: *real
+      allocatable: True
+      description: Open loop R_Speed timeseries
+    OL_R_Torque:
+      <<: *real
+      allocatable: True
+      description: Open loop R_Torque timeseries
+    OL_R_Pitch:
+      <<: *real
+      allocatable: True
+      description: Open loop R_Pitch timeseries
     OL_Channels:
       <<: *real
       allocatable: True

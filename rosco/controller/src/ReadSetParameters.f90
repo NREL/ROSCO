@@ -523,6 +523,9 @@ CONTAINS
         CALL ParseInput(FileLines, 'Ind_GenTq',         CntrPar%Ind_GenTq,              accINFILE(1),   ErrVar,                         UnEc=UnEc)
         CALL ParseInput(FileLines, 'Ind_YawRate',       CntrPar%Ind_YawRate,            accINFILE(1),   ErrVar,                         UnEc=UnEc)
         CALL ParseInput(FileLines, 'Ind_Azimuth',       CntrPar%Ind_Azimuth,            accINFILE(1),   ErrVar, CntrPar%OL_Mode .NE. 2, UnEc=UnEc)
+        CALL ParseInput(FileLines, 'Ind_R_Speed',       CntrPar%Ind_R_Speed,            accINFILE(1),   ErrVar, CntrPar%OL_Mode .NE. 2, UnEc=UnEc)
+        CALL ParseInput(FileLines, 'Ind_R_Torque',      CntrPar%Ind_R_Torque,           accINFILE(1),   ErrVar, CntrPar%OL_Mode .NE. 2, UnEc=UnEc)
+        CALL ParseInput(FileLines, 'Ind_R_Pitch',       CntrPar%Ind_R_Pitch,            accINFILE(1),   ErrVar, CntrPar%OL_Mode .NE. 2, UnEc=UnEc)
         CALL ParseAry(  FileLines, 'RP_Gains',          CntrPar%RP_Gains,           4,  accINFILE(1),   ErrVar, CntrPar%OL_Mode .NE. 2, UnEc=UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
@@ -644,6 +647,27 @@ CONTAINS
                 END IF
             ENDIF
 
+            IF (CntrPar%Ind_R_Speed > 0) THEN
+                IF (CntrPar%OL_Mode == 1) THEN
+                    OL_String   = TRIM(OL_String)//' R_Speed '
+                    OL_Count    = OL_Count + 1
+                END IF
+            ENDIF
+
+            IF (CntrPar%Ind_R_Torque > 0) THEN
+                IF (CntrPar%OL_Mode == 1) THEN
+                    OL_String   = TRIM(OL_String)//' R_Torque '
+                    OL_Count    = OL_Count + 1
+                END IF
+            ENDIF
+
+            IF (CntrPar%Ind_R_Pitch > 0) THEN
+                IF (CntrPar%OL_Mode == 1) THEN
+                    OL_String   = TRIM(OL_String)//' R_Pitch '
+                    OL_Count    = OL_Count + 1
+                END IF
+            ENDIF
+
             N_OL_Cables = 0
             IF (ANY(CntrPar%Ind_CableControl > 0)) THEN
                 DO I = 1,SIZE(CntrPar%Ind_CableControl)
@@ -703,6 +727,19 @@ CONTAINS
 
             IF (CntrPar%Ind_Azimuth > 0) THEN
                 CntrPar%OL_Azimuth = Unwrap(CntrPar%OL_Channels(:,CntrPar%Ind_Azimuth),ErrVar)
+            ENDIF
+
+            IF (CntrPar%Ind_R_Speed > 0) THEN
+                CntrPar%OL_R_Speed = CntrPar%OL_Channels(:,CntrPar%Ind_R_Speed)
+            ENDIF
+            WRITE(400,*) CntrPar%OL_R_Speed
+
+            IF (CntrPar%Ind_R_Torque > 0) THEN
+                CntrPar%OL_R_Torque = CntrPar%OL_Channels(:,CntrPar%Ind_R_Torque)
+            ENDIF
+
+            IF (CntrPar%Ind_R_Pitch > 0) THEN
+                CntrPar%OL_R_Pitch = CntrPar%OL_Channels(:,CntrPar%Ind_R_Pitch)
             ENDIF
             
             IF (ANY(CntrPar%Ind_CableControl > 0)) THEN
@@ -1314,7 +1351,10 @@ CONTAINS
             ALLOCATE(All_OL_Indices(5))   ! Will need to increase to 5 when IPC
             All_OL_Indices =    (/CntrPar%Ind_BldPitch, & 
                                 CntrPar%Ind_GenTq, &
-                                CntrPar%Ind_YawRate/)
+                                CntrPar%Ind_YawRate, &
+                                CntrPar%Ind_R_Speed, &
+                                CntrPar%Ind_R_Torque, &
+                                CntrPar%Ind_R_Pitch/)
 
             DO I = 1,SIZE(CntrPar%Ind_CableControl)
                 Call AddToList(All_OL_Indices, CntrPar%Ind_CableControl(I))           

@@ -43,7 +43,25 @@ CONTAINS
                 LocalVar%PRC_R_Pitch = CntrPar%PRC_R_Pitch
 
             ELSEIF (CntrPar%PRC_Comm == 1) THEN  ! Open loop
-                ! TODO
+
+                IF (CntrPar%Ind_R_Speed > 0) THEN
+                    LocalVar%PRC_R_Speed = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_R_Speed,LocalVar%Time,ErrVar)
+                    WRITE(401,*) LocalVar%PRC_R_Speed
+                ELSE
+                    LocalVar%PRC_R_Speed = 1.0_DbKi
+                ENDIF
+
+                IF (CntrPar%Ind_R_Torque > 0) THEN
+                    LocalVar%PRC_R_Torque = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_R_Torque,LocalVar%Time,ErrVar)
+                ELSE
+                    LocalVar%PRC_R_Torque = 1.0_DbKi
+                ENDIF
+
+                IF (CntrPar%Ind_R_Pitch > 0) THEN
+                    LocalVar%PRC_R_Pitch = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_R_Pitch,LocalVar%Time,ErrVar)
+                ELSE
+                    LocalVar%PRC_R_Pitch = 1.0_DbKi
+                ENDIF
 
             ELSEIF (CntrPar%PRC_Comm == 2) THEN  ! ZeroMQ
                 ! TODO
