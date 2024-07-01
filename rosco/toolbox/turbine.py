@@ -670,9 +670,9 @@ class RotorPerformance():
         '''
         
         # Form the interpolant functions which can look up any arbitrary location on rotor performance surface
-        interp_fun = interpolate.interp2d(
-            self.pitch_initial_rad, self.TSR_initial, self.performance_table, kind='cubic')
-        return interp_fun(pitch,TSR)
+        interp_fun = interpolate.RectBivariateSpline(
+            self.pitch_initial_rad, self.TSR_initial, self.performance_table.T)
+        return np.squeeze(interp_fun(pitch,TSR).T)
 
     def interp_gradient(self,pitch,TSR):
         '''
@@ -691,11 +691,11 @@ class RotorPerformance():
                           [1 x 2] array coresponding to gradient in pitch and TSR directions, respectively
         '''
         # Form the interpolant functions to find gradient at any arbitrary location on rotor performance surface
-        dCP_beta_interp = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.gradient_pitch, kind='linear')
-        dCP_TSR_interp = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.gradient_TSR, kind='linear')
+        dCP_beta_interp = interpolate.RectBivariateSpline(self.pitch_initial_rad, self.TSR_initial, self.gradient_pitch.T)
+        dCP_TSR_interp = interpolate.RectBivariateSpline(self.pitch_initial_rad, self.TSR_initial, self.gradient_TSR.T)
 
         # grad.shape output as (2,) numpy array, equivalent to (pitch-direction,TSR-direction)
-        grad = np.array([dCP_beta_interp(pitch,TSR), dCP_TSR_interp(pitch,TSR)])
+        grad = np.array([dCP_beta_interp(pitch,TSR).T, dCP_TSR_interp(pitch,TSR).T])
         return np.ndarray.flatten(grad)
     
     def plot_performance(self):
