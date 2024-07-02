@@ -114,7 +114,8 @@ CONTAINS
             LocalVar%VS_RefSpd_TSR = CntrPar%VS_RefSpd
         ENDIF 
 
-        LocalVar%VS_RefSpd = LocalVar%VS_RefSpd_TSR
+        ! Change VS Ref speed based on R_Speed
+        LocalVar%VS_RefSpd = LocalVar%VS_RefSpd_TSR * LocalVar%PRC_R_Speed
 
         ! Exclude reference speeds specified by user
         IF (CntrPar%TRA_Mode > 0) THEN
