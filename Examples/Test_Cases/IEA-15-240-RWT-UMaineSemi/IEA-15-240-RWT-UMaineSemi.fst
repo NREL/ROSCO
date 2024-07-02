@@ -27,7 +27,7 @@ False                  Echo        - Echo input data to <RootName>.ech (flag)
         335   SpdSound        - Speed of sound in working fluid (m/s)
      103500   Patm            - Atmospheric pressure (Pa) [used only for an MHK turbine cavitation check]
        1700   Pvap            - Vapour pressure of working fluid (Pa) [used only for an MHK turbine cavitation check]
-         50   WtrDpth         - Water depth (m)
+	200   WtrDpth         - Water depth (m)
           0   MSL2SWL         - Offset between still-water level and mean sea level (m) [positive upward]
 ---------------------- INPUT FILES --------------------------------------------- 
 "IEA-15-240-RWT-UMaineSemi_ElastoDyn.dat"    EDFile          - Name of file containing ElastoDyn input parameters (quoted string) 

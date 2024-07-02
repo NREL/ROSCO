@@ -16,23 +16,60 @@ jobs:
         strategy:
             fail-fast: false #true
             matrix:
-                os: ["ubuntu-latest", "macOS-latest", "windows-latest"]
-                python-version: ["3.9", "3.10", "3.11"]
+                os: ["ubuntu-latest", "macOS-latest", "windows-latest"] #mac-13 intel, mac-14 arm
+                python-version: ["3.9", "3.10", "3.11", "3.12"]
 
         steps:
             - name: Setup GNU Fortran
-            #  if: false == contains( matrix.os, 'windows')
-              uses: awvwgk/setup-fortran@v1 #modflowpy/install-intelfortran-action@v1 #
+              if: false == contains( matrix.os, 'windows')
+              uses: fortran-lang/setup-fortran@v1.6
+              # with:
+              #   compiler: intel-classic
+
+            - name: Install compiler
+              if: false == contains( matrix.os, 'windows')
+              id: install_cc
+              uses: rlalik/setup-cpp-compiler@master
+              with:
+                  compiler: clang
+          
+            - name: Install mingw-w64 on Windows
+              if: contains( matrix.os, 'windows')
+              uses: msys2/setup-msys2@v2
+              with:
+                  path-type: inherit
+                  install: |
+                      mingw-w64-x86_64-gcc
+                      mingw-w64-x86_64-gcc-fortran
+                      mingw-w64-x86_64-zeromq
+                      mingw-w64-x86_64-cmake
+                      mingw-w64-x86_64-pkg-config
               
+            - name: Install zeromq ubuntu
+              if: contains( matrix.os, 'ubuntu')
+              run: |
+                  sudo apt install libzmq3-dev libzmq5 libczmq-dev libczmq4
+              
+            - name: Install zeromq mac
+              if: contains( matrix.os, 'mac')
+              run: |
+                  brew install zeromq
+                  
             - name: checkout repository
               uses: actions/checkout@v4
 
             - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v4
+              uses: actions/setup-python@v5
               id: cp
               with:
                   python-version: ${{ matrix.python-version }}
                   update-environment: true
+
+            - name: Set compilers
+              if: false == contains( matrix.os, 'windows')
+              run: |
+                  echo "CC=${{ steps.install_cc.outputs.cc }}" >> $GITHUB_ENV
+                  echo "CXX=${{ steps.install_cc.outputs.cxx }}" >> $GITHUB_ENV
 
             #- name: Setup tmate session
             #  if: contains( matrix.os, 'windows')
@@ -71,8 +108,8 @@ jobs:
         strategy:
             fail-fast: false #true
             matrix:
-                os: ["ubuntu-latest", "macOS-latest", "windows-latest"]
-                python-version: ["3.9", "3.10", "3.11"]
+                os: ["ubuntu-latest", "macOS-13", "windows-latest"] #mac-13 intel, mac-14 arm
+                python-version: ["3.9", "3.10", "3.11", "3.12"]
 
         steps:
             - name: checkout repository
@@ -113,13 +150,7 @@ jobs:
           
             - name: Install OpenFAST
               run: |
-                  conda install openfast==3.5.2
-              
-            #- name: Check OpenFAST
-            #  # if: contains( matrix.os, 'windows')
-            #  run: |
-            #      openfast -v
-            #      which openfast
+                  conda install openfast==3.5.3
           
             - name: Generate Registry
               run: |

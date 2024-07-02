@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rosco"
-version = "2.9.0"
+version = "2.9.4"
 description = "A reference open source controller toolset for wind turbine applications."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -36,6 +36,7 @@ classifiers = [  # Optional
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Fortran",
 ]
@@ -135,5 +136,19 @@ atomic = true
 #src_paths=isort,test
 
 [tool.cibuildwheel]
-skip = ["cp36-*", "cp37-*", "cp38-*", "*-win32"]
-build-frontend = "build"
+skip = ["pp*", "cp36-*", "cp37-*", "cp38-*", "*-win32", "*-win_arm64", "*-musllinux_aarch64"]
+build-frontend = { name = "build", args = ["-w","-n"] }
+before-build = "pip install setuptools cmake numpy pyzmq cmake-build-extension wheel"
+build-verbosity = "3"
+
+# https://github.com/pdfo/pdfo
+[[tool.cibuildwheel.overrides]]
+select = "*-win_amd64"
+environment = { PKG_CONFIG_PATH="c:/opt/64/lib/pkgconfig" }
+
+[tool.cibuildwheel.windows]
+repair-wheel-command = "bash .github/tools/cibw_repair_wheel_command_windows.sh {wheel} {dest_dir}"
+
+# On an Linux Intel runner with qemu installed, build Intel and ARM wheels (aarch64) for Docker.  Ignoring: ppc64le s390x
+[tool.cibuildwheel.linux]
+archs = ["auto", "aarch64"]

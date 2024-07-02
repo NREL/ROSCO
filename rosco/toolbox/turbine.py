@@ -171,10 +171,18 @@ class Turbine():
 
         # file
         ed_file = os.path.join(fast.FAST_directory, fast.fst_vt['Fst']['EDFile'])
-
         fast.read_ElastoDyn(ed_file)
         ed_blade_file = os.path.join(os.path.dirname(ed_file), fast.fst_vt['ElastoDyn']['BldFile1'])
-        fast.read_ElastoDynBlade(ed_blade_file)
+        
+        if fast.fst_vt['Fst']['CompElast'] ==1:
+            fast.read_ElastoDynBlade(ed_blade_file)
+        elif fast.fst_vt['Fst']['CompElast'] ==2:
+            bd_file = os.path.join(fast.FAST_directory, fast.fst_vt['Fst']['BDBldFile(1)'])
+            fast.read_BeamDyn(bd_file)
+            bd_blade_file = os.path.join(os.path.dirname(bd_file), fast.fst_vt['BeamDyn']['BldFile'])
+            fast.read_BeamDynBlade(bd_blade_file)
+        else:
+            Warning('No ElastoDyn or BeamDyn files were provided')
 
         fast.read_AeroDyn15()
 
@@ -588,8 +596,12 @@ class Turbine():
         self.span = r 
         self.chord = chord
         self.twist = theta
-        self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade']['BldFlDmp1']/100
-
+        
+        if self.fast.fst_vt['Fst']['CompElast'] ==1:
+            self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade']['BldFlDmp1']/100
+        elif self.fast.fst_vt['Fst']['CompElast'] ==2:
+            self.bld_flapwise_damp = self.fast.fst_vt['BeamDynBlade']['mu5']
+        
 class RotorPerformance():
     '''
     Class RotorPerformance used to find details from rotor performance 
@@ -658,9 +670,9 @@ class RotorPerformance():
         '''
         
         # Form the interpolant functions which can look up any arbitrary location on rotor performance surface
-        interp_fun = interpolate.interp2d(
-            self.pitch_initial_rad, self.TSR_initial, self.performance_table, kind='cubic')
-        return interp_fun(pitch,TSR)
+        interp_fun = interpolate.RectBivariateSpline(
+            self.pitch_initial_rad, self.TSR_initial, self.performance_table.T)
+        return np.squeeze(interp_fun(pitch,TSR).T)
 
     def interp_gradient(self,pitch,TSR):
         '''
@@ -679,11 +691,11 @@ class RotorPerformance():
                           [1 x 2] array coresponding to gradient in pitch and TSR directions, respectively
         '''
         # Form the interpolant functions to find gradient at any arbitrary location on rotor performance surface
-        dCP_beta_interp = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.gradient_pitch, kind='linear')
-        dCP_TSR_interp = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.gradient_TSR, kind='linear')
+        dCP_beta_interp = interpolate.RectBivariateSpline(self.pitch_initial_rad, self.TSR_initial, self.gradient_pitch.T)
+        dCP_TSR_interp = interpolate.RectBivariateSpline(self.pitch_initial_rad, self.TSR_initial, self.gradient_TSR.T)
 
         # grad.shape output as (2,) numpy array, equivalent to (pitch-direction,TSR-direction)
-        grad = np.array([dCP_beta_interp(pitch,TSR), dCP_TSR_interp(pitch,TSR)])
+        grad = np.array([dCP_beta_interp(pitch,TSR).T, dCP_TSR_interp(pitch,TSR).T])
         return np.ndarray.flatten(grad)
     
     def plot_performance(self):
