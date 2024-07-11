@@ -74,6 +74,7 @@ class ControllerInterface:
         self.char_buffer = 500
         self.avr_size = 500
         self.sim_name = "simDEBUG"
+        self.pitch = 0 # option to provid initial blade pitch value
 
         # Set kwargs, like DT
         for k, w in kwargs.items():
@@ -89,7 +90,7 @@ class ControllerInterface:
 
     def init_discon(self):
         # Initialize
-        self.pitch = 0
+        
         self.torque = 0
         # -- discon
         self.discon = cdll.LoadLibrary(self.lib_name)
@@ -104,9 +105,9 @@ class ControllerInterface:
         self.avrSWAP[26] = 10  # HARD CODE initial wind speed = 10 m/s
 
         # Blade pitch initial conditions
-        self.avrSWAP[3] = 0 * np.deg2rad(1)
-        self.avrSWAP[32] = 0 * np.deg2rad(1)
-        self.avrSWAP[33] = 0 * np.deg2rad(1)
+        self.avrSWAP[3] = self.pitch * np.deg2rad(1)
+        self.avrSWAP[32] = self.pitch * np.deg2rad(1)
+        self.avrSWAP[33] = self.pitch * np.deg2rad(1)
 
         self.avrSWAP[27] = 1  # IPC
 
@@ -211,6 +212,12 @@ class ControllerInterface:
             self.avrSWAP[82] = turbine_state["NacIMU_FA_Acc"]
         except KeyError:
             self.avrSWAP[82] = 0
+
+        # pass translational acceleration
+        try:
+            self.avrSWAP[52] = turbine_state['FA_Acc']
+        except KeyError:
+            self.avrSWAP[52] = 0
 
         # call controller
         self.call_discon()
