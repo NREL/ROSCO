@@ -1240,11 +1240,33 @@ CONTAINS
         IF (CntrPar%PRC_Mode > 0) THEN
             PRINT *, "Note: PRC Mode = ", CntrPar%PRC_Mode, ", which will affect VS_RefSpeed, VS_TSRopt, and PC_RefSpeed"
 
-            ! TODO: All PRC checks
-            ! ZMQ_Mode and PRC_Comm
-            ! OL_Mode and PRC_Comm
-            
+            IF (CntrPar%PRC_Comm == 0) THEN
+                IF (CntrPar%PRC_R_Pitch < 0) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg  = 'PRC_R_Pitch must be greater than or equal to zero.'
+                ENDIF
 
+                IF (CntrPar%PRC_R_Speed < 0) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg  = 'PRC_R_Speed must be greater than or equal to zero.'
+                ENDIF
+
+                IF (CntrPar%PRC_R_Torque < 0) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg  = 'PRC_R_Torque must be greater than or equal to zero.'
+                ENDIF
+
+            ENDIF
+
+            IF ((CntrPar%PRC_Comm == 1) .AND. (CntrPar%OL_Mode .NE. 1)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'OL_Mode must be 1 to use open loop inputs for power control (PRC_Comm = 1).'
+            ENDIF
+
+            IF ((CntrPar%PRC_Comm == 2) .AND. (CntrPar%ZMQ_Mode .NE. 1)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'ZMQ_Mode must be 1 to use ZeroMQ inputs for power control (PRC_Comm = 2).'
+            ENDIF
 
         ENDIF
         
@@ -1425,6 +1447,20 @@ CONTAINS
                 ErrVar%ErrMsg = 'CC_Mode must be 2 if using open loop struct control via Ind_StructControl'
             ENDIF
 
+            IF ((CntrPar%OL_BP_Mode < 0) .OR. (CntrPar%OL_BP_Mode > 1)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'OL_BP_Mode must be 0 or 1.'
+            ENDIF
+
+            IF (CntrPar%OL_BP_FiltFreq < 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'OL_BP_FiltFreq must be greater than or equal to 0.'
+            ENDIF
+
+            IF ((CntrPar%OL_BP_Mode == 1) .AND. (CntrPar%OL_Mode == 2)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'Rotor position control (OL_Mode = 2) is not compatible with wind speed breakpoints (OL_BP_Mode = 1)'
+            ENDIF
 
         ENDIF
 
