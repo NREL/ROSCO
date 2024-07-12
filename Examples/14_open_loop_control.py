@@ -47,7 +47,7 @@ controller_params   = inps['controller_params']
 
 # Set up open loop input
 olc = ROSCO_controller.OpenLoopControl(t_max=20)
-olc.interp_timeseries(
+olc.interp_series(
   'blade_pitch', 
   [0,20], 
   [0,0.0873] , 
@@ -60,7 +60,7 @@ olc.const_timeseries(
 olc.sine_timeseries('nacelle_yaw', 0.0524, 60)
 
 # Plot open loop timeseries
-fig,ax = olc.plot_timeseries()
+fig,ax = olc.plot_series()
 if False:
   plt.show()
 else:

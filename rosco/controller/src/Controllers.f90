@@ -122,15 +122,15 @@ CONTAINS
         IF (CntrPar%OL_Mode > 0) THEN
             IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN    ! Time > first open loop breakpoint
                 IF (CntrPar%Ind_BldPitch(1) > 0) THEN
-                    LocalVar%PitCom(1) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch1,LocalVar%Time, ErrVar)
+                    LocalVar%PitCom(1) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch1,LocalVar%OL_Index, ErrVar)
                 ENDIF
 
                 IF (CntrPar%Ind_BldPitch(2) > 0) THEN
-                    LocalVar%PitCom(2) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch2,LocalVar%Time, ErrVar)
+                    LocalVar%PitCom(2) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch2,LocalVar%OL_Index, ErrVar)
                 ENDIF
 
                 IF (CntrPar%Ind_BldPitch(3) > 0) THEN
-                    LocalVar%PitCom(3) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch3,LocalVar%Time, ErrVar)
+                    LocalVar%PitCom(3) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch3,LocalVar%OL_Index, ErrVar)
                 ENDIF
             ENDIF
         ENDIF
@@ -264,7 +264,7 @@ CONTAINS
         IF ((CntrPar%OL_Mode > 0) .AND. (CntrPar%Ind_GenTq > 0)) THEN
             ! Get current OL GenTq, applies for OL_Mode 1 and 2
             IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN
-                LocalVar%GenTq = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_GenTq,LocalVar%Time,ErrVar)
+                LocalVar%GenTq = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_GenTq,LocalVar%OL_Index,ErrVar)
             ENDIF
             
             ! Azimuth tracking control
@@ -416,7 +416,7 @@ CONTAINS
             ! Open loop yaw rate control - control input in rad/s
             IF ((CntrPar%OL_Mode > 0) .AND. (CntrPar%Ind_YawRate > 0)) THEN
                 IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN
-                    avrSWAP(48) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_YawRate,LocalVar%Time, ErrVar)
+                    avrSWAP(48) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_YawRate,LocalVar%OL_Index, ErrVar)
                 ENDIF
             ENDIF
 

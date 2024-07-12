@@ -514,6 +514,12 @@ ControlParameters:
     OL_Mode:
       <<: *integer
       description: Open loop control mode {0 - no open loop control, 1 - open loop control vs. time, 2 - open loop control vs. wind speed}
+    OL_BP_Mode:
+      <<: *integer
+      description: Open loop control mode {0 - no open loop control, 1 - open loop control vs. time, 2 - open loop control vs. wind speed}
+    OL_BP_FiltFreq:
+      <<: *real
+      description: Open loop control mode {0 - no open loop control, 1 - open loop control vs. time, 2 - open loop control vs. wind speed}
     Ind_Breakpoint:
       <<: *integer
       description: The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)
@@ -1263,6 +1269,9 @@ LocalVariables:
     PS_Min_Pitch:
       <<: *real
       description: Instantaneous peak shaving 
+    OL_Index:
+      <<: *real
+      description: Open loop indexing variable (time or wind speed)
     SD:                           
       <<: *logical
       description: Shutdown, .FALSE. if inactive, .TRUE. if active

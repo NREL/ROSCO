@@ -251,6 +251,22 @@ CONTAINS
 
 
         ENDIF
+
+        ! Initialize other values on each timestep
+        
+        ! Open Loop index
+        IF (CntrPar%OL_BP_Mode == 0) THEN
+            LocalVar%OL_Index = LocalVar%Time
+
+        ELSE
+            ! Wind speed, OL_BP_Mode = 1
+            LocalVar%OL_Index = LocalVar%WE_Vw
+            IF (CntrPar%OL_BP_FiltFreq > 0) THEN
+                LocalVar%OL_Index = LPFilter(LocalVar%WE_Vw, LocalVar%DT,CntrPar%OL_BP_FiltFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+            ENDIF
+
+        ENDIF
+
     END SUBROUTINE SetParameters
     
     ! -----------------------------------------------------------------------------------
@@ -518,6 +534,8 @@ CONTAINS
         !------------ Open loop input ------------
         ! Indices can be left 0 by default, checked later
         CALL ParseInput(FileLines, 'OL_Filename',       CntrPar%OL_Filename,            accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0,   UnEc)
+        CALL ParseInput(FileLines, 'OL_BP_Mode',        CntrPar%OL_BP_Mode,             accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0,   UnEc)
+        CALL ParseInput(FileLines, 'OL_BP_FiltFreq',    CntrPar%OL_BP_FiltFreq,         accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0,   UnEc)
         CALL ParseInput(FileLines, 'Ind_Breakpoint',    CntrPar%Ind_Breakpoint,         accINFILE(1),   ErrVar,                         UnEc=UnEc)
         CALL ParseAry(  FileLines, 'Ind_BldPitch',      CntrPar%Ind_BldPitch,       3,  accINFILE(1),   ErrVar,                         UnEc=UnEc)
         CALL ParseInput(FileLines, 'Ind_GenTq',         CntrPar%Ind_GenTq,              accINFILE(1),   ErrVar,                         UnEc=UnEc)

@@ -253,6 +253,8 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('\n')
     file.write('!------- Open Loop Control -----------------------------------------------------\n')
     file.write('"{}"            ! OL_Filename       - Input file with open loop timeseries (absolute path or relative to this file)\n'.format(rosco_vt['OL_Filename']))
+    file.write('{:<12d}        ! OL_BP_Mode        - {}]\n'.format(int(rosco_vt['OL_BP_Mode']),input_descriptions['OL_BP_Mode']))
+    file.write('{:<12f}        ! OL_BP_FiltFreq    - {}\n'.format(int(rosco_vt['OL_BP_FiltFreq']),input_descriptions['OL_BP_FiltFreq']))
     file.write('{0:<12d}        ! Ind_Breakpoint    - The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)\n'.format(int(rosco_vt['Ind_Breakpoint'])))
     file.write('{}         ! Ind_BldPitch      - The columns in OL_Filename that contains the blade pitch (1,2,3) inputs in rad [array]\n'.format(' '.join([f'{int(ipb):3d}' for ipb in rosco_vt['Ind_BldPitch']])))
     file.write('{0:<12d}        ! Ind_GenTq         - The column in OL_Filename that contains the generator torque in Nm\n'.format(int(rosco_vt['Ind_GenTq'])))
@@ -613,6 +615,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['Flp_MaxPit']       = controller.flp_maxpit
     # ------- Open Loop Control -------
     DISCON_dict['OL_Filename']     = controller.OL_Filename
+    DISCON_dict['OL_BP_Mode']      = controller.OL_BP_Mode
     DISCON_dict['Ind_Breakpoint']  = controller.OL_Ind_Breakpoint
     DISCON_dict['Ind_BldPitch']    = controller.OL_Ind_BldPitch
     DISCON_dict['Ind_GenTq']       = controller.OL_Ind_GenTq

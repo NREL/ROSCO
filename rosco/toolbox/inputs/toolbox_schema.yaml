@@ -492,6 +492,12 @@ properties:
                         description: Filename of open loop input that ROSCO reads
                         type: string
                         default: unused
+                    OL_BP_Mode:
+                        description: Breakpoint mode for open loop control, 0 - indexed by time (default), 1 - indexed by wind speed
+                        type: number
+                        default: 0
+                        minimum: 0
+                        maximum: 1
                     Ind_Breakpoint:
                         description: Index (column, 1-indexed) of breakpoint (time) in open loop index
                         type: number
@@ -1065,6 +1071,13 @@ properties:
                     OL_Filename:
                         type: string
                         description: Input file with open loop timeseries (absolute path or relative to this file)
+                    OL_BP_Mode:
+                        description: Breakpoint mode for open loop control, 0 - indexed by time (default), 1 - indexed by wind speed
+                        type: number
+                    OL_BP_FiltFreq:
+                        description: Natural frequency of 1st order filter on breakpoint for open loop control. 0 will skip filter.
+                        type: number
+                        default: 0
                     Ind_Breakpoint:
                         type: number
                         description: The column in OL_Filename that contains the breakpoint (time if OL_Mode > 0)

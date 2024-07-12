@@ -68,21 +68,21 @@ def main():
     applied_force = [-2e6, 1e6, 1e6]
 
     olc = OpenLoopControl(t_max=t_max)
-    olc.interp_timeseries(
+    olc.interp_series(
         'struct_control_1', 
         [0,t_trans,t_trans+t_sigma], 
         [0,0,applied_force[0]] , 
         'sigma'
         )
     
-    olc.interp_timeseries(
+    olc.interp_series(
         'struct_control_2', 
         [0,t_trans,t_trans+t_sigma], 
         [0,0,applied_force[1]] , 
         'sigma'
         )
     
-    olc.interp_timeseries(
+    olc.interp_series(
         'struct_control_3', 
         [0,t_trans,t_trans+t_sigma], 
         [0,0,applied_force[2]] , 

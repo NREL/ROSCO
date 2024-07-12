@@ -78,21 +78,21 @@ def main():
     line_ends = [-14.51, 1.58, 10.33]
 
     olc = OpenLoopControl(t_max=t_max)
-    olc.interp_timeseries(
+    olc.interp_series(
         'cable_control_1', 
         [0,t_trans,t_trans+t_sigma], 
         [0,0,line_ends[0]] , 
         'sigma'
         )
     
-    olc.interp_timeseries(
+    olc.interp_series(
         'cable_control_2', 
         [0,t_trans,t_trans+t_sigma], 
         [0,0,line_ends[1]] , 
         'sigma'
         )
     
-    olc.interp_timeseries(
+    olc.interp_series(
         'cable_control_3', 
         [0,t_trans,t_trans+t_sigma], 
         [0,0,line_ends[2]] , 
