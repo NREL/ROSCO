@@ -1,5 +1,5 @@
 ! Controller parameter input file for the BAR_10 wind turbine
-!    - File written using ROSCO version 2.9.0 controller tuning logic on 05/13/24
+!    - File written using ROSCO version 2.9.0 controller tuning logic on 07/24/24
 
 !------- SIMULATION CONTROL ------------------------------------------------------------
 1                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}
@@ -12,6 +12,7 @@
 0                   ! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {0: off, 1: 1P reductions, 2: 1P+2P reductions}
 2                   ! VS_ControlMode	- Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking)}
 0                   ! VS_ConstPower  	- Do constant power torque control, where above rated torque varies, 0 for constant torque}
+0                   ! VS_FBP         	- Fixed blade pitch configuration mode
 1                   ! PC_ControlMode  - Blade pitch control mode {0: No pitch, fix to fine pitch, 1: active PI blade pitch control}
 0                   ! Y_ControlMode   - Yaw control mode {0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}
 1                   ! SS_Mode         - Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
@@ -82,7 +83,7 @@
 70282.09458000      ! VS_MaxTq			- Maximum generator torque in Region 3 (HSS side), [Nm].
 0.000000000000      ! VS_MinTq			- Minimum generator torque (HSS side), [Nm].
 27.49717000000      ! VS_MinOMSpd		- Minimum generator speed [rad/s]
-12.03868000000      ! VS_Rgn2K		- Generator torque constant in Region 2 (HSS side). Only used in VS_ControlMode = 1,3
+12.03868000000      ! VS_Rgn2K		- Generator torque constant in Region 2 (HSS side). Only used in VS_ControlMode = 1,3,4
 5000000.000000      ! VS_RtPwr			- Wind turbine rated power [W]
 63892.81326000      ! VS_RtTq			- Rated torque, [Nm].
 75.83317000000      ! VS_RefSpd			- Rated generator speed [rad/s]
@@ -92,7 +93,6 @@
 9.76                ! VS_TSRopt		    - Power-maximizing region 2 tip-speed-ratio. Only used in VS_ControlMode = 2.
 
 !------- FIXED PITCH REGION 3 TORQUE CONTROL ------------------------------------------------
-0                   ! VS_FBP_RefMode	- Reference control mode (0 - Use wind speed estimator, 1 - Use torque feedback)
 60                  ! VS_FBP_n			- Number of gain-scheduling table entries
 3.000000  3.181847  3.363694  3.545541  3.727388  3.909234  4.091081  4.272928  4.454775  4.636622  4.818469  5.000316  5.182163  5.364010  5.545857  5.727703  5.909550  6.091397  6.273244  6.455091  6.636938  6.818785  7.000632  7.182479  7.364326  7.546172  7.728019  7.909866  8.091713  8.273560  8.831108  9.388656  9.946204  10.503752  11.061300  11.618848  12.176396  12.733944  13.291492  13.849040  14.406588  14.964136  15.521684  16.079232  16.636780  17.194328  17.751876  18.309424  18.866972  19.424520  19.982068  20.539616  21.097164  21.654712  22.212260  22.769808  23.327356  23.884904  24.442452  25.000000                ! VS_FBP_U	        - Operating schedule table: Wind speeds [m/s].
 27.497174  29.163932  30.830691  32.497450  34.164208  35.830967  37.497725  39.164484  40.831243  42.498001  44.164760  45.831518  47.498277  49.165035  50.831794  52.498553  54.165311  55.832070  57.498828  59.165587  60.832346  62.499104  64.165863  65.832621  67.499380  69.166138  70.832897  72.499656  74.166414  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125  79.853125                ! VS_FBP_Omega	    - Operating schedule table: Generator speeds [rad/s].

@@ -1,5 +1,5 @@
 ! Controller parameter input file for the NREL-5MW wind turbine
-!    - File written using ROSCO version 2.9.0 controller tuning logic on 05/13/24
+!    - File written using ROSCO version 2.9.0 controller tuning logic on 07/24/24
 
 !------- SIMULATION CONTROL ------------------------------------------------------------
 1                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}
@@ -12,6 +12,7 @@
 0                   ! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {0: off, 1: 1P reductions, 2: 1P+2P reductions}
 3                   ! VS_ControlMode	- Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking)}
 0                   ! VS_ConstPower  	- Do constant power torque control, where above rated torque varies, 0 for constant torque}
+0                   ! VS_FBP         	- Fixed blade pitch configuration mode
 1                   ! PC_ControlMode  - Blade pitch control mode {0: No pitch, fix to fine pitch, 1: active PI blade pitch control}
 0                   ! Y_ControlMode   - Yaw control mode {0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}
 1                   ! SS_Mode         - Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
@@ -82,7 +83,7 @@
 47402.87063000      ! VS_MaxTq			- Maximum generator torque in Region 3 (HSS side), [Nm].
 0.000000000000      ! VS_MinTq			- Minimum generator torque (HSS side), [Nm].
 35.29006000000      ! VS_MinOMSpd		- Minimum generator speed [rad/s]
-2.185750000000      ! VS_Rgn2K		- Generator torque constant in Region 2 (HSS side). Only used in VS_ControlMode = 1,3
+2.185750000000      ! VS_Rgn2K		- Generator torque constant in Region 2 (HSS side). Only used in VS_ControlMode = 1,3,4
 5000000.000000      ! VS_RtPwr			- Wind turbine rated power [W]
 43093.51876000      ! VS_RtTq			- Rated torque, [Nm].
 122.9096700000      ! VS_RefSpd			- Rated generator speed [rad/s]
@@ -92,7 +93,6 @@
 7.64                ! VS_TSRopt		    - Power-maximizing region 2 tip-speed-ratio. Only used in VS_ControlMode = 2.
 
 !------- FIXED PITCH REGION 3 TORQUE CONTROL ------------------------------------------------
-0                   ! VS_FBP_RefMode	- Reference control mode (0 - Use wind speed estimator, 1 - Use torque feedback)
 60                  ! VS_FBP_n			- Number of gain-scheduling table entries
 3.000000  3.289655  3.579310  3.868966  4.158621  4.448276  4.737931  5.027586  5.317241  5.606897  5.896552  6.186207  6.475862  6.765517  7.055172  7.344828  7.634483  7.924138  8.213793  8.503448  8.793103  9.082759  9.372414  9.662069  9.951724  10.241379  10.531034  10.820690  11.110345  11.400000  11.853333  12.306667  12.760000  13.213333  13.666667  14.120000  14.573333  15.026667  15.480000  15.933333  16.386667  16.840000  17.293333  17.746667  18.200000  18.653333  19.106667  19.560000  20.013333  20.466667  20.920000  21.373333  21.826667  22.280000  22.733333  23.186667  23.640000  24.093333  24.546667  25.000000                ! VS_FBP_U	        - Operating schedule table: Wind speeds [m/s].
 35.290063  38.697380  42.104696  45.512012  48.919329  52.326645  55.733962  59.141278  62.548595  65.955911  69.363228  72.770544  76.177860  79.585177  82.992493  86.399810  89.807126  93.214443  96.621759  100.029076  103.436392  106.843708  110.251025  113.658341  117.065658  120.472974  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670  122.909670                ! VS_FBP_Omega	    - Operating schedule table: Generator speeds [rad/s].

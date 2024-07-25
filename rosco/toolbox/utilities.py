@@ -97,10 +97,11 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<11d}         ! Echo		        - ({})\n'.format(int(rosco_vt['Echo']), input_descriptions['Echo']))
     file.write('\n')
     file.write('!------- CONTROLLER FLAGS -------------------------------------------------\n')
-    file.write('{0:<12d}        ! F_LPFType			  - (1: first-order low-pass filter, 2: second-order low-pass filter), [rad/s] (currently filters generator speed and pitch control signals\n'.format(int(rosco_vt['F_LPFType'])))
-    file.write('{0:<12d}        ! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {{0: off, 1: 1P reductions, 2: 1P+2P reductions}}\n'.format(int(rosco_vt['IPC_ControlMode'])))
-    file.write('{0:<12d}        ! VS_ControlMode	- Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking)}}\n'.format(int(rosco_vt['VS_ControlMode'])))
-    file.write('{0:<12d}        ! VS_ConstPower  	- Do constant power torque control, where above rated torque varies, 0 for constant torque}}\n'.format(int(rosco_vt['VS_ConstPower'])))
+    file.write('{0:<12d}        ! F_LPFType       - (1: first-order low-pass filter, 2: second-order low-pass filter), [rad/s] (currently filters generator speed and pitch control signals\n'.format(int(rosco_vt['F_LPFType'])))
+    file.write('{0:<12d}        ! IPC_ControlMode - Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {{0: off, 1: 1P reductions, 2: 1P+2P reductions}}\n'.format(int(rosco_vt['IPC_ControlMode'])))
+    file.write('{0:<12d}        ! VS_ControlMode  - Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking, 4- Torque-based TSR Tracking)}}\n'.format(int(rosco_vt['VS_ControlMode'])))
+    file.write('{0:<12d}        ! VS_ConstPower   - Do constant power torque control, where above rated torque varies, 0 for constant torque}}\n'.format(int(rosco_vt['VS_ConstPower'])))
+    file.write('{0:<12d}        ! VS_FBP          - Fixed blade pitch configuration mode (0- variable pitch (disabled), 1- constant power overspeed, 2- WSE-lookup reference tracking, 3- torque-lookup reference tracking)\n'.format(int(rosco_vt['VS_FBP'])))
     file.write('{0:<12d}        ! PC_ControlMode  - Blade pitch control mode {{0: No pitch, fix to fine pitch, 1: active PI blade pitch control}}\n'.format(int(rosco_vt['PC_ControlMode'])))
     file.write('{0:<12d}        ! Y_ControlMode   - Yaw control mode {{0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}}\n'.format(int(rosco_vt['Y_ControlMode'])))
     file.write('{0:<12d}        ! SS_Mode         - Setpoint Smoother mode {{0: no setpoint smoothing, 1: introduce setpoint smoothing}}\n'.format(int(rosco_vt['SS_Mode'])))
@@ -183,7 +184,6 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<13.2f}       ! VS_TSRopt		    - {}\n'.format(float(rosco_vt['VS_TSRopt']),input_descriptions['VS_TSRopt']))
     file.write('\n')
     file.write('!------- FIXED PITCH REGION 3 TORQUE CONTROL ------------------------------------------------\n')
-    file.write('{:<11d}         ! VS_FBP_RefMode	- Reference control mode (0 - Use wind speed estimator, 1 - Use torque feedback)\n'.format(int(rosco_vt['VS_FBP_RefMode'])))
     file.write('{:<11d}         ! VS_FBP_n			- Number of gain-scheduling table entries\n'.format(int(rosco_vt['VS_FBP_n'])))
     file.write('{}              ! VS_FBP_U	        - Operating schedule table: Wind speeds [m/s].\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['VS_FBP_U'][i]) for i in range(len(rosco_vt['VS_FBP_U'])))))
     file.write('{}              ! VS_FBP_Omega	    - Operating schedule table: Generator speeds [rad/s].\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['VS_FBP_Omega'][i]) for i in range(len(rosco_vt['VS_FBP_Omega'])))))
@@ -483,6 +483,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['IPC_ControlMode']	= int(controller.IPC_ControlMode)
     DISCON_dict['VS_ControlMode']	= int(controller.VS_ControlMode)
     DISCON_dict['VS_ConstPower']	= int(controller.VS_ConstPower)
+    DISCON_dict['VS_FBP']           = int(controller.VS_FBP)
     DISCON_dict['PC_ControlMode']   = int(controller.PC_ControlMode)
     DISCON_dict['Y_ControlMode']	= int(controller.Y_ControlMode)
     DISCON_dict['SS_Mode']          = int(controller.SS_Mode)
@@ -564,7 +565,6 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['VS_KI']			= controller.vs_gain_schedule.Ki[-1]
     DISCON_dict['VS_TSRopt']		= turbine.TSR_operational
     # ------- FIXED BLADE PITCH TORQUE CONTROL -------
-    DISCON_dict['VS_FBP_RefMode']   = controller.fbp_ref_mode
     DISCON_dict['VS_FBP_n']         = len(controller.v)
     DISCON_dict['VS_FBP_U']         = controller.v
     DISCON_dict['VS_FBP_Omega']     = controller.omega_gen_op

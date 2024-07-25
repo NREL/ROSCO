@@ -25,8 +25,8 @@ CONTAINS
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
     ! Blade pitch controller, generally maximizes rotor speed below rated (region 2) and regulates rotor speed above rated (region 3)
-    !       PC_State = 0, fix blade pitch to fine pitch angle (PC_FinePit)
-    !       PC_State = 1, is gain scheduled PI controller 
+    !       PC_State = PC_State_Disabled (0), fix blade pitch to fine pitch angle (PC_FinePit)
+    !       PC_State = PC_State_Disabled (1), is gain scheduled PI controller 
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
         
         ! Inputs
@@ -44,7 +44,7 @@ CONTAINS
 
         ! ------- Blade Pitch Controller --------
         ! Load PC State
-        IF (LocalVar%PC_State == 1) THEN ! PI BldPitch control
+        IF (LocalVar%PC_State == PC_State_Enabled) THEN ! PI BldPitch control
             LocalVar%PC_MaxPit = CntrPar%PC_MaxPit
         ELSE ! debug mode, fix at fine pitch
             LocalVar%PC_MaxPit = CntrPar%PC_FinePit
@@ -186,13 +186,13 @@ CONTAINS
 !-------------------------------------------------------------------------------------------------------------------------------  
     SUBROUTINE VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
     ! Generator torque controller
-    !       VS_State = 0, Error state, for debugging purposes, GenTq = VS_RtTq
-    !       VS_State = 1, Region 1(.5) operation, torque control to keep the rotor at cut-in speed towards the Cp-max operational curve
-    !       VS_State = 2, Region 2 operation, maximum rotor power efficiency (Cp-max) tracking using K*omega^2 law, fixed fine-pitch angle in BldPitch controller
-    !       VS_State = 3, Region 2.5, transition between below and above-rated operating conditions (near-rated region) using PI torque control
-    !       VS_State = 4, above-rated operation using pitch control (constant torque mode)
-    !       VS_State = 5, above-rated operation using pitch and torque control (constant power mode)
-    !       VS_State = 6, Tip-Speed-Ratio tracking PI controller
+    !       VS_State = VS_State_Error             (0), Error state, for debugging purposes, GenTq = VS_RtTq
+    !       VS_State = VS_State_Region_1_5        (1), Region 1(.5) operation, torque control to keep the rotor at cut-in speed towards the Cp-max operational curve
+    !       VS_State = VS_State_Region_2          (2), Region 2 operation, maximum rotor power efficiency (Cp-max) tracking using K*omega^2 law, fixed fine-pitch angle in BldPitch controller
+    !       VS_State = VS_State_Region_2_5        (3), Region 2.5, transition between below and above-rated operating conditions (near-rated region) using PI torque control
+    !       VS_State = VS_State_Region_3_ConstTrq (4), above-rated operation using pitch control (constant torque mode)
+    !       VS_State = VS_State_Region_3_ConstPwr (5), above-rated operation using pitch and torque control (constant power mode)
+    !       VS_State = VS_State_PI                (6), Tip-Speed-Ratio tracking PI controller (ignore state machine)
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, ErrorVariables
         ! Inputs
         REAL(ReKi),                 INTENT(INOUT)       :: avrSWAP(*)    ! The swap array, used to pass data to, and receive data from, the DLL controller.
@@ -207,24 +207,25 @@ CONTAINS
 
         ! -------- Variable-Speed Torque Controller --------
         ! Define max torque
-        IF (LocalVar%VS_State == 4) THEN
+        IF (LocalVar%VS_State == VS_State_Region_3_ConstTrq) THEN
            LocalVar%VS_MaxTq = CntrPar%VS_RtTq
         ELSE
             ! VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
             LocalVar%VS_MaxTq = CntrPar%VS_RtTq
         ENDIF
 
-        ! Optimal Tip-Speed-Ratio tracking controller
+        ! Optimal Tip-Speed-Ratio tracking controller (reference generated in subroutine ComputeVariablesSetpoints)
         IF ((CntrPar%VS_ControlMode == VS_Mode_WSE_TSR) .OR. \
             (CntrPar%VS_ControlMode == VS_Mode_Power_TSR) .OR. \
-            (CntrPar%VS_ControlMode == VS_Mode_FBP)) THEN
+            (CntrPar%VS_ControlMode == VS_Mode_Torque_TSR)) THEN
+
             ! Constant Power, update VS_MaxTq
-            IF (CntrPar%VS_ConstPower == 1) THEN
+            IF (CntrPar%VS_ConstPower == VS_Mode_ConstPwr) THEN
                 LocalVar%VS_MaxTq = min((CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF, CntrPar%VS_MaxTq)
             END IF
 
-            IF (CntrPar%VS_ControlMode == VS_Mode_FBP) THEN
-                ! DBS: In the future, look into combining FBP with constant power
+            IF (CntrPar%VS_FBP > 0) THEN
+                ! Increase torque limit from rated if torque control also used in Region 3
                 LocalVar%VS_MaxTq = CntrPar%VS_MaxTq
             END IF
 
@@ -236,23 +237,39 @@ CONTAINS
                                         CntrPar%VS_MinTq, LocalVar%VS_MaxTq, &
                                         LocalVar%DT, LocalVar%VS_LastGenTrq, LocalVar%piP, LocalVar%restart, objInst%instPI)
 
+            IF (CntrPar%VS_FBP == VS_FBP_Power_Overspeed) THEN
+                ! Saturate input if FBP mode is set to constant power overspeed
+                LocalVar%GenTq = MIN((CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF, LocalVar%GenTq)
+            ENDIF
+
         ! K*Omega^2 control law with PI torque control in transition regions
         ELSEIF (CntrPar%VS_ControlMode == VS_Mode_KOmega) THEN
             ! Update PI loops for region 1.5 and 2.5 PI control
             LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_MaxOMTq, LocalVar%piP, LocalVar%restart, objInst%instPI)
             LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, LocalVar%piP, LocalVar%restart, objInst%instPI)
 
-            ! The action
-            IF (LocalVar%VS_State == 1) THEN ! Region 1.5
+            ! State machine if switching to blade pitch control
+            IF (LocalVar%VS_State == VS_State_Region_1_5) THEN ! Region 1.5
                 LocalVar%GenTq = LocalVar%GenBrTq
-            ELSEIF (LocalVar%VS_State == 2) THEN ! Region 2
+            ELSEIF (LocalVar%VS_State == VS_State_Region_2) THEN ! Region 2
                 LocalVar%GenTq = CntrPar%VS_Rgn2K*LocalVar%GenSpeedF*LocalVar%GenSpeedF
-            ELSEIF (LocalVar%VS_State == 3) THEN ! Region 2.5
+            ELSEIF (LocalVar%VS_State == VS_State_Region_2_5) THEN ! Region 2.5
                 LocalVar%GenTq = LocalVar%GenArTq
-            ELSEIF (LocalVar%VS_State == 4) THEN ! Region 3, constant torque
+            ELSEIF (LocalVar%VS_State == VS_State_Region_3_ConstTrq) THEN ! Region 3, constant torque
                 LocalVar%GenTq = CntrPar%VS_RtTq
-            ELSEIF (LocalVar%VS_State == 5) THEN ! Region 3, constant power
+            ELSEIF (LocalVar%VS_State == VS_State_Region_3_ConstPwr) THEN ! Region 3, constant power
                 LocalVar%GenTq = (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF
+            ELSEIF (LocalVar%VS_State == VS_State_Region_3_FBP) THEN ! Region 3, fixed blade pitch
+                ! Constant power overspeed
+                IF (CntrPar%VS_FBP == VS_FBP_Power_Overspeed) THEN
+                    ! Nonlinear lookup table from gen speed to gen torque
+                    ! LocalVar%GenTq = interp1d(CntrPar%VS_FBP_Omega, CntrPar%VS_FBP_Tau, LocalVar%GenSpeedF, ErrVar) ! (must express LUTs for torque as a function of speed)
+                    ! Either K*Omega^2 or constant power overspeed
+                    LocalVar%GenTq = MIN((CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF, CntrPar%VS_Rgn2K*LocalVar%GenSpeedF*LocalVar%GenSpeedF)
+                ! Reference-tracking in Region 3
+                ELSEIF ((CntrPar%VS_FBP == VS_FBP_WSE_Ref) .OR. (CntrPar%VS_FBP == VS_FBP_Torque_Ref)) THEN
+                    LocalVar%GenTq = LocalVar%GenArTq
+                ENDIF
             END IF
 
         ELSE        ! VS_ControlMode of 0

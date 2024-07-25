@@ -55,6 +55,7 @@ class Controller():
         self.IPC_ControlMode    = controller_params['IPC_ControlMode']
         self.VS_ControlMode     = controller_params['VS_ControlMode']
         self.VS_ConstPower      = controller_params['VS_ConstPower']
+        self.VS_FBP             = controller_params['VS_FBP']
         self.PC_ControlMode     = controller_params['PC_ControlMode']
         self.Y_ControlMode      = controller_params['Y_ControlMode']
         self.SS_Mode            = controller_params['SS_Mode']
@@ -99,27 +100,19 @@ class Controller():
         self.IPC_Vramp          = controller_params['IPC_Vramp']
         self.ZMQ_UpdatePeriod   = controller_params['ZMQ_UpdatePeriod']
 
+        # FBP config defaults to constant power, underspeed
+        self.fbp_power_mode = controller_params['VS_FBP_power_mode']
+        self.fbp_speed_mode = controller_params['VS_FBP_speed_mode']
+        self.fbp_U = controller_params['VS_FBP_U'] # DBS: Should we set this default based on rated speed?
+        self.fbp_P = controller_params['VS_FBP_P']
+
         #  Optional parameters without defaults
-        if self.VS_ControlMode == 4:
+        if self.VS_FBP > 0:
             
             # Fail if generator torque enabled in Region 3 but pitch control not disabled (may enable these modes to operate together in the future)
             if self.PC_ControlMode != 0:
                 raise Exception(
-                    'rosco.toolbox:controller: PC_ControlMode must be 0 if VS_ControlMode == 4')
-
-            if 'VS_FBP_ref_mode' in controller_params:
-                self.fbp_ref_mode = controller_params['VS_FBP_ref_mode']
-            else:
-                raise Exception(
-                    'rosco.toolbox:controller: FBP options (VS_FBP_ref_mode) must be set if VS_ControlMode == 4')
-
-            # Defaults to constant power, underspeed
-            self.fbp_power_mode = controller_params['VS_FBP_power_mode']
-            self.fbp_speed_mode = controller_params['VS_FBP_speed_mode']
-            self.fbp_U = controller_params['VS_FBP_U'] # Should we set this default based on rated speed? 
-            self.fbp_P = controller_params['VS_FBP_P']
-        else:
-            self.fbp_ref_mode = 0
+                    'rosco.toolbox:controller: PC_ControlMode must be 0 if VS_FBP > 0')
 
         if self.Flp_Mode > 0:
             if 'flp_kp_norm' in controller_params and 'flp_tau' in controller_params:
@@ -238,11 +231,11 @@ class Controller():
         v = np.concatenate((v_below_rated, v_above_rated))
 
         # Construct power schedule differently based on pitch control configuration
-        if self.VS_ControlMode == 4: # If using torque control in Region 3
+        if self.VS_FBP > 0: # If using torque control in Region 3
 
             # Check if constant power control disabled (may be implemented to work concurrently in the future)
             if self.VS_ConstPower != 0:
-                raise Exception("VS_ConstPower must be 0 when VS_ControlMode == 4")
+                raise Exception("VS_ConstPower must be 0 when VS_FBP > 0")
 
             # Begin with user-defined power curve from input yaml (default constant rated power)
             f_P_user_defined = interpolate.interp1d(self.fbp_U, self.fbp_P, fill_value=(self.fbp_P[0], self.fbp_P[-1]), bounds_error=False)
@@ -276,7 +269,7 @@ class Controller():
             TSR_above_rated = TSR_op[len(v_below_rated):]
 
         # elif self.PC_ControlMode > 0: # If using pitch control in Region 3
-        else: # Default here even if pitch control disabled
+        else: # Default here even if pitch control disabled to maintain backwards compatibility
 
             # separate TSRs by operations regions
             TSR_below_rated = [min(turbine.TSR_operational, rated_rotor_speed*R/v) for v in v_below_rated] # below rated
@@ -304,7 +297,7 @@ class Controller():
         # At each operating point
         for i in range(len(TSR_op)):
 
-            if self.VS_ControlMode == 4: # Fixed pitch control in Region 3
+            if self.VS_FBP > 0: # Fixed blade pitch control in Region 3
 
                 if isinstance(self.min_pitch, float):
                     pitch_op[i] = self.min_pitch
@@ -344,7 +337,7 @@ class Controller():
 
         # Compute generator speed and torque operating schedule
         P_op = 0.5 * turbine.rho * np.pi*turbine.rotor_radius**2 * Cp_op * v**3 * turbine.GBoxEff/100 * turbine.GenEff/100
-        if self.VS_ControlMode < 4: # Saturate between min speed and rated if variable pitch in Region 3
+        if self.VS_FBP == 0: # Saturate between min speed and rated if variable pitch in Region 3
             omega_op = np.maximum(np.minimum(turbine.rated_rotor_speed, TSR_op*v/R), self.vs_minspd)
         else: # Only saturate min pitch if torque control in Region 3
             omega_op = np.maximum(TSR_op*v/R, self.vs_minspd)
@@ -358,10 +351,10 @@ class Controller():
             # DBS: Do we want to saturate maximum torque and recompute equilibrium points? 
 
         # Check if options allow a nonmonotonic torque schedule
-        if self.fbp_ref_mode == 1:
+        if self.VS_FBP == 3:
             # The simulation will crash if we have a nonmonotonic schedule, so fail to generate the config and alert the user
             if np.any(np.diff(tau_op) <= 0):
-                raise Exception("VS controller reference torque interpolation is selected (VS_FBP_ref_mode == 1), but computed generator torque schedule is not monotonically increasing. Reconfigure power curve, ensure VS_FBP_speed_mode == 0, or switch VS_FBP_ref_mode to 0.")
+                raise Exception("VS controller reference torque interpolation is selected (VS_FBP_ref_mode == 1), but computed generator torque schedule is not monotonically increasing. Reconfigure power curve, ensure VS_FBP_speed_mode == 0, or switch VS_FBP to 2.")
 
 
         # Full Cx surface gradients
@@ -418,7 +411,7 @@ class Controller():
         self.pc_gain_schedule = ControllerTypes()
         self.pc_gain_schedule.second_order_PI(self.zeta_pc_U, self.omega_pc_U,A_pc,B_beta[-len(v_above_rated)+1:],linearize=True,v=v_above_rated[1:])        
         self.vs_gain_schedule = ControllerTypes()
-        if self.VS_ControlMode < 4:
+        if self.VS_FBP == 0:
             self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A_vs,B_tau[0:len(v_below_rated)],linearize=False,v=v_below_rated)
         else:
             self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A,B_tau,linearize=False,v=v)

@@ -40,10 +40,34 @@ MODULE Constants
     ! Control Modes
 
     ! VS_ControlMode
-    INTEGER(IntKi), PARAMETER     :: VS_Mode_Disabled = 0  
-    INTEGER(IntKi), PARAMETER     :: VS_Mode_KOmega = 1  
-    INTEGER(IntKi), PARAMETER     :: VS_Mode_WSE_TSR = 2  
-    INTEGER(IntKi), PARAMETER     :: VS_Mode_Power_TSR = 3  
-    INTEGER(IntKi), PARAMETER     :: VS_Mode_FBP = 4  
+    INTEGER(IntKi), PARAMETER     :: VS_Mode_Disabled   = 0
+    INTEGER(IntKi), PARAMETER     :: VS_Mode_KOmega     = 1
+    INTEGER(IntKi), PARAMETER     :: VS_Mode_WSE_TSR    = 2
+    INTEGER(IntKi), PARAMETER     :: VS_Mode_Power_TSR  = 3
+    INTEGER(IntKi), PARAMETER     :: VS_Mode_Torque_TSR = 4
+
+    ! VS_ConstPower
+    INTEGER(IntKi), PARAMETER     :: VS_Mode_ConstTrq = 0
+    INTEGER(IntKi), PARAMETER     :: VS_Mode_ConstPwr = 1
+
+    ! VS_FBP
+    INTEGER(IntKi), PARAMETER     :: VS_FBP_Variable_Pitch  = 0
+    INTEGER(IntKi), PARAMETER     :: VS_FBP_Power_Overspeed = 1
+    INTEGER(IntKi), PARAMETER     :: VS_FBP_WSE_Ref         = 2
+    INTEGER(IntKi), PARAMETER     :: VS_FBP_Torque_Ref      = 3
+
+    ! VS_State
+    INTEGER(IntKi), PARAMETER     :: VS_State_Error             = 0
+    INTEGER(IntKi), PARAMETER     :: VS_State_Region_1_5        = 1
+    INTEGER(IntKi), PARAMETER     :: VS_State_Region_2          = 2
+    INTEGER(IntKi), PARAMETER     :: VS_State_Region_2_5        = 3
+    INTEGER(IntKi), PARAMETER     :: VS_State_Region_3_ConstTrq = 4
+    INTEGER(IntKi), PARAMETER     :: VS_State_Region_3_ConstPwr = 5
+    INTEGER(IntKi), PARAMETER     :: VS_State_Region_3_FBP      = 6
+    INTEGER(IntKi), PARAMETER     :: VS_State_PI                = 7
+
+    ! PC_State
+    INTEGER(IntKi), PARAMETER     :: PC_State_Disabled = 0
+    INTEGER(IntKi), PARAMETER     :: PC_State_Enabled  = 1
 
 END MODULE Constants

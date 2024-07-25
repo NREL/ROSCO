@@ -221,7 +221,7 @@ CONTAINS
             ! Setpoint Smoother initialization to zero
             LocalVar%SS_DelOmegaF = 0
 
-            IF (CntrPar%VS_ControlMode < VS_Mode_FBP) THEN
+            IF (CntrPar%VS_FBP == VS_FBP_Variable_Pitch) THEN
                 ! Generator Torque at K omega^2 or rated
                 IF (LocalVar%GenSpeed > 0.98 * CntrPar%PC_RefSpd) THEN
                     LocalVar%GenTq = CntrPar%VS_RtTq
@@ -347,7 +347,8 @@ CONTAINS
         CALL ParseInput(FileLines,'F_LPFType',       CntrPar%F_LPFType,         accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'IPC_ControlMode', CntrPar%IPC_ControlMode,   accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'VS_ControlMode',  CntrPar%VS_ControlMode,    accINFILE(1), ErrVar, UnEc=UnEc)
-        CALL ParseInput(FileLines,'VS_ConstPower',   CntrPar%VS_ConstPower,     accINFILE(1), ErrVar, .TRUE., UnEc=UnEc)  ! Default is 0
+        CALL ParseInput(FileLines,'VS_ConstPower',   CntrPar%VS_ConstPower,     accINFILE(1), ErrVar, .TRUE., UnEc=UnEc) ! Default is 0
+        CALL ParseInput(FileLines,'VS_FBP',          CntrPar%VS_FBP,            accINFILE(1), ErrVar, .TRUE., UnEc=UnEc) ! Default is 0
         CALL ParseInput(FileLines,'PC_ControlMode',  CntrPar%PC_ControlMode,    accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'Y_ControlMode',   CntrPar%Y_ControlMode,     accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'SS_Mode',         CntrPar%SS_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
@@ -440,11 +441,10 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ Fixed-Pitch Region 3 Control ------------
-        CALL ParseInput(FileLines,  'VS_FBP_RefMode', CntrPar%VS_FBP_RefMode,                    accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 4, UnEc)
-        CALL ParseInput(FileLines,  'VS_FBP_n',       CntrPar%VS_FBP_n,                          accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 4, UnEc)
-        CALL ParseAry(  FileLines,  'VS_FBP_U',       CntrPar%VS_FBP_U,        CntrPar%VS_FBP_n, accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 4, UnEc)
-        CALL ParseAry(  FileLines,  'VS_FBP_Omega',   CntrPar%VS_FBP_Omega,    CntrPar%VS_FBP_n, accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 4, UnEc)
-        CALL ParseAry(  FileLines,  'VS_FBP_Tau',     CntrPar%VS_FBP_Tau,      CntrPar%VS_FBP_n, accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 4, UnEc)
+        CALL ParseInput(FileLines,  'VS_FBP_n',       CntrPar%VS_FBP_n,                          accINFILE(1), ErrVar, CntrPar%VS_FBP == VS_FBP_Variable_Pitch, UnEc)
+        CALL ParseAry(  FileLines,  'VS_FBP_U',       CntrPar%VS_FBP_U,        CntrPar%VS_FBP_n, accINFILE(1), ErrVar, CntrPar%VS_FBP == VS_FBP_Variable_Pitch, UnEc)
+        CALL ParseAry(  FileLines,  'VS_FBP_Omega',   CntrPar%VS_FBP_Omega,    CntrPar%VS_FBP_n, accINFILE(1), ErrVar, CntrPar%VS_FBP == VS_FBP_Variable_Pitch, UnEc)
+        CALL ParseAry(  FileLines,  'VS_FBP_Tau',     CntrPar%VS_FBP_Tau,      CntrPar%VS_FBP_n, accINFILE(1), ErrVar, CntrPar%VS_FBP == VS_FBP_Variable_Pitch, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------- Setpoint Smoother --------------------------------
@@ -903,13 +903,23 @@ CONTAINS
         ! VS_ControlMode
         IF ((CntrPar%VS_ControlMode < 0) .OR. (CntrPar%VS_ControlMode > 4)) THEN
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'VS_ControlMode must be 0, 1, 2, or 3.'
+            ErrVar%ErrMsg  = 'VS_ControlMode must be between 0 and 4.'
         ENDIF
 
         ! VS_ConstPower
         IF ((CntrPar%VS_ConstPower < 0) .OR. (CntrPar%VS_ConstPower > 1)) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'VS_ConstPower must be 0 or 1.'
+        ENDIF
+
+        ! VS_FBP
+        IF ((CntrPar%VS_FBP < 0) .OR. (CntrPar%VS_FBP > 3)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'VS_FBP must be between 0 and 3.'
+        ENDIF
+        IF ((CntrPar%VS_FBP > 0) .AND. (CntrPar%PC_ControlMode > 0)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'VS_FBP and PC_ControlMode cannot both be greater than 0.'
         ENDIF
 
         ! PC_ControlMode

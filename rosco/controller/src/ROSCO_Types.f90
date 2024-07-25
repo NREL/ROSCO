@@ -63,8 +63,9 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: PC_RefSpd                   ! Desired (reference) HSS speed for pitch controller, [rad/s].
     REAL(DbKi)                    :: PC_FinePit                  ! Record 5 - Below-rated pitch angle set-point (deg) [used only with Bladed Interface]
     REAL(DbKi)                    :: PC_Switch                   ! Angle above lowest minimum pitch angle for switch [rad]
-    INTEGER(IntKi)                :: VS_ControlMode              ! Generator torque control mode in below rated conditions {0 - no torque control, 1 - komega^2 with PI trans, 2 - WSE TSR Tracking, 3 - Power TSR Tracking, 4 - Fixed pitch, generic operating schedule for torque controller in Regions 2 and 3}
+    INTEGER(IntKi)                :: VS_ControlMode              ! Generator torque control mode in below rated conditions {0 - no torque control, 1 - komega^2 with PI trans, 2 - WSE TSR Tracking, 3 - Power TSR Tracking, 4 - Torque TSR Tracking}
     INTEGER(IntKi)                :: VS_ConstPower               ! Constant power torque control
+    INTEGER(IntKi)                :: VS_FBP                      ! Fixed blade pitch control mode in above rated conditions {0 - variable pitch (defer to PC_ControlMode and VS_ConstPower), 1 - P/omega overspeed control law, 2 - PI reference tracking based on WSE lookup table, 3 - PI reference tracking based on torque lookup table (must have VS_FBP_Tau be a monotonic function)}
     REAL(DbKi)                    :: VS_GenEff                   ! Generator efficiency mechanical power -> electrical power [-]
     REAL(DbKi)                    :: VS_ArSatTq                  ! Above rated generator torque PI control saturation, [Nm] -- 212900
     REAL(DbKi)                    :: VS_MaxRat                   ! Maximum torque rate (in absolute value) in torque controller, [Nm/s].
@@ -79,7 +80,6 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: VS_KP                       ! Proportional gain for generator PI torque controller, used in the transitional 2.5 region
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: VS_KI                       ! Integral gain for generator PI torque controller, used in the transitional 2.5 region
     REAL(DbKi)                    :: VS_TSRopt                   ! Power-maximizing region 2 tip-speed ratio [rad]
-    INTEGER(IntKi)                :: VS_FBP_RefMode              ! Reference interpolation control mode for fixed blade pitch in above rated conditions {0 - no torque control, 1 - komega^2 with PI trans, 2 - WSE TSR Tracking, 3 - Power TSR Tracking}
     INTEGER(IntKi)                :: VS_FBP_n                    ! Number of operating schedule entries for fixed blade pitch control
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: VS_FBP_U                    ! Operating schedule for fixed blade pitch control - Wind speed
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: VS_FBP_Omega                ! Operating schedule for fixed blade pitch control - Generator speed
