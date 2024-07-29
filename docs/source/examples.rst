@@ -98,3 +98,9 @@ By setting :code:`testtype`, the user can run a variety of tests:
 
 Setting the :code:`turbine2test` allows the user to test either the IEA-15MW with the UMaine floating semisubmersible or the NREL-5MW reference onshore turbine.
 
+
+List of Examples
+----------------
+A complete list of examples is given below:
+
+.. automodule:: 01_turbine_model
