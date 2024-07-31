@@ -63,4 +63,4 @@ controller_params:
     n_U: 1
     omega_flp: 0.0
     zeta_flp: 0.0
-turbine_params: {rotor_inertia: 19858184.0, rated_rotor_speed: 1.26711, v_min: 3.0, v_rated: 11.4, v_max: 25.0, max_pitch_rate: 0.1745, max_torque_rate: 1500000.0, rated_power: 2800000.0, bld_edgewise_freq: 8.2831853, bld_flapwise_freq: 0.0, TSR_operational: 0}
+turbine_params: {rotor_inertia: 19858184.0, rated_rotor_speed: 1.26711, v_min: 3.0, v_rated: 11.4, v_max: 25.0, max_pitch_rate: 0.1745, max_torque_rate: 22000.0, rated_power: 2800000.0, bld_edgewise_freq: 8.2831853, bld_flapwise_freq: 0.0, TSR_operational: 0}

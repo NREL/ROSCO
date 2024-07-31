@@ -13,12 +13,12 @@ turbine_params:
   rotor_inertia:      92169               # Rotor inertia [kg m^2], {Available in Elastodyn .sum file}
   rated_rotor_speed:  1.204   # 11.5 rpm               # Rated rotor speed [rad/s]
   v_min:              0.5                   # Cut-in wind speed [m/s] 
-  v_rated:            2.0                  # Rated wind speed [m/s]
-  v_max:              3.0                  # Cut-out wind speed [m/s], -- Does not need to be exact (JUST ASSUME FOR NOW)
+  v_rated:            2.0                   # Rated wind speed [m/s]
+  v_max:              3.0                   # Cut-out wind speed [m/s], -- Does not need to be exact (JUST ASSUME FOR NOW)
   max_pitch_rate:     0.1745                # Maximum blade pitch rate [rad/s]
-  max_torque_rate:    1500000.              # Maximum torque rate [Nm/s], {~1/4 VS_RtTq/s}
-  rated_power:        500000              # Rated Power [W]
-  bld_edgewise_freq:  60.2831853             # Blade edgewise first natural frequency [rad/s]
+  max_torque_rate:    7800.                 # Maximum torque rate [Nm/s], {~1/4 VS_RtTq/s}
+  rated_power:        500000                # Rated Power [W]
+  bld_edgewise_freq:  60.2831853            # Blade edgewise first natural frequency [rad/s]
   bld_flapwise_freq:  0.0                   # Blade flapwise first natural frequency [rad/s]
   reynolds_ref:       8e6
   # Optional 
