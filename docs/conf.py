@@ -15,6 +15,7 @@ import sys
 from datetime import date
 root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, root_path)
+sys.path.insert(0, os.path.join(root_path,'Examples'))
 
 # -- Project information -----------------------------------------------------
 
@@ -53,6 +54,7 @@ extensions = [
     "sphinx.ext.graphviz",
     "sphinx.ext.autosectionlabel",
     "sphinx_rtd_theme",
+    "sphinx.ext.autodoc",
     # "sphinxcontrib.bibtex",
 ]
 
@@ -91,3 +93,6 @@ html_theme = "sphinx_rtd_theme"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 # html_static_path = ['_static']
+
+# Options for AutoDoc:
+add_module_names = False
