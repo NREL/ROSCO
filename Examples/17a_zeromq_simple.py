@@ -1,11 +1,11 @@
-'''
------------ 17_zeromq_interface --------------
-Run ROSCO using the ROSCO toolbox control interface and execute communication with ZeroMQ
--------------------------------------
+"""
+17a_zeromq_simple
+--------------------
+Run ROSCO using the ROSCO toolbox control interface and execute communication with ZeroMQ.
 
 A demonstrator for ZeroMQ communication. Instead of using ROSCO with with control interface, 
 one could call ROSCO from OpenFAST, and communicate with ZeroMQ through that.
-'''
+"""
 
 
 import os
@@ -22,15 +22,22 @@ from rosco.toolbox.ofTools.fast_io import output_processing
 import numpy as np
 import multiprocessing as mp
 
-TIME_CHECK = 30
-DESIRED_YAW_OFFSET = 20
-DESIRED_PITCH_OFFSET = np.deg2rad(2) * np.sin(0.1 * TIME_CHECK) + np.deg2rad(2)
 
-#directories
-this_dir            = os.path.dirname(os.path.abspath(__file__))
-rosco_dir           = os.path.dirname(this_dir)
-example_out_dir     = os.path.join(this_dir,'examples_out')
-os.makedirs(example_out_dir,exist_ok=True)
+def main():
+    #directories
+    this_dir            = os.path.dirname(os.path.abspath(__file__))
+    rosco_dir           = os.path.dirname(this_dir)
+    example_out_dir     = os.path.join(this_dir,'examples_out')
+    os.makedirs(example_out_dir,exist_ok=True)
+
+    logfile = os.path.join(example_out_dir,os.path.splitext(os.path.basename(__file__))[0]+'.log')
+    p1 = mp.Process(target=run_zmq,args=(logfile,))
+    p1.start()
+    p2 = mp.Process(target=sim_rosco)
+    p2.start()
+    p1.join()
+    p2.join()
+
 
 def run_zmq(logfile=None):
     # Start the server at the following address
@@ -44,25 +51,29 @@ def run_zmq(logfile=None):
     server.runserver()
     
 def wfc_controller(id,current_time,measurements):
-        if current_time <= 10.0:
-            yaw_setpoint = 0.0
-        else:
-            yaw_setpoint = DESIRED_YAW_OFFSET
+    time_check = 30
+    desired_yaw_offset = 20
+    desired_pitch_offset = np.deg2rad(2) * np.sin(0.1 * time_check) + np.deg2rad(2)
+    
+    if current_time <= 10.0:
+        yaw_setpoint = 0.0
+    else:
+        yaw_setpoint = desired_yaw_offset
 
-        # Pitch offset
-        if current_time >= 10.0:
-            col_pitch_command = np.deg2rad(2) * np.sin(0.1 * current_time) + np.deg2rad(2) # Implement dynamic induction control
-        else:
-            col_pitch_command = 0.0
+    # Pitch offset
+    if current_time >= 10.0:
+        col_pitch_command = np.deg2rad(2) * np.sin(0.1 * current_time) + np.deg2rad(2) # Implement dynamic induction control
+    else:
+        col_pitch_command = 0.0
 
-        # Send new setpoints back to ROSCO
-        setpoints = {}
-        setpoints['ZMQ_TorqueOffset'] = 0.0
-        setpoints['ZMQ_YawOffset'] = yaw_setpoint
-        setpoints['ZMQ_PitOffset(1)'] = col_pitch_command
-        setpoints['ZMQ_PitOffset(2)'] = col_pitch_command
-        setpoints['ZMQ_PitOffset(3)'] = col_pitch_command
-        return setpoints
+    # Send new setpoints back to ROSCO
+    setpoints = {}
+    setpoints['ZMQ_TorqueOffset'] = 0.0
+    setpoints['ZMQ_YawOffset'] = yaw_setpoint
+    setpoints['ZMQ_PitOffset(1)'] = col_pitch_command
+    setpoints['ZMQ_PitOffset(2)'] = col_pitch_command
+    setpoints['ZMQ_PitOffset(3)'] = col_pitch_command
+    return setpoints
 
 def sim_rosco():
     # Load yaml file
@@ -157,10 +168,4 @@ def sim_rosco():
     np.testing.assert_almost_equal(local_vars[0]['ZMQ_PitOffset'][ind_30], DESIRED_PITCH_OFFSET, decimal=3)
 
 if __name__ == "__main__":
-    logfile = os.path.join(example_out_dir,os.path.splitext(os.path.basename(__file__))[0]+'.log')
-    p1 = mp.Process(target=run_zmq,args=(logfile,))
-    p1.start()
-    p2 = mp.Process(target=sim_rosco)
-    p2.start()
-    p1.join()
-    p2.join()
+    main()
