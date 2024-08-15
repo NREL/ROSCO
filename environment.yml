@@ -19,4 +19,4 @@ dependencies:
   - scipy
   - sphinx_rtd_theme
   - treon
-  - wisdem
+  - wisdem >=3.16

@@ -1,10 +1,10 @@
 --------------------- MoorDyn Input File ------------------------------------
 IEA 15 MW offshore reference model on UMaine VolturnUS-S semi-submersible floating platform mooring model- C. Allen UMaine                                          
 FALSE    Echo      - echo the input file data (flag)                                            
------------------------ LINE TYPES ------------------------------------------                                           
-Name     Diam      MassDen       EA    BA/-zeta    EI    Cd      Ca     CdAx   CaAx
-(-)       (m)      (kg/m)        (N)    (N-s/-)    (-)   (-)     (-)    (-)    (-)      
-main    0.333       685.00      3.27E+09 -1        0    1.11     0.82   0.2     0.27
+----------------------- LINE TYPES ------------------------------------------
+Name  Diam  MassDen  EA       BA/-zeta  EI    Cd    Ca    CdAx   CaAx
+(-)   (m)   (kg/m)   (N)      (N-s/-)   (-)   (-)   (-)   (-)    (-)
+main  0.333  685.00  3.27E+09  -1.0      0    2.0   0.82  0.4    0.27
 ---------------------- POINTS --------------------------------                                           
 ID  Type      X         Y       Z       M    V   CdA   CA
 (-)  (-)      (m)       (m)     (m)    (kg) (m^3) (m^2) (-)
