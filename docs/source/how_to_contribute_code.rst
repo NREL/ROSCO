@@ -43,3 +43,13 @@ Once you have added or modified code, submit a pull request via the GitHub inter
 This will automatically go through all of the tests in the repo to make sure everything is functioning properly.
 The main developers of ROSCO will then merge in the request or provide feedback on how to improve the contribution.
 
+Updating the ROSCO API (Changing Input Files)
+---------------------------------------------
+Any API changes should result in the following changes:
+
+1. Update to the `rosco schema<https://github.com/NREL/ROSCO/blob/7deb583d4acbacc068bad28e2228f7d257a7cd7c/rosco/toolbox/inputs/toolbox_schema.yaml#L545>`_.
+2. Update to `DISCON writer<https://github.com/NREL/ROSCO/blob/7deb583d4acbacc068bad28e2228f7d257a7cd7c/rosco/toolbox/utilities.py#L43>`_.  You can use the `input_descriptions` dictionary to streamline the process.
+3. `Document API changes here<https://github.com/NREL/ROSCO/blob/main/docs/source/api_change.rst>`_
+4. Update to the `rosco registry<https://github.com/NREL/ROSCO/blob/7deb583d4acbacc068bad28e2228f7d257a7cd7c/rosco/controller/rosco_registry/rosco_types.yaml#L76>`_, which `regenerates the ROSCO_IO using this script<https://github.com/NREL/ROSCO/blob/main/rosco/controller/rosco_registry/write_registry.py>`_.
+
+
