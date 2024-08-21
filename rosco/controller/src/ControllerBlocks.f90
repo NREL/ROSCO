@@ -63,10 +63,10 @@ CONTAINS
             LocalVar%VS_RefSpd_TSR = (CntrPar%VS_TSRopt * LocalVar%WE_Vw / CntrPar%WE_BladeRadius) * CntrPar%WE_GearboxRatio
 
         ELSEIF (CntrPar%VS_ControlMode == VS_Mode_Power_TSR) THEN ! Genspeed reference that doesn't depend on wind speed estimate (https://doi.org/10.2172/1259805)
-            LocalVar%VS_RefSpd_TSR = (LocalVar%VS_GenPwr/(CntrPar%VS_GenEff/100.0)/CntrPar%VS_Rgn2K)**(1./3.)
+            LocalVar%VS_RefSpd_TSR = (MAX(LocalVar%VS_GenPwr, 0.0)/(CntrPar%VS_GenEff/100.0)/CntrPar%VS_Rgn2K)**(1./3.)
 
         ELSEIF (CntrPar%VS_ControlMode == VS_Mode_Torque_TSR) THEN ! Non-WSE TSR tracking based on square-root of torque
-            LocalVar%VS_RefSpd_TSR = (LocalVar%GenTq/CntrPar%VS_Rgn2K)**(1./2.)
+            LocalVar%VS_RefSpd_TSR = (MAX(LocalVar%GenTq, 0.0)/CntrPar%VS_Rgn2K)**(1./2.)
 
         ELSE ! Generate constant reference
             LocalVar%VS_RefSpd_TSR = CntrPar%VS_RefSpd
