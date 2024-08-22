@@ -343,12 +343,11 @@ class Controller():
             omega_op = np.maximum(TSR_op*v/R, self.vs_minspd)
         omega_gen_op = omega_op * Ng
 
-        tau_op = P_op / omega_gen_op \
-            / (turbine.GBoxEff/100 * turbine.GenEff/100) # Includes increase to counteract generator efficiency loss
+        tau_op = P_op / omega_gen_op / (turbine.GenEff/100) # Includes increase to counteract generator efficiency loss, but not gearbox efficiency loss
         # Check if maximum torque leaves enough leeway to control the system
         if np.max(tau_op) > turbine.max_torque: # turbine.max_torque * 1.2 # DBS: Should we include additional margin? 
             print('WARNING: Torque operating schedule is above maximum generator torque and may not be realizable within saturation limits.')
-            # DBS: Do we want to saturate maximum torque and recompute equilibrium points? 
+            # DBS: Future - add input constraints to satisfy maximum torque, speed, and thrust (peak shaving) in addition to power
 
         # Check if options allow a nonmonotonic torque schedule
         if self.VS_FBP == 3:
@@ -417,8 +416,13 @@ class Controller():
             self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A,B_tau,linearize=False,v=v)
 
         # -- Find K for Komega_g^2 --
-        self.vs_rgn2K = (pi*rho*R**5.0 * turbine.Cp.max) / \
-              (2.0 * turbine.Cp.TSR_opt**3 * Ng**3) * self.controller_params['rgn2k_factor']
+        # P_aero = 1/2 * Cp * rho * pi * R^5 / (TSR^3 * Ng^3)
+        # P_rot  = GBoxEff * P_aero = tau_gen * omega_gen = K * omega_gen^3
+        # P_gen  = GenEff * P_rot
+        # Generator efficiency is not included in K here, but gearbox efficiency is
+        self.vs_rgn2K = (pi*rho*R**5.0 * turbine.Cp.max * turbine.GBoxEff/100) \
+            / (2.0 * turbine.Cp.TSR_opt**3 * Ng**3) \
+            * self.controller_params['rgn2k_factor']
         self.vs_refspd = min(turbine.TSR_operational * turbine.v_rated/R, turbine.rated_rotor_speed) * Ng
 
         # -- Define some setpoints --
