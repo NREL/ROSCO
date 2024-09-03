@@ -36,7 +36,7 @@ CONTAINS
 
 
         ! Set up power reference
-        IF (CntrPar%PRC_Mode == 1) THEN  ! Using power reference control
+        IF (CntrPar%PRC_Mode == 2) THEN  ! Using power reference control
             IF (CntrPar%PRC_Comm == PRC_Comm_Constant) THEN  ! Constant, from DISCON
                 LocalVar%PRC_R_Speed = CntrPar%PRC_R_Speed
                 LocalVar%PRC_R_Torque = CntrPar%PRC_R_Torque
@@ -83,13 +83,13 @@ CONTAINS
         !   Change pitch reference speed
         LocalVar%PC_RefSpd_PRC = CntrPar%PC_RefSpd * LocalVar%PRC_R_Speed
         
-        ! Power reference tracking generator speed
-        ! IF (CntrPar%PRC_Mode == 1) THEN
-        !     LocalVar%PRC_WSE_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT,CntrPar%PRC_LPF_Freq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
-        !     LocalVar%PC_RefSpd_PRC = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_GenSpeeds,LocalVar%PRC_WSE_F,ErrVar)
-        ! ELSE
-        !     LocalVar%PC_RefSpd_PRC = CntrPar%PC_RefSpd
-        ! ENDIF
+        ! Lookup table for speed setpoint (PRC_Mode 1)
+        IF (CntrPar%PRC_Mode == 1) THEN
+            LocalVar%PRC_WSE_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT,CntrPar%PRC_LPF_Freq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
+            LocalVar%PC_RefSpd_PRC = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_GenSpeeds,LocalVar%PRC_WSE_F,ErrVar)
+        ELSE
+            LocalVar%PC_RefSpd_PRC = CntrPar%PC_RefSpd
+        ENDIF
         
         ! Implement setpoint smoothing
         IF (LocalVar%SS_DelOmegaF < 0) THEN
@@ -125,10 +125,10 @@ CONTAINS
         ! Saturate torque reference speed between min speed and rated speed
         LocalVar%VS_RefSpd = saturate(LocalVar%VS_RefSpd,CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd * LocalVar%PRC_R_Speed)
 
-        ! ! Implement power reference rotor speed (overwrites above), convert to generator speed
-        ! IF (CntrPar%PRC_Mode == 1) THEN
-        !     LocalVar%VS_RefSpd = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_GenSpeeds,LocalVar%WE_Vw_F,ErrVar)
-        ! ENDIF
+        ! Simple lookup table for generator speed (PRC_Mode 1)
+        IF (CntrPar%PRC_Mode == 1) THEN
+            LocalVar%VS_RefSpd = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_GenSpeeds,LocalVar%PRC_WSE_F,ErrVar)
+        ENDIF
         
         ! Implement setpoint smoothing
         IF (LocalVar%SS_DelOmegaF > 0) THEN
