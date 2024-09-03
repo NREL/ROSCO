@@ -1,11 +1,9 @@
-'''
------------ 28_tower_resonance ------------------------
+"""
+28_tower_resonance
+------------------
 Demonstrate tower resonance avoidance controller
------------------------------------------------
-
 Set up and run simulation with tower resonance avoidance
-
-'''
+"""
 
 import os
 from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
@@ -16,17 +14,14 @@ from rosco.toolbox.inputs.validation import load_rosco_yaml
 
 import numpy as np
 
-rpm2RadSec = 2.0*(np.pi)/60.0
-
-
-#directories
-this_dir            = os.path.dirname(os.path.abspath(__file__))
-rosco_dir           = os.path.dirname(this_dir)
-example_out_dir     = os.path.join(this_dir,'examples_out')
-os.makedirs(example_out_dir,exist_ok=True)
-
-
 def main():
+    rpm2RadSec = 2.0*(np.pi)/60.0
+
+    #directories
+    this_dir            = os.path.dirname(os.path.abspath(__file__))
+    rosco_dir           = os.path.dirname(this_dir)
+    example_out_dir     = os.path.join(this_dir,'examples_out')
+    os.makedirs(example_out_dir,exist_ok=True)
 
     # Input yaml and output directory
     parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW.yaml')

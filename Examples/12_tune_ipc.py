@@ -1,14 +1,14 @@
-'''
------------ 12_tune_ipc --------------
+"""
+12_tune_ipc
+--------------
 Load a turbine, tune a controller with IPC
--------------------------------------
-
 In this example:
-  - Load a turbine from OpenFAST
-  - Tune a controller with IPC
-  - Run simple simulation with open loop control
 
-'''
+* Load a turbine from OpenFAST
+* Tune a controller with IPC
+* Run simple simulation with open loop control
+"""
+
 # Python Modules
 import os
 import matplotlib.pyplot as plt
