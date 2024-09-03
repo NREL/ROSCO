@@ -35,7 +35,7 @@ CONTAINS
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
 
 
-        ! Set up power reference
+        ! Set up power control
         IF (CntrPar%PRC_Mode == 2) THEN  ! Using power reference control
             IF (CntrPar%PRC_Comm == PRC_Comm_Constant) THEN  ! Constant, from DISCON
                 LocalVar%PRC_R_Speed = CntrPar%PRC_R_Speed
@@ -79,6 +79,8 @@ CONTAINS
             LocalVar%PRC_R_Pitch = 1.0_DbKi
             LocalVar%PRC_Min_Pitch = CntrPar%PC_FinePit
         ENDIF
+
+        ! End any power control before this point
 
         !   Change pitch reference speed
         LocalVar%PC_RefSpd_PRC = CntrPar%PC_RefSpd * LocalVar%PRC_R_Speed
