@@ -1499,6 +1499,11 @@ CONTAINS
             ErrVar%ErrMsg  = 'Pitch offset fault enabled (PF_Mode = 1), but Ptch_Cntrl in ServoDyn has a value of 0. Set it to 1 for individual pitch control.'
         ENDIF
 
+        IF (NINT(avrSWAP(28)) == 0 .AND. (CntrPar%AWC_Mode > 1)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'AWC enabled, but Ptch_Cntrl in ServoDyn has a value of 0. Set it to 1 for individual pitch control.'
+        ENDIF
+
         ! DT
         IF (LocalVar%DT <= 0.0) THEN
             ErrVar%aviFAIL = -1
