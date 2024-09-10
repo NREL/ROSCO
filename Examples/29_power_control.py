@@ -60,7 +60,7 @@ def main():
 
     # Input yaml and output directory
     parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW.yaml')
-    run_dir = os.path.join(example_out_dir,'29_PRC_Test/12_AWC_Speed')
+    run_dir = os.path.join(example_out_dir,'29_PRC_Test/14_AWC_Torque')
     os.makedirs(run_dir,exist_ok=True)
 
     
@@ -68,7 +68,7 @@ def main():
     controller_params = {}
     controller_params['DISCON'] = {}
     controller_params['DISCON']['Echo'] = 1
-    controller_params['DISCON']['PRC_Mode'] = 1
+    controller_params['DISCON']['PRC_Mode'] = 2
     controller_params['DISCON']['PRC_Comm'] = 1
     controller_params['DISCON']['PRC_R_Torque'] = 1.0
     controller_params['DISCON']['PRC_R_Speed'] = 1.0
@@ -105,16 +105,15 @@ def main():
         controller_params['OL_Mode'] = 1
         olc = ROSCO_controller.OpenLoopControl(t_max=600)
         olc.sine_timeseries(
-            'R_speed', 
-            0.104719,   # amplitude, 1 rpm
+            'R_torque',  # could use R_speed or R_torque
+            0.05,       # amplitude, fraction of rated power
             100,        # period, sec
+            1,          # offset, (-)
             )
         
     
     fig,ax = olc.plot_series()
     fig.savefig(os.path.join(example_out_dir,'29_OL_Inputs.png'))
-    # import matplotlib.pyplot as plt
-    # plt.show()
     
 
     # Write open loop input, get OL indices
@@ -130,34 +129,12 @@ def main():
     
     # Wind case
     # A few different cases highlight TRA
-    
-    # Ramp: good demo of functionality, short for CI
     r.wind_case_fcn = cl.power_curve  
     r.wind_case_opts    = {
             'U': [14],  # from 10 to 15 m/s
             'TMax': 600,
             }
-
-    # # steady
-    # r.wind_case_fcn = cl.power_curve  
-    # r.wind_case_opts    = {
-    #     'U': 6.5,  # from 10 to 15 m/s
-    #     'TMax': 400,
-    #     }
     
-    # # turbulence
-    # r.wind_case_fcn = cl.turb_bts  
-    # r.wind_case_opts    = {
-    #     'TMax': 400,  # from 10 to 15 m/s
-    #     'wind_filenames': ['/Users/dzalkind/Downloads/heavy_test_1ETM_U6.000000_Seed603.0.bts'],
-    #     }
-
-    # # Do a run with both tower modes
-    # r.control_sweep_fcn = cl.sweep_yaml_input
-    # r.control_sweep_opts = {
-    #         'control_param': 'TRA_Mode',
-    #         'param_values': [0,1]
-    #     }
     
     r.controller_params = controller_params
     r.save_dir      = run_dir
