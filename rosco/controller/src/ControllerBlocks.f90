@@ -89,8 +89,6 @@ CONTAINS
         IF (CntrPar%PRC_Mode == 1) THEN
             LocalVar%PRC_WSE_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT,CntrPar%PRC_LPF_Freq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
             LocalVar%PC_RefSpd_PRC = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_GenSpeeds,LocalVar%PRC_WSE_F,ErrVar)
-        ELSE
-            LocalVar%PC_RefSpd_PRC = CntrPar%PC_RefSpd
         ENDIF
         
         ! Implement setpoint smoothing
