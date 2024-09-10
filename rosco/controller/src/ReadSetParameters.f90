@@ -748,7 +748,6 @@ CONTAINS
             IF (CntrPar%Ind_R_Speed > 0) THEN
                 CntrPar%OL_R_Speed = CntrPar%OL_Channels(:,CntrPar%Ind_R_Speed)
             ENDIF
-            WRITE(400,*) CntrPar%OL_R_Speed
 
             IF (CntrPar%Ind_R_Torque > 0) THEN
                 CntrPar%OL_R_Torque = CntrPar%OL_Channels(:,CntrPar%Ind_R_Torque)
