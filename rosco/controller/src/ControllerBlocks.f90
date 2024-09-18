@@ -68,7 +68,7 @@ CONTAINS
         ELSEIF (CntrPar%VS_ControlMode == VS_Mode_Torque_TSR) THEN ! Non-WSE TSR tracking based on square-root of torque
             LocalVar%VS_RefSpd_TSR = (MAX(LocalVar%GenTq, 0.0)/CntrPar%VS_Rgn2K)**(1./2.)
 
-        ELSE ! Generate constant reference
+        ELSE ! Generate constant speed reference if K*Omega^2 in use or torque control disabled
             LocalVar%VS_RefSpd_TSR = CntrPar%VS_RefSpd
         ENDIF 
 
@@ -93,9 +93,10 @@ CONTAINS
             CALL RefSpeedExclusion(LocalVar, CntrPar, objInst, DebugVar)
         END IF
 
-        ! Saturate torque reference speed between min speed and rated speed
-        ! LocalVar%VS_RefSpd = saturate(LocalVar%VS_RefSpd, CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
-        ! Saturate torque reference speed above lower bound (below)
+        ! Saturate torque reference speed below rated speed if using pitch control in Region 3
+        IF (CntrPar%VS_FBP == VS_FBP_Variable_Pitch) THEN
+            LocalVar%VS_RefSpd = saturate(LocalVar%VS_RefSpd, CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
+        END IF
 
         ! Implement power reference rotor speed (overwrites above), convert to generator speed
         IF (CntrPar%PRC_Mode == 1) THEN
@@ -112,7 +113,7 @@ CONTAINS
             LocalVar%VS_RefSpd = CntrPar%VS_MinOMSpd
         ENDIF
 
-        ! Force minimum rotor speed
+        ! Force minimum rotor speed reference
         LocalVar%VS_RefSpd = max(LocalVar%VS_RefSpd, CntrPar%VS_MinOmSpd)
 
         ! Compute speed error from reference

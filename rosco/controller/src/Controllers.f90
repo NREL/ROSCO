@@ -208,11 +208,14 @@ CONTAINS
         ! -------- Variable-Speed Torque Controller --------
         ! Define max torque
         IF (LocalVar%VS_State == VS_State_Region_3_ConstTrq) THEN
-           LocalVar%VS_MaxTq = CntrPar%VS_RtTq
-        ELSE
-            ! VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
             LocalVar%VS_MaxTq = CntrPar%VS_RtTq
+        ELSE
+            LocalVar%VS_MaxTq = CntrPar%VS_MaxTq
         ENDIF
+
+        ! Pre-compute generatoer torque values for K*Omega^2 and constant power
+        LocalVar%VS_KOmega2_GenTq = CntrPar%VS_Rgn2K*LocalVar%GenSpeedF*LocalVar%GenSpeedF
+        LocalVar%VS_ConstPwr_GenTq = (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF
 
         ! Optimal Tip-Speed-Ratio tracking controller (reference generated in subroutine ComputeVariablesSetpoints)
         IF ((CntrPar%VS_ControlMode == VS_Mode_WSE_TSR) .OR. \
@@ -221,12 +224,7 @@ CONTAINS
 
             ! Constant Power, update VS_MaxTq
             IF (CntrPar%VS_ConstPower == VS_Mode_ConstPwr) THEN
-                LocalVar%VS_MaxTq = min((CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF, CntrPar%VS_MaxTq)
-            END IF
-
-            IF (CntrPar%VS_FBP > 0) THEN
-                ! Increase torque limit from rated if torque control also used in Region 3
-                LocalVar%VS_MaxTq = CntrPar%VS_MaxTq
+                LocalVar%VS_MaxTq = min(LocalVar%VS_ConstPwr_GenTq, CntrPar%VS_MaxTq)
             END IF
 
             ! PI controller
@@ -237,9 +235,9 @@ CONTAINS
                                         CntrPar%VS_MinTq, LocalVar%VS_MaxTq, &
                                         LocalVar%DT, LocalVar%VS_LastGenTrq, LocalVar%piP, LocalVar%restart, objInst%instPI)
 
+            ! Saturate control input to Region 3 constant-power value if FBP mode is set to constant-power overspeed (no need for explicit transition region)
             IF (CntrPar%VS_FBP == VS_FBP_Power_Overspeed) THEN
-                ! Saturate input if FBP mode is set to constant power overspeed
-                LocalVar%GenTq = MIN((CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF, LocalVar%GenTq)
+                LocalVar%GenTq = MIN(LocalVar%VS_ConstPwr_GenTq, LocalVar%GenTq)
             ENDIF
 
         ! K*Omega^2 control law with PI torque control in transition regions
@@ -252,20 +250,18 @@ CONTAINS
             IF (LocalVar%VS_State == VS_State_Region_1_5) THEN ! Region 1.5
                 LocalVar%GenTq = LocalVar%GenBrTq
             ELSEIF (LocalVar%VS_State == VS_State_Region_2) THEN ! Region 2
-                LocalVar%GenTq = CntrPar%VS_Rgn2K*LocalVar%GenSpeedF*LocalVar%GenSpeedF
+                LocalVar%GenTq = LocalVar%VS_KOmega2_GenTq
             ELSEIF (LocalVar%VS_State == VS_State_Region_2_5) THEN ! Region 2.5
                 LocalVar%GenTq = LocalVar%GenArTq
             ELSEIF (LocalVar%VS_State == VS_State_Region_3_ConstTrq) THEN ! Region 3, constant torque
                 LocalVar%GenTq = CntrPar%VS_RtTq
             ELSEIF (LocalVar%VS_State == VS_State_Region_3_ConstPwr) THEN ! Region 3, constant power
-                LocalVar%GenTq = (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF
+                LocalVar%GenTq = LocalVar%VS_ConstPwr_GenTq
             ELSEIF (LocalVar%VS_State == VS_State_Region_3_FBP) THEN ! Region 3, fixed blade pitch
                 ! Constant power overspeed
                 IF (CntrPar%VS_FBP == VS_FBP_Power_Overspeed) THEN
-                    ! Nonlinear lookup table from gen speed to gen torque
-                    ! LocalVar%GenTq = interp1d(CntrPar%VS_FBP_Omega, CntrPar%VS_FBP_Tau, LocalVar%GenSpeedF, ErrVar) ! (must express LUTs for torque as a function of speed)
-                    ! Either K*Omega^2 or constant power overspeed
-                    LocalVar%GenTq = MIN((CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF, CntrPar%VS_Rgn2K*LocalVar%GenSpeedF*LocalVar%GenSpeedF)
+                    ! K*Omega^2 in Region 2 or constant power overspeed in Region 3
+                    LocalVar%GenTq = MIN(LocalVar%VS_ConstPwr_GenTq, LocalVar%VS_KOmega2_GenTq)
                 ! Reference-tracking in Region 3
                 ELSEIF ((CntrPar%VS_FBP == VS_FBP_WSE_Ref) .OR. (CntrPar%VS_FBP == VS_FBP_Torque_Ref)) THEN
                     LocalVar%GenTq = LocalVar%GenArTq

@@ -282,16 +282,16 @@ ControlParameters:
       description: Generator efficiency mechanical power -> electrical power [-]
     VS_ArSatTq:
       <<: *real
-      description: Above rated generator torque PI control saturation, [Nm] -- 212900
+      description: Above rated generator torque PI control saturation, [Nm]
     VS_MaxRat:
       <<: *real
       description: Maximum torque rate (in absolute value) in torque controller, [Nm/s].
     VS_MaxTq:
       <<: *real
-      description: Maximum generator torque in Region 3 (HSS side), [Nm]. -- chosen to be 10% above VS_RtTq
+      description: Maximum generator torque in Region 3 (HSS side), [Nm].
     VS_MinTq:
       <<: *real
-      description: Minimum generator (HSS side), [Nm].
+      description: Minimum generator torque (HSS side), [Nm].
     VS_MinOMSpd:
       <<: *real
       description: Optimal mode minimum speed, [rad/s]
@@ -960,9 +960,6 @@ LocalVariables:
     VS_GenPwr: 
       <<: *real 
       description: Generator power [W]
-    VS_GenPwrF: 
-      <<: *real 
-      description: Generator power [W]
     GenSpeed: 
       <<: *real 
       description: Generator speed (HSS) [rad/s]
@@ -1054,7 +1051,7 @@ LocalVariables:
       description: Generator speed set point of pitch controller after power ref control [rad/s]
     RotSpeedF:                    
       <<: *real 
-      description: Filtered LSS (generator) speed [rad/s].
+      description: Filtered LSS (rotor) speed [rad/s].
     GenSpeedF:                    
       <<: *real 
       description: Filtered HSS (generator) speed [rad/s].
@@ -1070,6 +1067,12 @@ LocalVariables:
     GenBrTq:                      
       <<: *real 
       description: Electrical generator torque, for below-rated PI-control [Nm].
+    VS_KOmega2_GenTq:
+      <<: *real 
+      description: Calculation of torque signal used by K*Omega^2 controller
+    VS_ConstPwr_GenTq:
+      <<: *real 
+      description: Calculation of constant-power torque signal 
     IPC_PitComF:     
       <<: *real 
       description: Commanded pitch of each blade as calculated by the individual pitch controller, F stands for low-pass filtered [rad].
