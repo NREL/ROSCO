@@ -83,7 +83,6 @@ class Controller():
         self.interp_type = controller_params['interp_type']
 
         # Optional parameters with defaults
-        self.min_pitch          = controller_params['min_pitch']
         self.max_pitch          = controller_params['max_pitch']
         self.vs_minspd          = controller_params['vs_minspd']
         self.ss_vsgain          = controller_params['ss_vsgain']
@@ -106,7 +105,11 @@ class Controller():
         self.fbp_U = controller_params['VS_FBP_U'] # DBS: Should we set this default based on rated speed?
         self.fbp_P = controller_params['VS_FBP_P']
 
-        #  Optional parameters without defaults
+        # Optional parameters without defaults
+        if 'min_pitch' in controller_params:
+            # Set below if no user input
+            self.min_pitch = controller_params['min_pitch']
+
         if self.VS_FBP > 0:
             
             # Fail if generator torque enabled in Region 3 but pitch control not disabled (may enable these modes to operate together in the future)
@@ -198,7 +201,7 @@ class Controller():
                 not len(self.U_pc) == len(self.omega_pc) == len(self.zeta_pc):
             raise Exception(
                 'U_pc, omega_pc, and zeta_pc are all list-like and are not of equal length')
-        
+
 
     def tune_controller(self, turbine):
         """
@@ -220,6 +223,9 @@ class Controller():
 
         # ------------- Saturation Limits --------------- #
         turbine.max_torque = turbine.rated_torque * self.controller_params['max_torque_factor']
+        if not hasattr(self, 'min_pitch') or not isinstance(self.min_pitch, float): # Set min pitch to optimal if no user input
+            self.min_pitch = turbine.Cp.pitch_opt
+        turbine.min_pitch = self.min_pitch
 
         # -------------Define Operation Points ------------- #
         TSR_rated = rated_rotor_speed*R/turbine.v_rated  # TSR at rated
@@ -243,17 +249,18 @@ class Controller():
             if self.fbp_power_mode == 0:
                 P_user_defined *= turbine.rated_power
             # Maximum potential power from MPPT (extending Region 2 power curve to cut-out)
-            P_max = 0.5 * turbine.rho * np.pi*turbine.rotor_radius**2 * turbine.Cp.max * v**3 \
+            Cp_operational = turbine.Cp.interp_surface(self.min_pitch, turbine.TSR_operational) # Compute TSR at controller pitch saturation and operational TSR (may not be optimal)
+            P_max = 0.5 * turbine.rho * np.pi*turbine.rotor_radius**2 * Cp_operational * v**3 \
                 * turbine.GBoxEff/100 * turbine.GenEff/100 # Includes generator efficiency reduction from available inflow power
-            # Take minimum
+            # Take minimum between user input and max possible
             P_op = np.min([P_user_defined, P_max], axis=0)
             # Operation along Cp surface (with fixed pitch)
-            Cp_op = (P_op / P_max) * turbine.Cp.max
+            Cp_op = (P_op / P_max) * Cp_operational
             Cp_op_br = Cp_op[:len(v_below_rated)]
             Cp_op_ar = Cp_op[len(v_below_rated):]
 
             # Identify TSR matching the Cp values (similar to variable pitch angle interpolation below)
-            Cp_FBP = np.ndarray.flatten(turbine.Cp.interp_surface(0, turbine.TSR_initial))     # all Cp values for fine blade pitch (assumed 0)
+            Cp_FBP = np.ndarray.flatten(turbine.Cp.interp_surface(self.min_pitch, turbine.TSR_initial))     # all Cp values for fine blade pitch
             Cp_maxidx = Cp_FBP.argmax()
             # When we depart from Cp_max, our TSR has to fall to either above or below TSR_opt, leading to overspeed and underspeed configurations
             if self.fbp_speed_mode: # Overspeed
@@ -265,21 +272,23 @@ class Controller():
                 Cp_op = np.clip(Cp_op, np.min(Cp_FBP[:Cp_maxidx+1]), np.max(Cp_FBP[:Cp_maxidx+1]))            # saturate Cp values to be on Cp surface                                                             # Find maximum Cp value for this TSR
                 f_cp_TSR = interpolate.interp1d(Cp_FBP[:Cp_maxidx+1], turbine.TSR_initial[:Cp_maxidx+1])             # interpolate function for Cp(tsr) values
             TSR_op = f_cp_TSR(Cp_op)
-            TSR_below_rated = TSR_op[:len(v_below_rated)]
+            # Defer to operational TSR for below rated, even if other optimum (should keep Cp the same, but may lead to discontinuities in operating schedule if min_pitch is not optimal)
+            TSR_op[v < turbine.v_rated] = turbine.TSR_operational
+            TSR_below_rated = TSR_op[:len(v_below_rated)] # Should be constant at TSR_operational
             TSR_above_rated = TSR_op[len(v_below_rated):]
 
         # elif self.PC_ControlMode > 0: # If using pitch control in Region 3
         else: # Default here even if pitch control disabled to maintain backwards compatibility
 
-            # separate TSRs by operations regions
-            TSR_below_rated = [min(turbine.TSR_operational, rated_rotor_speed*R/v) for v in v_below_rated] # below rated
+            # TSR setpoints
+            TSR_below_rated = [min(turbine.TSR_operational, rated_rotor_speed*R/v) for v in v_below_rated] # below rated, saturated to not exceed rated rotor speed
             TSR_above_rated = rated_rotor_speed*R/v_above_rated                     # above rated
             TSR_op = np.concatenate((TSR_below_rated, TSR_above_rated))             # operational TSRs
 
             # Find expected operational Cp values
-            Cp_above_rated = turbine.Cp.interp_surface(0,TSR_above_rated[0])     # Cp during rated operation (not optimal). Assumes cut-in bld pitch to be 0
-            Cp_op_br = np.ones(len(v_below_rated)) * turbine.Cp.max              # below rated
+            Cp_above_rated = turbine.Cp.interp_surface(self.min_pitch,TSR_above_rated[0])     # Cp during rated operation (not optimal)
             Cp_op_ar = Cp_above_rated * (TSR_above_rated/TSR_rated)**3           # above rated
+            Cp_op_br = [turbine.Cp.interp_surface(self.min_pitch, TSR) for TSR in TSR_below_rated] # Below rated, reinterpolated for accurate operational Cp based on controller pitch
             Cp_op = np.concatenate((Cp_op_br, Cp_op_ar))                         # operational CPs to linearize around
 
 
@@ -299,11 +308,8 @@ class Controller():
 
             if self.VS_FBP > 0: # Fixed blade pitch control in Region 3
 
-                if isinstance(self.min_pitch, float):
-                    pitch_op[i] = self.min_pitch
-                else:
-                    # pitch_op[i] = 0 # Assume zero pitch
-                    pitch_op[i] = turbine.pitch_initial_rad[turbine.Cp.max_ind[1]] # Take optimal pitch from Cp surface
+                # Constant pitch, either user input or optimal pitch from Cp surface
+                pitch_op[i] = self.min_pitch
 
             else: # Variable pitch control in Region 3 (default)
 
@@ -314,12 +320,10 @@ class Controller():
                 f_cp_pitch = interpolate.interp1d(Cp_TSR[Cp_maxidx:],pitch_initial_rad[Cp_maxidx:])             # interpolate function for Cp(tsr) values
 
                 # expected operational blade pitch values. Saturates by min_pitch if it exists
-                if v[i] <= turbine.v_rated and isinstance(self.min_pitch, float): # Below rated & defined min_pitch
+                if v[i] <= turbine.v_rated: # Below rated, keep lowest pitch
                     pitch_op[i] = min(self.min_pitch, f_cp_pitch(Cp_op[i]))
-                elif isinstance(self.min_pitch, float):                           # above rated & defined min_pitch
+                else:                       # above rated, keep highest pitch
                     pitch_op[i] = max(self.min_pitch, f_cp_pitch(Cp_op[i]))
-                else:                                                             # no defined minimum pitch schedule
-                    pitch_op[i] = f_cp_pitch(Cp_op[i])     
 
             # Calculate Cp Surface gradients
             dCp_beta[i], dCp_TSR[i] = turbine.Cp.interp_gradient(pitch_op[i],TSR_op[i]) 
@@ -330,10 +334,6 @@ class Controller():
             f_ct        = interpolate.interp1d(pitch_initial_rad,Ct_TSR)
             Ct_op[i]    = f_ct(pitch_op[i])
             Ct_op[i]    = np.clip(Ct_op[i], np.min(Ct_TSR), np.max(Ct_TSR))        # saturate Ct values to be on Ct surface
-
-        # Define minimum pitch saturation to be at Cp-maximizing pitch angle if not specifically defined
-        if not isinstance(self.min_pitch, float):
-            self.min_pitch = pitch_op[0]
 
         # Compute generator speed and torque operating schedule
         P_op = 0.5 * turbine.rho * np.pi*turbine.rotor_radius**2 * Cp_op * v**3 * turbine.GBoxEff/100 * turbine.GenEff/100
@@ -411,8 +411,10 @@ class Controller():
         self.pc_gain_schedule.second_order_PI(self.zeta_pc_U, self.omega_pc_U,A_pc,B_beta[-len(v_above_rated)+1:],linearize=True,v=v_above_rated[1:])        
         self.vs_gain_schedule = ControllerTypes()
         if self.VS_FBP == 0:
+            # Using variable pitch control in Region 3, so generate torque gain schedule only for Region 2
             self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A_vs,B_tau[0:len(v_below_rated)],linearize=False,v=v_below_rated)
         else:
+            # Using fixed pitch torque control in Region 3, so generate torque gain schedule for Regions 2 and 3
             self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A,B_tau,linearize=False,v=v)
 
         # -- Find K for Komega_g^2 --

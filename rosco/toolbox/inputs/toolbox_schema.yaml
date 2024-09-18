@@ -312,7 +312,6 @@ properties:
             min_pitch:           
                 description: Minimum pitch angle [rad], {default = 0 degrees}
                 type: number
-                default: 0
                 unit: rad
             vs_minspd:           
                 description: Minimum rotor speed [rad/s], {default = 0 rad/s}
