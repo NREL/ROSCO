@@ -275,6 +275,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: NacHeading                  ! Nacelle heading of the turbine w.r.t. north [deg]
     REAL(DbKi)                    :: NacVane                     ! Nacelle vane angle [deg]
     REAL(DbKi)                    :: HorWindV                    ! Hub height wind speed m/s
+    REAL(DbKi)                    :: HorWindV_F                  ! Filtered hub height wind speed m/s
     REAL(DbKi)                    :: rootMOOP(3)                 ! Blade root bending moment [Nm]
     REAL(DbKi)                    :: rootMOOPF(3)                ! Filtered Blade root bending moment [Nm]
     REAL(DbKi)                    :: BlPitch(3)                  ! Blade pitch [rad]
@@ -349,6 +350,8 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: WE_Vw_F                     ! Filtered estimated wind speed [m/s]
     REAL(DbKi)                    :: WE_VwI                      ! Integrated wind speed quantity for estimation [m/s]
     REAL(DbKi)                    :: WE_VwIdot                   ! Differentiated integrated wind speed quantity for estimation [m/s]
+    INTEGER(IntKi)                :: WE_Op                       ! WSE Operational state (0- not operating, 1-operating)
+    INTEGER(IntKi)                :: WE_Op_Last                  ! WSE Operational state (0- not operating, 1-operating)
     REAL(DbKi)                    :: VS_LastGenTrqF              ! Differentiated integrated wind speed quantity for estimation [m/s]
     REAL(DbKi)                    :: PRC_WSE_F                   ! Filtered wind speed estimate for power reference control
     REAL(DbKi)                    :: PRC_R_Speed                 ! Instantaneous PRC_R_Speed

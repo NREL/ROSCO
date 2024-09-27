@@ -18,6 +18,7 @@ USE, INTRINSIC :: ISO_C_Binding
 USE Constants
 USE Filters
 USE Functions
+USE SysSubs
 
 IMPLICIT NONE
 
@@ -273,29 +274,57 @@ CONTAINS
         REAL(DbKi)              :: WE_Inp_Pitch
         REAL(DbKi)              :: WE_Inp_Torque
         REAL(DbKi)              :: WE_Inp_Speed
+        REAL(DbKi)              :: Max_Op_Pitch
         
         CHARACTER(*), PARAMETER                 :: RoutineName = 'WindSpeedEstimator'
+        CHARACTER(1024)                        :: WarningMessage
 
         
 
-        ! Saturate inputs to WSE
+        ! Saturate inputs to WSE:
+        ! Rotor speed
         IF (LocalVar%RotSpeedF < 0.25 * CntrPar%VS_MinOMSpd / CntrPar%WE_GearboxRatio) THEN
             WE_Inp_Speed = 0.25 * CntrPar%VS_MinOMSpd / CntrPar%WE_GearboxRatio + EPSILON(1.0_DbKi)  ! If this is 0, could cause problems...
         ELSE
             WE_Inp_Speed = LocalVar%RotSpeedF
         END IF
 
-        IF (LocalVar%BlPitchCMeas < CntrPar%PC_MinPit) THEN
-            WE_Inp_Pitch = CntrPar%PC_MinPit
-        ELSE
-            WE_Inp_Pitch = LocalVar%BlPitchCMeas
-        END IF
+            
+        ! Blade pitch
+        Max_Op_Pitch = PerfData%Beta_vec(SIZE(PerfData%Beta_vec)) * D2R     ! The Cp surface is only valid up to the end of Beta_vec
+        WE_Inp_Pitch = saturate(LocalVar%BlPitchCMeas, CntrPar%PC_MinPit,Max_Op_Pitch) 
 
+        ! Gen torque
         IF (LocalVar%VS_LastGenTrqF < 0.0001 * CntrPar%VS_RtTq) THEN
             WE_Inp_Torque = 0.0001 * CntrPar%VS_RtTq
         ELSE
             WE_Inp_Torque = LocalVar%VS_LastGenTrqF
         END IF
+
+        ! Check to see if in operational range
+        LocalVar%WE_Op_Last = LocalVar%WE_Op
+        IF (ABS(WE_Inp_Pitch - LocalVar%BlPitchCMeas) > 0) THEN
+            LocalVar%WE_Op = 0
+        ELSEIF (ABS(WE_Inp_Torque - LocalVar%VS_LastGenTrqF) > 0) THEN
+            LocalVar%WE_Op = 0
+        ELSEIF (ABS(WE_Inp_Speed - LocalVar%RotSpeedF) > 0) THEN
+            LocalVar%WE_Op = 0
+        ELSE
+            LocalVar%WE_Op = 1
+        ENDIF
+
+        IF (CntrPar%WE_Mode > 0) THEN
+            IF (LocalVar%WE_Op < 1 .AND. LocalVar%WE_Op_Last == 1) THEN
+                WarningMessage = NewLine//'***************************************************************************************************************************************'//NewLine// &
+                    'ROSCO Warning: The wind speed estimator is used, but an input (pitch, rotor speed, or torque) has left the bounds of normal operation.'//NewLine// &
+                    'The filtered hub-height wind speed will be used instead. This warning will not persist even though the condition may.'//NewLine// &
+                    '***************************************************************************************************************************************'
+                PRINT *, TRIM(WarningMessage)
+            ENDIF
+        ENDIF
+
+        ! Filter the wind speed at hub height regardless, only use if WE_Mode = 0 or WE_Op = 0
+        LocalVar%HorWindV_F = LPFilter(LocalVar%HorWindV, LocalVar%DT, CntrPar%F_WECornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
 
         ! ---- Debug Inputs ------
         DebugVar%WE_b   = WE_Inp_Pitch
@@ -305,7 +334,7 @@ CONTAINS
         ! ---- Define wind speed estimate ---- 
         
         ! Inversion and Invariance Filter implementation
-        IF (CntrPar%WE_Mode == 1) THEN      
+        IF (CntrPar%WE_Mode == 1 .AND. LocalVar%WE_Op > 0) THEN      
             ! Compute AeroDynTorque
             Tau_r = AeroDynTorque(LocalVar%RotSpeedF, LocalVar%BlPitchCMeas, LocalVar, CntrPar, PerfData, ErrVar)
 
@@ -314,7 +343,7 @@ CONTAINS
             LocalVar%WE_Vw = LocalVar%WE_VwI + CntrPar%WE_Gamma*LocalVar%RotSpeedF
 
         ! Extended Kalman Filter (EKF) implementation
-        ELSEIF (CntrPar%WE_Mode == 2) THEN
+        ELSEIF (CntrPar%WE_Mode == 2 .AND. LocalVar%WE_Op > 0) THEN
             ! Define contant values
             L = 6.0 * CntrPar%WE_BladeRadius
             Ti = 0.18
@@ -396,8 +425,8 @@ CONTAINS
             DebugVar%WE_Vt = LocalVar%WE%v_t
             DebugVar%WE_lambda = lambda
         ELSE        
-            ! Filter wind speed at hub height as directly passed from OpenFAST
-            LocalVar%WE_Vw = LPFilter(LocalVar%HorWindV, LocalVar%DT, CntrPar%F_WECornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+            ! Use filtered hub-height
+            LocalVar%WE_Vw = LocalVar%HorWindV_F
         ENDIF 
         DebugVar%WE_Vw = LocalVar%WE_Vw
         ! Add RoutineName to error message

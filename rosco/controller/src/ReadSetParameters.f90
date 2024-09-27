@@ -217,6 +217,8 @@ CONTAINS
             ! Wind speed estimator initialization
             LocalVar%WE_Vw      = LocalVar%HorWindV
             LocalVar%WE_VwI     = LocalVar%WE_Vw - CntrPar%WE_Gamma*LocalVar%RotSpeed
+            LocalVar%WE_Op      = 1
+            LocalVar%WE_Op_Last = 1
             
             ! Setpoint Smoother initialization to zero
             LocalVar%SS_DelOmegaF = 0

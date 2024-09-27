@@ -1012,6 +1012,9 @@ LocalVariables:
     HorWindV: 
       <<: *real 
       description: Hub height wind speed m/s
+    HorWindV_F: 
+      <<: *real 
+      description: Filtered hub height wind speed m/s
     rootMOOP: 
       <<: *real
       description: Blade root bending moment [Nm]
@@ -1245,6 +1248,12 @@ LocalVariables:
     WE_VwIdot:                    
       <<: *real 
       description: Differentiated integrated wind speed quantity for estimation [m/s]
+    WE_Op:
+      <<: *integer
+      description: WSE Operational state (0- not operating, 1-operating) 
+    WE_Op_Last:
+      <<: *integer
+      description: WSE Operational state (0- not operating, 1-operating) 
     VS_LastGenTrqF:               
       <<: *real 
       description: Differentiated integrated wind speed quantity for estimation [m/s]
