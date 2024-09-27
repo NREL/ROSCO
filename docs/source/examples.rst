@@ -122,12 +122,13 @@ A complete list of examples is given below:
 .. automodule:: 17b_zeromq_multi_openfast
 .. automodule:: 18_pitch_offsets
 .. automodule:: 19_update_discon_version
-.. automodule:: 20_active_wake_control
+.. .. automodule:: 20_active_wake_control
 .. automodule:: 21_optional_inputs
 .. automodule:: 22_cable_control
 .. automodule:: 23_structural_control
 .. automodule:: 24_floating_feedback
 .. automodule:: 25_rotor_position_control
 .. automodule:: 26_marine_hydro
-.. automodule:: 27_power_ref_control
+.. automodule:: 27_soft_cut_out
 .. automodule:: 28_tower_resonance
+.. automodule:: 29_power_control
