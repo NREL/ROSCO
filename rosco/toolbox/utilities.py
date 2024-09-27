@@ -254,7 +254,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('!------- Open Loop Control -----------------------------------------------------\n')
     file.write('"{}"            ! OL_Filename       - Input file with open loop timeseries (absolute path or relative to this file)\n'.format(rosco_vt['OL_Filename']))
     file.write('{:<12d}        ! OL_BP_Mode        - {}]\n'.format(int(rosco_vt['OL_BP_Mode']),input_descriptions['OL_BP_Mode']))
-    file.write('{:<12f}        ! OL_BP_FiltFreq    - {}\n'.format(int(rosco_vt['OL_BP_FiltFreq']),input_descriptions['OL_BP_FiltFreq']))
+    file.write('{:<12f}        ! OL_BP_FiltFreq    - {}\n'.format(float(rosco_vt['OL_BP_FiltFreq']),input_descriptions['OL_BP_FiltFreq']))
     file.write('{0:<12d}        ! Ind_Breakpoint    - The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)\n'.format(int(rosco_vt['Ind_Breakpoint'])))
     file.write('{}         ! Ind_BldPitch      - The columns in OL_Filename that contains the blade pitch (1,2,3) inputs in rad [array]\n'.format(' '.join([f'{int(ipb):3d}' for ipb in rosco_vt['Ind_BldPitch']])))
     file.write('{0:<12d}        ! Ind_GenTq         - The column in OL_Filename that contains the generator torque in Nm\n'.format(int(rosco_vt['Ind_GenTq'])))
