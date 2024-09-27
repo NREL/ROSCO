@@ -10,7 +10,7 @@ In this example:
 
 Note
 
-* you will need to have a compiled controller in ROSCO/build/ 
+* you will need to have a compiled controller in ROSCO/rosco/controller/build
 """
 
 # Python Modules
