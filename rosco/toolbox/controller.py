@@ -800,21 +800,28 @@ class OpenLoopControl(object):
         # Check if control in allowed controls, cable_control_* is in cable_control
         if not any([ac in control for ac in self.allowed_controls]):
             raise Exception(f'Open loop control of {control} is not allowed')
+        
+        # Check that breakpoints are valid
+        if self.breakpoint == 'wind_speed':
+            if max(breakpoints) > self.u_max:
+                raise Exception(f'The maximum desired wind speed breakpoint ({max(breakpoints)}) is greater than u_max ({self.u_max})')
+        elif self.breakpoint == 'time':
+            if max(breakpoints) > self.t_max: 
+                raise Exception(f'The maximum desired wind speed breakpoint ({max(breakpoints)}) is greater than u_max ({self.t_max})')
+
+        # Finally interpolate
+        if method == 'sigma':
+            self.ol_series[control] = multi_sigma(self.ol_series[self.breakpoint],breakpoints,values)
+        
+        elif method == 'linear':
+            self.ol_series[control] = np.interp(self.ol_series[self.breakpoint],breakpoints,values,left=values[0],right=values[-1])
+
+        elif method == 'cubic':
+            interp_fcn = interpolate.Akima1DInterpolator(breakpoints,values,method='akima',extrapolate=True) #,kind='cubic',fill_value=values[-1],bounds_error=False)
+            self.ol_series[control] = interp_fcn(self.ol_series[self.breakpoint])
 
         else:
-            # Finally interpolate
-            if method == 'sigma':
-                self.ol_series[control] = multi_sigma(self.ol_series[self.breakpoint],breakpoints,values)
-            
-            elif method == 'linear':
-                self.ol_series[control] = np.interp(self.ol_series[self.breakpoint],breakpoints,values,left=values[0],right=values[-1])
-
-            elif method == 'cubic':
-                interp_fcn = interpolate.Akima1DInterpolator(breakpoints,values,method='akima',extrapolate=True) #,kind='cubic',fill_value=values[-1],bounds_error=False)
-                self.ol_series[control] = interp_fcn(self.ol_series[self.breakpoint])
-
-            else:
-                raise Exception(f'Open loop interpolation method {method} not supported')
+            raise Exception(f'Open loop interpolation method {method} not supported')
 
         if control == 'nacelle_yaw':
             self.compute_yaw_rate()
