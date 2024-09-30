@@ -12,19 +12,20 @@ from rosco.toolbox.control_interface import wfc_zmq_server
 from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
 from rosco.toolbox.ofTools.fast_io import output_processing
+    
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+EXAMPLE_OUT_DIR = os.path.join(THIS_DIR, "examples_out")
+os.makedirs(EXAMPLE_OUT_DIR, exist_ok=True)
 
 TIME_CHECK = 20
 DESIRED_YAW_OFFSET = [-10, 10]
 
 def main():
-    this_dir = os.path.dirname(os.path.abspath(__file__))
-    example_out_dir = os.path.join(this_dir, "examples_out")
-    os.makedirs(example_out_dir, exist_ok=True)
     
 
     # Start wind farm control server and two openfast simulation
     # as separate processes
-    logfile = os.path.join(example_out_dir,os.path.splitext(os.path.basename(__file__))[0]+'.log')
+    logfile = os.path.join(EXAMPLE_OUT_DIR,os.path.splitext(os.path.basename(__file__))[0]+'.log')
     p0 = mp.Process(target=run_zmq,args=(logfile,))
     p1 = mp.Process(target=sim_openfast_1)
     p2 = mp.Process(target=sim_openfast_2)
@@ -41,7 +42,7 @@ def main():
     # Check that info is passed to ROSCO for first simulation
     op1 = output_processing.output_processing()
     debug_file1 = os.path.join(
-        example_out_dir,
+        EXAMPLE_OUT_DIR,
         "17b_zeromq_OF1",
         "NREL5MW",
         "power_curve",
@@ -53,7 +54,7 @@ def main():
     # Check that info is passed to ROSCO for first simulation
     op2 = output_processing.output_processing()
     debug_file2 = os.path.join(
-        example_out_dir,
+        EXAMPLE_OUT_DIR,
         "17b_zeromq_OF2",
         "NREL5MW",
         "power_curve",
@@ -70,7 +71,7 @@ def main():
     if False:
         plt.show()
     else:
-        plt.savefig(os.path.join(example_out_dir, "17b_NREL5MW_ZMQ_Setpoints.png"))
+        plt.savefig(os.path.join(EXAMPLE_OUT_DIR, "17b_NREL5MW_ZMQ_Setpoints.png"))
 
     # Spot check input at time = 30 sec.
     ind1_30 = local_vars1[0]["Time"] == TIME_CHECK
@@ -137,7 +138,7 @@ def sim_openfast_1():
         "U": [8],
         "TMax": 25,
     }
-    run_dir = os.path.join(example_out_dir, "17b_zeromq_OF1")
+    run_dir = os.path.join(EXAMPLE_OUT_DIR, "17b_zeromq_OF1")
     r.controller_params = {}
     r.controller_params["LoggingLevel"] = 2
     r.controller_params["DISCON"] = {}
@@ -156,7 +157,7 @@ def sim_openfast_2():
         "U": [8],
         "TMax": 25,
     }
-    run_dir = os.path.join(example_out_dir, "17b_zeromq_OF2")
+    run_dir = os.path.join(EXAMPLE_OUT_DIR, "17b_zeromq_OF2")
     r.save_dir = run_dir
     r.controller_params = {}
     r.controller_params["DISCON"] = {}
