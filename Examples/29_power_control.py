@@ -67,9 +67,6 @@ Since the blade pitch must be used to control the rotor speed in above rated ope
 import os
 from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
 from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
-#from rosco.toolbox.ofTools.fast_io import output_processing
-from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
-from rosco.toolbox.inputs.validation import load_rosco_yaml
 from rosco.toolbox import controller as ROSCO_controller
 
 
@@ -87,7 +84,7 @@ os.makedirs(example_out_dir,exist_ok=True)
 
 def main():
 
-    FULL_TEST = False
+    FULL_TEST = False       # FULL_TEST for local testing, otherwise shorter for CI
 
     # Input yaml and output directory
     parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW.yaml')
@@ -109,6 +106,15 @@ def main():
     r.tuning_yaml   = parameter_filename
     r.case_inputs = {}
 
+    # Disable floating DOFs for clarity
+    r.case_inputs[('ElastoDyn','PtfmSgDOF')] = {'vals': ['False'], 'group': 0}
+    r.case_inputs[('ElastoDyn','PtfmSwDOF')] = {'vals': ['False'], 'group': 0}
+    r.case_inputs[('ElastoDyn','PtfmHvDOF')] = {'vals': ['False'], 'group': 0}
+    r.case_inputs[('ElastoDyn','PtfmRDOF')] = {'vals': ['False'], 'group': 0}
+    r.case_inputs[('ElastoDyn','PtfmPDOF')] = {'vals': ['False'], 'group': 0}
+    r.case_inputs[('ElastoDyn','PtfmYDOF')] = {'vals': ['False'], 'group': 0}
+    
+
     sim_config = 1    
 
     # 1. Soft start up
@@ -120,12 +126,21 @@ def main():
 
         run_dir = os.path.join(example_out_dir,'29_PRC_Demo/1_Soft_Start')
         olc = ROSCO_controller.OpenLoopControl(t_max=t_max)
-        olc.interp_series(
-            'R_torque', 
-            [0,100,200,300,400], 
-            [0,0.0,0.2,0.2,1] , 
-            'sigma'
-            )
+        
+        if FULL_TEST:
+            olc.interp_series(
+                'R_torque', 
+                [0,100,200,300,400], 
+                [0,0.0,0.2,0.2,1] , 
+                'sigma'
+                )
+        else:
+            olc.interp_series(
+                'R_torque', 
+                [0,100], 
+                [0,1.0] , 
+                'sigma'
+                )
         
         # Wind case
         r.wind_case_fcn = cl.power_curve  
