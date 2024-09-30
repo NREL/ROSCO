@@ -807,7 +807,7 @@ class OpenLoopControl(object):
                 raise Exception(f'The maximum desired wind speed breakpoint ({max(breakpoints)}) is greater than u_max ({self.u_max})')
         elif self.breakpoint == 'time':
             if max(breakpoints) > self.t_max: 
-                raise Exception(f'The maximum desired wind speed breakpoint ({max(breakpoints)}) is greater than u_max ({self.t_max})')
+                raise Exception(f'The maximum desired time breakpoint ({max(breakpoints)}) is greater than t_max ({self.t_max})')
 
         # Finally interpolate
         if method == 'sigma':
