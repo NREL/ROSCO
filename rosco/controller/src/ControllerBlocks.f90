@@ -490,7 +490,7 @@ CONTAINS
                     LocalVar%TRA_LastRefSpd = CntrPar%TRA_ExclSpeed - CntrPar%TRA_ExclBand / 2
                 ENDIF
             ELSE
-                LocalVar%TRA_LastRefSpd = LocalVar%VS_RefSpd
+                LocalVar%TRA_LastRefSpd = VS_RefSpeed_LSS
             END IF
         END IF 
 
