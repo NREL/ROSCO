@@ -189,7 +189,7 @@ class Turbine():
             fast.read_ServoDyn()
             fast.read_DISCON_in()
         else:
-            fast.fst_vt['ServoDyn']['GenEff'] = 1.0
+            fast.fst_vt['ServoDyn']['GenEff'] = 100.        # gen efficency defined in percent in ServoDyn
     
         
         if fast.fst_vt['Fst']['CompHydro'] == 1: # SubDyn not yet implimented

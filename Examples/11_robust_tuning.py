@@ -1,20 +1,22 @@
-'''
------------ 11_robust_tuning --------------
+""" 
+11_robust_tuning
+----------------
 Controller tuning to satisfy a robustness criteria
--------------------------------------
-NOTE: This example necessitates the mbc3 through either pyFAST or WEIS
+
+Note that this example necessitates the mbc3 through either pyFAST or WEIS
 pyFAST is the easiest to install by cloning https://github.com/OpenFAST/openfast_toolbox and 
-running `python setup.py develop` from your conda environment
+running ``python setup.py develop`` from your conda environment
 
 In this example:
-  - setup ROSCO's robust tuning methods for the IEA15MW on the UMaine Semi-sub
-  - run a the standard tuning method to find k_float
-  - run robust tuning to find omega_pc schedule satisfy a prescribed stability margin
-  - Tune ROSCO's pitch controller using omega_pc schedule
-  - Plot gain schedule
+
+* setup ROSCO's robust tuning methods for the IEA15MW on the UMaine Semi-sub
+* run a the standard tuning method to find k_float
+* run robust tuning to find omega_pc schedule satisfy a prescribed stability margin
+* Tune ROSCO's pitch controller using omega_pc schedule
+* Plot gain schedule
 
 The example is put in a function call to show the ability to load linear models in parallel
-'''
+"""
 import os
 import numpy as np
 import matplotlib.pyplot as plt

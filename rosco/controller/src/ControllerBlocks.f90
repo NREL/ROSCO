@@ -18,6 +18,7 @@ USE, INTRINSIC :: ISO_C_Binding
 USE Constants
 USE Filters
 USE Functions
+USE SysSubs
 
 IMPLICIT NONE
 
@@ -34,14 +35,61 @@ CONTAINS
         TYPE(DebugVariables),       INTENT(INOUT)       :: DebugVar
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
 
-        ! ----- Pitch controller speed and power error -----
 
-        ! Power reference tracking generator speed
+        ! Set up power control
+        IF (CntrPar%PRC_Mode == 2) THEN  ! Using power reference control
+            IF (CntrPar%PRC_Comm == PRC_Comm_Constant) THEN  ! Constant, from DISCON
+                LocalVar%PRC_R_Speed = CntrPar%PRC_R_Speed
+                LocalVar%PRC_R_Torque = CntrPar%PRC_R_Torque
+                LocalVar%PRC_R_Pitch = CntrPar%PRC_R_Pitch
+
+            ELSEIF (CntrPar%PRC_Comm == PRC_Comm_OpenLoop) THEN  ! Open loop
+
+                IF (CntrPar%Ind_R_Speed > 0) THEN
+                    LocalVar%PRC_R_Speed = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_R_Speed,LocalVar%OL_Index,ErrVar)
+                    WRITE(401,*) LocalVar%PRC_R_Speed
+                ELSE
+                    LocalVar%PRC_R_Speed = 1.0_DbKi
+                ENDIF
+
+                IF (CntrPar%Ind_R_Torque > 0) THEN
+                    LocalVar%PRC_R_Torque = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_R_Torque,LocalVar%OL_Index,ErrVar)
+                ELSE
+                    LocalVar%PRC_R_Torque = 1.0_DbKi
+                ENDIF
+
+                IF (CntrPar%Ind_R_Pitch > 0) THEN
+                    LocalVar%PRC_R_Pitch = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_R_Pitch,LocalVar%OL_Index,ErrVar)
+                ELSE
+                    LocalVar%PRC_R_Pitch = 1.0_DbKi
+                ENDIF
+
+            ELSEIF (CntrPar%PRC_Comm == PRC_Comm_ZMQ) THEN  ! ZeroMQ
+                LocalVar%PRC_R_Speed    = LocalVar%ZMQ_R_Speed
+                LocalVar%PRC_R_Torque   = LocalVar%ZMQ_R_Torque
+                LocalVar%PRC_R_Pitch    = LocalVar%ZMQ_R_Pitch
+
+            ENDIF
+
+            ! Set min pitch for power control, will be combined with peak shaving min pitch
+            LocalVar%PRC_Min_Pitch = interp1d(CntrPar%PRC_R_Table,CntrPar%PRC_Pitch_Table,LocalVar%PRC_R_Pitch, ErrVar)
+
+        ELSE
+            LocalVar%PRC_R_Speed = 1.0_DbKi
+            LocalVar%PRC_R_Torque = 1.0_DbKi
+            LocalVar%PRC_R_Pitch = 1.0_DbKi
+            LocalVar%PRC_Min_Pitch = CntrPar%PC_FinePit
+        ENDIF
+
+        ! End any power control before this point
+
+        !   Change pitch reference speed
+        LocalVar%PC_RefSpd_PRC = CntrPar%PC_RefSpd * LocalVar%PRC_R_Speed
+        
+        ! Lookup table for speed setpoint (PRC_Mode 1)
         IF (CntrPar%PRC_Mode == 1) THEN
             LocalVar%PRC_WSE_F = LPFilter(LocalVar%WE_Vw, LocalVar%DT,CntrPar%PRC_LPF_Freq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
             LocalVar%PC_RefSpd_PRC = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_GenSpeeds,LocalVar%PRC_WSE_F,ErrVar)
-        ELSE
-            LocalVar%PC_RefSpd_PRC = CntrPar%PC_RefSpd
         ENDIF
 
         ! Implement setpoint smoothing
@@ -84,9 +132,13 @@ CONTAINS
             ENDIF
         ENDIF
 
+        ! Change VS Ref speed based on R_Speed
+        LocalVar%VS_RefSpd = LocalVar%VS_RefSpd_TSR * LocalVar%PRC_R_Speed
+
 
         ! Filter reference signal
         LocalVar%VS_RefSpd = LPFilter(LocalVar%VS_RefSpd_TSR, LocalVar%DT, CntrPar%F_VSRefSpdCornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+
 
         ! Exclude reference speeds specified by user
         IF (CntrPar%TRA_Mode > 0) THEN
@@ -95,12 +147,12 @@ CONTAINS
 
         ! Saturate torque reference speed below rated speed if using pitch control in Region 3
         IF (CntrPar%VS_FBP == VS_FBP_Variable_Pitch) THEN
-            LocalVar%VS_RefSpd = saturate(LocalVar%VS_RefSpd, CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd)
+            LocalVar%VS_RefSpd = saturate(LocalVar%VS_RefSpd, CntrPar%VS_MinOMSpd, CntrPar%VS_RefSpd * LocalVar%PRC_R_Speed)
         END IF
 
-        ! Implement power reference rotor speed (overwrites above), convert to generator speed
+        ! Simple lookup table for generator speed (PRC_Mode 1)
         IF (CntrPar%PRC_Mode == 1) THEN
-            LocalVar%VS_RefSpd = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_GenSpeeds,LocalVar%WE_Vw_F,ErrVar)
+            LocalVar%VS_RefSpd = interp1d(CntrPar%PRC_WindSpeeds,CntrPar%PRC_GenSpeeds,LocalVar%PRC_WSE_F,ErrVar)
         ENDIF
 
         ! Implement setpoint smoothing
@@ -248,29 +300,57 @@ CONTAINS
         REAL(DbKi)              :: WE_Inp_Pitch
         REAL(DbKi)              :: WE_Inp_Torque
         REAL(DbKi)              :: WE_Inp_Speed
+        REAL(DbKi)              :: Max_Op_Pitch
         
         CHARACTER(*), PARAMETER                 :: RoutineName = 'WindSpeedEstimator'
+        CHARACTER(1024)                        :: WarningMessage
 
         
 
-        ! Saturate inputs to WSE
+        ! Saturate inputs to WSE:
+        ! Rotor speed
         IF (LocalVar%RotSpeedF < 0.25 * CntrPar%VS_MinOMSpd / CntrPar%WE_GearboxRatio) THEN
             WE_Inp_Speed = 0.25 * CntrPar%VS_MinOMSpd / CntrPar%WE_GearboxRatio + EPSILON(1.0_DbKi)  ! If this is 0, could cause problems...
         ELSE
             WE_Inp_Speed = LocalVar%RotSpeedF
         END IF
 
-        IF (LocalVar%BlPitchCMeas < CntrPar%PC_MinPit) THEN
-            WE_Inp_Pitch = CntrPar%PC_MinPit
-        ELSE
-            WE_Inp_Pitch = LocalVar%BlPitchCMeas
-        END IF
+            
+        ! Blade pitch
+        Max_Op_Pitch = PerfData%Beta_vec(SIZE(PerfData%Beta_vec)) * D2R     ! The Cp surface is only valid up to the end of Beta_vec
+        WE_Inp_Pitch = saturate(LocalVar%BlPitchCMeas, CntrPar%PC_MinPit,Max_Op_Pitch) 
 
+        ! Gen torque
         IF (LocalVar%VS_LastGenTrqF < 0.0001 * CntrPar%VS_RtTq) THEN
             WE_Inp_Torque = 0.0001 * CntrPar%VS_RtTq
         ELSE
             WE_Inp_Torque = LocalVar%VS_LastGenTrqF
         END IF
+
+        ! Check to see if in operational range
+        LocalVar%WE_Op_Last = LocalVar%WE_Op
+        IF (ABS(WE_Inp_Pitch - LocalVar%BlPitchCMeas) > 0) THEN
+            LocalVar%WE_Op = 0
+        ELSEIF (ABS(WE_Inp_Torque - LocalVar%VS_LastGenTrqF) > 0) THEN
+            LocalVar%WE_Op = 0
+        ELSEIF (ABS(WE_Inp_Speed - LocalVar%RotSpeedF) > 0) THEN
+            LocalVar%WE_Op = 0
+        ELSE
+            LocalVar%WE_Op = 1
+        ENDIF
+
+        IF (CntrPar%WE_Mode > 0) THEN
+            IF (LocalVar%WE_Op < 1 .AND. LocalVar%WE_Op_Last == 1) THEN
+                WarningMessage = NewLine//'***************************************************************************************************************************************'//NewLine// &
+                    'ROSCO Warning: The wind speed estimator is used, but an input (pitch, rotor speed, or torque) has left the bounds of normal operation.'//NewLine// &
+                    'The filtered hub-height wind speed will be used instead. This warning will not persist even though the condition may.'//NewLine// &
+                    '***************************************************************************************************************************************'
+                PRINT *, TRIM(WarningMessage)
+            ENDIF
+        ENDIF
+
+        ! Filter the wind speed at hub height regardless, only use if WE_Mode = 0 or WE_Op = 0
+        LocalVar%HorWindV_F = LPFilter(LocalVar%HorWindV, LocalVar%DT, CntrPar%F_WECornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
 
         ! ---- Debug Inputs ------
         DebugVar%WE_b   = WE_Inp_Pitch
@@ -280,7 +360,7 @@ CONTAINS
         ! ---- Define wind speed estimate ---- 
         
         ! Inversion and Invariance Filter implementation
-        IF (CntrPar%WE_Mode == 1) THEN      
+        IF (CntrPar%WE_Mode == 1 .AND. LocalVar%WE_Op > 0) THEN      
             ! Compute AeroDynTorque
             Tau_r = AeroDynTorque(LocalVar%RotSpeedF, LocalVar%BlPitchCMeas, LocalVar, CntrPar, PerfData, ErrVar)
 
@@ -289,7 +369,7 @@ CONTAINS
             LocalVar%WE_Vw = LocalVar%WE_VwI + CntrPar%WE_Gamma*LocalVar%RotSpeedF
 
         ! Extended Kalman Filter (EKF) implementation
-        ELSEIF (CntrPar%WE_Mode == 2) THEN
+        ELSEIF (CntrPar%WE_Mode == 2 .AND. LocalVar%WE_Op > 0) THEN
             ! Define contant values
             L = 6.0 * CntrPar%WE_BladeRadius
             Ti = 0.18
@@ -371,8 +451,8 @@ CONTAINS
             DebugVar%WE_Vt = LocalVar%WE%v_t
             DebugVar%WE_lambda = lambda
         ELSE        
-            ! Filter wind speed at hub height as directly passed from OpenFAST
-            LocalVar%WE_Vw = LPFilter(LocalVar%HorWindV, LocalVar%DT, CntrPar%F_WECornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+            ! Use filtered hub-height
+            LocalVar%WE_Vw = LocalVar%HorWindV_F
         ENDIF 
         DebugVar%WE_Vw = LocalVar%WE_Vw
         ! Add RoutineName to error message
@@ -395,11 +475,13 @@ CONTAINS
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
         ! Allocate Variables
         REAL(DbKi)                      :: DelOmega                            ! Reference generator speed shift, rad/s.
+        REAL(DbKi)                      :: R_Total                            ! Total power rating command
         
         ! ------ Setpoint Smoothing ------
         IF ( CntrPar%SS_Mode == 1) THEN
             ! Find setpoint shift amount
-            DelOmega = ((LocalVar%PC_PitComT - LocalVar%PC_MinPit)/0.524) * CntrPar%SS_VSGain - ((CntrPar%VS_RtPwr - LocalVar%VS_LastGenPwr))/CntrPar%VS_RtPwr * CntrPar%SS_PCGain ! Normalize to 30 degrees for now
+            R_Total = LocalVar%PRC_R_Speed * LocalVar%PRC_R_Torque * LocalVar%PRC_R_Pitch
+            DelOmega = ((LocalVar%PC_PitComT - LocalVar%PC_MinPit)/0.524) * CntrPar%SS_VSGain - ((CntrPar%VS_RtPwr * R_Total - LocalVar%VS_LastGenPwr))/CntrPar%VS_RtPwr * CntrPar%SS_PCGain ! Normalize to 30 degrees for now
             DelOmega = DelOmega * CntrPar%PC_RefSpd
             ! Filter
             LocalVar%SS_DelOmegaF = LPFilter(DelOmega, LocalVar%DT, CntrPar%F_SSCornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
@@ -411,8 +493,9 @@ CONTAINS
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL(DbKi) FUNCTION PitchSaturation(LocalVar, CntrPar, objInst, DebugVar, ErrVar) 
     ! PitchSaturation defines a minimum blade pitch angle based on a lookup table provided by DISCON.IN
-    !       SS_Mode = 0, No setpoint smoothing
-    !       SS_Mode = 1, Implement pitch saturation
+    ! Minimum pitch for power control also happens here
+
+
         USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances, DebugVariables, ErrorVariables
         IMPLICIT NONE
         ! Inputs
@@ -424,8 +507,11 @@ CONTAINS
 
         CHARACTER(*),               PARAMETER           :: RoutineName = 'PitchSaturation'
 
-        ! Define minimum blade pitch angle as a function of estimated wind speed
-        PitchSaturation = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, LocalVar%WE_Vw_F, ErrVar)
+        ! Define minimum blade pitch angle for peak shaving as a function of estimated wind speed
+        LocalVar%PS_Min_Pitch = interp1d(CntrPar%PS_WindSpeeds, CntrPar%PS_BldPitchMin, LocalVar%WE_Vw_F, ErrVar)
+
+        ! Total min pitch limit is greater of peak shaving and power control pitch
+        PitchSaturation = max(LocalVar%PS_Min_Pitch, LocalVar%PRC_Min_Pitch)
 
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN
@@ -512,7 +598,7 @@ CONTAINS
                     LocalVar%TRA_LastRefSpd = CntrPar%TRA_ExclSpeed - CntrPar%TRA_ExclBand / 2
                 ENDIF
             ELSE
-                LocalVar%TRA_LastRefSpd = LocalVar%VS_RefSpd
+                LocalVar%TRA_LastRefSpd = VS_RefSpeed_LSS
             END IF
         END IF 
 

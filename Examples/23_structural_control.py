@@ -1,11 +1,19 @@
-'''
------------ 23_structural_control ------------------------
+"""
+23_structural_control
+---------------------
 Run openfast with ROSCO and structural control
------------------------------------------------
-
 Set up and run simulation with pitch offsets, check outputs
 
-'''
+ROSCO currently supports user-defined hooks for structural control control actuation, if StC\_Mode = 1.
+The control logic can be determined in Controllers.f90 with the StructrualControl subroutine.
+In the DISCON input, users must specify StC\_GroupIndex relating to the control ChannelID.  
+These indices can be found in the ServoDyn summary file (\*SrvD.sum)
+
+In the example below, we implement a smooth step change mimicing the exchange of ballast from the 
+upwind column to the down wind columns
+
+OpenFAST v3.5.0 is required to run this example
+"""
 
 import os
 from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
@@ -15,28 +23,12 @@ from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
 from rosco.toolbox.inputs.validation import load_rosco_yaml
 from rosco.toolbox.controller import OpenLoopControl
 
-
-'''
-ROSCO currently supports user-defined hooks for structural control control actuation, if StC_Mode = 1.
-The control logic can be determined in Controllers.f90 with the StructrualControl subroutine.
-In the DISCON input, users must specify StC_GroupIndex relating to the control ChannelID.  
-These indices can be found in the ServoDyn summary file (*SrvD.sum)
-
-In the example below, we implement a smooth step change mimicing the exchange of ballast from the 
-upwind column to the down wind columns
-
-OpenFAST v3.5.0 is required to run this example
-'''
-
-
-#directories
-this_dir            = os.path.dirname(os.path.abspath(__file__))
-rosco_dir           = os.path.dirname(this_dir)
-example_out_dir     = os.path.join(this_dir,'examples_out')
-os.makedirs(example_out_dir,exist_ok=True)
-
-
 def main():
+    #directories
+    this_dir            = os.path.dirname(os.path.abspath(__file__))
+    rosco_dir           = os.path.dirname(this_dir)
+    example_out_dir     = os.path.join(this_dir,'examples_out')
+    os.makedirs(example_out_dir,exist_ok=True)
 
     # Input yaml and output directory
     parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW_ballast.yaml')
@@ -68,21 +60,21 @@ def main():
     applied_force = [-2e6, 1e6, 1e6]
 
     olc = OpenLoopControl(t_max=t_max)
-    olc.interp_timeseries(
+    olc.interp_series(
         'struct_control_1', 
         [0,t_trans,t_trans+t_sigma], 
         [0,0,applied_force[0]] , 
         'sigma'
         )
     
-    olc.interp_timeseries(
+    olc.interp_series(
         'struct_control_2', 
         [0,t_trans,t_trans+t_sigma], 
         [0,0,applied_force[1]] , 
         'sigma'
         )
     
-    olc.interp_timeseries(
+    olc.interp_series(
         'struct_control_3', 
         [0,t_trans,t_trans+t_sigma], 
         [0,0,applied_force[2]] , 

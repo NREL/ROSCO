@@ -1,12 +1,12 @@
-'''
------------ 27_power_ref_control ------------------------
-Run openfast with ROSCO and cable control
------------------------------------------------
+"""
+27_soft_cut_out
+---------------
+Set up a control input to do a soft cut-out of a wind turbine at high wind speeds.
+This example uses the first power reference control implementation (PRC_Mode of 1), where the user specifies the speed setpoint versus wind speed.
+We can use this to track specific rotor speeds based on the wind speed, or de-rate/power boost using by changing the speed.  
+With PRC_Mode of 2, we can do this but also change the power rating with pitch and torque.
 
-Demonstrate a simulation with a generator reference speed that changes with estimated wind speed
-
-
-'''
+"""
 
 import os
 from rosco import discon_lib_path
@@ -17,24 +17,16 @@ import numpy as np
 #from rosco.toolbox.inputs.validation import load_rosco_yaml
 import matplotlib.pyplot as plt
 
-'''
-Set reference rotor speed as a function of wind speed (estimate in ROSCO)
-
-'''
-
 FULL_TEST = False
 
-
-#directories
-this_dir            = os.path.dirname(os.path.abspath(__file__))
-rosco_dir           = os.path.dirname(this_dir)
-example_out_dir     = os.path.join(this_dir,'examples_out')
-os.makedirs(example_out_dir,exist_ok=True)
-lib_name = discon_lib_path
-
-
 def main():
-
+    #directories
+    this_dir            = os.path.dirname(os.path.abspath(__file__))
+    rosco_dir           = os.path.dirname(this_dir)
+    example_out_dir     = os.path.join(this_dir,'examples_out')
+    os.makedirs(example_out_dir,exist_ok=True)
+    lib_name = discon_lib_path
+    
     # Input yaml and output directory
     parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW.yaml')
     run_dir = os.path.join(example_out_dir,'27_PRC_0')
@@ -68,7 +60,7 @@ def main():
 
     r = run_FAST_ROSCO()
     r.tuning_yaml   = parameter_filename
-    r.wind_case_fcn = cl.ramp  # single step wind input
+    r.wind_case_fcn = cl.ramp  # ramp wind input
     
     if FULL_TEST:
         # Full test

@@ -88,10 +88,17 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: SS_VSGain                   ! Variable speed torque controller setpoint smoother gain, [-].
     REAL(DbKi)                    :: SS_PCGain                   ! Collective pitch controller setpoint smoother gain, [-].
     INTEGER(IntKi)                :: PRC_Mode                    ! Power reference tracking mode, 0- use standard rotor speed set points, 1- use PRC rotor speed setpoints
+    INTEGER(IntKi)                :: PRC_Comm                    ! Power reference communication mode, 0- use constant DISCON inputs, 1- use open loop inputs, 2- use ZMQ inputs
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PRC_WindSpeeds              ! Array of wind speeds used in rotor speed vs. wind speed lookup table
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PRC_GenSpeeds               ! Array of rotor speeds corresponding to PRC_WindSpeeds
     INTEGER(IntKi)                :: PRC_n                       ! Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
     REAL(DbKi)                    :: PRC_LPF_Freq                ! Frequency of the low pass filter on the wind speed estimate used to set PRC_GenSpeeds [rad/s]
+    REAL(DbKi)                    :: PRC_R_Torque                ! Power rating through changing the rated torque, default is 1, effective above rated [-]
+    REAL(DbKi)                    :: PRC_R_Speed                 ! Power rating through changing the rated generator speed, default is 1, effective above rated [-]
+    REAL(DbKi)                    :: PRC_R_Pitch                 ! Power rating through changing the fine pitch angle, default is 1, effective below rated [-]
+    INTEGER(IntKi)                :: PRC_Table_n                 ! Number of elements in PRC_R to _Pitch table
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PRC_Pitch_Table             ! Table of fine pitch versus PRC_R_Table, length should be PRC_Table_n [rad]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PRC_R_Table                 ! Table of turbine rating versus fine pitch (PRC_Pitch_Table), length should be PRC_Table_n, default is 1 [-]
     INTEGER(IntKi)                :: WE_Mode                     ! Wind speed estimator mode {0 - One-second low pass filtered hub height wind speed, 1 - Imersion and Invariance Estimator (Ortega et al.)
     REAL(DbKi)                    :: WE_BladeRadius              ! Blade length [m]
     INTEGER(IntKi)                :: WE_CP_n                     ! Amount of parameters in the Cp array
@@ -131,10 +138,15 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: Flp_MaxPit                  ! Maximum (and minimum) flap pitch angle [rad]
     CHARACTER(1024)               :: OL_Filename                 ! Input file with open loop timeseries
     INTEGER(IntKi)                :: OL_Mode                     ! Open loop control mode {0 - no open loop control, 1 - open loop control vs. time, 2 - open loop control vs. wind speed}
+    INTEGER(IntKi)                :: OL_BP_Mode                  ! Open loop control mode {0 - no open loop control, 1 - open loop control vs. time, 2 - open loop control vs. wind speed}
+    REAL(DbKi)                    :: OL_BP_FiltFreq              ! Open loop control mode {0 - no open loop control, 1 - open loop control vs. time, 2 - open loop control vs. wind speed}
     INTEGER(IntKi)                :: Ind_Breakpoint              ! The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: Ind_BldPitch                ! The columns in OL_Filename that contains the blade pitch inputs (1,2,3) in rad
     INTEGER(IntKi)                :: Ind_GenTq                   ! The column in OL_Filename that contains the generator torque in Nm
     INTEGER(IntKi)                :: Ind_YawRate                 ! The column in OL_Filename that contains the generator torque in Nm
+    INTEGER(IntKi)                :: Ind_R_Speed                 ! The column in OL_Filename that contains the generator torque in Nm
+    INTEGER(IntKi)                :: Ind_R_Torque                ! The column in OL_Filename that contains the generator torque in Nm
+    INTEGER(IntKi)                :: Ind_R_Pitch                 ! The column in OL_Filename that contains the generator torque in Nm
     INTEGER(IntKi)                :: Ind_Azimuth                 ! The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: RP_Gains                    ! PID gains and Tf on derivative term for rotor position control (used if OL_Mode = 2)
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: Ind_CableControl            ! The column in OL_Filename that contains the cable control inputs in m
@@ -148,6 +160,9 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_GenTq                    ! Open loop generator torque timeseries
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_YawRate                  ! Open loop yaw rate timeseries
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_Azimuth                  ! Open loop azimuth timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_R_Speed                  ! Open loop R_Speed timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_R_Torque                 ! Open loop R_Torque timeseries
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: OL_R_Pitch                  ! Open loop R_Pitch timeseries
     REAL(DbKi), DIMENSION(:,:), ALLOCATABLE     :: OL_Channels                 ! Open loop channels in timeseries
     INTEGER(IntKi)                :: PA_Mode                     ! Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
     REAL(DbKi)                    :: PA_CornerFreq               ! Pitch actuator bandwidth/cut-off frequency [rad/s]
@@ -264,6 +279,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: NacHeading                  ! Nacelle heading of the turbine w.r.t. north [deg]
     REAL(DbKi)                    :: NacVane                     ! Nacelle vane angle [deg]
     REAL(DbKi)                    :: HorWindV                    ! Hub height wind speed m/s
+    REAL(DbKi)                    :: HorWindV_F                  ! Filtered hub height wind speed m/s
     REAL(DbKi)                    :: rootMOOP(3)                 ! Blade root bending moment [Nm]
     REAL(DbKi)                    :: rootMOOPF(3)                ! Filtered Blade root bending moment [Nm]
     REAL(DbKi)                    :: BlPitch(3)                  ! Blade pitch [rad]
@@ -302,7 +318,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: PC_TF                       ! First-order filter parameter for derivative action
     REAL(DbKi)                    :: PC_MaxPit                   ! Maximum pitch setting in pitch controller (variable) [rad].
     REAL(DbKi)                    :: PC_MinPit                   ! Minimum pitch setting in pitch controller (variable) [rad].
-    REAL(DbKi)                    :: PC_PitComT                  ! Collective pitch commmand from PI control [rad].
+    REAL(DbKi)                    :: PC_PitComT                  ! Total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(DbKi)                    :: PC_PitComT_Last             ! Last total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(DbKi)                    :: PC_PitComTF                 ! Filtered Total command pitch based on the sum of the proportional and integral terms [rad].
     REAL(DbKi)                    :: PC_PitComT_IPC(3)           ! Total command pitch based on the sum of the proportional and integral terms, including IPC term [rad].
@@ -340,8 +356,17 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: WE_Vw_F                     ! Filtered estimated wind speed [m/s]
     REAL(DbKi)                    :: WE_VwI                      ! Integrated wind speed quantity for estimation [m/s]
     REAL(DbKi)                    :: WE_VwIdot                   ! Differentiated integrated wind speed quantity for estimation [m/s]
+    INTEGER(IntKi)                :: WE_Op                       ! WSE Operational state (0- not operating, 1-operating)
+    INTEGER(IntKi)                :: WE_Op_Last                  ! WSE Operational state (0- not operating, 1-operating)
     REAL(DbKi)                    :: VS_LastGenTrqF              ! Differentiated integrated wind speed quantity for estimation [m/s]
     REAL(DbKi)                    :: PRC_WSE_F                   ! Filtered wind speed estimate for power reference control
+    REAL(DbKi)                    :: PRC_R_Speed                 ! Instantaneous PRC_R_Speed
+    REAL(DbKi)                    :: PRC_R_Torque                ! Instantaneous PRC_R_Torque
+    REAL(DbKi)                    :: PRC_R_Pitch                 ! Instantaneous PRC_R_Pitch
+    REAL(DbKi)                    :: PRC_R_Total                 ! Instantaneous PRC_R_Total
+    REAL(DbKi)                    :: PRC_Min_Pitch               ! Instantaneous PRC_Min_Pitch
+    REAL(DbKi)                    :: PS_Min_Pitch                ! Instantaneous peak shaving
+    REAL(DbKi)                    :: OL_Index                    ! Open loop indexing variable (time or wind speed)
     LOGICAL                       :: SD                          ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None
@@ -381,6 +406,9 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: ZMQ_YawOffset               ! Yaw offset command, [rad]
     REAL(DbKi)                    :: ZMQ_TorqueOffset            ! Torque offset command, [Nm]
     REAL(DbKi)                    :: ZMQ_PitOffset(3)            ! Pitch command offset provided by ZeroMQ
+    REAL(DbKi)                    :: ZMQ_R_Speed                 ! R_Speed command provided by ZeroMQ
+    REAL(DbKi)                    :: ZMQ_R_Torque                ! R_Torque command provided by ZeroMQ
+    REAL(DbKi)                    :: ZMQ_R_Pitch                 ! R_Pitch command provided by ZeroMQ
     TYPE(WE)                      :: WE                          ! Wind speed estimator parameters derived type
     TYPE(FilterParameters)        :: FP                          ! Filter parameters derived type
     TYPE(piParams)                :: piP                         ! PI parameters derived type

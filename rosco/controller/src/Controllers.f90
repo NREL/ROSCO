@@ -123,15 +123,15 @@ CONTAINS
         IF (CntrPar%OL_Mode > 0) THEN
             IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN    ! Time > first open loop breakpoint
                 IF (CntrPar%Ind_BldPitch(1) > 0) THEN
-                    LocalVar%PitCom(1) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch1,LocalVar%Time, ErrVar)
+                    LocalVar%PitCom(1) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch1,LocalVar%OL_Index, ErrVar)
                 ENDIF
 
                 IF (CntrPar%Ind_BldPitch(2) > 0) THEN
-                    LocalVar%PitCom(2) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch2,LocalVar%Time, ErrVar)
+                    LocalVar%PitCom(2) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch2,LocalVar%OL_Index, ErrVar)
                 ENDIF
 
                 IF (CntrPar%Ind_BldPitch(3) > 0) THEN
-                    LocalVar%PitCom(3) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch3,LocalVar%Time, ErrVar)
+                    LocalVar%PitCom(3) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch3,LocalVar%OL_Index, ErrVar)
                 ENDIF
             ENDIF
         ENDIF
@@ -208,14 +208,14 @@ CONTAINS
         ! -------- Variable-Speed Torque Controller --------
         ! Define max torque
         IF (LocalVar%VS_State == VS_State_Region_3_ConstTrq) THEN
-            LocalVar%VS_MaxTq = CntrPar%VS_RtTq
+            LocalVar%VS_MaxTq = CntrPar%VS_RtTq * LocalVar%PRC_R_Torque
         ELSE
-            LocalVar%VS_MaxTq = CntrPar%VS_MaxTq
+            LocalVar%VS_MaxTq = CntrPar%VS_MaxTq * LocalVar%PRC_R_Torque
         ENDIF
 
         ! Pre-compute generatoer torque values for K*Omega^2 and constant power
         LocalVar%VS_KOmega2_GenTq = CntrPar%VS_Rgn2K*LocalVar%GenSpeedF*LocalVar%GenSpeedF
-        LocalVar%VS_ConstPwr_GenTq = (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF
+        LocalVar%VS_ConstPwr_GenTq = (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF * LocalVar%PRC_R_Torque
 
         ! Optimal Tip-Speed-Ratio tracking controller (reference generated in subroutine ComputeVariablesSetpoints)
         IF ((CntrPar%VS_ControlMode == VS_Mode_WSE_TSR) .OR. \
@@ -282,7 +282,7 @@ CONTAINS
         IF ((CntrPar%OL_Mode > 0) .AND. (CntrPar%Ind_GenTq > 0)) THEN
             ! Get current OL GenTq, applies for OL_Mode 1 and 2
             IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN
-                LocalVar%GenTq = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_GenTq,LocalVar%Time,ErrVar)
+                LocalVar%GenTq = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_GenTq,LocalVar%OL_Index,ErrVar)
             ENDIF
             
             ! Azimuth tracking control
@@ -434,7 +434,7 @@ CONTAINS
             ! Open loop yaw rate control - control input in rad/s
             IF ((CntrPar%OL_Mode > 0) .AND. (CntrPar%Ind_YawRate > 0)) THEN
                 IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN
-                    avrSWAP(48) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_YawRate,LocalVar%Time, ErrVar)
+                    avrSWAP(48) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_YawRate,LocalVar%OL_Index, ErrVar)
                 ENDIF
             ENDIF
 

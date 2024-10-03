@@ -69,5 +69,11 @@ MODULE Constants
     ! PC_State
     INTEGER(IntKi), PARAMETER     :: PC_State_Disabled = 0
     INTEGER(IntKi), PARAMETER     :: PC_State_Enabled  = 1
+    
+    ! PRC Mode constants
+    INTEGER(IntKi), PARAMETER      :: PRC_Comm_Constant    = 0     ! Constant based on discon input
+    INTEGER(IntKi), PARAMETER      :: PRC_Comm_OpenLoop    = 1     ! Based on open loop input
+    INTEGER(IntKi), PARAMETER      :: PRC_Comm_ZMQ         = 2     ! Determined using ZMQ input
+
 
 END MODULE Constants
