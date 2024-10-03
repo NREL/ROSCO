@@ -85,6 +85,70 @@ def main():
         local_vars2[0]["ZMQ_YawOffset"][ind2_30], DESIRED_YAW_OFFSET[1]
     )
 
+def main():
+    
+
+    # Start wind farm control server and two openfast simulation
+    # as separate processes
+    logfile = os.path.join(EXAMPLE_OUT_DIR,os.path.splitext(os.path.basename(__file__))[0]+'.log')
+    p0 = mp.Process(target=run_zmq,args=(logfile,))
+    p1 = mp.Process(target=sim_openfast_1)
+    p2 = mp.Process(target=sim_openfast_2)
+
+    p0.start()
+    p1.start()
+    p2.start()
+
+    p0.join()
+    p1.join()
+    p2.join()
+
+    ## Run tests
+    # Check that info is passed to ROSCO for first simulation
+    op1 = output_processing.output_processing()
+    debug_file1 = os.path.join(
+        EXAMPLE_OUT_DIR,
+        "17b_zeromq_OF1",
+        "NREL5MW",
+        "power_curve",
+        "base",
+        "NREL5MW_0.RO.dbg2",
+    )
+    local_vars1 = op1.load_fast_out(debug_file1, tmin=0)
+
+    # Check that info is passed to ROSCO for first simulation
+    op2 = output_processing.output_processing()
+    debug_file2 = os.path.join(
+        EXAMPLE_OUT_DIR,
+        "17b_zeromq_OF2",
+        "NREL5MW",
+        "power_curve",
+        "base",
+        "NREL5MW_0.RO.dbg2",
+    )
+    local_vars2 = op2.load_fast_out(debug_file2, tmin=0)
+
+    # Generate plots
+    _, axs = plt.subplots(2, 1)
+    axs[0].plot(local_vars1[0]["Time"], local_vars1[0]["ZMQ_YawOffset"])
+    axs[1].plot(local_vars2[0]["Time"], local_vars2[0]["ZMQ_YawOffset"])
+
+    if False:
+        plt.show()
+    else:
+        plt.savefig(os.path.join(EXAMPLE_OUT_DIR, "17b_NREL5MW_ZMQ_Setpoints.png"))
+
+    # Spot check input at time = 30 sec.
+    ind1_30 = local_vars1[0]["Time"] == TIME_CHECK
+    ind2_30 = local_vars2[0]["Time"] == TIME_CHECK
+
+    np.testing.assert_almost_equal(
+        local_vars1[0]["ZMQ_YawOffset"][ind1_30], DESIRED_YAW_OFFSET[0]
+    )
+    np.testing.assert_almost_equal(
+        local_vars2[0]["ZMQ_YawOffset"][ind2_30], DESIRED_YAW_OFFSET[1]
+    )
+
 
 def run_zmq(logfile=None):
     """Start the ZeroMQ server for wind farm control"""
