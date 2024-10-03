@@ -331,8 +331,14 @@ class Controller():
         self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A_vs,B_tau[0:len(v_below_rated)],linearize=False,v=v_below_rated)
 
         # -- Find K for Komega_g^2 --
-        self.vs_rgn2K = (pi*rho*R**5.0 * turbine.Cp.max * turbine.GBoxEff/100 * turbine.GenEff/100) / \
-              (2.0 * turbine.Cp.TSR_opt**3 * Ng**3) * self.controller_params['rgn2k_factor']
+        # Careful handling of different efficiencies
+        # P_lss = 1/2 * Cp * rho * pi * R^5 / (TSR^3 * Ng^3)
+        # P_hss = GBoxEff * P_lss = tau_gen * omega_gen = K * omega_gen^3
+        # P_gen = GenEff * P_hss
+        # Generator efficiency is not included in K here, but gearbox efficiency is
+        # Note that this differs from the
+        self.vs_rgn2K = (pi*rho*R**5.0 * turbine.Cp.max * turbine.GBoxEff/100) / (2.0 * turbine.Cp.TSR_opt**3 * Ng**3) * self.controller_params['rgn2k_factor']
+        
         self.vs_refspd = min(turbine.TSR_operational * turbine.v_rated/R, turbine.rated_rotor_speed) * Ng
 
         # -- Define some setpoints --
