@@ -1,11 +1,18 @@
-'''
------------ 22_cable_control ------------------------
+"""
+22_cable_control
+----------------
 Run openfast with ROSCO and cable control
------------------------------------------------
-
 Set up and run simulation with pitch offsets, check outputs
 
-'''
+ROSCO currently supports user-defined hooks for cable control actuation, if CC_Mode = 1.
+The control logic can be determined in Controllers.f90 with the CableControl subroutine.
+The CableControl subroutine takes an array of CC_DesiredL (length) equal to the ChannelIDs set in MoorDyn and
+determines the length and change in length needed for MoorDyn using a 2nd order actuator model (CC\_ActTau). 
+In the DISCON input, users must specify CC\_GroupIndex relating to the deltaL of each control ChannelID.  
+These indices can be found in the ServoDyn summary file (\*SrvD.sum)
+
+In the example below (and hard-coded in ROSCO) a step change of -10 m on line 1 is applied at 50 sec.
+"""
 
 import os
 from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
@@ -17,25 +24,12 @@ from rosco.toolbox.inputs.validation import load_rosco_yaml
 import matplotlib.pyplot as plt
 from rosco.toolbox.controller import OpenLoopControl
 
-'''
-ROSCO currently supports user-defined hooks for cable control actuation, if CC_Mode = 1.
-The control logic can be determined in Controllers.f90 with the CableControl subroutine.
-The CableControl subroutine takes an array of CC_DesiredL (length) equal to the ChannelIDs set in MoorDyn and
-determines the length and change in length needed for MoorDyn using a 2nd order actuator model (CC_ActTau). 
-In the DISCON input, users must specify CC_GroupIndex relating to the deltaL of each control ChannelID.  
-These indices can be found in the ServoDyn summary file (*SrvD.sum)
-
-In the example below (and hard-coded in ROSCO) a step change of -10 m on line 1 is applied at 50 sec.
-'''
-
-
-#directories
-this_dir            = os.path.dirname(os.path.abspath(__file__))
-rosco_dir           = os.path.dirname(this_dir)
-example_out_dir     = os.path.join(this_dir,'examples_out')
-os.makedirs(example_out_dir,exist_ok=True)
-
 def main():
+    #directories
+    this_dir            = os.path.dirname(os.path.abspath(__file__))
+    rosco_dir           = os.path.dirname(this_dir)
+    example_out_dir     = os.path.join(this_dir,'examples_out')
+    os.makedirs(example_out_dir,exist_ok=True)
 
     # Input yaml and output directory
     parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW_cable.yaml')

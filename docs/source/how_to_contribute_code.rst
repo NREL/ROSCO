@@ -22,6 +22,20 @@ Look at the .rst files in the :code:`docs` section of the repo or click on :code
 The best place to add documentation for your new feature is in an example of the new feature. 
 We are planning to incorporate docstrings from the examples into these docs.
 
+To build the documentation locally, first
+
+.. code-block:: bash
+
+    conda install -y cmake compilers sphinx sphinxcontrib-bibtex
+    conda install -y sphinx_rtd_theme>=1.3
+
+Then
+
+.. code-block:: bash
+    
+    sphinx-build . ./_build/
+
+
 Testing
 -------
 ROSCO tests its various features through the Examples.  
@@ -47,9 +61,9 @@ Updating the ROSCO API (Changing Input Files)
 ---------------------------------------------
 Any API changes should result in the following changes:
 
-1. Update to the `rosco schema<https://github.com/NREL/ROSCO/blob/7deb583d4acbacc068bad28e2228f7d257a7cd7c/rosco/toolbox/inputs/toolbox_schema.yaml#L545>`_.
-2. Update to `DISCON writer<https://github.com/NREL/ROSCO/blob/7deb583d4acbacc068bad28e2228f7d257a7cd7c/rosco/toolbox/utilities.py#L43>`_.  You can use the `input_descriptions` dictionary to streamline the process.
-3. `Document API changes here<https://github.com/NREL/ROSCO/blob/main/docs/source/api_change.rst>`_
-4. Update to the `rosco registry<https://github.com/NREL/ROSCO/blob/7deb583d4acbacc068bad28e2228f7d257a7cd7c/rosco/controller/rosco_registry/rosco_types.yaml#L76>`_, which `regenerates the ROSCO_IO using this script<https://github.com/NREL/ROSCO/blob/main/rosco/controller/rosco_registry/write_registry.py>`_.
+1. Update to the `rosco schema <https://github.com/NREL/ROSCO/blob/7deb583d4acbacc068bad28e2228f7d257a7cd7c/rosco/toolbox/inputs/toolbox_schema.yaml#L545>`_.
+2. Update to `DISCON writer <https://github.com/NREL/ROSCO/blob/7deb583d4acbacc068bad28e2228f7d257a7cd7c/rosco/toolbox/utilities.py#L43>`_.  You can use the `input_descriptions` dictionary to streamline the process.
+3. `Document API changes here <https://github.com/NREL/ROSCO/blob/main/docs/source/api_change.rst>`_
+4. Update to the `rosco registry <https://github.com/NREL/ROSCO/blob/7deb583d4acbacc068bad28e2228f7d257a7cd7c/rosco/controller/rosco_registry/rosco_types.yaml#L76>`_, which `regenerates the ROSCO_IO using this script <https://github.com/NREL/ROSCO/blob/main/rosco/controller/rosco_registry/write_registry.py>`_.
 
 

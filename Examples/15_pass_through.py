@@ -1,27 +1,24 @@
-'''
------------ 15_pass_through --------------
+"""
+15_pass_through
+---------------
 Use the runFAST scripts to set up an example, use pass through in yaml
--------------------------------------
-
 In this example:
-    - use run_FAST_ROSCO class to set up a test case
 
-'''
+* use run_FAST_ROSCO class to set up a test case
+"""
 
 import os
 from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
 from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 
-
-#directories
-this_dir            = os.path.dirname(os.path.abspath(__file__))
-rosco_dir         = os.path.dirname(this_dir)
-example_out_dir     = os.path.join(this_dir,'examples_out')
-os.makedirs(example_out_dir,exist_ok=True)
-
-
 def main():
-     # Simulation config    
+    #directories
+    this_dir            = os.path.dirname(os.path.abspath(__file__))
+    rosco_dir         = os.path.dirname(this_dir)
+    example_out_dir     = os.path.join(this_dir,'examples_out')
+    os.makedirs(example_out_dir,exist_ok=True)
+    
+    # Simulation config    
     r = run_FAST_ROSCO()
 
     parameter_filename = os.path.join(this_dir,'Tune_Cases/NREL5MW_PassThrough.yaml')
