@@ -22,6 +22,20 @@ Look at the .rst files in the :code:`docs` section of the repo or click on :code
 The best place to add documentation for your new feature is in an example of the new feature. 
 We are planning to incorporate docstrings from the examples into these docs.
 
+To build the documentation locally, first
+
+.. code-block:: bash
+
+    conda install -y cmake compilers sphinx sphinxcontrib-bibtex
+    conda install -y sphinx_rtd_theme>=1.3
+
+Then
+
+.. code-block:: bash
+    
+    sphinx-build . ./_build/
+
+
 Testing
 -------
 ROSCO tests its various features through the Examples.  
