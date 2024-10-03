@@ -1,16 +1,14 @@
-'''
------------ 23_structural_control ------------------------
+"""
+24_floating_feedback
+---------------------
 Run openfast with ROSCO and all the floating feedback methods
------------------------------------------------
-
 Floating feedback methods available in ROSCO/ROSCO_Toolbox
 
-1. Automated tuning, constant for all wind speeds
-2. Automated tuning, varies with wind speed
-3. Direct tuning, constant for all wind speeds
-4. Direct tuning, varies with wind speeds
-
-'''
+#. Automated tuning, constant for all wind speeds
+#. Automated tuning, varies with wind speed
+#. Direct tuning, constant for all wind speeds
+#. Direct tuning, varies with wind speeds
+"""
 
 import os
 from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
@@ -26,14 +24,12 @@ from rosco.toolbox.ofTools.fast_io import output_processing
 import matplotlib.pyplot as plt
 
 
-
-#directories
-this_dir            = os.path.dirname(os.path.abspath(__file__))
-rosco_dir           = os.path.dirname(this_dir)
-example_out_dir     = os.path.join(this_dir,'examples_out')
-os.makedirs(example_out_dir,exist_ok=True)
-
 def main():
+    #directories
+    this_dir            = os.path.dirname(os.path.abspath(__file__))
+    rosco_dir           = os.path.dirname(this_dir)
+    example_out_dir     = os.path.join(this_dir,'examples_out')
+    os.makedirs(example_out_dir,exist_ok=True)
 
     # Input yaml and output directory
     parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW.yaml')
