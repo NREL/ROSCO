@@ -43,7 +43,7 @@ classifiers = [  # Optional
 
 dependencies = [
   "control",
-  "numpy",
+  "numpy<2.0",
   "matplotlib",
   "scipy",
   "pandas",
