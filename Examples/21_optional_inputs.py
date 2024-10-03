@@ -1,8 +1,9 @@
-'''
------------ 21_optional_inputse_discon_version -----------------
+"""
+21_optional_inputse_discon_version
+----------------------------------
 Test and demonstrate update_discon_version() function for converting an old ROSCO input
 to the current version
-'''
+"""
 
 import os
 from rosco import discon_lib_path
@@ -11,15 +12,12 @@ from rosco.toolbox import control_interface as ROSCO_ci
 from rosco.toolbox import turbine as ROSCO_turbine
 #import numpy as np
 
-#directories
-this_dir            = os.path.dirname(os.path.abspath(__file__))
-rosco_dir           = os.path.dirname(this_dir)
-example_out_dir     = os.path.join(this_dir,'examples_out')
-example_in_dir      = os.path.join(this_dir,'example_inputs')
-os.makedirs(example_out_dir,exist_ok=True)
-
-
-def main():
+def main():#directories
+    this_dir            = os.path.dirname(os.path.abspath(__file__))
+    rosco_dir           = os.path.dirname(this_dir)
+    example_out_dir     = os.path.join(this_dir,'examples_out')
+    example_in_dir      = os.path.join(this_dir,'example_inputs')
+    os.makedirs(example_out_dir,exist_ok=True)
 
     # Load turbine model from saved pickle
     turbine         = ROSCO_turbine.Turbine

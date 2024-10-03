@@ -1,11 +1,9 @@
-'''
------------ 25_rotor_position_control --------------
+"""
+25_rotor_position_control
+-------------------------
 Run ROSCO with rotor position control
--------------------------------------
-
 Run a steady simulation, use the azimuth output as an input to the next steady simulation, with different ICs 
-
-'''
+"""
 
 import os
 from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
@@ -17,14 +15,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-#directories
-this_dir            = os.path.dirname(os.path.abspath(__file__))
-rosco_dir           = os.path.dirname(this_dir)
-example_out_dir     = os.path.join(this_dir,'examples_out')
-os.makedirs(example_out_dir,exist_ok=True)
-
-
 def main():
+    #directories
+    this_dir            = os.path.dirname(os.path.abspath(__file__))
+    rosco_dir           = os.path.dirname(this_dir)
+    example_out_dir     = os.path.join(this_dir,'examples_out')
+    os.makedirs(example_out_dir,exist_ok=True)
 
 
     # Set up paths

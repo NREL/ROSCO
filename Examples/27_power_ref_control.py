@@ -1,12 +1,10 @@
-'''
------------ 27_power_ref_control ------------------------
+"""
+27_power_ref_control
+--------------------
 Run openfast with ROSCO and cable control
------------------------------------------------
-
 Demonstrate a simulation with a generator reference speed that changes with estimated wind speed
-
-
-'''
+Set reference rotor speed as a function of wind speed (estimate in ROSCO)
+"""
 
 import os
 from rosco import discon_lib_path
@@ -17,24 +15,16 @@ import numpy as np
 #from rosco.toolbox.inputs.validation import load_rosco_yaml
 import matplotlib.pyplot as plt
 
-'''
-Set reference rotor speed as a function of wind speed (estimate in ROSCO)
-
-'''
-
 FULL_TEST = False
 
-
-#directories
-this_dir            = os.path.dirname(os.path.abspath(__file__))
-rosco_dir           = os.path.dirname(this_dir)
-example_out_dir     = os.path.join(this_dir,'examples_out')
-os.makedirs(example_out_dir,exist_ok=True)
-lib_name = discon_lib_path
-
-
 def main():
-
+    #directories
+    this_dir            = os.path.dirname(os.path.abspath(__file__))
+    rosco_dir           = os.path.dirname(this_dir)
+    example_out_dir     = os.path.join(this_dir,'examples_out')
+    os.makedirs(example_out_dir,exist_ok=True)
+    lib_name = discon_lib_path
+    
     # Input yaml and output directory
     parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW.yaml')
     run_dir = os.path.join(example_out_dir,'27_PRC_0')
