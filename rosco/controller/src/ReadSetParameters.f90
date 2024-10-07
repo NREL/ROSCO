@@ -816,8 +816,8 @@ CONTAINS
 
         CurLine = 1
         CALL GetNewUnit(UnPerfParameters, ErrVar)
-        OPEN(unit=UnPerfParameters, file=TRIM(CntrPar%PerfFileName), status='old', action='read') ! Should put input file into DISCON.IN
-        
+        OPEN(unit=UnPerfParameters, file=TRIM(CntrPar%PerfFileName), status='old', action='read')
+                
         ! ----------------------- Axis Definitions ------------------------
         CALL ReadEmptyLine(UnPerfParameters,CurLine)
         CALL ReadEmptyLine(UnPerfParameters,CurLine)

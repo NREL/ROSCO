@@ -291,8 +291,14 @@ CONTAINS
 
             
         ! Blade pitch
-        Max_Op_Pitch = PerfData%Beta_vec(SIZE(PerfData%Beta_vec)) * D2R     ! The Cp surface is only valid up to the end of Beta_vec
+        IF (CntrPar%WE_Mode > 0) THEN ! PerfData is only loaded if WE_Mode > 0
+            Max_Op_Pitch = PerfData%Beta_vec(SIZE(PerfData%Beta_vec)) * D2R     ! The Cp surface is only valid up to the end of Beta_vec
+        ELSE
+            Max_Op_Pitch = 0.0_DbKi    ! Doesn't matter if WE_Mode = 0
+        ENDIF
+        
         WE_Inp_Pitch = saturate(LocalVar%BlPitchCMeas, CntrPar%PC_MinPit,Max_Op_Pitch) 
+
 
         ! Gen torque
         IF (LocalVar%VS_LastGenTrqF < 0.0001 * CntrPar%VS_RtTq) THEN
