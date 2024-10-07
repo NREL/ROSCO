@@ -219,7 +219,6 @@ def main():
     
     r.controller_params = controller_params
     r.save_dir      = run_dir
-    r.rosco_dll     = '/Users/dzalkind/Tools/ROSCO-PRC/rosco/controller/build/libdiscon.dylib'
     r.run_FAST()
 
 
