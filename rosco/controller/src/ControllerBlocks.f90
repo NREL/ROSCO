@@ -324,6 +324,7 @@ CONTAINS
                 WarningMessage = NewLine//'***************************************************************************************************************************************'//NewLine// &
                     'ROSCO Warning: The wind speed estimator is used, but an input (pitch, rotor speed, or torque) has left the bounds of normal operation.'//NewLine// &
                     'The filtered hub-height wind speed will be used instead. This warning will not persist even though the condition may.'//NewLine// &
+                    'Check WE_Op in the ROSCO .dbg file to see if the WSE is enabled (1) or disabled (0).'
                     '***************************************************************************************************************************************'
                 PRINT *, TRIM(WarningMessage)
             ENDIF
