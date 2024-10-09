@@ -976,6 +976,9 @@ LocalVariables:
     iStatus: 
       <<: *integer 
       description: Initialization status
+    RestartWSE: 
+      <<: *integer 
+      description: Restart WSE flag, 0 - restart, 1- not, to mirror iStatus
     Time: 
       <<: *real 
       description: Time [s]

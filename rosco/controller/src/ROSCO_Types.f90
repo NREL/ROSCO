@@ -263,6 +263,7 @@ END TYPE piParams
 
 TYPE, PUBLIC :: LocalVariables
     INTEGER(IntKi)                :: iStatus                     ! Initialization status
+    INTEGER(IntKi)                :: RestartWSE                  ! Restart WSE flag, 0 - restart, 1- not, to mirror iStatus
     REAL(DbKi)                    :: Time                        ! Time [s]
     REAL(DbKi)                    :: DT                          ! Time step [s]
     LOGICAL                       :: WriteThisStep               ! Write an output line this time step

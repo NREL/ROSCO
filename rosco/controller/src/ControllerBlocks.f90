@@ -319,19 +319,30 @@ CONTAINS
             LocalVar%WE_Op = 1
         ENDIF
 
+
+        ! Restart flag for WSE
+        LocalVar%RestartWSE = LocalVar%iStatus      ! Same as iStatus by default
+
         IF (CntrPar%WE_Mode > 0) THEN
-            IF (LocalVar%WE_Op < 1 .AND. LocalVar%WE_Op_Last == 1) THEN
+            IF (LocalVar%WE_Op == 0 .AND. LocalVar%WE_Op_Last == 1) THEN   ! Transition from operational to non-operational
                 WarningMessage = NewLine//'***************************************************************************************************************************************'//NewLine// &
                     'ROSCO Warning: The wind speed estimator is used, but an input (pitch, rotor speed, or torque) has left the bounds of normal operation.'//NewLine// &
                     'The filtered hub-height wind speed will be used instead. This warning will not persist even though the condition may.'//NewLine// &
-                    'Check WE_Op in the ROSCO .dbg file to see if the WSE is enabled (1) or disabled (0).'
+                    'Check WE_Op in the ROSCO .dbg file to see if the WSE is enabled (1) or disabled (0).'//NewLine// &
                     '***************************************************************************************************************************************'
                 PRINT *, TRIM(WarningMessage)
+
+                LocalVar%RestartWSE = 0 ! Restart
+            ENDIF
+
+            IF (LocalVar%WE_Op == 1 .AND. LocalVar%WE_Op_Last == 0) THEN    ! Transition from non-operational to operational
+                LocalVar%RestartWSE = 0  ! Restart
             ENDIF
         ENDIF
 
         ! Filter the wind speed at hub height regardless, only use if WE_Mode = 0 or WE_Op = 0
-        LocalVar%HorWindV_F = LPFilter(LocalVar%HorWindV, LocalVar%DT, CntrPar%F_WECornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+        ! Re-initialize at WE_Vw if leaving operational wind, WE_Vw is initialized at HorWindV
+        LocalVar%HorWindV_F = LPFilter(LocalVar%HorWindV, LocalVar%DT, CntrPar%F_WECornerFreq, LocalVar%FP, LocalVar%RestartWSE, LocalVar%restart, objInst%instLPF, LocalVar%WE_Vw)
 
         ! ---- Debug Inputs ------
         DebugVar%WE_b   = WE_Inp_Pitch
@@ -359,12 +370,12 @@ CONTAINS
             ! Define matrices to be filled
             F = RESHAPE((/0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0/),(/3,3/))
             Q = RESHAPE((/0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0/),(/3,3/))
-            IF (LocalVar%iStatus == 0) THEN
+            IF (LocalVar%RestartWSE == 0) THEN
                 ! Initialize recurring values
                 LocalVar%WE%om_r = WE_Inp_Speed
                 LocalVar%WE%v_t = 0.0
-                LocalVar%WE%v_m = max(LocalVar%HorWindV, 3.0_DbKi)   ! avoid divide by 0 below if HorWindV is 0, which some AMRWind setups create
-                LocalVar%WE%v_h = max(LocalVar%HorWindV, 3.0_DbKi)   ! avoid divide by 0 below if HorWindV is 0, which some AMRWind setups create
+                LocalVar%WE%v_m = max(LocalVar%WE_Vw, 3.0_DbKi)   ! avoid divide by 0 below if WE_Vw is 0, which some AMRWind setups create
+                LocalVar%WE%v_h = max(LocalVar%WE_Vw, 3.0_DbKi)   ! avoid divide by 0 below if WE_Vw is 0, which some AMRWind setups create
                 lambda = WE_Inp_Speed * CntrPar%WE_BladeRadius/LocalVar%WE%v_h
                 LocalVar%WE%xh = RESHAPE((/LocalVar%WE%om_r, LocalVar%WE%v_t, LocalVar%WE%v_m/),(/3,1/))
                 LocalVar%WE%P = RESHAPE((/0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 1.0/),(/3,3/))
