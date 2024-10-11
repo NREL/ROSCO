@@ -30,8 +30,9 @@ all_scripts = [
     '24_floating_feedback',
     '25_rotor_position_control',
     '26_marine_hydro',
-    '27_power_ref_control',
+    '27_soft_cut_out',
     '28_tower_resonance',
+    '29_power_control',
     'update_rosco_discons',     
 ]
 

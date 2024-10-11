@@ -40,6 +40,9 @@ def main():
             if local_vars[ms]['size'] < ind_int:
                 raise Exception(f'Requested index ({ind_int}) of WFC variable {ms} is greater than LocalVars version.')
 
+    # Check that length of defaults is the same as setpoints
+    if len(wfc_int['setpoints']) != len(wfc_int['setpoints_default']):
+        raise Exception(f'The lengths of setpoints and setpoints_default in the wfc_interface.yaml are not equal')
 
     write_zmq_f90(wfc_int)
     write_client_c(wfc_int)

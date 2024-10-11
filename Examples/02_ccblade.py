@@ -7,7 +7,7 @@ In this example:
 * Read .yaml input file
 * Load an openfast turbine model
 * Run ccblade to get rotor performance properties
-* Write a text file with rotor performance properties
+* Write a text file (``'02_Cp_Ct_Cq.Ex03.txt'``) with rotor performance properties
 """
 
 # Python modules

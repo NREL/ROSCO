@@ -3,7 +3,7 @@
 ----------------------
 Run openfast with ROSCO and active wake control
 Set up and run simulation with AWC, check outputs
-Active wake control (AWC) with blade pitching is implemented in this example with two approaches as detailed below:
+Active wake control (AWC) with blade pitching is implemented in this example with two approaches as detailed in the python script.
 """
 # -----------------------------------------------
 # AWC_Mode = 1: Normal mode method:

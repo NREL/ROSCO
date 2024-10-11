@@ -101,7 +101,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! PC_ControlMode  - Blade pitch control mode {{0: No pitch, fix to fine pitch, 1: active PI blade pitch control}}\n'.format(int(rosco_vt['PC_ControlMode'])))
     file.write('{0:<12d}        ! Y_ControlMode   - Yaw control mode {{0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}}\n'.format(int(rosco_vt['Y_ControlMode'])))
     file.write('{0:<12d}        ! SS_Mode         - Setpoint Smoother mode {{0: no setpoint smoothing, 1: introduce setpoint smoothing}}\n'.format(int(rosco_vt['SS_Mode'])))
-    file.write('{0:<12d}        ! PRC_Mode        - Power reference tracking mode{{0: use standard rotor speed set points, 1: use PRC rotor speed setpoints}}\n'.format(int(rosco_vt['PRC_Mode'])))
+    file.write('{0:<12d}        ! PRC_Mode        - Power reference tracking mode{{0: power control disabled, 1: lookup table from wind speed to generator speed setpoints, 2: change speed, torque, pitch to control power}}\n'.format(int(rosco_vt['PRC_Mode'])))
     file.write('{0:<12d}        ! WE_Mode         - Wind speed estimator mode {{0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator, 2: Extended Kalman Filter}}\n'.format(int(rosco_vt['WE_Mode'])))
     file.write('{0:<12d}        ! PS_Mode         - Pitch saturation mode {{0: no pitch saturation, 1: implement pitch saturation}}\n'.format(int(rosco_vt['PS_Mode'])))
     file.write('{0:<12d}        ! SD_Mode         - Shutdown mode {{0: no shutdown procedure, 1: pitch to max pitch at shutdown}}\n'.format(int(rosco_vt['SD_Mode'])))
@@ -184,6 +184,13 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<13.5f}       ! SS_PCGain         - Collective pitch controller setpoint smoother gain, [-].\n'.format(rosco_vt['SS_PCGain']))
     file.write('\n')
     file.write('!------- POWER REFERENCE TRACKING --------------------------------------\n')
+    file.write('{:<11d}         ! PRC_Comm   - {}\n'.format(int(rosco_vt['PRC_Comm']), input_descriptions["PRC_Comm"]))
+    file.write('{:<13.5f}       ! PRC_R_Torque   - {}\n'.format(float(rosco_vt['PRC_R_Torque']), input_descriptions["PRC_R_Torque"]))
+    file.write('{:<13.5f}       ! PRC_R_Speed   - {}\n'.format(float(rosco_vt['PRC_R_Speed']), input_descriptions["PRC_R_Speed"]))
+    file.write('{:<13.5f}       ! PRC_R_Pitch   - {}\n'.format(float(rosco_vt['PRC_R_Pitch']), input_descriptions["PRC_R_Pitch"]))
+    file.write('{:<11d}         ! PRC_Table_n   - {}\n'.format(int(rosco_vt['PRC_Table_n']), input_descriptions["PRC_Table_n"]))
+    file.write('{}     ! PRC_R_Table   - {}\n'.format(write_array(rosco_vt["PRC_R_Table"]), input_descriptions["PRC_R_Table"]))
+    file.write('{}     ! PRC_Pitch_Table   - {}\n'.format(write_array(rosco_vt["PRC_Pitch_Table"]), input_descriptions["PRC_Pitch_Table"]))
     file.write('{:<11d}         ! PRC_n			    -  Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array\n'.format(int(rosco_vt['PRC_n'])))
     file.write('{:<13.5f}       ! PRC_LPF_Freq   - {}\n'.format(float(rosco_vt['PRC_LPF_Freq']), input_descriptions["PRC_LPF_Freq"]))
     file.write('{}     ! PRC_WindSpeeds   - {}\n'.format(write_array(rosco_vt["PRC_WindSpeeds"]), input_descriptions["PRC_WindSpeeds"]))
@@ -246,6 +253,8 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('\n')
     file.write('!------- Open Loop Control -----------------------------------------------------\n')
     file.write('"{}"            ! OL_Filename       - Input file with open loop timeseries (absolute path or relative to this file)\n'.format(rosco_vt['OL_Filename']))
+    file.write('{:<12d}        ! OL_BP_Mode        - {}]\n'.format(int(rosco_vt['OL_BP_Mode']),input_descriptions['OL_BP_Mode']))
+    file.write('{:<12f}        ! OL_BP_FiltFreq    - {}\n'.format(float(rosco_vt['OL_BP_FiltFreq']),input_descriptions['OL_BP_FiltFreq']))
     file.write('{0:<12d}        ! Ind_Breakpoint    - The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)\n'.format(int(rosco_vt['Ind_Breakpoint'])))
     file.write('{}         ! Ind_BldPitch      - The columns in OL_Filename that contains the blade pitch (1,2,3) inputs in rad [array]\n'.format(' '.join([f'{int(ipb):3d}' for ipb in rosco_vt['Ind_BldPitch']])))
     file.write('{0:<12d}        ! Ind_GenTq         - The column in OL_Filename that contains the generator torque in Nm\n'.format(int(rosco_vt['Ind_GenTq'])))
@@ -254,6 +263,9 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{}        ! {} - {}\n'.format(' '.join([f'{g:02.4f}' for g in rosco_vt["RP_Gains"]]),"RP_Gains",input_descriptions["RP_Gains"]))
     file.write('{}        ! Ind_CableControl  - The column(s) in OL_Filename that contains the cable control inputs in m [Used with CC_Mode = 2, must be the same size as CC_Group_N]\n'.format(write_array(rosco_vt['Ind_CableControl'],'<4d')))
     file.write('{}        ! Ind_StructControl - The column(s) in OL_Filename that contains the structural control inputs [Used with StC_Mode = 2, must be the same size as StC_Group_N]\n'.format(write_array(rosco_vt['Ind_StructControl'],'<4d')))
+    file.write('{:<12d}        ! Ind_R_Speed       - {}\n'.format(int(rosco_vt["Ind_R_Speed"]), input_descriptions["Ind_R_Speed"]))
+    file.write('{:<12d}        ! Ind_R_Torque       - {}\n'.format(int(rosco_vt["Ind_R_Torque"]), input_descriptions["Ind_R_Torque"]))
+    file.write('{:<12d}        ! Ind_R_Pitch       - {}\n'.format(int(rosco_vt["Ind_R_Pitch"]), input_descriptions["Ind_R_Pitch"]))
     file.write('\n')
     file.write('!------- Pitch Actuator Model -----------------------------------------------------\n')
     file.write('{:<014.5f}       ! PA_CornerFreq     - Pitch actuator bandwidth/cut-off frequency [rad/s]\n'.format(rosco_vt['PA_CornerFreq']))
@@ -603,13 +615,17 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['Flp_MaxPit']       = controller.flp_maxpit
     # ------- Open Loop Control -------
     DISCON_dict['OL_Filename']     = controller.OL_Filename
+    DISCON_dict['OL_BP_Mode']      = controller.OL_BP_Mode
     DISCON_dict['Ind_Breakpoint']  = controller.OL_Ind_Breakpoint
     DISCON_dict['Ind_BldPitch']    = controller.OL_Ind_BldPitch
     DISCON_dict['Ind_GenTq']       = controller.OL_Ind_GenTq
     DISCON_dict['Ind_YawRate']     = controller.OL_Ind_YawRate
     DISCON_dict['Ind_CableControl']     = controller.OL_Ind_CableControl
     DISCON_dict['Ind_StructControl']    = controller.OL_Ind_StructControl
-    DISCON_dict['Ind_Azimuth']     = controller.OL_Ind_Azimuth
+    DISCON_dict['Ind_Azimuth']      = controller.OL_Ind_Azimuth
+    DISCON_dict['Ind_R_Speed']      = controller.OL_Ind_R_Speed
+    DISCON_dict['Ind_R_Torque']     = controller.OL_Ind_R_Torque
+    DISCON_dict['Ind_R_Pitch']      = controller.OL_Ind_R_Pitch
 
     # ------- Pitch Actuator -------
     DISCON_dict['PA_Mode']         = controller.PA_Mode
