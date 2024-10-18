@@ -17,6 +17,7 @@ MODULE ReadSetParameters
 
     USE Constants
     USE Functions
+    USE Filters
     USE SysSubs
     USE ROSCO_Helpers
     IMPLICIT NONE

@@ -342,7 +342,7 @@ CONTAINS
 
         ! Filter the wind speed at hub height regardless, only use if WE_Mode = 0 or WE_Op = 0
         ! Re-initialize at WE_Vw if leaving operational wind, WE_Vw is initialized at HorWindV
-        LocalVar%HorWindV_F = LPFilter(LocalVar%HorWindV, LocalVar%DT, CntrPar%F_WECornerFreq, LocalVar%FP, LocalVar%RestartWSE, LocalVar%restart, objInst%instLPF, LocalVar%WE_Vw)
+        LocalVar%HorWindV_F = cos(LocalVar%NacVaneF*D2R) * LPFilter(LocalVar%HorWindV, LocalVar%DT, CntrPar%F_WECornerFreq, LocalVar%FP, LocalVar%RestartWSE, LocalVar%restart, objInst%instLPF, LocalVar%WE_Vw)
 
         ! ---- Debug Inputs ------
         DebugVar%WE_b   = WE_Inp_Pitch

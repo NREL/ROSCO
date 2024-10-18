@@ -1012,6 +1012,9 @@ LocalVariables:
     NacVane: 
       <<: *real 
       description:  Nacelle vane angle [deg]
+    NacVaneF: 
+      <<: *real 
+      description:  Filtered nacelle vane angle [deg]
     HorWindV: 
       <<: *real 
       description: Hub height wind speed m/s

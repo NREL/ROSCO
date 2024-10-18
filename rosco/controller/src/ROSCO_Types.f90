@@ -134,14 +134,14 @@ TYPE, PUBLIC :: ControlParameters
     CHARACTER(1024)               :: OL_Filename                 ! Input file with open loop timeseries
     INTEGER(IntKi)                :: OL_Mode                     ! Open loop control mode {0 - no open loop control, 1 - open loop control vs. time, 2 - open loop control vs. wind speed}
     INTEGER(IntKi)                :: OL_BP_Mode                  ! Open loop control mode {0 - no open loop control, 1 - open loop control vs. time, 2 - open loop control vs. wind speed}
-    REAL(DbKi)                    :: OL_BP_FiltFreq              ! Open loop control mode {0 - no open loop control, 1 - open loop control vs. time, 2 - open loop control vs. wind speed}
+    REAL(DbKi)                    :: OL_BP_FiltFreq              ! First order low pass filter cutoff frequency for open loop breakpoint
     INTEGER(IntKi)                :: Ind_Breakpoint              ! The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: Ind_BldPitch                ! The columns in OL_Filename that contains the blade pitch inputs (1,2,3) in rad
     INTEGER(IntKi)                :: Ind_GenTq                   ! The column in OL_Filename that contains the generator torque in Nm
     INTEGER(IntKi)                :: Ind_YawRate                 ! The column in OL_Filename that contains the generator torque in Nm
-    INTEGER(IntKi)                :: Ind_R_Speed                 ! The column in OL_Filename that contains the generator torque in Nm
-    INTEGER(IntKi)                :: Ind_R_Torque                ! The column in OL_Filename that contains the generator torque in Nm
-    INTEGER(IntKi)                :: Ind_R_Pitch                 ! The column in OL_Filename that contains the generator torque in Nm
+    INTEGER(IntKi)                :: Ind_R_Speed                 ! The column in OL_Filename that contains the R_Speed input
+    INTEGER(IntKi)                :: Ind_R_Torque                ! The column in OL_Filename that contains the R_Torque input
+    INTEGER(IntKi)                :: Ind_R_Pitch                 ! The column in OL_Filename that contains the R_Pitch input
     INTEGER(IntKi)                :: Ind_Azimuth                 ! The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: RP_Gains                    ! PID gains and Tf on derivative term for rotor position control (used if OL_Mode = 2)
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: Ind_CableControl            ! The column in OL_Filename that contains the cable control inputs in m
@@ -275,6 +275,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: RotSpeed                    ! Rotor speed (LSS) [rad/s]
     REAL(DbKi)                    :: NacHeading                  ! Nacelle heading of the turbine w.r.t. north [deg]
     REAL(DbKi)                    :: NacVane                     ! Nacelle vane angle [deg]
+    REAL(DbKi)                    :: NacVaneF                    ! Filtered nacelle vane angle [deg]
     REAL(DbKi)                    :: HorWindV                    ! Hub height wind speed m/s
     REAL(DbKi)                    :: HorWindV_F                  ! Filtered hub height wind speed m/s
     REAL(DbKi)                    :: rootMOOP(3)                 ! Blade root bending moment [Nm]
@@ -352,7 +353,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: WE_VwI                      ! Integrated wind speed quantity for estimation [m/s]
     REAL(DbKi)                    :: WE_VwIdot                   ! Differentiated integrated wind speed quantity for estimation [m/s]
     INTEGER(IntKi)                :: WE_Op                       ! WSE Operational state (0- not operating, 1-operating)
-    INTEGER(IntKi)                :: WE_Op_Last                  ! WSE Operational state (0- not operating, 1-operating)
+    INTEGER(IntKi)                :: WE_Op_Last                  ! Last WSE Operational state (0- not operating, 1-operating)
     REAL(DbKi)                    :: VS_LastGenTrqF              ! Differentiated integrated wind speed quantity for estimation [m/s]
     REAL(DbKi)                    :: PRC_WSE_F                   ! Filtered wind speed estimate for power reference control
     REAL(DbKi)                    :: PRC_R_Speed                 ! Instantaneous PRC_R_Speed
