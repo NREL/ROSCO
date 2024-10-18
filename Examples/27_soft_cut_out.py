@@ -1,9 +1,11 @@
 """
-27_power_ref_control
---------------------
-Run openfast with ROSCO and cable control
-Demonstrate a simulation with a generator reference speed that changes with estimated wind speed
-Set reference rotor speed as a function of wind speed (estimate in ROSCO)
+27_soft_cut_out
+---------------
+Set up a control input to do a soft cut-out of a wind turbine at high wind speeds.
+This example uses the first power reference control implementation (PRC_Mode of 1), where the user specifies the speed setpoint versus wind speed.
+We can use this to track specific rotor speeds based on the wind speed, or de-rate/power boost using by changing the speed.  
+With PRC_Mode of 2, we can do this but also change the power rating with pitch and torque.
+
 """
 
 import os
@@ -58,7 +60,7 @@ def main():
 
     r = run_FAST_ROSCO()
     r.tuning_yaml   = parameter_filename
-    r.wind_case_fcn = cl.ramp  # single step wind input
+    r.wind_case_fcn = cl.ramp  # ramp wind input
     
     if FULL_TEST:
         # Full test

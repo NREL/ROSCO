@@ -334,6 +334,9 @@ ControlParameters:
     PRC_Mode:
       <<: *integer
       description: Power reference tracking mode, 0- use standard rotor speed set points, 1- use PRC rotor speed setpoints
+    PRC_Comm:
+      <<: *integer
+      description: Power reference communication mode, 0- use constant DISCON inputs, 1- use open loop inputs, 2- use ZMQ inputs
     PRC_WindSpeeds:
       <<: *real
       description: Array of wind speeds used in rotor speed vs. wind speed lookup table
@@ -348,6 +351,28 @@ ControlParameters:
     PRC_LPF_Freq:
       <<: *real
       description: Frequency of the low pass filter on the wind speed estimate used to set PRC_GenSpeeds [rad/s]
+    PRC_R_Torque:
+      <<: *real
+      description: Power rating through changing the rated torque, default is 1, effective above rated [-]
+    PRC_R_Speed:
+      <<: *real
+      description: Power rating through changing the rated generator speed, default is 1, effective above rated [-]
+    PRC_R_Pitch:
+      <<: *real
+      description: Power rating through changing the fine pitch angle, default is 1, effective below rated [-]
+    PRC_Table_n:
+      <<: *integer
+      description: Number of elements in PRC_R to _Pitch table
+    PRC_Pitch_Table:
+      <<: *real
+      allocatable: True
+      description: Table of fine pitch versus PRC_R_Table, length should be PRC_Table_n [rad]
+    PRC_R_Table:
+      <<: *real
+      allocatable: True
+      description: Table of turbine rating versus fine pitch (PRC_Pitch_Table), length should be PRC_Table_n, default is 1 [-]
+
+
     
     # Wind Speed Estimator
     WE_Mode:
@@ -489,6 +514,12 @@ ControlParameters:
     OL_Mode:
       <<: *integer
       description: Open loop control mode {0 - no open loop control, 1 - open loop control vs. time, 2 - open loop control vs. wind speed}
+    OL_BP_Mode:
+      <<: *integer
+      description: Open loop control mode {0 - no open loop control, 1 - open loop control vs. time, 2 - open loop control vs. wind speed}
+    OL_BP_FiltFreq:
+      <<: *real
+      description: First order low pass filter cutoff frequency for open loop breakpoint
     Ind_Breakpoint:
       <<: *integer
       description: The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)
@@ -502,6 +533,15 @@ ControlParameters:
     Ind_YawRate:
       <<: *integer
       description: The column in OL_Filename that contains the generator torque in Nm
+    Ind_R_Speed:
+      <<: *integer
+      description: The column in OL_Filename that contains the R_Speed input
+    Ind_R_Torque:
+      <<: *integer
+      description: The column in OL_Filename that contains the R_Torque input
+    Ind_R_Pitch:
+      <<: *integer
+      description: The column in OL_Filename that contains the R_Pitch input
     Ind_Azimuth:
       <<: *integer
       description: The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
@@ -553,6 +593,18 @@ ControlParameters:
       <<: *real
       allocatable: True
       description: Open loop azimuth timeseries
+    OL_R_Speed:
+      <<: *real
+      allocatable: True
+      description: Open loop R_Speed timeseries
+    OL_R_Torque:
+      <<: *real
+      allocatable: True
+      description: Open loop R_Torque timeseries
+    OL_R_Pitch:
+      <<: *real
+      allocatable: True
+      description: Open loop R_Pitch timeseries
     OL_Channels:
       <<: *real
       allocatable: True
@@ -924,6 +976,9 @@ LocalVariables:
     iStatus: 
       <<: *integer 
       description: Initialization status
+    RestartWSE: 
+      <<: *integer 
+      description: Restart WSE flag, 0 - restart, 1- not, to mirror iStatus
     Time: 
       <<: *real 
       description: Time [s]
@@ -957,9 +1012,15 @@ LocalVariables:
     NacVane: 
       <<: *real 
       description:  Nacelle vane angle [deg]
+    NacVaneF: 
+      <<: *real 
+      description:  Filtered nacelle vane angle [deg]
     HorWindV: 
       <<: *real 
       description: Hub height wind speed m/s
+    HorWindV_F: 
+      <<: *real 
+      description: Filtered hub height wind speed m/s
     rootMOOP: 
       <<: *real
       description: Blade root bending moment [Nm]
@@ -1077,9 +1138,6 @@ LocalVariables:
     PC_PitComT:                   
       <<: *real 
       description: Total command pitch based on the sum of the proportional and integral terms [rad].
-    PC_PitComT:                   
-      <<: *real 
-      description: Collective pitch commmand from PI control [rad].
     PC_PitComT_Last:                   
       <<: *real 
       description: Last total command pitch based on the sum of the proportional and integral terms [rad].
@@ -1196,12 +1254,39 @@ LocalVariables:
     WE_VwIdot:                    
       <<: *real 
       description: Differentiated integrated wind speed quantity for estimation [m/s]
+    WE_Op:
+      <<: *integer
+      description: WSE Operational state (0- not operating, 1-operating) 
+    WE_Op_Last:
+      <<: *integer
+      description: Last WSE Operational state (0- not operating, 1-operating) 
     VS_LastGenTrqF:               
       <<: *real 
       description: Differentiated integrated wind speed quantity for estimation [m/s]
     PRC_WSE_F:               
       <<: *real 
       description: Filtered wind speed estimate for power reference control
+    PRC_R_Speed:
+      <<: *real
+      description: Instantaneous PRC_R_Speed
+    PRC_R_Torque:
+      <<: *real
+      description: Instantaneous PRC_R_Torque
+    PRC_R_Pitch:
+      <<: *real
+      description: Instantaneous PRC_R_Pitch
+    PRC_R_Total:
+      <<: *real
+      description: Instantaneous PRC_R_Total
+    PRC_Min_Pitch:
+      <<: *real
+      description: Instantaneous PRC_Min_Pitch
+    PS_Min_Pitch:
+      <<: *real
+      description: Instantaneous peak shaving 
+    OL_Index:
+      <<: *real
+      description: Open loop indexing variable (time or wind speed)
     SD:                           
       <<: *logical
       description: Shutdown, .FALSE. if inactive, .TRUE. if active
@@ -1323,6 +1408,15 @@ LocalVariables:
       <<: *real
       size: 3
       description: Pitch command offset provided by ZeroMQ
+    ZMQ_R_Speed:
+      <<: *real
+      description: R_Speed command provided by ZeroMQ
+    ZMQ_R_Torque:
+      <<: *real
+      description: R_Torque command provided by ZeroMQ
+    ZMQ_R_Pitch:
+      <<: *real
+      description: R_Pitch command provided by ZeroMQ
     WE: 
       <<: *derived_type
       id: WE 
