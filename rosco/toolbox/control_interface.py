@@ -20,6 +20,7 @@ from ctypes import (
     create_string_buffer,
     c_int32,
     c_void_p,
+    wintypes,
 )
 import numpy as np
 import platform
@@ -258,6 +259,7 @@ class ControllerInterface:
 
         if OS == "Windows":  # pragma: Windows
             try:
+                ctypes.windll.kernel32.FreeLibrary.argtypes = [wintypes.HMODULE]
                 _dlclose = ctypes.windll.kernel32.FreeLibrary
                 dlclose = lambda handle: 0 if _dlclose(handle) else 1
             except:
