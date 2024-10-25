@@ -122,15 +122,15 @@ CONTAINS
         IF (CntrPar%OL_Mode > 0) THEN
             IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN    ! Time > first open loop breakpoint
                 IF (CntrPar%Ind_BldPitch(1) > 0) THEN
-                    LocalVar%PitCom(1) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch1,LocalVar%Time, ErrVar)
+                    LocalVar%PitCom(1) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch1,LocalVar%OL_Index, ErrVar)
                 ENDIF
 
                 IF (CntrPar%Ind_BldPitch(2) > 0) THEN
-                    LocalVar%PitCom(2) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch2,LocalVar%Time, ErrVar)
+                    LocalVar%PitCom(2) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch2,LocalVar%OL_Index, ErrVar)
                 ENDIF
 
                 IF (CntrPar%Ind_BldPitch(3) > 0) THEN
-                    LocalVar%PitCom(3) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch3,LocalVar%Time, ErrVar)
+                    LocalVar%PitCom(3) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch3,LocalVar%OL_Index, ErrVar)
                 ENDIF
             ENDIF
         ENDIF
@@ -207,17 +207,16 @@ CONTAINS
         ! -------- Variable-Speed Torque Controller --------
         ! Define max torque
         IF (LocalVar%VS_State == 4) THEN
-           LocalVar%VS_MaxTq = CntrPar%VS_RtTq
+           LocalVar%VS_MaxTq = CntrPar%VS_RtTq * LocalVar%PRC_R_Torque
         ELSE
-            ! VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
-            LocalVar%VS_MaxTq = CntrPar%VS_RtTq
+            LocalVar%VS_MaxTq = CntrPar%VS_RtTq * LocalVar%PRC_R_Torque
         ENDIF
         
         ! Optimal Tip-Speed-Ratio tracking controller
         IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
             ! Constant Power, update VS_MaxTq
             IF (CntrPar%VS_ConstPower == 1) THEN
-                LocalVar%VS_MaxTq = min((CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF, CntrPar%VS_MaxTq)
+                LocalVar%VS_MaxTq = min((CntrPar%VS_RtPwr * LocalVar%PRC_R_Torque /(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF, CntrPar%VS_MaxTq)
             END IF
 
             ! PI controller
@@ -265,7 +264,7 @@ CONTAINS
         IF ((CntrPar%OL_Mode > 0) .AND. (CntrPar%Ind_GenTq > 0)) THEN
             ! Get current OL GenTq, applies for OL_Mode 1 and 2
             IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN
-                LocalVar%GenTq = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_GenTq,LocalVar%Time,ErrVar)
+                LocalVar%GenTq = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_GenTq,LocalVar%OL_Index,ErrVar)
             ENDIF
             
             ! Azimuth tracking control
@@ -417,7 +416,7 @@ CONTAINS
             ! Open loop yaw rate control - control input in rad/s
             IF ((CntrPar%OL_Mode > 0) .AND. (CntrPar%Ind_YawRate > 0)) THEN
                 IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN
-                    avrSWAP(48) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_YawRate,LocalVar%Time, ErrVar)
+                    avrSWAP(48) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_YawRate,LocalVar%OL_Index, ErrVar)
                 ENDIF
             ENDIF
 
@@ -871,5 +870,152 @@ SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
         ENDIF
 
     END SUBROUTINE StructuralControl
+!-------------------------------------------------------------------------------------------------------------------------------
+    REAL(DbKi) FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, piP, reset, inst)
+        USE ROSCO_Types, ONLY : piParams
+
+    ! PI controller, with output saturation
+
+        IMPLICIT NONE
+        ! Allocate Inputs
+        REAL(DbKi),    INTENT(IN)         :: error
+        REAL(DbKi),    INTENT(IN)         :: kp
+        REAL(DbKi),    INTENT(IN)         :: ki
+        REAL(DbKi),    INTENT(IN)         :: minValue
+        REAL(DbKi),    INTENT(IN)         :: maxValue
+        REAL(DbKi),    INTENT(IN)         :: DT
+        INTEGER(IntKi), INTENT(INOUT)      :: inst
+        REAL(DbKi),    INTENT(IN)         :: I0
+        TYPE(piParams), INTENT(INOUT)  :: piP
+        LOGICAL,    INTENT(IN)         :: reset     
+        ! Allocate local variables
+        INTEGER(IntKi)                      :: i                                            ! Counter for making arrays
+        REAL(DbKi)                         :: PTerm                                        ! Proportional term
+
+        ! Initialize persistent variables/arrays, and set inital condition for integrator term
+        IF (reset) THEN
+            piP%ITerm(inst) = I0
+            piP%ITermLast(inst) = I0
+            
+            PIController = I0
+        ELSE
+            PTerm = kp*error
+            piP%ITerm(inst) = piP%ITerm(inst) + DT*ki*error
+            piP%ITerm(inst) = saturate(piP%ITerm(inst), minValue, maxValue)
+            PIController = saturate(PTerm + piP%ITerm(inst), minValue, maxValue)
+        
+            piP%ITermLast(inst) = piP%ITerm(inst)
+        END IF
+        inst = inst + 1
+        
+    END FUNCTION PIController
+
+
+!-------------------------------------------------------------------------------------------------------------------------------
+    REAL(DbKi) FUNCTION PIDController(error, kp, ki, kd, tf, minValue, maxValue, DT, I0, piP, reset, objInst, LocalVar)
+        USE ROSCO_Types, ONLY : piParams, LocalVariables, ObjectInstances
+
+    ! PI controller, with output saturation
+
+        IMPLICIT NONE
+        ! Allocate Inputs
+        REAL(DbKi),    INTENT(IN)         :: error
+        REAL(DbKi),    INTENT(IN)         :: kp
+        REAL(DbKi),    INTENT(IN)         :: ki
+        REAL(DbKi),    INTENT(IN)         :: kd
+        REAL(DbKi),    INTENT(IN)         :: tf
+        REAL(DbKi),    INTENT(IN)         :: minValue
+        REAL(DbKi),    INTENT(IN)         :: maxValue
+        REAL(DbKi),    INTENT(IN)         :: DT
+        TYPE(ObjectInstances),      INTENT(INOUT)   :: objInst  ! all object instances (PI, filters used here)
+        TYPE(LocalVariables),       INTENT(INOUT)   :: LocalVar
+
+        REAL(DbKi),    INTENT(IN)           :: I0
+        TYPE(piParams), INTENT(INOUT)       :: piP
+        LOGICAL,    INTENT(IN)              :: reset     
+        
+        ! Allocate local variables
+        INTEGER(IntKi)                      :: i                                            ! Counter for making arrays
+        REAL(DbKi)                          :: PTerm, DTerm                                 ! Proportional, deriv. terms
+        REAL(DbKi)                          :: EFilt                    ! Filtered error for derivative
+
+        ! Always filter error
+        EFilt = LPFilter(error, DT, tf, LocalVar%FP, LocalVar%iStatus, reset, objInst%instLPF)
+
+        ! Initialize persistent variables/arrays, and set inital condition for integrator term
+        IF (reset) THEN
+            piP%ITerm(objInst%instPI) = I0
+            piP%ITermLast(objInst%instPI) = I0
+            piP%ELast(objInst%instPI) = 0.0_DbKi
+            PIDController = I0
+        ELSE
+            ! Proportional
+            PTerm = kp*error
+            
+            ! Integrate and saturate
+            piP%ITerm(objInst%instPI) = piP%ITerm(objInst%instPI) + DT*ki*error
+            piP%ITerm(objInst%instPI) = saturate(piP%ITerm(objInst%instPI), minValue, maxValue)
+
+            ! Derivative (filtered)
+            DTerm = kd * (EFilt - piP%ELast(objInst%instPI)) / DT
+            
+            ! Saturate all
+            PIDController = saturate(PTerm + piP%ITerm(objInst%instPI) + DTerm, minValue, maxValue)
+        
+            ! Save lasts
+            piP%ITermLast(objInst%instPI) = piP%ITerm(objInst%instPI)
+            piP%ELast(objInst%instPI) = EFilt
+        END IF
+        objInst%instPI = objInst%instPI + 1
+        
+    END FUNCTION PIDController
+
+!-------------------------------------------------------------------------------------------------------------------------------
+    REAL(DbKi) FUNCTION PIIController(error, error2, kp, ki, ki2, minValue, maxValue, DT, I0, piP, reset, inst)
+    ! PI controller, with output saturation. 
+    ! Added error2 term for additional integral control input
+        USE ROSCO_Types, ONLY : piParams
+        
+        IMPLICIT NONE
+        ! Allocate Inputs
+        REAL(DbKi), INTENT(IN)         :: error
+        REAL(DbKi), INTENT(IN)         :: error2
+        REAL(DbKi), INTENT(IN)         :: kp
+        REAL(DbKi), INTENT(IN)         :: ki2
+        REAL(DbKi), INTENT(IN)         :: ki
+        REAL(DbKi), INTENT(IN)         :: minValue
+        REAL(DbKi), INTENT(IN)         :: maxValue
+        REAL(DbKi), INTENT(IN)         :: DT
+        INTEGER(IntKi), INTENT(INOUT)   :: inst
+        REAL(DbKi), INTENT(IN)         :: I0
+        TYPE(piParams), INTENT(INOUT) :: piP
+        LOGICAL, INTENT(IN)         :: reset     
+        ! Allocate local variables
+        INTEGER(IntKi)                      :: i                                            ! Counter for making arrays
+        REAL(DbKi)                         :: PTerm                                        ! Proportional term
+
+        ! Initialize persistent variables/arrays, and set inital condition for integrator term
+        IF (reset) THEN
+            piP%ITerm(inst) = I0
+            piP%ITermLast(inst) = I0
+            piP%ITerm2(inst) = I0
+            piP%ITermLast2(inst) = I0
+            
+            PIIController = I0
+        ELSE
+            PTerm = kp*error
+            piP%ITerm(inst) = piP%ITerm(inst) + DT*ki*error
+            piP%ITerm2(inst) = piP%ITerm2(inst) + DT*ki2*error2
+            piP%ITerm(inst) = saturate(piP%ITerm(inst), minValue, maxValue)
+            piP%ITerm2(inst) = saturate(piP%ITerm2(inst), minValue, maxValue)
+            PIIController = PTerm + piP%ITerm(inst) + piP%ITerm2(inst)
+            PIIController = saturate(PIIController, minValue, maxValue)
+        
+            piP%ITermLast(inst) = piP%ITerm(inst)
+        END IF
+        inst = inst + 1
+        
+    END FUNCTION PIIController
+
 !-------------------------------------------------------------------------------------------------------------------------------
 END MODULE Controllers

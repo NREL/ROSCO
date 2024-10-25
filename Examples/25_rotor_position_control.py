@@ -44,12 +44,12 @@ def main():
     fast_out = op.load_fast_out(os.path.join(run_dir,'NREL2p8/power_curve/base/NREL2p8_0.outb'), tmin=0)
 
     olc = OpenLoopControl()
-    olc.ol_timeseries['time'] = fast_out[0]['Time']
-    olc.ol_timeseries['blade_pitch1'] = np.radians(fast_out[0]['BldPitch1'])
-    olc.ol_timeseries['blade_pitch2'] = np.radians(fast_out[0]['BldPitch2'])
-    olc.ol_timeseries['blade_pitch3'] = np.radians(fast_out[0]['BldPitch3'])
-    olc.ol_timeseries['generator_torque'] = fast_out[0]['GenTq'] * 1000
-    olc.ol_timeseries['azimuth'] = np.radians(fast_out[0]['Azimuth'])
+    olc.ol_series['time'] = fast_out[0]['Time']
+    olc.ol_series['blade_pitch1'] = np.radians(fast_out[0]['BldPitch1'])
+    olc.ol_series['blade_pitch2'] = np.radians(fast_out[0]['BldPitch2'])
+    olc.ol_series['blade_pitch3'] = np.radians(fast_out[0]['BldPitch3'])
+    olc.ol_series['generator_torque'] = fast_out[0]['GenTq'] * 1000
+    olc.ol_series['azimuth'] = np.radians(fast_out[0]['Azimuth'])
 
     # Save initial RotSpeed, Azimuth for later
     RotSpeed_0 = fast_out[0]['RotSpeed'][0]
