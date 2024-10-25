@@ -1,13 +1,20 @@
 """
 01_turbine_model
 ----------------
-Load and save a turbine model.
+Interact with a ROSCO turbine model:
 
 * Read .yaml input file
 * Load an openfast turbine model
-* Read text file with rotor performance properties
+* Read text file with rotor performance properties (Cp, Ct, and Cq surface)
 * Print some basic turbine properties
-* Save the turbine as a picklle
+* Save the turbine as a pickle
+* Plot the Cp surface
+
+.. figure:: /source/figures/01_NREL5MW_Cp.png
+   :align: center
+   :width: 70%
+
+
 
 Note: Uses the NREL 5MW included in the Test Cases and is a part of the OpenFAST distribution
 """

@@ -537,7 +537,7 @@ ControlParameters:
       description: Open loop control mode {0 - no open loop control, 1 - open loop control vs. time, 2 - open loop control vs. wind speed}
     OL_BP_FiltFreq:
       <<: *real
-      description: Open loop control mode {0 - no open loop control, 1 - open loop control vs. time, 2 - open loop control vs. wind speed}
+      description: First order low pass filter cutoff frequency for open loop breakpoint
     Ind_Breakpoint:
       <<: *integer
       description: The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)
@@ -553,13 +553,13 @@ ControlParameters:
       description: The column in OL_Filename that contains the generator torque in Nm
     Ind_R_Speed:
       <<: *integer
-      description: The column in OL_Filename that contains the generator torque in Nm
+      description: The column in OL_Filename that contains the R_Speed input
     Ind_R_Torque:
       <<: *integer
-      description: The column in OL_Filename that contains the generator torque in Nm
+      description: The column in OL_Filename that contains the R_Torque input
     Ind_R_Pitch:
       <<: *integer
-      description: The column in OL_Filename that contains the generator torque in Nm
+      description: The column in OL_Filename that contains the R_Pitch input
     Ind_Azimuth:
       <<: *integer
       description: The column in OL_Filename that contains the desired azimuth position in rad (used if OL_Mode = 2)
@@ -994,6 +994,9 @@ LocalVariables:
     iStatus: 
       <<: *integer 
       description: Initialization status
+    RestartWSE: 
+      <<: *integer 
+      description: Restart WSE flag, 0 - restart, 1- not, to mirror iStatus
     Time: 
       <<: *real 
       description: Time [s]
@@ -1024,6 +1027,9 @@ LocalVariables:
     NacVane: 
       <<: *real 
       description:  Nacelle vane angle [deg]
+    NacVaneF: 
+      <<: *real 
+      description:  Filtered nacelle vane angle [deg]
     HorWindV: 
       <<: *real 
       description: Hub height wind speed m/s
@@ -1274,7 +1280,7 @@ LocalVariables:
       description: WSE Operational state (0- not operating, 1-operating) 
     WE_Op_Last:
       <<: *integer
-      description: WSE Operational state (0- not operating, 1-operating) 
+      description: Last WSE Operational state (0- not operating, 1-operating) 
     VS_LastGenTrqF:               
       <<: *real 
       description: Differentiated integrated wind speed quantity for estimation [m/s]

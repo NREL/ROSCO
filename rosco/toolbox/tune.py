@@ -114,7 +114,7 @@ def update_discon_version(file,tuning_yaml,new_discon_filename):
             new_discon['F_TwrTopNotch_Ind'] = [1]
 
     # OL blade pitch changed to array
-    if not hasattr(original_vt['Ind_BldPitch'],'__len__'):
+    if ('Ind_BldPitch' in original_vt) and (not hasattr(original_vt['Ind_BldPitch'],'__len__')):
         new_discon['Ind_BldPitch'] = [original_vt['Ind_BldPitch']] * 3
     
 

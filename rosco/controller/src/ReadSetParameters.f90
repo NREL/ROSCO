@@ -17,6 +17,7 @@ MODULE ReadSetParameters
 
     USE Constants
     USE Functions
+    USE Filters
     USE SysSubs
     USE ROSCO_Helpers
     IMPLICIT NONE
@@ -237,7 +238,6 @@ CONTAINS
             LocalVar%VS_LastGenTrq = LocalVar%GenTq
             LocalVar%VS_MaxTq      = CntrPar%VS_MaxTq
             LocalVar%VS_GenPwr     = LocalVar%GenTq * LocalVar%GenSpeed * CntrPar%VS_GenEff/100.0
-
             
             ! Initialize variables
             LocalVar%CC_DesiredL = 0
@@ -830,8 +830,8 @@ CONTAINS
 
         CurLine = 1
         CALL GetNewUnit(UnPerfParameters, ErrVar)
-        OPEN(unit=UnPerfParameters, file=TRIM(CntrPar%PerfFileName), status='old', action='read') ! Should put input file into DISCON.IN
-        
+        OPEN(unit=UnPerfParameters, file=TRIM(CntrPar%PerfFileName), status='old', action='read')
+                
         ! ----------------------- Axis Definitions ------------------------
         CALL ReadEmptyLine(UnPerfParameters,CurLine)
         CALL ReadEmptyLine(UnPerfParameters,CurLine)
