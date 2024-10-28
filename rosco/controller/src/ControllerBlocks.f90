@@ -210,12 +210,11 @@ CONTAINS
         IF (LocalVar%iStatus == 0) THEN ! .TRUE. if we're on the first call to the DLL
 
             IF (LocalVar%PitCom(1) >= LocalVar%VS_Rgn3Pitch) THEN ! We are in region 3
+                LocalVar%PC_State = PC_State_Enabled
                 IF (CntrPar%VS_ConstPower == VS_Mode_ConstPwr) THEN ! Constant power tracking
                     LocalVar%VS_State = VS_State_Region_3_ConstPwr
-                    LocalVar%PC_State = PC_State_Enabled
                 ELSE ! Constant torque tracking
                     LocalVar%VS_State = VS_State_Region_3_ConstTrq
-                    LocalVar%PC_State = PC_State_Enabled
                 END IF
             ELSE ! We are in Region 2
                 LocalVar%VS_State = VS_State_Region_2
