@@ -206,14 +206,10 @@ CONTAINS
         ! Allocate Variables
 
         ! -------- Variable-Speed Torque Controller --------
-        ! Define max torque
-        IF (LocalVar%VS_State == VS_State_Region_3_ConstTrq) THEN
-            LocalVar%VS_MaxTq = CntrPar%VS_RtTq * LocalVar%PRC_R_Torque
-        ELSE
-            LocalVar%VS_MaxTq = CntrPar%VS_MaxTq * LocalVar%PRC_R_Torque
-        ENDIF
+        ! Define initial max torque
+        LocalVar%VS_MaxTq = CntrPar%VS_MaxTq * LocalVar%PRC_R_Torque
 
-        ! Pre-compute generatoer torque values for K*Omega^2 and constant power
+        ! Pre-compute generator torque values for K*Omega^2 and constant power
         LocalVar%VS_KOmega2_GenTq = CntrPar%VS_Rgn2K*LocalVar%GenSpeedF*LocalVar%GenSpeedF
         LocalVar%VS_ConstPwr_GenTq = (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF * LocalVar%PRC_R_Torque
 
@@ -223,6 +219,7 @@ CONTAINS
             (CntrPar%VS_ControlMode == VS_Mode_Torque_TSR)) THEN
 
             ! Constant Power, update VS_MaxTq
+            LocalVar%VS_MaxTq = CntrPar%VS_RtTq * LocalVar%PRC_R_Torque
             IF (CntrPar%VS_ConstPower == VS_Mode_ConstPwr) THEN
                 LocalVar%VS_MaxTq = min(LocalVar%VS_ConstPwr_GenTq * LocalVar%PRC_R_Torque, CntrPar%VS_MaxTq)
             END IF
