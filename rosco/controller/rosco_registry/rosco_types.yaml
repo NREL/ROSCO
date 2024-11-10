@@ -465,13 +465,49 @@ ControlParameters:
     # Shutdown 
     SD_Mode:
       <<: *integer
-      description: Shutdown mode {0 - no shutdown procedure, 1 - pitch to max pitch at shutdown}
+      description: Shutdown mode {0 - no shutdown procedure, 1 - enable shutdown}
+    SD_EnablePitch:
+      <<: *integer
+      description: Shutdown when collective blade pitch exceeds a threshold, [-]
+    SD_EnableYawError:
+      <<: *integer
+      description: Shutdown when yaw error exceeds a threshold, [-]
+    SD_EnableGenSpeed:
+      <<: *integer
+      description: Shutdown when generator speed exceeds a threshold, [-]
+    SD_EnableTime:
+      <<: *integer
+      description: Shutdown at a predefined time, [-]
     SD_MaxPit:
       <<: *real
       description: Maximum blade pitch angle to initiate shutdown, [rad]
-    SD_CornerFreq:
+    SD_PitchCornerFreq:
       <<: *real
-      description: Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]
+      description: Cutoff Frequency for first order low-pass filter for blade pitch angle for shutdown, [rad/s]
+    SD_MaxYawError:
+      <<: *real
+      description: Maximum yaw error to initiate shutdown, [rad]
+    SD_YawErrorCornerFreq:
+      <<: *real
+      description: Cutoff Frequency for first order low-pass filter for yaw error for shutdown, [rad/s]
+    SD_MaxGenSpd:
+      <<: *real
+      description: Maximum generator speed to initiate shutdown, [rad/s]
+    SD_GenCornerFreq:
+      <<: *real
+      description: Cutoff Frequency for first order low-pass filter for generator speed for shutdown, [rad/s]
+    SD_Time:
+      <<: *real
+      description: Shutdown time, [s]
+    SD_Method:
+      <<: *integer
+      description: Shutdown method {1: Reduce generator torque and increase blade pitch}, [-]
+    SD_MaxTorqueRate:
+      <<: *real
+      description: Maximum torque rate for shutdown, [Nm/s]
+    SD_MaxPitchRate:
+      <<: *real
+      description: Maximum pitch rate used for shutdown, [rad/s]
     
     # Floating
     Fl_Mode:

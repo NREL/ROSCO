@@ -172,7 +172,7 @@ properties:
                 minimum: 0
                 maximum: 1
                 default: 0
-                description: Shutdown mode (0- no shutdown procedure, 1- pitch to max pitch at shutdown)
+                description: Shutdown mode (0- no shutdown procedure, 1- enable shutdown)
             TD_Mode:            
                 type: number
                 minimum: 0
@@ -329,12 +329,53 @@ properties:
                 default: 0.8
                 maximum: 1
                 unit: rad
-            sd_maxpit:           
+            sd_enablepitch:           
+                description: Shutdown when collective blade pitch exceeds a threshold [-], {default = 0}
+                type: number
+                default: 0
+            sd_enableyawerror:           
+                description: Shutdown when yaw error exceeds a threshold, [-], {default = 0}
+                type: number
+                default: 0
+            sd_enablegenspeed:           
+                description: Shutdown when generator speed exceeds a threshold, [-], {default = 9}
+                type: number
+                default: 0
+            sd_enabletime:           
+                description: Shutdown at a predefined time, [-] {default = 0}
+                type: number
+                default: 0
+            sd_maxpitch:           
                 description: Maximum blade pitch angle to initiate shutdown [rad], {default = 40 deg.}
                 type: number
                 default: 0.6981
                 unit: rad
-            flp_maxpit:            
+            sd_maxyawerror:
+                description: Maximum yaw error to initiate shutdown [rad], {default = 30 deg.}
+                type: number
+                default: 0.5236
+                unit: rad
+            sd_maxgenspd:
+                description: Maximum generator speed to initiate shutdown, [rad/s], {default = 10 rad/s.}
+                type: number
+                default: 10
+                unit: rad/s
+            sd_time:
+                description: Shutdown time, [s], {default = 9999 s.}
+                type: number
+                default: 9999
+                unit: s
+            sd_maxtorquerate:
+                description: Maximum torque rate for shutdown, [Nm/s], {default = 99999 Nm/s., High value to simulate instant cuttoff}
+                type: number
+                default: 99999
+                unit: Nm/s
+            sd_maxpitchrate:
+                description: Maximum pitch rate used for shutdown, [rad/s], {default = 1 rad/s.}
+                type: number
+                default: 1.0
+                unit: s
+            flp_maxpit:
                 description: Maximum (and minimum) flap pitch angle [rad]
                 type: number
                 default: 0.1745
@@ -475,11 +516,21 @@ properties:
                         minimum: 0
                         unit: rad/s
                         default: 0.17952
-                    f_sd_cornerfreq:       
-                        description: Cutoff Frequency for first order low-pass filter for blade pitch angle [rad/s], {default = 0.41888 ~ time constant of 15s}
+                    f_sd_pitchcornerfreq:
+                        description: Cutoff Frequency for first order low-pass filter for blade pitch angle for shutdown, [rad/s], {default = 0.41888 ~ time constant of 15s}
                         type: number
                         default: 0.41888
-                        unit: rad
+                        unit: rad/s
+                    f_sd_yawerrorcornerfreq:
+                        description: Cutoff Frequency for first order low-pass filter for yaw error for shutdown, [rad/s], {default = 0.41888 ~ time constant of 15s}
+                        type: number
+                        default: 0.41888
+                        unit: rad/s
+                    f_sd_gencornerfreq:
+                        description: utoff Frequency for first order low-pass filter for generator speed for shutdown, [rad/s], {default = 0.41888 ~ time constant of 15s}
+                        type: number
+                        default: 0.41888
+                        unit: rad/s
             open_loop:
                 type: object
                 default: {}
@@ -621,7 +672,7 @@ properties:
                         description: Pitch saturation mode (0- no pitch saturation, 1- implement pitch saturation)
                     SD_Mode:
                         type: number
-                        description: Shutdown mode (0- no shutdown procedure, 1- pitch to max pitch at shutdown)
+                        description: Shutdown mode (0- no shutdown procedure, 1- enable shutdown)
                     Fl_Mode:
                         type: number
                         description: Floating specific feedback mode (0- no nacelle velocity feedback, 1- feed back translational velocity, 2- feed back rotational veloicty)
@@ -1029,13 +1080,56 @@ properties:
                             type: number
                         description: Minimum blade pitch angles
                         units: rad
+                    SD_EnablePitch:
+                        type: number
+                        description: Shutdown when collective blade pitch exceeds a threshold
+                    SD_EnableYawError:
+                        type: number
+                        description: Shutdown when yaw error exceeds a threshold
+                    SD_EnableGenSpeed:
+                        type: number
+                        description: Shutdown when generator speed exceeds a threshold
+                    SD_EnableTime:
+                        type: number
+                        description: Shutdown at a predefined time
                     SD_MaxPit:
                         type: number
                         description: Maximum blade pitch angle to initiate shutdown
                         units: rad
-                    SD_CornerFreq:
+                    SD_PitchCornerFreq:
                         type: number
-                        description: Cutoff Frequency for first order low-pass filter for blade pitch angle
+                        description: Cutoff Frequency for first order low-pass filter for blade pitch angle for shutdown,
+                        units: rad/s
+                    SD_MaxYawError:
+                        type: number
+                        description: Maximum yaw error to initiate shutdown
+                        units: rad
+                    SD_YawErrorCornerFreq:
+                        type: number
+                        description: Cutoff Frequency for first order low-pass filter for yaw error for shutdown
+                        units: rad/s
+                    SD_MaxGenSpd:
+                        type: number
+                        description: Maximum generator speed to initiate shutdown
+                        units: rad/s
+                    SD_GenCornerFreq:
+                        type: number
+                        description: Cutoff Frequency for first order low-pass filter for generator speed for shutdown
+                        units: rad/s
+                    SD_Time:
+                        type: number
+                        description: Shutdown time
+                        units: s
+                    SD_Method:
+                        type: number
+                        description: Shutdown method {1- Reduce generator torque and increase blade pitch}
+                    SD_MaxTorqueRate:
+                        type: number
+                        description: Maximum torque rate for shutdown
+                        units: Nm/s
+                    SD_MaxPitchRate:
+                        type: number
+                        description: Maximum pitch rate used for shutdown
                         units: rad/s
                     Fl_n:
                         type: number

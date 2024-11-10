@@ -88,7 +88,6 @@ class Controller():
         self.ss_vsgain          = controller_params['ss_vsgain']
         self.ss_pcgain          = controller_params['ss_pcgain']
         self.ps_percent         = controller_params['ps_percent']
-        self.sd_maxpit          = controller_params['sd_maxpit']
         self.WS_GS_n            = controller_params['WS_GS_n']
         self.PC_GS_n            = controller_params['PC_GS_n']
         self.flp_maxpit         = controller_params['flp_maxpit']
@@ -98,6 +97,18 @@ class Controller():
         self.Ki_ipc2p           = controller_params['IPC_Kp2p']
         self.IPC_Vramp          = controller_params['IPC_Vramp']
         self.ZMQ_UpdatePeriod   = controller_params['ZMQ_UpdatePeriod']
+        ## shutdownparameters
+        self.sd_enablepitch = controller_params['sd_enablepitch']
+        self.sd_enableyawerror = controller_params['sd_enableyawerror']
+        self.sd_enablegenspeed = controller_params['sd_enablegenspeed']
+        self.sd_enabletime = controller_params['sd_enabletime']
+        self.sd_maxpitch = controller_params['sd_maxpitch']
+        self.sd_maxyawerror = controller_params['sd_maxyawerror']
+        self.sd_maxgenspd = controller_params['sd_maxgenspd']
+        self.sd_time = controller_params['sd_time']
+        self.sd_maxtorquerate = controller_params['sd_maxtorquerate']
+        self.sd_maxpitchrate = controller_params['sd_maxpitchrate']
+        
 
         #  Optional parameters without defaults
         if self.Flp_Mode > 0:
@@ -139,8 +150,9 @@ class Controller():
         self.f_fl_highpassfreq      = controller_params['filter_params']['f_fl_highpassfreq']
         self.f_ss_cornerfreq        = controller_params['filter_params']['f_ss_cornerfreq']
         self.f_yawerr               = controller_params['filter_params']['f_yawerr']
-        self.f_sd_cornerfreq        = controller_params['filter_params']['f_sd_cornerfreq']
-
+        self.f_sd_pitchcornerfreq        = controller_params['filter_params']['f_sd_pitchcornerfreq']
+        self.f_sd_yawerrorcornerfreq        = controller_params['filter_params']['f_sd_yawerrorcornerfreq']
+        self.f_sd_gencornerfreq        = controller_params['filter_params']['f_sd_gencornerfreq']
 
         # Open loop parameters: set up and error catching
         self.OL_Mode            = controller_params['OL_Mode']
@@ -350,10 +362,10 @@ class Controller():
         self.pc_minspd = self.vs_minspd
 
         # max pitch angle for shutdown
-        if self.sd_maxpit:
-            self.sd_maxpit = self.sd_maxpit
-        else:
-            self.sd_maxpit = pitch_op[-1]
+        # if self.sd_maxpit:
+        #     self.sd_maxpit = self.sd_maxpit
+        # else:
+        #     self.sd_maxpit = pitch_op[-1]
 
         # Set IPC ramp inputs if not already defined
         if max(self.IPC_Vramp) == 0.0:

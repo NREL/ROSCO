@@ -514,8 +514,20 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ SHUTDOWN ------------
-        CALL ParseInput(FileLines,  'SD_MaxPit',        CntrPar%SD_MaxPit,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
-        CALL ParseInput(FileLines,  'SD_CornerFreq',    CntrPar%SD_CornerFreq,  accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_EnablePitch',        CntrPar%SD_EnablePitch,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_EnableYawError',     CntrPar%SD_EnableYawError,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_EnableGenSpeed',     CntrPar%SD_EnableGenSpeed,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_EnableTime',         CntrPar%SD_EnableTime,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_MaxPit',             CntrPar%SD_MaxPit,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_PitchCornerFreq',    CntrPar%SD_PitchCornerFreq,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_MaxYawError',        CntrPar%SD_MaxYawError,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_YawErrorCornerFreq', CntrPar%SD_YawErrorCornerFreq,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_MaxGenSpd',          CntrPar%SD_MaxGenSpd,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_GenCornerFreq',   CntrPar%SD_GenCornerFreq,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_Time',               CntrPar%SD_Time,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_Method',             CntrPar%SD_Method,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_MaxTorqueRate',      CntrPar%SD_MaxTorqueRate,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_MaxPitchRate',       CntrPar%SD_MaxPitchRate,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ FLOATING ------------
@@ -999,7 +1011,7 @@ CONTAINS
         ENDIF
 
         ! SD_Mode
-        IF ((CntrPar%SD_Mode < 0) .OR. (CntrPar%SD_Mode > 1)) THEN
+        IF ((CntrPar%SD_Mode < 0) .OR. (CntrPar%SD_Mode > 5)) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'SD_Mode must be 0 or 1.'
         ENDIF

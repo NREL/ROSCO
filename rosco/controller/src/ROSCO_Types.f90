@@ -119,9 +119,21 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: PS_BldPitchMin_N            ! Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PS_WindSpeeds               ! Wind speeds corresponding to minimum blade pitch angles [m/s]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PS_BldPitchMin              ! Minimum blade pitch angles [rad]
-    INTEGER(IntKi)                :: SD_Mode                     ! Shutdown mode {0 - no shutdown procedure, 1 - pitch to max pitch at shutdown}
+    INTEGER(IntKi)                :: SD_Mode                     ! Shutdown mode {0 - no shutdown procedure, 1 - shutdown enabled}
+    INTEGER(IntKi)                    :: SD_EnablePitch                   ! Shutdown when collective blade pitch exceeds a threshold, [-]
+    INTEGER(IntKi)                    :: SD_EnableYawError                   ! Shutdown when yaw error exceeds a threshold, [-]
+    INTEGER(IntKi)                    :: SD_EnableGenSpeed                   ! Shutdown when generator speed exceeds a threshold, [-]
+    INTEGER(IntKi)                    :: SD_EnableTime                   ! Shutdown at a predefined time, [-]
     REAL(DbKi)                    :: SD_MaxPit                   ! Maximum blade pitch angle to initiate shutdown, [rad]
-    REAL(DbKi)                    :: SD_CornerFreq               ! Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]
+    REAL(DbKi)                    :: SD_PitchCornerFreq                   ! Cutoff Frequency for first order low-pass filter for blade pitch angle for shutdown, [rad/s]
+    REAL(DbKi)                    :: SD_MaxYawError                   ! Maximum yaw error to initiate shutdown, [rad]
+    REAL(DbKi)                    :: SD_YawErrorCornerFreq                   ! Cutoff Frequency for first order low-pass filter for yaw error for shutdown, [rad/s]
+    REAL(DbKi)                    :: SD_MaxGenSpd                   ! Maximum generator speed to initiate shutdown, [rad/s]
+    REAL(DbKi)                    :: SD_GenCornerFreq            ! Cutoff Frequency for first order low-pass filter for generator speed for shutdown, [rad/s]
+    REAL(DbKi)                    :: SD_Time                   ! Shutdown time, [s]
+    INTEGER(IntKi)                    :: SD_Method                   ! Shutdown method {1: Reduce generator torque and increase blade pitch}, [-]
+    REAL(DbKi)                    :: SD_MaxTorqueRate                   ! Maximum torque rate for shutdown, [Nm/s]
+    REAL(DbKi)                    :: SD_MaxPitchRate                   ! Maximum pitch rate used for shutdown, [rad/s]
     INTEGER(IntKi)                :: Fl_Mode                     ! Floating specific feedback mode {0 - no nacelle velocity feedback, 1 - nacelle velocity feedback}
     INTEGER(IntKi)                :: Fl_n                        ! Number of Fl_Kp for gain scheduling
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: Fl_Kp                       ! Nacelle velocity proportional feedback gain [s]
