@@ -519,7 +519,7 @@ properties:
                         description: Corner frequency (-3dB point) in the first order low pass filter for TSR tracking torque control [rad/s]
                         minimum: 0
                         unit: rad/s
-                        default: 0.05
+                        default: 0.209440
             open_loop:
                 type: object
                 default: {}
