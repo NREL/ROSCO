@@ -88,10 +88,13 @@ CONTAINS
             DebugVar%FL_PitCom = LocalVar%Fl_PitCom
             LocalVar%PC_PitComT = LocalVar%PC_PitComT + LocalVar%Fl_PitCom
         ENDIF
-        
+
         ! Shutdown
-        IF (CntrPar%SD_Mode == 1) THEN
-            LocalVar%PC_PitComT = Shutdown(LocalVar, CntrPar, objInst)
+        
+        IF (LocalVar%SD_Trigger /= 0) THEN
+            IF (CntrPar%SD_Method == 1) THEN    !Only SD_Method==1 supported for now 
+                LocalVar%PC_PitComT = LocalVar%BlPitchCMeas + CntrPar%SD_MaxPitchRate*LocalVar%DT
+            ENDIF
         ENDIF
         
         ! Saturate collective pitch commands:
@@ -180,7 +183,6 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) THEN
             ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
         ENDIF
-
     END SUBROUTINE PitchControl
 !-------------------------------------------------------------------------------------------------------------------------------  
     SUBROUTINE VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)

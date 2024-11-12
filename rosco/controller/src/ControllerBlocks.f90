@@ -137,9 +137,9 @@ CONTAINS
         ENDIF
 
         ! Force zero torque in shutdown mode
-        IF (LocalVar%SD) THEN
-            LocalVar%VS_RefSpd = CntrPar%VS_MinOMSpd
-        ENDIF
+        !IF (LocalVar%SD_Trigger) THEN
+        !    LocalVar%VS_RefSpd = CntrPar%VS_MinOMSpd
+        !ENDIF
 
         ! Force minimum rotor speed
         LocalVar%VS_RefSpd = max(LocalVar%VS_RefSpd, CntrPar%VS_MinOmSpd)
@@ -512,47 +512,58 @@ CONTAINS
 
     END FUNCTION PitchSaturation
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(DbKi) FUNCTION Shutdown(LocalVar, CntrPar, objInst) 
-    ! Shutdown controller 
+    SUBROUTINE ShutdownCheck(LocalVar, CntrPar, objInst,ErrVar) 
+    ! Check for shutdown
         USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
         IMPLICIT NONE
         ! Inputs
         TYPE(ControlParameters),    INTENT(IN   )       :: CntrPar
         TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar 
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
+        TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
         
         ! Local Variables 
         REAL(DbKi)                                      :: SD_BlPitchF
-        ! Initialize Shutdown Varible
-        IF (LocalVar%iStatus == 0) THEN
-            LocalVar%SD = .FALSE.
-        ENDIF
+        REAL(DbKi)                                      :: SD_NacVaneF
+        REAL(DbKi)                                      :: SD_GenSpeedF
+        CHARACTER(*),               PARAMETER           :: RoutineName = 'VariableSpeedControl'
 
+        !Initialize shutdown trigger variable
+        IF (LocalVar%iStatus == 0) THEN
+            LocalVar%SD_Trigger = 0
+        ENDIF
+        
+
+        ! Filter pitch signal
+        SD_BlPitchF = LPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%SD_PitchCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+        ! Filter yaw error signal (NacVane)
+        SD_NacVaneF = LPFilter(LocalVar%NacVane, LocalVar%DT, CntrPar%SD_YawErrorCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+        ! Filter yaw generator speed
+        SD_GenSpeedF = LPFilter(LocalVar%Genspeed, LocalVar%DT, CntrPar%SD_GenSpdCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+        
         ! See if we should shutdown
-        IF (.NOT. LocalVar%SD ) THEN
-            ! Filter pitch signal
-            SD_BlPitchF = LPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%SD_CornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
-            
-            ! Go into shutdown if above max pit
-            IF (SD_BlPitchF > CntrPar%SD_MaxPit) THEN
-                LocalVar%SD  = .TRUE.
-            ELSE
-                LocalVar%SD  = .FALSE.
+        IF (LocalVar%SD_Trigger == 0) THEN
+            IF (CntrPar%SD_EnablePitch==1 .AND. SD_BlPitchF > CntrPar%SD_MaxPit) THEN
+                ! Shutdown if above pitch exceeds shutdown threshold
+                LocalVar%SD_Trigger  = 1
+            ENDIF
+            IF (CntrPar%SD_EnableYawError==1 .AND. SD_NacVaneF > CntrPar%SD_MaxYawError) THEN
+                LocalVar%SD_Trigger = 2
+            ENDIF
+            IF (CntrPar%SD_EnableGenSpeed==1 .AND. SD_GenSpeedF > CntrPar%SD_MaxGenSpd) THEN
+                LocalVar%SD_Trigger = 3
+            ENDIF 
+            IF (CntrPar%SD_EnableTime==1 .AND. LocalVar%Time > CntrPar%SD_Time) THEN
+                LocalVar%SD_Trigger = 4
             ENDIF 
         ENDIF
-
-        ! Pitch Blades to 90 degrees at max pitch rate if in shutdown mode
-        IF (LocalVar%SD) THEN
-            Shutdown = LocalVar%BlPitchCMeas + CntrPar%PC_MaxRat*LocalVar%DT
-            IF (MODULO(LocalVar%Time, 10.0_DbKi) == 0) THEN
-                print *, ' ** SHUTDOWN MODE **'
-            ENDIF
-        ELSE
-            Shutdown = LocalVar%PC_PitComT
+        
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
         ENDIF
 
-        
-    END FUNCTION Shutdown
+    END SUBROUTINE ShutdownCheck
 !-------------------------------------------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE RefSpeedExclusion(LocalVar, CntrPar, objInst, DebugVar) 

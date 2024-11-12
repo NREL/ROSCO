@@ -242,9 +242,9 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<014.5f}      ! SD_MaxYawError           - Maximum yaw error to initiate shutdown, [rad]​\n'.format(rosco_vt['SD_MaxYawError']))
     file.write('{:<014.5f}      ! SD_YawErrorCornerFreq    - Cutoff Frequency for first order low-pass filter for yaw error for shutdown, [rad/s]\n'.format(rosco_vt['SD_YawErrorCornerFreq']))
     file.write('{:<014.5f}      ! SD_MaxGenSpd             - Maximum generator speed to initiate shutdown, [rad/s]​\n'.format(rosco_vt['SD_MaxGenSpd']))
-    file.write('{:<014.5f}      ! SD_GenCornerFreq       - Cutoff Frequency for first order low-pass filter for generator speed for shutdown, [rad/s] ​\n'.format(rosco_vt['SD_GenCornerFreq']))
+    file.write('{:<014.5f}      ! SD_GenSpdCornerFreq       - Cutoff Frequency for first order low-pass filter for generator speed for shutdown, [rad/s] ​\n'.format(rosco_vt['SD_GenSpdCornerFreq']))
     file.write('{:<014.5f}      ! SD_Time   - Shutdown time, [s]​\n'.format(rosco_vt['SD_Time']))
-    file.write('{:<012d}      ! SD_Method   - Shutdown method {{1: Reduce generator torque and increase blade pitch}},​ [-]​\n'.format(rosco_vt['SD_Method']))
+    file.write('{:<12d}      ! SD_Method   - Shutdown method {{1: Reduce generator torque and increase blade pitch}},​ [-]​\n'.format(rosco_vt['SD_Method']))
     file.write('{:<014.5f}      ! SD_MaxTorqueRate   - Maximum torque rate for shutdown, [Nm/s]​\n'.format(rosco_vt['SD_MaxTorqueRate']))
     file.write('{:<014.5f}      ! SD_MaxPitchRate    - Maximum pitch rate used for shutdown, [rad/s]​\n'.format(rosco_vt['SD_MaxPitchRate']))
     file.write('\n')
@@ -623,9 +623,9 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['SD_MaxYawError']    = controller.sd_maxyawerror
     DISCON_dict['SD_YawErrorCornerFreq']    = controller.f_sd_yawerrorcornerfreq
     DISCON_dict['SD_MaxGenSpd']    = controller.sd_maxgenspd
-    DISCON_dict['SD_GenCornerFreq']    = controller.f_sd_gencornerfreq
+    DISCON_dict['SD_GenSpdCornerFreq']    = controller.f_sd_genspdcornerfreq
     DISCON_dict['SD_Time']    = controller.sd_time
-    DISCON_dict['SD_Method']    = controller.sd_enablegenspeed
+    DISCON_dict['SD_Method']    = controller.sd_method
     DISCON_dict['SD_MaxTorqueRate']    = controller.sd_maxtorquerate
     DISCON_dict['SD_MaxPitchRate']    = controller.sd_maxpitchrate
     # ------- Floating -------

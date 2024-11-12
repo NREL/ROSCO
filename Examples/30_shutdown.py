@@ -19,8 +19,9 @@ example_out_dir = os.path.join(this_dir, "examples_out")
 os.makedirs(example_out_dir, exist_ok=True)
 
 
-def main():
 
+def main():
+    # Test Config
     FULL_TEST = False  # FULL_TEST for local testing, otherwise shorter for CI
 
     # Input yaml and output directory
@@ -30,10 +31,17 @@ def main():
     controller_params = {}
     controller_params["DISCON"] = {}
     controller_params["DISCON"]["Echo"] = 1
-    controller_params["SD_Mode"] = 4
-    controller_params["DISCON"]["SD_Time"] = 10
-    
-    
+    controller_params["SD_Mode"] = 1
+    # controller_params["DISCON"]["SD_EnablePitch"] = 1
+    # controller_params["DISCON"]["SD_MaxPit"] = 0.5236
+    controller_params["DISCON"]["SD_EnableGenSpeed"] = 1
+    controller_params["DISCON"]["SD_MaxGenSpd"] = 12*2*3.1415/60
+    # controller_params["DISCON"]["SD_EnableTime"] = 1
+    # controller_params["DISCON"]["SD_Time"] = 75
+    controller_params['DISCON']['PRC_Mode'] = 2
+    controller_params['DISCON']['PRC_Comm'] = 0
+    controller_params['DISCON']['PRC_R_Speed'] = 2.0
+    controller_params['DISCON']['OL_BP_FiltFreq'] = 2 * np.pi / 30
 
     # simulation set up
     r = run_FAST_ROSCO()
@@ -58,15 +66,13 @@ def main():
         t_max = 120
 
         run_dir = os.path.join(example_out_dir, "30_shutdown_demo/1_pitch")
-        olc = ROSCO_controller.OpenLoopControl(t_max=t_max)
-        olc.interp_series("blade_pitch", [0, 120], [10, 50], "linear")
 
 
         # Wind case
         r.wind_case_fcn = cl.ramp
         r.wind_case_opts = {
-            "U_start": 20,
-            "U_end": 40,  
+            "U_start": 4,
+            "U_end": 30,  
             "t_start": 0,
             "t_end": t_max,
         }
@@ -80,23 +86,16 @@ def main():
 
     # Write open loop input, get OL indices
     os.makedirs(run_dir, exist_ok=True)
-    ol_filename = os.path.join(run_dir, "30_OL_Input.dat")
-    ol_dict = olc.write_input(ol_filename)
-    controller_params["open_loop"] = ol_dict
-    controller_params["OL_Mode"] = 0
 
     r.controller_params = controller_params
     r.save_dir = run_dir
     r.run_FAST()
 
-    plotoutput(run_dir)
-
-def plotoutput(run_dir):
     from rosco.toolbox.ofTools.fast_io import output_processing
     outfile = [os.path.join(run_dir,'IEA15MW','ramp','base','IEA15MW_0.outb')]
     
     cases = {}
-    cases['Baseline'] = ['Wind1VelX', 'BldPitch1', 'GenTq', 'RotSpeed']
+    cases['Baseline'] = ['Wind1VelX', 'BldPitch1', 'GenTq', 'RotSpeed','GenPwr']
     fast_out = output_processing.output_processing()
     fastout = fast_out.load_fast_out(outfile)
     fast_out.plot_fast_out(cases=cases,showplot=False)

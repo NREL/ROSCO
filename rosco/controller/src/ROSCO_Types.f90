@@ -129,7 +129,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: SD_MaxYawError                   ! Maximum yaw error to initiate shutdown, [rad]
     REAL(DbKi)                    :: SD_YawErrorCornerFreq                   ! Cutoff Frequency for first order low-pass filter for yaw error for shutdown, [rad/s]
     REAL(DbKi)                    :: SD_MaxGenSpd                   ! Maximum generator speed to initiate shutdown, [rad/s]
-    REAL(DbKi)                    :: SD_GenCornerFreq            ! Cutoff Frequency for first order low-pass filter for generator speed for shutdown, [rad/s]
+    REAL(DbKi)                    :: SD_GenSpdCornerFreq            ! Cutoff Frequency for first order low-pass filter for generator speed for shutdown, [rad/s]
     REAL(DbKi)                    :: SD_Time                   ! Shutdown time, [s]
     INTEGER(IntKi)                    :: SD_Method                   ! Shutdown method {1: Reduce generator torque and increase blade pitch}, [-]
     REAL(DbKi)                    :: SD_MaxTorqueRate                   ! Maximum torque rate for shutdown, [Nm/s]
@@ -375,7 +375,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: PRC_Min_Pitch               ! Instantaneous PRC_Min_Pitch
     REAL(DbKi)                    :: PS_Min_Pitch                ! Instantaneous peak shaving
     REAL(DbKi)                    :: OL_Index                    ! Open loop indexing variable (time or wind speed)
-    LOGICAL                       :: SD                          ! Shutdown, .FALSE. if inactive, .TRUE. if active
+    INTEGER(IntKi)                :: SD_Trigger                          ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None
     REAL(DbKi)                    :: FA_AccF                     ! None

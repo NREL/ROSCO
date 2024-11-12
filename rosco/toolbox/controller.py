@@ -106,6 +106,7 @@ class Controller():
         self.sd_maxyawerror = controller_params['sd_maxyawerror']
         self.sd_maxgenspd = controller_params['sd_maxgenspd']
         self.sd_time = controller_params['sd_time']
+        self.sd_method = controller_params['sd_method']
         self.sd_maxtorquerate = controller_params['sd_maxtorquerate']
         self.sd_maxpitchrate = controller_params['sd_maxpitchrate']
         
@@ -152,7 +153,7 @@ class Controller():
         self.f_yawerr               = controller_params['filter_params']['f_yawerr']
         self.f_sd_pitchcornerfreq        = controller_params['filter_params']['f_sd_pitchcornerfreq']
         self.f_sd_yawerrorcornerfreq        = controller_params['filter_params']['f_sd_yawerrorcornerfreq']
-        self.f_sd_gencornerfreq        = controller_params['filter_params']['f_sd_gencornerfreq']
+        self.f_sd_genspdcornerfreq        = controller_params['filter_params']['f_sd_genspdcornerfreq']
 
         # Open loop parameters: set up and error catching
         self.OL_Mode            = controller_params['OL_Mode']

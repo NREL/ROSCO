@@ -251,7 +251,7 @@ ControlParameters:
     PC_MaxRat:
       <<: *real
       description: Maximum pitch rate (in absolute value) in pitch controller, [rad/s].
-    PC_MinRat:
+      :
       <<: *real
       description: Minimum pitch rate (in absolute value) in pitch controller, [rad/s].
     PC_RefSpd:
@@ -461,7 +461,6 @@ ControlParameters:
       <<: *real
       description: Minimum blade pitch angles [rad]
       allocatable: True
-    
     # Shutdown 
     SD_Mode:
       <<: *integer
@@ -493,7 +492,7 @@ ControlParameters:
     SD_MaxGenSpd:
       <<: *real
       description: Maximum generator speed to initiate shutdown, [rad/s]
-    SD_GenCornerFreq:
+    SD_GenSpdCornerFreq:
       <<: *real
       description: Cutoff Frequency for first order low-pass filter for generator speed for shutdown, [rad/s]
     SD_Time:
@@ -1323,7 +1322,7 @@ LocalVariables:
     OL_Index:
       <<: *real
       description: Open loop indexing variable (time or wind speed)
-    SD:                           
+    SD_Trigger:
       <<: *logical
       description: Shutdown, .FALSE. if inactive, .TRUE. if active
     Fl_PitCom:                           
@@ -1490,7 +1489,7 @@ ObjectInstances:
     <<: *integer
     description: Notch filter instance
   instPI:
-    <<: *integer
+    <<: *integer  
     description: PI controller instance
   instRL:
     <<: *integer
