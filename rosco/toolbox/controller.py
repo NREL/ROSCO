@@ -67,6 +67,7 @@ class Controller():
         self.Flp_Mode           = controller_params['Flp_Mode']
         self.PA_Mode            = controller_params['PA_Mode']
         self.PF_Mode            = controller_params['PF_Mode']
+        self.PRC_Mode           = controller_params['PRC_Mode']
         self.AWC_Mode           = controller_params['AWC_Mode']
         self.Ext_Mode           = controller_params['Ext_Mode']
         self.ZMQ_Mode           = controller_params['ZMQ_Mode']
@@ -154,17 +155,40 @@ class Controller():
         
         if self.OL_Mode:
             ol_params               = controller_params['open_loop']
+
+            # Apply DISCON inputs if they exist
+            if 'OL_Filename' in controller_params['DISCON']:
+                ol_params['filename'] = controller_params['DISCON']['OL_Filename']
+
+            available_ol_params = [
+                'OL_BP_Mode',
+                'Ind_Breakpoint',
+                'Ind_BldPitch',
+                'Ind_GenTq',
+                'Ind_YawRate',
+                'Ind_Azimuth',
+                'Ind_R_Speed',
+                'Ind_R_Torque',
+                'Ind_R_Pitch',
+                'Ind_CableControl',
+                'Ind_StructControl'
+                ]
+            for param in available_ol_params:
+                if param in controller_params['DISCON']:
+                    ol_params[param] = controller_params['DISCON'][param]
+
+
             self.OL_BP_Mode         = ol_params['OL_BP_Mode']
-            self.OL_Ind_Breakpoint  = ol_params['OL_Ind_Breakpoint']
-            self.OL_Ind_BldPitch    = ol_params['OL_Ind_BldPitch']
-            self.OL_Ind_GenTq       = ol_params['OL_Ind_GenTq']
-            self.OL_Ind_YawRate     = ol_params['OL_Ind_YawRate']
-            self.OL_Ind_Azimuth     = ol_params['OL_Ind_Azimuth']
-            self.OL_Ind_R_Speed     = ol_params['OL_Ind_R_Speed']
-            self.OL_Ind_R_Torque    = ol_params['OL_Ind_R_Torque']
-            self.OL_Ind_R_Pitch     = ol_params['OL_Ind_R_Pitch']
-            self.OL_Ind_CableControl     = ol_params['OL_Ind_CableControl']
-            self.OL_Ind_StructControl    = ol_params['OL_Ind_StructControl']
+            self.OL_Ind_Breakpoint  = ol_params['Ind_Breakpoint']
+            self.OL_Ind_BldPitch    = ol_params['Ind_BldPitch']
+            self.OL_Ind_GenTq       = ol_params['Ind_GenTq']
+            self.OL_Ind_YawRate     = ol_params['Ind_YawRate']
+            self.OL_Ind_Azimuth     = ol_params['Ind_Azimuth']
+            self.OL_Ind_R_Speed     = ol_params['Ind_R_Speed']
+            self.OL_Ind_R_Torque    = ol_params['Ind_R_Torque']
+            self.OL_Ind_R_Pitch     = ol_params['Ind_R_Pitch']
+            self.OL_Ind_CableControl     = ol_params['Ind_CableControl']
+            self.OL_Ind_StructControl    = ol_params['Ind_StructControl']
 
             # Check that file exists because we won't write it
             if not os.path.exists(controller_params['open_loop']['filename']):
@@ -1062,16 +1086,16 @@ class OpenLoopControl(object):
         # Output open_loop dict for control params
         open_loop = {}
         open_loop['filename']           = ol_filename
-        open_loop['OL_Ind_Breakpoint']  = OL_Ind_Breakpoint
-        open_loop['OL_Ind_BldPitch']    = OL_Ind_BldPitch
-        open_loop['OL_Ind_GenTq']       = OL_Ind_GenTq
-        open_loop['OL_Ind_YawRate']     = OL_Ind_YawRate
-        open_loop['OL_Ind_Azimuth']     = OL_Ind_Azimuth
-        open_loop['OL_Ind_CableControl']     = OL_Ind_CableControl
-        open_loop['OL_Ind_StructControl']    = OL_Ind_StructControl
-        open_loop['OL_Ind_R_Speed']     = OL_Ind_R_Speed
-        open_loop['OL_Ind_R_Torque']    = OL_Ind_R_Torque
-        open_loop['OL_Ind_R_Pitch']     = OL_Ind_R_Pitch
+        open_loop['Ind_Breakpoint']  = OL_Ind_Breakpoint
+        open_loop['Ind_BldPitch']    = OL_Ind_BldPitch
+        open_loop['Ind_GenTq']       = OL_Ind_GenTq
+        open_loop['Ind_YawRate']     = OL_Ind_YawRate
+        open_loop['Ind_Azimuth']     = OL_Ind_Azimuth
+        open_loop['Ind_CableControl']     = OL_Ind_CableControl
+        open_loop['Ind_StructControl']    = OL_Ind_StructControl
+        open_loop['Ind_R_Speed']     = OL_Ind_R_Speed
+        open_loop['Ind_R_Torque']    = OL_Ind_R_Torque
+        open_loop['Ind_R_Pitch']     = OL_Ind_R_Pitch
         if self.breakpoint == 'time':
             open_loop['OL_BP_Mode'] = 0
         elif self.breakpoint == 'wind_speed':
