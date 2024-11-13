@@ -50,7 +50,7 @@ This step creates the rosco controller binary (:code:`libdiscon.so` (Linux), :co
 
 .. code-block:: bash
 
-    conda env update --file enviroment.yml
+    conda env update --file environment.yml
     pip install -e . --no-deps
 
 .. _rosco_controller:
