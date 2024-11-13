@@ -512,7 +512,7 @@ CONTAINS
 
     END FUNCTION PitchSaturation
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE ShutdownCheck(LocalVar, CntrPar, objInst,ErrVar) 
+    SUBROUTINE Shutdown(LocalVar, CntrPar, objInst,ErrVar) 
     ! Check for shutdown
         USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
         IMPLICIT NONE
@@ -563,7 +563,7 @@ CONTAINS
             ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
         ENDIF
 
-    END SUBROUTINE ShutdownCheck
+    END SUBROUTINE Shutdown
 !-------------------------------------------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE RefSpeedExclusion(LocalVar, CntrPar, objInst, DebugVar) 

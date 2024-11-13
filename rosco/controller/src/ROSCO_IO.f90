@@ -156,7 +156,7 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%PRC_Min_Pitch
         WRITE( Un, IOSTAT=ErrStat) LocalVar%PS_Min_Pitch
         WRITE( Un, IOSTAT=ErrStat) LocalVar%OL_Index
-        WRITE( Un, IOSTAT=ErrStat) LocalVar%SD
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%SD_Trigger
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Fl_PitCom
         WRITE( Un, IOSTAT=ErrStat) LocalVar%NACIMU_FA_AccF
         WRITE( Un, IOSTAT=ErrStat) LocalVar%FA_AccF
@@ -473,7 +473,7 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%PRC_Min_Pitch
         READ( Un, IOSTAT=ErrStat) LocalVar%PS_Min_Pitch
         READ( Un, IOSTAT=ErrStat) LocalVar%OL_Index
-        READ( Un, IOSTAT=ErrStat) LocalVar%SD
+        READ( Un, IOSTAT=ErrStat) LocalVar%SD_Trigger
         READ( Un, IOSTAT=ErrStat) LocalVar%Fl_PitCom
         READ( Un, IOSTAT=ErrStat) LocalVar%NACIMU_FA_AccF
         READ( Un, IOSTAT=ErrStat) LocalVar%FA_AccF
