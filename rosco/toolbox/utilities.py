@@ -80,9 +80,6 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
         rosco_vt['CC_GroupIndex'] = [rosco_vt['CC_GroupIndex']]     # make an array
     if not hasattr(rosco_vt['StC_GroupIndex'],'__len__'):
         rosco_vt['StC_GroupIndex'] = [rosco_vt['StC_GroupIndex']]   
-    # Get input descriptions
-    #input_schema = load_yaml(os.path.join(os.path.dirname(__file__),'inputs/toolbox_schema.yaml'))
-    #discon_props = input_schema['properties']['controller_params']['properties']['DISCON']['properties']
 
     print('Writing new controller parameter file parameter file: %s.' % param_file)
     # Should be obvious what's going on here...

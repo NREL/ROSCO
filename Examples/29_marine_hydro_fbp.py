@@ -149,14 +149,12 @@ def main():
     # TODO: simulate multiple controller configurations in parallel
     r = run_FAST_ROSCO()
     r.tuning_yaml   = parameter_filename
-    # r.wind_case_fcn = cl.simp_step  # single step wind input
     r.wind_case_fcn = cl.power_curve
     r.wind_case_opts    = {
         'U': [3.0],
         'TMax': 60.0,
         }
     r.case_inputs = {}
-    # r.fst_vt        = reader.fst_vt
     r.controller_params = controller_params_1
     r.save_dir      = run_dir
     r.rosco_dir     = rosco_dir
