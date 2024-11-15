@@ -251,7 +251,7 @@ ControlParameters:
     PC_MaxRat:
       <<: *real
       description: Maximum pitch rate (in absolute value) in pitch controller, [rad/s].
-      :
+    PC_MinRat:
       <<: *real
       description: Minimum pitch rate (in absolute value) in pitch controller, [rad/s].
     PC_RefSpd:
@@ -500,7 +500,7 @@ ControlParameters:
       description: Shutdown time, [s]
     SD_Method:
       <<: *integer
-      description: Shutdown method {1: Reduce generator torque and increase blade pitch}, [-]
+      description: Shutdown method {1 - Reduce generator torque and increase blade pitch}, [-]
     SD_MaxTorqueRate:
       <<: *real
       description: Maximum torque rate for shutdown, [Nm/s]
