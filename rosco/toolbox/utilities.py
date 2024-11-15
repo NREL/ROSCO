@@ -140,7 +140,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{}! F_FlCornerFreq    - Natural frequency and damping in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s, -].\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['F_FlCornerFreq'][i]) for i in range(len(rosco_vt['F_FlCornerFreq'])))))
     file.write('{:<13.5f}       ! F_FlHighPassFreq  - Natural frequency of first-order high-pass filter for nacelle fore-aft motion [rad/s].\n'.format(rosco_vt['F_FlHighPassFreq']))
     file.write('{}     ! F_FlpCornerFreq   - {}\n'.format(write_array(rosco_vt["F_FlpCornerFreq"]), input_descriptions["F_FlpCornerFreq"]))
-    file.write('{:<013.5f}      ! F_VSRefSpdCornerFreq		- {}\n'.format(float(rosco_vt['F_VSRefSpdCornerFreq']),input_descriptions['F_VSRefSpdCornerFreq']))
+    file.write('{:<13.5f}      ! F_VSRefSpdCornerFreq		- {}\n'.format(float(rosco_vt['F_VSRefSpdCornerFreq']),input_descriptions['F_VSRefSpdCornerFreq']))
     
     file.write('\n')
     file.write('!------- BLADE PITCH CONTROL ----------------------------------------------\n')
