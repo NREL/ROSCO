@@ -52,10 +52,13 @@ os.makedirs(example_out_dir,exist_ok=True)
 
 def main():
 
+    FULL_TEST = True   # Run a full test locally (True) or a shorter one for CI
+    sim_config = 1      # Choose which simulation configuration (1-6)
+
     # Input yaml and output directory
     parameter_filename = os.path.join(this_dir, 'Tune_Cases/RM1_MHK_FBP.yaml')
     tune_dir = os.path.dirname(parameter_filename)
-    run_dir = os.path.join(example_out_dir, '29_MHK/0_baseline')
+    run_dir = os.path.join(example_out_dir, '30_MHK/0_baseline')
     os.makedirs(run_dir,exist_ok=True)
 
     inps = load_rosco_yaml(parameter_filename)
@@ -146,14 +149,18 @@ def main():
     axs[2].plot(controller_5.v, controller_5.tau_op, label=plot_labels[4])
     axs[2].set_ylabel('Gen Torque [N m]')
     axs[2].set_xlabel('Flow Speed [m/s]')
-    axs[0].legend(loc='upper left')
+    axs[0].legend(loc='upper left', bbox_to_anchor=(.2, 2.35))
+
+    fig.align_ylabels()
+    plt.subplots_adjust(hspace=0.5)
+                        
 
     if False:
         plt.show()
     else:
-        fig_fname = os.path.join(example_out_dir, '29_marine_hydro_fbp_sched.png')
+        fig_fname = os.path.join(example_out_dir, '30_fixed_pitch_mhk_sched.png')
         print('Saving figure ' + fig_fname)
-        plt.savefig(fig_fname)
+        plt.savefig(fig_fname,bbox_inches='tight',)
 
     # Write parameter input file for constant power underspeed controller
     param_file = os.path.join(run_dir,'DISCON.IN')
@@ -165,13 +172,31 @@ def main():
 
 
     # simulation set up
-    # TODO: simulate multiple controller configurations in parallel
+    if FULL_TEST:
+        TMax = 60
+    else:
+        TMax = 5
+
+    all_controller_params = [
+        controller_params_1,
+        controller_params_2,
+        controller_params_3,
+        controller_params_4,
+        controller_params_5,
+        controller_params_6,
+    ]
+
+    if sim_config in range(1,len(all_controller_params)+1):
+        controller_params = all_controller_params[sim_config-1]
+    else:
+        raise Exception(f'Invalid sim_config of {sim_config}.  Note the 1-indexing.')
+
     r = run_FAST_ROSCO()
     r.tuning_yaml   = parameter_filename
     r.wind_case_fcn = cl.power_curve
     r.wind_case_opts    = {
         'U': [3.0],
-        'TMax': 60.0,
+        'TMax': TMax,
         }
     r.case_inputs = {}
     r.controller_params = controller_params_1
@@ -184,23 +209,27 @@ def main():
     fast_out = op.load_fast_out([os.path.join(run_dir,'RM1_MHK_FBP/power_curve/base/RM1_MHK_FBP_0.out')], tmin=0)
     fig, axs = plt.subplots(4,1)
     axs[0].plot(fast_out[0]['Time'], fast_out[0]['Wind1VelX'],             label='Constant Power Underspeed')
-    axs[0].set_ylabel('Flow Speed [m/s]')
+    axs[0].set_ylabel('Flow Speed [m/s]',rotation=0, labelpad=50)
     axs[1].plot(fast_out[0]['Time'], fast_out[0]['GenSpeed'] * 2*np.pi/60, label='Constant Power Underspeed')
-    axs[1].set_ylabel('Gen Speed [rad/s]')
+    axs[1].set_ylabel('Gen Speed [rad/s]',rotation=0, labelpad=50)
     axs[2].plot(fast_out[0]['Time'], fast_out[0]['GenTq'] * 1e3,           label='Constant Power Underspeed')
-    axs[2].set_ylabel('Gen Torque [N m]')
+    axs[2].set_ylabel('Gen Torque [N m]',rotation=0, labelpad=50)
     axs[3].plot(fast_out[0]['Time'], fast_out[0]['GenPwr'] * 1e3,          label='Constant Power Underspeed')
-    axs[3].set_ylabel('Gen Power [W]')
+    axs[3].set_ylabel('Gen Power [W]',rotation=0, labelpad=50)
     axs[3].set_xlabel('Time [s]')
+
+    plt.subplots_adjust(hspace=0.5)
+    fig.align_ylabels()
+
 
     # TODO: Compare result to desired operating schedule
 
     if False:
         plt.show()
     else:
-        fig_fname = os.path.join(example_out_dir, '29_marine_hydro_fbp_sim.png')
+        fig_fname = os.path.join(example_out_dir, '30_fixed_pitch_mhk_sim.png')
         print('Saving figure ' + fig_fname)
-        plt.savefig(fig_fname)
+        plt.savefig(fig_fname, bbox_inches='tight')
 
 
 if __name__=="__main__":
