@@ -1016,12 +1016,6 @@ CONTAINS
             ErrVar%ErrMsg  = 'SD_Mode must be 0 or 1.'
         ENDIF
 
-        ! SD_Mothod
-        IF (CntrPar%SD_Method /= 1) THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'SD_Method must be 1.'
-        ENDIF
-
         ! Fl_Mode
         IF ((CntrPar%Fl_Mode < 0) .OR. (CntrPar%Fl_Mode > 2)) THEN
             ErrVar%aviFAIL = -1
@@ -1414,6 +1408,19 @@ CONTAINS
 
         ENDIF
 
+        ! --- Shutdown ---
+        
+        ! SD_Method
+        IF (CntrPar%SD_Method /= 1) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'SD_Method must be 1.'
+        ENDIF
+
+        ! SD_MaxPitchRate
+        IF (CntrPar%SD_MaxPitchRate > CntrPar%PC_MaxRat) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'SD_MaxPitchRate should be less or equal to PC_MaxRat.'
+        ENDIF
 
         ! --- Open loop control ---
         IF (CntrPar%OL_Mode > 0) THEN

@@ -1323,8 +1323,8 @@ LocalVariables:
       <<: *real
       description: Open loop indexing variable (time or wind speed)
     SD_Trigger:
-      <<: *logical
-      description: Shutdown, .FALSE. if inactive, .TRUE. if active
+      <<: *integer
+      description: Shutdown trigger (1 - shutdown due to pitch, 2 - shutdown due to yaw error, 3 - shutdown due to generator speed, 4 - shutdown due to time)
     Fl_PitCom:                           
       <<: *real 
       description: Shutdown, .FALSE. if inactive, .TRUE. if active

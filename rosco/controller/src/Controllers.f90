@@ -88,14 +88,6 @@ CONTAINS
             DebugVar%FL_PitCom = LocalVar%Fl_PitCom
             LocalVar%PC_PitComT = LocalVar%PC_PitComT + LocalVar%Fl_PitCom
         ENDIF
-
-        ! Shutdown
-        IF (LocalVar%SD_Trigger /= 0) THEN
-            IF (CntrPar%SD_Method == 1) THEN    !Only SD_Method==1 supported for now 
-                LocalVar%PC_PitComT = LocalVar%BlPitchCMeas + CntrPar%SD_MaxPitchRate*LocalVar%DT
-                !LocalVar%PC_PitComT = ratelimit(LocalVar%BlPitchCMeas, CntrPar%SD_MaxPitchRate, CntrPar%SD_MaxPitchRate,LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitchCMeas)
-            ENDIF
-        ENDIF
         
         ! Saturate collective pitch commands:
         LocalVar%PC_PitComT = saturate(LocalVar%PC_PitComT, LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
@@ -142,7 +134,16 @@ CONTAINS
         IF (CntrPar%AWC_Mode > 0) THEN
             CALL ActiveWakeControl(CntrPar, LocalVar, DebugVar)
         ENDIF
-       !AG:  Place shutdown here
+             
+        ! Shutdown
+        IF (LocalVar%SD_Trigger /= 0) THEN
+            IF (CntrPar%SD_Method == 1) THEN    !Only SD_Method==1 supported for now 
+                LocalVar%PC_PitComT = LocalVar%BlPitchCMeas + CntrPar%SD_MaxPitchRate*LocalVar%DT
+                !LocalVar%PC_PitComT = ratelimit(LocalVar%BlPitchCMeas, CntrPar%SD_MaxPitchRate, CntrPar%SD_MaxPitchRate,LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitchCMeas)
+            ENDIF
+        ENDIF
+       
+
        ! AG: Put in a warning if SD_MaxPitchRate > PC_MaxRat
         ! Place pitch actuator here, so it can be used with or without open-loop
         DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
