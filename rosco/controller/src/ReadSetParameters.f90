@@ -1422,6 +1422,12 @@ CONTAINS
             ErrVar%ErrMsg  = 'SD_MaxPitchRate should be less or equal to PC_MaxRat.'
         ENDIF
 
+        ! SD_MaxTorqueRate
+        IF (CntrPar%SD_MaxTorqueRate > CntrPar%VS_MaxRat) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'SD_MaxTorqueRate should be less or equal to VS_MaxRat.'
+        ENDIF
+
         ! --- Open loop control ---
         IF (CntrPar%OL_Mode > 0) THEN
             ! Get all open loop indices

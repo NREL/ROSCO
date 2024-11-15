@@ -347,6 +347,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: IPC_IntSat                  ! Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)
     INTEGER(IntKi)                :: PC_State                    ! State of the pitch control system
     REAL(DbKi)                    :: PitCom(3)                   ! Commanded pitch of each blade the last time the controller was called [rad].
+    REAL(DbKi)                    :: PitCom_SD(3)                ! Commanded pitch of each blade due to shutdown [rad].
     REAL(DbKi)                    :: PitComAct(3)                ! Actuated pitch command of each blade [rad].
     REAL(DbKi)                    :: SS_DelOmegaF                ! Filtered setpoint shifting term defined in setpoint smoother [rad/s].
     REAL(DbKi)                    :: TestType                    ! Test variable, no use
@@ -376,6 +377,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: PS_Min_Pitch                ! Instantaneous peak shaving
     REAL(DbKi)                    :: OL_Index                    ! Open loop indexing variable (time or wind speed)
     INTEGER(IntKi)                :: SD_Trigger                  ! Shutdown trigger (1 - shutdown due to pitch, 2 - shutdown due to yaw error, 3 - shutdown due to generator speed, 4 - shutdown due to time)
+    REAL(DbKi)                    :: GenTq_SD                    ! Electrical generator torque command for shutdown, [Nm].
     REAL(DbKi)                    :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None
     REAL(DbKi)                    :: FA_AccF                     ! None

@@ -1237,6 +1237,10 @@ LocalVariables:
       <<: *real 
       description: Commanded pitch of each blade the last time the controller was called [rad].
       size: 3
+    PitCom_SD:                  
+      <<: *real 
+      description: Commanded pitch of each blade due to shutdown [rad].
+      size: 3
     PitComAct:                  
       <<: *real 
       description: Actuated pitch command of each blade [rad].
@@ -1325,6 +1329,9 @@ LocalVariables:
     SD_Trigger:
       <<: *integer
       description: Shutdown trigger (1 - shutdown due to pitch, 2 - shutdown due to yaw error, 3 - shutdown due to generator speed, 4 - shutdown due to time)
+    GenTq_SD:                        
+      <<: *real 
+      description: Electrical generator torque command for shutdown, [Nm].
     Fl_PitCom:                           
       <<: *real 
       description: Shutdown, .FALSE. if inactive, .TRUE. if active
