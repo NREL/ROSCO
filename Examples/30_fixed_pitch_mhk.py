@@ -1,10 +1,34 @@
 '''
------------ 29_marine_hydro_fbp ---------------
-Run openfast with ROSCO and a MHK turbine with fixed blade pitch control
------------------------------------------------
+30_fixed_pitch_mhk
+------------------
+
+This example demonstrates the fixed-pitch control of a marine hydrodkinetic (MHK) turbine.
+
+There are several ways to control the power output of a turbine in above-rated conditions.  
+In this example we demonstrate the following control configurations:
+
+#. Constant power underspeed (should be the default)
+#. Constant power overspeed
+#. Linear increasing power
+#. Linear increasing power, leveling out
+#. Generic numeric function
+#. Constant power overspeed, nonlinear lookup table control
+
+The desired power curves of each configuration are as follows:
+
+.. image:: ../images/30_fixed_pitch_mhk_sched.png
+
+In the first case, the reference generator speed is decreased (underspeed) to maintain a constant rated power above rated.
+To slow down the generator, a higher torque must be used:
+
+.. image:: ../images/30_fixed_pitch_mhk_sched.png
+
 
 
 '''
+
+# Copying images, from docs/:
+# cp ../Examples/examples_out/30_fixed_pitch_mhk_sched.png images/
 
 import os
 from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
@@ -18,11 +42,6 @@ from rosco.toolbox.inputs.validation import load_rosco_yaml
 import matplotlib.pyplot as plt
 import numpy as np
 
-'''
-Run MHK turbine in OpenFAST with ROSCO torque controller
-
-
-'''
 
 
 #directories
