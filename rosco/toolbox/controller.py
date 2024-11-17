@@ -107,8 +107,8 @@ class Controller():
         self.sd_maxgenspd = controller_params['sd_maxgenspd']
         self.sd_time = controller_params['sd_time']
         self.sd_method = controller_params['sd_method']
-        self.sd_maxtorquerate = controller_params['sd_maxtorquerate']
-        self.sd_maxpitchrate = controller_params['sd_maxpitchrate']
+        #self.sd_maxtorquerate = controller_params['sd_maxtorquerate']
+        #self.sd_maxpitchrate = controller_params['sd_maxpitchrate']
         
 
         #  Optional parameters without defaults

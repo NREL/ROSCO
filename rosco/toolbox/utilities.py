@@ -624,8 +624,8 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['SD_GenSpdCornerFreq']    = controller.f_sd_genspdcornerfreq
     DISCON_dict['SD_Time']    = controller.sd_time
     DISCON_dict['SD_Method']    = controller.sd_method
-    DISCON_dict['SD_MaxTorqueRate']    = controller.sd_maxtorquerate
-    DISCON_dict['SD_MaxPitchRate']    = controller.sd_maxpitchrate
+    DISCON_dict['SD_MaxTorqueRate']    = turbine.max_torque_rate
+    DISCON_dict['SD_MaxPitchRate']    = turbine.max_pitch_rate
     # ------- Floating -------
     DISCON_dict['Fl_n']             = len(controller.Kp_float)
     DISCON_dict['Fl_Kp']            = controller.Kp_float

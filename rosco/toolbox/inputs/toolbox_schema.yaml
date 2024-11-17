@@ -369,16 +369,6 @@ properties:
                 description: Shutdown method {Only 1 supported for now}
                 type: number
                 default: 1
-            sd_maxtorquerate:
-                description: Maximum torque rate for shutdown, [Nm/s], {default = 10000 Nm/s., High value to simulate instant cuttoff}
-                type: number
-                default: 10000
-                unit: Nm/s
-            sd_maxpitchrate:
-                description: Maximum pitch rate used for shutdown, [rad/s], {default = 1 rad/s.}
-                type: number
-                default: 1.0
-                unit: s
             flp_maxpit:
                 description: Maximum (and minimum) flap pitch angle [rad]
                 type: number
