@@ -102,7 +102,7 @@ class Controller():
         self.sd_enableyawerror = controller_params['sd_enableyawerror']
         self.sd_enablegenspeed = controller_params['sd_enablegenspeed']
         self.sd_enabletime = controller_params['sd_enabletime']
-        self.sd_maxpitch = controller_params['sd_maxpitch']
+        self.sd_maxpit = controller_params['sd_maxpit']
         self.sd_maxyawerror = controller_params['sd_maxyawerror']
         self.sd_maxgenspd = controller_params['sd_maxgenspd']
         self.sd_time = controller_params['sd_time']

@@ -345,7 +345,7 @@ properties:
                 description: Shutdown at a predefined time, [-] {default = 0}
                 type: number
                 default: 0
-            sd_maxpitch:           
+            sd_maxpit:           
                 description: Maximum blade pitch angle to initiate shutdown [rad], {default = 40 deg.}
                 type: number
                 default: 0.6981
@@ -370,9 +370,9 @@ properties:
                 type: number
                 default: 1
             sd_maxtorquerate:
-                description: Maximum torque rate for shutdown, [Nm/s], {default = 99999 Nm/s., High value to simulate instant cuttoff}
+                description: Maximum torque rate for shutdown, [Nm/s], {default = 10000 Nm/s., High value to simulate instant cuttoff}
                 type: number
-                default: 99999
+                default: 10000
                 unit: Nm/s
             sd_maxpitchrate:
                 description: Maximum pitch rate used for shutdown, [rad/s], {default = 1 rad/s.}

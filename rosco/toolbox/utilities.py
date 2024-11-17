@@ -337,10 +337,8 @@ def read_DISCON(DISCON_filename):
     DISCON_in = {}
     with open(DISCON_filename) as discon:
         for line in discon:
-
             # Skip whitespace and comment lines
             if (line[0] != '!') == (len(line.strip()) != 0):
-                
                 if (line.split()[1] != '!'):    # Array valued entries
                     array_length = line.split().index('!')
                     param = line.split()[array_length+1]
@@ -618,7 +616,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['SD_EnableYawError']    = controller.sd_enableyawerror
     DISCON_dict['SD_EnableGenSpeed']    = controller.sd_enablegenspeed
     DISCON_dict['SD_EnableTime']    = controller.sd_enabletime
-    DISCON_dict['SD_MaxPitch']    = controller.sd_maxpitch
+    DISCON_dict['SD_MaxPit']    = controller.sd_maxpit
     DISCON_dict['SD_PitchCornerFreq']    = controller.f_sd_pitchcornerfreq
     DISCON_dict['SD_MaxYawError']    = controller.sd_maxyawerror
     DISCON_dict['SD_YawErrorCornerFreq']    = controller.f_sd_yawerrorcornerfreq
