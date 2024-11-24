@@ -136,11 +136,6 @@ CONTAINS
             LocalVar%VS_RefSpd = LocalVar%VS_RefSpd - LocalVar%SS_DelOmegaF
         ENDIF
 
-        ! Force zero torque in shutdown mode
-        !IF (LocalVar%SD_Trigger) THEN
-        !    LocalVar%VS_RefSpd = CntrPar%VS_MinOMSpd
-        !ENDIF
-
         ! Force minimum rotor speed
         LocalVar%VS_RefSpd = max(LocalVar%VS_RefSpd, CntrPar%VS_MinOmSpd)
 
