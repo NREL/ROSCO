@@ -97,19 +97,6 @@ class Controller():
         self.Ki_ipc2p           = controller_params['IPC_Kp2p']
         self.IPC_Vramp          = controller_params['IPC_Vramp']
         self.ZMQ_UpdatePeriod   = controller_params['ZMQ_UpdatePeriod']
-        ## shutdownparameters
-        self.sd_enablepitch = controller_params['sd_enablepitch']
-        self.sd_enableyawerror = controller_params['sd_enableyawerror']
-        self.sd_enablegenspeed = controller_params['sd_enablegenspeed']
-        self.sd_enabletime = controller_params['sd_enabletime']
-        self.sd_maxpit = controller_params['sd_maxpit']
-        self.sd_maxyawerror = controller_params['sd_maxyawerror']
-        self.sd_maxgenspd = controller_params['sd_maxgenspd']
-        self.sd_time = controller_params['sd_time']
-        self.sd_method = controller_params['sd_method']
-        #self.sd_maxtorquerate = controller_params['sd_maxtorquerate']
-        #self.sd_maxpitchrate = controller_params['sd_maxpitchrate']
-        
 
         #  Optional parameters without defaults
         if self.Flp_Mode > 0:
