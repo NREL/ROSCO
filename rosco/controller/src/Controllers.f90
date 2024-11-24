@@ -138,6 +138,7 @@ CONTAINS
         ! Shutdown
         IF (LocalVar%SD_Trigger == 0) THEN
             LocalVar%PitCom_SD = LocalVar%PitCom
+        ! If shutdown is not triggered, PitCom_SD tracks PitCom.
         ELSE
             IF (CntrPar%SD_Method == 1) THEN    !Only SD_Method==1 supported for now 
                 DO K = 1,LocalVar%NumBl
@@ -145,6 +146,8 @@ CONTAINS
                 END DO
             ENDIF
             LocalVar%PitCom = LocalVar%PitCom_SD
+            ! When shutdown is triggered (SD_Trigger \=0), pitch to feather.
+            ! Note that in some instances (like a downwind rotor), we may want to pitch to a stall angle.
         ENDIF
         
        
