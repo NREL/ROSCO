@@ -362,12 +362,6 @@ class Controller():
             self.vs_minspd = (turbine.TSR_operational * turbine.v_min / turbine.rotor_radius)
         self.pc_minspd = self.vs_minspd
 
-        # max pitch angle for shutdown
-        # if self.sd_maxpit:
-        #     self.sd_maxpit = self.sd_maxpit
-        # else:
-        #     self.sd_maxpit = pitch_op[-1]
-
         # Set IPC ramp inputs if not already defined
         if max(self.IPC_Vramp) == 0.0:
             self.IPC_Vramp = [turbine.v_rated*0.8, turbine.v_rated]

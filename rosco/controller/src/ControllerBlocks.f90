@@ -524,6 +524,8 @@ CONTAINS
         
         ! Local Variables 
         CHARACTER(*),               PARAMETER           :: RoutineName = 'VariableSpeedControl'
+        REAL(DbKi)       :: SD_NacVaneCosF                 ! Time-filtered x-component of NacVane (deg)
+        REAL(DbKi)       :: SD_NacVaneSinF                 ! Time-filtered y-component of NacVane (deg)
 
         !Initialize shutdown trigger variable
         IF (LocalVar%iStatus == 0) THEN
@@ -533,10 +535,13 @@ CONTAINS
 
         ! Filter pitch signal
         LocalVar%SD_BlPitchF = LPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%SD_PitchCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
-        ! Filter yaw error signal (NacVane)
-        LocalVar%SD_NacVaneF = LPFilter(LocalVar%NacVane, LocalVar%DT, CntrPar%SD_YawErrorCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
         ! Filter yaw generator speed
         LocalVar%SD_GenSpeedF = LPFilter(LocalVar%Genspeed, LocalVar%DT, CntrPar%SD_GenSpdCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+
+        ! Filter yaw error signal (NacVane)
+        SD_NacVaneCosF = LPFilter(cos(LocalVar%NacVane*D2R), LocalVar%DT, CntrPar%SD_YawErrorCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+        SD_NacVaneSinF = LPFilter(sin(LocalVar%NacVane*D2R), LocalVar%DT, CntrPar%SD_YawErrorCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+        LocalVar%SD_NacVaneF = wrap_180(atan2(SD_NacVaneSinF, SD_NacVaneCosF) * R2D) ! (in deg)
         
         ! See if we should shutdown
         IF (LocalVar%SD_Trigger == 0) THEN
