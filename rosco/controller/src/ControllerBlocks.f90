@@ -523,9 +523,6 @@ CONTAINS
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
         
         ! Local Variables 
-        REAL(DbKi)                                      :: SD_BlPitchF
-        REAL(DbKi)                                      :: SD_NacVaneF
-        REAL(DbKi)                                      :: SD_GenSpeedF
         CHARACTER(*),               PARAMETER           :: RoutineName = 'VariableSpeedControl'
 
         !Initialize shutdown trigger variable
@@ -535,22 +532,22 @@ CONTAINS
         
 
         ! Filter pitch signal
-        SD_BlPitchF = LPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%SD_PitchCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+        LocalVar%SD_BlPitchF = LPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%SD_PitchCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
         ! Filter yaw error signal (NacVane)
-        SD_NacVaneF = LPFilter(LocalVar%NacVane, LocalVar%DT, CntrPar%SD_YawErrorCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+        LocalVar%SD_NacVaneF = LPFilter(LocalVar%NacVane, LocalVar%DT, CntrPar%SD_YawErrorCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
         ! Filter yaw generator speed
-        SD_GenSpeedF = LPFilter(LocalVar%Genspeed, LocalVar%DT, CntrPar%SD_GenSpdCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+        LocalVar%SD_GenSpeedF = LPFilter(LocalVar%Genspeed, LocalVar%DT, CntrPar%SD_GenSpdCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
         
         ! See if we should shutdown
         IF (LocalVar%SD_Trigger == 0) THEN
-            IF (CntrPar%SD_EnablePitch==1 .AND. SD_BlPitchF > CntrPar%SD_MaxPit) THEN
+            IF (CntrPar%SD_EnablePitch==1 .AND. LocalVar%SD_BlPitchF > CntrPar%SD_MaxPit) THEN
                 ! Shutdown if above pitch exceeds shutdown threshold
                 LocalVar%SD_Trigger  = 1
             ENDIF
-            IF (CntrPar%SD_EnableYawError==1 .AND. SD_NacVaneF > CntrPar%SD_MaxYawError) THEN
+            IF (CntrPar%SD_EnableYawError==1 .AND. LocalVar%SD_NacVaneF > CntrPar%SD_MaxYawError) THEN
                 LocalVar%SD_Trigger = 2
             ENDIF
-            IF (CntrPar%SD_EnableGenSpeed==1 .AND. SD_GenSpeedF > CntrPar%SD_MaxGenSpd) THEN
+            IF (CntrPar%SD_EnableGenSpeed==1 .AND. LocalVar%SD_GenSpeedF > CntrPar%SD_MaxGenSpd) THEN
                 LocalVar%SD_Trigger = 3
             ENDIF 
             IF (CntrPar%SD_EnableTime==1 .AND. LocalVar%Time > CntrPar%SD_Time) THEN

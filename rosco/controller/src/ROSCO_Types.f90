@@ -377,6 +377,9 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: PS_Min_Pitch                ! Instantaneous peak shaving
     REAL(DbKi)                    :: OL_Index                    ! Open loop indexing variable (time or wind speed)
     INTEGER(IntKi)                :: SD_Trigger                  ! Shutdown trigger (1 - shutdown due to pitch, 2 - shutdown due to yaw error, 3 - shutdown due to generator speed, 4 - shutdown due to time)
+    REAL(DbKi)                    :: SD_BlPitchF                 ! Blade pitch signal filtered for shutdown
+    REAL(DbKi)                    :: SD_NacVaneF                 ! Nacelle vane signal filtered for shutdown
+    REAL(DbKi)                    :: SD_GenSpeedF                ! Generator speed signal filtered for shutdown
     REAL(DbKi)                    :: GenTq_SD                    ! Electrical generator torque command for shutdown, [Nm].
     REAL(DbKi)                    :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None

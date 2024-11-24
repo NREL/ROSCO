@@ -1329,6 +1329,15 @@ LocalVariables:
     SD_Trigger:
       <<: *integer
       description: Shutdown trigger (1 - shutdown due to pitch, 2 - shutdown due to yaw error, 3 - shutdown due to generator speed, 4 - shutdown due to time)
+    SD_BlPitchF:
+      <<: *real
+      description: Blade pitch signal filtered for shutdown
+    SD_NacVaneF:
+      <<: *real
+      description: Nacelle vane signal filtered for shutdown
+    SD_GenSpeedF:
+      <<: *real
+      description: Generator speed signal filtered for shutdown
     GenTq_SD:                        
       <<: *real 
       description: Electrical generator torque command for shutdown, [Nm].
