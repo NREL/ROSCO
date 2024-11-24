@@ -1409,23 +1409,25 @@ CONTAINS
         ENDIF
 
         ! --- Shutdown ---
+        IF (CntrPar%SD_Mode > 0) THEN
         
-        ! SD_Method
-        IF (CntrPar%SD_Method /= 1) THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'SD_Method must be 1.'
-        ENDIF
+            ! SD_Method
+            IF (CntrPar%SD_Method /= 1) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SD_Method must be 1.'
+            ENDIF
 
-        ! SD_MaxPitchRate
-        IF (CntrPar%SD_MaxPitchRate > CntrPar%PC_MaxRat) THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'SD_MaxPitchRate should be less or equal to PC_MaxRat.'
-        ENDIF
+            ! SD_MaxPitchRate
+            IF (CntrPar%SD_MaxPitchRate > CntrPar%PC_MaxRat) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SD_MaxPitchRate should be less or equal to PC_MaxRat.'
+            ENDIF
 
-        ! SD_MaxTorqueRate
-        IF (CntrPar%SD_MaxTorqueRate > CntrPar%VS_MaxRat) THEN
-            ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'SD_MaxTorqueRate should be less or equal to VS_MaxRat.'
+            ! SD_MaxTorqueRate
+            IF (CntrPar%SD_MaxTorqueRate > CntrPar%VS_MaxRat) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SD_MaxTorqueRate should be less or equal to VS_MaxRat.'
+            ENDIF
         ENDIF
 
         ! --- Open loop control ---
