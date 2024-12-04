@@ -22,13 +22,13 @@ from rosco.toolbox import turbine as ROSCO_turbine
 try:
     from weis.aeroelasticse.runFAST_pywrapper   import runFAST_pywrapper_batch
     in_weis = True
-except Exception:
+except Exception as e:
     from rosco.toolbox.ofTools.case_gen.runFAST_pywrapper   import runFAST_pywrapper_batch
     in_weis = False
 #from rosco.toolbox.ofTools.case_gen.CaseGen_IEC         import CaseGen_IEC
 from rosco.toolbox.ofTools.case_gen.CaseGen_General     import CaseGen_General
 from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
-from wisdem.commonse.mpi_tools              import MPI
+from openmdao.utils.mpi              import MPI
 
 # Globals
 this_dir        = os.path.dirname(os.path.abspath(__file__))
@@ -160,7 +160,7 @@ class run_FAST_ROSCO():
 
         # Management of parallelization, leave in for now
         if MPI:
-            from wisdem.commonse.mpi_tools import map_comm_heirarchical, subprocessor_loop, subprocessor_stop
+            from rosco.toolbox.ofTools.util.mpi_tools import map_comm_heirarchical, subprocessor_loop, subprocessor_stop
             n_OF_runs = len(case_list)
 
             available_cores = MPI.COMM_WORLD.Get_size()
