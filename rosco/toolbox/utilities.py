@@ -239,7 +239,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}      ! SD_EnableTime            - Shutdown at a predefined time, [-]\n'.format(int(rosco_vt['SD_EnableTime'])))
     file.write('{:<014.5f}      ! SD_MaxPit                - Maximum blade pitch angle to initiate shutdown, [rad]\n'.format(rosco_vt['SD_MaxPit']))
     file.write('{:<014.5f}      ! SD_PitchCornerFreq       - Cutoff Frequency for first order low-pass filter for blade pitch angle for shutdown, [rad/s]\n'.format(rosco_vt['SD_PitchCornerFreq']))
-    file.write('{:<014.5f}      ! SD_MaxYawError           - Maximum yaw error to initiate shutdown, [rad]\n'.format(rosco_vt['SD_MaxYawError']))
+    file.write('{:<014.5f}      ! SD_MaxYawError           - Maximum yaw error to initiate shutdown, [deg]\n'.format(rosco_vt['SD_MaxYawError']))
     file.write('{:<014.5f}      ! SD_YawErrorCornerFreq    - Cutoff Frequency for first order low-pass filter for yaw error for shutdown, [rad/s]\n'.format(rosco_vt['SD_YawErrorCornerFreq']))
     file.write('{:<014.5f}      ! SD_MaxGenSpd             - Maximum generator speed to initiate shutdown, [rad/s]\n'.format(rosco_vt['SD_MaxGenSpd']))
     file.write('{:<014.5f}      ! SD_GenSpdCornerFreq       - Cutoff Frequency for first order low-pass filter for generator speed for shutdown, [rad/s] \n'.format(rosco_vt['SD_GenSpdCornerFreq']))
@@ -618,7 +618,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['SD_EnableTime']        = 0
     DISCON_dict['SD_MaxPit']            = 0.6981
     DISCON_dict['SD_PitchCornerFreq']   = controller.f_sd_pitchcornerfreq
-    DISCON_dict['SD_MaxYawError']       = 0.5236
+    DISCON_dict['SD_MaxYawError']       = 30
     DISCON_dict['SD_YawErrorCornerFreq']= controller.f_sd_yawerrorcornerfreq
     DISCON_dict['SD_MaxGenSpd']         = 10
     DISCON_dict['SD_GenSpdCornerFreq']  = controller.f_sd_genspdcornerfreq

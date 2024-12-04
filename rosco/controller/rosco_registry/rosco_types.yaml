@@ -485,7 +485,7 @@ ControlParameters:
       description: Cutoff Frequency for first order low-pass filter for blade pitch angle for shutdown, [rad/s]
     SD_MaxYawError:
       <<: *real
-      description: Maximum yaw error to initiate shutdown, [rad]
+      description: Maximum yaw error to initiate shutdown, [deg]
     SD_YawErrorCornerFreq:
       <<: *real
       description: Cutoff Frequency for first order low-pass filter for yaw error for shutdown, [rad/s]

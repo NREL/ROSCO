@@ -1111,8 +1111,8 @@ properties:
                     SD_MaxYawError:
                         type: number
                         description: Maximum yaw error to initiate shutdown
-                        units: rad
-                        default: 0.5236
+                        units: deg
+                        default: 30.0
                     SD_YawErrorCornerFreq:
                         type: number
                         description: Cutoff Frequency for first order low-pass filter for yaw error for shutdown

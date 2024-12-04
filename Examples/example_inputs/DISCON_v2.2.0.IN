@@ -112,7 +112,7 @@
 0                 ! SD_EnableTime            - Shutdown at a predefined time, [-]
 0.436300000000      ! SD_MaxPit                - Maximum blade pitch angle to initiate shutdown, [rad]
 0.418880000000      ! SD_PitchCornerFreq       - Cutoff Frequency for first order low-pass filter for blade pitch angle for shutdown, [rad/s]
-0.523600000000      ! SD_MaxYawError           - Maximum yaw error to initiate shutdown, [rad]
+30.00000000000      ! SD_MaxYawError           - Maximum yaw error to initiate shutdown, [rad]
 0.418880000000      ! SD_YawErrorCornerFreq    - Cutoff Frequency for first order low-pass filter for yaw error for shutdown, [rad/s]
 10.00000000000      ! SD_MaxGenSpd             - Maximum generator speed to initiate shutdown, [rad/s]
 0.418880000000      ! SD_GenSpdCornerFreq       - Cutoff Frequency for first order low-pass filter for generator speed for shutdown, [rad/s] 

@@ -126,7 +126,7 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: SD_EnableTime               ! Shutdown at a predefined time, [-]
     REAL(DbKi)                    :: SD_MaxPit                   ! Maximum blade pitch angle to initiate shutdown, [rad]
     REAL(DbKi)                    :: SD_PitchCornerFreq          ! Cutoff Frequency for first order low-pass filter for blade pitch angle for shutdown, [rad/s]
-    REAL(DbKi)                    :: SD_MaxYawError              ! Maximum yaw error to initiate shutdown, [rad]
+    REAL(DbKi)                    :: SD_MaxYawError              ! Maximum yaw error to initiate shutdown, [deg]
     REAL(DbKi)                    :: SD_YawErrorCornerFreq       ! Cutoff Frequency for first order low-pass filter for yaw error for shutdown, [rad/s]
     REAL(DbKi)                    :: SD_MaxGenSpd                ! Maximum generator speed to initiate shutdown, [rad/s]
     REAL(DbKi)                    :: SD_GenSpdCornerFreq         ! Cutoff Frequency for first order low-pass filter for generator speed for shutdown, [rad/s]
