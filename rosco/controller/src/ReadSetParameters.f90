@@ -986,6 +986,16 @@ CONTAINS
             ErrVar%ErrMsg  = 'VS_FBP and PC_ControlMode cannot both be greater than 0.'
         ENDIF
 
+        IF ((CntrPar%VS_FBP > 0) .AND. (CntrPar%PRC_Mode > 0)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'Fixed blade pitch control (VS_FBP) and power reference control (PRC_Mode) cannot both be enabled.'
+        ENDIF
+
+        IF ((CntrPar%VS_FBP > 0) .AND. (CntrPar%VS_ConstPower > 0)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'Fixed blade pitch control (VS_FBP) and constant power torque control (VS_ConstPower) cannot both be enabled.'
+        ENDIF
+
         ! PC_ControlMode
         IF ((CntrPar%PC_ControlMode < 0) .OR. (CntrPar%PC_ControlMode > 1)) THEN
             ErrVar%aviFAIL = -1
