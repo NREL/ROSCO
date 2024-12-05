@@ -21,7 +21,7 @@ The desired power curves of each configuration are as follows:
 In the first case, the reference generator speed is decreased (underspeed) to maintain a constant rated power above rated.
 To slow down the generator, a higher torque must be used:
 
-.. image:: ../images/30_fixed_pitch_mhk_sched.png
+.. image:: ../images/30_fixed_pitch_mhk_sim.png
 
 
 
@@ -29,6 +29,7 @@ To slow down the generator, a higher torque must be used:
 
 # Copying images, from docs/:
 # cp ../Examples/examples_out/30_fixed_pitch_mhk_sched.png images/
+# cp ../Examples/examples_out/30_fixed_pitch_mhk_sim.png images/
 
 import os
 from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
