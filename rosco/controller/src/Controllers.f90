@@ -206,23 +206,29 @@ CONTAINS
         ! Allocate Variables
 
         ! -------- Variable-Speed Torque Controller --------
-        ! Define initial max torque
-        LocalVar%VS_MaxTq = CntrPar%VS_MaxTq * LocalVar%PRC_R_Torque
 
         ! Pre-compute generator torque values for K*Omega^2 and constant power
         LocalVar%VS_KOmega2_GenTq = CntrPar%VS_Rgn2K*LocalVar%GenSpeedF*LocalVar%GenSpeedF
         LocalVar%VS_ConstPwr_GenTq = (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF * LocalVar%PRC_R_Torque
+
+        ! Determine maximum torque saturation limit, VS_MaxTq
+        IF (CntrPar%VS_FBP == VS_FBP_Variable_Pitch) THEN 
+            ! Variable pitch mode        
+            IF (CntrPar%VS_ConstPower == VS_Mode_ConstPwr) THEN
+                LocalVar%VS_MaxTq = min(LocalVar%VS_ConstPwr_GenTq * LocalVar%PRC_R_Torque, CntrPar%VS_MaxTq)
+            ELSE
+                LocalVar%VS_MaxTq = CntrPar%VS_RtTq * LocalVar%PRC_R_Torque
+            END IF
+        ELSE   
+            ! Constant pitch, max torque is control parameter
+            LocalVar%VS_MaxTq = CntrPar%VS_MaxTq  
+        ENDIF 
 
         ! Optimal Tip-Speed-Ratio tracking controller (reference generated in subroutine ComputeVariablesSetpoints)
         IF ((CntrPar%VS_ControlMode == VS_Mode_WSE_TSR) .OR. \
             (CntrPar%VS_ControlMode == VS_Mode_Power_TSR) .OR. \
             (CntrPar%VS_ControlMode == VS_Mode_Torque_TSR)) THEN
 
-            ! Constant Power, update VS_MaxTq
-            LocalVar%VS_MaxTq = CntrPar%VS_RtTq * LocalVar%PRC_R_Torque
-            IF (CntrPar%VS_ConstPower == VS_Mode_ConstPwr) THEN
-                LocalVar%VS_MaxTq = min(LocalVar%VS_ConstPwr_GenTq * LocalVar%PRC_R_Torque, CntrPar%VS_MaxTq)
-            END IF
 
             ! PI controller
             LocalVar%GenTq = PIController( &
