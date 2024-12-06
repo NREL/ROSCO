@@ -924,6 +924,10 @@ LocalVariables:
     iStatus: 
       <<: *integer 
       description: Initialization status
+    AlreadyInitialized: 
+      <<: *integer 
+      description: Has ROSCO already been initialized (0-no, 1-yes)
+      equals: 0
     Time: 
       <<: *real 
       description: Time [s]

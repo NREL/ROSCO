@@ -103,3 +103,6 @@ def main():
     else:
         plt.savefig(os.path.join(example_out_dir,'04_NREL5MW_SimpSim.png'))
 
+if __name__=='__main__':
+    main()
+
