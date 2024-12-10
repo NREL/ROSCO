@@ -465,6 +465,9 @@ ControlParameters:
     SD_Mode:
       <<: *integer
       description: Shutdown mode {0 - no shutdown procedure, 1 - enable shutdown}
+    SD_TimeActivate:
+      <<: *real
+      description: Time to acitvate shutdown modes, [s]
     SD_EnablePitch:
       <<: *integer
       description: Shutdown when collective blade pitch exceeds a threshold, [-]

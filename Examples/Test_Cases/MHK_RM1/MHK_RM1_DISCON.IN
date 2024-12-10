@@ -1,5 +1,5 @@
 ! Controller parameter input file for the MHK_RM1_Floating wind turbine
-!    - File written using ROSCO version 2.9.4 controller tuning logic on 12/04/24
+!    - File written using ROSCO version 2.9.4 controller tuning logic on 12/09/24
 
 !------- SIMULATION CONTROL ------------------------------------------------------------
 2                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}
@@ -145,20 +145,21 @@
 0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001      0.001                    ! PS_BldPitchMin    - Minimum blade pitch angles [rad]
 
 !------- SHUTDOWN -----------------------------------------------------------
-0                 ! SD_EnablePitch          - Shutdown when collective blade pitch exceeds a threshold, [-]
-0                 ! SD_EnableYawError        - Shutdown when yaw error exceeds a threshold, [-]
-0                 ! SD_EnableGenSpeed        - Shutdown when generator speed exceeds a threshold, [-]
-0                 ! SD_EnableTime            - Shutdown at a predefined time, [-]
-0.698100000000      ! SD_MaxPit                - Maximum blade pitch angle to initiate shutdown, [rad]
-0.418880000000      ! SD_PitchCornerFreq       - Cutoff Frequency for first order low-pass filter for blade pitch angle for shutdown, [rad/s]
-30.00000000000      ! SD_MaxYawError           - Maximum yaw error to initiate shutdown, [deg]
-0.418880000000      ! SD_YawErrorCornerFreq    - Cutoff Frequency for first order low-pass filter for yaw error for shutdown, [rad/s]
-10.00000000000      ! SD_MaxGenSpd             - Maximum generator speed to initiate shutdown, [rad/s]
-0.418880000000      ! SD_GenSpdCornerFreq       - Cutoff Frequency for first order low-pass filter for generator speed for shutdown, [rad/s] 
-9999.000000000      ! SD_Time   - Shutdown time, [s]
-1                 ! SD_Method   - Shutdown method {1: Reduce generator torque and increase blade pitch}, [-]
-7800.000000000      ! SD_MaxTorqueRate   - Maximum torque rate for shutdown, [Nm/s]
-0.174500000000      ! SD_MaxPitchRate    - Maximum pitch rate used for shutdown, [rad/s]
+0                   ! SD_TimeActivate        - Time to acitvate shutdown modes, [-]
+0                   ! SD_EnablePitch         - Shutdown when collective blade pitch exceeds a threshold, [-]
+0                   ! SD_EnableYawError      - Shutdown when yaw error exceeds a threshold, [-]
+0                   ! SD_EnableGenSpeed      - Shutdown when generator speed exceeds a threshold, [-]
+0                   ! SD_EnableTime          - Shutdown at a predefined time, [-]
+0.698100000000      ! SD_MaxPit              - Maximum blade pitch angle to initiate shutdown, [rad]
+0.418880000000      ! SD_PitchCornerFreq     - Cutoff Frequency for first order low-pass filter for blade pitch angle for shutdown, [rad/s]
+30.00000000000      ! SD_MaxYawError         - Maximum yaw error to initiate shutdown, [deg]
+0.418880000000      ! SD_YawErrorCornerFreq  - Cutoff Frequency for first order low-pass filter for yaw error for shutdown, [rad/s]
+10.00000000000      ! SD_MaxGenSpd           - Maximum generator speed to initiate shutdown, [rad/s]
+0.418880000000      ! SD_GenSpdCornerFreq    - Cutoff Frequency for first order low-pass filter for generator speed for shutdown, [rad/s] 
+9999.000000000      ! SD_Time                - Shutdown time, [s]
+1                   ! SD_Method              - Shutdown method {1: Reduce generator torque and increase blade pitch}, [-]
+7800.000000000      ! SD_MaxTorqueRate       - Maximum torque rate for shutdown, [Nm/s]
+0.174500000000      ! SD_MaxPitchRate        - Maximum pitch rate used for shutdown, [rad/s]
 
 !------- Floating -----------------------------------------------------------
 1                   ! Fl_n              - Number of Fl_Kp gains in gain scheduling, optional with default of 1

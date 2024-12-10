@@ -106,6 +106,7 @@
 0.06108652 0.06108652 0.06108652 0.05672320 0.04799655 0.03926991 0.02617994 0.01308997 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000               ! PS_BldPitchMin    - Minimum blade pitch angles [rad]
 
 !------- SHUTDOWN -----------------------------------------------------------
+0                 ! SD_TimeActivate        - Time to acitvate shutdown modes, [-]
 0                 ! SD_EnablePitch          - Shutdown when collective blade pitch exceeds a threshold, [-]
 0                 ! SD_EnableYawError        - Shutdown when yaw error exceeds a threshold, [-]
 0                 ! SD_EnableGenSpeed        - Shutdown when generator speed exceeds a threshold, [-]

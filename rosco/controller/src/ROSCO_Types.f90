@@ -120,6 +120,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PS_WindSpeeds               ! Wind speeds corresponding to minimum blade pitch angles [m/s]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PS_BldPitchMin              ! Minimum blade pitch angles [rad]
     INTEGER(IntKi)                :: SD_Mode                     ! Shutdown mode {0 - no shutdown procedure, 1 - enable shutdown}
+    REAL(DbKi)                    :: SD_TimeActivate             ! Time to acitvate shutdown modes, [s]
     INTEGER(IntKi)                :: SD_EnablePitch              ! Shutdown when collective blade pitch exceeds a threshold, [-]
     INTEGER(IntKi)                :: SD_EnableYawError           ! Shutdown when yaw error exceeds a threshold, [-]
     INTEGER(IntKi)                :: SD_EnableGenSpeed           ! Shutdown when generator speed exceeds a threshold, [-]

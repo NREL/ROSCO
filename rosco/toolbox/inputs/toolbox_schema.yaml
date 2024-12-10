@@ -1074,6 +1074,11 @@ properties:
                             type: number
                         description: Minimum blade pitch angles
                         units: rad
+                    SD_TimeActivate:
+                        type: number
+                        description: Time to acitvate shutdown modes
+                        units: s
+                        default: 0
                     SD_EnablePitch:
                         type: number
                         description: Shutdown when collective blade pitch exceeds a threshold
