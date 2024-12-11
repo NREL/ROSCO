@@ -233,7 +233,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{}              ! PS_BldPitchMin    - Minimum blade pitch angles [rad]\n'.format(''.join('{:<10.3f} '.format(rosco_vt['PS_BldPitchMin'][i]) for i in range(len(rosco_vt['PS_BldPitchMin'])))))
     file.write('\n')
     file.write('!------- SHUTDOWN -----------------------------------------------------------\n')
-    file.write('{0:<12d}        ! SD_TimeActivate        - Time to acitvate shutdown modes, [-]\n'.format(int(rosco_vt['SD_TimeActivate'])))
+    file.write('{0:<12d}        ! SD_TimeActivate        - Time to acitvate shutdown modes, [s]\n'.format(int(rosco_vt['SD_TimeActivate'])))
     file.write('{0:<12d}        ! SD_EnablePitch         - Shutdown when collective blade pitch exceeds a threshold, [-]\n'.format(int(rosco_vt['SD_EnablePitch'])))
     file.write('{0:<12d}        ! SD_EnableYawError      - Shutdown when yaw error exceeds a threshold, [-]\n'.format(int(rosco_vt['SD_EnableYawError'])))
     file.write('{0:<12d}        ! SD_EnableGenSpeed      - Shutdown when generator speed exceeds a threshold, [-]\n'.format(int(rosco_vt['SD_EnableGenSpeed'])))
