@@ -132,3 +132,4 @@ A complete list of examples is given below:
 .. automodule:: 27_soft_cut_out
 .. automodule:: 28_tower_resonance
 .. automodule:: 29_power_control
+.. automodule:: 30_shutdown

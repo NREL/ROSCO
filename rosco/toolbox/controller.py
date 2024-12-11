@@ -89,7 +89,6 @@ class Controller():
         self.ss_vsgain          = controller_params['ss_vsgain']
         self.ss_pcgain          = controller_params['ss_pcgain']
         self.ps_percent         = controller_params['ps_percent']
-        self.sd_maxpit          = controller_params['sd_maxpit']
         self.WS_GS_n            = controller_params['WS_GS_n']
         self.PC_GS_n            = controller_params['PC_GS_n']
         self.flp_maxpit         = controller_params['flp_maxpit']
@@ -140,8 +139,9 @@ class Controller():
         self.f_fl_highpassfreq      = controller_params['filter_params']['f_fl_highpassfreq']
         self.f_ss_cornerfreq        = controller_params['filter_params']['f_ss_cornerfreq']
         self.f_yawerr               = controller_params['filter_params']['f_yawerr']
-        self.f_sd_cornerfreq        = controller_params['filter_params']['f_sd_cornerfreq']
-
+        self.f_sd_pitchcornerfreq        = controller_params['filter_params']['f_sd_pitchcornerfreq']
+        self.f_sd_yawerrorcornerfreq        = controller_params['filter_params']['f_sd_yawerrorcornerfreq']
+        self.f_sd_genspdcornerfreq        = controller_params['filter_params']['f_sd_genspdcornerfreq']
 
         # Open loop parameters: set up and error catching
         self.OL_Mode            = controller_params['OL_Mode']
@@ -372,12 +372,6 @@ class Controller():
         else: 
             self.vs_minspd = (turbine.TSR_operational * turbine.v_min / turbine.rotor_radius)
         self.pc_minspd = self.vs_minspd
-
-        # max pitch angle for shutdown
-        if self.sd_maxpit:
-            self.sd_maxpit = self.sd_maxpit
-        else:
-            self.sd_maxpit = pitch_op[-1]
 
         # Set IPC ramp inputs if not already defined
         if max(self.IPC_Vramp) == 0.0:

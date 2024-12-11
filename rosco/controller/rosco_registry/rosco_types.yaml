@@ -461,17 +461,55 @@ ControlParameters:
       <<: *real
       description: Minimum blade pitch angles [rad]
       allocatable: True
-    
     # Shutdown 
     SD_Mode:
       <<: *integer
-      description: Shutdown mode {0 - no shutdown procedure, 1 - pitch to max pitch at shutdown}
+      description: Shutdown mode {0 - no shutdown procedure, 1 - enable shutdown}
+    SD_TimeActivate:
+      <<: *real
+      description: Time to acitvate shutdown modes, [s]
+    SD_EnablePitch:
+      <<: *integer
+      description: Shutdown when collective blade pitch exceeds a threshold, [-]
+    SD_EnableYawError:
+      <<: *integer
+      description: Shutdown when yaw error exceeds a threshold, [-]
+    SD_EnableGenSpeed:
+      <<: *integer
+      description: Shutdown when generator speed exceeds a threshold, [-]
+    SD_EnableTime:
+      <<: *integer
+      description: Shutdown at a predefined time, [-]
     SD_MaxPit:
       <<: *real
       description: Maximum blade pitch angle to initiate shutdown, [rad]
-    SD_CornerFreq:
+    SD_PitchCornerFreq:
       <<: *real
-      description: Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]
+      description: Cutoff Frequency for first order low-pass filter for blade pitch angle for shutdown, [rad/s]
+    SD_MaxYawError:
+      <<: *real
+      description: Maximum yaw error to initiate shutdown, [deg]
+    SD_YawErrorCornerFreq:
+      <<: *real
+      description: Cutoff Frequency for first order low-pass filter for yaw error for shutdown, [rad/s]
+    SD_MaxGenSpd:
+      <<: *real
+      description: Maximum generator speed to initiate shutdown, [rad/s]
+    SD_GenSpdCornerFreq:
+      <<: *real
+      description: Cutoff Frequency for first order low-pass filter for generator speed for shutdown, [rad/s]
+    SD_Time:
+      <<: *real
+      description: Shutdown time, [s]
+    SD_Method:
+      <<: *integer
+      description: Shutdown method {1 - Reduce generator torque and increase blade pitch}, [-]
+    SD_MaxTorqueRate:
+      <<: *real
+      description: Maximum torque rate for shutdown, [Nm/s]
+    SD_MaxPitchRate:
+      <<: *real
+      description: Maximum pitch rate used for shutdown, [rad/s]
     
     # Floating
     Fl_Mode:
@@ -1206,6 +1244,10 @@ LocalVariables:
       <<: *real 
       description: Commanded pitch of each blade the last time the controller was called [rad].
       size: 3
+    PitCom_SD:                  
+      <<: *real 
+      description: Commanded pitch of each blade due to shutdown [rad].
+      size: 3
     PitComAct:                  
       <<: *real 
       description: Actuated pitch command of each blade [rad].
@@ -1291,9 +1333,21 @@ LocalVariables:
     OL_Index:
       <<: *real
       description: Open loop indexing variable (time or wind speed)
-    SD:                           
-      <<: *logical
-      description: Shutdown, .FALSE. if inactive, .TRUE. if active
+    SD_Trigger:
+      <<: *integer
+      description: Shutdown trigger (1 - shutdown due to pitch, 2 - shutdown due to yaw error, 3 - shutdown due to generator speed, 4 - shutdown due to time)
+    SD_BlPitchF:
+      <<: *real
+      description: Blade pitch signal filtered for shutdown
+    SD_NacVaneF:
+      <<: *real
+      description: Nacelle vane signal filtered for shutdown
+    SD_GenSpeedF:
+      <<: *real
+      description: Generator speed signal filtered for shutdown
+    GenTq_SD:                        
+      <<: *real 
+      description: Electrical generator torque command for shutdown, [Nm].
     Fl_PitCom:                           
       <<: *real 
       description: Shutdown, .FALSE. if inactive, .TRUE. if active
@@ -1458,7 +1512,7 @@ ObjectInstances:
     <<: *integer
     description: Notch filter instance
   instPI:
-    <<: *integer
+    <<: *integer  
     description: PI controller instance
   instRL:
     <<: *integer

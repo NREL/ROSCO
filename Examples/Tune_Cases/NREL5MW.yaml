@@ -48,4 +48,3 @@ controller_params:
   ptfm_freq:          0.2325                # Platform natural frequency [rad/s]  (OC4Hywind Parameters, here)   
   # Optional         
   ps_percent:         0.80                  # Percent peak shaving  [%, <= 1 ], {default = 80%}
-  sd_maxpit:          0.4363                # Maximum blade pitch angle to initiate shutdown [rad], {default = bld pitch at v_max}
