@@ -1,7 +1,43 @@
 """
 30_shutdown
 ----------------
-This example demonstrates turbine shutdown.
+This example demonstrates turbine shutdown using collective blade pitch threshold mode.
+
+ROSCO allows for four shutdown trigger options:
+
+- collective blade pitch exceeds a threshold
+- yaw error exceeds a threshold
+- generator speed exceeds a threshold
+- Shutdown at a predefined time
+
+
+Pitch Threshold Demo
+````````````````````
+The following plot demonstrates turbine shutdown when blade pitch exceeds a threshold of 30 degrees.
+This shutdown mode can provide protection against high wind speeds.
+
+.. image:: ../images/30_shutdown_pitch_demo.png
+
+Yaw Error Threshold Demo
+````````````````````````
+The following plot demonstrates turbine shutdown when turbine yaw error pitch exceeds a threshold of 25 degrees.
+This demonstration uses the extreme coherent gust with direction change wind inflow used in DLC 1.4.
+
+.. image:: ../images/30_shutdown_yaw_demo.png
+
+Generator Speed Threshold Demo
+``````````````````````````````
+The following plot demonstrates turbine shutdown when generator speed exceeds a threshold of 8.5 rpm.
+This also compares the use of `SD_TimeActive` to enable shutdown at 0 seconds and 10 seconds.
+
+.. image:: ../images/30_shutdown_gen_demo.png
+
+Time Demo
+`````````
+The following plot demonstrates turbine shutdown at 20 second time.
+
+.. image:: ../images/30_shutdown_time_demo.png
+
 """
 
 import os
@@ -21,9 +57,6 @@ os.makedirs(example_out_dir, exist_ok=True)
 
 
 def main():
-    # Test Config
-    FULL_TEST = False  # FULL_TEST for local testing, otherwise shorter for CI
-
     # Input yaml and output directory
     parameter_filename = os.path.join(this_dir, "Tune_Cases/IEA15MW.yaml")
 
@@ -37,8 +70,6 @@ def main():
     controller_params["DISCON"]["SD_MaxPit"] = 30*deg2rad
     controller_params["DISCON"]["SD_MaxPitchRate"] = 0.0348
     controller_params["DISCON"]["SD_MaxTorqueRate"] = 4500000
-    controller_params["DISCON"]["SD_EnableTime"] = 1
-    controller_params["DISCON"]["SD_Time"] = 20
 
     # simulation set up
     r = run_FAST_ROSCO()
