@@ -28,7 +28,7 @@ This demonstration uses the extreme coherent gust with direction change wind inf
 Generator Speed Threshold Demo
 ``````````````````````````````
 The following plot demonstrates turbine shutdown when generator speed exceeds a threshold of 8.5 rpm.
-This also compares the use of `SD_TimeActive` to enable shutdown at 0 seconds and 10 seconds.
+This also compares the use of :code:`SD_TimeActive` to enable shutdown at 0 seconds and 10 seconds.
 
 .. image:: ../images/30_shutdown_gen_demo.png
 
