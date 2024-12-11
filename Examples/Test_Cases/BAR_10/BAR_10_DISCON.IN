@@ -1,5 +1,5 @@
 ! Controller parameter input file for the BAR_10 wind turbine
-!    - File written using ROSCO version 2.9.4 controller tuning logic on 12/09/24
+!    - File written using ROSCO version 2.9.4 controller tuning logic on 12/11/24
 
 !------- SIMULATION CONTROL ------------------------------------------------------------
 1                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}
@@ -145,7 +145,7 @@
 -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.015     -0.012     0.000      0.011      0.020      0.029      0.041      0.056      0.069      0.082      0.095      0.108      0.120      0.132      0.143      0.155      0.166      0.178      0.189      0.200      0.211      0.222      0.232      0.243      0.254      0.264      0.274      0.285      0.295      0.305      0.315      0.325      0.335      0.344      0.354      0.364      0.373                    ! PS_BldPitchMin    - Minimum blade pitch angles [rad]
 
 !------- SHUTDOWN -----------------------------------------------------------
-0                   ! SD_TimeActivate        - Time to acitvate shutdown modes, [-]
+0                   ! SD_TimeActivate        - Time to acitvate shutdown modes, [s]
 0                   ! SD_EnablePitch         - Shutdown when collective blade pitch exceeds a threshold, [-]
 0                   ! SD_EnableYawError      - Shutdown when yaw error exceeds a threshold, [-]
 0                   ! SD_EnableGenSpeed      - Shutdown when generator speed exceeds a threshold, [-]

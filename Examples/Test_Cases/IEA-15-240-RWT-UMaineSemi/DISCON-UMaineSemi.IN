@@ -1,5 +1,5 @@
 ! Controller parameter input file for the IEA-15-240-RWT-UMaineSemi wind turbine
-!    - File written using ROSCO version 2.9.4 controller tuning logic on 12/09/24
+!    - File written using ROSCO version 2.9.4 controller tuning logic on 12/11/24
 
 !------- SIMULATION CONTROL ------------------------------------------------------------
 2                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}
@@ -145,7 +145,7 @@
 0.060      0.060      0.060      0.060      0.060      0.060      0.056      0.052      0.047      0.041      0.036      0.029      0.022      0.015      0.008      0.001      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.006      0.021      0.033      0.044      0.053      0.064      0.074      0.084      0.093      0.103      0.112      0.121      0.130      0.138      0.147      0.155      0.163      0.172      0.180      0.188      0.196      0.203      0.211      0.219      0.227      0.234      0.242      0.250      0.257      0.265      0.272      0.279      0.287      0.294      0.301                    ! PS_BldPitchMin    - Minimum blade pitch angles [rad]
 
 !------- SHUTDOWN -----------------------------------------------------------
-0                   ! SD_TimeActivate        - Time to acitvate shutdown modes, [-]
+0                   ! SD_TimeActivate        - Time to acitvate shutdown modes, [s]
 0                   ! SD_EnablePitch         - Shutdown when collective blade pitch exceeds a threshold, [-]
 0                   ! SD_EnableYawError      - Shutdown when yaw error exceeds a threshold, [-]
 0                   ! SD_EnableGenSpeed      - Shutdown when generator speed exceeds a threshold, [-]
