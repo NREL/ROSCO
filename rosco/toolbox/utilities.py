@@ -499,7 +499,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['PC_ControlMode']   = int(controller.PC_ControlMode)
     DISCON_dict['Y_ControlMode']	= int(controller.Y_ControlMode)
     DISCON_dict['SS_Mode']          = int(controller.SS_Mode)
-    DISCON_dict['PRC_Mode']         = 0
+    DISCON_dict['PRC_Mode']         = int(controller.PRC_Mode)
     DISCON_dict['WE_Mode']          = int(controller.WE_Mode)
     DISCON_dict['PS_Mode']          = int(controller.PS_Mode > 0)
     DISCON_dict['SD_Mode']          = int(controller.SD_Mode)
@@ -639,16 +639,16 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     # ------- Open Loop Control -------
     DISCON_dict['OL_Filename']     = controller.OL_Filename
     DISCON_dict['OL_BP_Mode']      = controller.OL_BP_Mode
-    DISCON_dict['Ind_Breakpoint']  = controller.OL_Ind_Breakpoint
-    DISCON_dict['Ind_BldPitch']    = controller.OL_Ind_BldPitch
-    DISCON_dict['Ind_GenTq']       = controller.OL_Ind_GenTq
-    DISCON_dict['Ind_YawRate']     = controller.OL_Ind_YawRate
-    DISCON_dict['Ind_CableControl']     = controller.OL_Ind_CableControl
-    DISCON_dict['Ind_StructControl']    = controller.OL_Ind_StructControl
-    DISCON_dict['Ind_Azimuth']      = controller.OL_Ind_Azimuth
-    DISCON_dict['Ind_R_Speed']      = controller.OL_Ind_R_Speed
-    DISCON_dict['Ind_R_Torque']     = controller.OL_Ind_R_Torque
-    DISCON_dict['Ind_R_Pitch']      = controller.OL_Ind_R_Pitch
+    DISCON_dict['Ind_Breakpoint']  = controller.Ind_Breakpoint
+    DISCON_dict['Ind_BldPitch']    = controller.Ind_BldPitch
+    DISCON_dict['Ind_GenTq']       = controller.Ind_GenTq
+    DISCON_dict['Ind_YawRate']     = controller.Ind_YawRate
+    DISCON_dict['Ind_CableControl']     = controller.Ind_CableControl
+    DISCON_dict['Ind_StructControl']    = controller.Ind_StructControl
+    DISCON_dict['Ind_Azimuth']      = controller.Ind_Azimuth
+    DISCON_dict['Ind_R_Speed']      = controller.Ind_R_Speed
+    DISCON_dict['Ind_R_Torque']     = controller.Ind_R_Torque
+    DISCON_dict['Ind_R_Pitch']      = controller.Ind_R_Pitch
 
     # ------- Pitch Actuator -------
     DISCON_dict['PA_Mode']         = controller.PA_Mode

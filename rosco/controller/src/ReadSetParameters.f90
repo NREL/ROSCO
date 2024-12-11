@@ -26,12 +26,13 @@ MODULE ReadSetParameters
 CONTAINS
  ! -----------------------------------------------------------------------------------
     ! Read avrSWAP array passed from ServoDyn    
-    SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar, CntrPar)
+    SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar, CntrPar, ErrVar)
         USE ROSCO_Types, ONLY : LocalVariables
 
         REAL(ReKi), INTENT(INOUT) :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
         TYPE(ControlParameters), INTENT(IN) :: CntrPar
+        TYPE(ErrorVariables), INTENT(INOUT) :: ErrVar
 
         ! Allocate Variables:
         INTEGER(IntKi)                                  :: K         ! Index used for looping through blades.
@@ -80,9 +81,18 @@ CONTAINS
 
         ENDIF
 
-        ! GenTemp = avrSWAP(1026)
 
-        ! WRITE(1000,*) LocalVar%GenSpeed*RPS2RPM, GenTemp
+        ! Check that we haven't already loaded this dynamic library
+        IF (LocalVar%iStatus == 0) THEN
+            IF (LocalVar%AlreadyInitialized == 0) THEN
+                LocalVar%AlreadyInitialized = 1
+            ELSE
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'ERROR: This ROSCO dynamic library has already been loaded.'
+                RETURN
+            ENDIF
+        ENDIF
+
 
         
 

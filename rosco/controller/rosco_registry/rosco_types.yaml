@@ -1014,6 +1014,10 @@ LocalVariables:
     iStatus: 
       <<: *integer 
       description: Initialization status
+    AlreadyInitialized: 
+      <<: *integer 
+      description: Has ROSCO already been initialized (0-no, 1-yes)
+      equals: 0
     RestartWSE: 
       <<: *integer 
       description: Restart WSE flag, 0 - restart, 1- not, to mirror iStatus

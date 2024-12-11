@@ -39,8 +39,8 @@ def write_types(yfile):
         for attype in reg[toptype].keys():
             f90type = read_type(reg[toptype][attype])
             atstr  =  check_size(reg[toptype], attype)
-            if reg[toptype][attype]['equals']:
-                atstr += ' = ' + reg[toptype][attype]['equals']
+            if reg[toptype][attype]['equals'] is not None:
+                atstr += ' = ' + str(reg[toptype][attype]['equals'])
             file.write('    {:<25s}     :: {:<25s}   ! {}\n'.format(f90type, atstr, reg[toptype][attype]['description']))
         file.write('END TYPE {}\n'.format(toptype))
         file.write('\n')

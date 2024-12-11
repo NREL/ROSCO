@@ -197,7 +197,7 @@ properties:
                 maximum: 2
                 default: 0
                 description: Flap control mode (0- no flap control, 1- steady state flap angle, 2- Proportional flap control)
-            PwC_Mode:           
+            PRC_Mode:           
                 type: number
                 minimum: 0
                 maximum: 2
@@ -589,13 +589,13 @@ properties:
                         items:
                             type: number
                         description: The column in OL_Filename that contains the cable control inputs in m
-                        # default: [0] # No default because it's defined in controller and DISCON_Dict
+                        default: [0]
                     Ind_StructControl:
                         type: array
                         items:
                             type: number
                         description: The column in OL_Filename that contains the structural control inputs in various units
-                        # default: [0]  # No default because it's defined in controller and DISCON_Dict
+                        default: [0]
             PA_CornerFreq:
                 type: number
                 description: Pitch actuator natural frequency [rad/s]
