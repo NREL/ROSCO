@@ -100,7 +100,7 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
         CALL UpdateZeroMQ(LocalVar, CntrPar, ErrVar)
     ENDIF
     
-    IF ((CntrPar%SD_Mode > 0) .AND. (LocalVar%Time>=CntrPar%SD_TimeActivate)) THEN
+    IF (CntrPar%SD_Mode > 0) THEN
         CALL Shutdown(LocalVar, CntrPar, objInst,ErrVar)
     ENDIF
     CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)

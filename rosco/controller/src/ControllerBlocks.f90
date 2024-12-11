@@ -539,12 +539,12 @@ CONTAINS
         LocalVar%SD_NacVaneF = wrap_180(atan2(SD_NacVaneSinF, SD_NacVaneCosF) * R2D) ! (in deg)
         
         ! See if we should shutdown
-        IF (LocalVar%SD_Trigger == 0) THEN
+        IF ((LocalVar%SD_Trigger == 0) .AND. (LocalVar%Time>=CntrPar%SD_TimeActivate)) THEN
             IF (CntrPar%SD_EnablePitch==1 .AND. LocalVar%SD_BlPitchF > CntrPar%SD_MaxPit) THEN
                 ! Shutdown if above pitch exceeds shutdown threshold
                 LocalVar%SD_Trigger  = 1
             ENDIF
-            IF (CntrPar%SD_EnableYawError==1 .AND. LocalVar%SD_NacVaneF > CntrPar%SD_MaxYawError) THEN
+            IF (CntrPar%SD_EnableYawError==1 .AND. ABS(LocalVar%SD_NacVaneF) > CntrPar%SD_MaxYawError) THEN
                 LocalVar%SD_Trigger = 2
             ENDIF
             IF (CntrPar%SD_EnableGenSpeed==1 .AND. LocalVar%SD_GenSpeedF > CntrPar%SD_MaxGenSpd) THEN
