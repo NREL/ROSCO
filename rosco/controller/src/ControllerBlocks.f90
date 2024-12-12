@@ -530,7 +530,7 @@ CONTAINS
 
         ! Filter pitch signal
         LocalVar%SD_BlPitchF = LPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%SD_PitchCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
-        ! Filter yaw generator speed
+        ! Filter generator speed
         LocalVar%SD_GenSpeedF = LPFilter(LocalVar%Genspeed, LocalVar%DT, CntrPar%SD_GenSpdCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
 
         ! Filter yaw error signal (NacVane)
