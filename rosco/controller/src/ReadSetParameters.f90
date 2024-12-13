@@ -26,12 +26,13 @@ MODULE ReadSetParameters
 CONTAINS
  ! -----------------------------------------------------------------------------------
     ! Read avrSWAP array passed from ServoDyn    
-    SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar, CntrPar)
+    SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar, CntrPar, ErrVar)
         USE ROSCO_Types, ONLY : LocalVariables
 
         REAL(ReKi), INTENT(INOUT) :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
         TYPE(ControlParameters), INTENT(IN) :: CntrPar
+        TYPE(ErrorVariables), INTENT(INOUT) :: ErrVar
 
         ! Allocate Variables:
         INTEGER(IntKi)                                  :: K         ! Index used for looping through blades.
@@ -80,9 +81,18 @@ CONTAINS
 
         ENDIF
 
-        ! GenTemp = avrSWAP(1026)
 
-        ! WRITE(1000,*) LocalVar%GenSpeed*RPS2RPM, GenTemp
+        ! Check that we haven't already loaded this dynamic library
+        IF (LocalVar%iStatus == 0) THEN
+            IF (LocalVar%AlreadyInitialized == 0) THEN
+                LocalVar%AlreadyInitialized = 1
+            ELSE
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'ERROR: This ROSCO dynamic library has already been loaded.'
+                RETURN
+            ENDIF
+        ENDIF
+
 
         
 
@@ -527,8 +537,21 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ SHUTDOWN ------------
-        CALL ParseInput(FileLines,  'SD_MaxPit',        CntrPar%SD_MaxPit,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
-        CALL ParseInput(FileLines,  'SD_CornerFreq',    CntrPar%SD_CornerFreq,  accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_TimeActivate',       CntrPar%SD_TimeActivate,  accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_EnablePitch',        CntrPar%SD_EnablePitch,   accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_EnableYawError',     CntrPar%SD_EnableYawError,accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_EnableGenSpeed',     CntrPar%SD_EnableGenSpeed,accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_EnableTime',         CntrPar%SD_EnableTime,    accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_MaxPit',             CntrPar%SD_MaxPit,        accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_PitchCornerFreq',    CntrPar%SD_PitchCornerFreq,   accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_MaxYawError',        CntrPar%SD_MaxYawError,       accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_YawErrorCornerFreq', CntrPar%SD_YawErrorCornerFreq,accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_MaxGenSpd',          CntrPar%SD_MaxGenSpd,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_GenSpdCornerFreq',   CntrPar%SD_GenSpdCornerFreq,  accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_Time',               CntrPar%SD_Time,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_Method',             CntrPar%SD_Method,    accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_MaxTorqueRate',      CntrPar%SD_MaxTorqueRate,   accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_MaxPitchRate',       CntrPar%SD_MaxPitchRate,    accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ FLOATING ------------
@@ -1429,6 +1452,27 @@ CONTAINS
 
         ENDIF
 
+        ! --- Shutdown ---
+        IF (CntrPar%SD_Mode > 0) THEN
+        
+            ! SD_Method
+            IF (CntrPar%SD_Method /= 1) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SD_Method must be 1.'
+            ENDIF
+
+            ! SD_MaxPitchRate
+            IF (CntrPar%SD_MaxPitchRate > CntrPar%PC_MaxRat) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SD_MaxPitchRate should be less or equal to PC_MaxRat.'
+            ENDIF
+
+            ! SD_MaxTorqueRate
+            IF (CntrPar%SD_MaxTorqueRate > CntrPar%VS_MaxRat) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SD_MaxTorqueRate should be less or equal to VS_MaxRat.'
+            ENDIF
+        ENDIF
 
         ! --- Open loop control ---
         IF (CntrPar%OL_Mode > 0) THEN

@@ -90,11 +90,6 @@ CONTAINS
             LocalVar%PC_PitComT = LocalVar%PC_PitComT + LocalVar%Fl_PitCom
         ENDIF
         
-        ! Shutdown
-        IF (CntrPar%SD_Mode == 1) THEN
-            LocalVar%PC_PitComT = Shutdown(LocalVar, CntrPar, objInst)
-        ENDIF
-        
         ! Saturate collective pitch commands:
         LocalVar%PC_PitComT = saturate(LocalVar%PC_PitComT, LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
         LocalVar%PC_PitComT = ratelimit(LocalVar%PC_PitComT, CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitchCMeas) ! Saturate the overall command of blade K using the pitch rate limit
@@ -140,7 +135,23 @@ CONTAINS
         IF (CntrPar%AWC_Mode > 0) THEN
             CALL ActiveWakeControl(CntrPar, LocalVar, DebugVar)
         ENDIF
-
+             
+        ! Shutdown
+        IF (LocalVar%SD_Trigger == 0) THEN
+            LocalVar%PitCom_SD = LocalVar%PitCom
+        ! If shutdown is not triggered, PitCom_SD tracks PitCom.
+        ELSE
+            IF (CntrPar%SD_Method == 1) THEN    !Only SD_Method==1 supported for now 
+                DO K = 1,LocalVar%NumBl
+                    LocalVar%PitCom_SD(K) = LocalVar%PitCom_SD(K) + CntrPar%SD_MaxPitchRate*LocalVar%DT
+                END DO
+            ENDIF
+            LocalVar%PitCom = LocalVar%PitCom_SD
+            ! When shutdown is triggered (SD_Trigger \=0), pitch to feather.
+            ! Note that in some instances (like a downwind rotor), we may want to pitch to a stall angle.
+        ENDIF
+        
+       
         ! Place pitch actuator here, so it can be used with or without open-loop
         DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
             IF (CntrPar%PA_Mode > 0) THEN
@@ -181,7 +192,6 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) THEN
             ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
         ENDIF
-
     END SUBROUTINE PitchControl
 !-------------------------------------------------------------------------------------------------------------------------------  
     SUBROUTINE VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
@@ -273,6 +283,17 @@ CONTAINS
 
         ELSE        ! VS_ControlMode of 0
             LocalVar%GenTq = 0
+        ENDIF
+        
+        ! Shutdown
+        IF (LocalVar%SD_Trigger == 0) THEN
+            LocalVar%GenTq_SD = LocalVar%GenTq
+        ELSE 
+            IF (CntrPar%SD_Method == 1) THEN    !Only SD_Method==1 supported for now 
+                LocalVar%GenTq_SD = LocalVar%GenTq_SD - CntrPar%SD_MaxTorqueRate*LocalVar%DT
+                LocalVar%GenTq_SD = saturate(LocalVar%GenTq_SD, CntrPar%VS_MinTq, CntrPar%VS_MaxTq)
+            ENDIF
+            LocalVar%GenTq = LocalVar%GenTq_SD
         ENDIF
 
         ! Saturate based on most stringent defined maximum

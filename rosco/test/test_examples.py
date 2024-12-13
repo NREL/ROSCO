@@ -33,6 +33,7 @@ all_scripts = [
     '27_soft_cut_out',
     '28_tower_resonance',
     '29_power_control',
+    '30_shutdown',
     'update_rosco_discons',     
 ]
 
