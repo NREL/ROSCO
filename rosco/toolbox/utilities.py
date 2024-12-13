@@ -104,7 +104,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{0:<12d}        ! PRC_Mode        - Power reference tracking mode{{0: power control disabled, 1: lookup table from wind speed to generator speed setpoints, 2: change speed, torque, pitch to control power}}\n'.format(int(rosco_vt['PRC_Mode'])))
     file.write('{0:<12d}        ! WE_Mode         - Wind speed estimator mode {{0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator, 2: Extended Kalman Filter}}\n'.format(int(rosco_vt['WE_Mode'])))
     file.write('{0:<12d}        ! PS_Mode         - Pitch saturation mode {{0: no pitch saturation, 1: implement pitch saturation}}\n'.format(int(rosco_vt['PS_Mode'])))
-    file.write('{0:<12d}        ! SD_Mode         - Shutdown mode {{0: no shutdown procedure, 1: pitch to max pitch at shutdown}}\n'.format(int(rosco_vt['SD_Mode'])))
+    file.write('{0:<12d}        ! SD_Mode         - Shutdown mode {{0: no shutdown procedure, 1: shutdown enabled}}\n'.format(int(rosco_vt['SD_Mode'])))
     file.write('{0:<12d}        ! Fl_Mode         - Floating specific feedback mode {{0: no nacelle velocity feedback, 1: feed back translational velocity, 2: feed back rotational veloicty}}\n'.format(int(rosco_vt['Fl_Mode'])))
     file.write('{:<12d}        ! TD_Mode         - {}\n'.format(int(rosco_vt['TD_Mode']),mode_descriptions['TD_Mode']))
     file.write('{:<12d}        ! TRA_Mode        - {}\n'.format(int(rosco_vt['TRA_Mode']),mode_descriptions['TRA_Mode']))
@@ -233,8 +233,21 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{}              ! PS_BldPitchMin    - Minimum blade pitch angles [rad]\n'.format(''.join('{:<10.3f} '.format(rosco_vt['PS_BldPitchMin'][i]) for i in range(len(rosco_vt['PS_BldPitchMin'])))))
     file.write('\n')
     file.write('!------- SHUTDOWN -----------------------------------------------------------\n')
-    file.write('{:<014.5f}      ! SD_MaxPit         - Maximum blade pitch angle to initiate shutdown, [rad]\n'.format(rosco_vt['SD_MaxPit']))
-    file.write('{:<014.5f}      ! SD_CornerFreq     - Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]\n'.format(rosco_vt['SD_CornerFreq']))
+    file.write('{0:<12d}        ! SD_TimeActivate        - Time to acitvate shutdown modes, [s]\n'.format(int(rosco_vt['SD_TimeActivate'])))
+    file.write('{0:<12d}        ! SD_EnablePitch         - Shutdown when collective blade pitch exceeds a threshold, [-]\n'.format(int(rosco_vt['SD_EnablePitch'])))
+    file.write('{0:<12d}        ! SD_EnableYawError      - Shutdown when yaw error exceeds a threshold, [-]\n'.format(int(rosco_vt['SD_EnableYawError'])))
+    file.write('{0:<12d}        ! SD_EnableGenSpeed      - Shutdown when generator speed exceeds a threshold, [-]\n'.format(int(rosco_vt['SD_EnableGenSpeed'])))
+    file.write('{0:<12d}        ! SD_EnableTime          - Shutdown at a predefined time, [-]\n'.format(int(rosco_vt['SD_EnableTime'])))
+    file.write('{:<014.5f}      ! SD_MaxPit              - Maximum blade pitch angle to initiate shutdown, [rad]\n'.format(rosco_vt['SD_MaxPit']))
+    file.write('{:<014.5f}      ! SD_PitchCornerFreq     - Cutoff Frequency for first order low-pass filter for blade pitch angle for shutdown, [rad/s]\n'.format(rosco_vt['SD_PitchCornerFreq']))
+    file.write('{:<014.5f}      ! SD_MaxYawError         - Maximum yaw error to initiate shutdown, [deg]\n'.format(rosco_vt['SD_MaxYawError']))
+    file.write('{:<014.5f}      ! SD_YawErrorCornerFreq  - Cutoff Frequency for first order low-pass filter for yaw error for shutdown, [rad/s]\n'.format(rosco_vt['SD_YawErrorCornerFreq']))
+    file.write('{:<014.5f}      ! SD_MaxGenSpd           - Maximum generator speed to initiate shutdown, [rad/s]\n'.format(rosco_vt['SD_MaxGenSpd']))
+    file.write('{:<014.5f}      ! SD_GenSpdCornerFreq    - Cutoff Frequency for first order low-pass filter for generator speed for shutdown, [rad/s] \n'.format(rosco_vt['SD_GenSpdCornerFreq']))
+    file.write('{:<014.5f}      ! SD_Time                - Shutdown time, [s]\n'.format(rosco_vt['SD_Time']))
+    file.write('{0:<12d}        ! SD_Method              - Shutdown method {{1: Reduce generator torque and increase blade pitch}}, [-]\n'.format(int(rosco_vt['SD_Method'])))
+    file.write('{:<014.5f}      ! SD_MaxTorqueRate       - Maximum torque rate for shutdown, [Nm/s]\n'.format(rosco_vt['SD_MaxTorqueRate']))
+    file.write('{:<014.5f}      ! SD_MaxPitchRate        - Maximum pitch rate used for shutdown, [rad/s]\n'.format(rosco_vt['SD_MaxPitchRate']))
     file.write('\n')
     file.write('!------- Floating -----------------------------------------------------------\n')
     if rosco_vt['Fl_Mode'] == 2:
@@ -325,10 +338,8 @@ def read_DISCON(DISCON_filename):
     DISCON_in = {}
     with open(DISCON_filename) as discon:
         for line in discon:
-
             # Skip whitespace and comment lines
             if (line[0] != '!') == (len(line.strip()) != 0):
-                
                 if (line.split()[1] != '!'):    # Array valued entries
                     array_length = line.split().index('!')
                     param = line.split()[array_length+1]
@@ -602,8 +613,20 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['PS_WindSpeeds']    = controller.v
     DISCON_dict['PS_BldPitchMin']   = controller.ps_min_bld_pitch
     # ------- SHUTDOWN -------
-    DISCON_dict['SD_MaxPit']        = controller.sd_maxpit
-    DISCON_dict['SD_CornerFreq']    = controller.f_sd_cornerfreq
+    DISCON_dict['SD_EnablePitch']       = 0
+    DISCON_dict['SD_EnableYawError']    = 0
+    DISCON_dict['SD_EnableGenSpeed']    = 0
+    DISCON_dict['SD_EnableTime']        = 0
+    DISCON_dict['SD_MaxPit']            = 0.6981
+    DISCON_dict['SD_PitchCornerFreq']   = controller.f_sd_pitchcornerfreq
+    DISCON_dict['SD_MaxYawError']       = 30
+    DISCON_dict['SD_YawErrorCornerFreq']= controller.f_sd_yawerrorcornerfreq
+    DISCON_dict['SD_MaxGenSpd']         = 10
+    DISCON_dict['SD_GenSpdCornerFreq']  = controller.f_sd_genspdcornerfreq
+    DISCON_dict['SD_Time']              = 9999
+    DISCON_dict['SD_Method']            = 1
+    DISCON_dict['SD_MaxTorqueRate']     = turbine.max_torque_rate
+    DISCON_dict['SD_MaxPitchRate']      = turbine.max_pitch_rate
     # ------- Floating -------
     DISCON_dict['Fl_n']             = len(controller.Kp_float)
     DISCON_dict['Fl_Kp']            = controller.Kp_float
