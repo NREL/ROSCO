@@ -575,12 +575,14 @@ CONTAINS
         REAL(DbKi) :: RotorArea
         REAL(DbKi) :: Cp
         REAL(DbKi) :: Lambda
+        REAL(DbKi) :: WindSpeed
 
         CHARACTER(*), PARAMETER                 :: RoutineName = 'AeroDynTorque'
 
         ! Find Torque
         RotorArea = PI*CntrPar%WE_BladeRadius**2
-        Lambda = RotSpeed*CntrPar%WE_BladeRadius/LocalVar%WE_Vw
+        WindSpeed = MAX(LocalVar%WE_Vw,EPSILON(1.0_DbKi))
+        Lambda = RotSpeed*CntrPar%WE_BladeRadius/WindSpeed
 
         ! Compute Cp
         Cp = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, BldPitch*R2D, Lambda, ErrVar)

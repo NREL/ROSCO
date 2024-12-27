@@ -65,7 +65,7 @@ def main():
     # Ramp: good demo of functionality, short for CI
     r.wind_case_fcn = cl.ramp  
     r.wind_case_opts    = {
-        'U_start': 4,  # from 10 to 15 m/s
+        'U_start': 0,  # from 10 to 15 m/s
         'U_end': 10,
         't_start': 100,
         't_end': 300
