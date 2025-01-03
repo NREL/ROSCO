@@ -48,7 +48,7 @@ class run_FAST_ROSCO():
 
         # Set default parameters
         self.tuning_yaml        = 'IEA15MW.yaml'
-        self.wind_case_fcn      = cl.power_curve
+        self.wind_case_fcn      = None
         self.wind_case_opts     = {}
         self.control_sweep_opts = {}
         self.control_sweep_fcn  = None
@@ -127,14 +127,15 @@ class run_FAST_ROSCO():
 
         # Apply all discon variables as case inputs
         discon_vt = ROSCO_utilities.DISCON_dict(turbine, controller, txt_filename=cp_filename)
-        control_base_case = {}
+        case_inputs = {}
         for discon_input in discon_vt:
-            control_base_case[('DISCON_in',discon_input)] = {'vals': [discon_vt[discon_input]], 'group': 0}
+            case_inputs[('DISCON_in',discon_input)] = {'vals': [discon_vt[discon_input]], 'group': 0}
 
         # Set up wind case
         self.wind_case_opts['run_dir'] = run_dir
-        case_inputs = self.wind_case_fcn(**self.wind_case_opts)
-        case_inputs.update(control_base_case)
+        if self.wind_case_fcn:
+            wind_case_inputs = self.wind_case_fcn(**self.wind_case_opts)
+            case_inputs.update(wind_case_inputs)
 
         if not self.rosco_dll:
             self.rosco_dll = discon_lib_path
