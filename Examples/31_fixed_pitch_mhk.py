@@ -53,14 +53,12 @@ os.makedirs(example_out_dir,exist_ok=True)
 
 def main():
 
-    FULL_TEST = True   # Run a full test locally (True) or a shorter one for CI
+    FULL_TEST = False   # Run a full test locally (True) or a shorter one for CI
     sim_config = 1      # Choose which simulation configuration (1-6)
 
     # Input yaml and output directory
     parameter_filename = os.path.join(this_dir, 'Tune_Cases/RM1_MHK_FBP.yaml')
     tune_dir = os.path.dirname(parameter_filename)
-    run_dir = os.path.join(example_out_dir, '30_MHK/0_baseline')
-    os.makedirs(run_dir,exist_ok=True)
 
     inps = load_rosco_yaml(parameter_filename)
     path_params         = inps['path_params']
@@ -85,6 +83,7 @@ def main():
     controller_params_1 = controller_params.copy()
     controller_params_1['VS_FBP'] = 3 # Power reference
     controller_params_1['VS_FBP_speed_mode'] = 0
+    controller_params_1['VS_FBP_U'] = [2.0, 4.0]
     controller_params_1['VS_FBP_P'] = [1.0, 1.0]
     controller_1      = ROSCO_controller.Controller(controller_params_1)
     controller_1.tune_controller(turbine)
@@ -93,6 +92,7 @@ def main():
     controller_params_2 = controller_params.copy()
     controller_params_2['VS_FBP'] = 2 # Switch to WSE reference
     controller_params_2['VS_FBP_speed_mode'] = 1
+    controller_params_2['VS_FBP_U'] = [2.0, 4.0]
     controller_params_2['VS_FBP_P'] = [1.0, 1.0]
     controller_2      = ROSCO_controller.Controller(controller_params_2)
     controller_2.tune_controller(turbine)
@@ -100,6 +100,7 @@ def main():
     # Linear increasing power
     controller_params_3 = controller_params.copy()
     controller_params_3['VS_FBP_speed_mode'] = 0
+    controller_params_2['VS_FBP_U'] = [2.0, 4.0]
     controller_params_3['VS_FBP_P'] = [1.0, 2.0]
     controller_3      = ROSCO_controller.Controller(controller_params_3)
     controller_3.tune_controller(turbine)
@@ -121,8 +122,9 @@ def main():
 
     # Constant power overspeed, nonlinear lookup table control
     controller_params_6 = controller_params.copy()
-    controller_params_6['VS_FBP'] = 0 # Constant power overspeed
+    controller_params_6['VS_FBP'] = 1 # Constant power overspeed
     controller_params_6['VS_FBP_speed_mode'] = 1
+    controller_params_6['VS_FBP_U'] = [2.0, 4.0]
     controller_params_6['VS_FBP_P'] = [1.0, 1.0]
     controller_params_6['VS_ControlMode'] = 1
     controller_6      = ROSCO_controller.Controller(controller_params_6)
@@ -164,13 +166,8 @@ def main():
         plt.savefig(fig_fname,bbox_inches='tight',)
 
     # Write parameter input file for constant power underspeed controller
-    param_file = os.path.join(run_dir,'DISCON.IN')
-    write_DISCON(turbine,
-                 controller_1,
-                 param_file=param_file, 
-                 txt_filename=cp_filename
-    )
-
+    run_dir = os.path.join(example_out_dir, f'31_MHK/{sim_config}_config')
+    os.makedirs(run_dir,exist_ok=True)
 
     # simulation set up
     if FULL_TEST:
@@ -200,7 +197,7 @@ def main():
         'TMax': TMax,
         }
     r.case_inputs = {}
-    r.controller_params = controller_params_1
+    r.controller_params = controller_params
     r.save_dir      = run_dir
     r.rosco_dir     = rosco_dir
 
