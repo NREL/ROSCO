@@ -1,17 +1,24 @@
 """
 04_simple_sim
 -------------
-Run and plot a simple simple step wind simulation
+Demonstrate the simple 1-DOF wind turbine simulator with ROSCO
+
 In this example:
 
-* Load turbine from saved pickle
-* Tune a controller
-* Run and plot a simple step wind simulation
+* Load turbine from saved pickle and tune a ROSCO controller
+* Run and plot a step wind simulation using 1-DOF model in ``rosco.toolbox.sim`` and the ROSCO dynamic library
+
+.. figure:: /source/figures/04_NREL5MW_SimpSim.png
+   :align: center
+   :width: 70%
+
 
 Notes:
 
-* You will need to have a compiled controller in ROSCO, and properly point to it in the `lib_name` variable.
-* Using wind speed estimators in this simple simulation is known to cause problems. We suggesting using WE_Mode = 0 in DISCON.IN or increasing sampling rate of simulation
+* You must have a compiled controller in ROSCO/rosco/lib/, and properly point to it using the `lib_name` variable.
+* Using wind speed estimators in this simple simulation is known to cause problems. We suggest using WE_Mode = 0 in the DISCON.IN or increasing sampling rate of simulation as workarounds.
+* The simple simulation is run twice to check that arrays are deallocated properly.
+
 """
 # Python modules
 import matplotlib.pyplot as plt 
@@ -46,7 +53,6 @@ def main():
     # # Load turbine model from saved pickle
     turbine         = ROSCO_turbine.Turbine
     turbine         = turbine.load(os.path.join(example_out_dir,'01_NREL5MW_saved.p'))
-    # controller      = ROSCO_controller.Controller(controller_params)
 
     # Load turbine data from OpenFAST and rotor performance text file
     cp_filename = os.path.join(tune_dir,path_params['rotor_performance_filename'])
@@ -101,8 +107,8 @@ def main():
     if False:
         plt.show()
     else:
-        plt.savefig(os.path.join(example_out_dir,'04_NREL5MW_SimpSim.png'))
+        plt.savefig(os.path.join(example_out_dir,'04_NREL5MW_SimpSim.png'), bbox_inches='tight')
 
-if __name__=='__main__':
+if __name__ == "__main__":
     main()
 
