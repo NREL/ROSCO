@@ -89,7 +89,7 @@ class run_FAST_ROSCO():
         if not self.base_name:
             self.base_name = os.path.split(self.tuning_yaml)[-1].split('.')[0]
         
-        run_dir = os.path.join(self.save_dir,self.base_name,self.wind_case_fcn.__name__,sweep_name)
+        run_dir = self.save_dir
 
         
         # Start with tuning yaml definition of controller
