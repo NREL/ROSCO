@@ -34,6 +34,7 @@ all_scripts = [
     '28_tower_resonance',
     '29_power_control',
     '30_shutdown',
+    '31_fixed_pitch_mhk',
     'update_rosco_discons',     
 ]
 

@@ -6,6 +6,9 @@ to the current version
 """
 
 import os
+import shutil
+from rosco import discon_lib_path
+from rosco.toolbox import control_interface as ROSCO_ci
 from rosco.toolbox.tune import update_discon_version
 
 def main():
@@ -16,11 +19,27 @@ def main():
 
     # Tuning yaml can be anything, does not have to correspond to old discon
     tuning_yaml = os.path.join(this_dir,'Tune_Cases','NREL5MW.yaml')        # dummy for now
+    new_discon = os.path.join(this_dir,'examples_out','18_UPDATED_DISCON.IN')
     update_discon_version(
         old_discon_filename,
         tuning_yaml,
-        os.path.join(this_dir,'examples_out','18_UPDATED_DISCON.IN')
+        new_discon
         )
+    
+    # Try using updated DISCON
+
+    shutil.copyfile(
+        os.path.join(this_dir,'example_inputs','Cp_Ct_Cq.IEA15MW.txt'),
+        os.path.join(this_dir,'examples_out','Cp_Ct_Cq.IEA15MW.txt')
+    )  # Copy Cp table for testing 
+
+    controller_int = ROSCO_ci.ControllerInterface(
+        discon_lib_path,
+        param_filename=new_discon,
+        sim_name='sim1')
+    controller_int.kill_discon()
+
+    assert(controller_int.aviFAIL.value == 0)
 
 if __name__ == "__main__":
     main()

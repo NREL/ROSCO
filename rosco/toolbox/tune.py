@@ -116,6 +116,11 @@ def update_discon_version(file,tuning_yaml,new_discon_filename):
     # OL blade pitch changed to array
     if ('Ind_BldPitch' in original_vt) and (not hasattr(original_vt['Ind_BldPitch'],'__len__')):
         new_discon['Ind_BldPitch'] = [original_vt['Ind_BldPitch']] * 3
+
+    # v2.10: now, we are filtering the reference speed directly, rather than the WSE
+    if ('F_VSRefSpdCornerFreq' not in original_vt) and ('F_WECornerFreq' in original_vt):
+        print('Using F_WECornerFreq to set new F_VSRefSpdCornerFreq')
+        new_discon['F_VSRefSpdCornerFreq'] = original_vt['F_WECornerFreq']
     
 
     # Make the DISCON
