@@ -120,10 +120,13 @@ MODULE SysSubs
         END FUNCTION
     
         END INTERFACE
-    
+
         ErrStat = ErrID_None
         ErrMsg = ''
-    
+        
+        ! Initialize ProcAddr
+        DLL%ProcAddr = C_NULL_FUNPTR  ! Not sure if we need the (3)
+        
         do i=1,NWTC_MAX_DLL_PROC
         if ( len_trim( DLL%ProcName(i) ) > 0 ) then
         
