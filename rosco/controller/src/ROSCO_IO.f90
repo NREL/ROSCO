@@ -887,7 +887,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(144) = LocalVar%ZMQ_R_Speed
     LocalVarOutData(145) = LocalVar%ZMQ_R_Torque
     LocalVarOutData(146) = LocalVar%ZMQ_R_Pitch
-    LocalVarOutStrings = [CHARACTER(15) ::  'iStatus', 'AlreadyInitialized', 'RestartWSE', 'Time', 'DT', & 
+    LocalVarOutStrings = [CHARACTER(30) ::  'iStatus', 'AlreadyInitialized', 'RestartWSE', 'Time', 'DT', & 
                                       'n_DT', 'Time_Last', 'VS_GenPwr', 'VS_GenPwrF', 'GenSpeed', & 
                                       'RotSpeed', 'NacHeading', 'NacVane', 'NacVaneF', 'HorWindV', & 
                                       'HorWindV_F', 'rootMOOP', 'rootMOOPF', 'BlPitch', 'BlPitchCMeas', & 
