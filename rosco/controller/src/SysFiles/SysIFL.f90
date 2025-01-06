@@ -20,6 +20,7 @@ MODULE SysSubs
 
     USE ROSCO_Types
     USE Constants
+    USE, INTRINSIC :: ISO_C_Binding
 
 
     IMPLICIT NONE
