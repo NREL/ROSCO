@@ -693,7 +693,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
 
     REAL(DbKi), ALLOCATABLE         :: DebugOutData(:)
  
-    CHARACTER(30), DIMENSION(146)      :: LocalVarOutStrings
+    CHARACTER(15), DIMENSION(146)      :: LocalVarOutStrings
     REAL(DbKi), ALLOCATABLE         :: LocalVarOutData(:)
  
     nDebugOuts = 26

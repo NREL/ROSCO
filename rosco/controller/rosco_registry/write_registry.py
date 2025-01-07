@@ -219,7 +219,7 @@ def write_roscoio(yfile):
     file.write('    CHARACTER(100)                  :: avrFmt\n')
     file.write('\n')
     file.write('    REAL(DbKi), ALLOCATABLE         :: DebugOutData(:)\n \n')
-    file.write(f'    CHARACTER(30), DIMENSION({n_lv_outputs})      :: LocalVarOutStrings\n')
+    file.write(f'    CHARACTER(15), DIMENSION({n_lv_outputs})      :: LocalVarOutStrings\n')
     file.write('    REAL(DbKi), ALLOCATABLE         :: LocalVarOutData(:)\n \n')
     file.write('    nDebugOuts = {}\n'.format(len(reg['DebugVariables'].keys())))
     file.write('    Allocate(DebugOutData(nDebugOuts))\n')
