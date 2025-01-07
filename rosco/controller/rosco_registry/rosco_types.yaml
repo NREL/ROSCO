@@ -1648,7 +1648,6 @@ ExtDLL_Type:
   ProcAddr:
     <<: *c_funptr
     size: 3
-    equals: C_NULL_FUNPTR
     description: The address of procedure ProcName. (RETURN value from GetProcAddress or dlsym) [initialized to Null for pack/unpack]
   FileName:
     <<: *character
