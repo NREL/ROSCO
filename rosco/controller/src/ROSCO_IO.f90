@@ -693,7 +693,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
 
     REAL(DbKi), ALLOCATABLE         :: DebugOutData(:)
  
-    CHARACTER(30), ALLOCATABLE      :: LocalVarOutStrings(:)
+    CHARACTER(30), DIMENSION(146)      :: LocalVarOutStrings
     REAL(DbKi), ALLOCATABLE         :: LocalVarOutData(:)
  
     nDebugOuts = 26
@@ -740,7 +740,6 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       '[rad/s]']
     nLocalVars = 146
     Allocate(LocalVarOutData(nLocalVars))
-    Allocate(LocalVarOutStrings(nLocalVars))
     LocalVarOutData(1) = LocalVar%iStatus
     LocalVarOutData(2) = LocalVar%AlreadyInitialized
     LocalVarOutData(3) = LocalVar%RestartWSE
@@ -887,36 +886,153 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(144) = LocalVar%ZMQ_R_Speed
     LocalVarOutData(145) = LocalVar%ZMQ_R_Torque
     LocalVarOutData(146) = LocalVar%ZMQ_R_Pitch
-    LocalVarOutStrings = [CHARACTER(30) ::  'iStatus', 'AlreadyInitialized', 'RestartWSE', 'Time', 'DT', & 
-                                      'n_DT', 'Time_Last', 'VS_GenPwr', 'VS_GenPwrF', 'GenSpeed', & 
-                                      'RotSpeed', 'NacHeading', 'NacVane', 'NacVaneF', 'HorWindV', & 
-                                      'HorWindV_F', 'rootMOOP', 'rootMOOPF', 'BlPitch', 'BlPitchCMeas', & 
-                                      'Azimuth', 'OL_Azimuth', 'AzUnwrapped', 'AzError', 'GenTqAz', & 
-                                      'AzBuffer', 'NumBl', 'FA_Acc', 'NacIMU_FA_Acc', 'FA_AccHPF', & 
-                                      'FA_AccHPFI', 'FA_PitCom', 'VS_RefSpd', 'VS_RefSpd_TSR', 'VS_RefSpd_TRA', & 
-                                      'VS_RefSpd_RL', 'PC_RefSpd', 'PC_RefSpd_SS', 'PC_RefSpd_PRC', 'RotSpeedF', & 
-                                      'GenSpeedF', 'GenTq', 'GenTqMeas', 'GenArTq', 'GenBrTq', & 
-                                      'IPC_PitComF', 'PC_KP', 'PC_KI', 'PC_KD', 'PC_TF', & 
-                                      'PC_MaxPit', 'PC_MinPit', 'PC_PitComT', 'PC_PitComT_Last', 'PC_PitComTF', & 
-                                      'PC_PitComT_IPC', 'PC_PwrErr', 'PC_SpdErr', 'IPC_AxisTilt_1P', 'IPC_AxisYaw_1P', & 
-                                      'IPC_AxisTilt_2P', 'IPC_AxisYaw_2P', 'axisTilt_1P', 'axisYaw_1P', 'axisYawF_1P', & 
-                                      'axisTilt_2P', 'axisYaw_2P', 'axisYawF_2P', 'IPC_KI', 'IPC_KP', & 
-                                      'IPC_IntSat', 'PC_State', 'PitCom', 'PitCom_SD', 'PitComAct', & 
-                                      'SS_DelOmegaF', 'TestType', 'Kp_Float', 'VS_MaxTq', 'VS_LastGenTrq', & 
-                                      'VS_LastGenPwr', 'VS_MechGenPwr', 'VS_SpdErrAr', 'VS_SpdErrBr', 'VS_SpdErr', & 
-                                      'VS_State', 'VS_Rgn3Pitch', 'WE_Vw', 'WE_Vw_F', 'WE_VwI', & 
-                                      'WE_VwIdot', 'WE_Op', 'WE_Op_Last', 'VS_LastGenTrqF', 'PRC_WSE_F', & 
-                                      'PRC_R_Speed', 'PRC_R_Torque', 'PRC_R_Pitch', 'PRC_R_Total', 'PRC_Min_Pitch', & 
-                                      'PS_Min_Pitch', 'OL_Index', 'SD_Trigger', 'SD_BlPitchF', 'SD_NacVaneF', & 
-                                      'SD_GenSpeedF', 'GenTq_SD', 'Fl_PitCom', 'NACIMU_FA_AccF', 'FA_AccF', & 
-                                      'FA_Hist', 'TRA_LastRefSpd', 'VS_RefSpeed', 'PtfmTDX', 'PtfmTDY', & 
-                                      'PtfmTDZ', 'PtfmRDX', 'PtfmRDY', 'PtfmRDZ', 'PtfmTVX', & 
-                                      'PtfmTVY', 'PtfmTVZ', 'PtfmRVX', 'PtfmRVY', 'PtfmRVZ', & 
-                                      'PtfmTAX', 'PtfmTAY', 'PtfmTAZ', 'PtfmRAX', 'PtfmRAY', & 
-                                      'PtfmRAZ', 'CC_DesiredL', 'CC_ActuatedL', 'CC_ActuatedDL', 'StC_Input', & 
-                                      'Flp_Angle', 'RootMyb_Last', 'ACC_INFILE_SIZE', 'AWC_complexangle', 'ZMQ_ID', & 
-                                      'ZMQ_YawOffset', 'ZMQ_TorqueOffset', 'ZMQ_PitOffset', 'ZMQ_R_Speed', 'ZMQ_R_Torque', & 
-                                      'ZMQ_R_Pitch']
+
+    LocalVarOutStrings(1) = 'iStatus'
+    LocalVarOutStrings(2) = 'AlreadyInitialized'
+    LocalVarOutStrings(3) = 'RestartWSE'
+    LocalVarOutStrings(4) = 'Time'
+    LocalVarOutStrings(5) = 'DT'
+    LocalVarOutStrings(6) = 'n_DT'
+    LocalVarOutStrings(7) = 'Time_Last'
+    LocalVarOutStrings(8) = 'VS_GenPwr'
+    LocalVarOutStrings(9) = 'VS_GenPwrF'
+    LocalVarOutStrings(10) = 'GenSpeed'
+    LocalVarOutStrings(11) = 'RotSpeed'
+    LocalVarOutStrings(12) = 'NacHeading'
+    LocalVarOutStrings(13) = 'NacVane'
+    LocalVarOutStrings(14) = 'NacVaneF'
+    LocalVarOutStrings(15) = 'HorWindV'
+    LocalVarOutStrings(16) = 'HorWindV_F'
+    LocalVarOutStrings(17) = 'rootMOOP'
+    LocalVarOutStrings(18) = 'rootMOOPF'
+    LocalVarOutStrings(19) = 'BlPitch'
+    LocalVarOutStrings(20) = 'BlPitchCMeas'
+    LocalVarOutStrings(21) = 'Azimuth'
+    LocalVarOutStrings(22) = 'OL_Azimuth'
+    LocalVarOutStrings(23) = 'AzUnwrapped'
+    LocalVarOutStrings(24) = 'AzError'
+    LocalVarOutStrings(25) = 'GenTqAz'
+    LocalVarOutStrings(26) = 'AzBuffer'
+    LocalVarOutStrings(27) = 'NumBl'
+    LocalVarOutStrings(28) = 'FA_Acc'
+    LocalVarOutStrings(29) = 'NacIMU_FA_Acc'
+    LocalVarOutStrings(30) = 'FA_AccHPF'
+    LocalVarOutStrings(31) = 'FA_AccHPFI'
+    LocalVarOutStrings(32) = 'FA_PitCom'
+    LocalVarOutStrings(33) = 'VS_RefSpd'
+    LocalVarOutStrings(34) = 'VS_RefSpd_TSR'
+    LocalVarOutStrings(35) = 'VS_RefSpd_TRA'
+    LocalVarOutStrings(36) = 'VS_RefSpd_RL'
+    LocalVarOutStrings(37) = 'PC_RefSpd'
+    LocalVarOutStrings(38) = 'PC_RefSpd_SS'
+    LocalVarOutStrings(39) = 'PC_RefSpd_PRC'
+    LocalVarOutStrings(40) = 'RotSpeedF'
+    LocalVarOutStrings(41) = 'GenSpeedF'
+    LocalVarOutStrings(42) = 'GenTq'
+    LocalVarOutStrings(43) = 'GenTqMeas'
+    LocalVarOutStrings(44) = 'GenArTq'
+    LocalVarOutStrings(45) = 'GenBrTq'
+    LocalVarOutStrings(46) = 'IPC_PitComF'
+    LocalVarOutStrings(47) = 'PC_KP'
+    LocalVarOutStrings(48) = 'PC_KI'
+    LocalVarOutStrings(49) = 'PC_KD'
+    LocalVarOutStrings(50) = 'PC_TF'
+    LocalVarOutStrings(51) = 'PC_MaxPit'
+    LocalVarOutStrings(52) = 'PC_MinPit'
+    LocalVarOutStrings(53) = 'PC_PitComT'
+    LocalVarOutStrings(54) = 'PC_PitComT_Last'
+    LocalVarOutStrings(55) = 'PC_PitComTF'
+    LocalVarOutStrings(56) = 'PC_PitComT_IPC'
+    LocalVarOutStrings(57) = 'PC_PwrErr'
+    LocalVarOutStrings(58) = 'PC_SpdErr'
+    LocalVarOutStrings(59) = 'IPC_AxisTilt_1P'
+    LocalVarOutStrings(60) = 'IPC_AxisYaw_1P'
+    LocalVarOutStrings(61) = 'IPC_AxisTilt_2P'
+    LocalVarOutStrings(62) = 'IPC_AxisYaw_2P'
+    LocalVarOutStrings(63) = 'axisTilt_1P'
+    LocalVarOutStrings(64) = 'axisYaw_1P'
+    LocalVarOutStrings(65) = 'axisYawF_1P'
+    LocalVarOutStrings(66) = 'axisTilt_2P'
+    LocalVarOutStrings(67) = 'axisYaw_2P'
+    LocalVarOutStrings(68) = 'axisYawF_2P'
+    LocalVarOutStrings(69) = 'IPC_KI'
+    LocalVarOutStrings(70) = 'IPC_KP'
+    LocalVarOutStrings(71) = 'IPC_IntSat'
+    LocalVarOutStrings(72) = 'PC_State'
+    LocalVarOutStrings(73) = 'PitCom'
+    LocalVarOutStrings(74) = 'PitCom_SD'
+    LocalVarOutStrings(75) = 'PitComAct'
+    LocalVarOutStrings(76) = 'SS_DelOmegaF'
+    LocalVarOutStrings(77) = 'TestType'
+    LocalVarOutStrings(78) = 'Kp_Float'
+    LocalVarOutStrings(79) = 'VS_MaxTq'
+    LocalVarOutStrings(80) = 'VS_LastGenTrq'
+    LocalVarOutStrings(81) = 'VS_LastGenPwr'
+    LocalVarOutStrings(82) = 'VS_MechGenPwr'
+    LocalVarOutStrings(83) = 'VS_SpdErrAr'
+    LocalVarOutStrings(84) = 'VS_SpdErrBr'
+    LocalVarOutStrings(85) = 'VS_SpdErr'
+    LocalVarOutStrings(86) = 'VS_State'
+    LocalVarOutStrings(87) = 'VS_Rgn3Pitch'
+    LocalVarOutStrings(88) = 'WE_Vw'
+    LocalVarOutStrings(89) = 'WE_Vw_F'
+    LocalVarOutStrings(90) = 'WE_VwI'
+    LocalVarOutStrings(91) = 'WE_VwIdot'
+    LocalVarOutStrings(92) = 'WE_Op'
+    LocalVarOutStrings(93) = 'WE_Op_Last'
+    LocalVarOutStrings(94) = 'VS_LastGenTrqF'
+    LocalVarOutStrings(95) = 'PRC_WSE_F'
+    LocalVarOutStrings(96) = 'PRC_R_Speed'
+    LocalVarOutStrings(97) = 'PRC_R_Torque'
+    LocalVarOutStrings(98) = 'PRC_R_Pitch'
+    LocalVarOutStrings(99) = 'PRC_R_Total'
+    LocalVarOutStrings(100) = 'PRC_Min_Pitch'
+    LocalVarOutStrings(101) = 'PS_Min_Pitch'
+    LocalVarOutStrings(102) = 'OL_Index'
+    LocalVarOutStrings(103) = 'SD_Trigger'
+    LocalVarOutStrings(104) = 'SD_BlPitchF'
+    LocalVarOutStrings(105) = 'SD_NacVaneF'
+    LocalVarOutStrings(106) = 'SD_GenSpeedF'
+    LocalVarOutStrings(107) = 'GenTq_SD'
+    LocalVarOutStrings(108) = 'Fl_PitCom'
+    LocalVarOutStrings(109) = 'NACIMU_FA_AccF'
+    LocalVarOutStrings(110) = 'FA_AccF'
+    LocalVarOutStrings(111) = 'FA_Hist'
+    LocalVarOutStrings(112) = 'TRA_LastRefSpd'
+    LocalVarOutStrings(113) = 'VS_RefSpeed'
+    LocalVarOutStrings(114) = 'PtfmTDX'
+    LocalVarOutStrings(115) = 'PtfmTDY'
+    LocalVarOutStrings(116) = 'PtfmTDZ'
+    LocalVarOutStrings(117) = 'PtfmRDX'
+    LocalVarOutStrings(118) = 'PtfmRDY'
+    LocalVarOutStrings(119) = 'PtfmRDZ'
+    LocalVarOutStrings(120) = 'PtfmTVX'
+    LocalVarOutStrings(121) = 'PtfmTVY'
+    LocalVarOutStrings(122) = 'PtfmTVZ'
+    LocalVarOutStrings(123) = 'PtfmRVX'
+    LocalVarOutStrings(124) = 'PtfmRVY'
+    LocalVarOutStrings(125) = 'PtfmRVZ'
+    LocalVarOutStrings(126) = 'PtfmTAX'
+    LocalVarOutStrings(127) = 'PtfmTAY'
+    LocalVarOutStrings(128) = 'PtfmTAZ'
+    LocalVarOutStrings(129) = 'PtfmRAX'
+    LocalVarOutStrings(130) = 'PtfmRAY'
+    LocalVarOutStrings(131) = 'PtfmRAZ'
+    LocalVarOutStrings(132) = 'CC_DesiredL'
+    LocalVarOutStrings(133) = 'CC_ActuatedL'
+    LocalVarOutStrings(134) = 'CC_ActuatedDL'
+    LocalVarOutStrings(135) = 'StC_Input'
+    LocalVarOutStrings(136) = 'Flp_Angle'
+    LocalVarOutStrings(137) = 'RootMyb_Last'
+    LocalVarOutStrings(138) = 'ACC_INFILE_SIZE'
+    LocalVarOutStrings(139) = 'AWC_complexangle'
+    LocalVarOutStrings(140) = 'ZMQ_ID'
+    LocalVarOutStrings(141) = 'ZMQ_YawOffset'
+    LocalVarOutStrings(142) = 'ZMQ_TorqueOffset'
+    LocalVarOutStrings(143) = 'ZMQ_PitOffset'
+    LocalVarOutStrings(144) = 'ZMQ_R_Speed'
+    LocalVarOutStrings(145) = 'ZMQ_R_Torque'
+    LocalVarOutStrings(146) = 'ZMQ_R_Pitch'
     ! Initialize debug file
     IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN ! .TRUE. if we're on the first call to the DLL
         IF (CntrPar%LoggingLevel > 0) THEN
