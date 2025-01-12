@@ -8,8 +8,8 @@ from __future__ import print_function
 import os, platform
 import multiprocessing as mp
 
-from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
-from rosco.toolbox.ofTools.fast_io.FAST_writer import InputWriter_OpenFAST
+from openfast_io.FAST_reader import InputReader_OpenFAST
+from openfast_io.FAST_writer import InputWriter_OpenFAST
 from rosco.toolbox.ofTools.fast_io.FAST_wrapper import FAST_wrapper
 
 # TODO: import weis and use library, import pCrunch and re-enable post-processing features available here

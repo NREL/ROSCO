@@ -20,7 +20,7 @@ from rosco.toolbox import controller as ROSCO_controller
 from rosco.toolbox import turbine as ROSCO_turbine
 
 try:
-    from weis.aeroelasticse.runFAST_pywrapper   import runFAST_pywrapper_batch
+    from openfast_io.runFAST_pywrapper   import runFAST_pywrapper_batch
     in_weis = True
 except Exception as e:
     from rosco.toolbox.ofTools.case_gen.runFAST_pywrapper   import runFAST_pywrapper_batch
