@@ -19,7 +19,8 @@ from rosco.toolbox.inputs.validation import load_rosco_yaml
 from rosco.toolbox.ofTools.fast_io import output_processing 
 from rosco.toolbox.ofTools.case_gen.CaseLibrary import set_channels
 from rosco.toolbox.ofTools.case_gen.CaseGen_General import CaseGen_General
-from rosco.toolbox.ofTools.fast_io.FAST_writer import InputReader_OpenFAST, InputWriter_OpenFAST
+from openfast_io.FAST_reader import InputReader_OpenFAST
+from openfast_io.FAST_writer import InputWriter_OpenFAST
 from rosco.toolbox.utilities import run_openfast
 
 

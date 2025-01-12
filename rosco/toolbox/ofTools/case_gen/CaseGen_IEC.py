@@ -152,7 +152,7 @@ class CaseGen_IEC():
             _, V_e50, V_e1, V_50, V_1   = iecwind_ex.EWM(0.)
 
             if dlc == 1.4:
-                case_inputs_i[("AeroDyn15","AFAeroMod")]= {'vals':[1], 'group':0}
+                case_inputs_i[("AeroDyn","AFAeroMod")]= {'vals':[1], 'group':0}
 
 
             if dlc == 5.1:
