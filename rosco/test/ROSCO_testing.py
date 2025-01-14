@@ -547,8 +547,8 @@ if __name__=='__main__':
     ## =================== INITIALIZATION ===================
     # Setup simulation parameters
     rt.namebase = 'IEA-15MW'     # Base name for FAST files 
-    rt.FAST_exe = '/Users/mchetan/Desktop/nrel/projects/2-weis/env/weis-openfast_io_dev/bin/openfast'     # OpenFAST executable path
-    rt.Turbsim_exe = '/Users/mchetan/Desktop/nrel/projects/2-weis/env/weis-openfast_io_dev/bin/turbsim'   # Turbsim executable path
+    rt.FAST_exe = 'openfast'     # OpenFAST executable path
+    rt.Turbsim_exe = 'turbsim'   # Turbsim executable path
     # path to compiled ROSCO controller
     if platform.system() == 'Windows':
         sfx = 'dll'
