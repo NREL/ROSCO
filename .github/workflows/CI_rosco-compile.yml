@@ -150,7 +150,7 @@ jobs:
           
             - name: Install OpenFAST
               run: |
-                  conda install openfast==3.5.3
+                  conda install openfast=4.0
           
             - name: Generate Registry
               run: |
