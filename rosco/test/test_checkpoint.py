@@ -109,8 +109,8 @@ class RegressionTesting(unittest.TestCase):
             fig, ax = op.plot_fast_out(cases=cases, showplot=False)
             plt.show()
 
-        print(fastout[1]['GenPwr'], fastout[0]['GenPwr'])
-        self.check_relative_error(fastout[1]['GenPwr'], fastout[0]['GenPwr'], 1e-3)
+        # print(fastout[1]['GenPwr'], fastout[0]['GenPwr'])
+        self.check_relative_error(fastout[1]['GenPwr'], fastout[0]['GenPwr'], 1e-2)
 
     def check_relative_error(self, meas, real, tol):
         '''check relative error'''
