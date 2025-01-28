@@ -132,7 +132,7 @@ jobs:
             - name: Add dependencies windows specific
               if: contains( matrix.os, 'windows')
               run: |
-                  conda install -y gfortran gcc libpython
+                  conda install -y gfortran gcc libpython m2-pkg-config
                   gfortran --version
                   ls C:/Users/runneradmin/miniconda3/envs/test/Library/lib/*zmq*
                   
