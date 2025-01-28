@@ -132,9 +132,9 @@ jobs:
             - name: Add dependencies windows specific
               if: contains( matrix.os, 'windows')
               run: |
-                  conda install -y compilers libpython
-              #    conda install -y gfortran gcc libpython
-              #    gfortran --version
+                  conda install -y gfortran gcc libpython
+                  gfortran --version
+                  ls C:/Users/runneradmin/miniconda3/envs/test/Library/lib/*zmq*
                   
             - name: Add dependencies mac specific
               if: contains( matrix.os, 'mac')
@@ -146,11 +146,11 @@ jobs:
             - name: Debug
               run: |
                   conda list
-                  printenv
+                  printenv | sort
                     
             - name: Conda Install ROSCO
               run: |
-                  python -m pip install -e .
+                  python -m pip install -e . --no-build-isolation
           
             - name: Generate Registry
               run: |
