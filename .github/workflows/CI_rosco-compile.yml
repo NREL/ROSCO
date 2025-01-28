@@ -132,8 +132,9 @@ jobs:
             - name: Add dependencies windows specific
               if: contains( matrix.os, 'windows')
               run: |
-                  conda install -y gfortran gcc libpython
-                  gfortran --version
+                  conda install -y compilers libpython
+              #    conda install -y gfortran gcc libpython
+              #    gfortran --version
                   
             - name: Add dependencies mac specific
               if: contains( matrix.os, 'mac')
