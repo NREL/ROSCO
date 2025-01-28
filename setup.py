@@ -44,9 +44,9 @@ else:
 #    python_root = os.path.dirname( os.path.dirname( sysconfig.get_path('stdlib') ) )
 #    cmake_args += [f'-DCMAKE_PREFIX_PATH={python_root}']
 
-if platform.system() == 'Windows':
-    if "FC" not in os.environ:
-        os.environ["FC"] = "gfortran"
+#if platform.system() == 'Windows':
+#    if "FC" not in os.environ:
+#        os.environ["FC"] = "gfortran"
 
     #if "gfortran" in os.environ["FC"].lower():
     #    cmake_args += ['-G', 'MinGW Makefiles']

@@ -107,20 +107,20 @@ def base_op_case():
 
     # AeroDyn
     if False:
-        case_inputs[("AeroDyn15", "WakeMod")] = {'vals': [1], 'group': 0}
-        case_inputs[("AeroDyn15", "AFAeroMod")] = {'vals': [2], 'group': 0}
-        case_inputs[("AeroDyn15", "TwrPotent")] = {'vals': [0], 'group': 0}
-        case_inputs[("AeroDyn15", "TwrShadow")] = {'vals': ['False'], 'group': 0}
-        case_inputs[("AeroDyn15", "TwrAero")] = {'vals': ['False'], 'group': 0}
-        case_inputs[("AeroDyn15", "SkewMod")] = {'vals': [1], 'group': 0}
-        case_inputs[("AeroDyn15", "TipLoss")] = {'vals': ['True'], 'group': 0}
-        case_inputs[("AeroDyn15", "HubLoss")] = {'vals': ['True'], 'group': 0}
-        case_inputs[("AeroDyn15", "TanInd")] = {'vals': ['True'], 'group': 0}
-        case_inputs[("AeroDyn15", "AIDrag")] = {'vals': ['True'], 'group': 0}
-        case_inputs[("AeroDyn15", "TIDrag")] = {'vals': ['True'], 'group': 0}
-        case_inputs[("AeroDyn15", "IndToler")] = {'vals': [1.e-5], 'group': 0}
-        case_inputs[("AeroDyn15", "MaxIter")] = {'vals': [5000], 'group': 0}
-        case_inputs[("AeroDyn15", "UseBlCm")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn", "WakeMod")] = {'vals': [1], 'group': 0}
+        case_inputs[("AeroDyn", "AFAeroMod")] = {'vals': [2], 'group': 0}
+        case_inputs[("AeroDyn", "TwrPotent")] = {'vals': [0], 'group': 0}
+        case_inputs[("AeroDyn", "TwrShadow")] = {'vals': ['False'], 'group': 0}
+        case_inputs[("AeroDyn", "TwrAero")] = {'vals': ['False'], 'group': 0}
+        case_inputs[("AeroDyn", "SkewMod")] = {'vals': [1], 'group': 0}
+        case_inputs[("AeroDyn", "TipLoss")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn", "HubLoss")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn", "TanInd")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn", "AIDrag")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn", "TIDrag")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn", "IndToler")] = {'vals': [1.e-5], 'group': 0}
+        case_inputs[("AeroDyn", "MaxIter")] = {'vals': [5000], 'group': 0}
+        case_inputs[("AeroDyn", "UseBlCm")] = {'vals': ['True'], 'group': 0}
 
     return case_inputs
 
@@ -194,7 +194,7 @@ def simp_step(**wind_case_opts):
     
     # wind inflow
     case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
-    case_inputs[("InflowWind","Filename_Uni")] = {'vals':step_wind_files, 'group':1}
+    case_inputs[("InflowWind","FileName_Uni")] = {'vals':step_wind_files, 'group':1}
 
     return case_inputs
 
@@ -238,7 +238,7 @@ def single_steps(discon_file,runDir, namebase,rosco_dll=''):
 
     # wind inflow
     case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
-    case_inputs[("InflowWind","Filename_Uni")] = {'vals':step_wind_files, 'group':1}
+    case_inputs[("InflowWind","FileName_Uni")] = {'vals':step_wind_files, 'group':1}
 
 def steps(**wind_case_opts):
     # Muliple steps in same simulation at time, wind breakpoints, this function adds zero-order hold, 100 seconds to end
@@ -301,7 +301,7 @@ def steps(**wind_case_opts):
 
     # wind inflow
     case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
-    case_inputs[("InflowWind","Filename_Uni")] = {'vals':[hh_wind.filename], 'group':0}
+    case_inputs[("InflowWind","FileName_Uni")] = {'vals':[hh_wind.filename], 'group':0}
 
     return case_inputs
 
@@ -354,7 +354,7 @@ def user_hh(**wind_case_opts):
     case_inputs = base_op_case()
     case_inputs[("Fst","TMax")] = {'vals':TMax, 'group':1}
     case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
-    case_inputs[("InflowWind","Filename_Uni")] = {'vals':wind_case_opts['wind_filenames'], 'group':1}
+    case_inputs[("InflowWind","FileName_Uni")] = {'vals':wind_case_opts['wind_filenames'], 'group':1}
 
     return case_inputs
 
@@ -387,7 +387,7 @@ def ramp(**wind_case_opts):
     case_inputs = base_op_case()
     case_inputs[("Fst","TMax")] = {'vals':[t_end], 'group':0}
     case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
-    case_inputs[("InflowWind","Filename_Uni")] = {'vals':[hh_wind.filename], 'group':0}
+    case_inputs[("InflowWind","FileName_Uni")] = {'vals':[hh_wind.filename], 'group':0}
 
     return case_inputs
 

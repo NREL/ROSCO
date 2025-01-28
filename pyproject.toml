@@ -53,6 +53,7 @@ dependencies = [
   "treon",
   "wisdem",
   "ruamel.yaml",
+  "openfast_io",
 ]
 
 # List additional groups of dependencies here (e.g. development
