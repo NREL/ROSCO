@@ -152,10 +152,6 @@ jobs:
               run: |
                   python -m pip install -e . --no-build-isolation
           
-            - name: Install OpenFAST
-              run: |
-                  conda install openfast=4.0
-          
             - name: Generate Registry
               run: |
                   python rosco/controller/rosco_registry/write_registry.py 
