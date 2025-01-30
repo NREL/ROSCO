@@ -28,7 +28,7 @@ Steps for the installation of the complete rosco toolset are:
     conda config --set ssl_verify no
 
     # Install necessary compilers
-    conda install -y m2w64-toolchain libpython  # windows
+    conda install -y gfortran gcc libpython m2-pkg-config  # windows
     conda install compilers                     # unix
 
 
