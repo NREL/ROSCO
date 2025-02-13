@@ -8,9 +8,7 @@ to the current version
 import os
 from rosco import discon_lib_path
 from rosco.toolbox import control_interface as ROSCO_ci
-#from rosco.toolbox import sim as ROSCO_sim
 from rosco.toolbox import turbine as ROSCO_turbine
-#import numpy as np
 
 def main():#directories
     this_dir            = os.path.dirname(os.path.abspath(__file__))

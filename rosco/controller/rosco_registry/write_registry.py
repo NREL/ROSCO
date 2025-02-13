@@ -44,7 +44,7 @@ def write_types(yfile):
             file.write('    {:<25s}     :: {:<25s}   ! {}\n'.format(f90type, atstr, reg[toptype][attype]['description']))
         file.write('END TYPE {}\n'.format(toptype))
         file.write('\n')
-    file.write('END MODULE ROSCO_Types')
+    file.write('END MODULE ROSCO_Types\n')
     file.close()
 
 def write_roscoio(yfile):
@@ -385,7 +385,7 @@ def write_roscoio(yfile):
 
     file.write("END SUBROUTINE Debug\n")
     file.write("\n")
-    file.write("END MODULE ROSCO_IO")
+    file.write("END MODULE ROSCO_IO\n")
     file.close()
 
 def check_size(main_attribute, sub_attribute):
