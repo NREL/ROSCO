@@ -20,6 +20,7 @@ MODULE SysSubs
 
     USE ROSCO_Types
     USE Constants
+    USE, INTRINSIC :: ISO_C_Binding
 
 
     IMPLICIT NONE
@@ -122,6 +123,9 @@ MODULE SysSubs
      
         ErrStat = ErrID_None
         ErrMsg = ''
+
+         ! Initialize ProcAddr
+        DLL%ProcAddr = C_NULL_FUNPTR
      
         ! Get the procedure addresses:
         do i=1,NWTC_MAX_DLL_PROC

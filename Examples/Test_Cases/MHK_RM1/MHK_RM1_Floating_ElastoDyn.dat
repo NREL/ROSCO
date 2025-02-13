@@ -81,6 +81,9 @@ True          PtfmYDOF    - Platform yaw rotation DOF (flag)
   195242474   PtfmRIner   - Platform inertia for roll tilt rotation about the platform CM (kg m^2)
   919435755   PtfmPIner   - Platform inertia for pitch tilt rotation about the platform CM (kg m^2)
  1053535885   PtfmYIner   - Platform inertia for yaw rotation about the platform CM (kg m^2)
+          0   PtfmXYIner  - Platform xy moment of inertia about the platform CM (=-int(xydm)) (kg m^2)
+          0   PtfmYZIner  - Platform yz moment of inertia about the platform CM (=-int(yzdm)) (kg m^2)
+          0   PtfmXZIner  - Platform xz moment of inertia about the platform CM (=-int(xzdm)) (kg m^2)
 ---------------------- BLADE ---------------------------------------------------
           8   BldNodes    - Number of blade nodes (per blade) used for analysis (-)
 "MHK_RM1_ElastoDyn_Blade.dat"    BldFile(1)    - Name of file containing properties for blade 1 (quoted string)
@@ -95,6 +98,17 @@ True          PtfmYDOF    - Platform yaw rotation DOF (flag)
           0   TeetHStP    - Rotor-teeter hard-stop position (degrees) [used only for 2 blades and when TeetMod=1]
           0   TeetSSSp    - Rotor-teeter soft-stop linear-spring constant (N-m/rad) [used only for 2 blades and when TeetMod=1]
           0   TeetHSSp    - Rotor-teeter hard-stop linear-spring constant (N-m/rad) [used only for 2 blades and when TeetMod=1]
+---------------------- YAW-FRICTION --------------------------------------------
+          0   YawFrctMod  - Yaw-friction model {0: none, 1: friction independent of yaw-bearing force and bending moment, 2: friction with Coulomb terms depending on yaw-bearing force and bending moment, 3: user defined model} (switch)
+        300   M_CSmax     - Maximum static Coulomb friction torque (N-m) [M_CSmax when YawFrctMod=1; |Fz|*M_CSmax when YawFrctMod=2 and Fz<0]
+          0   M_FCSmax    - Maximum static Coulomb friction torque proportional to yaw bearing shear force (N-m) [sqrt(Fx^2+Fy^2)*M_FCSmax; only used when YawFrctMod=2]
+          0   M_MCSmax    - Maximum static Coulomb friction torque proportional to yaw bearing bending moment (N-m) [sqrt(Mx^2+My^2)*M_MCSmax; only used when YawFrctMod=2]
+         40   M_CD        - Dynamic Coulomb friction moment (N-m) [M_CD when YawFrctMod=1; |Fz|*M_CD when YawFrctMod=2 and Fz<0]
+          0   M_FCD       - Dynamic Coulomb friction moment proportional to yaw bearing shear force (N-m) [sqrt(Fx^2+Fy^2)*M_FCD; only used when YawFrctMod=2]
+          0   M_MCD       - Dynamic Coulomb friction moment proportional to yaw bearing bending moment (N-m) [sqrt(Mx^2+My^2)*M_MCD; only used when YawFrctMod=2]
+          0   sig_v       - Linear viscous friction coefficient (N-m/(rad/s))
+          0   sig_v2      - Quadratic viscous friction coefficient (N-m/(rad/s)^2)
+          0   OmgCut      - Yaw angular velocity cutoff below which viscous friction is linearized (rad/s)
 ---------------------- DRIVETRAIN ----------------------------------------------
          92   GBoxEff     - Gearbox efficiency (%)
          53   GBRatio     - Gearbox ratio (-)

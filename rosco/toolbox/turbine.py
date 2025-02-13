@@ -21,6 +21,8 @@ import pandas as pd
 from rosco.toolbox.utilities import load_from_txt
 
 # Load OpenFAST readers
+from openfast_io import FileTools
+
 try:
     import weis.aeroelasticse
     use_weis = True
@@ -153,11 +155,11 @@ class Turbine():
             txt_filename: str, optional
                           filename for *.txt, only used if rot_source='txt'
         """
-        # Use weis if it exists
-        if use_weis:
-            from weis.aeroelasticse.FAST_reader import InputReader_OpenFAST
-        else:
-            from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+        # # Use weis if it exists
+        # if use_weis:
+        from openfast_io.FAST_reader import InputReader_OpenFAST # moving import here to avoid circular import
+        # else:
+        #     from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
 
         # Load OpenFAST model using the FAST_reader
         print('Loading FAST model: %s ' % FAST_InputFile)
@@ -183,7 +185,7 @@ class Turbine():
         else:
             Warning('No ElastoDyn or BeamDyn files were provided')
 
-        fast.read_AeroDyn15()
+        fast.read_AeroDyn()
 
         if fast.fst_vt['Fst']['CompServo']:
             fast.read_ServoDyn()
@@ -196,7 +198,7 @@ class Turbine():
             hd_file = os.path.normpath(os.path.join(fast.FAST_directory, fast.fst_vt['Fst']['HydroFile']))
             fast.read_HydroDyn(hd_file)
 
-        # fast.read_AeroDyn15()
+        # fast.read_AeroDyn()
         # fast.execute()
 
         # Use Performance tables if defined, otherwise use defaults
@@ -215,18 +217,18 @@ class Turbine():
         self.shearExp           = 0.2  #NOTE: HARD CODED 
         
         # Fluid density
-        if 'default' in str(fast.fst_vt['AeroDyn15']['AirDens']):
+        if 'default' in str(fast.fst_vt['AeroDyn']['AirDens']):
             if fast.fst_vt['Fst']['MHK']:
-                fast.fst_vt['AeroDyn15']['AirDens'] = fast.fst_vt['Fst']['WtrDens']
+                fast.fst_vt['AeroDyn']['AirDens'] = fast.fst_vt['Fst']['WtrDens']
             else:
-                fast.fst_vt['AeroDyn15']['AirDens'] = fast.fst_vt['Fst']['AirDens']
-        self.rho                = fast.fst_vt['AeroDyn15']['AirDens']
+                fast.fst_vt['AeroDyn']['AirDens'] = fast.fst_vt['Fst']['AirDens']
+        self.rho                = fast.fst_vt['AeroDyn']['AirDens']
 
         # Kinematic viscosity
-        if 'default' in str(fast.fst_vt['AeroDyn15']['KinVisc']):
-            fast.fst_vt['AeroDyn15']['KinVisc'] = fast.fst_vt['Fst']['KinVisc']
+        if 'default' in str(fast.fst_vt['AeroDyn']['KinVisc']):
+            fast.fst_vt['AeroDyn']['KinVisc'] = fast.fst_vt['Fst']['KinVisc']
             
-        self.mu                 = fast.fst_vt['AeroDyn15']['KinVisc']
+        self.mu                 = fast.fst_vt['AeroDyn']['KinVisc']
         self.Ng                 = fast.fst_vt['ElastoDyn']['GBRatio']
         self.GenEff             = fast.fst_vt['ServoDyn']['GenEff']
         self.GBoxEff            = fast.fst_vt['ElastoDyn']['GBoxEff']
@@ -284,7 +286,7 @@ class Turbine():
     # Load rotor performance data from CCBlade 
     def load_from_ccblade(self):
         '''
-        Loads rotor performance information by running cc-blade aerodynamic analysis. Designed to work with Aerodyn15 blade input files. 
+        Loads rotor performance information by running cc-blade aerodynamic analysis. Designed to work with AeroDyn blade input files. 
 
         Parameters:
         -----------
@@ -356,10 +358,8 @@ class Turbine():
         '''
         if use_weis:
             from weis.aeroelasticse import runFAST_pywrapper, CaseGen_General
-            from weis.aeroelasticse.Util import FileTools
         else:
             from rosco.toolbox.ofTools.case_gen import runFAST_pywrapper, CaseGen_General
-            from rosco.toolbox.ofTools.util import FileTools
         # Load pCrunch tools
         from pCrunch import Processing
 
@@ -384,10 +384,10 @@ class Turbine():
             case_inputs[('Fst','CompElast')] = {'vals': [1], 'group': 0}
         case_inputs[('Fst', 'OutFileFmt')] = {'vals': [2], 'group': 0}
 
-        # AeroDyn15
-        case_inputs[('AeroDyn15', 'WakeMod')] = {'vals': [1], 'group': 0}
-        case_inputs[('AeroDyn15', 'AfAeroMod')] = {'vals': [1], 'group': 0}
-        case_inputs[('AeroDyn15', 'TwrPotent')] = {'vals': [0], 'group': 0}
+        # AeroDyn
+        case_inputs[('AeroDyn', 'WakeMod')] = {'vals': [1], 'group': 0}
+        case_inputs[('AeroDyn', 'AfAeroMod')] = {'vals': [1], 'group': 0}
+        case_inputs[('AeroDyn', 'TwrPotent')] = {'vals': [0], 'group': 0}
         
         # ElastoDyn
         case_inputs[('ElastoDyn', 'FlapDOF1')] = {'vals': ['True'], 'group': 0}
@@ -459,7 +459,7 @@ class Turbine():
             "LSSGagFza", "RotTorq", "LSSGagMya", "LSSGagMza", 
             # ServoDyn
             "GenPwr", "GenTq",
-            # AeroDyn15
+            # AeroDyn
             "RtArea", "RtVAvgxh", "B1N3Clrnc", "B2N3Clrnc", "B3N3Clrnc",
             "RtFldCp", 'RtFldCq', 'RtFldCt', 'RtTSR', # NECESSARY
             # InflowWind
@@ -540,23 +540,23 @@ class Turbine():
         -----------
             self - note: needs to contain fast input file info provided by load_from_fast.
         '''
-        if use_weis:
-            from weis.aeroelasticse.FAST_reader import InputReader_OpenFAST
-        else:
-            from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+        # if use_weis:
+        from openfast_io.FAST_reader import InputReader_OpenFAST
+        # else:
+        #     from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
         from wisdem.ccblade.ccblade import CCAirfoil, CCBlade
 
         # Create CC-Blade Rotor
         r0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlSpn']) 
         chord = np.array(self.fast.fst_vt['AeroDynBlade']['BlChord'])
         theta = np.array(self.fast.fst_vt['AeroDynBlade']['BlTwist'])
-        # -- Adjust for Aerodyn15
+        # -- Adjust for AeroDyn
         r = r0 + self.Rhub
         af_idx = np.array(self.fast.fst_vt['AeroDynBlade']['BlAFID']).astype(int) - 1 #Reset to 0 index
 
         # Read OpenFAST Airfoil data, assumes AeroDyn > v15.03 and associated polars > v1.01
         af_dict = {}
-        for i, section in enumerate(self.fast.fst_vt['AeroDyn15']['af_data']):
+        for i, section in enumerate(self.fast.fst_vt['AeroDyn']['af_data']):
             if section[0]['NumTabs'] > 1:  # sections with multiple airfoil tables
                 reynolds_ref = self.turbine_params['reynolds_ref']
                 if reynolds_ref:  # default is 0
@@ -591,13 +591,16 @@ class Turbine():
                         precone=-self.precone, tilt=-self.tilt, yaw=self.yaw, shearExp=self.shearExp, hubHt=self.hubHt, nSector=nSector)
 
         # Save some additional blade data 
-        self.af_data = self.fast.fst_vt['AeroDyn15']['af_data']
+        self.af_data = self.fast.fst_vt['AeroDyn']['af_data']
         self.span = r 
         self.chord = chord
         self.twist = theta
         
         if self.fast.fst_vt['Fst']['CompElast'] ==1:
-            self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade']['BldFlDmp1']/100
+            if type(self.fast.fst_vt['ElastoDynBlade']) == list:
+                self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade'][0]['BldFlDmp1']/100
+            else:
+                self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade']['BldFlDmp1']/100
         elif self.fast.fst_vt['Fst']['CompElast'] ==2:
             self.bld_flapwise_damp = self.fast.fst_vt['BeamDynBlade']['mu5']
         
