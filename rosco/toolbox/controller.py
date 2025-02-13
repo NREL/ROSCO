@@ -575,11 +575,11 @@ class Controller():
                 Cd0[i,] = section[1]['Cd'][a0_ind]
                 Clp[i,] = section[2]['Cl'][a0_ind]
                 Cdp[i,] = section[2]['Cd'][a0_ind]
-                Ctrl_flp = float(section[2]['Ctrl'])
+                Ctrl_flp = float(section[2]['UserProp'])
             else:                           # sections without 3 flaps
                 Cl0[i,] = Clp[i,] = Clm[i,] = section[0]['Cl'][a0_ind]
                 Cd0[i,] = Cdp[i,] = Cdm[i,] = section[0]['Cd'][a0_ind]
-                Ctrl = float(section[0]['Ctrl'])
+                Ctrl = float(section[0]['UserProp'])
 
         # Find lift and drag coefficient slopes w.r.t. flap angle
         Kcl = (Clp - Cl0)/( (Ctrl_flp-Ctrl)*deg2rad )

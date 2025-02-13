@@ -19,7 +19,7 @@ from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
 from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 from rosco.toolbox.ofTools.fast_io import output_processing
 import numpy as np
-from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+from openfast_io.FAST_reader import InputReader_OpenFAST
 from rosco.toolbox.inputs.validation import load_rosco_yaml
 import matplotlib.pyplot as plt
 from rosco.toolbox.controller import OpenLoopControl

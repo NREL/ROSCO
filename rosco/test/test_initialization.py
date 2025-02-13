@@ -18,7 +18,7 @@ class UnitTesting(unittest.TestCase):
     def test_initialization(self):
         
         this_dir = os.path.dirname(os.path.abspath(__file__))
-        param_filename = os.path.join(this_dir,'../../Examples/Test_Cases/IEA-15-240-RWT-UMaineSemi/DISCON-UMaineSemi.IN')
+        param_filename = os.path.realpath(os.path.join(this_dir,'../../Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT-UMaineSemi/IEA-15-240-RWT-UMaineSemi_DISCON.IN'))
 
 
         # Load controller library

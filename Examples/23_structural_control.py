@@ -19,7 +19,7 @@ import os
 from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
 from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 #import numpy as np
-from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+from openfast_io.FAST_reader import InputReader_OpenFAST
 from rosco.toolbox.inputs.validation import load_rosco_yaml
 from rosco.toolbox.controller import OpenLoopControl
 
@@ -47,7 +47,7 @@ def main():
     reader.execute()
 
     reader.fst_vt['ServoDyn']['NumSStC'] = 3
-    reader.fst_vt['ServoDyn']['SStCfiles'] = ['StC-Force-Col1.dat', 'StC-Force-Col2.dat', 'StC-Force-Col3.dat']
+    reader.fst_vt['ServoDyn']['SStCfiles'] = ['../StC-Force-Col1.dat', '../StC-Force-Col2.dat', '../StC-Force-Col3.dat']
     # Add SStC file inputs
     for StC_file in reader.fst_vt['ServoDyn']['SStCfiles']:
         reader.fst_vt['SStC'].append(reader.read_StC(StC_file))

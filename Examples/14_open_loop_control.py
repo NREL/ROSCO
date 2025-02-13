@@ -91,6 +91,11 @@ def main():
     ### Run OpenFAST using aeroelasticse tools
     case_inputs = {}
     case_inputs[('ServoDyn','DLL_FileName')] = {'vals': [discon_lib_path], 'group': 0}
+    case_inputs[('ServoDyn','Ptch_Cntrl')] = {'vals': [1], 'group': 0}
+    case_inputs[('ServoDyn','YCMode')] = {'vals': [5], 'group': 0}
+    case_inputs[('ServoDyn','TYCOn')] = {'vals': [0], 'group': 0}
+    case_inputs[('ElastoDyn','YawDOF')] = {'vals': ['True'], 'group': 0}
+    
 
     # Apply all discon variables as case inputs
     discon_vt = ROSCO_utilities.DISCON_dict(
