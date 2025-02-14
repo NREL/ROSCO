@@ -85,7 +85,7 @@ def main():
     r.case_inputs[("ElastoDyn", "PtfmYDOF")] = {"vals": ["False"], "group": 0}
 
 
-    t_max = 80
+    t_max = 90
 
     run_dir = os.path.join(example_out_dir, "30_shutdown_demo/1_pitch")
 
@@ -94,7 +94,7 @@ def main():
     r.wind_case_opts = {
         "U_start": 25,
         "U_end": 50,
-        "t_start": 0,
+        "t_start": 10,
         "t_end": t_max,
     }
     r.case_inputs[("ElastoDyn", "BlPitch1")] = {"vals": [20.0], "group": 0}
