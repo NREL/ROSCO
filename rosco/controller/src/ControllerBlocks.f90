@@ -508,6 +508,46 @@ CONTAINS
 
     END FUNCTION PitchSaturation
 !-------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE Startup(LocalVar, CntrPar, objInst,ErrVar) 
+    ! Start up procedure of turbine
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
+        IMPLICIT NONE
+        ! Inputs
+        TYPE(ControlParameters),    INTENT(IN   )       :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar 
+        TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
+        TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
+        
+        ! Local Variables 
+        CHARACTER(*),PARAMETER           :: RoutineName = 'Startup'
+
+        LocalVar%SU_RotSpeedF = LPFilter(LocalVar%RotSpeed, LocalVar%DT, CntrPar%SU_RotorSpeedCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+
+        !Initialize startup stage variable
+        IF (LocalVar%iStatus == 0) THEN
+            ! Initilize startup stage variable to 1 to denote FreeWheeling
+            LocalVar%SU_Stage = 1
+        ENDIF
+        
+        IF ((LocalVar%SU_Stage == 1) .AND. &
+        (LocalVar%SU_RotSpeedF > CntrPar%SU_RotorSpeedThresh) .AND. &
+        (LocalVar%Time>=CntrPar%SU_FW_MinDuration)) THEN
+            LocalVar%SU_LoadStageStartTime = LocalVar%Time
+            LocalVar%SU_Stage = 2
+        ENDIF
+
+        IF ((LocalVar%SU_Stage .ge. 2) .AND. &
+        (LocalVar%Time >= LocalVar%SU_LoadStageStartTime + CntrPar%SU_LoadRampDuration(LocalVar%SU_Stage-1) + &
+        CntrPar%SU_LoadHoldDuration(LocalVar%SU_Stage-1)) .AND. &
+        (LocalVar%SU_Stage .le. CntrPar%SU_LoadStages_N+1)) THEN
+            LocalVar%SU_Stage = LocalVar%SU_Stage + 1
+            LocalVar%SU_LoadStageStartTime = LocalVar%Time
+        ENDIF
+        
+
+
+    END SUBROUTINE Startup
+!-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE Shutdown(LocalVar, CntrPar, objInst,ErrVar) 
     ! Check for shutdown
         USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances

@@ -101,7 +101,9 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
     IF (CntrPar%ZMQ_Mode > 0) THEN
         CALL UpdateZeroMQ(LocalVar, CntrPar, ErrVar)
     ENDIF
-    
+    IF (CntrPar%SU_Mode > 0) THEN
+        CALL Startup(LocalVar, CntrPar, objInst,ErrVar)
+    ENDIF
     IF (CntrPar%SD_Mode > 0) THEN
         CALL Shutdown(LocalVar, CntrPar, objInst,ErrVar)
     ENDIF

@@ -378,6 +378,7 @@ CONTAINS
         CALL ParseInput(FileLines,'PRC_Mode',        CntrPar%PRC_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'WE_Mode',         CntrPar%WE_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'PS_Mode',         CntrPar%PS_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'SU_Mode',         CntrPar%SU_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'SD_Mode',         CntrPar%SD_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'FL_Mode',         CntrPar%FL_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'TD_Mode',         CntrPar%TD_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
@@ -522,6 +523,16 @@ CONTAINS
         CALL ParseAry(  FileLines,  'PS_WindSpeeds',    CntrPar%PS_WindSpeeds,      CntrPar%PS_BldPitchMin_N,   accINFILE(1), ErrVar, CntrPar%PS_Mode == 0, UnEc)
         CALL ParseAry(  FileLines,  'PS_BldPitchMin',   CntrPar%PS_BldPitchMin,     CntrPar%PS_BldPitchMin_N,   accINFILE(1), ErrVar, CntrPar%PS_Mode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
+        
+        !------------ STARTUP ------------
+        CALL ParseInput(FileLines,  'SU_FW_Pitch',       CntrPar%SU_FW_Pitch,  accINFILE(1),   ErrVar, CntrPar%SU_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SU_FW_MinDuration', CntrPar%SU_FW_MinDuration,  accINFILE(1),   ErrVar, CntrPar%SU_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SU_RotorSpeedThresh',       CntrPar%SU_RotorSpeedThresh,  accINFILE(1),   ErrVar, CntrPar%SU_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SU_RotorSpeedCornerFreq',       CntrPar%SU_RotorSpeedCornerFreq,  accINFILE(1),   ErrVar, CntrPar%SU_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SU_LoadStages_N',       CntrPar%SU_LoadStages_N,  accINFILE(1),   ErrVar, CntrPar%SU_Mode == 0, UnEc)
+        CALL ParseAry(FileLines,  'SU_LoadStages',       CntrPar%SU_LoadStages, CntrPar%SU_LoadStages_N,  accINFILE(1),   ErrVar, CntrPar%SU_LoadStages_N == 0, UnEc)
+        CALL ParseAry(FileLines,  'SU_LoadRampDuration',       CntrPar%SU_LoadRampDuration, CntrPar%SU_LoadStages_N, accINFILE(1),   ErrVar, CntrPar%SU_LoadStages_N == 0, UnEc)
+        CALL ParseAry(FileLines,  'SU_LoadHoldDuration',       CntrPar%SU_LoadHoldDuration, CntrPar%SU_LoadStages_N, accINFILE(1),   ErrVar, CntrPar%SU_LoadStages_N == 0, UnEc)
 
         !------------ SHUTDOWN ------------
         CALL ParseInput(FileLines,  'SD_TimeActivate',       CntrPar%SD_TimeActivate,  accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)

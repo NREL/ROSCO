@@ -60,6 +60,7 @@ class Controller():
         self.SS_Mode            = controller_params['SS_Mode']
         self.WE_Mode            = controller_params['WE_Mode']
         self.PS_Mode            = controller_params['PS_Mode']
+        self.SU_Mode            = controller_params['SU_Mode']
         self.SD_Mode            = controller_params['SD_Mode']
         self.Fl_Mode            = controller_params['Fl_Mode']
         self.TD_Mode            = controller_params['TD_Mode']
