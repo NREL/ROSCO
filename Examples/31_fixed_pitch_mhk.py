@@ -206,7 +206,7 @@ def main():
     r.run_FAST()
 
     op = output_processing.output_processing()
-    fast_out = op.load_fast_out([os.path.join(run_dir,'RM1_MHK_FBP/power_curve/base/RM1_MHK_FBP_0.out')], tmin=0)
+    fast_out = op.load_fast_out([os.path.join(run_dir,'RM1_MHK_FBP_0.out')], tmin=0)
     fig, axs = plt.subplots(4,1)
     axs[0].plot(fast_out[0]['Time'], fast_out[0]['Wind1VelX'],             label='Constant Power Underspeed')
     axs[0].set_ylabel('Flow Speed [m/s]',rotation=0, labelpad=50)

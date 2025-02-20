@@ -55,6 +55,8 @@ this_dir = os.path.dirname(os.path.abspath(__file__))
 example_out_dir = os.path.join(this_dir, "examples_out")
 os.makedirs(example_out_dir, exist_ok=True)
 
+FULL_TEST = False
+
 
 def main():
     # Input yaml and output directory
@@ -109,7 +111,7 @@ def main():
     r.run_FAST()
 
     # Plot output
-    outfile = [os.path.join(run_dir, "IEA15MW", "ramp", "base", "IEA15MW_0.outb")]
+    outfile = [os.path.join(run_dir, "IEA15MW_0.outb")]
     cases = {}
     cases["Baseline"] = ["Wind1VelX", "BldPitch1", "GenTq", "RotSpeed", "GenPwr"]
     fast_out = output_processing.output_processing()

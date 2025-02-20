@@ -35,11 +35,9 @@ def main():
   case_inputs[('DISCON_in','IPC_SatMode')]   = {'vals': [0,1,2,3], 'group': 1}
   
   if FULL_TEST:
-    n_cores = 4
     t_start = 100
     t_end = 400
   else:
-    n_cores = 1
     t_start = 1
     t_end = 2
 
@@ -59,7 +57,7 @@ def main():
   r.case_inputs = case_inputs
   r.save_dir      = run_dir
   r.rosco_dir     = rosco_dir
-  r.n_cores = n_cores
+  r.n_cores = 4
   r.run_FAST()
 
 
@@ -67,7 +65,7 @@ def main():
   cases = {}
   cases['Baseline'] = ['Wind1VelX', 'BldPitch1', 'RootMyc1', 'RotSpeed']
 
-  out_files = [os.path.join(example_out_dir,example_name,f'NREL2p8/ramp/base/NREL2p8_{i_case}.outb') for i_case in range(4)]
+  out_files = [os.path.join(example_out_dir,example_name,f'NREL2p8_{i_case}.outb') for i_case in range(4)]
   op = output_processing.output_processing()
   fastout = op.load_fast_out(out_files, tmin=0)
   fig, ax = op.plot_fast_out(cases=cases,showplot=False)
