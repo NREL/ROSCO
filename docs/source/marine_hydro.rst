@@ -10,3 +10,36 @@ Here is some text
 .. figure:: /images/29_AWC.png
    :align: center
    :width: 90%
+
+
+Introduction
+---------------
+
+
+Over/Underspeed Reference Setpoints
+-----------------------------------
+
+
+Over/Underspeed Dynamics
+------------------------
+
+
+Fixed-Blade-Pitch (FBP) Control
+--------------------------------
+
+
+Alternate Region 3 Operating Schedules
+---------------------------------------
+
+Toolbox Implementation
+-----------------------
+
+ROSCO Implementation
+-----------------------
+
+Simulation Verification
+-----------------------
+
+Recommendations
+-----------------------
+
