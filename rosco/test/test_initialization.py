@@ -22,9 +22,9 @@ class UnitTesting(unittest.TestCase):
 
 
         # Load controller library
-        ci_1 = ROSCO_ci.ControllerInterface(discon_lib_path,param_filename=param_filename,sim_name='sim1')
+        ci_1 = ROSCO_ci.ControllerInterface(discon_lib_path,param_filename=param_filename,sim_name='init_sim1')
 
-        ci_2 = ROSCO_ci.ControllerInterface(discon_lib_path,param_filename=param_filename,sim_name='sim2')
+        ci_2 = ROSCO_ci.ControllerInterface(discon_lib_path,param_filename=param_filename,sim_name='init_sim2')
 
         # Check that the error is as expected
         assert("b'ROSCO:ERROR: This ROSCO dynamic library has already been loaded" == str(ci_2.avcMSG.raw).split('.')[0])

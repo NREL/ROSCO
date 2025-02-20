@@ -26,10 +26,8 @@ from openfast_io import FileTools
 try:
     import weis.aeroelasticse
     use_weis = True
-    print('Using weis.aeroelasticse in rosco.toolbox...')
 except:
     use_weis = False
-    print('Using ofTools in rosco.toolbox...')
 
 
 # Some useful constants
