@@ -10,10 +10,13 @@ Here is some text
 Introduction
 ---------------
 
-.. .. _cp_surface:
-.. .. figure:: /mhk_images/01_cp_surface.png
-..    :align: center
-..    :width: 90%
+Here, we detail the control of MHK turbines in above rated flow speeds.
+In below rated flow speeds, torque control is used to operate the turbine at it's maximum tip speed ratio (TSR) and pitch angle.
+
+For MHK turbines equipped with pitch actuators, those turbine can can use control schemes similar to those used by wind turbines, which reduce the Cp surface by increasing the pitch angle (black).
+For MHK turbines without pitch actuation, we provide a few control methods for controlling the power of the turbine using only torque control.
+Overspeed control increases the TSR along the fixed pitch line on the Cp surface below (blue circle) by decreasing the generator torque.
+Underspeed control decreases the TSR (red circle) by increasing the torque.
 
 .. _cp_surface_annotated:
 .. figure:: /mhk_images/02_cp_surface_annotated.png
@@ -24,15 +27,24 @@ Introduction
 Over/Underspeed Reference Setpoints
 -----------------------------------
 
+The steady state generator-speed setpoints are determined by the Cp contour.
+Overspeed achieves up to 3x rated speed, which has additional consequences for blade loads (e.g., cavitation)
+
 .. _cp_wg_sched:
 .. figure:: /mhk_images/03_cp_wg_sched.png
    :align: center
    :width: 90%
 
+Torque setpoints (:math:`\bar{\tau}`) determined by constant-power relationship :math:`\bar{\tau} = \frac{P_{rated}}{{\bar{\omega}}}`, where :math:`P_{rated}` is the rated power and :math:`\bar{\omega}` is the steady state generator speed.
+
 .. _cp_tg_sched:
 .. figure:: /mhk_images/04_cp_tg_sched.png
    :align: center
    :width: 90%
+
+In Region 3, the relationship between torque and speed are nonmonotic.
+Thus, more careful reference control design is required for managing the transition region.
+There are examples in the literature for saturation/smoothing during the transition region.
 
 .. _cp_wg_tg_sched:
 .. figure:: /mhk_images/05_cp_wg_tg_sched.png
@@ -48,6 +60,10 @@ Over/Underspeed Dynamics
 ..    :align: center
 ..    :width: 90%
 
+At each operating point, the sensitivity is computed using the gradients of the Cp surface.
+The first-order system decay rate is represented by a single pole on the real axis: more negative means more rapidly stable (positive means unstable).
+Underspeed set points are open-loop unstable at high flow speeds.
+
 .. _cp_Agen_sched_annotated:
 .. figure:: /mhk_images/07_cp_Agen_sched_annotated.png
    :align: center
@@ -58,6 +74,8 @@ Over/Underspeed Dynamics
 ..    :align: center
 ..    :width: 90%
 
+@DS: what is shown here?  
+
 .. _cp_wg_Ta_contour_annotated:
 .. figure:: /mhk_images/09_cp_wg_Ta_contour_annotated.png
    :align: center
@@ -66,6 +84,9 @@ Over/Underspeed Dynamics
 
 Fixed-Blade-Pitch (FBP) Control
 --------------------------------
+
+At each setpoint, the torque controller gains are determined using the process as the normal torque control in ROSCO.
+High magnitude gains are required to compensate for the open-loop instability of the underspeed system (red).
 
 .. _cp_kp_ki_sched:
 .. figure:: /mhk_images/10_cp_kp_ki_sched.png
