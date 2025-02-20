@@ -18,6 +18,8 @@ from rosco.toolbox.ofTools.fast_io import output_processing
 from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
 from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 
+FULL_TEST = False
+
 def main():
   this_dir          = os.path.dirname(os.path.abspath(__file__))
   rosco_dir         = os.path.dirname(this_dir)
@@ -32,6 +34,15 @@ def main():
   case_inputs[('ServoDyn','Ptch_Cntrl')]   = {'vals': [1], 'group': 0}
   case_inputs[('DISCON_in','IPC_SatMode')]   = {'vals': [0,1,2,3], 'group': 1}
   
+  if FULL_TEST:
+    n_cores = 4
+    t_start = 100
+    t_end = 400
+  else:
+    n_cores = 1
+    t_start = 1
+    t_end = 2
+
 
   # simulation set up
   r = run_FAST_ROSCO()
@@ -40,15 +51,15 @@ def main():
   r.wind_case_opts    = {
       'U_start': 11,  # from 10 to 15 m/s
       'U_end': 9,
-      't_start': 100,
-      't_end': 400,
+      't_start': t_start,
+      't_end': t_end,
       'both_dir': True,
       'vert_shear': 0.2
       }
   r.case_inputs = case_inputs
   r.save_dir      = run_dir
   r.rosco_dir     = rosco_dir
-  r.n_cores = 4
+  r.n_cores = n_cores
   r.run_FAST()
 
 
