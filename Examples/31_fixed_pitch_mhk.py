@@ -1,5 +1,5 @@
 '''
-30_fixed_pitch_mhk
+31_fixed_pitch_mhk
 ------------------
 
 This example demonstrates the fixed-pitch control of a marine hydrodkinetic (MHK) turbine.
