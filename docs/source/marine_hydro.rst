@@ -60,6 +60,28 @@ Note that the ROSCO input schema (:ref:`rt_tuning_yaml`) contains the latest inp
 ROSCO Implementation
 -----------------------
 
+The following DISCON parameters are generated using the ROSCO toolbox, or can be determined directly in the DISCON.IN file.
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * -  Parameter
+     -  Description
+   * -  VS_FBP
+     -  FBP Control Mode (0 = variable pitch, 1 = constant power overspeed (nonlinear), 2 = WSE-lookup reference tracking, 3 = torque-lookup reference tracking)
+   * -  VS_FBP_n
+     -  Number of values in operating schedule lookup table
+   * -  VS_FBP_U
+     -  Flow speed operating points in lookup table
+   * -  VS_FBP_Omega
+     -  Generator speed operating points in lookup table
+   * -  VS_FBP_Tau
+     -  Generator torque operating points in lookup table
+
+Note that the ROSCO input schema (:ref:`rt_tuning_yaml`) contains the latest input definitions (under :code:`controller_params`, :code:`DISCON`).
+
+
 Simulation Verification
 -----------------------
 
