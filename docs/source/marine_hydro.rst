@@ -15,7 +15,7 @@ Overspeed control increases the TSR along the fixed pitch line on the Cp surface
 Underspeed control decreases the TSR (red circle) by increasing the torque.
 
 .. _cp_surface_annotated:
-.. figure:: /mhk_images/02_cp_surface_annotated.png
+.. figure:: /images/mhk/02_cp_surface_annotated.png
    :align: center
    :width: 90%
 
@@ -27,14 +27,14 @@ The steady state generator-speed setpoints are determined by the Cp contour.
 Overspeed achieves up to 3x rated speed, which has additional consequences for blade loads (e.g., cavitation)
 
 .. _cp_wg_sched:
-.. figure:: /mhk_images/03_cp_wg_sched.png
+.. figure:: /images/mhk/03_cp_wg_sched.png
    :align: center
    :width: 90%
 
 Torque setpoints (:math:`\bar{\tau}`) determined by constant-power relationship :math:`\bar{\tau} = \frac{P_{rated}}{{\bar{\omega}}}`, where :math:`P_{rated}` is the rated power and :math:`\bar{\omega}` is the steady state generator speed.
 
 .. _cp_tg_sched:
-.. figure:: /mhk_images/04_cp_tg_sched.png
+.. figure:: /images/mhk/04_cp_tg_sched.png
    :align: center
    :width: 90%
 
@@ -43,7 +43,7 @@ Thus, more careful reference control design is required for managing the transit
 There are examples in the literature for saturation/smoothing during the transition region.
 
 .. _cp_wg_tg_sched:
-.. figure:: /mhk_images/05_cp_wg_tg_sched.png
+.. figure:: /images/mhk/05_cp_wg_tg_sched.png
    :align: center
    :width: 90%
 
@@ -52,7 +52,7 @@ Over/Underspeed Dynamics
 ------------------------
 
 .. .. _cp_Agen_sched:
-.. .. figure:: /mhk_images/06_cp_Agen_sched.png
+.. .. figure:: /images/mhk/06_cp_Agen_sched.png
 ..    :align: center
 ..    :width: 90%
 
@@ -61,19 +61,19 @@ The first-order system decay rate is represented by a single pole on the real ax
 Underspeed set points are open-loop unstable at high flow speeds.
 
 .. _cp_Agen_sched_annotated:
-.. figure:: /mhk_images/07_cp_Agen_sched_annotated.png
+.. figure:: /images/mhk/07_cp_Agen_sched_annotated.png
    :align: center
    :width: 90%
 
 .. .. _cp_wg_Ta_contour:
-.. .. figure:: /mhk_images/08_cp_wg_Ta_contour.png
+.. .. figure:: /images/mhk/08_cp_wg_Ta_contour.png
 ..    :align: center
 ..    :width: 90%
 
 @DS: what is shown here?  
 
 .. _cp_wg_Ta_contour_annotated:
-.. figure:: /mhk_images/09_cp_wg_Ta_contour_annotated.png
+.. figure:: /images/mhk/09_cp_wg_Ta_contour_annotated.png
    :align: center
    :width: 90%
 
@@ -85,7 +85,7 @@ At each setpoint, the torque controller gains are determined using the process a
 High magnitude gains are required to compensate for the open-loop instability of the underspeed system (red).
 
 .. _cp_kp_ki_sched:
-.. figure:: /mhk_images/10_cp_kp_ki_sched.png
+.. figure:: /images/mhk/10_cp_kp_ki_sched.png
    :align: center
    :width: 90%
 
@@ -96,35 +96,35 @@ Alternate Region 3 Operating Schedules
 Using the ROSCO toolbox, we enable the user to determine their own operational power curve, besides a constant rated power.
 
 .. _ext_P:
-.. figure:: /mhk_images/11_ext_P.png
+.. figure:: /images/mhk/11_ext_P.png
    :align: center
    :width: 90%
 
 The alternative power curves result in different speed and torque set points (dashed lines represent underspeed, solid overspeed).
 
 .. _ext_wg_sched_annotated:
-.. figure:: /mhk_images/16_ext_wg_sched_annotated.png
+.. figure:: /images/mhk/16_ext_wg_sched_annotated.png
    :align: center
    :width: 90%
 
 .. @DS: might not need this one, I'll leave the final revision decision to you.  I re-ordered, too
 .. .. _ext_wg_tg_sched:
-.. .. figure:: /mhk_images/12_ext_wg_tg_sched.png
+.. .. figure:: /images/mhk/12_ext_wg_tg_sched.png
 ..    :align: center
 ..    :width: 90%
 
 .. _ext_tg_sched:
-.. figure:: /mhk_images/17_ext_tg_sched.png
+.. figure:: /images/mhk/17_ext_tg_sched.png
    :align: center
    :width: 90%
 
 .. _ext_wg_tg_P_contour:
-.. figure:: /mhk_images/13_ext_wg_tg_P_contour.png
+.. figure:: /images/mhk/13_ext_wg_tg_P_contour.png
    :align: center
    :width: 90%
 
 .. .. _ext_wg_sched:
-.. .. figure:: /mhk_images/15_ext_wg_sched.png
+.. .. figure:: /images/mhk/15_ext_wg_sched.png
 ..    :align: center
 ..    :width: 90%
 
@@ -132,7 +132,7 @@ The stability can be represented by the sensitivity :math:`\frac{d\tau}{d\Omega}
 Values less than 0 are open-loop stable.  
 
 .. _ext_Agen_sched:
-.. figure:: /mhk_images/18_ext_Agen_sched.png
+.. figure:: /images/mhk/18_ext_Agen_sched.png
    :align: center
    :width: 90%
 
@@ -140,12 +140,12 @@ The power curve selection also impacts the rotor thrust (F).
 Underspeed control and lower power generally results in lower thrust.
 
 .. _ext_wg_thrust_contour:
-.. figure:: /mhk_images/19_ext_wg_thrust_contour.png
+.. figure:: /images/mhk/19_ext_wg_thrust_contour.png
    :align: center
    :width: 90%
 
 .. .. _ext_wg_thrust_sched:
-.. .. figure:: /mhk_images/20_ext_wg_thrust_sched.png
+.. .. figure:: /images/mhk/20_ext_wg_thrust_sched.png
 ..    :align: center
 ..    :width: 90%
 
@@ -156,7 +156,7 @@ Toolbox Implementation
 The ROSCO toolbox works by determining the speed and torque set points required to operate at a TSR and Cp for the desired power.
 
 .. _fbp_flow_chart:
-.. figure:: /mhk_images/14_fbp_flow_chart.png
+.. figure:: /images/mhk/14_fbp_flow_chart.png
    :align: center
    :width: 90%
 
@@ -226,7 +226,7 @@ The operating schedules for generator power, speed, and torque for each example
 test case are shown in the following figure. 
 
 .. _cases_P_wg_tg_sched:
-.. figure:: /mhk_images/21_cases_P_wg_tg_sched.png
+.. figure:: /images/mhk/21_cases_P_wg_tg_sched.png
    :align: center
    :width: 90%
 
@@ -236,7 +236,7 @@ of each controller is compared to the operating schedules generated by the ROSCO
 toolbox. The turbulent inflow uses the intensity shown in the following figure. 
 
 .. _turb_intensity:
-.. figure:: /mhk_images/25_turb_intensity.png
+.. figure:: /images/mhk/25_turb_intensity.png
    :align: center
    :width: 90%
 
@@ -251,7 +251,7 @@ the `k\Omega^2` control law sometimes used in Region 2 for wind and marine
 turbines. 
 
 .. _case1_P_wg_tg_ss:
-.. figure:: /mhk_images/22_case1_P_wg_tg_ss.png
+.. figure:: /images/mhk/22_case1_P_wg_tg_ss.png
    :align: center
    :width: 90%
 
@@ -259,7 +259,7 @@ This controller has the best power tracking in Region 3, but it only allows cons
 The power-focused feedback approach accommodates offsets in equilibrium speed and torque made by inaccuracies in the simplified tuning model. 
 
 .. _case1_P_wg_tg_turb:
-.. figure:: /mhk_images/26_case1_P_wg_tg_turb.png
+.. figure:: /images/mhk/26_case1_P_wg_tg_turb.png
    :align: center
    :width: 90%
 
@@ -274,7 +274,7 @@ The second example test case
 * The power curve may be arbitrarily specified, but should be a nondecreasing function so that the torque schedule is monotonically increasing
 
 .. _case2_P_wg_tg_ss:
-.. figure:: /mhk_images/23_case2_P_wg_tg_ss.png
+.. figure:: /images/mhk/23_case2_P_wg_tg_ss.png
    :align: center
    :width: 90%
 
@@ -286,7 +286,7 @@ The second example test case
 * Should be combined with reference-tracking controller in Region 2
 
 .. _case2_P_wg_tg_turb:
-.. figure:: /mhk_images/27_case2_P_wg_tg_turb.png
+.. figure:: /images/mhk/27_case2_P_wg_tg_turb.png
    :align: center
    :width: 90%
 
@@ -302,7 +302,7 @@ The third example test case
 
 
 .. _case3_P_wg_tg_ss:
-.. figure:: /mhk_images/24_case3_P_wg_tg_ss.png
+.. figure:: /images/mhk/24_case3_P_wg_tg_ss.png
    :align: center
    :width: 90%
 
@@ -313,7 +313,7 @@ The third example test case
 * Should be combined with reference-tracking controller in Region 2
 
 .. _case3_P_wg_tg_turb:
-.. figure:: /mhk_images/28_case3_P_wg_tg_turb.png
+.. figure:: /images/mhk/28_case3_P_wg_tg_turb.png
    :align: center
    :width: 90%
 
