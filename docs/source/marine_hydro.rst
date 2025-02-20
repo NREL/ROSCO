@@ -3,10 +3,6 @@
 ROSCO Control of Marine Hydrokinetic Turbines (MHKs)
 ====================================================
 
-
-Here is some text
-
-
 Introduction
 ---------------
 
@@ -97,13 +93,28 @@ High magnitude gains are required to compensate for the open-loop instability of
 Alternate Region 3 Operating Schedules
 ---------------------------------------
 
+Using the ROSCO toolbox, we enable the user to determine their own operational power curve, besides a constant rated power.
+
 .. _ext_P:
 .. figure:: /mhk_images/11_ext_P.png
    :align: center
    :width: 90%
 
-.. _ext_wg_tg_sched:
-.. figure:: /mhk_images/12_ext_wg_tg_sched.png
+The alternative power curves result in different speed and torque set points (dashed lines represent underspeed, solid overspeed).
+
+.. _ext_wg_sched_annotated:
+.. figure:: /mhk_images/16_ext_wg_sched_annotated.png
+   :align: center
+   :width: 90%
+
+.. @DS: might not need this one, I'll leave the final revision decision to you.  I re-ordered, too
+.. .. _ext_wg_tg_sched:
+.. .. figure:: /mhk_images/12_ext_wg_tg_sched.png
+..    :align: center
+..    :width: 90%
+
+.. _ext_tg_sched:
+.. figure:: /mhk_images/17_ext_tg_sched.png
    :align: center
    :width: 90%
 
@@ -117,34 +128,32 @@ Alternate Region 3 Operating Schedules
 ..    :align: center
 ..    :width: 90%
 
-.. _ext_wg_sched_annotated:
-.. figure:: /mhk_images/16_ext_wg_sched_annotated.png
-   :align: center
-   :width: 90%
-
-.. _ext_tg_sched:
-.. figure:: /mhk_images/17_ext_tg_sched.png
-   :align: center
-   :width: 90%
+The stability can be represented by the sensitivity :math:`\frac{d\tau}{d\Omega}`.
+Values less than 0 are open-loop stable.  
 
 .. _ext_Agen_sched:
 .. figure:: /mhk_images/18_ext_Agen_sched.png
    :align: center
    :width: 90%
 
+The power curve selection also impacts the rotor thrust (F).
+Underspeed control and lower power generally results in lower thrust.
+
 .. _ext_wg_thrust_contour:
 .. figure:: /mhk_images/19_ext_wg_thrust_contour.png
    :align: center
    :width: 90%
 
-.. _ext_wg_thrust_sched:
-.. figure:: /mhk_images/20_ext_wg_thrust_sched.png
-   :align: center
-   :width: 90%
+.. .. _ext_wg_thrust_sched:
+.. .. figure:: /mhk_images/20_ext_wg_thrust_sched.png
+..    :align: center
+..    :width: 90%
 
 
 Toolbox Implementation
 -----------------------
+
+The ROSCO toolbox works by determining the speed and torque set points required to operate at a TSR and Cp for the desired power.
 
 .. _fbp_flow_chart:
 .. figure:: /mhk_images/14_fbp_flow_chart.png
