@@ -16,27 +16,27 @@ Pitch Threshold Demo
 The following plot demonstrates turbine shutdown when blade pitch exceeds a threshold of 30 degrees.
 This shutdown mode can provide protection against high wind speeds.
 
-.. image:: ../images/30_shutdown_pitch_demo.png
+.. image:: ../images/examples/30_shutdown_pitch_demo.png
 
 Yaw Error Threshold Demo
 ````````````````````````
 The following plot demonstrates turbine shutdown when turbine yaw error pitch exceeds a threshold of 25 degrees.
 This demonstration uses the extreme coherent gust with direction change wind inflow used in DLC 1.4.
 
-.. image:: ../images/30_shutdown_yaw_demo.png
+.. image:: ../images/examples/30_shutdown_yaw_demo.png
 
 Generator Speed Threshold Demo
 ``````````````````````````````
 The following plot demonstrates turbine shutdown when generator speed exceeds a threshold of 8.5 rpm.
 This also compares the use of :code:`SD_TimeActive` to enable shutdown at 0 seconds and 10 seconds.
 
-.. image:: ../images/30_shutdown_gen_demo.png
+.. image:: ../images/examples/30_shutdown_gen_demo.png
 
 Time Demo
 `````````
 The following plot demonstrates turbine shutdown at 20 second time.
 
-.. image:: ../images/30_shutdown_time_demo.png
+.. image:: ../images/examples/30_shutdown_time_demo.png
 
 """
 

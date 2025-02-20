@@ -14,14 +14,16 @@ In this example we demonstrate the following control configurations:
 #. Generic numeric function
 #. Constant power overspeed, nonlinear lookup table control
 
+More details about the controller methods can be found in :ref:`marine_hydro`.
+
 The desired power curves of each configuration are as follows:
 
-.. image:: ../images/30_fixed_pitch_mhk_sched.png
+.. image:: ../images/examples/31_fixed_pitch_mhk_sched.png
 
 In the first case, the reference generator speed is decreased (underspeed) to maintain a constant rated power above rated.
 To slow down the generator, a higher torque must be used:
 
-.. image:: ../images/30_fixed_pitch_mhk_sim.png
+.. image:: ../images/examples/31_fixed_pitch_mhk_sim.png
 
 
 
