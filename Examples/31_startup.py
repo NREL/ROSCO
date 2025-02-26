@@ -1,5 +1,10 @@
 """
-
+31_Startup
+----------------
+This example demonstrates turbine startup procedure
+Turbine startup occurs in the following stages:
+Stage 1: Free-Wheeling (PRC_R_Torque is set to 0 and blade pitch is set to SU_FW_Pitch)
+Stage 2 - (SU_LoadStages_N+1): PRC_R_Torque is set to values in SU_LoadStages
 """
 
 import os
@@ -37,15 +42,15 @@ def main():
     # controller_params["DISCON"]["SU_LoadRampDuration"] = [0]
     # controller_params["DISCON"]["SU_LoadHoldDuration"] = [0]
 
-    controller_params["DISCON"]["SU_LoadStages_N"] = 1
-    controller_params["DISCON"]["SU_LoadStages"] = 0.2
-    controller_params["DISCON"]["SU_LoadRampDuration"] = 20
-    controller_params["DISCON"]["SU_LoadHoldDuration"] = 20
+    # controller_params["DISCON"]["SU_LoadStages_N"] = 1
+    # controller_params["DISCON"]["SU_LoadStages"] = 0.2
+    # controller_params["DISCON"]["SU_LoadRampDuration"] = 20
+    # controller_params["DISCON"]["SU_LoadHoldDuration"] = 20
     
-    # controller_params["DISCON"]["SU_LoadStages_N"] = 2
-    # controller_params["DISCON"]["SU_LoadStages"] = [0.2, 0.6]
-    # controller_params["DISCON"]["SU_LoadRampDuration"] = [10,10]
-    # controller_params["DISCON"]["SU_LoadHoldDuration"] = [10,10]
+    controller_params["DISCON"]["SU_LoadStages_N"] = 2
+    controller_params["DISCON"]["SU_LoadStages"] = [0.2, 0.6]
+    controller_params["DISCON"]["SU_LoadRampDuration"] = [10,10]
+    controller_params["DISCON"]["SU_LoadHoldDuration"] = [10,10]
 
 
     # simulation set up
@@ -71,12 +76,12 @@ def main():
     r.wind_case_opts = {
         "U_start": 10,
         "U_end": 10,
-        "t_start": 0,
+        "t_start": 10,
         "t_end": t_max,
     }
-    r.case_inputs[("ElastoDyn", "BlPitch1")] = {"vals": [20], "group": 0}
-    r.case_inputs[("ElastoDyn", "BlPitch2")] = {"vals": [20], "group": 0}
-    r.case_inputs[("ElastoDyn", "BlPitch3")] = {"vals": [20], "group": 0}
+    r.case_inputs[("ElastoDyn", "BlPitch1")] = {"vals": [0], "group": 0}
+    r.case_inputs[("ElastoDyn", "BlPitch2")] = {"vals": [0], "group": 0}
+    r.case_inputs[("ElastoDyn", "BlPitch3")] = {"vals": [0], "group": 0}
     r.case_inputs[("ElastoDyn", "RotSpeed")] = {"vals": [7.0], "group": 0}
 
     # Run simulation 
