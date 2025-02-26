@@ -297,7 +297,6 @@ CONTAINS
                     LocalVar%PRC_R_Torque = 1.0_DbKi
                 ENDIF
             ENDIF
-            LocalVar%GenTq = LocalVar%PRC_R_Torque*CntrPar%VS_RtTq
         ENDIF
         
         ! Shutdown
