@@ -1,5 +1,5 @@
 ! Controller parameter input file for the IEA-15-240-RWT-UMaineSemi wind turbine
-!    - File written using ROSCO version 2.9.4 controller tuning logic on 02/26/25
+!    - File written using ROSCO version 2.9.4 controller tuning logic on 02/28/25
 
 !------- SIMULATION CONTROL ------------------------------------------------------------
 2                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}
@@ -149,7 +149,7 @@
 0.785400000000        ! SU_FW_Pitch          - Free-wheel pitch angle for startup, [rad]
 20.00000000000        ! SU_FW_MinDuration    - Free-wheel minimum duration, [s]
 0.100000000000        ! SU_RotorSpeedThresh  - Rotor speed threshhold to switch from freewheel to loads, [rad/s]
-0.100000000000        ! SU_RotorSpeedCornerFreq  - Cutoff Frequency for first order low-pass filter for rotor speed for startup, [rad/s]
+0.418880000000        ! SU_RotorSpeedCornerFreq  - Cutoff Frequency for first order low-pass filter for rotor speed for startup, [rad/s]
 1                   ! SU_LoadStages_N  - Number of load staged for startup (should equal number of values in SU_LoadStages, SU_LoadRampDuration and SU_LoadHoldDuration)
 0.2000              ! SU_LoadStages  - Array containing loads as a fraction of full generator torque during startup
 10.0000             ! SU_LoadRampDuration  - Array containing ramp duration to reach the corresponding partial loads during startup
