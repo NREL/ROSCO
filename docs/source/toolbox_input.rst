@@ -1067,12 +1067,53 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution. Do 
 :code:`PS_BldPitchMin` : Array of Floats
     Minimum blade pitch angles
 
+:code:`SD_TimeActivate` : Float, s
+    Time to acitvate shutdown modes
+
+:code:`SD_EnablePitch` : Int
+    Shutdown when collective blade pitch exceeds a threshold
+
+:code:`SD_EnablePitch` : Int
+    Shutdown when collective blade pitch exceeds a threshold
+
+:code:`SD_EnableYawError` : Int
+    Shutdown when yaw error exceeds a threshold
+
+:code:`SD_EnableGenSpeed` : Int
+    Shutdown when generator speed exceeds a threshold
+
+:code:`SD_EnableTime` : Int
+    Shutdown at a predefined time
+
 :code:`SD_MaxPit` : Float, rad
     Maximum blade pitch angle to initiate shutdown
 
-:code:`SD_CornerFreq` : Float, rad/s
-    Cutoff Frequency for first order low-pass filter for blade pitch
-    angle
+:code:`SD_PitchCornerFreq` : Float, rad/s
+    Cutoff Frequency for first order low-pass filter for blade pitch angle for shutdown,
+
+:code:`SD_MaxYawError` : Float, deg
+    Maximum yaw error to initiate shutdown
+
+:code:`SD_YawErrorCornerFreq` : Float, rad/s
+    Cutoff Frequency for first order low-pass filter for yaw error for shutdown
+
+:code:`SD_MaxGenSpd` : Float, rad/s
+    Maximum generator speed to initiate shutdown
+
+:code:`SD_GenSpdCornerFreq` : Float, rad/s
+    Cutoff Frequency for first order low-pass filter for generator speed for shutdown
+
+:code:`SD_Time` : Float, s
+    Shutdown time
+
+:code:`SD_Method` : Int
+    Shutdown method {1- Reduce generator torque and increase blade pitch}
+
+:code:`SD_MaxTorqueRate` : Float, Nm/s
+    Maximum torque rate for shutdown
+
+:code:`SD_MaxPitchRate` : Float, rad/s
+    Maximum pitch rate used for shutdown
 
 :code:`Fl_n` : Float, s
     Number of Fl_Kp gains in gain scheduling, optional with default of

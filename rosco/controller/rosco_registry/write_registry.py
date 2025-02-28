@@ -39,8 +39,8 @@ def write_types(yfile):
         for attype in reg[toptype].keys():
             f90type = read_type(reg[toptype][attype])
             atstr  =  check_size(reg[toptype], attype)
-            if reg[toptype][attype]['equals']:
-                atstr += ' = ' + reg[toptype][attype]['equals']
+            if reg[toptype][attype]['equals'] is not None:
+                atstr += ' = ' + str(reg[toptype][attype]['equals'])
             file.write('    {:<25s}     :: {:<25s}   ! {}\n'.format(f90type, atstr, reg[toptype][attype]['description']))
         file.write('END TYPE {}\n'.format(toptype))
         file.write('\n')
@@ -179,6 +179,17 @@ def write_roscoio(yfile):
     file.write('END SUBROUTINE ReadRestartFile\n')
     file.write('\n \n')
     # ------------------------------------------------
+    
+    
+    # Get LocalVar info for definitions
+    # -- Always prints blade(1) for multi-bladed inputss (e.g. BldPitch(1))
+    lv_strings = []
+    for lv_idx, localvar in enumerate(reg['LocalVariables']):
+        if reg['LocalVariables'][localvar]['type'] in ['integer', 'real', 'complex']:
+            lv_strings.append(localvar)
+
+    n_lv_outputs = len(lv_strings)
+    
     # ------------------ Debug -----------------------
     # ------------------------------------------------
     file.write('SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_avcOUTNAME)\n')
@@ -208,7 +219,7 @@ def write_roscoio(yfile):
     file.write('    CHARACTER(100)                  :: avrFmt\n')
     file.write('\n')
     file.write('    REAL(DbKi), ALLOCATABLE         :: DebugOutData(:)\n \n')
-    file.write('    CHARACTER(15), ALLOCATABLE      :: LocalVarOutStrings(:)\n')
+    file.write(f'    CHARACTER(15), DIMENSION({n_lv_outputs})      :: LocalVarOutStrings\n')
     file.write('    REAL(DbKi), ALLOCATABLE         :: LocalVarOutData(:)\n \n')
     file.write('    nDebugOuts = {}\n'.format(len(reg['DebugVariables'].keys())))
     file.write('    Allocate(DebugOutData(nDebugOuts))\n')
@@ -250,16 +261,9 @@ def write_roscoio(yfile):
     file.write(']\n')
 
     # Print Local Variables 
-    # -- Always prints blade(1) for multi-bladed inputss (e.g. BldPitch(1))
-    lv_strings = []
-    for lv_idx, localvar in enumerate(reg['LocalVariables']):
-        if reg['LocalVariables'][localvar]['type'] in ['integer', 'real', 'complex']:
-            lv_strings.append(localvar)
 
-    n_lv_outputs = len(lv_strings)
     file.write('    nLocalVars = {}\n'.format(n_lv_outputs))
     file.write('    Allocate(LocalVarOutData(nLocalVars))\n')
-    file.write('    Allocate(LocalVarOutStrings(nLocalVars))\n')
 
     # Loop through LocalVariables
     for lv_idx, localvar in enumerate(lv_strings):
@@ -268,17 +272,10 @@ def write_roscoio(yfile):
             file.write('    LocalVarOutData({}) = LocalVar%{}(1)\n'.format(lv_idx+1, localvar))
         else:
             file.write('    LocalVarOutData({}) = LocalVar%{}\n'.format(lv_idx+1, localvar))
-    file.write('    LocalVarOutStrings = [CHARACTER(15) :: ')
-    counter = 0
-    for string in lv_strings:
-        counter += 1
-        if counter == len(lv_strings):
-            file.write(" '{}'".format(string))
-        else:
-            file.write(" '{}',".format(string))
-        if (counter % 5 == 0):
-            file.write(' & \n                                     ')
-    file.write(']\n')
+    file.write('\n')
+    for i_string, string in enumerate(lv_strings):
+        file.write(f"    LocalVarOutStrings({i_string+1}) = '{string}'\n")
+
     
     # Debug file initialization 
     # -- iStatus = 0 on first call, iStatus = -9 in restart

@@ -19,6 +19,7 @@ from rosco.toolbox import controller as ROSCO_controller
 from rosco.toolbox import turbine as ROSCO_turbine
 from rosco.toolbox.utilities import write_DISCON, run_openfast
 from rosco.toolbox.inputs.validation import load_rosco_yaml
+from rosco import discon_lib_path
 
 def main():
     this_dir = os.path.dirname(os.path.abspath(__file__))
@@ -43,6 +44,9 @@ def main():
         rot_source='txt',
         txt_filename=os.path.join(tune_dir,path_params['rotor_performance_filename'])
         )
+
+    # Setting up the location of ROSCO library
+    turbine.fast.fst_vt['ServoDyn']['DLL_FileName'] = discon_lib_path
 
     # Tune controller 
     controller.tune_controller(turbine)

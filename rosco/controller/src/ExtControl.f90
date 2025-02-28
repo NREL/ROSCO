@@ -60,7 +60,6 @@ CONTAINS
         REAL(ReKi), INTENT(INOUT)                   :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from the DLL controller.
 
         ! Temporary variables
-        ! CHARACTER(1024), PARAMETER                  :: ExtDLL_InFile = '/Users/dzalkind/Tools/ROSCO/Test_Cases/IEA-15-240-RWT-UMaineSemi/ServoData/DISCON-UMaineSemi.IN'
         CHARACTER(100), PARAMETER                   :: ExtRootName   = 'external_control'
 
         ! Local Variables

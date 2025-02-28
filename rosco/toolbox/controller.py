@@ -67,6 +67,7 @@ class Controller():
         self.Flp_Mode           = controller_params['Flp_Mode']
         self.PA_Mode            = controller_params['PA_Mode']
         self.PF_Mode            = controller_params['PF_Mode']
+        self.PRC_Mode           = controller_params['PRC_Mode']
         self.AWC_Mode           = controller_params['AWC_Mode']
         self.Ext_Mode           = controller_params['Ext_Mode']
         self.ZMQ_Mode           = controller_params['ZMQ_Mode']
@@ -88,7 +89,6 @@ class Controller():
         self.ss_vsgain          = controller_params['ss_vsgain']
         self.ss_pcgain          = controller_params['ss_pcgain']
         self.ps_percent         = controller_params['ps_percent']
-        self.sd_maxpit          = controller_params['sd_maxpit']
         self.WS_GS_n            = controller_params['WS_GS_n']
         self.PC_GS_n            = controller_params['PC_GS_n']
         self.flp_maxpit         = controller_params['flp_maxpit']
@@ -139,26 +139,56 @@ class Controller():
         self.f_fl_highpassfreq      = controller_params['filter_params']['f_fl_highpassfreq']
         self.f_ss_cornerfreq        = controller_params['filter_params']['f_ss_cornerfreq']
         self.f_yawerr               = controller_params['filter_params']['f_yawerr']
-        self.f_sd_cornerfreq        = controller_params['filter_params']['f_sd_cornerfreq']
-
+        self.f_sd_pitchcornerfreq        = controller_params['filter_params']['f_sd_pitchcornerfreq']
+        self.f_sd_yawerrorcornerfreq        = controller_params['filter_params']['f_sd_yawerrorcornerfreq']
+        self.f_sd_genspdcornerfreq        = controller_params['filter_params']['f_sd_genspdcornerfreq']
 
         # Open loop parameters: set up and error catching
         self.OL_Mode            = controller_params['OL_Mode']
         self.OL_Filename        = controller_params['open_loop']['filename']
-        self.OL_Ind_Breakpoint  = self.OL_Ind_GenTq = self.OL_Ind_YawRate = self.OL_Ind_Azimuth = 0
-        self.OL_Ind_BldPitch    = [0,0,0]
-        self.OL_Ind_CableControl = [0]
-        self.OL_Ind_StructControl = [0]
+        self.Ind_Breakpoint  = self.Ind_GenTq = self.Ind_YawRate = self.Ind_Azimuth = 0
+        self.Ind_R_Speed = self.Ind_R_Torque = self.Ind_R_Pitch = 0
+        self.Ind_BldPitch        = [0,0,0]
+        self.Ind_CableControl    = [0]
+        self.Ind_StructControl   = [0]
+        self.OL_BP_Mode             = 0
         
         if self.OL_Mode:
             ol_params               = controller_params['open_loop']
-            self.OL_Ind_Breakpoint  = ol_params['OL_Ind_Breakpoint']
-            self.OL_Ind_BldPitch    = ol_params['OL_Ind_BldPitch']
-            self.OL_Ind_GenTq       = ol_params['OL_Ind_GenTq']
-            self.OL_Ind_YawRate     = ol_params['OL_Ind_YawRate']
-            self.OL_Ind_Azimuth     = ol_params['OL_Ind_Azimuth']
-            self.OL_Ind_CableControl     = ol_params['OL_Ind_CableControl']
-            self.OL_Ind_StructControl    = ol_params['OL_Ind_StructControl']
+
+            # Apply DISCON inputs if they exist
+            if 'OL_Filename' in controller_params['DISCON']:
+                ol_params['filename'] = controller_params['DISCON']['OL_Filename']
+
+            available_ol_params = [
+                'OL_BP_Mode',
+                'Ind_Breakpoint',
+                'Ind_BldPitch',
+                'Ind_GenTq',
+                'Ind_YawRate',
+                'Ind_Azimuth',
+                'Ind_R_Speed',
+                'Ind_R_Torque',
+                'Ind_R_Pitch',
+                'Ind_CableControl',
+                'Ind_StructControl'
+                ]
+            for param in available_ol_params:
+                if param in controller_params['DISCON']:
+                    ol_params[param] = controller_params['DISCON'][param]
+
+
+            self.OL_BP_Mode         = ol_params['OL_BP_Mode']
+            self.Ind_Breakpoint  = ol_params['Ind_Breakpoint']
+            self.Ind_BldPitch    = ol_params['Ind_BldPitch']
+            self.Ind_GenTq       = ol_params['Ind_GenTq']
+            self.Ind_YawRate     = ol_params['Ind_YawRate']
+            self.Ind_Azimuth     = ol_params['Ind_Azimuth']
+            self.Ind_R_Speed     = ol_params['Ind_R_Speed']
+            self.Ind_R_Torque    = ol_params['Ind_R_Torque']
+            self.Ind_R_Pitch     = ol_params['Ind_R_Pitch']
+            self.Ind_CableControl     = ol_params['Ind_CableControl']
+            self.Ind_StructControl    = ol_params['Ind_StructControl']
 
             # Check that file exists because we won't write it
             if not os.path.exists(controller_params['open_loop']['filename']):
@@ -325,8 +355,14 @@ class Controller():
         self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A_vs,B_tau[0:len(v_below_rated)],linearize=False,v=v_below_rated)
 
         # -- Find K for Komega_g^2 --
-        self.vs_rgn2K = (pi*rho*R**5.0 * turbine.Cp.max * turbine.GBoxEff/100 * turbine.GenEff/100) / \
-              (2.0 * turbine.Cp.TSR_opt**3 * Ng**3) * self.controller_params['rgn2k_factor']
+        # Careful handling of different efficiencies
+        # P_lss = 1/2 * Cp * rho * pi * R^5 / (TSR^3 * Ng^3)
+        # P_hss = GBoxEff * P_lss = tau_gen * omega_gen = K * omega_gen^3
+        # P_gen = GenEff * P_hss
+        # Generator efficiency is not included in K here, but gearbox efficiency is
+        # Note that this differs from the
+        self.vs_rgn2K = (pi*rho*R**5.0 * turbine.Cp.max * turbine.GBoxEff/100) / (2.0 * turbine.Cp.TSR_opt**3 * Ng**3) * self.controller_params['rgn2k_factor']
+        
         self.vs_refspd = min(turbine.TSR_operational * turbine.v_rated/R, turbine.rated_rotor_speed) * Ng
 
         # -- Define some setpoints --
@@ -336,12 +372,6 @@ class Controller():
         else: 
             self.vs_minspd = (turbine.TSR_operational * turbine.v_min / turbine.rotor_radius)
         self.pc_minspd = self.vs_minspd
-
-        # max pitch angle for shutdown
-        if self.sd_maxpit:
-            self.sd_maxpit = self.sd_maxpit
-        else:
-            self.sd_maxpit = pitch_op[-1]
 
         # Set IPC ramp inputs if not already defined
         if max(self.IPC_Vramp) == 0.0:
@@ -380,6 +410,23 @@ class Controller():
         elif self.PS_Mode == 3: # Peak shaving and Cp-maximizing minimum pitch saturation
             self.ps.peak_shaving(self, turbine)
             self.ps.min_pitch_saturation(self,turbine)
+
+        # --- Power control ---
+        
+        PRC_Table_n = self.controller_params['DISCON']['PRC_Table_n']
+        pitch_range = np.linspace(self.min_pitch,self.max_pitch, num=100)  # radians
+        
+        # Cp at optimal TSR
+        Cp_TSR_opt = turbine.Cp.interp_surface(pitch_range,turbine.Cp.TSR_opt)
+        
+        # Solve for pitch that decreases Cp by R_range using linear interpolation
+        R_range = np.linspace(0,1,num=PRC_Table_n)
+        Cp_R = R_range * turbine.Cp.max
+        pitch_R = np.interp(Cp_R,np.flip(Cp_TSR_opt),np.flip(pitch_range))  # need to flip because interp wants xp to be increasing
+        
+        # Save values back to DISCON dict
+        self.controller_params['DISCON']['PRC_R_Table'] = R_range
+        self.controller_params['DISCON']['PRC_Pitch_Table'] = pitch_R
 
         # --- Floating feedback term ---
 
@@ -476,6 +523,7 @@ class Controller():
         if 'f_lpf_cornerfreq' in self.controller_params['filter_params']:
             self.f_lpf_cornerfreq = self.controller_params['filter_params']['f_lpf_cornerfreq']
 
+    
     def tune_flap_controller(self,turbine):
         '''
         Tune controller for distributed aerodynamic control
@@ -527,11 +575,11 @@ class Controller():
                 Cd0[i,] = section[1]['Cd'][a0_ind]
                 Clp[i,] = section[2]['Cl'][a0_ind]
                 Cdp[i,] = section[2]['Cd'][a0_ind]
-                Ctrl_flp = float(section[2]['Ctrl'])
+                Ctrl_flp = float(section[2]['UserProp'])
             else:                           # sections without 3 flaps
                 Cl0[i,] = Clp[i,] = Clm[i,] = section[0]['Cl'][a0_ind]
                 Cd0[i,] = Cdp[i,] = Cdm[i,] = section[0]['Cd'][a0_ind]
-                Ctrl = float(section[0]['Ctrl'])
+                Ctrl = float(section[0]['UserProp'])
 
         # Find lift and drag coefficient slopes w.r.t. flap angle
         Kcl = (Clp - Cl0)/( (Ctrl_flp-Ctrl)*deg2rad )
@@ -721,8 +769,25 @@ class OpenLoopControl(object):
     '''
 
     def __init__(self, **kwargs):
-        self.dt     = 0.05
-        self.t_max  = 200
+        self.dt         = 0.05 # sec
+        self.t_max      = 200 # sec
+        self.breakpoint = 'time' # or wind_speed
+        self.du         = 0.5 # m/s
+        self.u_min      = 5  # m/s
+        self.u_max      = 30  # m/s
+
+        self.allowed_controls = [
+            'blade_pitch',
+            'generator_torque',
+            'nacelle_yaw',
+            'nacelle_yaw_rate',
+            'cable_control',
+            'struct_control',
+            'R_speed',
+            'R_torque',
+            'R_pitch',
+            ]
+        self.allowed_breakpoints = ['time','wind_speed']
 
         # Optional population class attributes from key word arguments
         for (k, w) in kwargs.items():
@@ -731,17 +796,20 @@ class OpenLoopControl(object):
             except:
                 pass
 
-        self.ol_timeseries = {}
-        self.ol_timeseries['time'] = np.arange(0,self.t_max,self.dt)
-
-        self.allowed_controls = ['blade_pitch','generator_torque','nacelle_yaw','nacelle_yaw_rate','cable_control','struct_control']
+        self.ol_series = {}
+        if self.breakpoint == 'time':
+            self.ol_series[self.breakpoint] = np.arange(0,self.t_max+self.dt,self.dt)
+        elif self.breakpoint == 'wind_speed':
+            self.ol_series[self.breakpoint] = np.arange(self.u_min,self.u_max+self.du,self.du)
+        else:
+            raise Exception(f'Breakpoint of {self.breakpoint} is not allowed.  Available options are {self.allowed_breakpoints}.')
 
         
     def const_timeseries(self,control,value):
-        self.ol_timeseries[control] = value * np.ones(len(self.ol_timeseries['time']))
+        self.ol_series[control] = value * np.ones(len(self.ol_series[self.breakpoint]))
         
 
-    def interp_timeseries(self,control,breakpoints,values,method='sigma'):
+    def interp_series(self,control,breakpoints,values,method='sigma'):
 
         # Error checking
         if not list_check(breakpoints) or len(breakpoints) == 1:
@@ -756,58 +824,67 @@ class OpenLoopControl(object):
         # Check if control in allowed controls, cable_control_* is in cable_control
         if not any([ac in control for ac in self.allowed_controls]):
             raise Exception(f'Open loop control of {control} is not allowed')
+        
+        # Check that breakpoints are valid
+        if self.breakpoint == 'wind_speed':
+            if max(breakpoints) > self.u_max:
+                raise Exception(f'The maximum desired wind speed breakpoint ({max(breakpoints)}) is greater than u_max ({self.u_max})')
+        elif self.breakpoint == 'time':
+            if max(breakpoints) > self.t_max: 
+                raise Exception(f'The maximum desired time breakpoint ({max(breakpoints)}) is greater than t_max ({self.t_max})')
+
+        # Finally interpolate
+        if method == 'sigma':
+            self.ol_series[control] = multi_sigma(self.ol_series[self.breakpoint],breakpoints,values)
+        
+        elif method == 'linear':
+            self.ol_series[control] = np.interp(self.ol_series[self.breakpoint],breakpoints,values,left=values[0],right=values[-1])
+
+        elif method == 'cubic':
+            interp_fcn = interpolate.Akima1DInterpolator(breakpoints,values,method='akima',extrapolate=True) #,kind='cubic',fill_value=values[-1],bounds_error=False)
+            self.ol_series[control] = interp_fcn(self.ol_series[self.breakpoint])
 
         else:
-            # Finally interpolate
-            if method == 'sigma':
-                self.ol_timeseries[control] = multi_sigma(self.ol_timeseries['time'],breakpoints,values)
-            
-            elif method == 'linear':
-                interp_fcn = interpolate.interp1d(breakpoints,values,fill_value=values[-1],bounds_error=False)
-                self.ol_timeseries[control] = interp_fcn(self.ol_timeseries['time'])
-
-            elif method == 'cubic':
-                interp_fcn = interpolate.interp1d(breakpoints,values,kind='cubic',fill_value=values[-1],bounds_error=False)
-                self.ol_timeseries[control] = interp_fcn(self.ol_timeseries['time'])
-
-            else:
-                raise Exception(f'Open loop interpolation method {method} not supported')
+            raise Exception(f'Open loop interpolation method {method} not supported')
 
         if control == 'nacelle_yaw':
             self.compute_yaw_rate()
 
 
-    def sine_timeseries(self,control,amplitude,period):
+    def sine_timeseries(self,control,amplitude,period,offset=0):
         
         if period <= 0:
             raise Exception('Open loop sine input period is <= 0')
+        
+        if self.breakpoint != 'time':
+            raise Exception(f'Only time breakpoints are allowed for sine timeseries')
 
         if control not in self.allowed_controls:
             raise Exception(f'Open loop control of {control} is not allowed')
         else:
-            self.ol_timeseries[control] = amplitude * np.sin(2 * np.pi *  self.ol_timeseries['time'] / period)
+            self.ol_series[control] = amplitude * np.sin(2 * np.pi *  self.ol_series['time'] / period) + offset
 
         if control == 'nacelle_yaw':
             self.compute_yaw_rate()
 
     def compute_yaw_rate(self):
-        self.ol_timeseries['nacelle_yaw_rate'] = np.concatenate(([0],np.diff(self.ol_timeseries['nacelle_yaw'])))/self.dt
+        self.ol_series['nacelle_yaw_rate'] = np.concatenate(([0],np.diff(self.ol_series['nacelle_yaw'])))/self.dt
 
-    def plot_timeseries(self):
+    def plot_series(self):
         '''
         Debugging script for showing open loop timeseries
         '''
         import matplotlib.pyplot as plt
-        fig, ax = plt.subplots(len(self.ol_timeseries)-1,1)
+        fig, ax = plt.subplots(len(self.ol_series)-1,1)
         i_ax = -1
-        for ol_input in self.ol_timeseries:
-            if ol_input != 'time':
+        for ol_input in self.ol_series:
+            if ol_input not in ['time','wind_speed']:
                 i_ax += 1
-                if len(self.ol_timeseries)-1 == 1:
-                    ax.plot(self.ol_timeseries['time'],self.ol_timeseries[ol_input])
+                if len(self.ol_series)-1 == 1:
+                    ax.plot(self.ol_series[self.breakpoint],self.ol_series[ol_input])
                     ax.set_ylabel(ol_input)
                 else:
-                    ax[i_ax].plot(self.ol_timeseries['time'],self.ol_timeseries[ol_input])
+                    ax[i_ax].plot(self.ol_series[self.breakpoint],self.ol_series[ol_input])
                     ax[i_ax].set_ylabel(ol_input)
         return fig, ax
 
@@ -817,53 +894,66 @@ class OpenLoopControl(object):
         Return open_loop dict for control params
         '''
 
-        ol_timeseries = self.ol_timeseries
+        ol_series = self.ol_series
 
         # Init indices
-        OL_Ind_Breakpoint = 1
-        OL_Ind_Azimuth = OL_Ind_GenTq = OL_Ind_YawRate = 0
-        OL_Ind_BldPitch = 3*[0]
-        OL_Ind_CableControl = []
-        OL_Ind_StructControl = []
+        Ind_Breakpoint = 1
+        Ind_Azimuth = Ind_GenTq = Ind_YawRate = Ind_R_Speed = Ind_R_Torque = Ind_R_Pitch = 0
+        Ind_BldPitch = 3*[0]
+        Ind_CableControl = []
+        Ind_StructControl = []
 
         ol_index_counter = 0   # start input index at 2
 
-        # Write time first, initialize OL matrix
-        if 'time' in ol_timeseries:
-            ol_control_array = ol_timeseries['time']
-            Ind_Breakpoint = 1
+        # Write breakpoint first, initialize OL matrix
+        if 'time' in ol_series:
+            ol_input_matrix = ol_series['time']
+        elif 'wind_speed' in ol_series:
+            ol_input_matrix = ol_series['wind_speed']
         else:
-            raise Exception('WARNING: no time index for open loop control.  This is only index currently supported')
+            raise Exception('WARNING: no time or wind-speed index for open loop control.  These are the only indices currently supported')
+        
+        if 'time' in ol_series and 'wind_speed' in ol_series:
+            raise Exception('WARNING: both time and wind_speed are in the OL input setup.  Please check.')
 
-        for channel in ol_timeseries:
+        for channel in ol_series:
 
             # increment index counter first for 1-indexing in input file
             ol_index_counter += 1
 
-            # skip writing for certain channels
+            # skip writing for certain channels, if already in ol_input_matrix
             skip_write = False
             
             # Set open loop index based on name
             if channel == 'time':
-                OL_Ind_Breakpoint = ol_index_counter
+                Ind_Breakpoint = ol_index_counter
                 skip_write = True
+            elif channel == 'wind_speed':
+                Ind_Breakpoint = ol_index_counter
+                skip_write = True   
             elif channel == 'blade_pitch':  # collective blade pitch
-                OL_Ind_BldPitch = 3 * [ol_index_counter]
+                Ind_BldPitch = 3 * [ol_index_counter]
             elif channel == 'generator_torque':
-                OL_Ind_GenTq = ol_index_counter
+                Ind_GenTq = ol_index_counter
             elif channel == 'nacelle_yaw_rate':
-                OL_Ind_YawRate = ol_index_counter
+                Ind_YawRate = ol_index_counter
             elif channel == 'nacelle_yaw':
                 ol_index_counter -= 1  # don't increment counter
                 skip_write = True
             elif channel == 'blade_pitch1':
-                OL_Ind_BldPitch[0] = ol_index_counter
+                Ind_BldPitch[0] = ol_index_counter
             elif channel == 'blade_pitch2':
-                OL_Ind_BldPitch[1] = ol_index_counter
+                Ind_BldPitch[1] = ol_index_counter
             elif channel == 'blade_pitch3':
-                OL_Ind_BldPitch[2] = ol_index_counter
+                Ind_BldPitch[2] = ol_index_counter
             elif channel == 'azimuth':
-                OL_Ind_Azimuth = ol_index_counter
+                Ind_Azimuth = ol_index_counter
+            elif channel == 'R_speed':
+                Ind_R_Speed = ol_index_counter
+            elif channel == 'R_torque':
+                Ind_R_Torque = ol_index_counter
+            elif channel == 'R_pitch':
+                Ind_R_Pitch = ol_index_counter
             elif 'cable_control' in channel or 'struct_control' in channel:
                 skip_write = True
                 ol_index_counter -= 1  # don't increment counter
@@ -872,33 +962,33 @@ class OpenLoopControl(object):
 
             # append open loop input array for non-ptfm channels
             if not skip_write:
-                ol_control_array = np.c_[ol_control_array,ol_timeseries[channel]]
+                ol_input_matrix = np.c_[ol_input_matrix,ol_series[channel]]
 
         ol_index_counter += 1  # Increment counter so it's 1 more than time, just like above in each iteration
 
         # Cable control
-        is_cable_chan = np.array(['cable_control' in ol_chan for ol_chan in ol_timeseries.keys()])
+        is_cable_chan = np.array(['cable_control' in ol_chan for ol_chan in ol_series.keys()])
         if any(is_cable_chan):
             # if any channels are cable_control_*
             n_cable_chan = np.sum(is_cable_chan)
-            cable_chan_names = np.array(list(ol_timeseries.keys()))[is_cable_chan]
+            cable_chan_names = np.array(list(ol_series.keys()))[is_cable_chan]
 
             # Let's assume they are 1-indexed and all there, otherwise a key error will be thrown
             for cable_chan in cable_chan_names:
-                ol_control_array = np.c_[ol_control_array,ol_timeseries[cable_chan]]
-                OL_Ind_CableControl.append(ol_index_counter)
+                ol_input_matrix = np.c_[ol_input_matrix,ol_series[cable_chan]]
+                Ind_CableControl.append(ol_index_counter)
                 ol_index_counter += 1
 
         # Struct control
-        is_struct_chan = ['struct_control' in ol_chan for ol_chan in ol_timeseries.keys()]
+        is_struct_chan = ['struct_control' in ol_chan for ol_chan in ol_series.keys()]
         if any(is_struct_chan):
             # if any channels are struct_control_*
             n_struct_chan = np.sum(np.array(is_struct_chan))
 
             # Let's assume they are 1-indexed and all there, otherwise a key error will be thrown
             for i_chan in range(1,n_struct_chan+1):
-                ol_control_array = np.c_[ol_control_array,ol_timeseries[f'struct_control_{i_chan}']]
-                OL_Ind_StructControl.append(ol_index_counter)
+                ol_input_matrix = np.c_[ol_input_matrix,ol_series[f'struct_control_{i_chan}']]
+                Ind_StructControl.append(ol_index_counter)
                 ol_index_counter += 1
 
 
@@ -910,49 +1000,70 @@ class OpenLoopControl(object):
             # Write header
             headers = [''] * ol_index_counter
             units = [''] * ol_index_counter
-            header_line = '!\tTime'
-            unit_line   = '!\t(sec.)'
 
-            headers[0] = 'Time'
-            units[0] = 'sec.'
+            if self.breakpoint == 'time':
+                header_line = '!\tTime' # TODO: not sure if we need header_line and headers, check struct control
+                unit_line   = '!\t(sec.)'
 
-            if OL_Ind_GenTq:
-                headers[OL_Ind_GenTq-1] = 'GenTq'
-                units[OL_Ind_GenTq-1] = '(Nm)'
+                headers[0] = 'Time'
+                units[0] = 'sec.'
+            elif self.breakpoint == 'wind_speed':
+                header_line = '!\tWindSpeed' # TODO: not sure if we need header_line and headers, check struct control
+                unit_line   = '!\t(m/s)'
 
-            if OL_Ind_YawRate:
-                headers[OL_Ind_YawRate-1] = 'YawRate'
-                units[OL_Ind_YawRate-1] = '(rad/s)'
+                headers[0] = 'WindSpeed'
+                units[0] = 'm/s'
+            
 
-            if OL_Ind_Azimuth:
-                headers[OL_Ind_Azimuth-1] = 'Azimuth'
-                units[OL_Ind_Azimuth-1] = '(rad)'
+            if Ind_GenTq:
+                headers[Ind_GenTq-1] = 'GenTq'
+                units[Ind_GenTq-1] = '(Nm)'
 
-            if any(OL_Ind_BldPitch):
-                if all_same(OL_Ind_BldPitch):
-                    headers[OL_Ind_BldPitch[0]-1] = 'BldPitch123'
-                    units[OL_Ind_BldPitch[0]-1] = '(rad)'
+            if Ind_YawRate:
+                headers[Ind_YawRate-1] = 'YawRate'
+                units[Ind_YawRate-1] = '(rad/s)'
+
+            if Ind_Azimuth:
+                headers[Ind_Azimuth-1] = 'Azimuth'
+                units[Ind_Azimuth-1] = '(rad)'
+
+            if any(Ind_BldPitch):
+                if all_same(Ind_BldPitch):
+                    headers[Ind_BldPitch[0]-1] = 'BldPitch123'
+                    units[Ind_BldPitch[0]-1] = '(rad)'
                 else:
-                    headers[OL_Ind_BldPitch[0]-1] = 'BldPitch1'
-                    units[OL_Ind_BldPitch[0]-1] = '(rad)'
-                    headers[OL_Ind_BldPitch[1]-1] = 'BldPitch2'
-                    units[OL_Ind_BldPitch[1]-1] = '(rad)'
-                    headers[OL_Ind_BldPitch[2]-1] = 'BldPitch3'
-                    units[OL_Ind_BldPitch[2]-1] = '(rad)'
+                    headers[Ind_BldPitch[0]-1] = 'BldPitch1'
+                    units[Ind_BldPitch[0]-1] = '(rad)'
+                    headers[Ind_BldPitch[1]-1] = 'BldPitch2'
+                    units[Ind_BldPitch[1]-1] = '(rad)'
+                    headers[Ind_BldPitch[2]-1] = 'BldPitch3'
+                    units[Ind_BldPitch[2]-1] = '(rad)'
 
-            if OL_Ind_CableControl:
+            if Ind_CableControl:
                 for i_chan in range(1,n_cable_chan+1):
                     header_line += f'\t\tCable{i_chan}'
                     unit_line   += '\t\t(m)'
             else:
-                OL_Ind_CableControl = [0]
+                Ind_CableControl = [0]
 
-            if OL_Ind_StructControl:
+            if Ind_StructControl:
                 for i_chan in range(1,n_struct_chan+1):
                     header_line += f'\t\tStruct{i_chan}'
                     unit_line   += '\t\t(m)'
             else:
-                OL_Ind_StructControl = [0]
+                Ind_StructControl = [0]
+
+            if Ind_R_Speed:
+                headers[Ind_R_Speed-1] = 'R_speed'
+                units[Ind_R_Speed-1] = '(-)'
+
+            if Ind_R_Torque:
+                headers[Ind_R_Torque-1] = 'R_Torque'
+                units[Ind_R_Torque-1] = '(-)'
+
+            if Ind_R_Pitch:
+                headers[Ind_R_Pitch-1] = 'R_Pitch'
+                units[Ind_R_Pitch-1] = '(-)'
 
             # Join headers and units
             header_line = '!' + '\t\t'.join(headers) + '\n'
@@ -962,20 +1073,28 @@ class OpenLoopControl(object):
             f.write(unit_line)
 
             # Write lines
-            for ol_line in ol_control_array:
+            for ol_line in ol_input_matrix:
                 line = ''.join(['{:<10.8f}\t'.format(val) for val in ol_line]) + '\n'
                 f.write(line)
 
         # Output open_loop dict for control params
         open_loop = {}
         open_loop['filename']           = ol_filename
-        open_loop['OL_Ind_Breakpoint']  = OL_Ind_Breakpoint
-        open_loop['OL_Ind_BldPitch']    = OL_Ind_BldPitch
-        open_loop['OL_Ind_GenTq']       = OL_Ind_GenTq
-        open_loop['OL_Ind_YawRate']     = OL_Ind_YawRate
-        open_loop['OL_Ind_Azimuth']     = OL_Ind_Azimuth
-        open_loop['OL_Ind_CableControl']     = OL_Ind_CableControl
-        open_loop['OL_Ind_StructControl']    = OL_Ind_StructControl
+        open_loop['Ind_Breakpoint']  = Ind_Breakpoint
+        open_loop['Ind_BldPitch']    = Ind_BldPitch
+        open_loop['Ind_GenTq']       = Ind_GenTq
+        open_loop['Ind_YawRate']     = Ind_YawRate
+        open_loop['Ind_Azimuth']     = Ind_Azimuth
+        open_loop['Ind_CableControl']     = Ind_CableControl
+        open_loop['Ind_StructControl']    = Ind_StructControl
+        open_loop['Ind_R_Speed']     = Ind_R_Speed
+        open_loop['Ind_R_Torque']    = Ind_R_Torque
+        open_loop['Ind_R_Pitch']     = Ind_R_Pitch
+        if self.breakpoint == 'time':
+            open_loop['OL_BP_Mode'] = 0
+        elif self.breakpoint == 'wind_speed':
+            open_loop['OL_BP_Mode'] = 1
+
 
 
         return open_loop

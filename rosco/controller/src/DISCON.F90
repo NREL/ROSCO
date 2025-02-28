@@ -78,10 +78,12 @@ IF ( (NINT(avrSWAP(1)) == -9) .AND. (aviFAIL >= 0))  THEN ! Read restart files
 END IF
 
 ! Read avrSWAP array into derived types/variables
-CALL ReadAvrSWAP(avrSWAP, LocalVar, CntrPar)
+CALL ReadAvrSWAP(avrSWAP, LocalVar, CntrPar, ErrVar)
 
 ! Set Control Parameters
-CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, RootName, ErrVar)
+IF (ErrVar%aviFAIL >= 0) THEN
+    CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, RootName, ErrVar)
+ENDIF
 
 ! Call external controller, if desired
 IF (CntrPar%Ext_Mode > 0 .AND. ErrVar%aviFAIL >= 0) THEN
@@ -100,6 +102,9 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
         CALL UpdateZeroMQ(LocalVar, CntrPar, ErrVar)
     ENDIF
     
+    IF (CntrPar%SD_Mode > 0) THEN
+        CALL Shutdown(LocalVar, CntrPar, objInst,ErrVar)
+    ENDIF
     CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
     CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
     CALL StateMachine(CntrPar, LocalVar)

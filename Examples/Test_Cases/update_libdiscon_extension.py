@@ -4,7 +4,7 @@ from rosco import discon_lib_path
 
 if __name__ == "__main__":
     this_dir   = os.path.dirname(os.path.abspath(__file__))
-    servo_list = glob.glob(os.path.join(this_dir, '*/*Servo*.dat'))
+    servo_list = glob.glob(os.path.join(this_dir, '**/*Servo*.dat'),recursive=True)
 
     for ifile in servo_list:
         # Read in current ServoDyn file

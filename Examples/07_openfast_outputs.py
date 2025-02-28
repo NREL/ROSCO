@@ -25,7 +25,7 @@ def main():
         os.makedirs(example_out_dir)
 
     # Define openfast output filenames
-    filenames = ["Test_Cases/IEA-15-240-RWT-UMaineSemi/IEA-15-240-RWT-UMaineSemi.outb"]
+    filenames = ["Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT-UMaineSemi/IEA-15-240-RWT-UMaineSemi.outb"]
     # ---- Note: Could load and plot multiple cases, textfiles, and binaries...
     # filenames = ["../Test_Cases/NREL-5MW/NREL-5MW.outb",
     #             "../Test_Cases/NREL-5MW/NREL-5MW_ex8.outb"]

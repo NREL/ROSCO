@@ -129,5 +129,7 @@ A complete list of examples is given below:
 .. automodule:: 24_floating_feedback
 .. automodule:: 25_rotor_position_control
 .. automodule:: 26_marine_hydro
-.. automodule:: 27_power_ref_control
+.. automodule:: 27_soft_cut_out
 .. automodule:: 28_tower_resonance
+.. automodule:: 29_power_control
+.. automodule:: 30_shutdown
