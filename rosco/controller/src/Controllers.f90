@@ -219,7 +219,7 @@ CONTAINS
         CHARACTER(*),               PARAMETER           :: RoutineName = 'VariableSpeedControl'
 
         ! Allocate Variables
-        Real(DbKi)              :: SU_PrevLoad                                    ! Integer used to loop through gains and turbine blades
+        
         
         ! -------- Variable-Speed Torque Controller --------
         ! Define max torque
@@ -234,6 +234,8 @@ CONTAINS
             ! Constant Power, update VS_MaxTq
             IF (CntrPar%VS_ConstPower == 1) THEN
                 LocalVar%VS_MaxTq = min((CntrPar%VS_RtPwr * LocalVar%PRC_R_Torque /(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF, CntrPar%VS_MaxTq)
+            ELSE
+                LocalVar%VS_MaxTq = CntrPar%VS_RtTq * LocalVar%PRC_R_Torque
             END IF
 
             ! PI controller
@@ -270,34 +272,6 @@ CONTAINS
             LocalVar%GenTq = 0
         ENDIF
         
-        ! Startup
-        ! SU_Stage = 2, N = 1
-        IF (LocalVar%SU_Stage == 1) THEN
-            LocalVar%PRC_R_Torque = 0.0_DbKi
-        ELSEIF (LocalVar%SU_Stage == 2) THEN
-            SU_PrevLoad = 0.0_DbKi
-        ELSE
-            SU_PrevLoad = CntrPar%SU_LoadStages(LocalVar%SU_Stage-2)
-        ENDIF
-        IF (LocalVar%SU_Stage .ge. 2) THEN
-            IF (LocalVar%SU_Stage .le. CntrPar%SU_LoadStages_N + 1) THEN
-                IF (LocalVar%Time < LocalVar%SU_LoadStageStartTime + CntrPar%SU_LoadRampDuration(LocalVar%SU_Stage-1)) THEN
-                    LocalVar%PRC_R_Torque = sigma(LocalVar%Time,LocalVar%SU_LoadStageStartTime,    &
-                    LocalVar%SU_LoadStageStartTime + CntrPar%SU_LoadRampDuration(LocalVar%SU_Stage - 1),    &
-                    SU_PrevLoad,CntrPar%SU_LoadStages(LocalVar%SU_Stage - 1),ErrVar)
-                ELSE
-                    LocalVar%PRC_R_Torque = CntrPar%SU_LoadStages(LocalVar%SU_Stage - 1)
-                ENDIF
-            ELSE
-                IF (LocalVar%Time < LocalVar%SU_LoadStageStartTime + 10.0_DbKi) THEN
-                    LocalVar%PRC_R_Torque = sigma(LocalVar%Time,LocalVar%SU_LoadStageStartTime,    &
-                    LocalVar%SU_LoadStageStartTime + 10.0_DbKi,    &
-                    SU_PrevLoad,1.0_DbKi,ErrVar)
-                ELSE
-                    LocalVar%PRC_R_Torque = 1.0_DbKi
-                ENDIF
-            ENDIF
-        ENDIF
         
         ! Shutdown
         IF (LocalVar%SD_Trigger == 0) THEN

@@ -33,24 +33,14 @@ def main():
     controller_params["DISCON"]["Echo"] = 1
     controller_params["LoggingLevel"] = 3
     controller_params["SU_Mode"] = 1
-    controller_params["DISCON"]["SU_FW_Pitch"] = 20.0 * np.pi/180.0
-    controller_params["DISCON"]["SU_FW_MinDuration"] = 60.0
-    controller_params["DISCON"]["SU_RotorSpeedThresh"] = .3
-    
-    # controller_params["DISCON"]["SU_LoadStages_N"] = 0
-    # controller_params["DISCON"]["SU_LoadStages"] = [0]
-    # controller_params["DISCON"]["SU_LoadRampDuration"] = [0]
-    # controller_params["DISCON"]["SU_LoadHoldDuration"] = [0]
-
-    # controller_params["DISCON"]["SU_LoadStages_N"] = 1
-    # controller_params["DISCON"]["SU_LoadStages"] = 0.2
-    # controller_params["DISCON"]["SU_LoadRampDuration"] = 20
-    # controller_params["DISCON"]["SU_LoadHoldDuration"] = 20
+    controller_params["DISCON"]["SU_FW_Pitch"] = 15.0 * np.pi/180.0
+    controller_params["DISCON"]["SU_FW_MinDuration"] = 70.0
+    controller_params["DISCON"]["SU_RotorSpeedThresh"] = 4*(2*np.pi)/60.0
     
     controller_params["DISCON"]["SU_LoadStages_N"] = 2
-    controller_params["DISCON"]["SU_LoadStages"] = [0.2, 0.6]
-    controller_params["DISCON"]["SU_LoadRampDuration"] = [10,10]
-    controller_params["DISCON"]["SU_LoadHoldDuration"] = [10,10]
+    controller_params["DISCON"]["SU_LoadStages"] = [0.4, 1]
+    controller_params["DISCON"]["SU_LoadRampDuration"] = [20,20]
+    controller_params["DISCON"]["SU_LoadHoldDuration"] = [40,20]
 
 
     # simulation set up
@@ -67,7 +57,7 @@ def main():
     r.case_inputs[("ElastoDyn", "PtfmYDOF")] = {"vals": ["False"], "group": 0}
 
 
-    t_max = 140
+    t_max = 300
 
     run_dir = os.path.join(example_out_dir, "31_startup_demo/1_pitch")
 
@@ -79,10 +69,10 @@ def main():
         "t_start": 10,
         "t_end": t_max,
     }
-    r.case_inputs[("ElastoDyn", "BlPitch1")] = {"vals": [0], "group": 0}
-    r.case_inputs[("ElastoDyn", "BlPitch2")] = {"vals": [0], "group": 0}
-    r.case_inputs[("ElastoDyn", "BlPitch3")] = {"vals": [0], "group": 0}
-    r.case_inputs[("ElastoDyn", "RotSpeed")] = {"vals": [7.0], "group": 0}
+    r.case_inputs[("ElastoDyn", "BlPitch1")] = {"vals": [90], "group": 0}
+    r.case_inputs[("ElastoDyn", "BlPitch2")] = {"vals": [90], "group": 0}
+    r.case_inputs[("ElastoDyn", "BlPitch3")] = {"vals": [90], "group": 0}
+    r.case_inputs[("ElastoDyn", "RotSpeed")] = {"vals": [0.0], "group": 0}
 
     # Run simulation 
     os.makedirs(run_dir, exist_ok=True)

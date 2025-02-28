@@ -237,7 +237,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<014.5f}        ! SU_FW_Pitch          - Free-wheel pitch angle for startup, [rad]\n'.format(rosco_vt['SU_FW_Pitch']))
     file.write('{:<014.5f}        ! SU_FW_MinDuration    - Free-wheel minimum duration, [s]\n'.format(rosco_vt['SU_FW_MinDuration']))
     file.write('{:<014.5f}        ! SU_RotorSpeedThresh  - Rotor speed threshhold to switch from freewheel to loads, [rad/s]\n'.format(rosco_vt['SU_RotorSpeedThresh']))
-    file.write('{:<014.5f}        ! SU_RotorSpeedCornerFreq  - Cutoff Frequency for first order low-pass filter for rotor speed for startup, [rad/s]\n'.format(rosco_vt['SU_RotorSpeedThresh']))
+    file.write('{:<014.5f}        ! SU_RotorSpeedCornerFreq  - Cutoff Frequency for first order low-pass filter for rotor speed for startup, [rad/s]\n'.format(rosco_vt['SU_RotorSpeedCornerFreq']))
     file.write('{:<11d}         ! SU_LoadStages_N  - Number of load staged for startup (should equal number of values in SU_LoadStages, SU_LoadRampDuration and SU_LoadHoldDuration)\n'.format(int(rosco_vt['SU_LoadStages_N'])))
     file.write('{}        ! SU_LoadStages  - {}\n'.format(write_array(rosco_vt["SU_LoadStages"]), input_descriptions["SU_LoadStages"]))
     file.write('{}        ! SU_LoadRampDuration  - {}\n'.format(write_array(rosco_vt["SU_LoadRampDuration"]), input_descriptions["SU_LoadRampDuration"]))
