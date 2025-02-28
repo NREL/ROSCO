@@ -133,3 +133,4 @@ A complete list of examples is given below:
 .. automodule:: 28_tower_resonance
 .. automodule:: 29_power_control
 .. automodule:: 30_shutdown
+.. automodule:: 31_fixed_pitch_mhk

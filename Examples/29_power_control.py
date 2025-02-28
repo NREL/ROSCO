@@ -17,7 +17,7 @@ For example R = 0.9, will produce 90% of the rated power (or available power bel
 
 The three methods are compared in the following figure:
 
-.. image:: ../images/29_PRC_Methods.png
+.. image:: ../images/examples/29_PRC_Methods.png
 
 The power rating can be controlled with three different "communication" methods (``PRC_Comm``), via:
 
@@ -35,7 +35,7 @@ This example shows users how to set up open loop control inputs for
 Start Up Demo
 ``````````````
 
-.. image:: ../images/29_StartUp.png
+.. image:: ../images/examples/29_StartUp.png
 
 The turbine is started in a parked configuration with the blades pitched to 90 degrees.
 R_Torque is increased from 0 to 0.2, then from 0.2 to 1.0, simulating a startup routine.
@@ -46,7 +46,7 @@ The blade pitch controller is active throughout the simulation, regulating the g
 
 Soft Cut-out Demo
 `````````````````
-.. image:: ../images/29_Soft_Cutout.png
+.. image:: ../images/examples/29_Soft_Cutout.png
 
 The turbine starts in above-rated operation and a ramp wind input goes well beyond the normal cut-out wind speed of 25 m/s.
 In this demonstration, we use both R_Speed and R_Torque to ramp the turbine rating from 1.0 at 20 m/s to 0.5 at 30 m/s and 0.0 at 40 m/s.
@@ -57,7 +57,7 @@ Both GenTq and GenSpeed drop to 0 following the reference signals and the power 
 Active Wake Control Demo
 `````````````````````````
 
-.. image:: ../images/29_AWC.png
+.. image:: ../images/examples/29_AWC.png
 
 In active wake control, the goal is to change the rotor thrust through low frequency changes to the blade pitch.
 Since the blade pitch must be used to control the rotor speed in above rated operation, we can insteady vary the generator speed reference (via R_Speed) to create similar blade pitch variations.

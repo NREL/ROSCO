@@ -120,7 +120,7 @@ class Sim():
 
             # populate turbine state dictionary
             turbine_state = {}
-            if i < len(t_array):
+            if i < len(t_array)-1:
                 turbine_state['iStatus'] = 1
             else:
                 turbine_state['iStatus'] = -1

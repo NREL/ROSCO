@@ -10,7 +10,7 @@ Interact with a ROSCO turbine model:
 * Save the turbine as a pickle
 * Plot the Cp surface
 
-.. figure:: /source/figures/01_NREL5MW_Cp.png
+.. figure:: /images/examples/01_NREL5MW_Cp.png
    :align: center
    :width: 70%
 
