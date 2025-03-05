@@ -5,6 +5,9 @@ This example demonstrates turbine startup procedure
 Turbine startup occurs in the following stages:
 Stage 1: Free-Wheeling (PRC_R_Torque is set to 0 and blade pitch is set to SU_FW_Pitch)
 Stage 2 - (SU_LoadStages_N+1): PRC_R_Torque is set to values in SU_LoadStages
+
+TODO: Can you explain all the parameters here and show an illustrative timeseries?
+
 """
 
 import os
@@ -21,6 +24,8 @@ deg2rad = np.pi / 180.0
 this_dir = os.path.dirname(os.path.abspath(__file__))
 example_out_dir = os.path.join(this_dir, "examples_out")
 os.makedirs(example_out_dir, exist_ok=True)
+
+FULL_TEST = False
 
 
 def main():
@@ -55,18 +60,17 @@ def main():
     r.case_inputs[("ElastoDyn", "PtfmPDOF")] = {"vals": ["False"], "group": 0}
     r.case_inputs[("ElastoDyn", "PtfmYDOF")] = {"vals": ["False"], "group": 0}
 
-    t_max = 200
-
-    run_dir = os.path.join(example_out_dir, "31_startup_demo/1_pitch")
+    run_dir = os.path.join(example_out_dir, "32_startup_demo/1_pitch")
 
     # Wind case
-    r.wind_case_fcn = cl.ramp
+    r.wind_case_fcn = cl.power_curve
     r.wind_case_opts = {
-        "U_start": 10,
-        "U_end": 10,
-        "t_start": 10,
-        "t_end": t_max,
+        "U": [10],
+        "TMax": 300,
     }
+    if not FULL_TEST:
+        r.wind_case_opts["TMax"] = 2
+
     r.case_inputs[("ElastoDyn", "BlPitch1")] = {"vals": [90], "group": 0}
     r.case_inputs[("ElastoDyn", "BlPitch2")] = {"vals": [90], "group": 0}
     r.case_inputs[("ElastoDyn", "BlPitch3")] = {"vals": [90], "group": 0}
@@ -79,14 +83,14 @@ def main():
     r.run_FAST()
 
     # Plot output
-    outfile = [os.path.join(run_dir, "IEA15MW", "ramp", "base", "IEA15MW_0.outb")]
+    outfile = [os.path.join(run_dir, "IEA15MW_0.outb")]
     cases = {}
     cases["Baseline"] = ["Wind1VelX", "BldPitch1", "GenTq", "RotSpeed", "GenPwr"]
     fast_out = output_processing.output_processing()
     fastout = fast_out.load_fast_out(outfile)
     fast_out.plot_fast_out(cases=cases, showplot=False)
 
-    plt.savefig(os.path.join(example_out_dir, "31_startup.png"))
+    plt.savefig(os.path.join(example_out_dir, "32_startup.png"))
 
 
 if __name__ == "__main__":
