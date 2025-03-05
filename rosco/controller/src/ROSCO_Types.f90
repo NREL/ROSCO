@@ -149,21 +149,23 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: PA_Damping                  ! Pitch actuator damping ratio [-, unused if PA_Mode = 1]
     INTEGER(IntKi)                :: AWC_Mode                    ! Active wake control mode [0 - unused, 1 - complex number method, 2 - Coleman transform method]
     INTEGER(IntKi)                :: AWC_NumModes                ! AWC- Number of modes to include [-]
-    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: AWC_n                       ! AWC azimuthal mode [-]
-    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: AWC_harmonic                ! AWC AWC Coleman transform harmonic [-]
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_freq                    ! AWC frequency [Hz]
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_amp                     ! AWC amplitude [deg]
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_clockangle              ! AWC clocking angle [deg]
+    REAL(DbKi)                    :: AWC_phaseoffset             ! Phase offset for Coleman transformation in AWC [deg]
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE :: AWC_n           ! AWC azimuthal mode [-]
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE :: AWC_harmonic    ! AWC AWC Coleman transform harmonic [-]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_freq        ! AWC frequency [Hz]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_amp         ! AWC amplitude [deg]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_clockangle  ! AWC clocking angle [deg]
+    INTEGER(IntKi)                :: MeanCounter = 1             ! Counter for taking the mean of tilt and yaw moment in AWC CL mode
     INTEGER(IntKi)                :: PF_Mode                     ! Pitch actuator fault mode {0 - not used, 1 - offsets on one or more blades}
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PF_Offsets                  ! Pitch actuator fault offsets for blade 1-3 [rad/s]
     INTEGER(IntKi)                :: Ext_Mode                    ! External control mode (0 - not used, 1 - call external control library)
     CHARACTER(1024)               :: DLL_FileName                ! File name of external dynamic library
     CHARACTER(1024)               :: DLL_InFile                  ! Name of input file called by dynamic library (DISCON.IN, e.g.)
     CHARACTER(1024)               :: DLL_ProcName                ! Process name of subprocess called in DLL_Filename (Usually DISCON)
-    INTEGER(IntKi)                :: ZMQ_Mode                    ! Flag for ZeroMQ (0-off, 1-yaw}
+    INTEGER(IntKi)                :: ZMQ_Mode                    ! Flag for ZeroMQ (0-off, 1-yaw)
     CHARACTER(256)                :: ZMQ_CommAddress             ! Comm Address to zeroMQ client
     REAL(DbKi)                    :: ZMQ_UpdatePeriod            ! Integer for zeromq update frequency
-    INTEGER(IntKi)                :: CC_Mode                     ! Flag for ZeroMQ (0-off, 1-yaw}
+    INTEGER(IntKi)                :: CC_Mode                     ! Flag for ZeroMQ (0-off, 1-yaw)
     INTEGER(IntKi)                :: CC_Group_N                  ! Number of cable control groups
     REAL(DbKi)                    :: CC_ActTau                   ! Time constant for line actuator [s]
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: CC_GroupIndex               ! Cable control group indices
@@ -173,8 +175,8 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: PC_RtTq99                   ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(DbKi)                    :: VS_MaxOMTq                  ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(DbKi)                    :: VS_MinOMTq                  ! Minimum torque at the beginning of the below-rated region 2, [Nm]
-    REAL(DbKi)                    :: TiltMean                    ! Mean tilt moment for AWC
-    REAL(DbKi)                    :: YawMean                     ! Mean yaw moment for AWC
+    REAL(DbKi)                    :: TiltMean = 0                ! Mean tilt moment for AWC
+    REAL(DbKi)                    :: YawMean = 0                 ! Mean yaw moment for AWC
 END TYPE ControlParameters
 
 TYPE, PUBLIC :: WE
@@ -227,8 +229,10 @@ TYPE, PUBLIC :: FilterParameters
     REAL(DbKi), DIMENSION(99)     :: nfs_a0                      ! Notch filter slopes denominator coefficient 0
     REAL(DbKi), DIMENSION(99)     :: nf_OutputSignalLast1        ! Notch filter previous output 1
     REAL(DbKi), DIMENSION(99)     :: nf_OutputSignalLast2        ! Notch filter previous output 2
+    REAL(DbKi), DIMENSION(99)     :: nf_OutputSignalLast3        ! Notch filter previous output 3
     REAL(DbKi), DIMENSION(99)     :: nf_InputSignalLast1         ! Notch filter previous input 1
     REAL(DbKi), DIMENSION(99)     :: nf_InputSignalLast2         ! Notch filter previous input 2
+    REAL(DbKi), DIMENSION(99)     :: nf_InputSignalLast3         ! Notch filter previous input 3
     REAL(DbKi), DIMENSION(99)     :: nf_b2                       ! Notch filter numerator coefficient 2
     REAL(DbKi), DIMENSION(99)     :: nf_b1                       ! Notch filter numerator coefficient 1
     REAL(DbKi), DIMENSION(99)     :: nf_b0                       ! Notch filter numerator coefficient 0
@@ -245,7 +249,10 @@ TYPE, PUBLIC :: piParams
     REAL(DbKi), DIMENSION(99)     :: ITermLast                   ! Previous integrator term
     REAL(DbKi), DIMENSION(99)     :: ITerm2                      ! Integrator term - second integrator
     REAL(DbKi), DIMENSION(99)     :: ITermLast2                  ! Previous integrator term - second integrator
+    REAL(DbKi), DIMENSION(99)     :: ITermLast3                  ! Previous integrator term - third integrator
     REAL(DbKi), DIMENSION(99)     :: ELast                       ! Previous error term for derivative
+    REAL(DbKi), DIMENSION(99)     :: ELast2                      ! Previous error term for derivative - second integrator
+    REAL(DbKi), DIMENSION(99)     :: ELast3                      ! Previous error term for derivative - third integrator
 END TYPE piParams
 
 TYPE, PUBLIC :: LocalVariables
