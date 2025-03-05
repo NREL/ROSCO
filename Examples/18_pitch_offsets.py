@@ -41,8 +41,8 @@ def main():
         'U_start': [10],  # from 10 to 15 m/s
         'U_end': [15],
         'wind_dir': run_dir,
-        'T_step': 50,   # step at 50 sec
-        'T_Max': 100    # simulation is 100 sec
+        'TStep': 5,   # step at 5 sec
+        'TMax': 10    # simulation is 10 sec
         }
     r.case_inputs = {}
     r.case_inputs[("ServoDyn","Ptch_Cntrl")] = {'vals':[1], 'group':0}  # Individual pitch control must be enabled in ServoDyn
@@ -54,7 +54,7 @@ def main():
 
 
     # Check pitch offsets
-    filenames = [os.path.join(run_dir,'IEA15MW/simp_step/base/IEA15MW_0.outb')]
+    filenames = [os.path.join(run_dir,'IEA15MW_0.outb')]
     fast_out = output_processing.output_processing()
 
     # Load and plot

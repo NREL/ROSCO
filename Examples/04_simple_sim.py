@@ -8,7 +8,7 @@ In this example:
 * Load turbine from saved pickle and tune a ROSCO controller
 * Run and plot a step wind simulation using 1-DOF model in ``rosco.toolbox.sim`` and the ROSCO dynamic library
 
-.. figure:: /source/figures/04_NREL5MW_SimpSim.png
+.. figure:: /images/examples/03_GainSched.png
    :align: center
    :width: 70%
 

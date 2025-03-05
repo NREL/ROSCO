@@ -9,7 +9,7 @@ In this example:
 * Tune a controller
 * Plot minimum pitch schedule
 
-.. image:: ../images/06_MinPitch.png
+.. image:: ../images/examples/06_MinPitch.png
 
 """
 

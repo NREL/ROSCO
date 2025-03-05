@@ -45,9 +45,6 @@ def main():
     debug_file1 = os.path.join(
         EXAMPLE_OUT_DIR,
         "17b_zeromq_OF1",
-        "NREL5MW",
-        "power_curve",
-        "base",
         "NREL5MW_0.RO.dbg2",
     )
     local_vars1 = op1.load_fast_out(debug_file1, tmin=0)
@@ -57,9 +54,6 @@ def main():
     debug_file2 = os.path.join(
         EXAMPLE_OUT_DIR,
         "17b_zeromq_OF2",
-        "NREL5MW",
-        "power_curve",
-        "base",
         "NREL5MW_0.RO.dbg2",
     )
     local_vars2 = op2.load_fast_out(debug_file2, tmin=0)
