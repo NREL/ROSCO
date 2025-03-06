@@ -341,58 +341,6 @@ properties:
                 default: 0.8
                 maximum: 1
                 unit: rad
-            # su_fw_pitch:
-            #     description: Free-wheel pitch angle for startup, [rad], {default = 0.7854}
-            #     type: number
-            #     default: 0.7854
-            # su_fw_minduration:
-            #     description: Free-wheel minimum duration, [s], {default = 20}
-            #     type: number
-            #     default: 20
-            # su_rotorspeedcornerfreq:
-            #     description: Free-wheel minimum duration, [s], {default = 20}
-            #     type: number
-            #     default: 20
-            # su_loadstages:           
-            #     description: Shutdown when collective blade pitch exceeds a threshold [-], {default = 0}
-            #     type: number
-            #     default: 0
-            # sd_enableyawerror:           
-            #     description: Shutdown when yaw error exceeds a threshold, [-], {default = 0}
-            #     type: number
-            #     default: 0
-            # sd_enablegenspeed:           
-            #     description: Shutdown when generator speed exceeds a threshold, [-], {default = 9}
-            #     type: number
-            #     default: 0
-            # sd_enabletime:           
-            #     description: Shutdown at a predefined time, [-] {default = 0}
-            #     type: number
-            #     default: 0
-            # sd_maxpit:           
-            #     description: Maximum blade pitch angle to initiate shutdown [rad], {default = 40 deg.}
-            #     type: number
-            #     default: 0.6981
-            #     unit: rad
-            # sd_maxyawerror:
-            #     description: Maximum yaw error to initiate shutdown [rad], {default = 30 deg.}
-            #     type: number
-            #     default: 0.5236
-            #     unit: rad
-            # sd_maxgenspd:
-            #     description: Maximum generator speed to initiate shutdown, [rad/s], {default = 10 rad/s.}
-            #     type: number
-            #     default: 10
-            #     unit: rad/s
-            # sd_time:
-            #     description: Shutdown time, [s], {default = 9999 s.}
-            #     type: number
-            #     default: 9999
-            #     unit: s
-            # sd_method:
-            #     description: Shutdown method {Only 1 supported for now}
-            #     type: number
-            #     default: 1
             flp_maxpit:
                 description: Maximum (and minimum) flap pitch angle [rad]
                 type: number

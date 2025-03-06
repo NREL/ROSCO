@@ -607,7 +607,7 @@ CONTAINS
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
         
         ! Local Variables 
-        CHARACTER(*),               PARAMETER           :: RoutineName = 'VariableSpeedControl'
+        CHARACTER(*),               PARAMETER           :: RoutineName = 'Shutdown'
         REAL(DbKi)       :: SD_NacVaneCosF                 ! Time-filtered x-component of NacVane (deg)
         REAL(DbKi)       :: SD_NacVaneSinF                 ! Time-filtered y-component of NacVane (deg)
 
