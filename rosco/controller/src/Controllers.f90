@@ -766,19 +766,25 @@ CONTAINS
             ENDIF
 
             ! Pass tilt and yaw axis through the double inverse Coleman transform to get the commanded pitch angles
-            CALL ColemanTransformInverse(TiltSig, YawSig, &
+            IF (CntrPar%AWC_harmonic(1) == 0) THEN
+                DO K = 1,LocalVar%NumBl ! Loop through all blades, calculate AWC_angle
+                    AWC_angle(K) = -TiltSig
+                END DO
+            ELSE
+                CALL ColemanTransformInverse(TiltSig, YawSig, &
                                          LocalVar%Azimuth, CntrPar%AWC_harmonic(1), CntrPar%AWC_phaseoffset*D2R, AWC_angle)
+            ENDIF
 
             DO K = 1,LocalVar%NumBl ! Loop through all blades, apply AWC_angle
                 LocalVar%PitCom(K) = LocalVar%PitCom(K) + AWC_angle(K)
             END DO
 
-            DebugVar%axisTilt_1P = CntrPar%AWC_amp(2)*sin(LocalVar%Time*2*PI*CntrPar%AWC_freq(2) + CntrPar%AWC_clockangle(2)*D2R)
-            DebugVar%axisYaw_1P = YawM - CntrPar%YawMean/(LocalVar%n_DT+1)
+            DebugVar%axisTilt_1P = TiltSig
+            DebugVar%axisYaw_1P = AWC_angle(1)
             DebugVar%axisTilt_2P = CntrPar%AWC_amp(1)*sin(LocalVar%Time*2*PI*CntrPar%AWC_freq(1) + CntrPar%AWC_clockangle(1)*D2R)
             DebugVar%axisYaw_2P = TiltM - CntrPar%TiltMean/(LocalVar%n_DT+1)
 
-        ! Closed-loop helix method
+        ! Closed-loop DQ method
         ELSEIF (CntrPar%AWC_Mode == 4) THEN
 
             StrAzimuth = wrap_360(360*LocalVar%Time*CntrPar%AWC_freq(1))*D2R
