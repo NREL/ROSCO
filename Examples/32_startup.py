@@ -40,7 +40,7 @@ this_dir = os.path.dirname(os.path.abspath(__file__))
 example_out_dir = os.path.join(this_dir, "examples_out")
 os.makedirs(example_out_dir, exist_ok=True)
 
-FULL_TEST = True
+FULL_TEST = False
 
 
 def main():
