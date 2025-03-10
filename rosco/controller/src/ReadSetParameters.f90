@@ -1064,6 +1064,12 @@ CONTAINS
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'PS_Mode must be 0 or 1.'
         ENDIF
+        
+        ! SU_Mode
+        IF ((CntrPar%SU_Mode < 0) .OR. (CntrPar%SD_Mode > 1)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'SU_Mode must be 0 or 1.'
+        ENDIF
 
         ! SD_Mode
         IF ((CntrPar%SD_Mode < 0) .OR. (CntrPar%SD_Mode > 1)) THEN
@@ -1461,6 +1467,58 @@ CONTAINS
             ENDIF
 
 
+        ENDIF
+
+        ! --- Startup ---
+        IF (CntrPar%SU_Mode > 0) THEN
+
+            ! SU_FW_Pitch
+            IF (CntrPar%SU_FW_Pitch < 0.0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SU_FW_Pitch must be greater than zero.'
+            ENDIF
+
+            ! SU_FW_MinDuration
+            IF (CntrPar%SU_FW_MinDuration < 0.0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SU_FW_MinDuration must be greater than zero.'
+            ENDIF
+
+            ! SU_RotorSpeedThresh
+            IF (CntrPar%SU_RotorSpeedThresh < 0.0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SU_RotorSpeedThresh must be greater than zero.'
+            ENDIF
+            
+            ! SU_RotorSpeedCornerFreq
+            IF (CntrPar%SU_RotorSpeedCornerFreq < 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'SU_RotorSpeedCornerFreq must be greater than or equal to 0.'
+            ENDIF
+            
+            ! SU_LoadStages_N
+            IF (CntrPar%SU_LoadStages_N < 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'SU_LoadStages_N must be greater than or equal to 0.'
+            ENDIF
+
+            ! SU_LoadStages
+            IF (ANY(CntrPar%SU_LoadStages < 0)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SU_LoadStages must be positive.'
+            ENDIF
+
+            ! SU_LoadRampDuration
+            IF (ANY(CntrPar%SU_LoadRampDuration < 0)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SU_LoadRampDuration must be positive.'
+            ENDIF
+
+            ! SU_LoadHoldDuration
+            IF (ANY(CntrPar%SU_LoadHoldDuration < 0)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SU_LoadHoldDuration must be positive.'
+            ENDIF
         ENDIF
 
         ! --- Shutdown ---
