@@ -210,10 +210,12 @@ CONTAINS
         !           - operating conditions
         REAL(DbKi)                 :: A_op             ! Estimated operational system pole [UNITS!]
         REAL(DbKi)                 :: Cp_op            ! Estimated operational Cp [-]
+        REAL(DbKi)                 :: Ct_op            ! Estimated operational Ct [-]
         REAL(DbKi)                 :: Tau_r            ! Estimated rotor torque [Nm]
         REAL(DbKi)                 :: a                ! wind variance
         REAL(DbKi)                 :: lambda           ! tip-speed-ratio [rad]
         REAL(DbKi)                 :: RotSpeed         ! Rotor Speed [rad], locally
+        REAL(DbKi)                 :: Thrst            ! Turbine Thrust [N], locally
 
         !           - Covariance matrices
         REAL(DbKi), DIMENSION(3,3)         :: F        ! First order system jacobian 
@@ -226,6 +228,8 @@ CONTAINS
         REAL(DbKi)              :: WE_Inp_Pitch
         REAL(DbKi)              :: WE_Inp_Torque
         REAL(DbKi)              :: WE_Inp_Speed
+    
+        
         
         CHARACTER(*), PARAMETER                 :: RoutineName = 'WindSpeedEstimator'
 
@@ -298,7 +302,16 @@ CONTAINS
                 lambda = max(WE_Inp_Speed, EPSILON(1.0_DbKi)) * CntrPar%WE_BladeRadius/LocalVar%WE%v_h
                 Cp_op = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, WE_Inp_Pitch*R2D, lambda , ErrVar)
                 Cp_op = max(0.0,Cp_op)
+
+                ! Calculate the operational Ct value of the controlled turbine
+                Ct_op = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Ct_mat, WE_Inp_Pitch*R2D, lambda , ErrVar)
+                Ct_op = max(0.0,Ct_op)
+                ! Calculate the thrust of the controlled turbine
                 
+                !Thrst=0.5*WE_RhoAir*(WE_Vw**2)*PI*(WE_BladeRadius**2)*Ct_op !It correctly works
+                LocalVar%Thrst=0.5 *CntrPar%WE_RhoAir * (LocalVar%WE_Vw**2) * PI * (CntrPar%WE_BladeRadius**2) * Ct_op !It correctly works
+                               
+                              
                 ! Update Jacobian
                 F(1,1) = A_op
                 F(1,2) = 1.0/(2.0*CntrPar%WE_Jtot) * CntrPar%WE_RhoAir * PI *CntrPar%WE_BladeRadius**2.0 * 1/LocalVar%WE%om_r * 3.0 * Cp_op * LocalVar%WE%v_h**2.0
@@ -508,9 +521,7 @@ CONTAINS
         ! Rate limit reference speed
         LocalVar%VS_RefSpd_RL = ratelimit(LocalVar%VS_RefSpd_TRA, -CntrPar%TRA_RateLimit, CntrPar%TRA_RateLimit, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL)
         LocalVar%VS_RefSpd = LocalVar%VS_RefSpd_RL * CntrPar%WE_GearboxRatio
-
-
-        
+       
     END SUBROUTINE RefSpeedExclusion
 !-------------------------------------------------------------------------------------------------------------------------------
 END MODULE ControllerBlocks

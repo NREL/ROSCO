@@ -258,6 +258,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: VS_GenPwrF                  ! Generator power [W]
     REAL(DbKi)                    :: GenSpeed                    ! Generator speed (HSS) [rad/s]
     REAL(DbKi)                    :: RotSpeed                    ! Rotor speed (LSS) [rad/s]
+    REAL(DbKi)                    :: Thrst                       ! Turbine Thrust [N], locally
     REAL(DbKi)                    :: NacHeading                  ! Nacelle heading of the turbine w.r.t. north [deg]
     REAL(DbKi)                    :: NacVane                     ! Nacelle vane angle [deg]
     REAL(DbKi)                    :: HorWindV                    ! Hub height wind speed m/s
