@@ -547,15 +547,16 @@ CONTAINS
         CHARACTER(*),PARAMETER           :: RoutineName = 'Startup'
         Real(DbKi)              :: SU_PrevLoad             ! PRC_R_Toruqe value at the previous stage
 
+        !Filterd rotor speed
         LocalVar%SU_RotSpeedF = LPFilter(LocalVar%RotSpeed, LocalVar%DT, CntrPar%SU_RotorSpeedCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
 
-        !Initialize startup stage (SU_Stage)
+        !Initialize startup stage in free-wheeling stage (SU_Stage=1)
         IF (LocalVar%iStatus == 0) THEN
             ! Initilize startup stage variable to 1 to denote FreeWheeling
-            LocalVar%SU_Stage = 1
+            LocalVar%SU_Stage = 1       ! Start free-wheeling
         ENDIF
         
-        ! Set SU_Stage according to stages of startup procedure
+        !If free-wheeling exit criteria are met, swtich to load stages
         IF ((LocalVar%SU_Stage == 1) .AND. &
         (LocalVar%SU_RotSpeedF > CntrPar%SU_RotorSpeedThresh) .AND. &
         (LocalVar%Time>=CntrPar%SU_FW_MinDuration)) THEN
@@ -563,6 +564,7 @@ CONTAINS
             LocalVar%SU_Stage = 2
         ENDIF
 
+        ! Switch to next load stage when criteria are met
         IF ((LocalVar%SU_Stage .ge. 2) .AND. &
         (LocalVar%Time >= LocalVar%SU_LoadStageStartTime + CntrPar%SU_LoadRampDuration(LocalVar%SU_Stage-1) + &
         CntrPar%SU_LoadHoldDuration(LocalVar%SU_Stage-1)) .AND. &
@@ -571,25 +573,26 @@ CONTAINS
             LocalVar%SU_LoadStageStartTime = LocalVar%Time
         ENDIF
 
-        ! Set PRC_R_Torque for startup based on SU_Stage
+        ! Set SU_PrevLoad based on SU_Stage
+        IF (LocalVar%SU_Stage == 2) THEN
+            SU_PrevLoad = 0.0_DbKi
+        ELSEIF ((LocalVar%SU_Stage .ge. 2) .AND. (LocalVar%SU_Stage .le. CntrPar%SU_LoadStages_N + 1)) THEN
+            SU_PrevLoad = CntrPar%SU_LoadStages(LocalVar%SU_Stage-2)
+        ELSEIF (LocalVar%SU_Stage == CntrPar%SU_LoadStages_N + 2) THEN
+            ! Set SU_Stage = 0 when startup is over.
+            LocalVar%SU_Stage = 0
+        ENDIF
+
+        ! Set PRC_R_Torque based on SU_Stage
         IF (LocalVar%SU_Stage == 1) THEN
             LocalVar%PRC_R_Torque = 0.0_DbKi
-        ELSEIF (LocalVar%SU_Stage == 2) THEN
-            SU_PrevLoad = 0.0_DbKi
-        ELSE
-            SU_PrevLoad = CntrPar%SU_LoadStages(LocalVar%SU_Stage-2)
-        ENDIF
-        IF (LocalVar%SU_Stage .ge. 2) THEN
-            IF (LocalVar%SU_Stage .le. CntrPar%SU_LoadStages_N + 1) THEN
-                IF (LocalVar%Time < LocalVar%SU_LoadStageStartTime + CntrPar%SU_LoadRampDuration(LocalVar%SU_Stage-1)) THEN
-                    LocalVar%PRC_R_Torque = sigma(LocalVar%Time,LocalVar%SU_LoadStageStartTime,    &
-                    LocalVar%SU_LoadStageStartTime + CntrPar%SU_LoadRampDuration(LocalVar%SU_Stage - 1),    &
-                    SU_PrevLoad,CntrPar%SU_LoadStages(LocalVar%SU_Stage - 1),ErrVar)
-                ELSE
-                    LocalVar%PRC_R_Torque = CntrPar%SU_LoadStages(LocalVar%SU_Stage - 1)
-                ENDIF
+        ELSEIF ((LocalVar%SU_Stage .ge. 2) .AND. (LocalVar%SU_Stage .le. CntrPar%SU_LoadStages_N + 1)) THEN
+            IF (LocalVar%Time < LocalVar%SU_LoadStageStartTime + CntrPar%SU_LoadRampDuration(LocalVar%SU_Stage-1)) THEN
+                LocalVar%PRC_R_Torque = sigma(LocalVar%Time,LocalVar%SU_LoadStageStartTime,    &
+                LocalVar%SU_LoadStageStartTime + CntrPar%SU_LoadRampDuration(LocalVar%SU_Stage - 1),    &
+                SU_PrevLoad,CntrPar%SU_LoadStages(LocalVar%SU_Stage - 1),ErrVar)
             ELSE
-                LocalVar%PRC_R_Torque = 1.0_DbKi
+                LocalVar%PRC_R_Torque = CntrPar%SU_LoadStages(LocalVar%SU_Stage - 1)
             ENDIF
         ENDIF
 
