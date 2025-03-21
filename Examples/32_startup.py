@@ -1,5 +1,5 @@
 """
-31_Startup
+32_Startup
 ----------------
 This example demonstrates turbine startup procedure.
 The startup occurs in various stages depending on the provided input.
@@ -8,17 +8,19 @@ The states are as follows:
 * Stage 1: Free-Wheeling of rotor
     
     In this stage the generator torque is 0 (set using ``PRC_R_Torque = 0``), the blade pitch angles are set to ``SU_FW_Pitch`` and the rotor is free to rotate.
-    The rotor continues to free-wheel until the rotor speed exceeds ``SU_RotorSpeedThresh`` and has stayed in stage-1 for at least ``SU_FW_MinDuration`` seconds.
-    If  both these criteria are met, then the startup procedure proceeds to the next stage.
+    The rotor continues to free-wheel until the rotor speed exceeds ``SU_RotorSpeedThresh`` and has stayed in Stage 1 for at least ``SU_FW_MinDuration`` seconds.
+    Once both these criteria are met, the startup procedure enters the next stage.
 
 * Stage 2 - [``SU_LoadStages_N`` + 2]: 
-    In the next stages the startup procedure relinquishes the control of the blade pitch angles.
-    The load on the rotor is increased in stages by changing ``PRC_R_Torque``.
-    ROSCO reads an array of desired loads as ``SU_LoadStages``.
+    In the next stage(s), the startup procedure relinquishes the control of the blade pitch angles to the normal speed controller.
+    The power and load on the rotor is increased in stages by changing ``PRC_R_Torque``.
+    ROSCO reads an array of desired power loads as ``SU_LoadStages``.
     It also reads ramp-duration and hold-duration for each load stage as ``SU_LoadRampDuration`` and ``SU_LoadHoldDuration`` respectively.
     At each stage, the startup procedure increases ``PRC_R_Torque`` from its previous value to its current value using a smooth ramp in the form of a sigma function.
-    The duration of the ramp is read from the ``SU_LoadRampDuration`` array.
+    The duration of the ramp is determined by the ``SU_LoadRampDuration`` array.
     Then, the ``PRC_R_Torque`` held constant at the current level for a period of time (``SU_LoadHoldDuration``).
+
+The stage is stored in a ROSCO local variable ``SU_LoadStage``.
 
 The following figure demonstrate the startup procedure
 
@@ -40,7 +42,7 @@ this_dir = os.path.dirname(os.path.abspath(__file__))
 example_out_dir = os.path.join(this_dir, "examples_out")
 os.makedirs(example_out_dir, exist_ok=True)
 
-FULL_TEST = False
+FULL_TEST = True
 
 
 def main():
@@ -53,14 +55,14 @@ def main():
     controller_params["DISCON"]["Echo"] = 1
     controller_params["LoggingLevel"] = 3
     controller_params["SU_Mode"] = 1
-    controller_params["DISCON"]["SU_FW_Pitch"] = 45.0 * np.pi / 180.0
-    controller_params["DISCON"]["SU_FW_MinDuration"] = 40.0
-    controller_params["DISCON"]["SU_RotorSpeedThresh"] = 0.5 * (2 * np.pi) / 60.0
+    controller_params["DISCON"]["SU_FW_Pitch"] = 15.0 * np.pi / 180.0
+    controller_params["DISCON"]["SU_FW_MinDuration"] = 120.0
+    controller_params["DISCON"]["SU_RotorSpeedThresh"] = 5.0 * (2 * np.pi) / 60.0       # This should be close to minimum rotor speed
 
     controller_params["DISCON"]["SU_LoadStages_N"] = 2
     controller_params["DISCON"]["SU_LoadStages"] = [0.2, 1]
-    controller_params["DISCON"]["SU_LoadRampDuration"] = [40, 40]
-    controller_params["DISCON"]["SU_LoadHoldDuration"] = [40, 20]
+    controller_params["DISCON"]["SU_LoadRampDuration"] = [60, 120]
+    controller_params["DISCON"]["SU_LoadHoldDuration"] = [120, 120]
 
     # simulation set up
     r = run_FAST_ROSCO()
@@ -75,13 +77,13 @@ def main():
     r.case_inputs[("ElastoDyn", "PtfmPDOF")] = {"vals": ["False"], "group": 0}
     r.case_inputs[("ElastoDyn", "PtfmYDOF")] = {"vals": ["False"], "group": 0}
 
-    run_dir = os.path.join(example_out_dir, "32_startup_demo/1_pitch")
+    run_dir = os.path.join(example_out_dir, "32_startup_demo/2_step_pitch_down")
 
     # Wind case
     r.wind_case_fcn = cl.power_curve
     r.wind_case_opts = {
         "U": [10],
-        "TMax": 200,
+        "TMax": 300,
     }
     if not FULL_TEST:
         r.wind_case_opts["TMax"] = 2
