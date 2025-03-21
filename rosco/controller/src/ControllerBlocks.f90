@@ -216,6 +216,7 @@ CONTAINS
         REAL(DbKi)                 :: lambda           ! tip-speed-ratio [rad]
         REAL(DbKi)                 :: RotSpeed         ! Rotor Speed [rad], locally
         REAL(DbKi)                 :: Thrst            ! Turbine Thrust [N], locally
+        REAL(DbKi)                 :: Uenv             ! Envelope Wind Speed
 
         !           - Covariance matrices
         REAL(DbKi), DIMENSION(3,3)         :: F        ! First order system jacobian 
@@ -228,8 +229,33 @@ CONTAINS
         REAL(DbKi)              :: WE_Inp_Pitch
         REAL(DbKi)              :: WE_Inp_Torque
         REAL(DbKi)              :: WE_Inp_Speed
-    
-        
+     
+        ! This code operates
+        integer, parameter :: n = 6         ! Dimension of the vector: Weght and del
+        !real(8) :: dt = 0.025              ! Time step
+        !real(8) :: t_max = 300              ! Maximum time
+        real(8) :: gamma = 25               ! Learning rate
+        real(8) :: k = 0.02                 ! e-modification term
+        real(8) :: e                        ! error
+        real(8) :: P                        ! Solution of Lyapunov Equation
+        real(8) :: a_s = -0.2401            ! Approximate value for a
+        real(8) :: b_s = 0.0175             ! Approximate value for b
+        real(8) :: Kc = 50                  ! Observer gain
+        !real(8) :: We_Vw = 17              ! Wind speed        
+        real(8) :: Delta                    ! Neural Network Output
+        real(8) :: Thrst_es                 ! Thrust Estimate
+        real(8) :: Pre_Thrst_es             ! Previous Time Step Thrust Estimate
+        real(8) :: Thrst_es_dt              ! Derivative of Thrust Estimate
+        real(8) :: Del_Beta                 ! Adaptive Envelope Protection System (AEPS) output
+        real(8) :: e_dp                     ! AEPS Design Parameter
+        real(8) :: K_uc                     ! Unit Conversion
+        real(8) :: Thrstt                   ! Unit Converted Thrust 
+        real(8) :: Weght(n), del(n)         ! Vectors for Weght and del
+        real(8) :: dWeght_dt(n)             ! Derivative of Weght
+        integer :: m, i, j
+        real(8)  :: Adp, PreDf_Thrst, Tdot ! Adaptation Output, Pre-Defined Thrust Limit Value, Derivative of Thrust Estimate, Envelope Wind Speed
+        real(8) :: t
+        real(8) :: D1(3), D2(2), bias, Uold, Ea, Es
         
         CHARACTER(*), PARAMETER                 :: RoutineName = 'WindSpeedEstimator'
 
@@ -306,11 +332,110 @@ CONTAINS
                 ! Calculate the operational Ct value of the controlled turbine
                 Ct_op = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Ct_mat, WE_Inp_Pitch*R2D, lambda , ErrVar)
                 Ct_op = max(0.0,Ct_op)
+                
                 ! Calculate the thrust of the controlled turbine
                 
                 !Thrst=0.5*WE_RhoAir*(WE_Vw**2)*PI*(WE_BladeRadius**2)*Ct_op !It correctly works
                 LocalVar%Thrst=0.5 *CntrPar%WE_RhoAir * (LocalVar%WE_Vw**2) * PI * (CntrPar%WE_BladeRadius**2) * Ct_op !It correctly works
-                               
+            
+                ! Adaptive EPS Algorithm Starts from Here
+
+                ! Initializing the vectors for Weight and del
+                Weght = [0, 0, 0, 0, 0, 0]   ! Example initial values for Weight
+                !del = [1.0, 12.0, 0.8, 9.6, 0.9, 10.8]   ! Example values for del
+                Delta = 0.0                              ! Initialize Delta
+                ! Example values for the inputs
+                PreDf_Thrst = 0.55 ! Example value for Pre-Defined Thrust Force
+                e_dp = 2.5
+                P = 0.5 / Kc ! Solution of Lyapunov Equation (-K)'*P+P*(-K)=-I
+                K_uc=10**6
+                Thrstt=LocalVar%Thrst/K_uc
+                ! Time integration loop
+                t = 0.0
+                do while (LocalVar%Time <=t_max)
+
+                    ! Kronecker product calculation (del = D1 ⊗ D2)
+                    bias = 1.0
+
+                    D1 = [bias, Thrstt, LocalVar%RotSpeed] !Define D1 vector (length l)
+                    D2 = [bias, LocalVar%We_Vw]                  ! Define D2 vector (length s)
+                    
+                    ! Compute the Kronecker product
+                    do i = 1, 3   ! l = 3
+                        do j = 1, 2   ! s = 2
+                            del((i-1)*2 + j) = D1(i) * D2(j)    ! Compute Kronecker product
+                        end do
+                    end do
+
+                    ! Compute the Derivative of Weight (Weght) ̇ = Gamma * (del * e * P - k * Weght * e)
+                    do i = 1, n
+                        dWeght_dt(i) = gamma * (del(i) * e * P - k * Weght(i) * e)
+                    end do
+
+                    ! Update Weght using Euler's method
+                    Weght = Weght + dWeght_dt * LocalVar%DT
+
+                    ! Compute Delta = Weght' * del (dot product)
+                    Delta = 0.0
+                    do i = 1, n
+                        Delta = Delta + Weght(i) * del(i)
+                    end do
+
+                    ! Compute the Derivative of Thrst_es (Thrst_es) ̇ = a_s * Thrst_es + b_s * We_Vw + Delta + Kc * e
+                    Thrst_es_dt = a_s * LocalVar%Thrst_es + b_s * LocalVar%We_Vw + Delta + Kc * e
+
+                    ! Update Thrst_es using Euler's method
+                    LocalVar%Thrst_es = LocalVar%Thrst_es + Thrst_es_dt * LocalVar%DT
+
+                    ! Update the error
+                    e = Thrstt - LocalVar%Thrst_es
+
+                    ! Calculate the Adaptation
+                    Adp = Delta + Kc * e
+
+                    ! Calculate the Derivative of Thrust Estimate
+                    Pre_Thrst_es = LocalVar%Thrst_es - Thrst_es_dt * LocalVar%DT
+                    Tdot = (LocalVar%Thrst_es - Pre_Thrst_es) / LocalVar%DT
+
+                    ! Detecting the Excessive Thrust Force and Generating Extra Blade Pitch Output
+                    if (LocalVar%We_Vw - LocalVar%Uenv >= 0) then
+                        LocalVar%Del_Beta = e_dp * (LocalVar%We_Vw - LocalVar%Uenv)
+                    else 
+                        LocalVar%Del_Beta = 0
+                    end if
+
+                    ! Envelope wind speed calculation
+                    LocalVar%Uenv = 15.0    ! Initial guess for Uenv
+                    Es = 0.01      ! Uenv tolerance
+                    Ea = 0.1       ! Randomly large relative approximation for Uenv error
+                    Uold = LocalVar%Uenv
+                    m = 0          ! Iteration counter
+
+                    ! Iteration loop for calculating Uenv
+                    do while (Ea > Es)
+                        LocalVar%Uenv = -(1.0 / b_s) * (a_s * PreDf_Thrst + Adp - Tdot)
+                        Ea = abs((LocalVar%Uenv - Uold) / LocalVar%Uenv)
+                        Uold = LocalVar%Uenv
+                        m = m + 1
+                    end do
+
+                    ! Print the current time and Weght
+
+                            !print *, 'Time: ', t, ' Weght: ', Weght
+                            print *,'Current Time', LocalVar%Time, 'Time Last', LocalVar%Time_Last, 'Time Step', LocalVar%DT
+                           ! print *, ' Delta: ', Delta, ' Thrst_es: ', LocalVar%Thrst_es 
+                           ! print *, ' Error: ', e, ' Kronecker Product', LocalVar%del
+
+                           ! Print the Uenv and Iteration
+                           ! print *, "Uenv: ", LocalVar%Uenv, "Iterations: ", m 
+                           ! print *, "Adp: ", Adp, "Tdot: ", Tdot, "Del_Beta: ", LocalVar%Del_Beta
+                            !EN SON KOD BU
+
+                    ! Increment time step
+                    !t = t + LocalVar%DT
+                end do
+                
+                ! Adaptive EPS Algorithm Ends
                               
                 ! Update Jacobian
                 F(1,1) = A_op
