@@ -1379,6 +1379,10 @@ LocalVariables:
     PRC_Min_Pitch:
       <<: *real
       description: Instantaneous PRC_Min_Pitch
+    SU_Min_Pitch:
+      <<: *real
+      description: Instantaneous SU_Min_Pitch
+      equals: 0
     PS_Min_Pitch:
       <<: *real
       description: Instantaneous peak shaving 
