@@ -137,10 +137,10 @@ CONTAINS
         ENDIF
 
         ! Startup
-        IF (LocalVar%SU_Stage == 1) THEN
-            !Set blade pitch command to SU_FW_Pitch
-            LocalVar%PitCom = CntrPar%SU_FW_Pitch
-        ENDIF
+        ! IF (LocalVar%SU_Stage == 1) THEN
+        !     !Set blade pitch command to SU_FW_Pitch
+        !     LocalVar%PitCom = CntrPar%SU_FW_Pitch
+        ! ENDIF
 
         ! Shutdown
         IF (LocalVar%SD_Trigger == 0) THEN

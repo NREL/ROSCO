@@ -23,9 +23,8 @@ USE SysSubs
 IMPLICIT NONE
 
 CONTAINS
-! -----------------------------------------------------------------------------------
-    ! Calculate setpoints for primary control actions    
-    SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
+
+    SUBROUTINE PowerControlSetpoints(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
         USE Constants
         ! Allocate variables
@@ -34,7 +33,6 @@ CONTAINS
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
         TYPE(DebugVariables),       INTENT(INOUT)       :: DebugVar
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
-
 
         ! Set up power control
         IF (CntrPar%PRC_Mode == 2) THEN  ! Using power reference control
@@ -81,7 +79,21 @@ CONTAINS
             LocalVar%PRC_Min_Pitch = CntrPar%PC_FinePit
         ENDIF
 
-        ! End any power control before this point
+
+    END SUBROUTINE
+
+! -----------------------------------------------------------------------------------
+    ! Calculate setpoints for primary control actions    
+    SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
+        USE Constants
+        ! Allocate variables
+        TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
+        TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
+        TYPE(DebugVariables),       INTENT(INOUT)       :: DebugVar
+        TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
+
 
         !   Change pitch reference speed
         LocalVar%PC_RefSpd_PRC = CntrPar%PC_RefSpd * LocalVar%PRC_R_Speed
@@ -525,6 +537,7 @@ CONTAINS
 
         ! Total min pitch limit is greater of peak shaving and power control pitch
         PitchSaturation = max(LocalVar%PS_Min_Pitch, LocalVar%PRC_Min_Pitch)
+        PitchSaturation = max(LocalVar%PS_Min_Pitch, LocalVar%SU_Min_Pitch)
 
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN
@@ -546,13 +559,16 @@ CONTAINS
         ! Local Variables 
         CHARACTER(*),PARAMETER           :: RoutineName = 'Startup'
         Real(DbKi)              :: SU_PrevLoad             ! PRC_R_Toruqe value at the previous stage
+        Real(DbKi)              :: R_Speed_Start             ! PRC_R_Toruqe value at the previous stage
 
         LocalVar%SU_RotSpeedF = LPFilter(LocalVar%RotSpeed, LocalVar%DT, CntrPar%SU_RotorSpeedCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
 
         !Initialize startup stage (SU_Stage)
+        WRITE(400,*) LocalVar%SU_Min_Pitch
         IF (LocalVar%iStatus == 0) THEN
             ! Initilize startup stage variable to 1 to denote FreeWheeling
             LocalVar%SU_Stage = 1
+            LocalVar%SU_Min_Pitch = 1.570_DbKi
         ENDIF
         
         ! Set SU_Stage according to stages of startup procedure
@@ -574,6 +590,15 @@ CONTAINS
         ! Set PRC_R_Torque for startup based on SU_Stage
         IF (LocalVar%SU_Stage == 1) THEN
             LocalVar%PRC_R_Torque = 0.0_DbKi
+
+            IF (LocalVar%Time > LocalVar%SU_LoadStageStartTime + 15 ) THEN
+                LocalVar%SU_Min_Pitch = LocalVar%SU_Min_Pitch - CntrPar%SU_FW_Pitch
+                LocalVar%SU_LoadStageStartTime = LocalVar%Time
+            END IF
+
+            LocalVar%PRC_R_Speed = CntrPar%SU_RotorSpeedThresh / CntrPar%PC_RefSpd
+            ! Transition from R_Speed_Start to R_Speed = 1
+
         ELSEIF (LocalVar%SU_Stage == 2) THEN
             SU_PrevLoad = 0.0_DbKi
         ELSE
@@ -589,7 +614,7 @@ CONTAINS
                     LocalVar%PRC_R_Torque = CntrPar%SU_LoadStages(LocalVar%SU_Stage - 1)
                 ENDIF
             ELSE
-                LocalVar%PRC_R_Torque = 1.0_DbKi
+                LocalVar%SU_Stage = 0
             ENDIF
         ENDIF
 

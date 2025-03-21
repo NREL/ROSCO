@@ -391,6 +391,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: PRC_R_Pitch                 ! Instantaneous PRC_R_Pitch
     REAL(DbKi)                    :: PRC_R_Total                 ! Instantaneous PRC_R_Total
     REAL(DbKi)                    :: PRC_Min_Pitch               ! Instantaneous PRC_Min_Pitch
+    REAL(DbKi)                    :: SU_Min_Pitch = 0            ! Instantaneous SU_Min_Pitch
     REAL(DbKi)                    :: PS_Min_Pitch                ! Instantaneous peak shaving
     REAL(DbKi)                    :: OL_Index                    ! Open loop indexing variable (time or wind speed)
     INTEGER(IntKi)                :: SU_Stage                    ! Current stage of startup procedure (0- Startup not active, 1- Free-wheeling, 2,3,.. - Load stage 1,2...etc)
