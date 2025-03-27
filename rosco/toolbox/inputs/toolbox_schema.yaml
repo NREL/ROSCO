@@ -1088,11 +1088,6 @@ properties:
                             type: number
                         description: Minimum blade pitch angles
                         units: rad
-                    SU_FW_Pitch:
-                        type: number
-                        description: Free-wheel pitch angle for startup
-                        units: rad
-                        default: 0.7854
                     SU_FW_MinDuration:
                         type: number
                         description: Free-wheel minimum duration

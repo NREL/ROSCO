@@ -483,9 +483,6 @@ ControlParameters:
     SU_Mode:
       <<: *integer
       description: Startup mode {0 - no startup procedure, 1 - enable startup}
-    SU_FW_Pitch:
-      <<: *real
-      description: Free-wheel pitch angle for startup [rad]
     SU_FW_MinDuration:
       <<: *real
       description: Free-wheel minimum duration [s]

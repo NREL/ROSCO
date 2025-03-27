@@ -241,7 +241,6 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{}              ! PS_BldPitchMin    - Minimum blade pitch angles [rad]\n'.format(''.join('{:<10.3f} '.format(rosco_vt['PS_BldPitchMin'][i]) for i in range(len(rosco_vt['PS_BldPitchMin'])))))
     file.write('\n')
     file.write('!------- STARTUP -----------------------------------------------------------\n')
-    file.write('{:<014.5f}        ! SU_FW_Pitch          - Free-wheel pitch angle for startup, [rad]\n'.format(rosco_vt['SU_FW_Pitch']))
     file.write('{:<014.5f}        ! SU_FW_MinDuration    - Free-wheel minimum duration, [s]\n'.format(rosco_vt['SU_FW_MinDuration']))
     file.write('{:<014.5f}        ! SU_RotorSpeedThresh  - Rotor speed threshhold to switch from freewheel to loads, [rad/s]\n'.format(rosco_vt['SU_RotorSpeedThresh']))
     file.write('{:<014.5f}        ! SU_RotorSpeedCornerFreq  - Cutoff Frequency for first order low-pass filter for rotor speed for startup, [rad/s]\n'.format(rosco_vt['SU_RotorSpeedCornerFreq']))
@@ -641,7 +640,6 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['PS_WindSpeeds']    = controller.v
     DISCON_dict['PS_BldPitchMin']   = controller.ps_min_bld_pitch
     # ------- STARTUP -------
-    DISCON_dict['SU_FW_Pitch']          = 0.7854
     DISCON_dict['SU_FW_MinDuration']    = 20
     DISCON_dict['SU_RotorSpeedThresh']  = 0.1
     DISCON_dict['SU_LoadStages_N']      = 1

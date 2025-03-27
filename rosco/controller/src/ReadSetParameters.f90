@@ -538,7 +538,6 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) RETURN
         
         !------------ STARTUP ------------
-        CALL ParseInput(FileLines,  'SU_FW_Pitch',       CntrPar%SU_FW_Pitch,  accINFILE(1),   ErrVar, CntrPar%SU_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'SU_FW_MinDuration', CntrPar%SU_FW_MinDuration,  accINFILE(1),   ErrVar, CntrPar%SU_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'SU_RotorSpeedThresh',       CntrPar%SU_RotorSpeedThresh,  accINFILE(1),   ErrVar, CntrPar%SU_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'SU_RotorSpeedCornerFreq',       CntrPar%SU_RotorSpeedCornerFreq,  accINFILE(1),   ErrVar, CntrPar%SU_Mode == 0, UnEc)
@@ -1471,12 +1470,6 @@ CONTAINS
 
         ! --- Startup ---
         IF (CntrPar%SU_Mode > 0) THEN
-
-            ! SU_FW_Pitch
-            IF (CntrPar%SU_FW_Pitch < 0.0) THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'SU_FW_Pitch must be greater than zero.'
-            ENDIF
 
             ! SU_FW_MinDuration
             IF (CntrPar%SU_FW_MinDuration < 0.0) THEN
