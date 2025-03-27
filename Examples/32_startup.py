@@ -7,8 +7,8 @@ The states are as follows:
 
 * Stage 1: Free-Wheeling of rotor
     
-    In this stage the generator torque is 0 (set using ``PRC_R_Torque = 0``), the blade pitch angles are set to ``SU_FW_Pitch`` and the rotor is free to rotate.
-    The rotor continues to free-wheel until the rotor speed exceeds ``SU_RotorSpeedThresh`` and has stayed in Stage 1 for at least ``SU_FW_MinDuration`` seconds.
+    In this stage the generator torque is 0 (set using ``PRC_R_Torque = 0``) and the rotor is free to rotate.
+    The rotor continues to free-wheel until the rotor speed exceeds ``0.95 * SU_RotorSpeedThresh`` and stay above it for at least ``SU_FW_MinDuration`` seconds.
     Once both these criteria are met, the startup procedure enters the next stage.
 
 * Stage 2 - [``SU_LoadStages_N`` + 2]: 
@@ -20,7 +20,9 @@ The states are as follows:
     The duration of the ramp is determined by the ``SU_LoadRampDuration`` array.
     Then, the ``PRC_R_Torque`` held constant at the current level for a period of time (``SU_LoadHoldDuration``).
 
+
 The stage is stored in a ROSCO local variable ``SU_LoadStage``.
+After the startup procedure is complete, ``SU_LoadStage`` resets to 0. 
 
 The following figure demonstrate the startup procedure
 
@@ -42,7 +44,7 @@ this_dir = os.path.dirname(os.path.abspath(__file__))
 example_out_dir = os.path.join(this_dir, "examples_out")
 os.makedirs(example_out_dir, exist_ok=True)
 
-FULL_TEST = True
+FULL_TEST = False
 
 
 def main():
@@ -54,15 +56,16 @@ def main():
     controller_params["DISCON"] = {}
     controller_params["DISCON"]["Echo"] = 1
     controller_params["LoggingLevel"] = 3
+    
     controller_params["SU_Mode"] = 1
-    controller_params["DISCON"]["SU_FW_Pitch"] = 15.0 * np.pi / 180.0
-    controller_params["DISCON"]["SU_FW_MinDuration"] = 120.0
+    controller_params["DISCON"]["SU_FW_MinDuration"] = 60.0
     controller_params["DISCON"]["SU_RotorSpeedThresh"] = 5.0 * (2 * np.pi) / 60.0       # This should be close to minimum rotor speed
-
     controller_params["DISCON"]["SU_LoadStages_N"] = 2
     controller_params["DISCON"]["SU_LoadStages"] = [0.2, 1]
-    controller_params["DISCON"]["SU_LoadRampDuration"] = [60, 120]
-    controller_params["DISCON"]["SU_LoadHoldDuration"] = [120, 120]
+    controller_params["DISCON"]["SU_LoadRampDuration"] = [60, 60]
+    controller_params["DISCON"]["SU_LoadHoldDuration"] = [60, 60]
+
+    
 
     # simulation set up
     r = run_FAST_ROSCO()
@@ -77,13 +80,13 @@ def main():
     r.case_inputs[("ElastoDyn", "PtfmPDOF")] = {"vals": ["False"], "group": 0}
     r.case_inputs[("ElastoDyn", "PtfmYDOF")] = {"vals": ["False"], "group": 0}
 
-    run_dir = os.path.join(example_out_dir, "32_startup_demo/2_step_pitch_down")
+    run_dir = os.path.join(example_out_dir, "32_startup_demo")
 
     # Wind case
     r.wind_case_fcn = cl.power_curve
     r.wind_case_opts = {
-        "U": [10],
-        "TMax": 300,
+        "U": [5,15],
+        "TMax": 500,
     }
     if not FULL_TEST:
         r.wind_case_opts["TMax"] = 2
@@ -100,11 +103,16 @@ def main():
     r.run_FAST()
 
     # Plot output
-    outfile = [os.path.join(run_dir, "IEA15MW_0.outb")]
+    outfile0 = [os.path.join(run_dir, "IEA15MW_0.outb")]
+    outfile1 = [os.path.join(run_dir, "IEA15MW_1.outb")]
     cases = {}
     cases["Baseline"] = ["Wind1VelX", "BldPitch1", "GenTq", "RotSpeed", "GenPwr"]
     fast_out = output_processing.output_processing()
-    fastout = fast_out.load_fast_out(outfile)
+    
+    fast_out.load_fast_out(outfile0)
+    fast_out.plot_fast_out(cases=cases, showplot=False)
+
+    fast_out.load_fast_out(outfile1)
     fast_out.plot_fast_out(cases=cases, showplot=False)
 
     plt.savefig(os.path.join(example_out_dir, "32_startup.png"))
