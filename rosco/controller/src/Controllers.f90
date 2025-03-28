@@ -86,7 +86,7 @@ CONTAINS
         IF (CntrPar%Fl_Mode > 0) THEN
             LocalVar%Fl_PitCom = FloatingFeedback(LocalVar, CntrPar, objInst, ErrVar)
             DebugVar%FL_PitCom = LocalVar%Fl_PitCom
-            LocalVar%PC_PitComT = LocalVar%PC_PitComT + LocalVar%Fl_PitCom
+            LocalVar%PC_PitComT = LocalVar%PC_PitComT + LocalVar%Fl_PitCom + LocalVar%Del_Beta
         ENDIF
         
         ! Shutdown
