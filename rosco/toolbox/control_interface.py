@@ -28,7 +28,7 @@ import os
 import zmq
 import logging
 from rosco.toolbox.ofTools.util.FileTools import load_yaml
-
+import matlab.engine
 
 
 logger = logging.getLogger(__name__)
@@ -336,6 +336,7 @@ class wfc_zmq_server:
         Prints details of messages being passed using the server
     logfile : string
         Path of the logfile; if logfile is not provided, logging is disabled
+    wfc_controller : WFC
 
     methods
     -------
@@ -355,6 +356,7 @@ class wfc_zmq_server:
 
     def __init__(self, network_address="tcp://*:5555", timeout=600.0, verbose=False,logfile=None):
         """Instanciate the server"""
+        self.wfMPC = wfMPC()
         self.network_address = network_address
         self.timeout = timeout
         self.verbose = verbose
@@ -427,44 +429,12 @@ class wfc_zmq_server:
         logger.debug(
             f"Asking wfc_controller for setpoints at time = {current_time} for id = {id}"
         )
-        setpoints = self.wfc_controller(id, current_time, measurements)
+        setpoints = self.wfMPC.update_setpoints(id, current_time, measurements)
         logger.info(f"Received setpoints {setpoints} from wfc_controller for time = {current_time} and id = {id}")
 
         for s in self.wfc_interface["setpoints"]:
             self.connections.setpoints[id][s] = setpoints.get(s, 0)
             logger.debug(f'Set setpoint {s} in the connections list to {setpoints.get(s,0)} for id = {id}')
-
-    def wfc_controller(self, id, current_time, measurements):
-        """User defined wind farm controller
-
-        Users needs to overwrite this method by their wind farm controller.
-        The user defined method should take as argument the turbine id, the
-        current time and current measurements and return the setpoints
-        for the particular turbine for the current time. It should ouput the
-        setpoints as a dictionary whose keys should be as defined in
-        wfc_zmq_server.wfc_interface. If user does not overwrite this method,
-        an exception is raised and the simulation stops.
-
-        Examples
-        --------
-        >>> # Define the wind farm controller
-        >>> def wfc_controller(id, current_time):
-        >>>     if current_time <= 10.0:
-        >>>         YawOffset = 0.0
-        >>>     else:
-        >>>         if id == 1:
-        >>>             YawOffset = -10.0
-        >>>         else:
-        >>>             YawOffset = 10
-        >>>     setpoints = {}
-        >>>     setpoints["ZMQ_YawOffset"] = YawOffset
-        >>>     return setpoints
-        >>>
-        >>> # Overwrite the wfc_controller method of the server
-        >>> server.wfc_controller = wfc_controller
-        """
-        logger.critical("User defined wind farm controller not found")
-        raise NotImplementedError("Wind farm controller needs to be defined.")
 
     def _get_measurements(self):
         """Receive measurements from ROSCO .dll"""
@@ -589,3 +559,148 @@ class wfc_zmq_connections:
         if measurements["iStatus"] == -1:
             wfc_zmq_connections.connected[id] = False
             logger.info(f"Received disconnect signal from ROSCO with id = {id}")
+
+class wfMPC:
+    """Class to manage the wind farm MPC from Matlab in Python
+
+    Attributes
+    __________
+    engine : MatlabEngine
+        Object to manage the Matlab engine 
+    speedControllerIntegralError: Matlab double(1,NT)
+        Speed controller integral error for each turbine
+    wfParams: dictionary
+        Struct to manage wf parameters
+    wfMeasurements: dictionary
+        Struct to manage wf measurements
+    wfcStruct: dictionary
+        Struct to manage the MPC
+
+    Methods
+    _______
+    run_controller()
+    advance_farm()
+    call_induction_controller()
+    """
+    def __init__(self, numTurbines=3, phi=0.0, Vinf=10.0, TIinf=0.06):
+        """Initialize controller"""
+
+        print("Initializing controller ...")
+        print("Starting the Matlab engine ...")
+        engine = matlab.engine.start_matlab() # we need to navigate to the MPC folder
+        speedControllerIntegralError = np.zeros((numTurbines))
+        engine.cd(os.path.dirname(os.path.abspath(__file__)), nargout=0)
+        engine.addpath(engine.genpath(engine.fullfile('..','..','..','MPC')), nargout = 0)
+        engine.addpath(engine.genpath(engine.fullfile('..','..','..','model')), nargout = 0)
+        engine.addpath(engine.genpath(engine.fullfile('..','..','..','..','tbxmanager')))
+        engine.tbxmanager('restorepath',nargout=0)
+
+        wfParams = engine.getWfParameters(numTurbines)
+        Ts = engine.getTimeStep(wfParams)
+        gammaT = matlab.double([[0.0],[0.0],[0.0]])
+        aT = matlab.double([[0.33],[0.33],[0.33]])
+        pref = 0.8*wfParams['PeRated']*numTurbines
+
+        wfMeasurements = {}
+        initFarmObj = engine.initFarm(wfParams,phi,Ts,gammaT,aT,Vinf,TIinf,nargout=7)
+        turbine                     = initFarmObj[0]
+        Np                          = initFarmObj[1]
+        Nw                          = initFarmObj[2]
+        wfMeasurements['gammaM']    = initFarmObj[3]
+        wfMeasurements['aM']        = initFarmObj[4] 
+        wfMeasurements['vM']        = initFarmObj[5] 
+        wfMeasurements['tiM']       = initFarmObj[6]
+
+        print("Initialize farm inputs ...")
+        wfcStruct = engine.wfMpcCore(wfParams,Ts,Np,Nw,turbine,wfMeasurements['gammaM'],wfMeasurements['aM'],wfMeasurements['vM'],wfMeasurements['tiM'],Vinf,TIinf,gammaT,aT,pref,1,[],0,nargout=1)
+        print('WFC: I am going to sleep for ' + str(Ts) + ' seconds ... zzz ...')
+
+        self.engine = engine
+        self.speedControllerIntegralError = speedControllerIntegralError
+        self.wfParams = wfParams
+        self.wfMeasurements = wfMeasurements
+        self.wfcStruct = wfcStruct
+    
+    def run_controller(self):
+        wfcParams   = self.wfParams
+        Ts          = self.wfcStruct['Ts']
+        Np          = self.wfcStruct['Np']
+        Nw          = self.wfcStruct['Nw']
+        turbine     = self.wfcStruct['turbine']
+        gammaM      = self.wfMeasurements['gammaM']
+        aM          = self.wfMeasurements['aM']
+        vM          = self.wfMeasurements['vM']
+        tiM         = self.wfMeasurements['tiM']
+        Vinf        = self.wfcStruct['Vinf']
+        TIinf       = self.wfcStruct['TIinf']
+        gammaPrev   = self.wfcStruct['ugamma']
+        aPrev       = self.wfcStruct['ua']
+        pref        = self.wfcStruct['Pref']
+
+        self.wfcStruct = self.engine.wfMpcCore(wfcParams,Ts,Np,Nw,turbine,gammaM,aM,vM,tiM,Vinf,TIinf,gammaPrev,aPrev,pref,0,self.wfcStruct,0)
+
+    def advance_farm(self):
+        # remember that Matlab indexing starts at 1 but Python at 0
+        self.wfMeasurements['gammaM']  = self.wfcStruct['gamma'][:][1]
+        self.wfMeasurements['aM']      = self.wfcStruct['a'][:][1]
+        self.wfMeasurements['vM']      = self.wfcStruct['v'][:][1]
+        self.wfMeasurements['tiM']     = self.wfcStruct['ti'][:][1]
+
+    def call_induction_controller(self, id, a, measurements):
+        print("Calling induction controller ...")
+        v = measurements['HorWindV']
+        pitchCommandReferenceSpeed = self.engine.mapAxialToPitchAndRotorspeed(a, v, nargout=2)
+        pitchCommand = pitchCommandReferenceSpeed[0]
+        refSpeed = pitchCommandReferenceSpeed[1]
+        print("Pitch command = " + str(pitchCommand) + " degrees.")
+        print("Reference speed = " + str(refSpeed) + " rad per second.")
+        gainScheduling = self.engine.gainScheduling(pitchCommand, refSpeed, a, v, nargout=4)
+        p = gainScheduling[0]
+        k = gainScheduling[1]
+        pole = gainScheduling[2]
+
+        if pole > 0:
+            errorString = "Linearized speed system is unstable!"
+            errorString += "We assume a stable one in our controller design!"
+            errorString += "Axial induction factor is {a:d}, wind speed is {v:d}, pitch command is {pitchCommand:d}, reference speed is {refSpeed:d}."
+            raise ValueError(errorString)
+        
+        uOP = gainScheduling[3]
+
+        print("Current rotor speed = " + str(measurements['RotSpeed']) + " rad per second.")
+        currentError = refSpeed-measurements['RotSpeed']
+        self.speedControllerIntegralError[id] += 0.01*currentError
+        torqueCommand = p*currentError + k*self.speedControllerIntegralError[id] + uOP
+        print("Torque command = " + str(torqueCommand) + " Newtonmeters.")
+
+        pitchTorqueCommand = {}
+        pitchTorqueCommand['pitchCommand'] = pitchCommand
+        pitchTorqueCommand['torqueCommand'] = torqueCommand
+        return pitchTorqueCommand
+
+    def update_setpoints(self, id, current_time, measurements):
+        secondsBeforeMPCisCalled = int(self.wfcStruct['Ts']) - (int(current_time) % int(self.wfcStruct['Ts']))
+        if secondsBeforeMPCisCalled == int(self.wfcStruct['Ts']):
+            if current_time > 0.0 and id == 0:
+                # run MPC every Ts (defined in Matlab) seconds and only for one turbine
+                print("Calling WFC ...")
+                self.run_controller()
+                self.advance_farm()
+        elif id == 0:
+            print("WFC is pinged but will respond in " + str(secondsBeforeMPCisCalled) + " seconds.")
+
+        YawOffset = self.wfcStruct['ugamma'][id][0]
+        # compute pitch and torque command as a function of a
+        # a --> power demand
+        a = self.wfcStruct['ua'][id][0]
+        pitchTorqueCommand = self.call_induction_controller(id, a, measurements)
+        pitchCommand = pitchTorqueCommand['pitchCommand']
+        torqueCommand = pitchTorqueCommand['torqueCommand']
+            
+        setpoints = {}
+        setpoints["ZMQ_YawOffset"] = YawOffset
+        setpoints['ZMQ_PitOffset(1)'] = pitchCommand
+        setpoints['ZMQ_PitOffset(2)'] = pitchCommand
+        setpoints['ZMQ_PitOffset(3)'] = pitchCommand
+        setpoints['ZMQ_TorqueOffset'] = torqueCommand
+        return setpoints
