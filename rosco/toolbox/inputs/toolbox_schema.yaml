@@ -197,6 +197,12 @@ properties:
                 maximum: 2
                 default: 0
                 description: Flap control mode (0- no flap control, 1- steady state flap angle, 2- Proportional flap control)
+            ASO_Mode:           
+                type: number
+                minimum: 0
+                maximum: 2
+                default: 0
+                description: Safe Operation Mode (0- no safe operation, 1- AEPS is on, 2- ASCOS is on)
             PwC_Mode:           
                 type: number
                 minimum: 0
@@ -329,6 +335,30 @@ properties:
                 default: 0.8
                 maximum: 1
                 unit: rad
+            Kc:          
+                description: AEPS Observer Gain
+                type: number
+                default: 50
+                maximum: 90
+                unit: no unit
+            gamma:          
+                description: AEPS Learning Rate
+                type: number
+                default: 25
+                maximum: 200
+                unit: no unit
+            e_dp:          
+                description: AEPS design parameter for effective avoidance
+                type: number
+                default: 0.16
+                maximum: 5
+                unit: no unit
+            PreDf_Thrst:          
+                description: AEPS Pre-Defined Thrust Limit [MN]
+                type: number
+                default: 1.75
+                maximum: 2.4
+                unit: no unit
             sd_maxpit:           
                 description: Maximum blade pitch angle to initiate shutdown [rad], {default = 40 deg.}
                 type: number

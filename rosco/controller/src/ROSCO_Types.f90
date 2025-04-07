@@ -124,6 +124,11 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: Flp_Kp                      ! PI flap control proportional gain
     REAL(DbKi)                    :: Flp_Ki                      ! PI flap control integral gain
     REAL(DbKi)                    :: Flp_MaxPit                  ! Maximum (and minimum) flap pitch angle [rad]
+    INTEGER(IntKi)                :: ASO_Mode                    ! Adaptive safe operation {0 - no safe operation, 1 - AEPS system is on, 2 - ASCOS system is on }
+    REAL(DbKi)                    :: Kc                          ! AEPS Observer Gain
+    REAL(DbKi)                    :: gamma                       ! AEPS Learning Rate
+    REAL(DbKi)                    :: e_dp                        ! AEPS design parameter for effective avoidance
+    REAL(DbKi)                    :: PreDf_Thrst                 ! AEPS Pre-Defined Thrust Limit [MN]
     CHARACTER(1024)               :: OL_Filename                 ! Input file with open loop timeseries
     INTEGER(IntKi)                :: OL_Mode                     ! Open loop control mode {0 - no open loop control, 1 - open loop control vs. time, 2 - open loop control vs. wind speed}
     INTEGER(IntKi)                :: Ind_Breakpoint              ! The column in OL_Filename that contains the breakpoint (time if OL_Mode = 1)

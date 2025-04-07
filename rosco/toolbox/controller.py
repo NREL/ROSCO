@@ -65,6 +65,7 @@ class Controller():
         self.TD_Mode            = controller_params['TD_Mode']
         self.TRA_Mode           = controller_params['TRA_Mode']
         self.Flp_Mode           = controller_params['Flp_Mode']
+        self.ASO_Mode           = controller_params['ASO_Mode']
         self.PA_Mode            = controller_params['PA_Mode']
         self.PF_Mode            = controller_params['PF_Mode']
         self.AWC_Mode           = controller_params['AWC_Mode']
@@ -80,6 +81,15 @@ class Controller():
         self.zeta_vs = controller_params['zeta_vs']
         self.omega_vs = controller_params['omega_vs']
         self.interp_type = controller_params['interp_type']
+
+        #Adaptive Safe Operation (AEPS)
+        self.Kc = controller_params['Kc']
+        self.gamma = controller_params['gamma']
+        self.e_dp = controller_params['e_dp']
+        self.PreDf_Thrst = controller_params['PreDf_Thrst']
+
+        # Parameters
+        
 
         # Optional parameters with defaults
         self.min_pitch          = controller_params['min_pitch']
@@ -239,11 +249,11 @@ class Controller():
         # ------------- Find Linearized State "Matrices" ------------- #
         # At each operating point
         for i in range(len(TSR_op)):
-            # Find pitch angle as a function of expected operating CP for each TSR operating point
+           # Find pitch angle as a function of expected operating CP for each TSR operating point
             Cp_TSR = np.ndarray.flatten(turbine.Cp.interp_surface(turbine.pitch_initial_rad, TSR_op[i]))     # all Cp values for a given tsr
             Cp_maxidx = Cp_TSR.argmax()    
             Cp_op[i] = np.clip(Cp_op[i], np.min(Cp_TSR[Cp_maxidx:]), np.max(Cp_TSR[Cp_maxidx:]))            # saturate Cp values to be on Cp surface                                                             # Find maximum Cp value for this TSR
-            f_cp_pitch = interpolate.interp1d(Cp_TSR[Cp_maxidx:],pitch_initial_rad[Cp_maxidx:])             # interpolate function for Cp(tsr) values
+            f_cp_pitch = interpolate.interp1d(Cp_TSR[Cp_maxidx:],pitch_initial_rad[Cp_maxidx:])             # interpolate function for Cp(tsr) values 
             
             # expected operational blade pitch values. Saturates by min_pitch if it exists
             if v[i] <= turbine.v_rated and isinstance(self.min_pitch, float): # Below rated & defined min_pitch

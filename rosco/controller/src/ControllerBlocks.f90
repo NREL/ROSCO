@@ -137,13 +137,13 @@ CONTAINS
         INTEGER, PARAMETER :: n = 6            ! Dimension of the vector: Weght and del
         !real(8) :: dt = 0.025               ! Time step
         !real(8) :: t_max = 300              ! Maximum time
-	    REAL(DbKi) :: gamma = 100              ! Learning Rate
+	    REAL(DbKi) :: gamma = 25!100              ! Learning Rate
         REAL(DbKi) :: k = 0.02                 ! e-modification term
         REAL(DbKi) :: T_err                    ! Thrust Prediction Error
         REAL(DbKi) :: P                        ! Solution of Lyapunov Equation
         REAL(DbKi) :: a_s = -0.2401            ! Approximate value for a
         REAL(DbKi) :: b_s = 0.0175             ! Approximate value for b
-        REAL(DbKi) :: Kc = 70                ! Observer gain
+        REAL(DbKi) :: Kc = 50!70                ! Observer gain
         !real(8)   :: We_Vw = 17             ! Wind speed
         REAL(DbKi) :: RotSpeed                 ! Rotor Speed [rad], locally
         REAL(DbKi) :: Thrst                    ! Turbine Thrust [N], locally
@@ -186,8 +186,10 @@ CONTAINS
                 ! Adaptive EPS Algorithm Starts from Here
 
                 ! Example values for the inputs
-                PreDf_Thrst = 1.75! Pre-Defined Thrust Limit Value [MN]
-                e_dp = 0.16! AEPS Avoidance Design Parameter
+                PreDf_Thrst = 1.75! for 15MW Pre-Defined Thrust Limit Value [MN]
+                !PreDf_Thrst = 0.5! for 5MW Pre-Defined Thrust Limit Value [MN]
+                e_dp = 0.16 !for 15MW- AEPS Avoidance Design Parameter
+                !e_dp = 2.5 !for 5MW- AEPS Avoidance Design Parameter
                 P = 0.5 / Kc ! Solution of Lyapunov Equation (-K)'*P+P*(-K)=-I
                 !!K_uc=10**6
                 !!Thrstt=LocalVar%Thrst/K_uc ! Thrst is converted to MN
@@ -241,12 +243,21 @@ CONTAINS
                     Pre_Thrst_es = LocalVar%Thrst_es - Thrst_es_dt * LocalVar%DT
                     Tdot = (LocalVar%Thrst_es - Pre_Thrst_es) / LocalVar%DT
 
-                    ! Detecting the Excessive Thrust Force and Generating Extra Blade Pitch Output
+                    !! Detecting the Excessive Thrust Force and Generating Extra Blade Pitch Output
                     if (LocalVar%We_Vw - LocalVar%Uenv >= 0) then
                         LocalVar%Del_Beta = e_dp * (LocalVar%We_Vw - LocalVar%Uenv)
                     else 
                         LocalVar%Del_Beta = 0
                     end if
+
+                    !IF ( CntrPar%ASO_Mode==0) THEN
+                        !LocalVar%Del_Beta = 0
+                    !ELSE IF ((CntrPar%ASO_Mode==1) .AND. (LocalVar%We_Vw - LocalVar%Uenv >= 0)) THEN
+                        !LocalVar%Del_Beta = e_dp * (LocalVar%We_Vw - LocalVar%Uenv)
+                    !ELSE
+                        !print *, "Design ASCOS system"
+                    !END IF
+
 
                     ! Envelope wind speed calculation
                     ! LocalVar%Uenv = 15.0    ! Initial guess for Uenv

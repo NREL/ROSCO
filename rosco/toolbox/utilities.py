@@ -109,6 +109,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<12d}        ! TD_Mode         - {}\n'.format(int(rosco_vt['TD_Mode']),mode_descriptions['TD_Mode']))
     file.write('{:<12d}        ! TRA_Mode        - {}\n'.format(int(rosco_vt['TRA_Mode']),mode_descriptions['TRA_Mode']))
     file.write('{0:<12d}        ! Flp_Mode        - Flap control mode {{0: no flap control, 1: steady state flap angle, 2: Proportional flap control, 2: Cyclic (1P) flap control}}\n'.format(int(rosco_vt['Flp_Mode'])))
+    file.write('{0:<12d}        ! ASO_Mode        - Adaptive safe operation {{0: no safe operation, 1: AEPS system is on, 2: ASCOS system is on }}\n'.format(int(rosco_vt['ASO_Mode'])))
     file.write('{0:<12d}        ! OL_Mode         - Open loop control mode {{0: no open loop control, 1: open loop control vs. time, 2: rotor position control}}\n'.format(int(rosco_vt['OL_Mode'])))
     file.write('{0:<12d}        ! PA_Mode         - Pitch actuator mode {{0 - not used, 1 - first order filter, 2 - second order filter}}\n'.format(int(rosco_vt['PA_Mode'])))
     file.write('{0:<12d}        ! PF_Mode         - Pitch fault mode {{0 - not used, 1 - constant offset on one or more blades}}\n'.format(int(rosco_vt['PF_Mode'])))
@@ -188,6 +189,12 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<13.5f}       ! PRC_LPF_Freq   - {}\n'.format(float(rosco_vt['PRC_LPF_Freq']), input_descriptions["PRC_LPF_Freq"]))
     file.write('{}     ! PRC_WindSpeeds   - {}\n'.format(write_array(rosco_vt["PRC_WindSpeeds"]), input_descriptions["PRC_WindSpeeds"]))
     file.write('{}      ! PRC_GenSpeeds   - {}\n'.format(write_array(rosco_vt["PRC_GenSpeeds"]), input_descriptions["PRC_GenSpeeds"]))
+    file.write('\n')
+    file.write('!------- ADAPTIVE SAFE OPERATION (AEPS)--------------------------------------\n')
+    file.write('{:<014.8e}      ! Kc               - AEPS Observer Gain\n'.format(rosco_vt['Kc']))
+    file.write('{:<014.8e}      ! gamma            - AEPS Learning Rate\n'.format(rosco_vt['gamma']))
+    file.write('{:<014.8e}      ! e_dp             - AEPS design parameter for effective avoidance\n'.format(rosco_vt['e_dp']))
+    file.write('{:<014.8e}      ! PreDf_Thrst      - AEPS Pre-Defined Thrust Limit [MN]\n'.format(rosco_vt['PreDf_Thrst']))
     file.write('\n')
     file.write('!------- WIND SPEED ESTIMATOR ---------------------------------------------\n')
     file.write('{:<13.3f}       ! WE_BladeRadius	- Blade length (distance from hub center to blade tip), [m]\n'.format(rosco_vt['WE_BladeRadius']))
@@ -484,6 +491,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['TD_Mode']          = int(controller.TD_Mode)
     DISCON_dict['TRA_Mode']         = int(controller.TRA_Mode)
     DISCON_dict['Flp_Mode']         = int(controller.Flp_Mode)
+    DISCON_dict['ASO_Mode']         = int(controller.ASO_Mode)
     DISCON_dict['OL_Mode']          = int(controller.OL_Mode)
     DISCON_dict['PF_Mode']          = int(controller.PF_Mode)
     DISCON_dict['PA_Mode']          = int(controller.PA_Mode)
@@ -559,6 +567,12 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['PRC_n'] = 2
     DISCON_dict['PRC_WindSpeeds'] = [3,25]
     DISCON_dict['PRC_GenSpeeds'] = [rpm2RadSec * 7.56] * 2
+
+    # -------- ADAPTIVE SAFE OPERATION (AEPS)--------
+    DISCON_dict['Kc'] = controller.Kc
+    DISCON_dict['gamma'] = controller.gamma
+    DISCON_dict['e_dp'] = controller.e_dp
+    DISCON_dict['PreDf_Thrst'] = controller.PreDf_Thrst
     
     # ------- WIND SPEED ESTIMATOR -------
     DISCON_dict['WE_BladeRadius']	= turbine.rotor_radius

@@ -480,6 +480,24 @@ ControlParameters:
     Flp_MaxPit:
       <<: *real
       description: Maximum (and minimum) flap pitch angle [rad]
+
+    # Adaptive Safe Operation
+
+    ASO_Mode:
+      <<: *integer
+      description: Adaptive safe operation {0 - no safe operation, 1 - AEPS system is on, 2 - ASCOS system is on }
+    Kc:
+      <<: *real
+      description: AEPS Observer Gain
+    gamma:
+      <<: *real
+      description: AEPS Learning Rate 
+    e_dp:
+      <<: *real
+      description: AEPS design parameter for effective avoidance 
+    PreDf_Thrst:
+      <<: *real
+      description: AEPS Pre-Defined Thrust Limit [MN] 
     
     # Open-loop Control
     OL_Filename:
