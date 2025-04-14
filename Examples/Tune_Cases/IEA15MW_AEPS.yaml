@@ -4,11 +4,9 @@
 # ------------------------------ OpenFAST PATH DEFINITIONS ------------------------------
 path_params:
   FAST_InputFile: 'IEA-15-240-RWT-UMaineSemi.fst'                                                                # Name of *.fst file
-  FAST_directory: '../Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT-UMaineSemi_AEPS'                     # Main OpenFAST model directory, where the *.fst lives 
+  FAST_directory: '../Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT-UMaineSemi'                     # Main OpenFAST model directory, where the *.fst lives 
   # Optional (but suggested...)
-  rotor_performance_filename:  'C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/Cp_Ct_Cq.IEA15MW.txt'
-  #rotor_performance_filename:  '../Test_Cases/IEA-15-240-RWT/Cp_Ct_Cq.IEA15MW.txt'
-  
+  rotor_performance_filename:  '../Test_Cases/IEA-15-240-RWT/Cp_Ct_Cq.IEA15MW.txt'
 
 # -------------------------------- TURBINE PARAMETERS ----------------------------------- 
 turbine_params:
@@ -39,14 +37,13 @@ controller_params:
   PS_Mode:            3                     # Pitch saturation mode {0: no pitch saturation, 1: peak shaving, 2: Cp-maximizing pitch saturation, 3: peak shaving and Cp-maximizing pitch saturation}
   SD_Mode:            0                     # Shutdown mode {0: no shutdown procedure, 1: pitch to max pitch at shutdown}
   Fl_Mode:            2                     # Floating specific feedback mode {0: no nacelle velocity feedback, 1: nacelle velocity feedback}
+  TRA_Mode:           1                     # Tower resonance avoidance mode (0- no tower resonsnace avoidance, 1- use torque control setpoints to avoid a specific frequency
   Flp_Mode:           0                     # Flap control mode {0: no flap control, 1: steady state flap angle, 2: Proportional flap control}
-  ASO_Mode:           1                     # Adaptive safe operation {0: no safe operation, 1: AEPS system is on, 2: ASCOS system is on }
-  PA_Mode:            2                     # Pitch actuator mode {0: not used, 1: first order filter, 2: second order filter}
+  PA_Mode:            2                     # Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
   # Controller parameters       
-  U_pc:               [14,20]
-  zeta_pc:            [2.0,1.0]             # Pitch controller desired damping ratio [-]
-  omega_pc:           [0.15,0.3]            # Pitch controller desired natural frequency [rad/s]
-  interp_type:        sigma
+  # U_pc:               [14]
+  zeta_pc:            1.0                   # Pitch controller desired damping ratio [-]
+  omega_pc:           0.2                   # Pitch controller desired natural frequency [rad/s]
   zeta_vs:            0.85                  # Torque controller desired damping ratio [-]
   omega_vs:           0.12                  # Torque controller desired natural frequency [rad/s]
   twr_freq:           3.355 # for semi only!
@@ -55,10 +52,8 @@ controller_params:
   min_pitch:          0.0                   # Minimum pitch angle [rad], {default = 0 degrees}
   vs_minspd:          0.523598775           # Minimum rotor speed [rad/s], {default = 0 rad/s}
   ps_percent:         0.8                   # Percent peak shaving  [%, <= 1 ], {default = 80%}
-
-  #Adaptive Safe Operation (AEPS)
-  Kc:                 50                    # AEPS Observer Gain
-  gamma:              25                    # AEPS Learning Rate
-  e_dp:               0.16                  # AEPS design parameter for effective avoidance
-  PreDf_Thrst:        1.75                  # AEPS Pre-Defined Thrust Limit [MN]
+  PA_CornerFreq:      1.5708                  # Pitch actuator natural frequency [rad/s]
+  PA_Damping:         0.707                  # Pitch actuator natural frequency [rad/s]
+  rgn2k_factor:       0.85926
+  
 

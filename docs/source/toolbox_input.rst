@@ -254,6 +254,15 @@ controller_params
 
     *Minimum* = 0    *Maximum* = 2
 
+:code:`ASO_Mode` : Float
+
+    Adaptive safe operation (0- no safe operation, 1- AEPS system is on, 
+    2- ASCOS system is on)
+
+    *Default* = 0
+
+    *Minimum* = 0    *Maximum* = 2
+
 
 :code:`PwC_Mode` : Float
     Active Power Control Mode (0- no active power control 1- constant
@@ -412,6 +421,25 @@ controller_params
 
     *Default* = 0.8    *Maximum* = 1
 
+:code:`Kc` : Float
+    AEPS Observer Gain
+
+    *Default* = 50    *Maximum* = 70 
+
+:code:`gamma` : Float
+    AEPS Learning Rate
+
+    *Default* = 20    *Maximum* = 150 
+
+:code:`e_dp` : Float
+    AEPS design parameter for effective avoidance
+
+    *Default* = 0.1    *Maximum* = 5 
+
+:code:`PreDf_Thrst` : Float
+    AEPS Pre-Defined Thrust Limit [MN]
+
+    *Default* = 0.5    *Maximum* = 5 
 
 :code:`sd_maxpit` : Float, rad
     Maximum blade pitch angle to initiate shutdown [rad], {default =
@@ -746,6 +774,10 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution. Do 
 :code:`Flp_Mode` : Float
     Flap control mode (0- no flap control, 1- steady state flap angle,
     2- Proportional flap control)
+
+:code:`ASO_Mode` : Float
+    Adaptive safe operation (0- no safe operation, 1- AEPS system is on, 
+    2- ASCOS system is on)
 
 :code:`OL_Mode` : Float
     Open loop control mode (0 - no open-loop control, 1 - direct open

@@ -201,7 +201,7 @@ properties:
                 type: number
                 minimum: 0
                 maximum: 2
-                default: 0
+                default: 1
                 description: Safe Operation Mode (0- no safe operation, 1- AEPS is on, 2- ASCOS is on)
             PwC_Mode:           
                 type: number

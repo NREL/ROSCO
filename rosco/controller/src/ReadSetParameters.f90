@@ -364,6 +364,7 @@ CONTAINS
         CALL ParseInput(FileLines,'TD_Mode',         CntrPar%TD_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'TRA_Mode',        CntrPar%TRA_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'Flp_Mode',        CntrPar%Flp_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'ASO_Mode',        CntrPar%ASO_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'OL_Mode',         CntrPar%OL_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'PA_Mode',         CntrPar%PA_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'PF_Mode',         CntrPar%PF_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
@@ -454,6 +455,12 @@ CONTAINS
         CALL ParseInput(FileLines,  'PRC_LPF_Freq',     CntrPar%PRC_LPF_Freq,                     accINFILE(1), ErrVar,   CntrPar%PRC_Mode == 0)
         CALL ParseAry(  FileLines,  'PRC_WindSpeeds',   CntrPar%PRC_WindSpeeds,   CntrPar%PRC_n,  accINFILE(1), ErrVar,   CntrPar%PRC_Mode == 0)
         CALL ParseAry(  FileLines,  'PRC_GenSpeeds',    CntrPar%PRC_GenSpeeds,    CntrPar%PRC_n,  accINFILE(1), ErrVar,   CntrPar%PRC_Mode == 0)
+
+        !------------ADAPTIVE SAFE OPERATION (AEPS)-----------------
+        CALL ParseInput(FileLines,  'Kc',            CntrPar%Kc,                                   accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'gamma',         CntrPar%gamma,                                accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'e_dp',          CntrPar%e_dp,                                 accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'PreDf_Thrst',   CntrPar%PreDf_Thrst,                          accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
 
         !------------ WIND SPEED ESTIMATOR CONTANTS --------------
         CALL ParseInput(FileLines,  'WE_BladeRadius',   CntrPar%WE_BladeRadius,                         accINFILE(1), ErrVar, .FALSE., UnEc)
@@ -960,6 +967,12 @@ CONTAINS
         IF ((CntrPar%Flp_Mode < 0) .OR. (CntrPar%Flp_Mode > 3)) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'Flp_Mode must be 0, 1, 2, or 3.'
+        ENDIF
+
+        ! ASO_Mode
+        IF ((CntrPar%ASO_Mode < 0) .OR. (CntrPar%ASO_Mode > 2)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'ASO_Mode must be 0, 1, 2.'
         ENDIF
 
         IF ((CntrPar%IPC_ControlMode > 0) .AND. (CntrPar%Flp_Mode > 0)) THEN
