@@ -86,8 +86,9 @@ class Controller():
         self.Kc = controller_params['Kc']
         self.gamma = controller_params['gamma']
         self.e_dp = controller_params['e_dp']
-        self.PreDf_Thrst = controller_params['PreDf_Thrst']
-
+        #self.PreDf_Thrst = controller_params['PreDf_Thrst']
+        self.Thrst_Limit= controller_params['PreDf_Thrst']
+        
         # Parameters
         
 
@@ -98,6 +99,7 @@ class Controller():
         self.ss_vsgain          = controller_params['ss_vsgain']
         self.ss_pcgain          = controller_params['ss_pcgain']
         self.ps_percent         = controller_params['ps_percent']
+        self.eps_percent        = controller_params['eps_percent']
         self.sd_maxpit          = controller_params['sd_maxpit']
         self.WS_GS_n            = controller_params['WS_GS_n']
         self.PC_GS_n            = controller_params['PC_GS_n']
@@ -382,6 +384,7 @@ class Controller():
         # --- Minimum pitch saturation ---
         self.ps_min_bld_pitch = np.ones(len(self.pitch_op)) * self.min_pitch
         self.ps = ControllerBlocks()
+        
 
         if self.PS_Mode == 1:  # Peak Shaving
             self.ps.peak_shaving(self, turbine)
@@ -391,6 +394,18 @@ class Controller():
             self.ps.peak_shaving(self, turbine)
             self.ps.min_pitch_saturation(self,turbine)
 
+        #--- Adaptive safe operation ---
+        self.PreDf_Thrst=self.Thrst_Limit
+        self.eps = ControllerBlocks()
+
+        if self.ASO_Mode == 0:  # AEPS
+            self.eps.adaptive_safe_operation(self, turbine)
+        elif self.ASO_Mode == 1:  # AEPS
+            self.eps.adaptive_safe_operation(self, turbine)     
+        elif self.ASO_Mode == 2: # ASCOS
+            raise Exception("Design ASCOS System")
+            #self.eps.adaptive_safe_operation(self, turbine)
+        
         # --- Floating feedback term ---
 
         if self.Fl_Mode >= 1: # Floating feedback
@@ -573,7 +588,7 @@ class ControllerBlocks():
     '''
     def __init__(self):
         pass
-    
+        
     def peak_shaving(self,controller, turbine):
         ''' 
         Define minimum blade pitch angle for peak shaving routine based on a maximum allowable thrust 
@@ -604,6 +619,7 @@ class ControllerBlocks():
 
         # Define minimum max thrust and initialize pitch_min
         Tmax = controller.ps_percent * np.max(T)
+        #PreDf_Thrst=controller.eps_percent*np.max(T)
         pitch_min = np.ones(len(controller.pitch_op)) * controller.min_pitch
 
         # Modify pitch_min if max thrust exceeds limits
@@ -633,6 +649,32 @@ class ControllerBlocks():
         self.Ct_max = Ct_max
         self.Ct_op = Ct_op
         self.T = T
+
+    def adaptive_safe_operation(self,controller, turbine):
+                # Re-define Turbine Parameters for shorthand
+
+        rho = turbine.rho             # Air density (kg/m^3)
+        R = turbine.rotor_radius      # Rotor radius (m)
+        A = np.pi*R**2                # Rotor area (m^2)
+
+        # Initialize some arrays
+        Ct_op = np.empty(len(controller.TSR_op),dtype='float64')
+        Ct_max = np.empty(len(controller.TSR_op),dtype='float64')
+
+        # Find unshaved rotor thrust coefficients at each TSR
+        for i in range(len(controller.TSR_op)):
+            Ct_op[i] = turbine.Ct.interp_surface(controller.pitch_op[i],controller.TSR_op[i])
+
+        # Thrust vs. wind speed    
+        T = 0.5 * rho * A * controller.v**2 * Ct_op
+
+        # Calculate the Thrust Limit based on eps_percent 
+        #PreDf_Thrst=controller.eps_percent*np.max(T)
+        Thrst_Limit=controller.eps_percent*np.max(T)
+
+        # Save to controller object
+        controller.PreDf_Thrst = Thrst_Limit/10**6
+        #self.PreDf_Thrst=Thrst_Limit
 
     def min_pitch_saturation(self, controller, turbine):
         '''

@@ -40,7 +40,8 @@ def main():
   
     # Set DISCON input dynamically through yaml/dict
     controller_params = {}
-    controller_params['ASO_Mode'] = 2.    
+    #controller_params['ASO_Mode'] = 2    
+    controller_params['PS_Mode'] = 0 
     controller_params['vs_minspd'] = 0.    # Reduce minimum rotor speed so that saturation does not interfere with exclusion
     controller_params['VS_ControlMode'] = 3.   
     
@@ -50,7 +51,7 @@ def main():
     controller_params['DISCON']['TRA_ExclBand'] = 1 * rpm2RadSec
     controller_params['DISCON']['TRA_RateLimit'] = 0.7916800 / 100
 
-    controller_params['DISCON']['SS_VSGain'] = 1 #Chaning Values
+    #controller_params['DISCON']['SS_VSGain'] = 1 #Chaning Values
 
     # simulation set up
     r = run_FAST_ROSCO()
@@ -69,23 +70,24 @@ def main():
     #    }
 
     # # steady
-    r.wind_case_fcn = cl.power_curve  
-    r.wind_case_opts    = {
-         'U': 10,  # from 10 to 15 m/s
-         'TMax': 400,
-         }
+    #r.wind_case_fcn = cl.power_curve  
+    #r.wind_case_opts    = {
+    #     'U': 10,  # from 10 to 15 m/s
+    #     'TMax': 400,
+    #     }
     
     # # turbulence
-    #r.wind_case_fcn = cl.turb_bts  
-    # r.wind_case_opts    = {
-    #     'TMax': 400,  # from 10 to 15 m/s
+    r.wind_case_fcn = cl.turb_bts  
+    r.wind_case_opts    = {
+         'TMax': 500,  # from 10 to 15 m/s
     #     'wind_filenames': ['/Users/dzalkind/Downloads/heavy_test_1ETM_U6.000000_Seed603.0.bts'],
-    #     }
+         'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/TurbSim9.bts'],
+         }
 
     # Run with and without AEPS algorithm
     r.control_sweep_fcn = cl.sweep_yaml_input
     r.control_sweep_opts = {
-            'control_param': 'ASO_Mode',
+            'control_param':'ASO_Mode',
             'param_values': [0,1] #Run with ASO model equal to 0 and 1, respectively.
         }
     
@@ -96,7 +98,6 @@ def main():
     r.rosco_dll = "C:/Users/musah/ROSCO/rosco/controller/build/libdiscon.dll"
     r.n_cores = 2
     r.run_FAST()
-
 
 
 if __name__=="__main__":
