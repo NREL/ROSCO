@@ -355,6 +355,11 @@ properties:
                 description: Platform natural frequency, for floating only
                 unit: rad/s
                 minimum: 0
+            ptfm_inertia:
+                type: number
+                description: Platform inertia (if Fl_Mode == 2) or mass (if Fl_Mode == 1), for floating only
+                unit: rad/s
+                minimum: 0
             WS_GS_n:
                 type: number
                 description: Number of wind speed breakpoints
@@ -392,44 +397,56 @@ properties:
             U_Fl:
                 type: [array, string, number]
                 description: List of wind speeds for tuning floating feedback, or "all" for all above-rated wind speeds
-                default: []
+                default: [12]
                 items:
                     type: number
             U_FlTq:
                 type: [array,number]
                 description: List of wind speeds for tuning torque floating feedback
-                default: []
+                default: [12]
                 items:
                     type: number
-            FlTq_param:
+            Fl_alpha:
                 type: [array,number]
-                description: List of scale parameters for detuning torque floating feedback (fractional parallel compensation)
+                description: List of scale parameters for detuning blade pitch floating feedback, when acting as a compensator (alpha_beta in https://onlinelibrary.wiley.com/doi/10.1002/we.2864)
                 unit: none
                 items:
                     type: number
-                    minimum: 0
-                    maximum: 1
+                default: [1.0]
+            Fl_Dzeta:
+                type: [array,number]
+                description: List of parameters for tuning blade pitch platform damper (Delta zeta in https://doi.org/10.23919/ACC55779.2023.10156143)
+                unit: none
+                items:
+                    type: number
+                default: [0.2]
+            FlTq_alpha:
+                type: [array,number]
+                description: List of scale parameters for detuning generator torque floating feedback (alpha_tau in https://onlinelibrary.wiley.com/doi/10.1002/we.2864, or alpha_comp in https://doi.org/10.23919/ACC55779.2023.10156143)
+                unit: none
+                items:
+                    type: number
                 default: [0.5]
-            zeta_flp:                        
+            zeta_flp:
                 type: number
                 minimum: 0
                 description: Flap controller desired damping ratio [-]
                 unit: none
-            omega_flp:                     
+            omega_flp:
                 type: number
                 minimum: 0
                 description: Flap controller desired natural frequency [rad/s]
                 unit: rad/s
-            flp_kp_norm:                     
+            flp_kp_norm:
                 type: number
                 minimum: 0
                 description: Flap controller normalization term for DC gain (kappa) 
-            flp_tau:                     
+            flp_tau:
                 type: number
                 minimum: 0
                 description: Flap controller time constant for integral gain
                 unit: s
-            max_torque_factor:                     
+            max_torque_factor:
                 type: number
                 minimum: 0
                 default: 1.1
@@ -469,6 +486,21 @@ properties:
                 description: Factor on VS_Rgn2K to increase/decrease optimal torque control gain, default is 1.  Sometimes environmental conditions or differences in BEM solvers necessitate this change.
                 default: 1
                 minimum: 0
+            VS_ConstPower_U:
+                type: [array,number]
+                description: List of wind speeds for tuning torque constant power feedback
+                default: [12]
+                items:
+                    type: number
+            VS_ConstPower_alpha:
+                type: [array,number]
+                description: List of scale parameters for detuning constant power torque control, only used when VS_ConstPower = 1, defaults to fully tuned (1.0)
+                unit: none
+                items:
+                    type: number
+                    minimum: 0.0
+                    maximum: 1.0
+                default: [1.0]
 
             filter_params:
                 type: object
@@ -699,6 +731,12 @@ properties:
                         description: Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate 
                         units: rad/s.
                     F_FlCornerFreq:
+                        type: array
+                        items:
+                            type: number
+                        description: Natural frequency and damping in the second order low pass filter of the tower-top fore-aft motion for floating feedback control 
+                        units: rad/s
+                    F_FlTqCornerFreq:
                         type: array
                         items:
                             type: number

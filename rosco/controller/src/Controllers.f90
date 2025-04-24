@@ -204,7 +204,7 @@ CONTAINS
         CHARACTER(*),               PARAMETER           :: RoutineName = 'VariableSpeedControl'
 
         ! Allocate Variables
-        
+
         ! -------- Variable-Speed Torque Controller --------
         ! Define max torque
         IF (LocalVar%VS_State == 4) THEN
@@ -213,18 +213,23 @@ CONTAINS
             ! VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
             LocalVar%VS_MaxTq = CntrPar%VS_RtTq
         ENDIF
-        
+
+        ! Pre-compute constant power torque signal, using detuning parameter input. Calculation based on rated speed for pitch controller
+        ! LocalVar%VS_ConstPwr_GenTq = (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF
+        LocalVar%Alpha_ConstPower = interp1d(CntrPar%VS_ConstPower_U, CntrPar%VS_ConstPower_alpha, LocalVar%WE_Vw_F, ErrVar)       ! Schedule based on WSE (could use filtered blade pitch instead)
+        LocalVar%VS_ConstPwr_GenTq = (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0)) / (CntrPar%PC_RefSpd + LocalVar%Alpha_ConstPower * (LocalVar%GenSpeedF - CntrPar%PC_RefSpd))
+
         ! Optimal Tip-Speed-Ratio tracking controller
         IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
             ! Constant Power, update VS_MaxTq
             IF (CntrPar%VS_ConstPower == 1) THEN
-                LocalVar%VS_MaxTq = min((CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF, CntrPar%VS_MaxTq)
+                LocalVar%VS_MaxTq = min(LocalVar%VS_ConstPwr_GenTq, CntrPar%VS_MaxTq)
             END IF
 
             ! PI controller
             LocalVar%GenTq = PIController(LocalVar%VS_SpdErr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, LocalVar%VS_MaxTq, LocalVar%DT, LocalVar%VS_LastGenTrq, LocalVar%piP, LocalVar%restart, objInst%instPI)
             LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, LocalVar%VS_MaxTq)
-        
+
         ! K*Omega^2 control law with PI torque control in transition regions
         ELSEIF (CntrPar%VS_ControlMode == 1) THEN
             ! Update PI loops for region 1.5 and 2.5 PI control
@@ -241,7 +246,7 @@ CONTAINS
             ELSEIF (LocalVar%VS_State == 4) THEN ! Region 3, constant torque
                 LocalVar%GenTq = CntrPar%VS_RtTq
             ELSEIF (LocalVar%VS_State == 5) THEN ! Region 3, constant power
-                LocalVar%GenTq = (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF
+                LocalVar%GenTq = LocalVar%VS_ConstPwr_GenTq
             END IF
             
             ! Saturate
@@ -535,22 +540,22 @@ CONTAINS
         ! Fore-aft damping controller, reducing the tower fore-aft vibrations using pitch
 
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
-        
+
         ! Local variables
         INTEGER(IntKi) :: K    ! Integer used to loop through turbine blades
 
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
-        
+
         ! Body
         LocalVar%FA_AccHPFI = PIController(LocalVar%FA_AccHPF, 0.0_DbKi, CntrPar%FA_KI, -CntrPar%FA_IntSat, CntrPar%FA_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
-        
+
         ! Store the fore-aft pitch contribution to LocalVar data type
         DO K = 1,LocalVar%NumBl
             LocalVar%FA_PitCom(K) = LocalVar%FA_AccHPFI
         END DO
-        
+
     END SUBROUTINE ForeAftDamping
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL(DbKi) FUNCTION FloatingFeedback(LocalVar, CntrPar, objInst, ErrVar) 

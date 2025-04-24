@@ -180,6 +180,9 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<014.5f}      ! VS_KI				- Integral gain for generator PI torque controller [s]. (Only used in the transitional 2.5 region if VS_ControlMode =/ 2)\n'.format(rosco_vt['VS_KI']))
     file.write('{:<13.2f}       ! VS_TSRopt		    - {}\n'.format(float(rosco_vt['VS_TSRopt']),input_descriptions['VS_TSRopt']))
     file.write('{:<014.5f}      ! VS_PwrFiltF		- {}\n'.format(float(rosco_vt['VS_PwrFiltF']),input_descriptions['VS_PwrFiltF']))
+    file.write('{:<11d}         ! VS_ConstPower_n   - Number of VS_ConstPower_alpha gains in gain scheduling, optional with default of 1\n'.format(int(rosco_vt['VS_ConstPower_n'])))
+    file.write('{}      ! VS_ConstPower_alpha - Detuning parameter for the constant power feedback loop [-]. (Only used if VS_ConstPower = 1)\n'.format(write_array(rosco_vt['VS_ConstPower_alpha'],'<6.4f')))
+    file.write('{}      ! VS_ConstPower_U     - Wind speeds for scheduling VS_ConstPower_alpha, optional if VS_ConstPower_alpha is single value [m/s]\n'.format(write_array(rosco_vt['VS_ConstPower_U'],'<6.4f')))
     file.write('\n')
     file.write('!------- SETPOINT SMOOTHER ---------------------------------------------\n')
     file.write('{:<13.5f}       ! SS_VSGain         - Variable speed torque controller setpoint smoother gain, [-].\n'.format(rosco_vt['SS_VSGain']))
@@ -556,6 +559,9 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['VS_KP']			= controller.vs_gain_schedule.Kp[-1]
     DISCON_dict['VS_KI']			= controller.vs_gain_schedule.Ki[-1]
     DISCON_dict['VS_TSRopt']		= turbine.TSR_operational
+    DISCON_dict['VS_ConstPower_n']  = len(controller.VS_ConstPower_alpha)
+    DISCON_dict['VS_ConstPower_alpha'] = controller.VS_ConstPower_alpha
+    DISCON_dict['VS_ConstPower_U']  = controller.VS_ConstPower_U
     # ------- SETPOINT SMOOTHER -------
     DISCON_dict['SS_VSGain']         = controller.ss_vsgain
     DISCON_dict['SS_PCGain']         = controller.ss_pcgain
@@ -599,7 +605,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     # ------- Floating -------
     DISCON_dict['Fl_n']             = len(controller.Kp_float)
     DISCON_dict['Fl_Kp']            = controller.Kp_float
-    DISCON_dict['FlTq_Kp']            = controller.Kp_floatTq
+    DISCON_dict['FlTq_Kp']          = controller.Kp_floatTq
     DISCON_dict['Fl_U']             = controller.U_Fl
     # ------- FLAP ACTUATION -------
     DISCON_dict['Flp_Angle']        = controller.flp_angle

@@ -574,7 +574,7 @@ if __name__=='__main__':
     # Additional inputs 
     # ---- DT for this test! ----
     case_inputs={}
-    case_inputs[('Fst', 'TMax')] = {'vals': [60], 'group': 0}
+    case_inputs[('Fst', 'TMax')] = {'vals': [420], 'group': 0}
     case_inputs[('Fst', 'DT')] = {'vals': [0.01], 'group': 0}
     case_inputs[('Fst', 'CompElast')] = {'vals': [1], 'group': 0}
 
@@ -584,7 +584,7 @@ if __name__=='__main__':
     case_inputs[('DISCON_in', 'WE_Mode')] = {'vals': [2], 'group': 0}
 
     # Wind Speeds
-    U = [5]
+    U = [5, 15]
 
     # Run test
     rt.ROSCO_Test_lite(more_case_inputs=case_inputs, U=U)

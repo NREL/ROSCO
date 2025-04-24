@@ -162,7 +162,7 @@ ControlParameters:
       <<: *real
       description: Corner frequency (-3dB point) in the second order low pass filter of the blade root bending moment for flap control [rad/s].
       allocatable: True
-    
+
     # Tower fore-aft damping
     TRA_Mode:
       <<: *integer
@@ -188,7 +188,7 @@ ControlParameters:
     FA_KI:
       <<: *real
       description: Integral gain for the fore-aft tower damper controller, -1 = off / >0 = on [rad s/m]
-    
+
     # Individual Pitch Control
     IPC_ControlMode:
       <<: *integer
@@ -218,7 +218,7 @@ ControlParameters:
     IPC_CornerFreqAct:
       <<: *real
       description: Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal {0 - Disable}, [rad/s]
-    
+
     # Collective Pitch Controller
     PC_ControlMode:
       <<: *integer
@@ -267,7 +267,7 @@ ControlParameters:
     PC_Switch:
       <<: *real
       description: Angle above lowest minimum pitch angle for switch [rad]
-    
+
     # Generator Torque Controller
     VS_ControlMode:
       <<: *integer
@@ -322,7 +322,18 @@ ControlParameters:
     VS_PwrFiltF:
       <<: *real
       description: Cut-off frequency of filter on generator power for power-based tsr tracking control
-    
+    VS_ConstPower_n:
+      <<: *integer
+      description: Number of VS_ConstPower_alpha for gain scheduling
+    VS_ConstPower_alpha:
+      <<: *real
+      description: Detuning parameter for the constant power feedback loop
+      allocatable: True
+    VS_ConstPower_U:
+      <<: *real
+      description: Wind speeds for scheduling VS_ConstPower_alpha [m/s]
+      allocatable: True
+
     # Setpoint Smoother
     SS_Mode:
       <<: *integer
@@ -1165,6 +1176,12 @@ LocalVariables:
     TestType:                     
       <<: *real 
       description: Test variable, no use
+    Alpha_ConstPower:
+      <<: *real
+      description: Local instantaneous constant power gain scheduled on wind speed
+    VS_ConstPwr_GenTq:
+      <<: *real
+      description: Calculation of generator torque signal used by the constant power mode
     Kp_Float:
       <<: *real
       description: Local, instantaneous Kp_Float, scheduled on wind speed, if desired

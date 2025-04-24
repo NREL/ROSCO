@@ -28,8 +28,8 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_NotchBetaDen              ! Notch Filter Numerator damping (determines depth?)
     REAL(DbKi)                    :: F_SSCornerFreq              ! Corner frequency (-3dB point) in the first order low pass filter for the setpoint smoother [rad/s]
     REAL(DbKi)                    :: F_WECornerFreq              ! Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s]
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_FlCornerFreq              ! Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s].
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_FlTqCornerFreq              ! Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s].
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_FlCornerFreq              ! Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for blade pitch floating feedback control [rad/s].
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_FlTqCornerFreq            ! Corner frequency (-3dB point) in the second order low pass filter of the tower-top fore-aft motion for generator torque floating feedback control [rad/s].
     REAL(DbKi)                    :: F_FlHighPassFreq            ! Natural frequency of first-roder high-pass filter for nacelle fore-aft motion [rad/s].
     REAL(DbKi)                    :: F_YawErr                    ! Corner low pass filter corner frequency for yaw controller [rad/s].
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_FlpCornerFreq             ! Corner frequency (-3dB point) in the second order low pass filter of the blade root bending moment for flap control [rad/s].
@@ -80,6 +80,9 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: VS_KI                       ! Integral gain for generator PI torque controller, used in the transitional 2.5 region
     REAL(DbKi)                    :: VS_TSRopt                   ! Power-maximizing region 2 tip-speed ratio [rad]
     REAL(DbKi)                    :: VS_PwrFiltF                 ! Cut-off frequency of filter on generator power for power-based tsr tracking control
+    INTEGER(IntKi)                :: VS_ConstPower_n             ! Number of VS_ConstPower_alpha for gain scheduling
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: VS_ConstPower_alpha         ! Detuning parameter for the constant power feedback loop
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: VS_ConstPower_U             ! Wind speeds for scheduling VS_ConstPower_alpha [m/s]
     INTEGER(IntKi)                :: SS_Mode                     ! Setpoint Smoother mode {0 - no setpoint smoothing, 1 - introduce setpoint smoothing}
     REAL(DbKi)                    :: SS_VSGain                   ! Variable speed torque controller setpoint smoother gain, [-].
     REAL(DbKi)                    :: SS_PCGain                   ! Collective pitch controller setpoint smoother gain, [-].
@@ -119,8 +122,8 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: Fl_Mode                     ! Floating specific feedback mode for blade pitch {0 - no nacelle velocity feedback, 1 - nacelle velocity feedback}
     INTEGER(IntKi)                :: FlTq_Mode                   ! Floating specific feedback mode for generator torque {0 - no nacelle velocity feedback, 1 - nacelle velocity feedback}
     INTEGER(IntKi)                :: Fl_n                        ! Number of Fl_Kp for gain scheduling
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: Fl_Kp                       ! Nacelle velocity proportional feedback gain [s]
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: FlTq_Kp                     ! Nacelle velocity proportional feedback gain [s]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: Fl_Kp                       ! Nacelle velocity proportional feedback gain to blade pitch [s]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: FlTq_Kp                     ! Nacelle velocity proportional feedback gain to generator torque [s]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: Fl_U                        ! Wind speeds for scheduling Fl_Kp [m/s]
     INTEGER(IntKi)                :: Flp_Mode                    ! Flap actuator mode {0 - off, 1 - fixed flap position, 2 - PI flap control}
     REAL(DbKi)                    :: Flp_Angle                   ! Fixed flap angle (degrees)
@@ -323,6 +326,8 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: PitComAct(3)                ! Actuated pitch command of each blade [rad].
     REAL(DbKi)                    :: SS_DelOmegaF                ! Filtered setpoint shifting term defined in setpoint smoother [rad/s].
     REAL(DbKi)                    :: TestType                    ! Test variable, no use
+    REAL(DbKi)                    :: Alpha_ConstPower            ! Local instantaneous constant power gain scheduled on wind speed
+    REAL(DbKi)                    :: VS_ConstPwr_GenTq           ! Calculation of generator torque signal used by the constant power mode
     REAL(DbKi)                    :: Kp_Float                    ! Local, instantaneous Kp_Float, scheduled on wind speed, if desired
     REAL(DbKi)                    :: Kp_FloatTq                  ! Local, instantaneous Kp_FloatTq, scheduled on wind speed, if desired
     REAL(DbKi)                    :: VS_MaxTq                    ! Maximum allowable generator torque [Nm].

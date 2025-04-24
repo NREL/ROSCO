@@ -1,14 +1,7 @@
 '''
------------ 29_floating_feedback_torque ------------------------
-Run openfast with ROSCO and torque floating feedback
+----------- 29_constant_power_detuned ------------------------
+Run openfast with ROSCO and detuned constant power control loop
 -----------------------------------------------
-
-Floating feedback methods available in ROSCO/ROSCO_Toolbox
-
-1. Automated tuning, constant for all wind speeds
-2. Automated tuning, varies with wind speed
-3. Direct tuning, constant for all wind speeds
-4. Direct tuning, varies with wind speeds
 
 '''
 
@@ -37,7 +30,7 @@ def main():
 
     # Input yaml and output directory
     parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW.yaml')
-    run_dir = os.path.join(example_out_dir,'29_floating_feedback_torque')
+    run_dir = os.path.join(example_out_dir,'29_constant_power_detuned')
     os.makedirs(run_dir,exist_ok=True)
 
     controller, turbine, path_params = yaml_to_objs(parameter_filename)
@@ -183,62 +176,65 @@ def main():
 
     # DISCON_i += 1
 
-    alpha_tq_cases = np.arange(0, 2.2, .2)
-    # alpha_bp_cases = np.arange(0, 2.2, .2)
-    alpha_bp_cases = np.arange(0, 1.1, .1)
-    alpha_case_matrix_indices = np.zeros([len(alpha_tq_cases), len(alpha_bp_cases)])
+    # alpha_tq_cases = np.arange(0, 2.2, .2)
+    # # alpha_bp_cases = np.arange(0, 2.2, .2)
+    # alpha_bp_cases = np.arange(0, 1.1, .1)
+    # alpha_case_matrix_indices = np.zeros([len(alpha_tq_cases), len(alpha_bp_cases)])
 
-    for alpha_tq_ii in range(len(alpha_tq_cases)):
+    # for alpha_tq_ii in range(len(alpha_tq_cases)):
 
-        for alpha_bp_ii in range(len(alpha_bp_cases)):
+    #     for alpha_bp_ii in range(len(alpha_bp_cases)):
 
-            controller_params_new = controller.controller_params
-            controller_params_new['Fl_Mode']   = 2
-            controller_params_new['FlTq_Mode'] = 2
-            controller_params_new['U_Fl']      = []
-            controller_params_new['tune_Fl']   = 2
-            controller_params_new['tune_FlTq'] = 1
-            # controller_params_new['Fl_alpha']  = [alpha_bp_cases[alpha_bp_ii]]
-            controller_params_new['Fl_Dzeta']  = [alpha_bp_cases[alpha_bp_ii]]
-            controller_params_new['FlTq_alpha']  = [alpha_tq_cases[alpha_tq_ii]]
-            controller_new = ROSCO_controller.Controller(controller_params_new)
-            controller_new.tune_controller(turbine)
-            param_file = os.path.join(run_dir,'DISCON_Fl_{}.IN'.format(DISCON_i))
-            param_files.append(param_file)
-            # Adjust filter frequency manually
-            rosco_vt = DISCON_dict(turbine, controller_new, txt_filename=path_params['rotor_performance_filename'])
-            rosco_vt['F_FlCornerFreq'] = rosco_vt['F_FlTqCornerFreq']
-            write_DISCON(turbine,controller_new,
-                        param_file=param_file, 
-                        txt_filename=path_params['rotor_performance_filename'])
+    #         controller_params_new = controller.controller_params
+    #         controller_params_new['Fl_Mode']   = 2
+    #         controller_params_new['FlTq_Mode'] = 2
+    #         controller_params_new['U_Fl']      = []
+    #         controller_params_new['tune_Fl']   = 2
+    #         controller_params_new['tune_FlTq'] = 1
+    #         # controller_params_new['Fl_alpha']  = [alpha_bp_cases[alpha_bp_ii]]
+    #         controller_params_new['Fl_Dzeta']  = [alpha_bp_cases[alpha_bp_ii]]
+    #         controller_params_new['FlTq_alpha']  = [alpha_tq_cases[alpha_tq_ii]]
+    #         controller_new = ROSCO_controller.Controller(controller_params_new)
+    #         controller_new.tune_controller(turbine)
+    #         param_file = os.path.join(run_dir,'DISCON_Fl_{}.IN'.format(DISCON_i))
+    #         param_files.append(param_file)
+    #         # Adjust filter frequency manually
+    #         rosco_vt = DISCON_dict(turbine, controller_new, txt_filename=path_params['rotor_performance_filename'])
+    #         rosco_vt['F_FlCornerFreq'] = rosco_vt['F_FlTqCornerFreq']
+    #         write_DISCON(turbine,controller_new,
+    #                     param_file=param_file, 
+    #                     txt_filename=path_params['rotor_performance_filename'])
 
-            # Record index in case matrix
-            alpha_case_matrix_indices[alpha_tq_ii, alpha_bp_ii] = DISCON_i
+    #         # Record index in case matrix
+    #         alpha_case_matrix_indices[alpha_tq_ii, alpha_bp_ii] = DISCON_i
 
-            DISCON_i += 1
+    #         DISCON_i += 1
 
-    # Dzeta_select = np.arange(.1, .5, .1)
-    # for Dzeta in Dzeta_select:
+    alpha_cases = np.arange(0., 1.1, .1)
+    for alpha in alpha_cases:
 
-    #     controller_params_new = controller.controller_params
-    #     controller_params_new['Fl_Mode']   = 2
-    #     controller_params_new['FlTq_Mode'] = 0
-    #     controller_params_new['U_Fl']      = []
-    #     controller_params_new['tune_Fl']   = 2
-    #     controller_params_new['tune_FlTq'] = 0
-    #     controller_params_new['Fl_Dzeta']  = [Dzeta]
-    #     controller_new = ROSCO_controller.Controller(controller_params_new)
-    #     controller_new.tune_controller(turbine)
-    #     param_file = os.path.join(run_dir,'DISCON_Fl_{}.IN'.format(DISCON_i))
-    #     param_files.append(param_file)
-    #     # Adjust filter frequency manually
-    #     rosco_vt = DISCON_dict(turbine, controller_new, txt_filename=path_params['rotor_performance_filename'])
-    #     rosco_vt['F_FlCornerFreq'] = rosco_vt['F_FlTqCornerFreq']
-    #     write_DISCON(turbine,controller_new,
-    #                 param_file=param_file, 
-    #                 txt_filename=path_params['rotor_performance_filename'])
+        controller_params_new = controller.controller_params
+        controller_params_new['Fl_Mode']   = 0
+        controller_params_new['FlTq_Mode'] = 0
+        controller_params_new['U_Fl']      = []
+        controller_params_new['tune_Fl']   = 0
+        controller_params_new['tune_FlTq'] = 0
+        controller_params_new['VS_ConstPower']  = 1
+        # controller_params_new['VS_ConstPower_alpha']  = alpha
+        controller_params_new['VS_ConstPower_alpha']  = np.array([0.0, 0.5, 1.0]) * alpha
+        controller_params_new['VS_ConstPower_U']  = np.array([12, 18, 24])
+        controller_new = ROSCO_controller.Controller(controller_params_new)
+        controller_new.tune_controller(turbine)
+        param_file = os.path.join(run_dir,'DISCON_CP_{}.IN'.format(DISCON_i))
+        param_files.append(param_file)
+        # Adjust filter frequency manually
+        rosco_vt = DISCON_dict(turbine, controller_new, txt_filename=path_params['rotor_performance_filename'])
+        # rosco_vt['F_FlCornerFreq'] = rosco_vt['F_FlTqCornerFreq']
+        write_DISCON(turbine,controller_new,
+                    param_file=param_file, 
+                    txt_filename=path_params['rotor_performance_filename'])
 
-    #     DISCON_i += 1
+        DISCON_i += 1
 
 
     # Read all DISCONs and make into case_inputs
@@ -269,7 +265,8 @@ def main():
     r.wind_case_fcn = cl.turb_bts  # single step wind input
     r.wind_case_opts    = {
         'TMax': 720,
-        'wind_filenames': ['/home/david/WEIS_clean/ROSCO_fork/rosco/test/testing/wind/IEA-15MW_NTM_U15.000000_Seed971231.0.bts']
+        # 'wind_filenames': ['/home/david/WEIS_clean/ROSCO_fork/rosco/test/testing/wind/IEA-15MW_NTM_U15.000000_Seed971231.0.bts']
+        'wind_filenames': ['/home/david/WEIS_clean/WEIS/outputs/02_control_blopt_del_pi_ff_blp/rank_0/wind/IEA15_0_NTM_U20.000000_Seed839901364.0.bts']
         }
     r.case_inputs       = case_inputs
     r.save_dir          = run_dir
@@ -281,9 +278,9 @@ def main():
     op_dbg = output_processing.output_processing()
     op_dbg2 = output_processing.output_processing()
 
-    out_files = [os.path.join(run_dir,f'IEA15MW/turb_bts/base/IEA15MW_{i_case:03}.outb') for i_case in range(len(param_files))]
-    dbg_files = [os.path.join(run_dir,f'IEA15MW/turb_bts/base/IEA15MW_{i_case:03}.RO.dbg') for i_case in range(len(param_files))]
-    dbg2_files = [os.path.join(run_dir,f'IEA15MW/turb_bts/base/IEA15MW_{i_case:03}.RO.dbg2') for i_case in range(len(param_files))]
+    out_files = [os.path.join(run_dir,f'IEA15MW/turb_bts/base/IEA15MW_{i_case:01}.outb') for i_case in range(len(param_files))]
+    dbg_files = [os.path.join(run_dir,f'IEA15MW/turb_bts/base/IEA15MW_{i_case:01}.RO.dbg') for i_case in range(len(param_files))]
+    dbg2_files = [os.path.join(run_dir,f'IEA15MW/turb_bts/base/IEA15MW_{i_case:01}.RO.dbg2') for i_case in range(len(param_files))]
 
     fst_out = op.load_fast_out(out_files, tmin=0)
     debug_vars = op_dbg.load_fast_out(dbg_files, tmin=0)
@@ -298,13 +295,13 @@ def main():
         comb_out[i] = r_out2
 
     cases = {}
-    cases['Fl Sigs.'] = ['Wind1VelX', 'GenSpeed', 'GenPwr', 'BldPitch1', 'PtfmPitch', 'Fl_PitCom', 'Fl_TqCom', 'GenTq'] # 'NacIMU_FA_AccF', 'NacIMU_FA_AccFT', 'NcIMURAys']#,'PtfmPitch','PtfmYaw','NacYaw']
+    cases['Fl Sigs.'] = ['Wind1VelX', 'GenSpeed', 'GenPwr', 'GenTq', 'BldPitch1', 'PtfmPitch'] # 'NacIMU_FA_AccF', 'NacIMU_FA_AccFT', 'NcIMURAys']#,'PtfmPitch','PtfmYaw','NacYaw']
     fig, ax = op.plot_fast_out(comb_out, cases, showplot=False)
 
     if False:
         plt.show()
     else:
-        plt.savefig(os.path.join(run_dir,'29_floating_feedback_torque_sweep.png'))
+        plt.savefig(os.path.join(run_dir,'29_constant_power_detuned_sweep.png'))
 
     # Compute performance statistics
     # tau_comp_genspeed_data = [comb_out[i]['GenSpeed'] for i in range(6)]
@@ -330,33 +327,25 @@ def main():
     plt.figure()
     plt.subplot(3, 1, 1)
     plt.grid()
-    # plt.plot(np.concatenate(([0], alpha_tq_cases)), tau_comp_genspeed_std)
-    # plt.plot(np.concatenate(([0], alpha_bp_cases)), beta_comp_genspeed_std)
-    plt.contourf(alpha_bp_cases, alpha_tq_cases, genspeed_std[np.int32(alpha_case_matrix_indices)] / (turbine.rated_rotor_speed * turbine.Ng * 60/(2*np.pi)))
-    plt.colorbar()
-    plt.title('Gen Speed STD')
-    plt.ylabel(r'$\alpha_{\tau,comp}$')
+    # plt.plot(alpha_cases, genspeed_std / (turbine.rated_rotor_speed * turbine.Ng * 60/(2*np.pi)))
+    plt.plot(alpha_cases, genspeed_std)
+    plt.ylabel('Gen Speed\nSTD [RPM]')
+    # plt.xlabel(r'$\alpha_{cp}$')
 
     plt.subplot(3, 1, 2)
     plt.grid()
-    # plt.plot(np.concatenate(([0], alpha_tq_cases)), tau_comp_power_std)
-    # plt.plot(np.concatenate(([0], alpha_bp_cases)), beta_comp_power_std)
-    plt.contourf(alpha_bp_cases, alpha_tq_cases, genpower_std[np.int32(alpha_case_matrix_indices)] / (turbine.rated_power/1.0e3))
-    plt.colorbar()
-    plt.title('Gen Power STD')
-    plt.ylabel(r'$\alpha_{\tau,comp}$')
+    # plt.plot(alpha_cases, genpower_std / (turbine.rated_power/1.0e3))
+    plt.plot(alpha_cases, genpower_std / 1.0e3)
+    plt.ylabel('Gen Power\nSTD [MW]')
+    # plt.xlabel(r'$\alpha_{cp}$')
 
     plt.subplot(3, 1, 3)
     plt.grid()
-    # plt.plot(np.concatenate(([0], alpha_tq_cases)), tau_comp_pitch_std)
-    # plt.plot(np.concatenate(([0], alpha_bp_cases)), beta_comp_pitch_std)
-    plt.contourf(alpha_bp_cases, alpha_tq_cases, ptfmpitch_std[np.int32(alpha_case_matrix_indices)])
-    plt.colorbar()
-    plt.title('Ptfm Pitch STD')
-    plt.ylabel(r'$\alpha_{\tau,comp}$')
-    plt.xlabel(r'$\alpha_{\beta,comp}$')
+    plt.plot(alpha_cases, ptfmpitch_std)
+    plt.ylabel('Ptfm Pitch\nSTD [deg]')
+    plt.xlabel(r'$\alpha_{cp}$')
 
-    plt.savefig(os.path.join(run_dir,'29_floating_feedback_torque_sweep_stats.png'))
+    plt.savefig(os.path.join(run_dir,'29_constant_power_detuned_sweep_stats.png'))
 
     plt.show(block=False)
     0

@@ -377,9 +377,9 @@ CONTAINS
         CALL ParseInput(FileLines,  'F_SSCornerFreq',       CntrPar%F_SSCornerFreq,                              accINFILE(1), ErrVar, CntrPar%SS_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'F_WECornerFreq',       CntrPar%F_WECornerFreq,                              accINFILE(1), ErrVar, .FALSE., UnEc)
         CALL ParseInput(FileLines,  'F_YawErr',             CntrPar%F_YawErr,                                    accINFILE(1), ErrVar, CntrPar%Y_ControlMode == 0, UnEc)
-        CALL ParseAry(  FileLines,  'F_FlCornerFreq',       CntrPar%F_FlCornerFreq,     2,                       accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
-        CALL ParseAry(  FileLines,  'F_FlTqCornerFreq',     CntrPar%F_FlTqCornerFreq,   2,                       accINFILE(1), ErrVar, CntrPar%FLTq_Mode == 0, UnEc)
-        CALL ParseInput(FileLines,  'F_FlHighPassFreq',     CntrPar%F_FlHighPassFreq,                            accINFILE(1), ErrVar, CntrPar%FL_Mode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'F_FlCornerFreq',       CntrPar%F_FlCornerFreq,     2,                       accINFILE(1), ErrVar, CntrPar%Fl_Mode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'F_FlTqCornerFreq',     CntrPar%F_FlTqCornerFreq,   2,                       accINFILE(1), ErrVar, CntrPar%FlTq_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'F_FlHighPassFreq',     CntrPar%F_FlHighPassFreq,                            accINFILE(1), ErrVar, CntrPar%Fl_Mode == 0 .AND. CntrPar%FlTq_Mode == 0, UnEc)
         CALL ParseAry(  FileLines,  'F_FlpCornerFreq',      CntrPar%F_FlpCornerFreq,    2,                       accINFILE(1), ErrVar, CntrPar%Flp_Mode == 0, UnEc)
 
         ! Optional filter inds
@@ -434,6 +434,10 @@ CONTAINS
         CALL ParseAry(  FileLines,  'VS_KI',        CntrPar%VS_KI,      CntrPar%VS_n,   accINFILE(1), ErrVar, .FALSE., UnEc)
         CALL ParseInput(FileLines,  'VS_TSRopt',    CntrPar%VS_TSRopt,                  accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 2, UnEc)
         CALL ParseInput(FileLines,  'VS_PwrFiltF',  CntrPar%VS_PwrFiltF,                accINFILE(1), ErrVar, CntrPar%VS_ControlMode .NE. 3, UnEc)
+        CALL ParseInput(FileLines,  'VS_ConstPower_n',     CntrPar%VS_ConstPower_n,     accINFILE(1), ErrVar, .TRUE., UnEc)
+        IF (CntrPar%VS_ConstPower_n == 0) CntrPar%VS_ConstPower_n = 1   ! Default is 1
+        CALL ParseAry(FileLines,    'VS_ConstPower_alpha', CntrPar%VS_ConstPower_alpha, CntrPar%VS_ConstPower_n, accINFILE(1), ErrVar, CntrPar%VS_ConstPower .NE. 1, UnEc)
+        CALL ParseAry(FileLines,    'VS_ConstPower_U',     CntrPar%VS_ConstPower_U,     CntrPar%VS_ConstPower_n, accINFILE(1), ErrVar, CntrPar%VS_ConstPower_n == 1, UnEc)  ! Allow default if only one parameter
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------- Setpoint Smoother --------------------------------
