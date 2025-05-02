@@ -60,6 +60,8 @@ def main():
     # Set startup mode, defaults in toolbox_schema.yaml (can be edited below)
     controller_params["SU_Mode"] = 1
 
+    # Uncomment to tune parameters:
+    
     # controller_params["DISCON"]["SU_FW_MinDuration"] = 60.0
     # controller_params["DISCON"]["SU_RotorSpeedThresh"] = 5.0 * (2 * np.pi) / 60.0       # This should be close to minimum rotor speed
     # controller_params["DISCON"]["SU_LoadStages_N"] = 2
