@@ -17,7 +17,20 @@ Thus, be sure to implement each in order so that subsequent line numbers are cor
 
 **New startup mode**
 
-* Startup the turbine by allowing the rotor to rotate freely (free-wheel) and the load roter in stages to start the turbine.
+* Startup the turbine by allowing the rotor to rotate freely (free-wheel) and the load rotor in stages to start the turbine.
+
+**Updated shutdown mode**
+
+* Shutdown mode is modified to enable shutdown based on a set of triggers. The triggers include shutdown on exceeding a predefined pitch, yaw error or generator speed threshold; or at a specific time.
+
+====== =======================    ===============================================================================================================================================================================================================================================================
+Removed in ROSCO 2.10.0
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Line    Input Name                 Example Value
+====== =======================    ===============================================================================================================================================================================================================================================================
+129     SD_MaxPit                 0.4363      ! SD_MaxPit         - Maximum blade pitch angle to initiate shutdown, [rad]
+130     SD_CornerFreq             0.4188      ! SD_CornerFreq     - Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]
+====== =======================    ===============================================================================================================================================================================================================================================================
 
 ====== =================    ======================================================================================================================================================================================================
 Changed in ROSCO 2.10.0
@@ -32,6 +45,9 @@ New in ROSCO 2.10.0
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Line    Input Name                 Example Value
 ====== =======================    ===============================================================================================================================================================================================================================================================
+15      VS_FBP                    0                   ! VS_FBP   - Fixed blade pitch configuration mode (0- variable pitch (disabled), 1- constant power overspeed, 2- WSE-lookup reference tracking, 3- torque-lookup reference tracking)
+33      SU_Mode                   0                   ! Startup mode {0: no startup procedure, 1: startup enabled}
+54      F_VSRefSpdCornerFreq      0.20944             ! F_VSRefSpdCornerFreq		- Corner frequency (-3dB point) in the first order low pass filter of the generator speed reference used for TSR tracking torque control [rad/s].
 99      PRC_Comm                  0                   ! PRC_Comm   - Power reference communication mode when PRC_Mode = 2, 0- use constant DISCON inputs, 1- use open loop inputs, 2- use ZMQ inputs
 100     PRC_R_Torque              1.00000             ! PRC_R_Torque   - Constant power rating through changing the rated torque, used if PRC_Mode = 2, PRC_Comm = 0, default is 1, effective above rated [-]
 101     PRC_R_Speed               1.00000             ! PRC_R_Speed   - Constant power rating through changing the rated generator speed, used if PRC_Mode = 2, PRC_Comm = 0, default is 1, effective above rated [-]
@@ -39,7 +55,6 @@ Line    Input Name                 Example Value
 103     PRC_Table_n               20                  ! PRC_Table_n   - Number of elements in PRC_R to _Pitch table.  Used if PRC_Mode = 1.
 104     PRC_R_Table               0.0000 0.0526 0.1053 0.1579 0.2105 0.2632 0.3158 0.3684 0.4211 0.4737 0.5263 0.5789 0.6316 0.6842 0.7368 0.7895 0.8421 0.8947 0.9474 1.0000      ! PRC_R_Table   - Table of turbine rating versus fine pitch (PRC_Pitch_Table), length should be PRC_Table_n, default is 1 [-].  Used if PRC_Mode = 1.
 105     PRC_Pitch_Table           0.2296 0.2222 0.2144 0.2066 0.1984 0.1902 0.1814 0.1726 0.1633 0.1538 0.1439 0.1334 0.1226 0.1112 0.0989 0.0858 0.0715 0.0552 0.0351 0.0000      ! PRC_Pitch_Table   - Table of fine pitch versus PRC_R_Table, length should be PRC_Table_n [rad].  Used if PRC_Mode = 1.
-33      SU_Mode                   0                   ! Startup mode {0: no startup procedure, 1: startup enabled}
 120     SU_FW_MinDuration         200.000             ! SU_FW_MinDuration    - Free-wheel minimum duration, [s]
 121     SU_RotorSpeedThresh       0.5200              ! SU_RotorSpeedThresh  - Rotor speed threshhold to switch from freewheel to loads, [rad/s]
 122     SU_RotorSpeedCornerFreq   0.4188              ! SU_RotorSpeedCornerFreq  - Cutoff Frequency for first order low-pass filter for rotor speed for startup, [rad/s]
@@ -47,6 +62,26 @@ Line    Input Name                 Example Value
 124     SU_LoadStages             0.2000 1.0000       ! SU_LoadStages  - Array containing loads as a fraction of full generator torque during startup
 125     SU_LoadRampDuration       100.0000 100.0000   ! SU_LoadRampDuration  - Array containing ramp duration to reach the corresponding partial loads during startup
 126     SU_LoadHoldDuration       200.0000 100.0000   ! SU_LoadHoldDuration  - Array containing duration to hold the partial loads during startup
+165     SD_TimeActivate           0                   ! SD_TimeActivate        - Time to acitvate shutdown modes, [s]
+166     SD_EnablePitch            0                   ! SD_EnablePitch         - Shutdown when collective blade pitch exceeds a threshold, [-]
+167     SD_EnableYawError         0                   ! SD_EnableYawError      - Shutdown when yaw error exceeds a threshold, [-]
+168     SD_EnableGenSpeed         0                   ! SD_EnableGenSpeed      - Shutdown when generator speed exceeds a threshold, [-]
+169     SD_EnableTime             0                   ! SD_EnableTime          - Shutdown at a predefined time, [-]
+170     SD_MaxPit                 0.6981              ! SD_MaxPit              - Maximum blade pitch angle to initiate shutdown, [rad]
+171     SD_PitchCornerFreq        0.4188              ! SD_PitchCornerFreq     - Cutoff Frequency for first order low-pass filter for blade pitch angle for shutdown, [rad/s]
+172     SD_MaxYawError            30.000              ! SD_MaxYawError         - Maximum yaw error to initiate shutdown, [deg]
+173     SD_YawErrorCornerFreq     0.4188              ! SD_YawErrorCornerFreq  - Cutoff Frequency for first order low-pass filter for yaw error for shutdown, [rad/s]
+174     SD_MaxGenSpd              10.000              ! SD_MaxGenSpd           - Maximum generator speed to initiate shutdown, [rad/s]
+175     SD_GenSpdCornerFreq       0.4188              ! SD_GenSpdCornerFreq    - Cutoff Frequency for first order low-pass filter for generator speed for shutdown, [rad/s] 
+176     SD_Time                   9999.0              ! SD_Time                - Shutdown time, [s]
+177     SD_Method                 1                   ! SD_Method              - Shutdown method {1: Reduce generator torque and increase blade pitch}, [-]
+178     SD_MaxTorqueRate          40000.0             ! SD_MaxTorqueRate       - Maximum torque rate for shutdown, [Nm/s]
+179     SD_MaxPitchRate           0.17450             ! SD_MaxPitchRate        - Maximum pitch rate used for shutdown, [rad/s]
+194     OL_BP_Mode                0                   ! OL_BP_Mode   - Breakpoint mode for open loop control, 0 - indexed by time (default), 1 - indexed by wind speed]
+195     OL_BP_FiltFreq            0.000000            ! OL_BP_FiltFreq    - Natural frequency of 1st order filter on breakpoint for open loop control. 0 will skip filter.
+204     Ind_R_Speed               0                   ! Ind_R_Speed       - Index (column, 1-indexed) of power rating via speed offset
+205     Ind_R_Torque              0                   ! Ind_R_Torque       - Index (column, 1-indexed) of power rating via torque offset
+206     Ind_R_Pitch               0                   ! Ind_R_Pitch       - Index (column, 1-indexed) of power rating via pitch offset
 ====== =======================    ===============================================================================================================================================================================================================================================================
 
 2.8.0 to 2.9.0
