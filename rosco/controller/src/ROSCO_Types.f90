@@ -124,6 +124,14 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: PS_BldPitchMin_N            ! Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PS_WindSpeeds               ! Wind speeds corresponding to minimum blade pitch angles [m/s]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PS_BldPitchMin              ! Minimum blade pitch angles [rad]
+    INTEGER(IntKi)                :: SU_Mode                     ! Startup mode {0 - no startup procedure, 1 - enable startup}
+    REAL(DbKi)                    :: SU_FW_MinDuration           ! Free-wheel minimum duration [s]
+    REAL(DbKi)                    :: SU_RotorSpeedThresh         ! Rotor speed threshhold to switch from freewheel to loads [rad/s]
+    REAL(DbKi)                    :: SU_RotorSpeedCornerFreq     ! Cutoff Frequency for first order low-pass filter for rotor speed for startup, [rad/s]
+    INTEGER(IntKi)                :: SU_LoadStages_N             ! Number of load staged for startup (should equal number of values in SU_LoadStages, SU_LoadRampDuration and SU_LoadHoldDuration) [-]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: SU_LoadStages               ! Array containing loads as a fraction of full generator torque during startup [-]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: SU_LoadRampDuration         ! Array containing ramp duration to reach the corresponding partial loads during startup [s]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: SU_LoadHoldDuration         ! Array containing duration to hold the partial loads during startup [s]
     INTEGER(IntKi)                :: SD_Mode                     ! Shutdown mode {0 - no shutdown procedure, 1 - enable shutdown}
     REAL(DbKi)                    :: SD_TimeActivate             ! Time to acitvate shutdown modes, [s]
     INTEGER(IntKi)                :: SD_EnablePitch              ! Shutdown when collective blade pitch exceeds a threshold, [-]
@@ -384,6 +392,9 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: PRC_Min_Pitch               ! Instantaneous PRC_Min_Pitch
     REAL(DbKi)                    :: PS_Min_Pitch                ! Instantaneous peak shaving
     REAL(DbKi)                    :: OL_Index                    ! Open loop indexing variable (time or wind speed)
+    INTEGER(IntKi)                :: SU_Stage                    ! Current stage of startup procedure (0- Startup not active, 1- Free-wheeling, 2,3,.. - Load stage 1,2...etc)
+    REAL(DbKi)                    :: SU_LoadStageStartTime       ! Time at which the current startup load stage started
+    REAL(DbKi)                    :: SU_RotSpeedF                ! Rotor speed signal filtered for startup
     INTEGER(IntKi)                :: SD_Trigger                  ! Shutdown trigger (1 - shutdown due to pitch, 2 - shutdown due to yaw error, 3 - shutdown due to generator speed, 4 - shutdown due to time)
     REAL(DbKi)                    :: SD_BlPitchF                 ! Blade pitch signal filtered for shutdown
     REAL(DbKi)                    :: SD_NacVaneF                 ! Nacelle vane signal filtered for shutdown

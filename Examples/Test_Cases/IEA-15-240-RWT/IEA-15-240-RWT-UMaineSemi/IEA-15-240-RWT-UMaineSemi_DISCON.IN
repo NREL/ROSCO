@@ -1,5 +1,5 @@
 ! Controller parameter input file for the IEA-15-240-RWT-UMaineSemi wind turbine
-!    - File written using ROSCO version 2.9.4 controller tuning logic on 02/13/25
+!    - File written using ROSCO version 2.9.4 controller tuning logic on 05/02/25
 
 !------- SIMULATION CONTROL ------------------------------------------------------------
 2                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}
@@ -19,6 +19,7 @@
 0                   ! PRC_Mode        - Power reference tracking mode{0: power control disabled, 1: lookup table from wind speed to generator speed setpoints, 2: change speed, torque, pitch to control power}
 2                   ! WE_Mode         - Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator, 2: Extended Kalman Filter}
 1                   ! PS_Mode         - Pitch saturation mode {0: no pitch saturation, 1: implement pitch saturation}
+0                   ! SU_Mode         - Startup mode {0: no startup procedure, 1: startup enabled}
 0                   ! SD_Mode         - Shutdown mode {0: no shutdown procedure, 1: shutdown enabled}
 2                   ! Fl_Mode         - Floating specific feedback mode {0: no nacelle velocity feedback, 1: feed back translational velocity, 2: feed back rotational veloicty}
 0                   ! TD_Mode         - Tower damper mode (0- no tower damper, 1- feed back translational nacelle accelleration to pitch angle
@@ -150,6 +151,15 @@
 60                  ! PS_BldPitchMin_N  - Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)
 3.000 3.267 3.534 3.801 4.068 4.334 4.601 4.868 5.135 5.402 5.669 5.936 6.203 6.470 6.737 7.003 7.270 7.537 7.804 8.071 8.338 8.605 8.872 9.139 9.406 9.672 9.939 10.206 10.473 10.740 11.215 11.691 12.166 12.641 13.117 13.592 14.067 14.543 15.018 15.493 15.969 16.444 16.919 17.395 17.870 18.345 18.821 19.296 19.771 20.247 20.722 21.197 21.673 22.148 22.623 23.099 23.574 24.049 24.525 25.000               ! PS_WindSpeeds     - Wind speeds corresponding to minimum blade pitch angles [m/s]
 0.060      0.060      0.060      0.060      0.060      0.060      0.056      0.052      0.047      0.041      0.036      0.029      0.022      0.015      0.008      0.001      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.006      0.021      0.033      0.044      0.053      0.064      0.074      0.084      0.093      0.103      0.112      0.121      0.130      0.138      0.147      0.155      0.163      0.172      0.180      0.188      0.196      0.203      0.211      0.219      0.227      0.234      0.242      0.250      0.257      0.265      0.272      0.279      0.287      0.294      0.301                    ! PS_BldPitchMin    - Minimum blade pitch angles [rad]
+
+!------- STARTUP -----------------------------------------------------------
+200.0000000000        ! SU_FW_MinDuration    - Free-wheel minimum duration, [s]
+0.520000000000        ! SU_RotorSpeedThresh  - Rotor speed threshhold to switch from freewheel to loads, [rad/s]
+0.418880000000        ! SU_RotorSpeedCornerFreq  - Cutoff Frequency for first order low-pass filter for rotor speed for startup, [rad/s]
+2                   ! SU_LoadStages_N  - Number of load staged for startup (should equal number of values in SU_LoadStages, SU_LoadRampDuration and SU_LoadHoldDuration)
+0.2000 1.0000         ! SU_LoadStages  - Array containing loads as a fraction of full generator torque during startup
+100.0000 100.0000         ! SU_LoadRampDuration  - Array containing ramp duration to reach the corresponding partial loads during startup
+200.0000 100.0000         ! SU_LoadHoldDuration  - Array containing duration to hold the partial loads during startup
 
 !------- SHUTDOWN -----------------------------------------------------------
 0                   ! SD_TimeActivate        - Time to acitvate shutdown modes, [s]

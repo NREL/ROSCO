@@ -479,6 +479,34 @@ ControlParameters:
       <<: *real
       description: Minimum blade pitch angles [rad]
       allocatable: True
+    # Startup
+    SU_Mode:
+      <<: *integer
+      description: Startup mode {0 - no startup procedure, 1 - enable startup}
+    SU_FW_MinDuration:
+      <<: *real
+      description: Free-wheel minimum duration [s]
+    SU_RotorSpeedThresh:
+      <<: *real
+      description: Rotor speed threshhold to switch from freewheel to loads [rad/s]
+    SU_RotorSpeedCornerFreq:
+      <<: *real
+      description: Cutoff Frequency for first order low-pass filter for rotor speed for startup, [rad/s]
+    SU_LoadStages_N:
+      <<: *integer
+      description: Number of load staged for startup (should equal number of values in SU_LoadStages, SU_LoadRampDuration and SU_LoadHoldDuration) [-]
+    SU_LoadStages:
+      <<: *real
+      description: Array containing loads as a fraction of full generator torque during startup [-]
+      allocatable: True
+    SU_LoadRampDuration:
+      <<: *real
+      description: Array containing ramp duration to reach the corresponding partial loads during startup [s]
+      allocatable: True
+    SU_LoadHoldDuration:
+      <<: *real
+      description: Array containing duration to hold the partial loads during startup [s]
+      allocatable: True
     # Shutdown 
     SD_Mode:
       <<: *integer
@@ -1354,6 +1382,15 @@ LocalVariables:
     OL_Index:
       <<: *real
       description: Open loop indexing variable (time or wind speed)
+    SU_Stage:
+      <<: *integer
+      description: Current stage of startup procedure (0- Startup not active, 1- Free-wheeling, 2,3,.. - Load stage 1,2...etc)
+    SU_LoadStageStartTime:
+      <<: *real
+      description: Time at which the current startup load stage started
+    SU_RotSpeedF:
+      <<: *real
+      description: Rotor speed signal filtered for startup
     SD_Trigger:
       <<: *integer
       description: Shutdown trigger (1 - shutdown due to pitch, 2 - shutdown due to yaw error, 3 - shutdown due to generator speed, 4 - shutdown due to time)

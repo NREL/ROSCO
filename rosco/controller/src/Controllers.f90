@@ -135,7 +135,7 @@ CONTAINS
         IF (CntrPar%AWC_Mode > 0) THEN
             CALL ActiveWakeControl(CntrPar, LocalVar, DebugVar)
         ENDIF
-             
+
         ! Shutdown
         IF (LocalVar%SD_Trigger == 0) THEN
             LocalVar%PitCom_SD = LocalVar%PitCom
@@ -284,6 +284,7 @@ CONTAINS
         ELSE        ! VS_ControlMode of 0
             LocalVar%GenTq = 0
         ENDIF
+        
         
         ! Shutdown
         IF (LocalVar%SD_Trigger == 0) THEN

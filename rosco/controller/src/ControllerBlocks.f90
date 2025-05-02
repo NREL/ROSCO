@@ -23,9 +23,8 @@ USE SysSubs
 IMPLICIT NONE
 
 CONTAINS
-! -----------------------------------------------------------------------------------
-    ! Calculate setpoints for primary control actions    
-    SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
+
+    SUBROUTINE PowerControlSetpoints(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
         USE Constants
         ! Allocate variables
@@ -34,7 +33,6 @@ CONTAINS
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
         TYPE(DebugVariables),       INTENT(INOUT)       :: DebugVar
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
-
 
         ! Set up power control
         IF (CntrPar%PRC_Mode == 2) THEN  ! Using power reference control
@@ -81,7 +79,21 @@ CONTAINS
             LocalVar%PRC_Min_Pitch = CntrPar%PC_FinePit
         ENDIF
 
-        ! End any power control before this point
+
+    END SUBROUTINE
+
+! -----------------------------------------------------------------------------------
+    ! Calculate setpoints for primary control actions    
+    SUBROUTINE ComputeVariablesSetpoints(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
+        USE Constants
+        ! Allocate variables
+        TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
+        TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
+        TYPE(DebugVariables),       INTENT(INOUT)       :: DebugVar
+        TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
+
 
         !   Change pitch reference speed
         LocalVar%PC_RefSpd_PRC = CntrPar%PC_RefSpd * LocalVar%PRC_R_Speed
@@ -533,6 +545,83 @@ CONTAINS
 
     END FUNCTION PitchSaturation
 !-------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE Startup(LocalVar, CntrPar, objInst,ErrVar) 
+    ! Start up procedure of turbine
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
+        IMPLICIT NONE
+        ! Inputs
+        TYPE(ControlParameters),    INTENT(IN   )       :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar 
+        TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
+        TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
+        
+        ! Local Variables 
+        CHARACTER(*),PARAMETER           :: RoutineName = 'Startup'
+        Real(DbKi)              :: SU_PrevLoad             ! PRC_R_Toruqe value at the previous stage
+
+        !Filterd rotor speed
+        LocalVar%SU_RotSpeedF = LPFilter(LocalVar%RotSpeed, LocalVar%DT, CntrPar%SU_RotorSpeedCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+
+        !Initialize startup stage (SU_Stage)
+        IF (LocalVar%iStatus == 0) THEN
+            ! Initilize startup stage variable to 1 to denote FreeWheeling
+            LocalVar%SU_Stage = 1
+        ENDIF
+        
+        ! Determine last time at which rotor speed was below 0.95*threshold speed during freewheeling
+        IF ((LocalVar%SU_Stage == 1) .AND. &
+        (LocalVar%SU_RotSpeedF < 0.95_DbKi * CntrPar%SU_RotorSpeedThresh)) THEN
+            LocalVar%SU_LoadStageStartTime = LocalVar%Time
+        ENDIF
+        
+        !If free-wheeling exit criteria are met, swtich to load stages
+        IF ((LocalVar%SU_Stage == 1) .AND. &
+        (LocalVar%Time>=(CntrPar%SU_FW_MinDuration+LocalVar%SU_LoadStageStartTime))) THEN
+            LocalVar%SU_LoadStageStartTime = LocalVar%Time
+            LocalVar%SU_Stage = 2
+        ENDIF
+
+        ! Switch to next load stage when criteria are met
+        IF ((LocalVar%SU_Stage .ge. 2) .AND. &
+        (LocalVar%Time >= LocalVar%SU_LoadStageStartTime + CntrPar%SU_LoadRampDuration(LocalVar%SU_Stage-1) + &
+        CntrPar%SU_LoadHoldDuration(LocalVar%SU_Stage-1)) .AND. &
+        (LocalVar%SU_Stage .le. CntrPar%SU_LoadStages_N+1)) THEN
+            LocalVar%SU_Stage = LocalVar%SU_Stage + 1
+            LocalVar%SU_LoadStageStartTime = LocalVar%Time
+        ENDIF
+
+        ! Set PRC_R_Speed, SU_PrevLoad based on SU_Stage
+        IF (LocalVar%SU_Stage == 1) THEN
+            LocalVar%PRC_R_Speed = CntrPar%SU_RotorSpeedThresh / CntrPar%PC_RefSpd
+        ELSEIF (LocalVar%SU_Stage == 2) THEN
+            SU_PrevLoad = 0.0_DbKi
+            ! Ramp up PRC_R_Speed to 1.0 in duration = SU_LoadRampDuration(1)
+            LocalVar%PRC_R_Speed = sigma(LocalVar%Time,LocalVar%SU_LoadStageStartTime,    &
+                LocalVar%SU_LoadStageStartTime + CntrPar%SU_LoadRampDuration(LocalVar%SU_Stage - 1),    &
+                CntrPar%SU_RotorSpeedThresh / CntrPar%PC_RefSpd ,1.0_DbKi,ErrVar)
+        ELSEIF ((LocalVar%SU_Stage .ge. 2) .AND. (LocalVar%SU_Stage .le. CntrPar%SU_LoadStages_N + 1)) THEN
+            SU_PrevLoad = CntrPar%SU_LoadStages(LocalVar%SU_Stage-2)
+        ELSEIF (LocalVar%SU_Stage == CntrPar%SU_LoadStages_N + 2) THEN
+            ! Set SU_Stage = 0 when startup is over.
+            LocalVar%SU_Stage = 0
+        ENDIF
+
+        ! Set PRC_R_Torque based on SU_Stage
+        IF (LocalVar%SU_Stage == 1) THEN
+            LocalVar%PRC_R_Torque = 0.0_DbKi
+        ELSEIF ((LocalVar%SU_Stage .ge. 2) .AND. (LocalVar%SU_Stage .le. CntrPar%SU_LoadStages_N + 1)) THEN
+            IF (LocalVar%Time < LocalVar%SU_LoadStageStartTime + CntrPar%SU_LoadRampDuration(LocalVar%SU_Stage-1)) THEN
+                LocalVar%PRC_R_Torque = sigma(LocalVar%Time,LocalVar%SU_LoadStageStartTime,    &
+                LocalVar%SU_LoadStageStartTime + CntrPar%SU_LoadRampDuration(LocalVar%SU_Stage - 1),    &
+                SU_PrevLoad,CntrPar%SU_LoadStages(LocalVar%SU_Stage - 1),ErrVar)
+            ELSE
+                LocalVar%PRC_R_Torque = CntrPar%SU_LoadStages(LocalVar%SU_Stage - 1)
+            ENDIF
+        ENDIF
+
+
+    END SUBROUTINE Startup
+!-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE Shutdown(LocalVar, CntrPar, objInst,ErrVar) 
     ! Check for shutdown
         USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances
@@ -544,7 +633,7 @@ CONTAINS
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
         
         ! Local Variables 
-        CHARACTER(*),               PARAMETER           :: RoutineName = 'VariableSpeedControl'
+        CHARACTER(*),               PARAMETER           :: RoutineName = 'Shutdown'
         REAL(DbKi)       :: SD_NacVaneCosF                 ! Time-filtered x-component of NacVane (deg)
         REAL(DbKi)       :: SD_NacVaneSinF                 ! Time-filtered y-component of NacVane (deg)
 
