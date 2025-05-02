@@ -57,15 +57,15 @@ def main():
     controller_params["DISCON"]["Echo"] = 1
     controller_params["LoggingLevel"] = 3
     
+    # Set startup mode, defaults in toolbox_schema.yaml (can be edited below)
     controller_params["SU_Mode"] = 1
-    controller_params["DISCON"]["SU_FW_MinDuration"] = 60.0
-    controller_params["DISCON"]["SU_RotorSpeedThresh"] = 5.0 * (2 * np.pi) / 60.0       # This should be close to minimum rotor speed
-    controller_params["DISCON"]["SU_LoadStages_N"] = 2
-    controller_params["DISCON"]["SU_LoadStages"] = [0.2, 1]
-    controller_params["DISCON"]["SU_LoadRampDuration"] = [60, 60]
-    controller_params["DISCON"]["SU_LoadHoldDuration"] = [60, 60]
 
-    
+    # controller_params["DISCON"]["SU_FW_MinDuration"] = 60.0
+    # controller_params["DISCON"]["SU_RotorSpeedThresh"] = 5.0 * (2 * np.pi) / 60.0       # This should be close to minimum rotor speed
+    # controller_params["DISCON"]["SU_LoadStages_N"] = 2
+    # controller_params["DISCON"]["SU_LoadStages"] = [0.2, 1]
+    # controller_params["DISCON"]["SU_LoadRampDuration"] = [60, 60]
+    # controller_params["DISCON"]["SU_LoadHoldDuration"] = [60, 60]    
 
     # simulation set up
     r = run_FAST_ROSCO()
@@ -86,7 +86,7 @@ def main():
     r.wind_case_fcn = cl.power_curve
     r.wind_case_opts = {
         "U": [5,15],
-        "TMax": 500,
+        "TMax": 800,
     }
     if not FULL_TEST:
         r.wind_case_opts["TMax"] = 2

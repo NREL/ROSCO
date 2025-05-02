@@ -1092,12 +1092,12 @@ properties:
                         type: number
                         description: Free-wheel minimum duration
                         units: s
-                        default: 20
+                        default: 200
                     SU_RotorSpeedThresh:
                         type: number
                         description: Rotor speed threshhold to switch from freewheel to loads
                         units: rad/s
-                        default: 0.1
+                        default: 0.52
                     SU_RotorSpeedCornerFreq:
                         type: number
                         description: Cutoff Frequency for first order low-pass filter for rotor speed for startup
@@ -1106,21 +1106,25 @@ properties:
                     SU_LoadStages_N:
                         type: number
                         description: Number of load staged for startup (should equal number of values in SU_LoadStages, SU_LoadRampDuration and SU_LoadHoldDuration)
+                        default: 2
                     SU_LoadStages:
                         type: array
                         items:
                             type: number
                         description: Array containing loads as a fraction of full generator torque during startup
+                        default: [0.2, 1.0]
                     SU_LoadRampDuration:
                         type: array
                         items:
                             type: number
                         description: Array containing ramp duration to reach the corresponding partial loads during startup
+                        default: [100, 100]
                     SU_LoadHoldDuration:
                         type: array
                         items:
                             type: number
                         description: Array containing duration to hold the partial loads during startup
+                        default: [200, 100]
                     SD_TimeActivate:
                         type: number
                         description: Time to acitvate shutdown modes

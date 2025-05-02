@@ -639,13 +639,6 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['PS_BldPitchMin_N'] = len(controller.ps_min_bld_pitch)
     DISCON_dict['PS_WindSpeeds']    = controller.v
     DISCON_dict['PS_BldPitchMin']   = controller.ps_min_bld_pitch
-    # ------- STARTUP -------
-    DISCON_dict['SU_FW_MinDuration']    = 20
-    DISCON_dict['SU_RotorSpeedThresh']  = 0.1
-    DISCON_dict['SU_LoadStages_N']      = 1
-    DISCON_dict['SU_LoadStages']        = [0.2]
-    DISCON_dict['SU_LoadRampDuration']  = [10]
-    DISCON_dict['SU_LoadHoldDuration']  = [10]
     # ------- SHUTDOWN -------
     DISCON_dict['SD_EnablePitch']       = 0
     DISCON_dict['SD_EnableYawError']    = 0
