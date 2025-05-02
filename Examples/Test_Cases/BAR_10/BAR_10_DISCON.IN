@@ -1,5 +1,5 @@
 ! Controller parameter input file for the BAR_10 wind turbine
-!    - File written using ROSCO version 2.9.4 controller tuning logic on 03/27/25
+!    - File written using ROSCO version 2.9.4 controller tuning logic on 05/02/25
 
 !------- SIMULATION CONTROL ------------------------------------------------------------
 1                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}
@@ -153,13 +153,13 @@
 0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.008      0.017      0.026      0.034      0.041      0.056      0.069      0.082      0.095      0.108      0.120      0.132      0.143      0.155      0.166      0.178      0.189      0.200      0.211      0.222      0.232      0.243      0.254      0.264      0.274      0.285      0.295      0.305      0.315      0.325      0.335      0.344      0.354      0.364      0.373                    ! PS_BldPitchMin    - Minimum blade pitch angles [rad]
 
 !------- STARTUP -----------------------------------------------------------
-20.00000000000        ! SU_FW_MinDuration    - Free-wheel minimum duration, [s]
-0.100000000000        ! SU_RotorSpeedThresh  - Rotor speed threshhold to switch from freewheel to loads, [rad/s]
+200.0000000000        ! SU_FW_MinDuration    - Free-wheel minimum duration, [s]
+0.520000000000        ! SU_RotorSpeedThresh  - Rotor speed threshhold to switch from freewheel to loads, [rad/s]
 0.418880000000        ! SU_RotorSpeedCornerFreq  - Cutoff Frequency for first order low-pass filter for rotor speed for startup, [rad/s]
-1                   ! SU_LoadStages_N  - Number of load staged for startup (should equal number of values in SU_LoadStages, SU_LoadRampDuration and SU_LoadHoldDuration)
-0.2000              ! SU_LoadStages  - Array containing loads as a fraction of full generator torque during startup
-10.0000             ! SU_LoadRampDuration  - Array containing ramp duration to reach the corresponding partial loads during startup
-10.0000             ! SU_LoadHoldDuration  - Array containing duration to hold the partial loads during startup
+2                   ! SU_LoadStages_N  - Number of load staged for startup (should equal number of values in SU_LoadStages, SU_LoadRampDuration and SU_LoadHoldDuration)
+0.2000 1.0000         ! SU_LoadStages  - Array containing loads as a fraction of full generator torque during startup
+100.0000 100.0000         ! SU_LoadRampDuration  - Array containing ramp duration to reach the corresponding partial loads during startup
+200.0000 100.0000         ! SU_LoadHoldDuration  - Array containing duration to hold the partial loads during startup
 
 !------- SHUTDOWN -----------------------------------------------------------
 0                   ! SD_TimeActivate        - Time to acitvate shutdown modes, [s]
