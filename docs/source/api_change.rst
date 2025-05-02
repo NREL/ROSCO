@@ -9,14 +9,18 @@ The changes are tabulated according to the line number, and flag name.
 The line number corresponds to the resulting line number after all changes are implemented.
 Thus, be sure to implement each in order so that subsequent line numbers are correct.
 
-2.9.0 to develop
+2.9.0 to 2.10.0
 --------------------------
 **New power reference control mode**
 
 * De-rate or power boost the turbine using the reference speed, rated torque, or minimum pitch.  More details can be found in the Examples page.
 
+**New startup mode**
+
+* Startup the turbine by allowing the rotor to rotate freely (free-wheel) and the load roter in stages to start the turbine.
+
 ====== =================    ======================================================================================================================================================================================================
-Changed in ROSCO develop
+Changed in ROSCO 2.10.0
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
@@ -24,7 +28,7 @@ Line    Input Name           Example Value
 ====== =================    ======================================================================================================================================================================================================
 
 ====== =======================    ===============================================================================================================================================================================================================================================================
-New in ROSCO develop
+New in ROSCO 2.10.0
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Line    Input Name                 Example Value
 ====== =======================    ===============================================================================================================================================================================================================================================================
@@ -35,6 +39,14 @@ Line    Input Name                 Example Value
 103     PRC_Table_n               20                  ! PRC_Table_n   - Number of elements in PRC_R to _Pitch table.  Used if PRC_Mode = 1.
 104     PRC_R_Table               0.0000 0.0526 0.1053 0.1579 0.2105 0.2632 0.3158 0.3684 0.4211 0.4737 0.5263 0.5789 0.6316 0.6842 0.7368 0.7895 0.8421 0.8947 0.9474 1.0000      ! PRC_R_Table   - Table of turbine rating versus fine pitch (PRC_Pitch_Table), length should be PRC_Table_n, default is 1 [-].  Used if PRC_Mode = 1.
 105     PRC_Pitch_Table           0.2296 0.2222 0.2144 0.2066 0.1984 0.1902 0.1814 0.1726 0.1633 0.1538 0.1439 0.1334 0.1226 0.1112 0.0989 0.0858 0.0715 0.0552 0.0351 0.0000      ! PRC_Pitch_Table   - Table of fine pitch versus PRC_R_Table, length should be PRC_Table_n [rad].  Used if PRC_Mode = 1.
+33      SU_Mode                   0                   ! Startup mode {0: no startup procedure, 1: startup enabled}
+120     SU_FW_MinDuration         200.000             ! SU_FW_MinDuration    - Free-wheel minimum duration, [s]
+121     SU_RotorSpeedThresh       0.5200              ! SU_RotorSpeedThresh  - Rotor speed threshhold to switch from freewheel to loads, [rad/s]
+122     SU_RotorSpeedCornerFreq   0.4188              ! SU_RotorSpeedCornerFreq  - Cutoff Frequency for first order low-pass filter for rotor speed for startup, [rad/s]
+123     SU_LoadStages_N           2                   ! SU_LoadStages_N  - Number of load staged for startup (should equal number of values in SU_LoadStages, SU_LoadRampDuration and SU_LoadHoldDuration)
+124     SU_LoadStages             0.2000 1.0000       ! SU_LoadStages  - Array containing loads as a fraction of full generator torque during startup
+125     SU_LoadRampDuration       100.0000 100.0000   ! SU_LoadRampDuration  - Array containing ramp duration to reach the corresponding partial loads during startup
+126     SU_LoadHoldDuration       200.0000 100.0000   ! SU_LoadHoldDuration  - Array containing duration to hold the partial loads during startup
 ====== =======================    ===============================================================================================================================================================================================================================================================
 
 2.8.0 to 2.9.0
