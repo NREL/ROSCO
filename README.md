@@ -5,6 +5,13 @@ NREL's Reference OpenSource Controller (ROSCO) for wind turbine applications is 
 * Simple 1-DOF turbine simulations for quick controller capability verifications
 * Parsing of OpenFAST input and output files
 
+## Part of the WETO Stack
+
+WISDEM is primarily developed with the support of the U.S. Department of Energy and is part of the [WETO Software Stack](https://nrel.github.io/WETOStack). For more information and other integrated modeling software, see:
+- [Portfolio Overview](https://nrel.github.io/WETOStack/portfolio_analysis/overview.html)
+- [Entry Guide](https://nrel.github.io/WETOStack/_static/entry_guide/index.html)
+- [OpenFAST Workshop](https://nrel.github.io/WETOStack/workshops/user_workshops_2024.html#openfast-ecosystem)
+
 
 ## Introduction
 The NREL Reference OpenSource Controller (ROSCO) provides an open, modular and fully adaptable baseline wind turbine controller to the scientific community. The ROSCO toolbox leverages this architecture and implementation to provide a generic tuning process for the controller. Because of the open character and modular set-up, scientists are able to collaborate and contribute in making continuous improvements to the code for the controller and the toolbox. The ROSCO controller is implemented in FORTRAN, while the remainder of the toolset is a mostly-python code base with a number of functionalities.
