@@ -1088,6 +1088,11 @@ properties:
                             type: number
                         description: Minimum blade pitch angles
                         units: rad
+                    SU_StartTime:
+                        type: number
+                        description: Time to start startup routine
+                        units: s
+                        default: 120
                     SU_FW_MinDuration:
                         type: number
                         description: Free-wheel minimum duration
@@ -1158,7 +1163,6 @@ properties:
                         type: number
                         description: Maximum blade pitch angle to initiate shutdown
                         units: rad
-                        default: 0.6981
                     SD_PitchCornerFreq:
                         type: number
                         description: Cutoff Frequency for first order low-pass filter for blade pitch angle for shutdown,
@@ -1168,7 +1172,6 @@ properties:
                         type: number
                         description: Maximum yaw error to initiate shutdown
                         units: deg
-                        default: 30.0
                     SD_YawErrorCornerFreq:
                         type: number
                         description: Cutoff Frequency for first order low-pass filter for yaw error for shutdown
@@ -1178,7 +1181,6 @@ properties:
                         type: number
                         description: Maximum generator speed to initiate shutdown
                         units: rad/s
-                        default: 10
                     SD_GenSpdCornerFreq:
                         type: number
                         description: Cutoff Frequency for first order low-pass filter for generator speed for shutdown

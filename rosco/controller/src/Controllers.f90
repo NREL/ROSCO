@@ -49,6 +49,14 @@ CONTAINS
         ELSE ! debug mode, fix at fine pitch
             LocalVar%PC_MaxPit = CntrPar%PC_FinePit
         END IF
+
+        ! Hold blade pitch at last value
+        ! If:
+        !   In pre-startup mode (before freewheeling)
+        IF ((CntrPar%SU_Mode > 0) .AND. (LocalVar%SU_Stage == -1)) THEN
+            LocalVar%PC_MaxPit = LocalVar%BlPitchCMeas
+            LocalVar%PC_MinPit = LocalVar%BlPitchCMeas
+        END IF
         
         ! Compute (interpolate) the gains based on previously commanded blade pitch angles and lookup table:
         LocalVar%PC_KP = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KP, LocalVar%PC_PitComTF, ErrVar) ! Proportional gain

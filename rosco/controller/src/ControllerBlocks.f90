@@ -559,12 +559,25 @@ CONTAINS
         CHARACTER(*),PARAMETER           :: RoutineName = 'Startup'
         Real(DbKi)              :: SU_PrevLoad             ! PRC_R_Toruqe value at the previous stage
 
+        
+        ! SU_Stage = -1  (pre startup waiting for transients)
+        ! SU_Stage = 1  (freewheeling)
+        ! SU_Stage = 2  (load stage 1)
+        ! SU_Stage = 3  (load stage 2)
+        ! SU_Stage = 4  (load stage 3)
+        ! ...
+        ! SU_Stage = 0  (startup complete, normal operation)
+        
         !Filterd rotor speed
         LocalVar%SU_RotSpeedF = LPFilter(LocalVar%RotSpeed, LocalVar%DT, CntrPar%SU_RotorSpeedCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
 
         !Initialize startup stage (SU_Stage)
         IF (LocalVar%iStatus == 0) THEN
             ! Initilize startup stage variable to 1 to denote FreeWheeling
+            LocalVar%SU_Stage = -1
+        ENDIF
+
+        IF ((LocalVar%SU_Stage == -1) .AND. (LocalVar%Time > CntrPar%SU_StartTime)) THEN
             LocalVar%SU_Stage = 1
         ENDIF
         
@@ -607,7 +620,7 @@ CONTAINS
         ENDIF
 
         ! Set PRC_R_Torque based on SU_Stage
-        IF (LocalVar%SU_Stage == 1) THEN
+        IF ((LocalVar%SU_Stage == 1) .OR. (LocalVar%SU_Stage == -1)) THEN
             LocalVar%PRC_R_Torque = 0.0_DbKi
         ELSEIF ((LocalVar%SU_Stage .ge. 2) .AND. (LocalVar%SU_Stage .le. CntrPar%SU_LoadStages_N + 1)) THEN
             IF (LocalVar%Time < LocalVar%SU_LoadStageStartTime + CntrPar%SU_LoadRampDuration(LocalVar%SU_Stage-1)) THEN

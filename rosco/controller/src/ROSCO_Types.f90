@@ -125,6 +125,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PS_WindSpeeds               ! Wind speeds corresponding to minimum blade pitch angles [m/s]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PS_BldPitchMin              ! Minimum blade pitch angles [rad]
     INTEGER(IntKi)                :: SU_Mode                     ! Startup mode {0 - no startup procedure, 1 - enable startup}
+    REAL(DbKi)                    :: SU_StartTime                ! Time to start start up routine
     REAL(DbKi)                    :: SU_FW_MinDuration           ! Free-wheel minimum duration [s]
     REAL(DbKi)                    :: SU_RotorSpeedThresh         ! Rotor speed threshhold to switch from freewheel to loads [rad/s]
     REAL(DbKi)                    :: SU_RotorSpeedCornerFreq     ! Cutoff Frequency for first order low-pass filter for rotor speed for startup, [rad/s]
