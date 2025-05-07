@@ -601,7 +601,8 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ Pitch Actuator Faults ------------
-        CALL ParseAry(FileLines,    'PF_Offsets',   CntrPar%PF_Offsets,     3, accINFILE(1),    ErrVar, CntrPar%PF_Mode == 0, UnEc)
+        CALL ParseAry(FileLines,    'PF_Offsets',   CntrPar%PF_Offsets,     3,  accINFILE(1),    ErrVar, CntrPar%PF_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'PF_TimeStuck', CntrPar%PF_TimeStuck,       accINFILE(1),    ErrVar, CntrPar%PF_Mode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ AWC input ------------

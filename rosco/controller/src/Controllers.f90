@@ -187,6 +187,11 @@ CONTAINS
                 ! This assumes that the pitch actuator fault overides the Hardware saturation
                 LocalVar%PitComAct(K) = LocalVar%PitComAct(K) + CntrPar%PF_Offsets(K)
             END DO
+        ! Blade pitch stuck at last value
+        ELSEIF ((CntrPar%PF_Mode == 2) .AND. (LocalVar%Time > CntrPar%PF_TimeStuck)) THEN
+            DO K = 1, LocalVar%NumBl
+                LocalVar%PitComAct(K) = LocalVar%BlPitch(K)
+            END DO
         END IF
 
         ! Command the pitch demanded from the last

@@ -237,7 +237,7 @@ properties:
                 minimum: 0
                 maximum: 1
                 default: 0
-                description: Pitch fault mode {0 - not used, 1 - constant offset on one or more blades}
+                description: Pitch fault mode {0 - not used, 1 - constant offset on one or more blades, 2- pitch stuck at last values}
             OL_Mode:           
                 type: number
                 minimum: 0
@@ -1310,6 +1310,11 @@ properties:
                         description: Pitch angle offsets for each blade (array with length of 3)
                         units: rad
                         default: [0,0,0]
+                    PF_TimeStuck:
+                        type: number
+                        description: Time pitch actuator becomes stuck at last value
+                        units: seconds
+                        default: 9999
                     CC_Group_N:
                         type: number
                         description: Number of cable control groups

@@ -745,6 +745,9 @@ ControlParameters:
       <<: *real
       description: Pitch actuator fault offsets for blade 1-3 [rad/s]
       allocatable: True
+    PF_TimeStuck:
+      <<: *real
+      description: Time for pitch actuator fault to be stuck [s]`
     
     
     # External Control
