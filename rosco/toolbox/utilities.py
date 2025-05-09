@@ -303,7 +303,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<014.5f}       ! PA_Damping        - Pitch actuator damping ratio [-, unused if PA_Mode = 1]\n'.format(rosco_vt['PA_Damping']))
     file.write('\n')
     file.write('!------- Pitch Actuator Faults -----------------------------------------------------\n')
-    file.write('{}                ! PF_Offsets     - {}\n'.format(write_array(rosco_vt['PF_Offsets'],'<6.4f'), input_descriptions['PF_Offsets']))
+    file.write('{}                ! PF_Offsets     - {}\n'.format(write_array(rosco_vt['PF_Offsets'],'<6.8f'), input_descriptions['PF_Offsets']))
     file.write('{}                ! PF_TimeStuck     - {}\n'.format(float(rosco_vt['PF_TimeStuck']), input_descriptions['PF_TimeStuck']))
     file.write('\n')
     file.write('!------- Active Wake Control -----------------------------------------------------\n')
