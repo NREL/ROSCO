@@ -747,7 +747,8 @@ ControlParameters:
       allocatable: True
     PF_TimeStuck:
       <<: *real
-      description: Time for pitch actuator fault to be stuck [s]`
+      description: Time for pitch actuator fault to be stuck for blade 1-3 [s]
+      allocatable: True
     
     
     # External Control

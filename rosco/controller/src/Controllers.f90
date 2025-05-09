@@ -188,9 +188,11 @@ CONTAINS
                 LocalVar%PitComAct(K) = LocalVar%PitComAct(K) + CntrPar%PF_Offsets(K)
             END DO
         ! Blade pitch stuck at last value
-        ELSEIF ((CntrPar%PF_Mode == 2) .AND. (LocalVar%Time > CntrPar%PF_TimeStuck)) THEN
+        ELSEIF (CntrPar%PF_Mode == 2) THEN
             DO K = 1, LocalVar%NumBl
-                LocalVar%PitComAct(K) = LocalVar%BlPitch(K)
+                IF (LocalVar%Time > CntrPar%PF_TimeStuck(K)) THEN
+                    LocalVar%PitComAct(K) = LocalVar%BlPitch(K)
+                END IF
             END DO
         END IF
 

@@ -92,7 +92,7 @@ def main():
     time_stuck = 7.5
 
     controller_params['PF_Mode'] = 2   # Stuck pitch actuator
-    controller_params['DISCON']['PF_TimeStuck'] = time_stuck   # time at which the actuator becomes stuck
+    controller_params['DISCON']['PF_TimeStuck'] = [time_stuck,time_stuck+1,time_stuck+2]   # time at which the actuator becomes stuck
     run_dir = os.path.join(example_out_dir,'18_PitchStuck')
     r.save_dir      = run_dir
     r.run_FAST()

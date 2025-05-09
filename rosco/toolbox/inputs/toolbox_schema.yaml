@@ -1311,10 +1311,12 @@ properties:
                         units: rad
                         default: [0,0,0]
                     PF_TimeStuck:
-                        type: number
-                        description: Time pitch actuator becomes stuck at last value
+                        type: array
+                        items:
+                            type: number
+                        description: Time pitch actuator becomes stuck at last value for each blade (array with length of 3)
                         units: seconds
-                        default: 9999
+                        default: [9999,9999,9999]
                     CC_Group_N:
                         type: number
                         description: Number of cable control groups

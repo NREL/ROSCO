@@ -304,7 +304,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('\n')
     file.write('!------- Pitch Actuator Faults -----------------------------------------------------\n')
     file.write('{}                ! PF_Offsets     - {}\n'.format(write_array(rosco_vt['PF_Offsets'],'<6.8f'), input_descriptions['PF_Offsets']))
-    file.write('{}                ! PF_TimeStuck     - {}\n'.format(float(rosco_vt['PF_TimeStuck']), input_descriptions['PF_TimeStuck']))
+    file.write('{}                ! PF_TimeStuck     - {}\n'.format(write_array(rosco_vt['PF_TimeStuck'],'<6.4f'), input_descriptions['PF_TimeStuck']))
     file.write('\n')
     file.write('!------- Active Wake Control -----------------------------------------------------\n')
     file.write('{0:<12d}        ! AWC_NumModes       - Number of user-defined AWC forcing modes \n'.format(int(rosco_vt['AWC_NumModes'])))
