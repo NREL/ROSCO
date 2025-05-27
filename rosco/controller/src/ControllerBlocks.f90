@@ -374,7 +374,7 @@ CONTAINS
 
         ! Filter the wind speed at hub height regardless, only use if WE_Mode = 0 or WE_Op = 0
         ! Re-initialize at WE_Vw if leaving operational wind, WE_Vw is initialized at HorWindV
-        LocalVar%HorWindV_F = cos(LocalVar%NacVaneF*D2R) * LPFilter(LocalVar%HorWindV, LocalVar%DT, CntrPar%F_WECornerFreq, LocalVar%FP, LocalVar%RestartWSE, LocalVar%restart, objInst%instLPF, LocalVar%WE_Vw)
+        LocalVar%HorWindV_F = cos(LocalVar%NacVaneF*D2R) * LPFilter(LocalVar%HorWindV, LocalVar%DT, CntrPar%F_WECornerFreq/10, LocalVar%FP, LocalVar%RestartWSE, LocalVar%restart, objInst%instLPF, LocalVar%WE_Vw)
 
         ! ---- Debug Inputs ------
         DebugVar%WE_b   = WE_Inp_Pitch
@@ -406,8 +406,8 @@ CONTAINS
                 ! Initialize recurring values
                 LocalVar%WE%om_r = WE_Inp_Speed
                 LocalVar%WE%v_t = 0.0
-                LocalVar%WE%v_m = max(LocalVar%HorWindV, 3.0_DbKi)   ! avoid divide by 0 below if HorWindV is 0, which some AMRWind setups create
-                LocalVar%WE%v_h = max(LocalVar%HorWindV, 3.0_DbKi)   ! avoid divide by 0 below if HorWindV is 0, which some AMRWind setups create
+                LocalVar%WE%v_m = max(LocalVar%HorWindV_F, 3.0_DbKi)   ! avoid divide by 0 below if HorWindV_F is 0, which some AMRWind setups create
+                LocalVar%WE%v_h = max(LocalVar%HorWindV_F, 3.0_DbKi)   ! avoid divide by 0 below if HorWindV_F is 0, which some AMRWind setups create
                 LocalVar%WE_Vw = LocalVar%WE%v_m + LocalVar%WE%v_t   ! Initialize WE_Vw to aviod divide by zero
                 lambda = WE_Inp_Speed * CntrPar%WE_BladeRadius/LocalVar%WE%v_h
                 LocalVar%WE%xh = RESHAPE((/LocalVar%WE%om_r, LocalVar%WE%v_t, LocalVar%WE%v_m/),(/3,1/))
