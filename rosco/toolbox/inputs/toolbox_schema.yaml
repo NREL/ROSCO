@@ -1307,14 +1307,14 @@ properties:
                         type: array
                         items:
                             type: number
-                        description: Pitch angle offsets for each blade (array with length of 3)
+                        description: Pitch angle offsets for each blade (array with length of 3), only used if PF_Mode = 1
                         units: rad
                         default: [0,0,0]
                     PF_TimeStuck:
                         type: array
                         items:
                             type: number
-                        description: Time pitch actuator becomes stuck at last value for each blade (array with length of 3)
+                        description: Time pitch actuator becomes stuck at last value for each blade (array with length of 3), only used if PF_Mode = 2
                         units: seconds
                         default: [9999,9999,9999]
                     CC_Group_N:

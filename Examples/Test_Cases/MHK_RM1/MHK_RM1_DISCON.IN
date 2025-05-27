@@ -211,8 +211,8 @@
 0.707000000000       ! PA_Damping        - Pitch actuator damping ratio [-, unused if PA_Mode = 1]
 
 !------- Pitch Actuator Faults -----------------------------------------------------
-0.00000000 0.00000000 0.00000000                 ! PF_Offsets     - Pitch angle offsets for each blade (array with length of 3)
-9999.0000 9999.0000 9999.0000                 ! PF_TimeStuck     - Time pitch actuator becomes stuck at last value for each blade (array with length of 3)
+0.00000000 0.00000000 0.00000000                 ! PF_Offsets     - Pitch angle offsets for each blade (array with length of 3), only used if PF_Mode = 1
+9999.0000 9999.0000 9999.0000                 ! PF_TimeStuck     - Time pitch actuator becomes stuck at last value for each blade (array with length of 3), only used if PF_Mode = 2
 
 !------- Active Wake Control -----------------------------------------------------
 1                   ! AWC_NumModes       - Number of user-defined AWC forcing modes 
