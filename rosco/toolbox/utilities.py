@@ -773,8 +773,9 @@ def list_check(x, return_bool=True):
         return y
 
 def write_array(array,format='<.4f',line_width=12):
-
-    if not hasattr(array,'__len__'):  #not an array
+    if isinstance(array, str):
+        array = eval(array)
+    elif not hasattr(array,'__len__'):  #not an array
         array = [array]
 
     # force int if not
