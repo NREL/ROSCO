@@ -1090,22 +1090,22 @@ properties:
                         units: rad
                     SU_StartTime:
                         type: number
-                        description: Time to start startup routine
+                        description: Time to start startup routine [s]
                         units: s
                         default: 120
                     SU_FW_MinDuration:
                         type: number
-                        description: Free-wheel minimum duration
+                        description: Free-wheel minimum duration [s]
                         units: s
                         default: 200
                     SU_RotorSpeedThresh:
                         type: number
-                        description: Rotor speed threshhold to switch from freewheel to loads
+                        description: Rotor speed threshhold to switch from freewheel to loads [rad/s]
                         units: rad/s
                         default: 0.52
                     SU_RotorSpeedCornerFreq:
                         type: number
-                        description: Cutoff Frequency for first order low-pass filter for rotor speed for startup
+                        description: Cutoff Frequency for first order low-pass filter for rotor speed for startup [rad/s]
                         units: rad/s
                         default: 0.41888
                     SU_LoadStages_N:
@@ -1122,17 +1122,17 @@ properties:
                         type: array
                         items:
                             type: number
-                        description: Array containing ramp duration to reach the corresponding partial loads during startup
+                        description: Array containing ramp duration to reach the corresponding partial loads during startup [s]
                         default: [100, 100]
                     SU_LoadHoldDuration:
                         type: array
                         items:
                             type: number
-                        description: Array containing duration to hold the partial loads during startup
+                        description: Array containing duration to hold the partial loads during startup [s]
                         default: [200, 100]
                     SD_TimeActivate:
                         type: number
-                        description: Time to acitvate shutdown modes
+                        description: Time to acitvate shutdown modes [s]
                         units: s
                         default: 0
                     SD_EnablePitch:
