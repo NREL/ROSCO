@@ -366,8 +366,7 @@ class CaseGen_IEC():
         change_vars = [('IEC', 'DLC')] + change_vars
         [matrix_row.insert(0, dlc) for dlc, matrix_row in zip(dlc_list,matrix_out)]
 
-        if not os.path.exists(self.run_dir):
-            os.makedirs(self.run_dir)
+        os.makedirs(self.run_dir,exist_ok=True)
 
         save_case_matrix(matrix_out, change_vars, self.run_dir)
         save_case_matrix_yaml(matrix_out, change_vars, self.run_dir, case_names_all)
