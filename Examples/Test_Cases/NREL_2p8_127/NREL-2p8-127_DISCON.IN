@@ -1,5 +1,5 @@
 ! Controller parameter input file for the NREL-2p8-127 wind turbine
-!    - File written using ROSCO version 2.9.4 controller tuning logic on 05/02/25
+!    - File written using ROSCO version 2.9.4 controller tuning logic on 05/27/25
 
 !------- SIMULATION CONTROL ------------------------------------------------------------
 2                   ! LoggingLevel		- {0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}
@@ -153,13 +153,14 @@
 0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.000      0.019      0.031      0.041      0.050      0.058      0.066      0.074      0.086      0.096      0.107      0.117      0.127      0.137      0.147      0.156      0.165      0.174      0.183      0.192      0.201      0.210      0.218      0.227      0.236      0.244      0.253      0.262      0.270      0.279      0.287      0.295      0.303      0.312      0.320      0.328      0.337      0.345                    ! PS_BldPitchMin    - Minimum blade pitch angles [rad]
 
 !------- STARTUP -----------------------------------------------------------
-200.0000000000        ! SU_FW_MinDuration    - Free-wheel minimum duration, [s]
-0.520000000000        ! SU_RotorSpeedThresh  - Rotor speed threshhold to switch from freewheel to loads, [rad/s]
-0.418880000000        ! SU_RotorSpeedCornerFreq  - Cutoff Frequency for first order low-pass filter for rotor speed for startup, [rad/s]
-2                   ! SU_LoadStages_N  - Number of load staged for startup (should equal number of values in SU_LoadStages, SU_LoadRampDuration and SU_LoadHoldDuration)
-0.2000 1.0000         ! SU_LoadStages  - Array containing loads as a fraction of full generator torque during startup
-100.0000 100.0000         ! SU_LoadRampDuration  - Array containing ramp duration to reach the corresponding partial loads during startup
-200.0000 100.0000         ! SU_LoadHoldDuration  - Array containing duration to hold the partial loads during startup
+120.0000000000        ! SU_StartTime            - Time to start startup routine [s]
+200.0000000000        ! SU_FW_MinDuration       - Free-wheel minimum duration [s]
+0.520000000000        ! SU_RotorSpeedThresh     - Rotor speed threshhold to switch from freewheel to loads [rad/s]
+0.418880000000        ! SU_RotorSpeedCornerFreq - Cutoff Frequency for first order low-pass filter for rotor speed for startup [rad/s]
+2                     ! SU_LoadStages_N           - Number of load staged for startup (should equal number of values in SU_LoadStages, SU_LoadRampDuration and SU_LoadHoldDuration)
+0.2000 1.0000         ! SU_LoadStages        - Array containing loads as a fraction of full generator torque during startup
+100.0000 100.0000         ! SU_LoadRampDuration  - Array containing ramp duration to reach the corresponding partial loads during startup [s]
+200.0000 100.0000         ! SU_LoadHoldDuration  - Array containing duration to hold the partial loads during startup [s]
 
 !------- SHUTDOWN -----------------------------------------------------------
 0                   ! SD_TimeActivate        - Time to acitvate shutdown modes, [s]
@@ -167,16 +168,16 @@
 0                   ! SD_EnableYawError      - Shutdown when yaw error exceeds a threshold, [-]
 0                   ! SD_EnableGenSpeed      - Shutdown when generator speed exceeds a threshold, [-]
 0                   ! SD_EnableTime          - Shutdown at a predefined time, [-]
-0.698100000000      ! SD_MaxPit              - Maximum blade pitch angle to initiate shutdown, [rad]
+0.446360000000      ! SD_MaxPit              - Maximum blade pitch angle to initiate shutdown, [rad]
 0.418880000000      ! SD_PitchCornerFreq     - Cutoff Frequency for first order low-pass filter for blade pitch angle for shutdown, [rad/s]
 30.00000000000      ! SD_MaxYawError         - Maximum yaw error to initiate shutdown, [deg]
 0.418880000000      ! SD_YawErrorCornerFreq  - Cutoff Frequency for first order low-pass filter for yaw error for shutdown, [rad/s]
-10.00000000000      ! SD_MaxGenSpd           - Maximum generator speed to initiate shutdown, [rad/s]
+147.4916000000      ! SD_MaxGenSpd           - Maximum generator speed to initiate shutdown, [rad/s]
 0.418880000000      ! SD_GenSpdCornerFreq    - Cutoff Frequency for first order low-pass filter for generator speed for shutdown, [rad/s] 
 9999.000000000      ! SD_Time                - Shutdown time, [s]
 1                   ! SD_Method              - Shutdown method {1: Reduce generator torque and increase blade pitch}, [-]
-22000.00000000      ! SD_MaxTorqueRate       - Maximum torque rate for shutdown, [Nm/s]
-0.174500000000      ! SD_MaxPitchRate        - Maximum pitch rate used for shutdown, [rad/s]
+1100.000000000      ! SD_MaxTorqueRate       - Maximum torque rate for shutdown, [Nm/s]
+0.021810000000      ! SD_MaxPitchRate        - Maximum pitch rate used for shutdown, [rad/s]
 
 !------- Floating -----------------------------------------------------------
 1                   ! Fl_n              - Number of Fl_Kp gains in gain scheduling, optional with default of 1
@@ -210,7 +211,8 @@
 0.707000000000       ! PA_Damping        - Pitch actuator damping ratio [-, unused if PA_Mode = 1]
 
 !------- Pitch Actuator Faults -----------------------------------------------------
-0.00000000 0.00000000 0.00000000                 ! PF_Offsets     - Constant blade pitch offsets for blades 1-3 [rad]
+0.00000000 0.00000000 0.00000000                 ! PF_Offsets     - Pitch angle offsets for each blade (array with length of 3), only used if PF_Mode = 1
+9999.0000 9999.0000 9999.0000                 ! PF_TimeStuck     - Time pitch actuator becomes stuck at last value for each blade (array with length of 3), only used if PF_Mode = 2
 
 !------- Active Wake Control -----------------------------------------------------
 1                   ! AWC_NumModes       - Number of user-defined AWC forcing modes 

@@ -125,6 +125,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PS_WindSpeeds               ! Wind speeds corresponding to minimum blade pitch angles [m/s]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PS_BldPitchMin              ! Minimum blade pitch angles [rad]
     INTEGER(IntKi)                :: SU_Mode                     ! Startup mode {0 - no startup procedure, 1 - enable startup}
+    REAL(DbKi)                    :: SU_StartTime                ! Time to start start up routine
     REAL(DbKi)                    :: SU_FW_MinDuration           ! Free-wheel minimum duration [s]
     REAL(DbKi)                    :: SU_RotorSpeedThresh         ! Rotor speed threshhold to switch from freewheel to loads [rad/s]
     REAL(DbKi)                    :: SU_RotorSpeedCornerFreq     ! Cutoff Frequency for first order low-pass filter for rotor speed for startup, [rad/s]
@@ -197,6 +198,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_clockangle              ! AWC clocking angle [deg]
     INTEGER(IntKi)                :: PF_Mode                     ! Pitch actuator fault mode {0 - not used, 1 - offsets on one or more blades}
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PF_Offsets                  ! Pitch actuator fault offsets for blade 1-3 [rad/s]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PF_TimeStuck                ! Time for pitch actuator fault to be stuck for blade 1-3 [s]
     INTEGER(IntKi)                :: Ext_Mode                    ! External control mode (0 - not used, 1 - call external control library)
     CHARACTER(1024)               :: DLL_FileName                ! File name of external dynamic library
     CHARACTER(1024)               :: DLL_InFile                  ! Name of input file called by dynamic library (DISCON.IN, e.g.)

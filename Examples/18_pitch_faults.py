@@ -1,8 +1,24 @@
 """
 18_pitch_offsets
 ----------------
-Run openfast with ROSCO and pitch offset faults
-Set up and run simulation with pitch offsets, check outputs
+Demosntrate two kinds of pitch faults using ROSCO:
+
+1. Pitch offsets
+^^^^^^^^^^^^^^^^^^^
+When ``PF_Mode`` is set to 1, the pitch controller will apply a constant offset to the pitch angles of the blades.
+The offsets are set in the ``PF_Offsets`` array in the DISCON file.
+
+.. image:: ../images/examples/18_pitch_offsets.png
+
+
+2. Stuck pitch actuator
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When ``PF_Mode`` is set to 2, the pitch actuator will become stuck at its current position at time ``PF_TimeStuck``.
+
+.. image:: ../images/examples/18_pitch_stuck.png
+
+
 """
 
 import os
@@ -21,7 +37,7 @@ def main():
 
     # Input yaml and output directory
     parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW.yaml')
-    run_dir = os.path.join(example_out_dir,'18_PitchFaults')
+    run_dir = os.path.join(example_out_dir,'18_PitchOffset')
     os.makedirs(run_dir,exist_ok=True)
     
     # Set DISCON input dynamically through yaml/dict
@@ -69,6 +85,27 @@ def main():
     np.testing.assert_almost_equal(offset_2.min(),pitch2_offset,decimal=3)
     np.testing.assert_almost_equal(offset_3.max(),pitch3_offset,decimal=3)
     np.testing.assert_almost_equal(offset_3.max(),pitch3_offset,decimal=3)
+
+
+    # Stuck pitch actuator:
+
+    time_stuck = 7.5
+
+    controller_params['PF_Mode'] = 2   # Stuck pitch actuator
+    controller_params['DISCON']['PF_TimeStuck'] = [time_stuck,time_stuck+1,time_stuck+2]   # time at which the actuator becomes stuck
+    run_dir = os.path.join(example_out_dir,'18_PitchStuck')
+    r.save_dir      = run_dir
+    r.run_FAST()
+
+    # Check pitch stays the same
+    filenames = [os.path.join(run_dir,'IEA15MW_0.outb')]
+    fast_out2 = output_processing.output_processing()
+
+    # Load output and check that the pitch angle is constant after time_stuck (last value = value at time_stuck)
+    fastout = fast_out2.load_fast_out(filenames)
+    ind_stuck = fastout[0]['Time'] == time_stuck
+    np.testing.assert_almost_equal(fastout[0]['BldPitch1'][ind_stuck],fastout[0]['BldPitch1'][-1])
+    fastout[0]['BldPitch1'][ind_stuck] == fastout[0]['BldPitch1'][-1]
 
 
 

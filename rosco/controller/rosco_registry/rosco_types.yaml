@@ -483,6 +483,9 @@ ControlParameters:
     SU_Mode:
       <<: *integer
       description: Startup mode {0 - no startup procedure, 1 - enable startup}
+    SU_StartTime:
+      <<: *real
+      description: Time to start start up routine
     SU_FW_MinDuration:
       <<: *real
       description: Free-wheel minimum duration [s]
@@ -741,6 +744,10 @@ ControlParameters:
     PF_Offsets:
       <<: *real
       description: Pitch actuator fault offsets for blade 1-3 [rad/s]
+      allocatable: True
+    PF_TimeStuck:
+      <<: *real
+      description: Time for pitch actuator fault to be stuck for blade 1-3 [s]
       allocatable: True
     
     

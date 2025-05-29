@@ -241,15 +241,14 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{}              ! PS_BldPitchMin    - Minimum blade pitch angles [rad]\n'.format(''.join('{:<10.3f} '.format(rosco_vt['PS_BldPitchMin'][i]) for i in range(len(rosco_vt['PS_BldPitchMin'])))))
     file.write('\n')
     file.write('!------- STARTUP -----------------------------------------------------------\n')
-    file.write('{:<014.5f}        ! SU_FW_MinDuration    - Free-wheel minimum duration, [s]\n'.format(rosco_vt['SU_FW_MinDuration']))
-    file.write('{:<014.5f}        ! SU_RotorSpeedThresh  - Rotor speed threshhold to switch from freewheel to loads, [rad/s]\n'.format(rosco_vt['SU_RotorSpeedThresh']))
-    file.write('{:<014.5f}        ! SU_RotorSpeedCornerFreq  - Cutoff Frequency for first order low-pass filter for rotor speed for startup, [rad/s]\n'.format(rosco_vt['SU_RotorSpeedCornerFreq']))
-    file.write('{:<11d}         ! SU_LoadStages_N  - Number of load staged for startup (should equal number of values in SU_LoadStages, SU_LoadRampDuration and SU_LoadHoldDuration)\n'.format(int(rosco_vt['SU_LoadStages_N'])))
-    file.write('{}        ! SU_LoadStages  - {}\n'.format(write_array(rosco_vt["SU_LoadStages"]), input_descriptions["SU_LoadStages"]))
+    file.write('{:<014.5f}        ! SU_StartTime            - {}\n'.format(rosco_vt['SU_StartTime'], input_descriptions['SU_StartTime']))
+    file.write('{:<014.5f}        ! SU_FW_MinDuration       - {}\n'.format(rosco_vt['SU_FW_MinDuration'], input_descriptions['SU_FW_MinDuration']))
+    file.write('{:<014.5f}        ! SU_RotorSpeedThresh     - {}\n'.format(rosco_vt['SU_RotorSpeedThresh'], input_descriptions['SU_RotorSpeedThresh']))
+    file.write('{:<014.5f}        ! SU_RotorSpeedCornerFreq - {}\n'.format(rosco_vt['SU_RotorSpeedCornerFreq'], input_descriptions['SU_RotorSpeedCornerFreq']))
+    file.write('{:<11d}           ! SU_LoadStages_N           - {}\n'.format(int(rosco_vt['SU_LoadStages_N']), input_descriptions['SU_LoadStages_N']))
+    file.write('{}        ! SU_LoadStages        - {}\n'.format(write_array(rosco_vt["SU_LoadStages"]), input_descriptions["SU_LoadStages"]))
     file.write('{}        ! SU_LoadRampDuration  - {}\n'.format(write_array(rosco_vt["SU_LoadRampDuration"]), input_descriptions["SU_LoadRampDuration"]))
     file.write('{}        ! SU_LoadHoldDuration  - {}\n'.format(write_array(rosco_vt["SU_LoadHoldDuration"]), input_descriptions["SU_LoadHoldDuration"]))
-    # file.write('{}        ! SU_LoadRampDuration  - Array containing ramp duration to reach the corresponding partial loads during startup, [s]\n'.format(''.join('{:<4.3f} '.format(rosco_vt['SU_LoadRampDuration'][i]) for i in range(len(rosco_vt['SU_LoadRampDuration'])))))
-    # file.write('{}        ! SU_LoadHoldDuration  - Array containing duration to hold the partial loads during startup, [s]\n'.format(''.join('{:<4.3f} '.format(rosco_vt['SU_LoadHoldDuration'][i]) for i in range(len(rosco_vt['SU_LoadHoldDuration'])))))
     file.write('\n')
     file.write('!------- SHUTDOWN -----------------------------------------------------------\n')
     file.write('{0:<12d}        ! SD_TimeActivate        - Time to acitvate shutdown modes, [s]\n'.format(int(rosco_vt['SD_TimeActivate'])))
@@ -304,7 +303,8 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<014.5f}       ! PA_Damping        - Pitch actuator damping ratio [-, unused if PA_Mode = 1]\n'.format(rosco_vt['PA_Damping']))
     file.write('\n')
     file.write('!------- Pitch Actuator Faults -----------------------------------------------------\n')
-    file.write('{}                ! PF_Offsets     - Constant blade pitch offsets for blades 1-3 [rad]\n'.format(''.join('{:<10.8f} '.format(rosco_vt['PF_Offsets'][i]) for i in range(3))))
+    file.write('{}                ! PF_Offsets     - {}\n'.format(write_array(rosco_vt['PF_Offsets'],'<6.8f'), input_descriptions['PF_Offsets']))
+    file.write('{}                ! PF_TimeStuck     - {}\n'.format(write_array(rosco_vt['PF_TimeStuck'],'<6.4f'), input_descriptions['PF_TimeStuck']))
     file.write('\n')
     file.write('!------- Active Wake Control -----------------------------------------------------\n')
     file.write('{0:<12d}        ! AWC_NumModes       - Number of user-defined AWC forcing modes \n'.format(int(rosco_vt['AWC_NumModes'])))
@@ -644,16 +644,16 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['SD_EnableYawError']    = 0
     DISCON_dict['SD_EnableGenSpeed']    = 0
     DISCON_dict['SD_EnableTime']        = 0
-    DISCON_dict['SD_MaxPit']            = 0.6981
+    DISCON_dict['SD_MaxPit']            = controller.pitch_op[-1]
     DISCON_dict['SD_PitchCornerFreq']   = controller.f_sd_pitchcornerfreq
     DISCON_dict['SD_MaxYawError']       = 30
     DISCON_dict['SD_YawErrorCornerFreq']= controller.f_sd_yawerrorcornerfreq
-    DISCON_dict['SD_MaxGenSpd']         = 10
+    DISCON_dict['SD_MaxGenSpd']         = np.max(controller.omega_gen_op) * 1.2  # 20% above rated
     DISCON_dict['SD_GenSpdCornerFreq']  = controller.f_sd_genspdcornerfreq
     DISCON_dict['SD_Time']              = 9999
     DISCON_dict['SD_Method']            = 1
-    DISCON_dict['SD_MaxTorqueRate']     = turbine.max_torque_rate
-    DISCON_dict['SD_MaxPitchRate']      = turbine.max_pitch_rate
+    DISCON_dict['SD_MaxTorqueRate']     = 0.05 * turbine.max_torque_rate
+    DISCON_dict['SD_MaxPitchRate']      = 0.125 * turbine.max_pitch_rate
     # ------- Floating -------
     DISCON_dict['Fl_n']             = len(controller.Kp_float)
     DISCON_dict['Fl_Kp']            = controller.Kp_float
