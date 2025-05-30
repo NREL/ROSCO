@@ -33,6 +33,8 @@ def write_types(yfile):
     file.write('USE Constants\n')
     file.write('IMPLICIT NONE\n')
     file.write('\n')
+    file.write(f"Character(*), PARAMETER     :: rosco_version = '{rosco.toolbox.__version__}'             ! ROSCO version\n")
+    file.write('\n')
     # Loop Types
     for toptype in reg.keys():
         file.write('TYPE, PUBLIC :: {}\n'.format(toptype))
