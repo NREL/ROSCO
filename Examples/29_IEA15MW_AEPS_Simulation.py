@@ -41,7 +41,8 @@ def main():
     # Set DISCON input dynamically through yaml/dict
     controller_params = {}
     #controller_params['ASO_Mode'] = 2    
-    controller_params['PS_Mode'] = 0 
+    controller_params['PS_Mode'] = 0
+    controller_params['PA_Mode'] = 2  
     controller_params['vs_minspd'] = 0.    # Reduce minimum rotor speed so that saturation does not interfere with exclusion
     controller_params['VS_ControlMode'] = 3.   
     
@@ -79,9 +80,12 @@ def main():
     # # turbulence
     r.wind_case_fcn = cl.turb_bts  
     r.wind_case_opts    = {
-         'TMax': 500,  # from 10 to 15 m/s
-    #     'wind_filenames': ['/Users/dzalkind/Downloads/heavy_test_1ETM_U6.000000_Seed603.0.bts'],
-         'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/TurbSim9.bts'],
+         'TMax': 2480,  # from 10 to 15 m/s
+         #     'wind_filenames': ['/Users/dzalkind/Downloads/heavy_test_1ETM_U6.000000_Seed603.0.bts'],
+         #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/TurbSim9.bts'],
+         #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U11.000000_Seed1501552846.0_DLC1.1_11ms_720s.bts'],
+         #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U11.000000_Seed488200390.0-DLL1.1_11ms_720sn_Seed2.bts'],
+         'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U11.000000_Seed1501552846.0-DLC1.1_11ms_2500sn_Seed1yeni.bts'],
          }
 
     # Run with and without AEPS algorithm

@@ -68,6 +68,8 @@ CONTAINS
         FP%lpf1_OutputSignalLast(inst) = LPFilter
         inst = inst + 1
 
+        
+
     END FUNCTION LPFilter
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL(DbKi) FUNCTION SecLPFilter(InputSignal, DT, CornerFreq, Damp, FP, iStatus, reset, inst, InitialValue)

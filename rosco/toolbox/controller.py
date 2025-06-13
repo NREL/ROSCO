@@ -403,8 +403,8 @@ class Controller():
         elif self.ASO_Mode == 1:  # AEPS
             self.eps.adaptive_safe_operation(self, turbine)     
         elif self.ASO_Mode == 2: # ASCOS
-            raise Exception("Design ASCOS System")
-            #self.eps.adaptive_safe_operation(self, turbine)
+            #raise Exception("Design ASCOS System")
+            self.eps.adaptive_safe_operation(self, turbine)
         
         # --- Floating feedback term ---
 
