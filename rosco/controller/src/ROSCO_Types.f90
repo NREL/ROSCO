@@ -155,7 +155,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_freq        ! AWC frequency [Hz]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_amp         ! AWC amplitude [deg]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_clockangle  ! AWC clocking angle [deg]
-    INTEGER(IntKi)                :: MeanCounter = 1             ! Counter for taking the mean of tilt and yaw moment in AWC CL mode
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_CntrGains   ! Control gains (P, I/R) for closed-loop AWC
     INTEGER(IntKi)                :: PF_Mode                     ! Pitch actuator fault mode {0 - not used, 1 - offsets on one or more blades}
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PF_Offsets                  ! Pitch actuator fault offsets for blade 1-3 [rad/s]
     INTEGER(IntKi)                :: Ext_Mode                    ! External control mode (0 - not used, 1 - call external control library)
@@ -175,8 +175,8 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: PC_RtTq99                   ! 99% of the rated torque value, using for switching between pitch and torque control, [Nm].
     REAL(DbKi)                    :: VS_MaxOMTq                  ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(DbKi)                    :: VS_MinOMTq                  ! Minimum torque at the beginning of the below-rated region 2, [Nm]
-    REAL(DbKi)                    :: TiltMean = 0                ! Mean tilt moment for AWC
-    REAL(DbKi)                    :: YawMean = 0                 ! Mean yaw moment for AWC
+    REAL(DbKi)                    :: TiltMean = 0                ! Mean blade moment for tilt AWC
+    REAL(DbKi)                    :: YawMean = 0                 ! Mean blade moment for yaw AWC
 END TYPE ControlParameters
 
 TYPE, PUBLIC :: WE
@@ -254,6 +254,13 @@ TYPE, PUBLIC :: piParams
     REAL(DbKi), DIMENSION(99)     :: ELast2                      ! Previous error term for derivative - second integrator
     REAL(DbKi), DIMENSION(99)     :: ELast3                      ! Previous error term for derivative - third integrator
 END TYPE piParams
+
+TYPE, PUBLIC :: resParams
+    REAL(DbKi), DIMENSION(99)     :: res_OutputSignalLast1       ! Previous output signal term
+    REAL(DbKi), DIMENSION(99)     :: res_OutputSignalLast2       ! Previous output signal term - second integrator
+    REAL(DbKi), DIMENSION(99)     :: res_InputSignalLast1        ! Previous error signal term
+    REAL(DbKi), DIMENSION(99)     :: res_InputSignalLast2        ! Previous error signal term - second integrator
+END TYPE resParams
 
 TYPE, PUBLIC :: LocalVariables
     INTEGER(IntKi)                :: iStatus                     ! Initialization status
@@ -387,6 +394,7 @@ TYPE, PUBLIC :: LocalVariables
     TYPE(WE)                      :: WE                          ! Wind speed estimator parameters derived type
     TYPE(FilterParameters)        :: FP                          ! Filter parameters derived type
     TYPE(piParams)                :: piP                         ! PI parameters derived type
+    TYPE(resParams)               :: resP                        ! PR parameters derived type
     TYPE(rlParams)                :: rlP                         ! Rate limiter parameters derived type
 END TYPE LocalVariables
 
@@ -398,6 +406,7 @@ TYPE, PUBLIC :: ObjectInstances
     INTEGER(IntKi)                :: instNotchSlopes             ! Notch filter slopes instance
     INTEGER(IntKi)                :: instNotch                   ! Notch filter instance
     INTEGER(IntKi)                :: instPI                      ! PI controller instance
+    INTEGER(IntKi)                :: instRes                      ! PR controller instance
     INTEGER(IntKi)                :: instRL                      ! Rate limiter instance
 END TYPE ObjectInstances
 

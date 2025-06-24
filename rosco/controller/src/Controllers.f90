@@ -660,6 +660,9 @@ CONTAINS
         !       AWC_Mode = 0, No active wake control
         !       AWC_Mode = 1, SNL active wake control
         !       AWC_Mode = 2, Coleman Transform-based active wake control
+        !       AWC_Mode = 3, Closed-loop Proportional-integral (PI) active wake control
+        !       AWC_Mode = 4, Closed-loop Proportional-resonant (PR) active wake control
+        !       AWC_Mode = 5, Strouhal transformation based closed-loop active wake control
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, DebugVariables, ObjectInstances
 
         TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
@@ -671,25 +674,18 @@ CONTAINS
         REAL(DbKi), PARAMETER      :: phi1 = 0.0                       ! Phase difference from first to first blade
         REAL(DbKi), PARAMETER      :: phi2 = 2.0/3.0*PI                ! Phase difference from first to second blade
         REAL(DbKi), PARAMETER      :: phi3 = 4.0/3.0*PI                ! Phase difference from first to third blade
-        REAL(DbKi), DIMENSION(3)                        :: AWC_angle
-        COMPLEX(DbKi), DIMENSION(3)                    :: AWC_complexangle
-        COMPLEX(DbKi)                                  :: complexI = (0.0, 1.0)
-        INTEGER(IntKi)                                  :: Imode, K       ! Index used for looping through AWC modes, blades
+        REAL(DbKi), DIMENSION(3)      :: AWC_angle
+        COMPLEX(DbKi), DIMENSION(3)   :: AWC_complexangle
+        COMPLEX(DbKi)              :: complexI = (0.0, 1.0)
+        INTEGER(IntKi)             :: Imode, K                         ! Index used for looping through AWC modes, blades
         REAL(DbKi)                 :: clockang                         ! Clock angle for AWC pitching
         REAL(DbKi)                 :: omega                            ! angular frequency for AWC pitching in Hz
         REAL(DbKi)                 :: amp                              ! amplitude for AWC pitching in degrees
-        REAL(DbKi)                 :: St_azimuth                       ! Strouhal transformation azimuthal position
         REAL(DbKi), DIMENSION(2)   :: AWC_TiltYaw = [0.0, 0.0]         ! AWC tilt and yaw pitch signals
-        REAL(DbKi), DIMENSION(2)   :: TiltYaw_tf = [0.0, 0.0]          ! AWC 0P transformed tilt and yaw signals
-        REAL(DbKi), DIMENSION(2)   :: TiltYaw_filt = [0.0, 0.0]        ! Filtered AWC 0P transformed tilt and yaw signals
         REAL(DbKi), DIMENSION(2)   :: Error = [0.0, 0.0]               ! Error in transformed tilt and yaw signals
-        REAL(DbKi), DIMENSION(2)   :: TiltYaw_sig = [0.0, 0.0]         ! Tilt and yaw controller signal (0P)
         REAL(DbKi)                 :: TiltM                            ! Measured tilt moment
         REAL(DbKi)                 :: YawM                             ! Measured yaw moment
-        REAL(DbKi)                 :: TiltSig                          ! PID tilt signal
-        REAL(DbKi)                 :: YawSig                           ! PID yaw signal
-        REAL(DbKi)                 :: HelixM                        ! Measured tilt error, notch filtered
-        REAL(DbKi)                 :: StrAzimuth                       ! Strouhal "azimuth"
+        REAL(DbKi)                 :: StrAzimuth                       ! Strouhal transformed "azimuth" angle
 
 
         ! Compute the AWC pitch settings, complex number approach
@@ -733,59 +729,57 @@ CONTAINS
                 LocalVar%PitCom(K) = LocalVar%PitCom(K) + AWC_angle(K)
             END DO
 
-
             ! THIS IS DEBUG STUFF--Output tilt and yaw angles and moments
-            DebugVar%axisTilt_2P = AWC_TiltYaw(1)
-            DebugVar%axisYaw_2P = AWC_TiltYaw(2)
-            CALL ColemanTransform(LocalVar%BlPitch, LocalVar%Azimuth, CntrPar%AWC_harmonic(1), AWC_TiltYaw(1), AWC_TiltYaw(2))
+            ! DebugVar%axisTilt_2P = AWC_TiltYaw(1)
+            ! DebugVar%axisYaw_2P = AWC_TiltYaw(2)
+            ! CALL ColemanTransform(LocalVar%BlPitch, LocalVar%Azimuth, CntrPar%AWC_harmonic(1), AWC_TiltYaw(1), AWC_TiltYaw(2))
 
-            DebugVar%axisTilt_1P = AWC_TiltYaw(1)
-            DebugVar%axisYaw_1P = AWC_TiltYaw(2)
+            ! DebugVar%axisTilt_1P = AWC_TiltYaw(1)
+            ! DebugVar%axisYaw_1P = AWC_TiltYaw(2)
         
-        ! Closed-loop PR controller
-        ELSEIF (CntrPar%AWC_Mode == 3) THEN
+        ! Closed-loop PI / PR controller
+        ELSEIF ((CntrPar%AWC_Mode == 3) .OR. (CntrPar%AWC_Mode == 4)) THEN
 
             !! For now, only works with AWC_NumModes=2
         
             CALL ColemanTransform(LocalVar%rootMOOPF, LocalVar%Azimuth, CntrPar%AWC_harmonic(1), TiltM, YawM)
 
-            ! Calculate mean moments, subtract later to get zero-mean tilt and yaw
-            CntrPar%TiltMean = CntrPar%TiltMean + TiltM
-            CntrPar%YawMean = CntrPar%YawMean + YawM
-
-            Error(1) = CntrPar%AWC_amp(1)*sin(LocalVar%Time*2*PI*CntrPar%AWC_freq(1) + CntrPar%AWC_clockangle(1)*D2R) - (TiltM - CntrPar%TiltMean/(LocalVar%n_DT+1)) 
-            Error(2) = CntrPar%AWC_amp(2)*sin(LocalVar%Time*2*PI*CntrPar%AWC_freq(2) + CntrPar%AWC_clockangle(2)*D2R) - (YawM - CntrPar%YawMean/(LocalVar%n_DT+1))
-
-            ! !!! ADD KP and KI here later, and make startup more fancy
-            IF (LocalVar%Time .GT. 1/CntrPar%AWC_freq(1)) THEN
-                TiltSig = ResController(Error(1), CntrPar%RP_Gains(1), CntrPar%RP_Gains(2), CntrPar%AWC_freq(1), -5.0, 5.0, LocalVar%DT, 0.0_DbKi, LocalVar%FP, LocalVar%restart, objInst%instNotch) 
-                YawSig = ResController(Error(2), CntrPar%RP_Gains(1), CntrPar%RP_Gains(2), CntrPar%AWC_freq(1), -5.0, 5.0, LocalVar%DT, 0.0_DbKi, LocalVar%FP, LocalVar%restart, objInst%instNotch) 
-            ELSE 
-                TiltSig = 0 
-                YawSig  = 0 
-            ENDIF
-
-            ! Pass tilt and yaw axis through the double inverse Coleman transform to get the commanded pitch angles
             IF (CntrPar%AWC_harmonic(1) == 0) THEN
-                DO K = 1,LocalVar%NumBl ! Loop through all blades, calculate AWC_angle
-                    AWC_angle(K) = -TiltSig
-                END DO
-            ELSE
-                CALL ColemanTransformInverse(TiltSig, YawSig, &
-                                         LocalVar%Azimuth, CntrPar%AWC_harmonic(1), CntrPar%AWC_phaseoffset*D2R, AWC_angle)
+                ! Calculate mean moments, subtract later to get zero-mean tilt and yaw
+                CntrPar%TiltMean = CntrPar%TiltMean + TiltM
             ENDIF
+
+            DO Imode = 1,CntrPar%AWC_NumModes
+                Error(Imode) = CntrPar%AWC_amp(Imode)*sin(LocalVar%Time*2*PI*CntrPar%AWC_freq(Imode) + CntrPar%AWC_clockangle(Imode)*D2R) + (TiltM - CntrPar%TiltMean/(LocalVar%n_DT+1))
+
+                IF (LocalVar%Time .GT. 1/CntrPar%AWC_freq(Imode)) THEN
+                ! Note that (for now), the controller's saturation limits are equal to MinPit and MaxPit
+                    IF (CntrPar%AWC_Mode == 3) THEN
+                        AWC_TiltYaw(Imode) = PIController(Error(Imode), CntrPar%AWC_CntrGains(1), CntrPar%AWC_CntrGains(2), LocalVar%PC_MinPit, LocalVar%PC_MaxPit, &
+                                                        LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
+                    ELSE
+                        AWC_TiltYaw(Imode) = ResController(Error(Imode), CntrPar%AWC_CntrGains(1), CntrPar%AWC_CntrGains(2), CntrPar%AWC_freq(Imode), LocalVar%PC_MinPit, LocalVar%PC_MaxPit, &
+                                                        LocalVar%DT, LocalVar%resP, LocalVar%restart, objInst%instRes)
+                    ENDIF
+                ENDIF
+
+            ENDDO
+
+            ! Pass tilt and yaw axis through the inverse Coleman transform to get the commanded pitch angles
+            CALL ColemanTransformInverse(AWC_TiltYaw(1), AWC_TiltYaw(2), &
+                                        LocalVar%Azimuth, CntrPar%AWC_harmonic(1), CntrPar%AWC_phaseoffset*D2R, AWC_angle)
 
             DO K = 1,LocalVar%NumBl ! Loop through all blades, apply AWC_angle
                 LocalVar%PitCom(K) = LocalVar%PitCom(K) + AWC_angle(K)
             END DO
 
-            DebugVar%axisTilt_1P = TiltSig
-            DebugVar%axisYaw_1P = AWC_angle(1)
-            DebugVar%axisTilt_2P = CntrPar%AWC_amp(1)*sin(LocalVar%Time*2*PI*CntrPar%AWC_freq(1) + CntrPar%AWC_clockangle(1)*D2R)
-            DebugVar%axisYaw_2P = TiltM - CntrPar%TiltMean/(LocalVar%n_DT+1)
+            ! DebugVar%axisTilt_1P = YawM
+            ! DebugVar%axisYaw_1P = AWC_angle(1)
+            ! DebugVar%axisTilt_2P = CntrPar%AWC_amp(1)*sin(LocalVar%Time*2*PI*CntrPar%AWC_freq(1) + CntrPar%AWC_clockangle(1)*D2R)
+            ! DebugVar%axisYaw_2P = TiltM
 
-        ! Closed-loop DQ method
-        ELSEIF (CntrPar%AWC_Mode == 4) THEN
+        ! Closed-loop Strouhal transform method
+        ELSEIF (CntrPar%AWC_Mode == 5) THEN
 
             StrAzimuth = wrap_360(360*LocalVar%Time*CntrPar%AWC_freq(1))*D2R
 
@@ -795,32 +789,30 @@ CONTAINS
             CntrPar%TiltMean = CntrPar%TiltMean + TiltM
             CntrPar%YawMean = CntrPar%YawMean + YawM
 
-            ! Calculate helix moment with zero-mean moments
-            HelixM = sin(StrAzimuth + CntrPar%AWC_clockangle(1)*D2R)*(TiltM - CntrPar%TiltMean/(LocalVar%n_DT+1)) &
+            ! Calculate error with zero-mean moments
+            Error(1) = CntrPar%AWC_amp(1) + sin(StrAzimuth + CntrPar%AWC_clockangle(1)*D2R)*(TiltM - CntrPar%TiltMean/(LocalVar%n_DT+1)) &
                         + sin(StrAzimuth + CntrPar%AWC_clockangle(2)*D2R)*(YawM - CntrPar%YawMean/(LocalVar%n_DT+1)) 
 
-            Error(1) = CntrPar%AWC_amp(1) - HelixM 
-
-            ! !!! ADD KP and KI here later, and make startup more fancy
+            ! PI Control
             IF (LocalVar%Time .GT. 1/CntrPar%AWC_freq(1)) THEN
-                TiltSig = PIController(Error(1), CntrPar%RP_Gains(1), CntrPar%RP_Gains(2), -5.0, 5.0, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
-            ELSE 
-                TiltSig = 0 ! 0.5*D2R
+                AWC_TiltYaw(1) = PIController(Error(1), CntrPar%AWC_CntrGains(1), CntrPar%AWC_CntrGains(2), &
+                                    LocalVar%PC_MinPit, LocalVar%PC_MaxPit, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
             ENDIF
 
-            ! Pass tilt and yaw axis through the double inverse Coleman transform to get the commanded pitch angles
-            ! TODO: make so you can set phase offset
-            CALL ColemanTransformInverse(sin(StrAzimuth + CntrPar%AWC_clockangle(1)*D2R)*TiltSig, sin(StrAzimuth + CntrPar%AWC_clockangle(2)*D2R)*TiltSig, &
-                                        LocalVar%Azimuth, CntrPar%AWC_harmonic(1), CntrPar%AWC_phaseoffset*D2R, AWC_angle)
+            ! Pass tilt and yaw axis through the inverse Strouhal + Coleman transform to get the commanded pitch angles
+            CALL ColemanTransformInverse(sin(StrAzimuth + CntrPar%AWC_clockangle(1)*D2R)*AWC_TiltYaw(1), & ! Tilt signal (inverse Str transform)
+                                            sin(StrAzimuth + CntrPar%AWC_clockangle(2)*D2R)*AWC_TiltYaw(1), & ! Yaw signal (inverse Str transform)
+                                            LocalVar%Azimuth, CntrPar%AWC_harmonic(1), CntrPar%AWC_phaseoffset*D2R, AWC_angle)
 
             DO K = 1,LocalVar%NumBl ! Loop through all blades, apply AWC_angle
                 LocalVar%PitCom(K) = LocalVar%PitCom(K) + AWC_angle(K)
             END DO
 
-            DebugVar%axisTilt_1P = HelixM
-            DebugVar%axisYaw_1P = CntrPar%AWC_amp(1)
-            DebugVar%axisTilt_2P = TiltM
-            DebugVar%axisYaw_2P = YawM
+            ! DebugVar%axisTilt_1P = HelixM
+            ! DebugVar%axisYaw_1P = CntrPar%AWC_amp(1)
+            ! DebugVar%axisTilt_2P = TiltM
+            ! DebugVar%axisYaw_2P = YawM
+
 
         ENDIF
 

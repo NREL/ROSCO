@@ -165,6 +165,7 @@ CONTAINS
         objInst%instNotchSlopes = 1
         objInst%instNotch       = 1
         objInst%instPI          = 1
+        objInst%instRes         = 1
         objInst%instRL          = 1
         
         ! Set unused outputs to zero (See Appendix A of Bladed User's Guide):
@@ -533,7 +534,8 @@ CONTAINS
         CALL ParseAry(  FileLines, 'AWC_freq',        CntrPar%AWC_freq,       CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
         CALL ParseAry(  FileLines, 'AWC_amp',         CntrPar%AWC_amp,        CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
         CALL ParseAry(  FileLines, 'AWC_clockangle',  CntrPar%AWC_clockangle, CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
-        CALL ParseInput(FileLines, 'AWC_phaseoffset', CntrPar%AWC_phaseoffset,                        accINFILE(1), ErrVar,                        UnEc=UnEc)
+        CALL ParseInput(FileLines, 'AWC_phaseoffset', CntrPar%AWC_phaseoffset,                        accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
+        CALL ParseAry(  FileLines, 'AWC_CntrGains',   CntrPar%AWC_CntrGains,  2,                      accINFILE(1), ErrVar, CntrPar%AWC_Mode < 3, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ External control interface ------------

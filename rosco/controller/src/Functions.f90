@@ -105,13 +105,13 @@ CONTAINS
         REAL(DbKi),    INTENT(IN)         :: minValue
         REAL(DbKi),    INTENT(IN)         :: maxValue
         REAL(DbKi),    INTENT(IN)         :: DT
-        INTEGER(IntKi), INTENT(INOUT)      :: inst
+        INTEGER(IntKi), INTENT(INOUT)     :: inst
         REAL(DbKi),    INTENT(IN)         :: I0
-        TYPE(piParams), INTENT(INOUT)  :: piP
-        LOGICAL,    INTENT(IN)         :: reset     
+        TYPE(piParams), INTENT(INOUT)     :: piP
+        LOGICAL,    INTENT(IN)            :: reset
         ! Allocate local variables
-        INTEGER(IntKi)                      :: i                                            ! Counter for making arrays
-        REAL(DbKi)                         :: PTerm                                        ! Proportional term
+        INTEGER(IntKi)                    :: i                                            ! Counter for making arrays
+        REAL(DbKi)                        :: PTerm                                        ! Proportional term
 
         ! Initialize persistent variables/arrays, and set inital condition for integrator term
         IF (reset) THEN
@@ -132,8 +132,8 @@ CONTAINS
     END FUNCTION PIController
 
     !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(DbKi) FUNCTION ResController(error, kp, ki, freq, minValue, maxValue, DT, I0, FP, reset, inst)
-        USE ROSCO_Types, ONLY : FilterParameters
+    REAL(DbKi) FUNCTION ResController(error, kp, ki, freq, minValue, maxValue, DT, resP, reset, inst)
+        USE ROSCO_Types, ONLY : resParams
 
     ! PI controller, with output saturation
 
@@ -147,55 +147,37 @@ CONTAINS
         REAL(DbKi),    INTENT(IN)         :: maxValue
         REAL(DbKi),    INTENT(IN)         :: DT
         INTEGER(IntKi), INTENT(INOUT)     :: inst
-        REAL(DbKi),    INTENT(IN)         :: I0
-        TYPE(FilterParameters), INTENT(INOUT)     :: FP
-        LOGICAL,    INTENT(IN)            :: reset     
+        TYPE(resParams), INTENT(INOUT)    :: resP
+        LOGICAL,    INTENT(IN)            :: reset
         ! Allocate local variables
-        INTEGER(IntKi)                    :: i                                            ! Counter for making arrays
-        REAL(DbKi)                        :: PTerm                                        ! Proportional term
         REAL(DbKi)                        :: omega                                        ! Frequency
         REAL(DbKi)                        :: a0, a1, a2, b0, b1, b2
 
         omega = 2*PI*freq
-        !! Impulse RC
-        ! b0 = 1
-        ! b1 = -2*cos(omega*DT)*ki
-        ! b2 = 1
-        ! a0 = b0*kp + DT*ki
-        ! a1 = b1*kp - DT*cos(omega*DT)*ki
-        ! a2 = b2*kp
 
         !! Tustin RC
         b0 = 4+omega**2*DT**2
-        b1 = -8+2*omega**2*dt**2
+        b1 = -8+2*omega**2*DT**2
         b2 = 4+omega**2*DT**2
         a0 = b0*kp + 2*DT*ki
         a1 = b1*kp 
         a2 = b2*kp - 2*DT*ki
         ! Initialize persistent variables/arrays, and set initial condition for integrator term
         IF (reset) THEN
-            FP%nf_OutputSignalLast1(inst)  = 0
-            FP%nf_OutputSignalLast2(inst)  = 0
-            FP%nf_OutputSignalLast3(inst)  = 0
-            FP%nf_InputSignalLast1(inst)   = 0
-            FP%nf_InputSignalLast2(inst)   = 0
-            FP%nf_InputSignalLast3(inst)   = 0
+            resP%res_OutputSignalLast1(inst)  = 0
+            resP%res_OutputSignalLast2(inst)  = 0
+            resP%res_InputSignalLast1(inst)   = 0
+            resP%res_InputSignalLast2(inst)   = 0
         ELSE
-            ! piP%ITerm(inst) = 1/(8+2*omega**2*DT**2)*( (24-2*omega**2*DT**2)*piP%ITermLast(inst) &
-            !                         - (24-2*omega**2*DT**2)*piP%ITermLast2(inst) + (8+2*omega**2*DT**2)*piP%ITermLast3(inst) &
-            !                         + ki*DT**3 * (error + 3*piP%ELast(inst) + 3*piP%ELast2(inst) + piP%ELast3(inst)) )
-            !ResController = 2*FP%nf_OutputSignalLast1(inst) - (1+omega**2/4)*FP%nf_OutputSignalLast2(inst) &
-            !                    + DT**2/4 * (error + 2*FP%nf_InputSignalLast1(inst) + FP%nf_InputSignalLast2(inst))
-            ResController = 1/b0*( -b1*FP%nf_OutputSignalLast1(inst) - b2*FP%nf_OutputSignalLast2(inst) & 
-                                    + a0*error + a1*FP%nf_InputSignalLast1(inst) + a2*FP%nf_InputSignalLast2(inst))
+            ResController = 1/b0*( -b1*resP%res_OutputSignalLast1(inst) - b2*resP%res_OutputSignalLast2(inst) &
+                                    + a0*error + a1*resP%res_InputSignalLast1(inst) + a2*resP%res_InputSignalLast2(inst))
             ResController = saturate(ResController, minValue, maxValue)
         
-            !FP%nf_OutputSignalLast3(inst)  = FP%nf_InputSignalLast2(inst)
-            FP%nf_InputSignalLast2(inst)   = FP%nf_InputSignalLast1(inst)
-            FP%nf_InputSignalLast1(inst)   = error                  ! Save input signal for next time step
-            !FP%nf_OutputSignalLast3(inst)  = FP%nf_OutputSignalLast2(inst)
-            FP%nf_OutputSignalLast2(inst)  = FP%nf_OutputSignalLast1(inst)      ! Save input signal for next time step
-            FP%nf_OutputSignalLast1(inst)  = ResController
+            ! Save signals for next time step
+            resP%res_InputSignalLast2(inst)   = resP%res_InputSignalLast1(inst)
+            resP%res_InputSignalLast1(inst)   = error
+            resP%res_OutputSignalLast2(inst)  = resP%res_OutputSignalLast1(inst)
+            resP%res_OutputSignalLast1(inst)  = ResController
         END IF
         inst = inst + 1
         

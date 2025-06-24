@@ -301,6 +301,7 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) objInst%instNotchSlopes
         WRITE( Un, IOSTAT=ErrStat) objInst%instNotch
         WRITE( Un, IOSTAT=ErrStat) objInst%instPI
+        WRITE( Un, IOSTAT=ErrStat) objInst%instRes
         WRITE( Un, IOSTAT=ErrStat) objInst%instRL
         Close ( Un )
         IF ( ErrStat /= 0 ) THEN
@@ -604,6 +605,7 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) objInst%instNotchSlopes
         READ( Un, IOSTAT=ErrStat) objInst%instNotch
         READ( Un, IOSTAT=ErrStat) objInst%instPI
+        READ( Un, IOSTAT=ErrStat) objInst%instRes
         READ( Un, IOSTAT=ErrStat) objInst%instRL
         Close ( Un )
         IF ( ErrStat /= 0 ) THEN
