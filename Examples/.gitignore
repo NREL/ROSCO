@@ -1,3 +1,4 @@
-Cp_Ct_Cq.*.txt
 *.p
 examples_out/
+11_robust_tuning_out
+*.10

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rosco"
-version = "2.9.5"
+version = "2.9.7"
 description = "A reference open source controller toolset for wind turbine applications."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -53,6 +53,7 @@ dependencies = [
   "treon",
   "wisdem",
   "ruamel.yaml",
+  "openfast_io",
 ]
 
 # List additional groups of dependencies here (e.g. development
