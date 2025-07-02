@@ -729,7 +729,7 @@ CONTAINS
                 LocalVar%PitCom(K) = LocalVar%PitCom(K) + AWC_angle(K)
             END DO
 
-            ! THIS IS DEBUG STUFF--Output tilt and yaw angles and moments
+            ! DEBUG VARIABLES
             DebugVar%axisTilt_2P = AWC_TiltYaw(1)
             DebugVar%axisYaw_2P = AWC_TiltYaw(2)
             CALL ColemanTransform(LocalVar%BlPitch, LocalVar%Azimuth, CntrPar%AWC_harmonic(1), AWC_TiltYaw(1), AWC_TiltYaw(2))
@@ -753,13 +753,15 @@ CONTAINS
             ! !!! ADD KP and KI here later, and make startup more fancy
             IF (LocalVar%Time .GT. StartTime) THEN
                 DO Imode = 1,CntrPar%AWC_NumModes
-                    Error(Imode) = CntrPar%AWC_amp(1)*sin(LocalVar%Time*2*PI*CntrPar%AWC_freq(1) + CntrPar%AWC_clockangle(1)*D2R) + FixedFrameM(Imode)
+                    Error(Imode) = CntrPar%AWC_amp(Imode)*sin(LocalVar%Time*2*PI*CntrPar%AWC_freq(Imode) + CntrPar%AWC_clockangle(Imode)*D2R) &
+                                        + (FixedFrameM(Imode) - CntrPar%TiltMean/(LocalVar%n_DT+1))
 
                     IF (CntrPar%AWC_Mode == 4) THEN
-                        AWC_TiltYaw(Imode) = ResController(Error(Imode), CntrPar%RP_Gains(1), CntrPar%RP_Gains(2), CntrPar%AWC_freq(Imode), -5.0, 5.0, &
-                                                            LocalVar%DT, LocalVar%resP, LocalVar%restart, objInst%instRes)
+                        AWC_TiltYaw(Imode) = ResController(Error(Imode), CntrPar%RP_Gains(1), CntrPar%RP_Gains(2), CntrPar%AWC_freq(Imode), & 
+                                                            CntrPar%PC_MinPit, CntrPar%PC_MaxPit, LocalVar%DT, LocalVar%resP, LocalVar%restart, objInst%instRes)
                     ELSE
-                        AWC_TiltYaw(Imode) = PIController(Error(Imode), CntrPar%RP_Gains(1), CntrPar%RP_Gains(2), -5.0, 5.0, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
+                        AWC_TiltYaw(Imode) = PIController(Error(Imode), CntrPar%RP_Gains(1), CntrPar%RP_Gains(2), CntrPar%PC_MinPit, CntrPar%PC_MaxPit, &
+                                                            LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
                     ENDIF
                 ENDDO
             ENDIF
@@ -770,14 +772,15 @@ CONTAINS
             
             DO K = 1,LocalVar%NumBl ! Loop through all blades, apply AWC_angle
                 IF (CntrPar%AWC_harmonic(1) == 0) THEN
-                    LocalVar%PitCom(K) = LocalVar%PitCom(K) - AWC_TiltYaw(1)
+                    LocalVar%PitCom(K) = LocalVar%PitCom(K) + AWC_TiltYaw(1)
                 ELSE
                     LocalVar%PitCom(K) = LocalVar%PitCom(K) + AWC_angle(K)
                 ENDIF
             END DO
 
+            ! DEBUG VARIABLES
             DebugVar%axisTilt_1P = AWC_TiltYaw(1)
-            DebugVar%axisYaw_1P = FixedFrameM(1)
+            DebugVar%axisYaw_1P = -FixedFrameM(1) + CntrPar%TiltMean/(LocalVar%n_DT+1)
             DebugVar%axisTilt_2P = CntrPar%AWC_amp(1)*sin(LocalVar%Time*2*PI*CntrPar%AWC_freq(1) + CntrPar%AWC_clockangle(1)*D2R)
             DebugVar%axisYaw_2P = Error(1)
 
@@ -799,7 +802,7 @@ CONTAINS
             ! PI Control
             IF (LocalVar%Time .GT. 1/CntrPar%AWC_freq(1)) THEN
                 AWC_TiltYaw(1) = PIController(Error(1), CntrPar%AWC_CntrGains(1), CntrPar%AWC_CntrGains(2), &
-                                    LocalVar%PC_MinPit, LocalVar%PC_MaxPit, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
+                                    CntrPar%PC_MinPit, CntrPar%PC_MaxPit, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
             ENDIF
 
             ! Pass tilt and yaw axis through the inverse Strouhal + Coleman transform to get the commanded pitch angles
@@ -811,11 +814,11 @@ CONTAINS
                 LocalVar%PitCom(K) = LocalVar%PitCom(K) + AWC_angle(K)
             END DO
 
-            DebugVar%axisTilt_1P = sin(StrAzimuth + CntrPar%AWC_clockangle(1)*D2R)*(FixedFrameM(1) - CntrPar%TiltMean/(LocalVar%n_DT+1)) &
-                        + sin(StrAzimuth + CntrPar%AWC_clockangle(2)*D2R)*(FixedFrameM(2) - CntrPar%YawMean/(LocalVar%n_DT+1))
-            DebugVar%axisYaw_1P = CntrPar%AWC_amp(1)
-            DebugVar%axisTilt_2P = FixedFrameM(1)
-            DebugVar%axisYaw_2P = FixedFrameM(2)
+            ! DEBUG VARIABLES
+            DebugVar%axisTilt_1P = sin(StrAzimuth + CntrPar%AWC_clockangle(1)*D2R)*AWC_TiltYaw(1)
+            DebugVar%axisYaw_1P = -FixedFrameM(1) + CntrPar%TiltMean/(LocalVar%n_DT+1)
+            DebugVar%axisTilt_2P = CntrPar%AWC_amp(1)*sin(StrAzimuth + CntrPar%AWC_clockangle(1)*D2R)
+            DebugVar%axisYaw_2P = Error(1)
 
 
         ENDIF

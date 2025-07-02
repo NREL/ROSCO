@@ -167,7 +167,8 @@ Active wake control (AWC) with blade pitching is implemented in this example wit
 # AWC_CntrGains (vector size 2) defines the controller gains, Kp and Ki, respectively. As a starting point, these can be chosen
 # the same or similar to the controller gains of 1P IPC for load reduction (IPC_KP and IPC_KI).
 
-# This mode has a startup period of 1/AWC_freq(1), to allow for the
+# When AWC_harmonic = 0, this mode has a startup period of 1/AWC_freq(1), in which no AWC is applied.
+# This is to allow for the mean tilt and yaw moment to obtain an undisturbed measurement over a full period.
 
 # -----------------------------------------------
 # AWC_Mode = 4: Closed-loop PR control:
@@ -198,6 +199,9 @@ Active wake control (AWC) with blade pitching is implemented in this example wit
 
 # In the Strouhal frame, the helix moment is regulated using a single PI controller, and its gains are defined through AWC_CntrGains as
 # described for mode 3.
+
+# This mode has a startup period of 1/AWC_freq(1), in which no AWC is applied.
+# This is to allow for the mean tilt and yaw moment to obtain an undisturbed measurement over a full period.
         
 # -----------------------------------------------
 
@@ -219,11 +223,11 @@ from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
 from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 #from rosco.toolbox.ofTools.fast_io import output_processing
 from rosco.toolbox.utilities import read_DISCON #, DISCON_dict
-#import numpy as np
+# import numpy as np
 
 def main():
     # Choose your implementation method
-    AWC_Mode 			= 3 		# 1 for SNL implementation, 2 for Coleman Transformation implementation
+    AWC_Mode 			= 1 		# 1 for SNL implementation, 2 for Coleman Transformation implementation
                                     # 3 for closed-loop PI, 4 for closed-loop PR
                                     # 5 for closed-loop Strouhal transformed (only works for helix)
 
@@ -267,7 +271,7 @@ def main():
         control_base_case[('DISCON_in','AWC_NumModes')] = {'vals': [1,2,2,2,2,2], 'group': 2}
         control_base_case[('DISCON_in','AWC_harmonic')] = {'vals': [[0],[0],[1,1],[1,1],[1,1],[1,1]], 'group': 2}
         control_base_case[('DISCON_in','AWC_freq')] = {'vals': [[0],[0.05],[0.05,0.05],[0.05,0.05],[0.05,0.05],[0.05,0.05]], 'group': 2}
-        control_base_case[('DISCON_in','AWC_amp')] = {'vals': [[0],[10e6],[5e6,5e6],[5e6,5e6],[5e6,0.0],[0.0,5e6]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_amp')] = {'vals': [[0],[2e6],[1e6,1e6],[1e6,1e6],[1e6,0.0],[0.0,1e6]], 'group': 2}
         control_base_case[('DISCON_in','AWC_clockangle')] = {'vals': [[0],[0],[0,-90],[0,90],[0,0],[180,180]], 'group': 2}
         control_base_case[('DISCON_in','AWC_phaseoffset')] = {'vals': [20,20,20,20,20,20], 'group': 2}
         control_base_case[('DISCON_in','AWC_CntrGains')] = {'vals': [[1e-10,2e-9],[1e-10,2e-9],[1e-10,2e-9],[1e-10,2e-9],[1e-10,2e-9],[1e-10,2e-9]], 'group': 2}
@@ -276,7 +280,7 @@ def main():
         control_base_case[('DISCON_in','AWC_NumModes')] = {'vals': [1,2,2], 'group': 2}
         control_base_case[('DISCON_in','AWC_harmonic')] = {'vals': [[0],[1,1],[1,1]], 'group': 2}
         control_base_case[('DISCON_in','AWC_freq')] = {'vals': [[0],[0.05,0.05],[0.05,0.05]], 'group': 2}
-        control_base_case[('DISCON_in','AWC_amp')] = {'vals': [[0],[5e6,5e6],[5e6,5e6]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_amp')] = {'vals': [[0],[1e6,1e6],[1e6,1e6]], 'group': 2}
         control_base_case[('DISCON_in','AWC_clockangle')] = {'vals': [[0],[0,-90],[0,90]], 'group': 2}
         control_base_case[('DISCON_in','AWC_phaseoffset')] = {'vals': [20,20,20], 'group': 2}
         control_base_case[('DISCON_in','AWC_CntrGains')] = {'vals': [[1e-10,2e-9],[1e-10,2e-9],[1e-10,2e-9]], 'group': 2}
