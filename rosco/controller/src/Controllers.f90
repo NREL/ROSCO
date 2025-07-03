@@ -757,10 +757,10 @@ CONTAINS
                                         + (FixedFrameM(Imode) - CntrPar%TiltMean/(LocalVar%n_DT+1))
 
                     IF (CntrPar%AWC_Mode == 4) THEN
-                        AWC_TiltYaw(Imode) = ResController(Error(Imode), CntrPar%RP_Gains(1), CntrPar%RP_Gains(2), CntrPar%AWC_freq(Imode), & 
+                        AWC_TiltYaw(Imode) = ResController(Error(Imode), CntrPar%AWC_CntrGains(1), CntrPar%AWC_CntrGains(2), CntrPar%AWC_freq(Imode), & 
                                                             CntrPar%PC_MinPit, CntrPar%PC_MaxPit, LocalVar%DT, LocalVar%resP, LocalVar%restart, objInst%instRes)
                     ELSE
-                        AWC_TiltYaw(Imode) = PIController(Error(Imode), CntrPar%RP_Gains(1), CntrPar%RP_Gains(2), CntrPar%PC_MinPit, CntrPar%PC_MaxPit, &
+                        AWC_TiltYaw(Imode) = PIController(Error(Imode), CntrPar%AWC_CntrGains(1), CntrPar%AWC_CntrGains(2), CntrPar%PC_MinPit, CntrPar%PC_MaxPit, &
                                                             LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
                     ENDIF
                 ENDDO
