@@ -225,6 +225,9 @@ from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 from rosco.toolbox.utilities import read_DISCON #, DISCON_dict
 # import numpy as np
 
+
+FULL_TEST = False
+
 def main():
     # Choose your implementation method
     AWC_Mode 			= 1 		# 1 for SNL implementation, 2 for Coleman Transformation implementation
@@ -294,6 +297,10 @@ def main():
         'U': [8],  # choose below-rated wind speed
         'TMax': 300,
         }
+    
+    if not FULL_TEST:
+        r.wind_case_opts['TMax'] = 1  # for quick testing, use a short simulation time
+
     r.case_inputs = control_base_case
     r.case_inputs[("ServoDyn","Ptch_Cntrl")] = {'vals':[1], 'group':0}  # Individual pitch control must be enabled in ServoDyn
     r.save_dir      = run_dir
