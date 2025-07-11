@@ -47,33 +47,49 @@ def run_zmq(logfile=None):
     network_address = "tcp://*:5555"
     server = wfc_zmq_server(network_address, timeout=60.0, verbose=False, logfile=logfile)
 
-    # Provide the wind farm control algorithm as the wfc_controller method of the server
-    server.wfc_controller = wfc_controller
+    # Provide the wind farm control algorithm as the wfc_controller subclass of the server
+    server.wfc_controller = wfc_controller()
 
     # Run the server to receive measurements and send setpoints
     server.runserver()
     
-def wfc_controller(id,current_time,measurements):
+class wfc_controller():
+    """
+    Users needs to define this class to implement wind farm controller.
+    This class should contain a method named update_setpoints that 
+    should take as argument the turbine id, the current time and current
+    measurements and return the setpoints for the particular turbine for 
+    the current time. It should ouput the setpoints as a dictionary whose
+    keys should be as defined in wfc_zmq_server.wfc_interface. 
+    The wfc_controller subclass of the wfc_zmq_server should be overwriten
+    with this class, otherwise, an exception is raised and the simulation stops.
+    """
+   
+    def __init__(self):
+        return None
     
-    if current_time <= 10.0:
-        yaw_setpoint = 0.0
-    else:
-        yaw_setpoint = DESIRED_YAW_OFFSET
+    def update_setpoints(self, id,current_time,measurements):
+        if current_time <= 10.0:
+            yaw_setpoint = 0.0
+        else:
+            yaw_setpoint = DESIRED_YAW_OFFSET
 
-    # Pitch offset
-    if current_time >= 10.0:
-        col_pitch_command = np.deg2rad(2) * np.sin(0.1 * current_time) + np.deg2rad(2) # Implement dynamic induction control
-    else:
-        col_pitch_command = 0.0
+        # Pitch offset
+        if current_time >= 10.0:
+            col_pitch_command = np.deg2rad(2) * np.sin(0.1 * current_time) + np.deg2rad(2) # Implement dynamic induction control
+        else:
+            col_pitch_command = 0.0
 
-    # Send new setpoints back to ROSCO
-    setpoints = {}
-    setpoints['ZMQ_TorqueOffset'] = 0.0
-    setpoints['ZMQ_YawOffset'] = yaw_setpoint
-    setpoints['ZMQ_PitOffset(1)'] = col_pitch_command
-    setpoints['ZMQ_PitOffset(2)'] = col_pitch_command
-    setpoints['ZMQ_PitOffset(3)'] = col_pitch_command
-    return setpoints
+        # Send new setpoints back to ROSCO
+        setpoints = {}
+        setpoints['ZMQ_TorqueOffset'] = 0.0
+        setpoints['ZMQ_YawOffset'] = yaw_setpoint
+        setpoints['ZMQ_PitOffset(1)'] = col_pitch_command
+        setpoints['ZMQ_PitOffset(2)'] = col_pitch_command
+        setpoints['ZMQ_PitOffset(3)'] = col_pitch_command
+
+        return setpoints
+
 
 def sim_rosco():
     # Load yaml file

@@ -46,7 +46,7 @@ def main():
 
     # Set up open loop input
     olc = ROSCO_controller.OpenLoopControl(t_max=20)
-    olc.interp_timeseries(
+    olc.interp_series(
     'blade_pitch', 
     [0,20], 
     [0,0.0873] , 
@@ -59,7 +59,7 @@ def main():
     olc.sine_timeseries('nacelle_yaw', 0.0524, 60)
 
     # Plot open loop timeseries
-    fig,ax = olc.plot_timeseries()
+    fig,ax = olc.plot_series()
     if False:
         plt.show()
     else:
@@ -149,9 +149,9 @@ def main():
     valid_ind = tt > 2  # first few timesteps can differ, depending on OpenFAST solve config
 
     # Compute errors
-    nacelle_yaw_diff = fo['NacYaw'][valid_ind] - np.degrees(np.interp(tt[valid_ind],olc.ol_timeseries['time'],olc.ol_timeseries['nacelle_yaw']))
-    bld_pitch_diff = fo['BldPitch1'][valid_ind] - np.degrees(np.interp(tt[valid_ind],olc.ol_timeseries['time'],olc.ol_timeseries['blade_pitch']))
-    gen_tq_diff = fo['GenTq'][valid_ind] - np.interp(tt[valid_ind],olc.ol_timeseries['time'],olc.ol_timeseries['generator_torque'])/1e3
+    nacelle_yaw_diff = fo['NacYaw'][valid_ind] - np.degrees(np.interp(tt[valid_ind],olc.ol_series['time'],olc.ol_series['nacelle_yaw']))
+    bld_pitch_diff = fo['BldPitch1'][valid_ind] - np.degrees(np.interp(tt[valid_ind],olc.ol_series['time'],olc.ol_series['blade_pitch']))
+    gen_tq_diff = fo['GenTq'][valid_ind] - np.interp(tt[valid_ind],olc.ol_series['time'],olc.ol_series['generator_torque'])/1e3
 
     # Check diff timeseries
     np.testing.assert_allclose(nacelle_yaw_diff,  0,  atol = 1e-1)   # yaw has dynamics and integration error, tolerance higher

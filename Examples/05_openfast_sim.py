@@ -1,7 +1,7 @@
 """
 05_openfast_sim
 ---------------
-Load a turbine, tune a controller, run OpenFAST simulation 
+Load a turbine, tune a controller, and run an OpenFAST simulation.
 In this example:
 
 * Load a turbine from OpenFAST
@@ -10,15 +10,11 @@ In this example:
 
 Note
 
-* you will need to have a compiled controller in ROSCO/build/ 
+* You must have a compiled controller in ROSCO/rosco/lib/
 """
 
-# Python Modules
-#import yaml
+
 import os
-#import numpy as np
-#import matplotlib.pyplot as plt
-# ROSCO toolbox modules 
 from rosco.toolbox import controller as ROSCO_controller
 from rosco.toolbox import turbine as ROSCO_turbine
 from rosco.toolbox.utilities import write_DISCON, run_openfast
@@ -56,7 +52,7 @@ def main():
     controller.tune_controller(turbine)
 
     # Write parameter input file
-    param_file = os.path.join(this_dir,'DISCON.IN')   # This must be named DISCON.IN to be seen by the compiled controller binary. 
+    param_file = os.path.join(this_dir,'DISCON.IN') 
     write_DISCON(turbine,controller,param_file=param_file, txt_filename=path_params['rotor_performance_filename'])
 
     # Run OpenFAST

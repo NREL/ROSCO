@@ -5,10 +5,15 @@ Load a turbine model and tune the controller
 In this example:
 
 * Read a .yaml file
-* Load a turbine model from OpenFAST
-* Tune a controller
-* Write a controller input file
-* Plot gain schedule
+* Create a ROSCO turbine object fromt he OpenFAST model
+* Tune a ROSCO controller object
+* Write a controller input file (``'03_DISCON.IN'``)
+* Plot gain schedule (``PC_GS_KP`` and ``PC_GS_KI`` versus ``PS_GS_angles``):
+
+.. figure:: /images/examples/03_GainSched.png
+   :align: center
+   :width: 70%
+
 """
 
 # Python modules
@@ -46,7 +51,8 @@ def main():
     controller.tune_controller(turbine)
 
     # Write parameter input file
-    param_file = os.path.join(this_dir,'DISCON.IN')
+    example_out_dir = os.path.join(this_dir,'examples_out')
+    param_file = os.path.join(example_out_dir,'03_DISCON.IN')
     write_DISCON(turbine,controller,
     param_file=param_file, 
     txt_filename=cp_filename
@@ -71,7 +77,6 @@ def main():
 
     plt.suptitle('Pitch Controller Gains')
 
-    example_out_dir = os.path.join(this_dir,'examples_out')
     if not os.path.isdir(example_out_dir):
         os.makedirs(example_out_dir)
 

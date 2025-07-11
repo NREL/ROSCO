@@ -88,4 +88,4 @@ Instructions to run Bladed from the command line are available
 `here <https://renewableenergysoftwareportal.dnv.com/KnowledgeBase/Details?productID=1&knowledgeBaseID=30&category=Calculation%20Setup&SearchRawUrl=%2FKnowledgeBase%2FSearch%3FproductID%3D1%26category%3DCalculation%2520Setup>`__
 on the Bladed Knowledge Base
 
-.. |image1| image:: figures/Bladed_control_screen.png
+.. |image1| image:: /images/Bladed_control_screen.png

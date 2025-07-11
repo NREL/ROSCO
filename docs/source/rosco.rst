@@ -378,13 +378,65 @@ Examples of the DISCON.IN file are found in each of the Test Cases in the ROSCO 
     - Float array, length = :code:`PS_BldPitchMin_n`
     - Minimum blade pitch angles [rad]
   * - SHUTDOWN
+    - :code:`SD_TimeActivate`
+    - Float
+    - Time to acitvate shutdown modes ,[s]
+  * - 
+    - :code:`SD_EnablePitch`
+    - Int
+    - Shutdown when collective blade pitch exceeds a threshold, [-]
+  * - 
+    - :code:`SD_EnableYawError`
+    - Int
+    - Shutdown when yaw error exceeds a threshold, [-]
+  * - 
+    - :code:`SD_EnableGenSpeed`
+    - Int
+    - Shutdown when generator speed exceeds a threshold, [-]
+  * - 
+    - :code:`SD_EnableTime`
+    - Int
+    - Shutdown at a predefined time, [-]
+  * - 
     - :code:`SD_MaxPit`
     - Float
     - Maximum blade pitch angle to initiate shutdown, [rad]
   * - 
-    - :code:`SD_CornerFreq`
-    - Float 
-    - Cutoff Frequency for first order low-pass filter for blade pitch angle, [rad/s]
+    - :code:`SD_PitchCornerFreq`
+    - Float
+    - Cutoff Frequency for first order low-pass filter for blade pitch angle for shutdown, [rad/s]
+  * - 
+    - :code:`SD_MaxYawError`
+    - Float
+    - Maximum yaw error to initiate shutdown, [deg]
+  * - 
+    - :code:`SD_YawErrorCornerFreq`
+    - Float
+    - Cutoff Frequency for first order low-pass filter for yaw error for shutdown, [rad/s]
+  * - 
+    - :code:`SD_MaxGenSpd`
+    - Float
+    - Maximum generator speed to initiate shutdown, [rad/s]
+  * - 
+    - :code:`SD_GenSpdCornerFreq`
+    - Float
+    - Cutoff Frequency for first order low-pass filter for generator speed for shutdown, [rad/s] 
+  * - 
+    - :code:`SD_Time`
+    - Float
+    - Shutdown time, [s]
+  * - 
+    - :code:`SD_Method`
+    - Int
+    - - Shutdown method {1: Reduce generator torque and increase blade pitch}, [-]
+  * - 
+    - :code:`SD_MaxTorqueRate`
+    - Float
+    - Maximum torque rate for shutdown, [Nm/s]
+  * - 
+    - :code:`SD_MaxPitchRate`
+    - Float
+    - Maximum pitch rate used for shutdown, [rad/s]
   * - FLOATING
     - :code:`Fl_Kp`
     - Float

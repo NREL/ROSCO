@@ -11,6 +11,8 @@ import multiprocessing as mp
 from openfast_io.FAST_reader import InputReader_OpenFAST
 from openfast_io.FAST_writer import InputWriter_OpenFAST
 from rosco.toolbox.ofTools.fast_io.FAST_wrapper import FAST_wrapper
+import time
+
 
 # TODO: import weis and use library, import pCrunch and re-enable post-processing features available here
 
@@ -122,6 +124,8 @@ class runFAST_pywrapper(object):
         if self.write_yaml:
             writer.FAST_yamlfile = self.FAST_yamlfile_out
             writer.write_yaml()
+
+        time.sleep(2)
 
         # Make sure pCrunch is ready
         # self.init_crunch()

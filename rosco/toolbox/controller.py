@@ -55,11 +55,13 @@ class Controller():
         self.IPC_ControlMode    = controller_params['IPC_ControlMode']
         self.VS_ControlMode     = controller_params['VS_ControlMode']
         self.VS_ConstPower      = controller_params['VS_ConstPower']
+        self.VS_FBP             = controller_params['VS_FBP']
         self.PC_ControlMode     = controller_params['PC_ControlMode']
         self.Y_ControlMode      = controller_params['Y_ControlMode']
         self.SS_Mode            = controller_params['SS_Mode']
         self.WE_Mode            = controller_params['WE_Mode']
         self.PS_Mode            = controller_params['PS_Mode']
+        self.SU_Mode            = controller_params['SU_Mode']
         self.SD_Mode            = controller_params['SD_Mode']
         self.Fl_Mode            = controller_params['Fl_Mode']
         self.TD_Mode            = controller_params['TD_Mode']
@@ -67,6 +69,7 @@ class Controller():
         self.Flp_Mode           = controller_params['Flp_Mode']
         self.PA_Mode            = controller_params['PA_Mode']
         self.PF_Mode            = controller_params['PF_Mode']
+        self.PRC_Mode           = controller_params['PRC_Mode']
         self.AWC_Mode           = controller_params['AWC_Mode']
         self.Ext_Mode           = controller_params['Ext_Mode']
         self.ZMQ_Mode           = controller_params['ZMQ_Mode']
@@ -82,13 +85,11 @@ class Controller():
         self.interp_type = controller_params['interp_type']
 
         # Optional parameters with defaults
-        self.min_pitch          = controller_params['min_pitch']
         self.max_pitch          = controller_params['max_pitch']
         self.vs_minspd          = controller_params['vs_minspd']
         self.ss_vsgain          = controller_params['ss_vsgain']
         self.ss_pcgain          = controller_params['ss_pcgain']
         self.ps_percent         = controller_params['ps_percent']
-        self.sd_maxpit          = controller_params['sd_maxpit']
         self.WS_GS_n            = controller_params['WS_GS_n']
         self.PC_GS_n            = controller_params['PC_GS_n']
         self.flp_maxpit         = controller_params['flp_maxpit']
@@ -99,20 +100,37 @@ class Controller():
         self.IPC_Vramp          = controller_params['IPC_Vramp']
         self.ZMQ_UpdatePeriod   = controller_params['ZMQ_UpdatePeriod']
 
-        #  Optional parameters without defaults
+        # FBP config defaults to constant power, underspeed
+        self.fbp_power_mode = controller_params['VS_FBP_power_mode']
+        self.fbp_speed_mode = controller_params['VS_FBP_speed_mode']
+        self.fbp_U = controller_params['VS_FBP_U'] # DBS: Should we set this default based on rated speed?
+        self.fbp_P = controller_params['VS_FBP_P']
+
+        # Optional parameters without defaults
+        if 'min_pitch' in controller_params:
+            # Set below if no user input
+            self.min_pitch = controller_params['min_pitch']
+
+        if self.VS_FBP > 0:
+            
+            # Fail if generator torque enabled in Region 3 but pitch control not disabled (may enable these modes to operate together in the future)
+            if self.PC_ControlMode != 0:
+                raise Exception(
+                    'rosco.toolbox:controller: PC_ControlMode must be 0 if VS_FBP > 0')
+
         if self.Flp_Mode > 0:
-            try:
+            if 'flp_kp_norm' in controller_params and 'flp_tau' in controller_params:
                 self.flp_kp_norm = controller_params['flp_kp_norm']
                 self.flp_tau     = controller_params['flp_tau']
-            except:
+            else:
                 raise Exception(
                     'rosco.toolbox:controller: flp_kp_norm and flp_tau must be set if Flp_Mode > 0')
 
         if self.Fl_Mode > 0:
-            try:
+            if 'twr_freq' in controller_params and 'ptfm_freq' in controller_params:
                 self.twr_freq   = controller_params['twr_freq']
                 self.ptfm_freq  = controller_params['ptfm_freq']
-            except:
+            else:
                 raise Exception('rosco.toolbox:controller: twr_freq and ptfm_freq must be set if Fl_Mode > 0')
 
             # Kp_float direct setting
@@ -139,26 +157,57 @@ class Controller():
         self.f_fl_highpassfreq      = controller_params['filter_params']['f_fl_highpassfreq']
         self.f_ss_cornerfreq        = controller_params['filter_params']['f_ss_cornerfreq']
         self.f_yawerr               = controller_params['filter_params']['f_yawerr']
-        self.f_sd_cornerfreq        = controller_params['filter_params']['f_sd_cornerfreq']
-
+        self.f_vs_refspd_cornerfreq = controller_params['filter_params']['f_vs_refspd_cornerfreq']
+        self.f_sd_pitchcornerfreq        = controller_params['filter_params']['f_sd_pitchcornerfreq']
+        self.f_sd_yawerrorcornerfreq        = controller_params['filter_params']['f_sd_yawerrorcornerfreq']
+        self.f_sd_genspdcornerfreq        = controller_params['filter_params']['f_sd_genspdcornerfreq']
 
         # Open loop parameters: set up and error catching
         self.OL_Mode            = controller_params['OL_Mode']
         self.OL_Filename        = controller_params['open_loop']['filename']
-        self.OL_Ind_Breakpoint  = self.OL_Ind_GenTq = self.OL_Ind_YawRate = self.OL_Ind_Azimuth = 0
-        self.OL_Ind_BldPitch    = [0,0,0]
-        self.OL_Ind_CableControl = [0]
-        self.OL_Ind_StructControl = [0]
+        self.Ind_Breakpoint  = self.Ind_GenTq = self.Ind_YawRate = self.Ind_Azimuth = 0
+        self.Ind_R_Speed = self.Ind_R_Torque = self.Ind_R_Pitch = 0
+        self.Ind_BldPitch        = [0,0,0]
+        self.Ind_CableControl    = [0]
+        self.Ind_StructControl   = [0]
+        self.OL_BP_Mode             = 0
         
         if self.OL_Mode:
             ol_params               = controller_params['open_loop']
-            self.OL_Ind_Breakpoint  = ol_params['OL_Ind_Breakpoint']
-            self.OL_Ind_BldPitch    = ol_params['OL_Ind_BldPitch']
-            self.OL_Ind_GenTq       = ol_params['OL_Ind_GenTq']
-            self.OL_Ind_YawRate     = ol_params['OL_Ind_YawRate']
-            self.OL_Ind_Azimuth     = ol_params['OL_Ind_Azimuth']
-            self.OL_Ind_CableControl     = ol_params['OL_Ind_CableControl']
-            self.OL_Ind_StructControl    = ol_params['OL_Ind_StructControl']
+
+            # Apply DISCON inputs if they exist
+            if 'OL_Filename' in controller_params['DISCON']:
+                ol_params['filename'] = controller_params['DISCON']['OL_Filename']
+
+            available_ol_params = [
+                'OL_BP_Mode',
+                'Ind_Breakpoint',
+                'Ind_BldPitch',
+                'Ind_GenTq',
+                'Ind_YawRate',
+                'Ind_Azimuth',
+                'Ind_R_Speed',
+                'Ind_R_Torque',
+                'Ind_R_Pitch',
+                'Ind_CableControl',
+                'Ind_StructControl'
+                ]
+            for param in available_ol_params:
+                if param in controller_params['DISCON']:
+                    ol_params[param] = controller_params['DISCON'][param]
+
+
+            self.OL_BP_Mode         = ol_params['OL_BP_Mode']
+            self.Ind_Breakpoint  = ol_params['Ind_Breakpoint']
+            self.Ind_BldPitch    = ol_params['Ind_BldPitch']
+            self.Ind_GenTq       = ol_params['Ind_GenTq']
+            self.Ind_YawRate     = ol_params['Ind_YawRate']
+            self.Ind_Azimuth     = ol_params['Ind_Azimuth']
+            self.Ind_R_Speed     = ol_params['Ind_R_Speed']
+            self.Ind_R_Torque    = ol_params['Ind_R_Torque']
+            self.Ind_R_Pitch     = ol_params['Ind_R_Pitch']
+            self.Ind_CableControl     = ol_params['Ind_CableControl']
+            self.Ind_StructControl    = ol_params['Ind_StructControl']
 
             # Check that file exists because we won't write it
             if not os.path.exists(controller_params['open_loop']['filename']):
@@ -183,7 +232,7 @@ class Controller():
                 not len(self.U_pc) == len(self.omega_pc) == len(self.zeta_pc):
             raise Exception(
                 'U_pc, omega_pc, and zeta_pc are all list-like and are not of equal length')
-        
+
 
     def tune_controller(self, turbine):
         """
@@ -205,6 +254,9 @@ class Controller():
 
         # ------------- Saturation Limits --------------- #
         turbine.max_torque = turbine.rated_torque * self.controller_params['max_torque_factor']
+        if not hasattr(self, 'min_pitch') or not isinstance(self.min_pitch, float): # Set min pitch to optimal if no user input
+            self.min_pitch = turbine.Cp.pitch_opt
+        turbine.min_pitch = self.min_pitch
 
         # -------------Define Operation Points ------------- #
         TSR_rated = rated_rotor_speed*R/turbine.v_rated  # TSR at rated
@@ -215,20 +267,65 @@ class Controller():
         v_above_rated = np.linspace(turbine.v_rated,turbine.v_max, num=self.PC_GS_n+1)             # above rated
         v = np.concatenate((v_below_rated, v_above_rated))
 
-        # separate TSRs by operations regions
-        TSR_below_rated = [min(turbine.TSR_operational, rated_rotor_speed*R/v) for v in v_below_rated] # below rated     
-        TSR_above_rated = rated_rotor_speed*R/v_above_rated                     # above rated
-        TSR_op = np.concatenate((TSR_below_rated, TSR_above_rated))             # operational TSRs
+        # Construct power schedule differently based on pitch control configuration
+        if self.VS_FBP > 0: # If using torque control in Region 3
 
-        # Find expected operational Cp values
-        Cp_above_rated = turbine.Cp.interp_surface(0,TSR_above_rated[0])     # Cp during rated operation (not optimal). Assumes cut-in bld pitch to be 0
-        Cp_op_br = np.ones(len(v_below_rated)) * turbine.Cp.max              # below rated
-        Cp_op_ar = Cp_above_rated * (TSR_above_rated/TSR_rated)**3           # above rated
-        Cp_op = np.concatenate((Cp_op_br, Cp_op_ar))                         # operational CPs to linearize around
-        pitch_initial_rad = turbine.pitch_initial_rad
-        TSR_initial = turbine.TSR_initial
+            # Check if constant power control disabled (may be implemented to work concurrently in the future)
+            if self.VS_ConstPower != 0:
+                raise Exception("VS_ConstPower must be 0 when VS_FBP > 0")
+
+            # Begin with user-defined power curve from input yaml (default constant rated power)
+            f_P_user_defined = interpolate.interp1d(self.fbp_U, self.fbp_P, fill_value=(self.fbp_P[0], self.fbp_P[-1]), bounds_error=False)
+            P_user_defined = f_P_user_defined(v)
+            if self.fbp_power_mode == 0:
+                P_user_defined *= turbine.rated_power
+            # Maximum potential power from MPPT (extending Region 2 power curve to cut-out)
+            Cp_operational = turbine.Cp.interp_surface(self.min_pitch, turbine.TSR_operational) # Compute TSR at controller pitch saturation and operational TSR (may not be optimal)
+            P_max = 0.5 * turbine.rho * np.pi*turbine.rotor_radius**2 * Cp_operational * v**3 \
+                * turbine.GBoxEff/100 * turbine.GenEff/100 # Includes generator efficiency reduction from available inflow power
+            # Take minimum between user input and max possible
+            P_op = np.min([P_user_defined, P_max], axis=0)
+            # Operation along Cp surface (with fixed pitch)
+            Cp_op = (P_op / P_max) * Cp_operational
+            Cp_op_br = Cp_op[:len(v_below_rated)]
+            Cp_op_ar = Cp_op[len(v_below_rated):]
+
+            # Identify TSR matching the Cp values (similar to variable pitch angle interpolation below)
+            Cp_FBP = np.ndarray.flatten(turbine.Cp.interp_surface(self.min_pitch, turbine.TSR_initial))     # all Cp values for fine blade pitch
+            Cp_maxidx = Cp_FBP.argmax()
+            # When we depart from Cp_max, our TSR has to fall to either above or below TSR_opt, leading to overspeed and underspeed configurations
+            if self.fbp_speed_mode: # Overspeed
+                # Interpolate inverse Cp surface slice with TSR >= TSR_opt
+                Cp_op = np.clip(Cp_op, np.min(Cp_FBP[Cp_maxidx:]), np.max(Cp_FBP[Cp_maxidx:]))            # saturate Cp values to be on Cp surface                                                             # Find maximum Cp value for this TSR
+                f_cp_TSR = interpolate.interp1d(Cp_FBP[Cp_maxidx:], turbine.TSR_initial[Cp_maxidx:])             # interpolate function for Cp(tsr) values
+            else: # Underspeed
+                # Interpolate inverse Cp surface slice with TSR <= TSR_opt
+                Cp_op = np.clip(Cp_op, np.min(Cp_FBP[:Cp_maxidx+1]), np.max(Cp_FBP[:Cp_maxidx+1]))            # saturate Cp values to be on Cp surface                                                             # Find maximum Cp value for this TSR
+                f_cp_TSR = interpolate.interp1d(Cp_FBP[:Cp_maxidx+1], turbine.TSR_initial[:Cp_maxidx+1])             # interpolate function for Cp(tsr) values
+            TSR_op = f_cp_TSR(Cp_op)
+            # Defer to operational TSR for below rated, even if other optimum (should keep Cp the same, but may lead to discontinuities in operating schedule if min_pitch is not optimal)
+            TSR_op[v < turbine.v_rated] = turbine.TSR_operational
+            TSR_below_rated = TSR_op[:len(v_below_rated)] # Should be constant at TSR_operational
+            TSR_above_rated = TSR_op[len(v_below_rated):]
+
+        # elif self.PC_ControlMode > 0: # If using pitch control in Region 3
+        else: # Default here even if pitch control disabled to maintain backwards compatibility
+
+            # TSR setpoints
+            TSR_below_rated = [min(turbine.TSR_operational, rated_rotor_speed*R/v) for v in v_below_rated] # below rated, saturated to not exceed rated rotor speed
+            TSR_above_rated = rated_rotor_speed*R/v_above_rated                     # above rated
+            TSR_op = np.concatenate((TSR_below_rated, TSR_above_rated))             # operational TSRs
+
+            # Find expected operational Cp values
+            Cp_above_rated = turbine.Cp.interp_surface(self.min_pitch,TSR_above_rated[0])     # Cp during rated operation (not optimal)
+            Cp_op_ar = Cp_above_rated * (TSR_above_rated/TSR_rated)**3           # above rated
+            Cp_op_br = [turbine.Cp.interp_surface(self.min_pitch, TSR) for TSR in TSR_below_rated] # Below rated, reinterpolated for accurate operational Cp based on controller pitch
+            Cp_op = np.concatenate((Cp_op_br, Cp_op_ar))                         # operational CPs to linearize around
+
 
         # initialize variables
+        pitch_initial_rad = turbine.pitch_initial_rad
+        TSR_initial = turbine.TSR_initial
         pitch_op    = np.empty(len(TSR_op))
         dCp_beta    = np.empty(len(TSR_op))
         dCp_TSR     = np.empty(len(TSR_op))
@@ -239,41 +336,63 @@ class Controller():
         # ------------- Find Linearized State "Matrices" ------------- #
         # At each operating point
         for i in range(len(TSR_op)):
-            # Find pitch angle as a function of expected operating CP for each TSR operating point
-            Cp_TSR = np.ndarray.flatten(turbine.Cp.interp_surface(turbine.pitch_initial_rad, TSR_op[i]))     # all Cp values for a given tsr
-            Cp_maxidx = Cp_TSR.argmax()    
-            Cp_op[i] = np.clip(Cp_op[i], np.min(Cp_TSR[Cp_maxidx:]), np.max(Cp_TSR[Cp_maxidx:]))            # saturate Cp values to be on Cp surface                                                             # Find maximum Cp value for this TSR
-            f_cp_pitch = interpolate.interp1d(Cp_TSR[Cp_maxidx:],pitch_initial_rad[Cp_maxidx:])             # interpolate function for Cp(tsr) values
-            
-            # expected operational blade pitch values. Saturates by min_pitch if it exists
-            if v[i] <= turbine.v_rated and isinstance(self.min_pitch, float): # Below rated & defined min_pitch
-                pitch_op[i] = min(self.min_pitch, f_cp_pitch(Cp_op[i]))
-            elif isinstance(self.min_pitch, float):                           # above rated & defined min_pitch
-                pitch_op[i] = max(self.min_pitch, f_cp_pitch(Cp_op[i]))             
-            else:                                                             # no defined minimum pitch schedule
-                pitch_op[i] = f_cp_pitch(Cp_op[i])     
+
+            if self.VS_FBP > 0: # Fixed blade pitch control in Region 3
+
+                # Constant pitch, either user input or optimal pitch from Cp surface
+                pitch_op[i] = self.min_pitch
+
+            else: # Variable pitch control in Region 3 (default)
+
+                # Find pitch angle as a function of expected operating CP for each TSR operating point
+                Cp_TSR = np.ndarray.flatten(turbine.Cp.interp_surface(turbine.pitch_initial_rad, TSR_op[i]))     # all Cp values for a given tsr
+                Cp_maxidx = Cp_TSR.argmax()    
+                Cp_op[i] = np.clip(Cp_op[i], np.min(Cp_TSR[Cp_maxidx:]), np.max(Cp_TSR[Cp_maxidx:]))            # saturate Cp values to be on Cp surface                                                             # Find maximum Cp value for this TSR
+                f_cp_pitch = interpolate.interp1d(Cp_TSR[Cp_maxidx:],pitch_initial_rad[Cp_maxidx:])             # interpolate function for Cp(tsr) values
+
+                # expected operational blade pitch values. Saturates by min_pitch if it exists
+                if v[i] <= turbine.v_rated: # Below rated, keep lowest pitch
+                    pitch_op[i] = min(self.min_pitch, f_cp_pitch(Cp_op[i]))
+                else:                       # above rated, keep highest pitch
+                    pitch_op[i] = max(self.min_pitch, f_cp_pitch(Cp_op[i]))
 
             # Calculate Cp Surface gradients
             dCp_beta[i], dCp_TSR[i] = turbine.Cp.interp_gradient(pitch_op[i],TSR_op[i]) 
             dCt_beta[i], dCt_TSR[i] = turbine.Ct.interp_gradient(pitch_op[i],TSR_op[i]) 
-        
+
             # Thrust
             Ct_TSR      = np.ndarray.flatten(turbine.Ct.interp_surface(turbine.pitch_initial_rad, TSR_op[i]))     # all Cp values for a given tsr
             f_ct        = interpolate.interp1d(pitch_initial_rad,Ct_TSR)
             Ct_op[i]    = f_ct(pitch_op[i])
             Ct_op[i]    = np.clip(Ct_op[i], np.min(Ct_TSR), np.max(Ct_TSR))        # saturate Ct values to be on Ct surface
 
+        # Compute generator speed and torque operating schedule
+        P_op = 0.5 * turbine.rho * np.pi*turbine.rotor_radius**2 * Cp_op * v**3 * turbine.GBoxEff/100 * turbine.GenEff/100
+        if self.VS_FBP == 0: # Saturate between min speed and rated if variable pitch in Region 3
+            omega_op = np.maximum(np.minimum(turbine.rated_rotor_speed, TSR_op*v/R), self.vs_minspd)
+        else: # Only saturate min pitch if torque control in Region 3
+            omega_op = np.maximum(TSR_op*v/R, self.vs_minspd)
+        omega_gen_op = omega_op * Ng
 
-        # Define minimum pitch saturation to be at Cp-maximizing pitch angle if not specifically defined
-        if not isinstance(self.min_pitch, float):
-            self.min_pitch = pitch_op[0]
+        tau_op = P_op / omega_gen_op / (turbine.GenEff/100) # Includes increase to counteract generator efficiency loss, but not gearbox efficiency loss
+        # Check if maximum torque leaves enough leeway to control the system
+        if np.max(tau_op) > turbine.max_torque: # turbine.max_torque * 1.2 # DBS: Should we include additional margin? 
+            print('WARNING: Torque operating schedule is above maximum generator torque and may not be realizable within saturation limits.')
+            # DBS: Future - add input constraints to satisfy maximum torque, speed, and thrust (peak shaving) in addition to power
+
+        # Check if options allow a nonmonotonic torque schedule
+        if self.VS_FBP == 3:
+            # The simulation will crash if we have a nonmonotonic schedule, so fail to generate the config and alert the user
+            if np.any(np.diff(tau_op) <= 0):
+                raise Exception("VS controller reference torque interpolation is selected (VS_FBP_ref_mode == 1), but computed generator torque schedule is not monotonically increasing. Reconfigure power curve, ensure VS_FBP_speed_mode == 0, or switch VS_FBP to 2.")
+
 
         # Full Cx surface gradients
         dCp_dbeta   = dCp_beta/np.diff(pitch_initial_rad)[0]
         dCp_dTSR    = dCp_TSR/np.diff(TSR_initial)[0]
         dCt_dbeta   = dCt_beta/np.diff(pitch_initial_rad)[0]
         dCt_dTSR    = dCt_TSR/np.diff(TSR_initial)[0]
-        
+
         # Linearized system derivatives, equations from https://wes.copernicus.org/articles/7/53/2022/wes-7-53-2022.pdf
         dtau_dbeta      = Ng/2*rho*Ar*R*(1/TSR_op)*dCp_dbeta*v**2  # (26)
         dtau_dlambda    = Ng/2*rho*Ar*R*v**2*(1/(TSR_op**2))*(dCp_dTSR*TSR_op - Cp_op)   # (7)
@@ -322,11 +441,21 @@ class Controller():
         self.pc_gain_schedule = ControllerTypes()
         self.pc_gain_schedule.second_order_PI(self.zeta_pc_U, self.omega_pc_U,A_pc,B_beta[-len(v_above_rated)+1:],linearize=True,v=v_above_rated[1:])        
         self.vs_gain_schedule = ControllerTypes()
-        self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A_vs,B_tau[0:len(v_below_rated)],linearize=False,v=v_below_rated)
+        if self.VS_FBP == 0:
+            # Using variable pitch control in Region 3, so generate torque gain schedule only for Region 2
+            self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A_vs,B_tau[0:len(v_below_rated)],linearize=False,v=v_below_rated)
+        else:
+            # Using fixed pitch torque control in Region 3, so generate torque gain schedule for Regions 2 and 3
+            self.vs_gain_schedule.second_order_PI(self.zeta_vs, self.omega_vs,A,B_tau,linearize=False,v=v)
 
         # -- Find K for Komega_g^2 --
-        self.vs_rgn2K = (pi*rho*R**5.0 * turbine.Cp.max * turbine.GBoxEff/100 * turbine.GenEff/100) / \
-              (2.0 * turbine.Cp.TSR_opt**3 * Ng**3) * self.controller_params['rgn2k_factor']
+        # Careful handling of different efficiencies
+        # P_lss = 1/2 * Cp * rho * pi * R^5 / (TSR^3 * Ng^3)
+        # P_hss = GBoxEff * P_lss = tau_gen * omega_gen = K * omega_gen^3
+        # P_gen = GenEff * P_hss
+        # Generator efficiency is not included in K here, but gearbox efficiency is
+        # Note that this differs from the
+        self.vs_rgn2K = (pi*rho*R**5.0 * turbine.Cp.max * turbine.GBoxEff/100) / (2.0 * turbine.Cp.TSR_opt**3 * Ng**3) * self.controller_params['rgn2k_factor']
         self.vs_refspd = min(turbine.TSR_operational * turbine.v_rated/R, turbine.rated_rotor_speed) * Ng
 
         # -- Define some setpoints --
@@ -336,12 +465,6 @@ class Controller():
         else: 
             self.vs_minspd = (turbine.TSR_operational * turbine.v_min / turbine.rotor_radius)
         self.pc_minspd = self.vs_minspd
-
-        # max pitch angle for shutdown
-        if self.sd_maxpit:
-            self.sd_maxpit = self.sd_maxpit
-        else:
-            self.sd_maxpit = pitch_op[-1]
 
         # Set IPC ramp inputs if not already defined
         if max(self.IPC_Vramp) == 0.0:
@@ -361,7 +484,10 @@ class Controller():
         self.B_beta         = B_beta
         self.B_tau          = B_tau
         self.B_wind         = B_wind
-        self.omega_op       = np.maximum(np.minimum(turbine.rated_rotor_speed, TSR_op*v/R), self.vs_minspd)
+        self.omega_op       = omega_op
+        self.omega_gen_op   = omega_gen_op
+        self.tau_op         = tau_op
+        self.power_op       = P_op
         self.Pi_omega       = Pi_omega
         self.Pi_beta        = Pi_beta
         self.Pi_wind        = Pi_wind
@@ -380,6 +506,23 @@ class Controller():
         elif self.PS_Mode == 3: # Peak shaving and Cp-maximizing minimum pitch saturation
             self.ps.peak_shaving(self, turbine)
             self.ps.min_pitch_saturation(self,turbine)
+
+        # --- Power control ---
+        
+        PRC_Table_n = self.controller_params['DISCON']['PRC_Table_n']
+        pitch_range = np.linspace(self.min_pitch,self.max_pitch, num=100)  # radians
+        
+        # Cp at optimal TSR
+        Cp_TSR_opt = turbine.Cp.interp_surface(pitch_range,turbine.Cp.TSR_opt)
+        
+        # Solve for pitch that decreases Cp by R_range using linear interpolation
+        R_range = np.linspace(0,1,num=PRC_Table_n)
+        Cp_R = R_range * turbine.Cp.max
+        pitch_R = np.interp(Cp_R,np.flip(Cp_TSR_opt),np.flip(pitch_range))  # need to flip because interp wants xp to be increasing
+        
+        # Save values back to DISCON dict
+        self.controller_params['DISCON']['PRC_R_Table'] = R_range
+        self.controller_params['DISCON']['PRC_Pitch_Table'] = pitch_R
 
         # --- Floating feedback term ---
 
@@ -476,6 +619,7 @@ class Controller():
         if 'f_lpf_cornerfreq' in self.controller_params['filter_params']:
             self.f_lpf_cornerfreq = self.controller_params['filter_params']['f_lpf_cornerfreq']
 
+    
     def tune_flap_controller(self,turbine):
         '''
         Tune controller for distributed aerodynamic control
@@ -721,8 +865,25 @@ class OpenLoopControl(object):
     '''
 
     def __init__(self, **kwargs):
-        self.dt     = 0.05
-        self.t_max  = 200
+        self.dt         = 0.05 # sec
+        self.t_max      = 200 # sec
+        self.breakpoint = 'time' # or wind_speed
+        self.du         = 0.5 # m/s
+        self.u_min      = 5  # m/s
+        self.u_max      = 30  # m/s
+
+        self.allowed_controls = [
+            'blade_pitch',
+            'generator_torque',
+            'nacelle_yaw',
+            'nacelle_yaw_rate',
+            'cable_control',
+            'struct_control',
+            'R_speed',
+            'R_torque',
+            'R_pitch',
+            ]
+        self.allowed_breakpoints = ['time','wind_speed']
 
         # Optional population class attributes from key word arguments
         for (k, w) in kwargs.items():
@@ -731,17 +892,20 @@ class OpenLoopControl(object):
             except:
                 pass
 
-        self.ol_timeseries = {}
-        self.ol_timeseries['time'] = np.arange(0,self.t_max,self.dt)
-
-        self.allowed_controls = ['blade_pitch','generator_torque','nacelle_yaw','nacelle_yaw_rate','cable_control','struct_control']
+        self.ol_series = {}
+        if self.breakpoint == 'time':
+            self.ol_series[self.breakpoint] = np.arange(0,self.t_max+self.dt,self.dt)
+        elif self.breakpoint == 'wind_speed':
+            self.ol_series[self.breakpoint] = np.arange(self.u_min,self.u_max+self.du,self.du)
+        else:
+            raise Exception(f'Breakpoint of {self.breakpoint} is not allowed.  Available options are {self.allowed_breakpoints}.')
 
         
     def const_timeseries(self,control,value):
-        self.ol_timeseries[control] = value * np.ones(len(self.ol_timeseries['time']))
+        self.ol_series[control] = value * np.ones(len(self.ol_series[self.breakpoint]))
         
 
-    def interp_timeseries(self,control,breakpoints,values,method='sigma'):
+    def interp_series(self,control,breakpoints,values,method='sigma'):
 
         # Error checking
         if not list_check(breakpoints) or len(breakpoints) == 1:
@@ -756,58 +920,67 @@ class OpenLoopControl(object):
         # Check if control in allowed controls, cable_control_* is in cable_control
         if not any([ac in control for ac in self.allowed_controls]):
             raise Exception(f'Open loop control of {control} is not allowed')
+        
+        # Check that breakpoints are valid
+        if self.breakpoint == 'wind_speed':
+            if max(breakpoints) > self.u_max:
+                raise Exception(f'The maximum desired wind speed breakpoint ({max(breakpoints)}) is greater than u_max ({self.u_max})')
+        elif self.breakpoint == 'time':
+            if max(breakpoints) > self.t_max: 
+                raise Exception(f'The maximum desired time breakpoint ({max(breakpoints)}) is greater than t_max ({self.t_max})')
+
+        # Finally interpolate
+        if method == 'sigma':
+            self.ol_series[control] = multi_sigma(self.ol_series[self.breakpoint],breakpoints,values)
+        
+        elif method == 'linear':
+            self.ol_series[control] = np.interp(self.ol_series[self.breakpoint],breakpoints,values,left=values[0],right=values[-1])
+
+        elif method == 'cubic':
+            interp_fcn = interpolate.Akima1DInterpolator(breakpoints,values,method='akima',extrapolate=True) #,kind='cubic',fill_value=values[-1],bounds_error=False)
+            self.ol_series[control] = interp_fcn(self.ol_series[self.breakpoint])
 
         else:
-            # Finally interpolate
-            if method == 'sigma':
-                self.ol_timeseries[control] = multi_sigma(self.ol_timeseries['time'],breakpoints,values)
-            
-            elif method == 'linear':
-                interp_fcn = interpolate.interp1d(breakpoints,values,fill_value=values[-1],bounds_error=False)
-                self.ol_timeseries[control] = interp_fcn(self.ol_timeseries['time'])
-
-            elif method == 'cubic':
-                interp_fcn = interpolate.interp1d(breakpoints,values,kind='cubic',fill_value=values[-1],bounds_error=False)
-                self.ol_timeseries[control] = interp_fcn(self.ol_timeseries['time'])
-
-            else:
-                raise Exception(f'Open loop interpolation method {method} not supported')
+            raise Exception(f'Open loop interpolation method {method} not supported')
 
         if control == 'nacelle_yaw':
             self.compute_yaw_rate()
 
 
-    def sine_timeseries(self,control,amplitude,period):
+    def sine_timeseries(self,control,amplitude,period,offset=0):
         
         if period <= 0:
             raise Exception('Open loop sine input period is <= 0')
+        
+        if self.breakpoint != 'time':
+            raise Exception(f'Only time breakpoints are allowed for sine timeseries')
 
         if control not in self.allowed_controls:
             raise Exception(f'Open loop control of {control} is not allowed')
         else:
-            self.ol_timeseries[control] = amplitude * np.sin(2 * np.pi *  self.ol_timeseries['time'] / period)
+            self.ol_series[control] = amplitude * np.sin(2 * np.pi *  self.ol_series['time'] / period) + offset
 
         if control == 'nacelle_yaw':
             self.compute_yaw_rate()
 
     def compute_yaw_rate(self):
-        self.ol_timeseries['nacelle_yaw_rate'] = np.concatenate(([0],np.diff(self.ol_timeseries['nacelle_yaw'])))/self.dt
+        self.ol_series['nacelle_yaw_rate'] = np.concatenate(([0],np.diff(self.ol_series['nacelle_yaw'])))/self.dt
 
-    def plot_timeseries(self):
+    def plot_series(self):
         '''
         Debugging script for showing open loop timeseries
         '''
         import matplotlib.pyplot as plt
-        fig, ax = plt.subplots(len(self.ol_timeseries)-1,1)
+        fig, ax = plt.subplots(len(self.ol_series)-1,1)
         i_ax = -1
-        for ol_input in self.ol_timeseries:
-            if ol_input != 'time':
+        for ol_input in self.ol_series:
+            if ol_input not in ['time','wind_speed']:
                 i_ax += 1
-                if len(self.ol_timeseries)-1 == 1:
-                    ax.plot(self.ol_timeseries['time'],self.ol_timeseries[ol_input])
+                if len(self.ol_series)-1 == 1:
+                    ax.plot(self.ol_series[self.breakpoint],self.ol_series[ol_input])
                     ax.set_ylabel(ol_input)
                 else:
-                    ax[i_ax].plot(self.ol_timeseries['time'],self.ol_timeseries[ol_input])
+                    ax[i_ax].plot(self.ol_series[self.breakpoint],self.ol_series[ol_input])
                     ax[i_ax].set_ylabel(ol_input)
         return fig, ax
 
@@ -817,53 +990,66 @@ class OpenLoopControl(object):
         Return open_loop dict for control params
         '''
 
-        ol_timeseries = self.ol_timeseries
+        ol_series = self.ol_series
 
         # Init indices
-        OL_Ind_Breakpoint = 1
-        OL_Ind_Azimuth = OL_Ind_GenTq = OL_Ind_YawRate = 0
-        OL_Ind_BldPitch = 3*[0]
-        OL_Ind_CableControl = []
-        OL_Ind_StructControl = []
+        Ind_Breakpoint = 1
+        Ind_Azimuth = Ind_GenTq = Ind_YawRate = Ind_R_Speed = Ind_R_Torque = Ind_R_Pitch = 0
+        Ind_BldPitch = 3*[0]
+        Ind_CableControl = []
+        Ind_StructControl = []
 
         ol_index_counter = 0   # start input index at 2
 
-        # Write time first, initialize OL matrix
-        if 'time' in ol_timeseries:
-            ol_control_array = ol_timeseries['time']
-            Ind_Breakpoint = 1
+        # Write breakpoint first, initialize OL matrix
+        if 'time' in ol_series:
+            ol_input_matrix = ol_series['time']
+        elif 'wind_speed' in ol_series:
+            ol_input_matrix = ol_series['wind_speed']
         else:
-            raise Exception('WARNING: no time index for open loop control.  This is only index currently supported')
+            raise Exception('WARNING: no time or wind-speed index for open loop control.  These are the only indices currently supported')
+        
+        if 'time' in ol_series and 'wind_speed' in ol_series:
+            raise Exception('WARNING: both time and wind_speed are in the OL input setup.  Please check.')
 
-        for channel in ol_timeseries:
+        for channel in ol_series:
 
             # increment index counter first for 1-indexing in input file
             ol_index_counter += 1
 
-            # skip writing for certain channels
+            # skip writing for certain channels, if already in ol_input_matrix
             skip_write = False
             
             # Set open loop index based on name
             if channel == 'time':
-                OL_Ind_Breakpoint = ol_index_counter
+                Ind_Breakpoint = ol_index_counter
                 skip_write = True
+            elif channel == 'wind_speed':
+                Ind_Breakpoint = ol_index_counter
+                skip_write = True   
             elif channel == 'blade_pitch':  # collective blade pitch
-                OL_Ind_BldPitch = 3 * [ol_index_counter]
+                Ind_BldPitch = 3 * [ol_index_counter]
             elif channel == 'generator_torque':
-                OL_Ind_GenTq = ol_index_counter
+                Ind_GenTq = ol_index_counter
             elif channel == 'nacelle_yaw_rate':
-                OL_Ind_YawRate = ol_index_counter
+                Ind_YawRate = ol_index_counter
             elif channel == 'nacelle_yaw':
                 ol_index_counter -= 1  # don't increment counter
                 skip_write = True
             elif channel == 'blade_pitch1':
-                OL_Ind_BldPitch[0] = ol_index_counter
+                Ind_BldPitch[0] = ol_index_counter
             elif channel == 'blade_pitch2':
-                OL_Ind_BldPitch[1] = ol_index_counter
+                Ind_BldPitch[1] = ol_index_counter
             elif channel == 'blade_pitch3':
-                OL_Ind_BldPitch[2] = ol_index_counter
+                Ind_BldPitch[2] = ol_index_counter
             elif channel == 'azimuth':
-                OL_Ind_Azimuth = ol_index_counter
+                Ind_Azimuth = ol_index_counter
+            elif channel == 'R_speed':
+                Ind_R_Speed = ol_index_counter
+            elif channel == 'R_torque':
+                Ind_R_Torque = ol_index_counter
+            elif channel == 'R_pitch':
+                Ind_R_Pitch = ol_index_counter
             elif 'cable_control' in channel or 'struct_control' in channel:
                 skip_write = True
                 ol_index_counter -= 1  # don't increment counter
@@ -872,33 +1058,33 @@ class OpenLoopControl(object):
 
             # append open loop input array for non-ptfm channels
             if not skip_write:
-                ol_control_array = np.c_[ol_control_array,ol_timeseries[channel]]
+                ol_input_matrix = np.c_[ol_input_matrix,ol_series[channel]]
 
         ol_index_counter += 1  # Increment counter so it's 1 more than time, just like above in each iteration
 
         # Cable control
-        is_cable_chan = np.array(['cable_control' in ol_chan for ol_chan in ol_timeseries.keys()])
+        is_cable_chan = np.array(['cable_control' in ol_chan for ol_chan in ol_series.keys()])
         if any(is_cable_chan):
             # if any channels are cable_control_*
             n_cable_chan = np.sum(is_cable_chan)
-            cable_chan_names = np.array(list(ol_timeseries.keys()))[is_cable_chan]
+            cable_chan_names = np.array(list(ol_series.keys()))[is_cable_chan]
 
             # Let's assume they are 1-indexed and all there, otherwise a key error will be thrown
             for cable_chan in cable_chan_names:
-                ol_control_array = np.c_[ol_control_array,ol_timeseries[cable_chan]]
-                OL_Ind_CableControl.append(ol_index_counter)
+                ol_input_matrix = np.c_[ol_input_matrix,ol_series[cable_chan]]
+                Ind_CableControl.append(ol_index_counter)
                 ol_index_counter += 1
 
         # Struct control
-        is_struct_chan = ['struct_control' in ol_chan for ol_chan in ol_timeseries.keys()]
+        is_struct_chan = ['struct_control' in ol_chan for ol_chan in ol_series.keys()]
         if any(is_struct_chan):
             # if any channels are struct_control_*
             n_struct_chan = np.sum(np.array(is_struct_chan))
 
             # Let's assume they are 1-indexed and all there, otherwise a key error will be thrown
             for i_chan in range(1,n_struct_chan+1):
-                ol_control_array = np.c_[ol_control_array,ol_timeseries[f'struct_control_{i_chan}']]
-                OL_Ind_StructControl.append(ol_index_counter)
+                ol_input_matrix = np.c_[ol_input_matrix,ol_series[f'struct_control_{i_chan}']]
+                Ind_StructControl.append(ol_index_counter)
                 ol_index_counter += 1
 
 
@@ -910,49 +1096,70 @@ class OpenLoopControl(object):
             # Write header
             headers = [''] * ol_index_counter
             units = [''] * ol_index_counter
-            header_line = '!\tTime'
-            unit_line   = '!\t(sec.)'
 
-            headers[0] = 'Time'
-            units[0] = 'sec.'
+            if self.breakpoint == 'time':
+                header_line = '!\tTime' # TODO: not sure if we need header_line and headers, check struct control
+                unit_line   = '!\t(sec.)'
 
-            if OL_Ind_GenTq:
-                headers[OL_Ind_GenTq-1] = 'GenTq'
-                units[OL_Ind_GenTq-1] = '(Nm)'
+                headers[0] = 'Time'
+                units[0] = 'sec.'
+            elif self.breakpoint == 'wind_speed':
+                header_line = '!\tWindSpeed' # TODO: not sure if we need header_line and headers, check struct control
+                unit_line   = '!\t(m/s)'
 
-            if OL_Ind_YawRate:
-                headers[OL_Ind_YawRate-1] = 'YawRate'
-                units[OL_Ind_YawRate-1] = '(rad/s)'
+                headers[0] = 'WindSpeed'
+                units[0] = 'm/s'
+            
 
-            if OL_Ind_Azimuth:
-                headers[OL_Ind_Azimuth-1] = 'Azimuth'
-                units[OL_Ind_Azimuth-1] = '(rad)'
+            if Ind_GenTq:
+                headers[Ind_GenTq-1] = 'GenTq'
+                units[Ind_GenTq-1] = '(Nm)'
 
-            if any(OL_Ind_BldPitch):
-                if all_same(OL_Ind_BldPitch):
-                    headers[OL_Ind_BldPitch[0]-1] = 'BldPitch123'
-                    units[OL_Ind_BldPitch[0]-1] = '(rad)'
+            if Ind_YawRate:
+                headers[Ind_YawRate-1] = 'YawRate'
+                units[Ind_YawRate-1] = '(rad/s)'
+
+            if Ind_Azimuth:
+                headers[Ind_Azimuth-1] = 'Azimuth'
+                units[Ind_Azimuth-1] = '(rad)'
+
+            if any(Ind_BldPitch):
+                if all_same(Ind_BldPitch):
+                    headers[Ind_BldPitch[0]-1] = 'BldPitch123'
+                    units[Ind_BldPitch[0]-1] = '(rad)'
                 else:
-                    headers[OL_Ind_BldPitch[0]-1] = 'BldPitch1'
-                    units[OL_Ind_BldPitch[0]-1] = '(rad)'
-                    headers[OL_Ind_BldPitch[1]-1] = 'BldPitch2'
-                    units[OL_Ind_BldPitch[1]-1] = '(rad)'
-                    headers[OL_Ind_BldPitch[2]-1] = 'BldPitch3'
-                    units[OL_Ind_BldPitch[2]-1] = '(rad)'
+                    headers[Ind_BldPitch[0]-1] = 'BldPitch1'
+                    units[Ind_BldPitch[0]-1] = '(rad)'
+                    headers[Ind_BldPitch[1]-1] = 'BldPitch2'
+                    units[Ind_BldPitch[1]-1] = '(rad)'
+                    headers[Ind_BldPitch[2]-1] = 'BldPitch3'
+                    units[Ind_BldPitch[2]-1] = '(rad)'
 
-            if OL_Ind_CableControl:
+            if Ind_CableControl:
                 for i_chan in range(1,n_cable_chan+1):
                     header_line += f'\t\tCable{i_chan}'
                     unit_line   += '\t\t(m)'
             else:
-                OL_Ind_CableControl = [0]
+                Ind_CableControl = [0]
 
-            if OL_Ind_StructControl:
+            if Ind_StructControl:
                 for i_chan in range(1,n_struct_chan+1):
                     header_line += f'\t\tStruct{i_chan}'
                     unit_line   += '\t\t(m)'
             else:
-                OL_Ind_StructControl = [0]
+                Ind_StructControl = [0]
+
+            if Ind_R_Speed:
+                headers[Ind_R_Speed-1] = 'R_speed'
+                units[Ind_R_Speed-1] = '(-)'
+
+            if Ind_R_Torque:
+                headers[Ind_R_Torque-1] = 'R_Torque'
+                units[Ind_R_Torque-1] = '(-)'
+
+            if Ind_R_Pitch:
+                headers[Ind_R_Pitch-1] = 'R_Pitch'
+                units[Ind_R_Pitch-1] = '(-)'
 
             # Join headers and units
             header_line = '!' + '\t\t'.join(headers) + '\n'
@@ -962,20 +1169,28 @@ class OpenLoopControl(object):
             f.write(unit_line)
 
             # Write lines
-            for ol_line in ol_control_array:
+            for ol_line in ol_input_matrix:
                 line = ''.join(['{:<10.8f}\t'.format(val) for val in ol_line]) + '\n'
                 f.write(line)
 
         # Output open_loop dict for control params
         open_loop = {}
         open_loop['filename']           = ol_filename
-        open_loop['OL_Ind_Breakpoint']  = OL_Ind_Breakpoint
-        open_loop['OL_Ind_BldPitch']    = OL_Ind_BldPitch
-        open_loop['OL_Ind_GenTq']       = OL_Ind_GenTq
-        open_loop['OL_Ind_YawRate']     = OL_Ind_YawRate
-        open_loop['OL_Ind_Azimuth']     = OL_Ind_Azimuth
-        open_loop['OL_Ind_CableControl']     = OL_Ind_CableControl
-        open_loop['OL_Ind_StructControl']    = OL_Ind_StructControl
+        open_loop['Ind_Breakpoint']  = Ind_Breakpoint
+        open_loop['Ind_BldPitch']    = Ind_BldPitch
+        open_loop['Ind_GenTq']       = Ind_GenTq
+        open_loop['Ind_YawRate']     = Ind_YawRate
+        open_loop['Ind_Azimuth']     = Ind_Azimuth
+        open_loop['Ind_CableControl']     = Ind_CableControl
+        open_loop['Ind_StructControl']    = Ind_StructControl
+        open_loop['Ind_R_Speed']     = Ind_R_Speed
+        open_loop['Ind_R_Torque']    = Ind_R_Torque
+        open_loop['Ind_R_Pitch']     = Ind_R_Pitch
+        if self.breakpoint == 'time':
+            open_loop['OL_BP_Mode'] = 0
+        elif self.breakpoint == 'wind_speed':
+            open_loop['OL_BP_Mode'] = 1
+
 
 
         return open_loop

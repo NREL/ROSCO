@@ -25,8 +25,8 @@ CONTAINS
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
     ! Blade pitch controller, generally maximizes rotor speed below rated (region 2) and regulates rotor speed above rated (region 3)
-    !       PC_State = 0, fix blade pitch to fine pitch angle (PC_FinePit)
-    !       PC_State = 1, is gain scheduled PI controller 
+    !       PC_State = PC_State_Disabled (0), fix blade pitch to fine pitch angle (PC_FinePit)
+    !       PC_State = PC_State_Disabled (1), is gain scheduled PI controller 
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
         
         ! Inputs
@@ -44,10 +44,18 @@ CONTAINS
 
         ! ------- Blade Pitch Controller --------
         ! Load PC State
-        IF (LocalVar%PC_State == 1) THEN ! PI BldPitch control
+        IF (LocalVar%PC_State == PC_State_Enabled) THEN ! PI BldPitch control
             LocalVar%PC_MaxPit = CntrPar%PC_MaxPit
         ELSE ! debug mode, fix at fine pitch
             LocalVar%PC_MaxPit = CntrPar%PC_FinePit
+        END IF
+
+        ! Hold blade pitch at last value
+        ! If:
+        !   In pre-startup mode (before freewheeling)
+        IF ((CntrPar%SU_Mode > 0) .AND. (LocalVar%SU_Stage == -1)) THEN
+            LocalVar%PC_MaxPit = LocalVar%BlPitchCMeas
+            LocalVar%PC_MinPit = LocalVar%BlPitchCMeas
         END IF
         
         ! Compute (interpolate) the gains based on previously commanded blade pitch angles and lookup table:
@@ -59,6 +67,7 @@ CONTAINS
         ! Compute the collective pitch command associated with the proportional and integral gains:
         LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, LocalVar%PC_MinPit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%BlPitch(1), LocalVar%piP, LocalVar%restart, objInst%instPI)
         DebugVar%PC_PICommand = LocalVar%PC_PitComT
+
         ! Find individual pitch control contribution
         IF ((CntrPar%IPC_ControlMode >= 1) .OR. (CntrPar%Y_ControlMode == 2)) THEN
             CALL IPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
@@ -89,11 +98,6 @@ CONTAINS
             LocalVar%PC_PitComT = LocalVar%PC_PitComT + LocalVar%Fl_PitCom
         ENDIF
         
-        ! Shutdown
-        IF (CntrPar%SD_Mode == 1) THEN
-            LocalVar%PC_PitComT = Shutdown(LocalVar, CntrPar, objInst)
-        ENDIF
-        
         ! Saturate collective pitch commands:
         LocalVar%PC_PitComT = saturate(LocalVar%PC_PitComT, LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the overall command using the pitch angle limits
         LocalVar%PC_PitComT = ratelimit(LocalVar%PC_PitComT, CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitchCMeas) ! Saturate the overall command of blade K using the pitch rate limit
@@ -122,15 +126,15 @@ CONTAINS
         IF (CntrPar%OL_Mode > 0) THEN
             IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN    ! Time > first open loop breakpoint
                 IF (CntrPar%Ind_BldPitch(1) > 0) THEN
-                    LocalVar%PitCom(1) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch1,LocalVar%Time, ErrVar)
+                    LocalVar%PitCom(1) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch1,LocalVar%OL_Index, ErrVar)
                 ENDIF
 
                 IF (CntrPar%Ind_BldPitch(2) > 0) THEN
-                    LocalVar%PitCom(2) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch2,LocalVar%Time, ErrVar)
+                    LocalVar%PitCom(2) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch2,LocalVar%OL_Index, ErrVar)
                 ENDIF
 
                 IF (CntrPar%Ind_BldPitch(3) > 0) THEN
-                    LocalVar%PitCom(3) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch3,LocalVar%Time, ErrVar)
+                    LocalVar%PitCom(3) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_BldPitch3,LocalVar%OL_Index, ErrVar)
                 ENDIF
             ENDIF
         ENDIF
@@ -140,6 +144,22 @@ CONTAINS
             CALL ActiveWakeControl(CntrPar, LocalVar, DebugVar, objInst)
         ENDIF
 
+        ! Shutdown
+        IF (LocalVar%SD_Trigger == 0) THEN
+            LocalVar%PitCom_SD = LocalVar%PitCom
+        ! If shutdown is not triggered, PitCom_SD tracks PitCom.
+        ELSE
+            IF (CntrPar%SD_Method == 1) THEN    !Only SD_Method==1 supported for now 
+                DO K = 1,LocalVar%NumBl
+                    LocalVar%PitCom_SD(K) = LocalVar%PitCom_SD(K) + CntrPar%SD_MaxPitchRate*LocalVar%DT
+                END DO
+            ENDIF
+            LocalVar%PitCom = LocalVar%PitCom_SD
+            ! When shutdown is triggered (SD_Trigger \=0), pitch to feather.
+            ! Note that in some instances (like a downwind rotor), we may want to pitch to a stall angle.
+        ENDIF
+        
+       
         ! Place pitch actuator here, so it can be used with or without open-loop
         DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
             IF (CntrPar%PA_Mode > 0) THEN
@@ -167,6 +187,13 @@ CONTAINS
                 ! This assumes that the pitch actuator fault overides the Hardware saturation
                 LocalVar%PitComAct(K) = LocalVar%PitComAct(K) + CntrPar%PF_Offsets(K)
             END DO
+        ! Blade pitch stuck at last value
+        ELSEIF (CntrPar%PF_Mode == 2) THEN
+            DO K = 1, LocalVar%NumBl
+                IF (LocalVar%Time > CntrPar%PF_TimeStuck(K)) THEN
+                    LocalVar%PitComAct(K) = LocalVar%BlPitch(K)
+                END IF
+            END DO
         END IF
 
         ! Command the pitch demanded from the last
@@ -180,18 +207,17 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) THEN
             ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
         ENDIF
-
     END SUBROUTINE PitchControl
 !-------------------------------------------------------------------------------------------------------------------------------  
     SUBROUTINE VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
     ! Generator torque controller
-    !       VS_State = 0, Error state, for debugging purposes, GenTq = VS_RtTq
-    !       VS_State = 1, Region 1(.5) operation, torque control to keep the rotor at cut-in speed towards the Cp-max operational curve
-    !       VS_State = 2, Region 2 operation, maximum rotor power efficiency (Cp-max) tracking using K*omega^2 law, fixed fine-pitch angle in BldPitch controller
-    !       VS_State = 3, Region 2.5, transition between below and above-rated operating conditions (near-rated region) using PI torque control
-    !       VS_State = 4, above-rated operation using pitch control (constant torque mode)
-    !       VS_State = 5, above-rated operation using pitch and torque control (constant power mode)
-    !       VS_State = 6, Tip-Speed-Ratio tracking PI controller
+    !       VS_State = VS_State_Error             (0), Error state, for debugging purposes, GenTq = VS_RtTq
+    !       VS_State = VS_State_Region_1_5        (1), Region 1(.5) operation, torque control to keep the rotor at cut-in speed towards the Cp-max operational curve
+    !       VS_State = VS_State_Region_2          (2), Region 2 operation, maximum rotor power efficiency (Cp-max) tracking using K*omega^2 law, fixed fine-pitch angle in BldPitch controller
+    !       VS_State = VS_State_Region_2_5        (3), Region 2.5, transition between below and above-rated operating conditions (near-rated region) using PI torque control
+    !       VS_State = VS_State_Region_3_ConstTrq (4), above-rated operation using pitch control (constant torque mode)
+    !       VS_State = VS_State_Region_3_ConstPwr (5), above-rated operation using pitch and torque control (constant power mode)
+    !       VS_State = VS_State_PI                (6), Tip-Speed-Ratio tracking PI controller (ignore state machine)
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, ErrorVariables
         ! Inputs
         REAL(ReKi),                 INTENT(INOUT)       :: avrSWAP(*)    ! The swap array, used to pass data to, and receive data from, the DLL controller.
@@ -203,22 +229,31 @@ CONTAINS
         CHARACTER(*),               PARAMETER           :: RoutineName = 'VariableSpeedControl'
 
         ! Allocate Variables
-        
+
         ! -------- Variable-Speed Torque Controller --------
-        ! Define max torque
-        IF (LocalVar%VS_State == 4) THEN
-           LocalVar%VS_MaxTq = CntrPar%VS_RtTq
-        ELSE
-            ! VS_MaxTq = CntrPar%VS_MaxTq           ! NJA: May want to boost max torque
-            LocalVar%VS_MaxTq = CntrPar%VS_RtTq
-        ENDIF
-        
-        ! Optimal Tip-Speed-Ratio tracking controller
-        IF ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3)) THEN
-            ! Constant Power, update VS_MaxTq
-            IF (CntrPar%VS_ConstPower == 1) THEN
-                LocalVar%VS_MaxTq = min((CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF, CntrPar%VS_MaxTq)
+
+        ! Pre-compute generator torque values for K*Omega^2 and constant power
+        LocalVar%VS_KOmega2_GenTq = CntrPar%VS_Rgn2K*LocalVar%GenSpeedF*LocalVar%GenSpeedF
+        LocalVar%VS_ConstPwr_GenTq = (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF * LocalVar%PRC_R_Torque
+
+        ! Determine maximum torque saturation limit, VS_MaxTq
+        IF (CntrPar%VS_FBP == VS_FBP_Variable_Pitch) THEN 
+            ! Variable pitch mode        
+            IF (CntrPar%VS_ConstPower == VS_Mode_ConstPwr) THEN
+                LocalVar%VS_MaxTq = min(LocalVar%VS_ConstPwr_GenTq * LocalVar%PRC_R_Torque, CntrPar%VS_MaxTq)
+            ELSE
+                LocalVar%VS_MaxTq = CntrPar%VS_RtTq * LocalVar%PRC_R_Torque
             END IF
+        ELSE   
+            ! Constant pitch, max torque is control parameter
+            LocalVar%VS_MaxTq = CntrPar%VS_MaxTq  
+        ENDIF 
+
+        ! Optimal Tip-Speed-Ratio tracking controller (reference generated in subroutine ComputeVariablesSetpoints)
+        IF ((CntrPar%VS_ControlMode == VS_Mode_WSE_TSR) .OR. \
+            (CntrPar%VS_ControlMode == VS_Mode_Power_TSR) .OR. \
+            (CntrPar%VS_ControlMode == VS_Mode_Torque_TSR)) THEN
+
 
             ! PI controller
             LocalVar%GenTq = PIController( &
@@ -227,45 +262,67 @@ CONTAINS
                                         CntrPar%VS_KI(1), &
                                         CntrPar%VS_MinTq, LocalVar%VS_MaxTq, &
                                         LocalVar%DT, LocalVar%VS_LastGenTrq, LocalVar%piP, LocalVar%restart, objInst%instPI)
-            LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, LocalVar%VS_MaxTq)
-        
+
+            ! Saturate control input to Region 3 constant-power value if FBP mode is set to constant-power overspeed (no need for explicit transition region)
+            IF (CntrPar%VS_FBP == VS_FBP_Power_Overspeed) THEN
+                LocalVar%GenTq = MIN(LocalVar%VS_ConstPwr_GenTq, LocalVar%GenTq)
+            ENDIF
+
         ! K*Omega^2 control law with PI torque control in transition regions
-        ELSEIF (CntrPar%VS_ControlMode == 1) THEN
+        ELSEIF (CntrPar%VS_ControlMode == VS_Mode_KOmega) THEN
             ! Update PI loops for region 1.5 and 2.5 PI control
             LocalVar%GenArTq = PIController(LocalVar%VS_SpdErrAr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MaxOMTq, CntrPar%VS_ArSatTq, LocalVar%DT, CntrPar%VS_MaxOMTq, LocalVar%piP, LocalVar%restart, objInst%instPI)
             LocalVar%GenBrTq = PIController(LocalVar%VS_SpdErrBr, CntrPar%VS_KP(1), CntrPar%VS_KI(1), CntrPar%VS_MinTq, CntrPar%VS_MinOMTq, LocalVar%DT, CntrPar%VS_MinOMTq, LocalVar%piP, LocalVar%restart, objInst%instPI)
-            
-            ! The action
-            IF (LocalVar%VS_State == 1) THEN ! Region 1.5
+
+            ! State machine if switching to blade pitch control
+            IF (LocalVar%VS_State == VS_State_Region_1_5) THEN ! Region 1.5
                 LocalVar%GenTq = LocalVar%GenBrTq
-            ELSEIF (LocalVar%VS_State == 2) THEN ! Region 2
-                LocalVar%GenTq = CntrPar%VS_Rgn2K*LocalVar%GenSpeedF*LocalVar%GenSpeedF
-            ELSEIF (LocalVar%VS_State == 3) THEN ! Region 2.5
+            ELSEIF (LocalVar%VS_State == VS_State_Region_2) THEN ! Region 2
+                LocalVar%GenTq = LocalVar%VS_KOmega2_GenTq
+            ELSEIF (LocalVar%VS_State == VS_State_Region_2_5) THEN ! Region 2.5
                 LocalVar%GenTq = LocalVar%GenArTq
-            ELSEIF (LocalVar%VS_State == 4) THEN ! Region 3, constant torque
+            ELSEIF (LocalVar%VS_State == VS_State_Region_3_ConstTrq) THEN ! Region 3, constant torque
                 LocalVar%GenTq = CntrPar%VS_RtTq
-            ELSEIF (LocalVar%VS_State == 5) THEN ! Region 3, constant power
-                LocalVar%GenTq = (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF
+            ELSEIF (LocalVar%VS_State == VS_State_Region_3_ConstPwr) THEN ! Region 3, constant power
+                LocalVar%GenTq = LocalVar%VS_ConstPwr_GenTq
+            ELSEIF (LocalVar%VS_State == VS_State_Region_3_FBP) THEN ! Region 3, fixed blade pitch
+                ! Constant power overspeed
+                IF (CntrPar%VS_FBP == VS_FBP_Power_Overspeed) THEN
+                    ! K*Omega^2 in Region 2 or constant power overspeed in Region 3
+                    LocalVar%GenTq = MIN(LocalVar%VS_ConstPwr_GenTq, LocalVar%VS_KOmega2_GenTq)
+                ! Reference-tracking in Region 3
+                ELSEIF ((CntrPar%VS_FBP == VS_FBP_WSE_Ref) .OR. (CntrPar%VS_FBP == VS_FBP_Torque_Ref)) THEN
+                    LocalVar%GenTq = LocalVar%GenArTq
+                ENDIF
             END IF
-            
-            ! Saturate
-            LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, CntrPar%VS_MaxTq)
+
         ELSE        ! VS_ControlMode of 0
             LocalVar%GenTq = 0
         ENDIF
-
-
-        ! Saturate the commanded torque using the maximum torque limit:
-        LocalVar%GenTq = MIN(LocalVar%GenTq, CntrPar%VS_MaxTq)                    ! Saturate the command using the maximum torque limit
         
-        ! Saturate the commanded torque using the torque rate limit:
+        
+        ! Shutdown
+        IF (LocalVar%SD_Trigger == 0) THEN
+            LocalVar%GenTq_SD = LocalVar%GenTq
+        ELSE 
+            IF (CntrPar%SD_Method == 1) THEN    !Only SD_Method==1 supported for now 
+                LocalVar%GenTq_SD = LocalVar%GenTq_SD - CntrPar%SD_MaxTorqueRate*LocalVar%DT
+                LocalVar%GenTq_SD = saturate(LocalVar%GenTq_SD, CntrPar%VS_MinTq, CntrPar%VS_MaxTq)
+            ENDIF
+            LocalVar%GenTq = LocalVar%GenTq_SD
+        ENDIF
+
+        ! Saturate based on most stringent defined maximum
+        LocalVar%GenTq = saturate(LocalVar%GenTq, CntrPar%VS_MinTq, MIN(CntrPar%VS_MaxTq, LocalVar%VS_MaxTq))
+
+        ! Saturate the commanded torque using the torque rate limit
         LocalVar%GenTq = ratelimit(LocalVar%GenTq, -CntrPar%VS_MaxRat, CntrPar%VS_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL)    ! Saturate the command using the torque rate limit
-        
+
         ! Open loop torque control
         IF ((CntrPar%OL_Mode > 0) .AND. (CntrPar%Ind_GenTq > 0)) THEN
             ! Get current OL GenTq, applies for OL_Mode 1 and 2
             IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN
-                LocalVar%GenTq = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_GenTq,LocalVar%Time,ErrVar)
+                LocalVar%GenTq = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_GenTq,LocalVar%OL_Index,ErrVar)
             ENDIF
             
             ! Azimuth tracking control
@@ -417,7 +474,7 @@ CONTAINS
             ! Open loop yaw rate control - control input in rad/s
             IF ((CntrPar%OL_Mode > 0) .AND. (CntrPar%Ind_YawRate > 0)) THEN
                 IF (LocalVar%Time >= CntrPar%OL_Breakpoints(1)) THEN
-                    avrSWAP(48) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_YawRate,LocalVar%Time, ErrVar)
+                    avrSWAP(48) = interp1d(CntrPar%OL_Breakpoints,CntrPar%OL_YawRate,LocalVar%OL_Index, ErrVar)
                 ENDIF
             ENDIF
 
@@ -972,5 +1029,204 @@ SUBROUTINE StructuralControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
         ENDIF
 
     END SUBROUTINE StructuralControl
+!-------------------------------------------------------------------------------------------------------------------------------
+    REAL(DbKi) FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, piP, reset, inst)
+        USE ROSCO_Types, ONLY : piParams
+
+    ! PI controller, with output saturation
+
+        IMPLICIT NONE
+        ! Allocate Inputs
+        REAL(DbKi),    INTENT(IN)         :: error
+        REAL(DbKi),    INTENT(IN)         :: kp
+        REAL(DbKi),    INTENT(IN)         :: ki
+        REAL(DbKi),    INTENT(IN)         :: minValue
+        REAL(DbKi),    INTENT(IN)         :: maxValue
+        REAL(DbKi),    INTENT(IN)         :: DT
+        INTEGER(IntKi), INTENT(INOUT)      :: inst
+        REAL(DbKi),    INTENT(IN)         :: I0
+        TYPE(piParams), INTENT(INOUT)  :: piP
+        LOGICAL,    INTENT(IN)         :: reset     
+        ! Allocate local variables
+        INTEGER(IntKi)                      :: i                                            ! Counter for making arrays
+        REAL(DbKi)                         :: PTerm                                        ! Proportional term
+
+        ! Initialize persistent variables/arrays, and set inital condition for integrator term
+        IF (reset) THEN
+            piP%ITerm(inst) = I0
+            piP%ITermLast(inst) = I0
+            
+            PIController = I0
+        ELSE
+            PTerm = kp*error
+            piP%ITerm(inst) = piP%ITerm(inst) + DT*ki*error
+            piP%ITerm(inst) = saturate(piP%ITerm(inst), minValue, maxValue)
+            PIController = saturate(PTerm + piP%ITerm(inst), minValue, maxValue)
+        
+            piP%ITermLast(inst) = piP%ITerm(inst)
+        END IF
+        inst = inst + 1
+        
+    END FUNCTION PIController
+
+
+!-------------------------------------------------------------------------------------------------------------------------------
+    REAL(DbKi) FUNCTION PIDController(error, kp, ki, kd, tf, minValue, maxValue, DT, I0, piP, reset, objInst, LocalVar)
+        USE ROSCO_Types, ONLY : piParams, LocalVariables, ObjectInstances
+
+    ! PI controller, with output saturation
+
+        IMPLICIT NONE
+        ! Allocate Inputs
+        REAL(DbKi),    INTENT(IN)         :: error
+        REAL(DbKi),    INTENT(IN)         :: kp
+        REAL(DbKi),    INTENT(IN)         :: ki
+        REAL(DbKi),    INTENT(IN)         :: kd
+        REAL(DbKi),    INTENT(IN)         :: tf
+        REAL(DbKi),    INTENT(IN)         :: minValue
+        REAL(DbKi),    INTENT(IN)         :: maxValue
+        REAL(DbKi),    INTENT(IN)         :: DT
+        TYPE(ObjectInstances),      INTENT(INOUT)   :: objInst  ! all object instances (PI, filters used here)
+        TYPE(LocalVariables),       INTENT(INOUT)   :: LocalVar
+
+        REAL(DbKi),    INTENT(IN)           :: I0
+        TYPE(piParams), INTENT(INOUT)       :: piP
+        LOGICAL,    INTENT(IN)              :: reset     
+        
+        ! Allocate local variables
+        INTEGER(IntKi)                      :: i                                            ! Counter for making arrays
+        REAL(DbKi)                          :: PTerm, DTerm                                 ! Proportional, deriv. terms
+        REAL(DbKi)                          :: EFilt                    ! Filtered error for derivative
+
+        ! Always filter error
+        EFilt = LPFilter(error, DT, tf, LocalVar%FP, LocalVar%iStatus, reset, objInst%instLPF)
+
+        ! Initialize persistent variables/arrays, and set inital condition for integrator term
+        IF (reset) THEN
+            piP%ITerm(objInst%instPI) = I0
+            piP%ITermLast(objInst%instPI) = I0
+            piP%ELast(objInst%instPI) = 0.0_DbKi
+            PIDController = I0
+        ELSE
+            ! Proportional
+            PTerm = kp*error
+            
+            ! Integrate and saturate
+            piP%ITerm(objInst%instPI) = piP%ITerm(objInst%instPI) + DT*ki*error
+            piP%ITerm(objInst%instPI) = saturate(piP%ITerm(objInst%instPI), minValue, maxValue)
+
+            ! Derivative (filtered)
+            DTerm = kd * (EFilt - piP%ELast(objInst%instPI)) / DT
+            
+            ! Saturate all
+            PIDController = saturate(PTerm + piP%ITerm(objInst%instPI) + DTerm, minValue, maxValue)
+        
+            ! Save lasts
+            piP%ITermLast(objInst%instPI) = piP%ITerm(objInst%instPI)
+            piP%ELast(objInst%instPI) = EFilt
+        END IF
+        objInst%instPI = objInst%instPI + 1
+        
+    END FUNCTION PIDController
+
+!-------------------------------------------------------------------------------------------------------------------------------
+    REAL(DbKi) FUNCTION PIIController(error, error2, kp, ki, ki2, minValue, maxValue, DT, I0, piP, reset, inst)
+    ! PI controller, with output saturation. 
+    ! Added error2 term for additional integral control input
+        USE ROSCO_Types, ONLY : piParams
+        
+        IMPLICIT NONE
+        ! Allocate Inputs
+        REAL(DbKi), INTENT(IN)         :: error
+        REAL(DbKi), INTENT(IN)         :: error2
+        REAL(DbKi), INTENT(IN)         :: kp
+        REAL(DbKi), INTENT(IN)         :: ki2
+        REAL(DbKi), INTENT(IN)         :: ki
+        REAL(DbKi), INTENT(IN)         :: minValue
+        REAL(DbKi), INTENT(IN)         :: maxValue
+        REAL(DbKi), INTENT(IN)         :: DT
+        INTEGER(IntKi), INTENT(INOUT)   :: inst
+        REAL(DbKi), INTENT(IN)         :: I0
+        TYPE(piParams), INTENT(INOUT) :: piP
+        LOGICAL, INTENT(IN)         :: reset     
+        ! Allocate local variables
+        INTEGER(IntKi)                      :: i                                            ! Counter for making arrays
+        REAL(DbKi)                         :: PTerm                                        ! Proportional term
+
+        ! Initialize persistent variables/arrays, and set inital condition for integrator term
+        IF (reset) THEN
+            piP%ITerm(inst) = I0
+            piP%ITermLast(inst) = I0
+            piP%ITerm2(inst) = I0
+            piP%ITermLast2(inst) = I0
+            
+            PIIController = I0
+        ELSE
+            PTerm = kp*error
+            piP%ITerm(inst) = piP%ITerm(inst) + DT*ki*error
+            piP%ITerm2(inst) = piP%ITerm2(inst) + DT*ki2*error2
+            piP%ITerm(inst) = saturate(piP%ITerm(inst), minValue, maxValue)
+            piP%ITerm2(inst) = saturate(piP%ITerm2(inst), minValue, maxValue)
+            PIIController = PTerm + piP%ITerm(inst) + piP%ITerm2(inst)
+            PIIController = saturate(PIIController, minValue, maxValue)
+        
+            piP%ITermLast(inst) = piP%ITerm(inst)
+        END IF
+        inst = inst + 1
+        
+    END FUNCTION PIIController
+
+        !-------------------------------------------------------------------------------------------------------------------------------
+    REAL(DbKi) FUNCTION ResController(error, kp, ki, freq, minValue, maxValue, DT, resP, reset, inst)
+        USE ROSCO_Types, ONLY : resParams
+
+    ! PI controller, with output saturation
+
+        IMPLICIT NONE
+        ! Allocate Inputs
+        REAL(DbKi),    INTENT(IN)         :: error
+        REAL(DbKi),    INTENT(IN)         :: kp
+        REAL(DbKi),    INTENT(IN)         :: ki
+        REAL(DbKi),    INTENT(IN)         :: freq
+        REAL(DbKi),    INTENT(IN)         :: minValue
+        REAL(DbKi),    INTENT(IN)         :: maxValue
+        REAL(DbKi),    INTENT(IN)         :: DT
+        INTEGER(IntKi), INTENT(INOUT)     :: inst
+        TYPE(resParams), INTENT(INOUT)    :: resP
+        LOGICAL,    INTENT(IN)            :: reset
+        ! Allocate local variables
+        REAL(DbKi)                        :: omega                                        ! Frequency
+        REAL(DbKi)                        :: a0, a1, a2, b0, b1, b2
+
+        omega = 2*PI*freq
+
+        !! Tustin RC
+        b0 = 4+omega**2*DT**2
+        b1 = -8+2*omega**2*DT**2
+        b2 = 4+omega**2*DT**2
+        a0 = b0*kp + 2*DT*ki
+        a1 = b1*kp 
+        a2 = b2*kp - 2*DT*ki
+        ! Initialize persistent variables/arrays, and set initial condition for integrator term
+        IF (reset) THEN
+            resP%res_OutputSignalLast1(inst)  = 0
+            resP%res_OutputSignalLast2(inst)  = 0
+            resP%res_InputSignalLast1(inst)   = 0
+            resP%res_InputSignalLast2(inst)   = 0
+        ELSE
+            ResController = 1/b0*( -b1*resP%res_OutputSignalLast1(inst) - b2*resP%res_OutputSignalLast2(inst) &
+                                    + a0*error + a1*resP%res_InputSignalLast1(inst) + a2*resP%res_InputSignalLast2(inst))
+            ResController = saturate(ResController, minValue, maxValue)
+        
+            ! Save signals for next time step
+            resP%res_InputSignalLast2(inst)   = resP%res_InputSignalLast1(inst)
+            resP%res_InputSignalLast1(inst)   = error
+            resP%res_OutputSignalLast2(inst)  = resP%res_OutputSignalLast1(inst)
+            resP%res_OutputSignalLast1(inst)  = ResController
+        END IF
+        inst = inst + 1
+        
+    END FUNCTION ResController
+
 !-------------------------------------------------------------------------------------------------------------------------------
 END MODULE Controllers
