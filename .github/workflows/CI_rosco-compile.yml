@@ -125,9 +125,9 @@ jobs:
                   activate-environment: test
                   auto-activate-base: false
 
-            - name: Install OpenFAST
-              run: |
-                  conda install openfast>=4.0
+            # - name: Install OpenFAST
+            #   run: |
+            #       conda install openfast>=4.0
                   
             - name: Add dependencies windows specific
               if: contains( matrix.os, 'windows')
