@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Change the directory to the script's location
+cd "$(dirname "$0")"
+
 # Create a temporary directory for cloning
 temp_dir=$(mktemp -d)
 echo "Created temporary directory: $temp_dir"
