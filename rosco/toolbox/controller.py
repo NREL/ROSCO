@@ -108,7 +108,7 @@ class Controller():
 
         # Optional parameters without defaults
         if 'min_pitch' in controller_params:
-            # Set below if no user input
+            # Set below using Cp surface if no user input
             self.min_pitch = controller_params['min_pitch']
 
         if self.VS_FBP > 0:
@@ -254,7 +254,7 @@ class Controller():
 
         # ------------- Saturation Limits --------------- #
         turbine.max_torque = turbine.rated_torque * self.controller_params['max_torque_factor']
-        if not hasattr(self, 'min_pitch') or not isinstance(self.min_pitch, float): # Set min pitch to optimal if no user input
+        if not hasattr(self, 'min_pitch'): # Set min pitch to optimal if no user input
             self.min_pitch = turbine.Cp.pitch_opt
         turbine.min_pitch = self.min_pitch
 
