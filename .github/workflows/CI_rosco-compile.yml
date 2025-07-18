@@ -17,7 +17,7 @@ jobs:
             fail-fast: false #true
             matrix:
                 os: ["ubuntu-latest", "macOS-latest", "windows-latest"] #mac-13 intel, mac-14 arm
-                python-version: ["3.10", "3.11", "3.12"]
+                python-version: ["3.11", "3.12"]
 
         steps:
             - name: Setup GNU Fortran
@@ -125,9 +125,9 @@ jobs:
                   activate-environment: test
                   auto-activate-base: false
 
-            - name: Install OpenFAST
-              run: |
-                  conda install openfast>=4.0
+            # - name: Install OpenFAST
+            #   run: |
+            #       conda install openfast>=4.0
                   
             - name: Add dependencies windows specific
               if: contains( matrix.os, 'windows')
