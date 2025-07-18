@@ -902,6 +902,9 @@ class OpenLoopControl(object):
 
         
     def const_timeseries(self,control,value):
+        if control == 'nacelle_yaw':
+            raise Exception('Open loop control of nacelle_yaw will not work.  Only the yaw rate is controlled from OpenFAST.  Please change NacYaw in ElastoDyn and YawNeut in ServoDyn.')
+        
         self.ol_series[control] = value * np.ones(len(self.ol_series[self.breakpoint]))
         
 
