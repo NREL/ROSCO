@@ -196,9 +196,6 @@ class Turbine():
             fast.fst_vt['ServoDyn']['GenEff'] = 100.        # gen efficency defined in percent in ServoDyn
     
 
-        # fast.read_AeroDyn()
-        # fast.execute()
-
         # Use Performance tables if defined, otherwise use defaults
         if txt_filename:
             self.rotor_performance_filename = txt_filename
