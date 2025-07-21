@@ -414,10 +414,10 @@ CONTAINS
             ENDIF
 
             ! Update filtered wind direction
-            WindDirPlusOffset = wrap_360(WindDir + NacVaneOffset) ! (deg)
+            WindDirPlusOffset = wrap_180(WindDir + NacVaneOffset) ! (deg)
             WindDirPlusOffsetCosF = LPFilter(cos(WindDirPlusOffset*D2R), LocalVar%DT, CntrPar%F_YawErr, LocalVar%FP, LocalVar%iStatus, .FALSE., objInst%instLPF) ! (-)
             WindDirPlusOffsetSinF = LPFilter(sin(WindDirPlusOffset*D2R), LocalVar%DT, CntrPar%F_YawErr, LocalVar%FP, LocalVar%iStatus, .FALSE., objInst%instLPF) ! (-)
-            NacHeadingTarget = wrap_360(atan2(WindDirPlusOffsetSinF, WindDirPlusOffsetCosF) * R2D) ! (deg)
+            NacHeadingTarget = wrap_180(atan2(WindDirPlusOffsetSinF, WindDirPlusOffsetCosF) * R2D) ! (deg)
 
             ! ---- Now get into the guts of the control ----
             ! Yaw error
