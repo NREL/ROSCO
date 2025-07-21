@@ -178,11 +178,7 @@ class Turbine():
         elif fast.fst_vt['Fst']['CompElast'] ==2:
             bd_file = os.path.join(fast.FAST_directory, fast.fst_vt['Fst']['BDBldFile(1)'])
             fast.read_BeamDyn(bd_file)
-
-            if type(self.fast.fst_vt['BeamDyn']) == list:        
-                bd_blade_file = os.path.join(os.path.dirname(bd_file), fast.fst_vt['BeamDyn'][0]['BldFile'])
-            else:
-                bd_blade_file = os.path.join(os.path.dirname(bd_file), fast.fst_vt['BeamDyn']['BldFile'])
+            bd_blade_file = os.path.join(os.path.dirname(bd_file), fast.fst_vt['BeamDyn'][0]['BldFile'])
             fast.read_BeamDynBlade(bd_blade_file)
         else:
             Warning('No ElastoDyn or BeamDyn files were provided')
@@ -585,15 +581,9 @@ class Turbine():
         self.twist = theta
         
         if self.fast.fst_vt['Fst']['CompElast'] ==1:
-            if type(self.fast.fst_vt['ElastoDynBlade']) == list:
-                self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade'][0]['BldFlDmp1']/100
-            else:
-                self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade']['BldFlDmp1']/100
+            self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade'][0]['BldFlDmp1']/100
         elif self.fast.fst_vt['Fst']['CompElast'] ==2:
-            if type(self.fast.fst_vt['BeamDynBlade']) == list:
-                self.bld_flapwise_damp = self.fast.fst_vt['BeamDynBlade'][0]['mu5']
-            else:
-                self.bld_flapwise_damp = self.fast.fst_vt['BeamDynBlade']['mu5']
+            self.bld_flapwise_damp = self.fast.fst_vt['BeamDynBlade'][0]['mu5']
         
 class RotorPerformance():
     '''
