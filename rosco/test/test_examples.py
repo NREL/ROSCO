@@ -21,7 +21,7 @@ all_scripts = [
     '16_external_dll',
     '17a_zeromq_simple',  # only runs on unix in CI
     '17b_zeromq_multi_openfast',  # only runs on unix in CI
-    '18_pitch_offsets',
+    '18_pitch_faults',
     '19_update_discon_version', 
     '20_active_wake_control',   
     '21_optional_inputs',
@@ -34,6 +34,8 @@ all_scripts = [
     '28_tower_resonance',
     '29_power_control',
     '30_shutdown',
+    '31_fixed_pitch_mhk',
+    '32_startup',
     'update_rosco_discons',     
 ]
 

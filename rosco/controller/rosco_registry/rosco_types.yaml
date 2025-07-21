@@ -158,6 +158,9 @@ ControlParameters:
       <<: *real
       description: Corner frequency (-3dB point) in the second order low pass filter of the blade root bending moment for flap control [rad/s].
       allocatable: True
+    F_VSRefSpdCornerFreq:
+      <<: *real
+      description: Corner frequency (-3dB point) in the first order low pass filter of the generator speed reference used for TSR tracking torque control [rad/s].
     
     # Tower fore-aft damping
     TRA_Mode:
@@ -267,25 +270,28 @@ ControlParameters:
     # Generator Torque Controller
     VS_ControlMode:
       <<: *integer
-      description: Generator torque control mode in above rated conditions {0 - no torque control, 1 - komega^2 with PI trans, 2 - WSE TSR Tracking, 3 - Power TSR Tracking}
+      description: Generator torque control mode in below rated conditions {0 - no torque control, 1 - komega^2 with PI trans, 2 - WSE TSR Tracking, 3 - Power TSR Tracking, 4 - Torque TSR Tracking}
     VS_ConstPower:
       <<: *integer
       description: Constant power torque control
+    VS_FBP:
+      <<: *integer
+      description: Fixed blade pitch control mode in above rated conditions {0 - variable pitch (defer to PC_ControlMode and VS_ConstPower), 1 - P/omega overspeed control law, 2 - PI reference tracking based on WSE lookup table, 3 - PI reference tracking based on torque lookup table (must have VS_FBP_Tau be a monotonic function)}
     VS_GenEff:
       <<: *real
       description: Generator efficiency mechanical power -> electrical power [-]
     VS_ArSatTq:
       <<: *real
-      description: Above rated generator torque PI control saturation, [Nm] -- 212900
+      description: Above rated generator torque PI control saturation, [Nm]
     VS_MaxRat:
       <<: *real
       description: Maximum torque rate (in absolute value) in torque controller, [Nm/s].
     VS_MaxTq:
       <<: *real
-      description: Maximum generator torque in Region 3 (HSS side), [Nm]. -- chosen to be 10% above VS_RtTq
+      description: Maximum generator torque in Region 3 (HSS side), [Nm].
     VS_MinTq:
       <<: *real
-      description: Minimum generator (HSS side), [Nm].
+      description: Minimum generator torque (HSS side), [Nm].
     VS_MinOMSpd:
       <<: *real
       description: Optimal mode minimum speed, [rad/s]
@@ -315,10 +321,22 @@ ControlParameters:
     VS_TSRopt:
       <<: *real
       description: Power-maximizing region 2 tip-speed ratio [rad]
-    VS_PwrFiltF:
+    VS_FBP_n:
+      <<: *integer
+      description: Number of operating schedule entries for fixed blade pitch control
+    VS_FBP_U:
       <<: *real
-      description: Cut-off frequency of filter on generator power for power-based tsr tracking control
-    
+      description: Operating schedule for fixed blade pitch control - Wind speed
+      allocatable: True
+    VS_FBP_Omega:
+      <<: *real
+      description: Operating schedule for fixed blade pitch control - Generator speed
+      allocatable: True
+    VS_FBP_Tau:
+      <<: *real
+      description: Operating schedule for fixed blade pitch control - Generator torque
+      allocatable: True
+
     # Setpoint Smoother
     SS_Mode:
       <<: *integer
@@ -460,6 +478,37 @@ ControlParameters:
     PS_BldPitchMin:
       <<: *real
       description: Minimum blade pitch angles [rad]
+      allocatable: True
+    # Startup
+    SU_Mode:
+      <<: *integer
+      description: Startup mode {0 - no startup procedure, 1 - enable startup}
+    SU_StartTime:
+      <<: *real
+      description: Time to start start up routine
+    SU_FW_MinDuration:
+      <<: *real
+      description: Free-wheel minimum duration [s]
+    SU_RotorSpeedThresh:
+      <<: *real
+      description: Rotor speed threshhold to switch from freewheel to loads [rad/s]
+    SU_RotorSpeedCornerFreq:
+      <<: *real
+      description: Cutoff Frequency for first order low-pass filter for rotor speed for startup, [rad/s]
+    SU_LoadStages_N:
+      <<: *integer
+      description: Number of load staged for startup (should equal number of values in SU_LoadStages, SU_LoadRampDuration and SU_LoadHoldDuration) [-]
+    SU_LoadStages:
+      <<: *real
+      description: Array containing loads as a fraction of full generator torque during startup [-]
+      allocatable: True
+    SU_LoadRampDuration:
+      <<: *real
+      description: Array containing ramp duration to reach the corresponding partial loads during startup [s]
+      allocatable: True
+    SU_LoadHoldDuration:
+      <<: *real
+      description: Array containing duration to hold the partial loads during startup [s]
       allocatable: True
     # Shutdown 
     SD_Mode:
@@ -695,6 +744,10 @@ ControlParameters:
     PF_Offsets:
       <<: *real
       description: Pitch actuator fault offsets for blade 1-3 [rad/s]
+      allocatable: True
+    PF_TimeStuck:
+      <<: *real
+      description: Time for pitch actuator fault to be stuck for blade 1-3 [s]
       allocatable: True
     
     
@@ -1039,9 +1092,6 @@ LocalVariables:
     VS_GenPwr: 
       <<: *real 
       description: Generator power [W]
-    VS_GenPwrF: 
-      <<: *real 
-      description: Generator power [W]
     GenSpeed: 
       <<: *real 
       description: Generator speed (HSS) [rad/s]
@@ -1121,7 +1171,7 @@ LocalVariables:
       description: Torque control generator speed set point [rad/s]
     VS_RefSpd_TSR:          
       <<: *real 
-      description: Torque control generator speed set point based on optimal TSR [rad/s]
+      description: Torque control generator speed set point based on optimal TSR (unfiltered) [rad/s]
     VS_RefSpd_TRA:          
       <<: *real 
       description: Torque control generator speed set point after freq avoidance [rad/s]
@@ -1139,7 +1189,7 @@ LocalVariables:
       description: Generator speed set point of pitch controller after power ref control [rad/s]
     RotSpeedF:                    
       <<: *real 
-      description: Filtered LSS (generator) speed [rad/s].
+      description: Filtered LSS (rotor) speed [rad/s].
     GenSpeedF:                    
       <<: *real 
       description: Filtered HSS (generator) speed [rad/s].
@@ -1155,6 +1205,12 @@ LocalVariables:
     GenBrTq:                      
       <<: *real 
       description: Electrical generator torque, for below-rated PI-control [Nm].
+    VS_KOmega2_GenTq:
+      <<: *real 
+      description: Calculation of torque signal used by K*Omega^2 controller
+    VS_ConstPwr_GenTq:
+      <<: *real 
+      description: Calculation of constant-power torque signal 
     IPC_PitComF:     
       <<: *real 
       description: Commanded pitch of each blade as calculated by the individual pitch controller, F stands for low-pass filtered [rad].
@@ -1333,6 +1389,15 @@ LocalVariables:
     OL_Index:
       <<: *real
       description: Open loop indexing variable (time or wind speed)
+    SU_Stage:
+      <<: *integer
+      description: Current stage of startup procedure (0- Startup not active, 1- Free-wheeling, 2,3,.. - Load stage 1,2...etc)
+    SU_LoadStageStartTime:
+      <<: *real
+      description: Time at which the current startup load stage started
+    SU_RotSpeedF:
+      <<: *real
+      description: Rotor speed signal filtered for startup
     SD_Trigger:
       <<: *integer
       description: Shutdown trigger (1 - shutdown due to pitch, 2 - shutdown due to yaw error, 3 - shutdown due to generator speed, 4 - shutdown due to time)

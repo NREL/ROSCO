@@ -10,7 +10,7 @@ In this example:
 * Write a controller input file (``'03_DISCON.IN'``)
 * Plot gain schedule (``PC_GS_KP`` and ``PC_GS_KI`` versus ``PS_GS_angles``):
 
-.. figure:: /source/figures/03_GainSched.png
+.. figure:: /images/examples/03_GainSched.png
    :align: center
    :width: 70%
 

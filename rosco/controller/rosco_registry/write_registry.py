@@ -46,7 +46,7 @@ def write_types(yfile):
             file.write('    {:<25s}     :: {:<25s}   ! {}\n'.format(f90type, atstr, reg[toptype][attype]['description']))
         file.write('END TYPE {}\n'.format(toptype))
         file.write('\n')
-    file.write('END MODULE ROSCO_Types')
+    file.write('END MODULE ROSCO_Types\n')
     file.close()
 
 def write_roscoio(yfile):
@@ -365,15 +365,15 @@ def write_roscoio(yfile):
     file.write("    ! Write debug files\n")
     file.write(f'    FmtDat = "(F20.5,TR5,{n_lv_outputs}(ES20.5E2,TR5:))"   ! The format of the debugging data\n')
     file.write("    IF ( MOD(LocalVar%n_DT, CntrPar%n_DT_Out) == 0) THEN\n")
-    file.write("        IF(CntrPar%LoggingLevel > 0) THEN\n")
+    file.write("        IF((CntrPar%LoggingLevel > 0) .AND. (LocalVar%iStatus .ge. 0)) THEN\n")
     file.write("            WRITE (UnDb, TRIM(FmtDat))  LocalVar%Time, DebugOutData\n")
     file.write("        END IF\n")
     file.write("\n")
-    file.write("        IF(CntrPar%LoggingLevel > 1) THEN\n")
+    file.write("        IF((CntrPar%LoggingLevel > 1) .AND. (LocalVar%iStatus .ge. 0)) THEN\n")
     file.write("            WRITE (UnDb2, TRIM(FmtDat))  LocalVar%Time, LocalVarOutData\n")
     file.write("        END IF\n")
     file.write("\n")
-    file.write("        IF(CntrPar%LoggingLevel > 2) THEN\n")
+    file.write("        IF((CntrPar%LoggingLevel > 2) .AND. (LocalVar%iStatus .ge. 0)) THEN\n")
     file.write("            WRITE (UnDb3, TRIM(FmtDat))    LocalVar%Time, avrSWAP(avrIndices)\n")
     file.write("        END IF\n")
     file.write("    END IF\n")
@@ -387,7 +387,7 @@ def write_roscoio(yfile):
 
     file.write("END SUBROUTINE Debug\n")
     file.write("\n")
-    file.write("END MODULE ROSCO_IO")
+    file.write("END MODULE ROSCO_IO\n")
     file.close()
 
 def check_size(main_attribute, sub_attribute):

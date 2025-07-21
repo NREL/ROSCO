@@ -128,15 +128,21 @@ properties:
             VS_ControlMode:     
                 type: number
                 minimum: 0
-                maximum: 3
+                maximum: 4
                 default: 2
-                description: Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking)
+                description: Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking, 4- Torque-based TSR Tracking)
             VS_ConstPower:     
                 type: number
                 minimum: 0
                 maximum: 1
                 default: 0
                 description: Do constant power torque control, where above rated torque varies, 0 for constant torque
+            VS_FBP:
+                type: number
+                minimum: 0
+                maximum: 3
+                default: 0
+                description: Configuration for FBP mode (0- variable pitch (disabled), 1- constant power overspeed, 2- WSE-lookup reference tracking, 3- torque-lookup reference tracking)
             PC_ControlMode:     
                 type: number
                 minimum: 0
@@ -167,6 +173,12 @@ properties:
                 maximum: 3
                 default: 3
                 description: Pitch saturation mode (0- no pitch saturation, 1- peak shaving, 2- Cp-maximizing pitch saturation, 3- peak shaving and Cp-maximizing pitch saturation)
+            SU_Mode:
+                type: number
+                minimum: 0
+                maximum: 1
+                default: 0
+                description: Startup mode (0- no startup procedure, 1- startup enabled)
             SD_Mode:            
                 type: number
                 minimum: 0
@@ -225,7 +237,7 @@ properties:
                 minimum: 0
                 maximum: 1
                 default: 0
-                description: Pitch fault mode {0 - not used, 1 - constant offset on one or more blades}
+                description: Pitch fault mode {0 - not used, 1 - constant offset on one or more blades, 2- pitch stuck at last values}
             OL_Mode:           
                 type: number
                 minimum: 0
@@ -306,8 +318,8 @@ properties:
             min_pitch:           
                 description: Minimum pitch angle [rad], {default = 0 degrees}
                 type: number
-                default: 0
                 unit: rad
+                default: 0.0
             vs_minspd:           
                 description: Minimum rotor speed [rad/s], {default = 0 rad/s}
                 type: number
@@ -329,46 +341,6 @@ properties:
                 default: 0.8
                 maximum: 1
                 unit: rad
-            sd_enablepitch:           
-                description: Shutdown when collective blade pitch exceeds a threshold [-], {default = 0}
-                type: number
-                default: 0
-            sd_enableyawerror:           
-                description: Shutdown when yaw error exceeds a threshold, [-], {default = 0}
-                type: number
-                default: 0
-            sd_enablegenspeed:           
-                description: Shutdown when generator speed exceeds a threshold, [-], {default = 9}
-                type: number
-                default: 0
-            sd_enabletime:           
-                description: Shutdown at a predefined time, [-] {default = 0}
-                type: number
-                default: 0
-            sd_maxpit:           
-                description: Maximum blade pitch angle to initiate shutdown [rad], {default = 40 deg.}
-                type: number
-                default: 0.6981
-                unit: rad
-            sd_maxyawerror:
-                description: Maximum yaw error to initiate shutdown [rad], {default = 30 deg.}
-                type: number
-                default: 0.5236
-                unit: rad
-            sd_maxgenspd:
-                description: Maximum generator speed to initiate shutdown, [rad/s], {default = 10 rad/s.}
-                type: number
-                default: 10
-                unit: rad/s
-            sd_time:
-                description: Shutdown time, [s], {default = 9999 s.}
-                type: number
-                default: 9999
-                unit: s
-            sd_method:
-                description: Shutdown method {Only 1 supported for now}
-                type: number
-                default: 1
             flp_maxpit:
                 description: Maximum (and minimum) flap pitch angle [rad]
                 type: number
@@ -469,6 +441,35 @@ properties:
                 description: Factor on VS_Rgn2K to increase/decrease optimal torque control gain, default is 1.  Sometimes environmental conditions or differences in BEM solvers necessitate this change.
                 default: 1
                 minimum: 0
+            VS_FBP_power_mode:
+                type: number
+                description: Interpretation mode for VS_FBP_P (0- scale relative to rated power, 1- absolute power)
+                default: 0
+                minimum: 0
+                maximum: 1
+            VS_FBP_speed_mode:
+                type: number
+                description: Overspeed or underspeed operating schedule (0- underspeed, 1- overspeed)
+                default: 0
+                minimum: 0
+                maximum: 1
+            VS_FBP_U:
+                type: array
+                description: List of wind speeds to schedule user-defined power curve for fixed blade pitch (FBP) control in Region 3
+                unit: m/s
+                items:
+                    type: number
+                    minimum: 0
+                    uniqueItems: True
+                default: [1.0, 2.0]
+            VS_FBP_P:
+                type: [array,number]
+                description: List of points defining power curve for fixed blade pitch (FBP) control in Region 3, relative or absolute based on VS_FBP_power_mode
+                unit: none
+                items:
+                    type: number
+                    minimum: 0
+                default: [1.0, 1.0]
 
             filter_params:
                 type: object
@@ -525,6 +526,12 @@ properties:
                         type: number
                         default: 0.41888
                         unit: rad/s
+                    f_vs_refspd_cornerfreq:
+                        type: number
+                        description: Corner frequency (-3dB point) in the first order low pass filter for TSR tracking torque control [rad/s]
+                        minimum: 0
+                        unit: rad/s
+                        default: 0.209440
             open_loop:
                 type: object
                 default: {}
@@ -636,13 +643,18 @@ properties:
                     VS_ControlMode:     
                         type: number
                         minimum: 0
-                        maximum: 3
-                        description: Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking)
+                        maximum: 4
+                        description: Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking, 4- Torque-based TSR Tracking)
                     VS_ConstPower:     
                         type: number
                         minimum: 0
                         maximum: 1
                         description: Do constant power torque control, where above rated torque varies
+                    VS_FBP:
+                        type: number
+                        minimum: 0
+                        maximum: 3
+                        description: Configuration for FBP mode (0- variable pitch (disabled), 1- constant power overspeed, 2- WSE-lookup reference tracking, 3- torque-lookup reference tracking)
                     F_NotchType:
                         type: number
                         description: Notch on the measured generator speed and/or tower fore-aft motion (for floating) (0- disable, 1- generator speed, 2- tower-top fore-aft motion, 3- generator speed and tower-top fore-aft motion)
@@ -664,6 +676,9 @@ properties:
                     PS_Mode:
                         type: number
                         description: Pitch saturation mode (0- no pitch saturation, 1- implement pitch saturation)
+                    SU_Mode:
+                        type: number
+                        description: Startup mode (0- no startup procedure, 1- startup enabled)
                     SD_Mode:
                         type: number
                         description: Shutdown mode (0- no shutdown procedure, 1- enable shutdown)
@@ -742,6 +757,10 @@ properties:
                             type: number
                         description: Corner frequency and damping in the second order low pass filter of the blade root bending moment for flap control 
                         units: rad/s
+                    F_VSRefSpdCornerFreq:
+                        type: number
+                        description: Corner frequency (-3dB point) in the first order low pass filter of the generator speed reference used for TSR tracking torque control [rad/s].
+                        units: rad
                     PC_GS_n:
                         type: number
                         description: Amount of gain-scheduling table entries
@@ -853,7 +872,7 @@ properties:
                         units: rad/s
                     VS_Rgn2K:
                         type: number
-                        description: Generator torque constant in Region 2 (HSS side). Only used in VS_ControlMode = 1,3
+                        description: Generator torque constant in Region 2 (HSS side). Only used in VS_ControlMode = 1,3,4
                         units: Nm/(rad/s)^2
                     VS_RtPwr:
                         type: number
@@ -881,11 +900,6 @@ properties:
                         type: number
                         description: Power-maximizing region 2 tip-speed-ratio. Only used in VS_ControlMode = 2.
                         units: rad
-                    VS_PwrFiltF:
-                        type: number
-                        description: Low pass filter on power used to determine generator speed set point.  Only used in VS_ControlMode = 3.
-                        units: rad
-                        default: 0.314
                     SS_VSGain:
                         type: number
                         description: Variable speed torque controller setpoint smoother gain
@@ -1074,9 +1088,51 @@ properties:
                             type: number
                         description: Minimum blade pitch angles
                         units: rad
+                    SU_StartTime:
+                        type: number
+                        description: Time to start startup routine [s]
+                        units: s
+                        default: 120
+                    SU_FW_MinDuration:
+                        type: number
+                        description: Free-wheel minimum duration [s]
+                        units: s
+                        default: 200
+                    SU_RotorSpeedThresh:
+                        type: number
+                        description: Rotor speed threshhold to switch from freewheel to loads [rad/s]
+                        units: rad/s
+                        default: 0.52
+                    SU_RotorSpeedCornerFreq:
+                        type: number
+                        description: Cutoff Frequency for first order low-pass filter for rotor speed for startup [rad/s]
+                        units: rad/s
+                        default: 0.41888
+                    SU_LoadStages_N:
+                        type: number
+                        description: Number of load staged for startup (should equal number of values in SU_LoadStages, SU_LoadRampDuration and SU_LoadHoldDuration)
+                        default: 2
+                    SU_LoadStages:
+                        type: array
+                        items:
+                            type: number
+                        description: Array containing loads as a fraction of full generator torque during startup
+                        default: [0.2, 1.0]
+                    SU_LoadRampDuration:
+                        type: array
+                        items:
+                            type: number
+                        description: Array containing ramp duration to reach the corresponding partial loads during startup [s]
+                        default: [100, 100]
+                    SU_LoadHoldDuration:
+                        type: array
+                        items:
+                            type: number
+                        description: Array containing duration to hold the partial loads during startup [s]
+                        default: [200, 100]
                     SD_TimeActivate:
                         type: number
-                        description: Time to acitvate shutdown modes
+                        description: Time to acitvate shutdown modes [s]
                         units: s
                         default: 0
                     SD_EnablePitch:
@@ -1107,7 +1163,6 @@ properties:
                         type: number
                         description: Maximum blade pitch angle to initiate shutdown
                         units: rad
-                        default: 0.6981
                     SD_PitchCornerFreq:
                         type: number
                         description: Cutoff Frequency for first order low-pass filter for blade pitch angle for shutdown,
@@ -1117,7 +1172,6 @@ properties:
                         type: number
                         description: Maximum yaw error to initiate shutdown
                         units: deg
-                        default: 30.0
                     SD_YawErrorCornerFreq:
                         type: number
                         description: Cutoff Frequency for first order low-pass filter for yaw error for shutdown
@@ -1127,7 +1181,6 @@ properties:
                         type: number
                         description: Maximum generator speed to initiate shutdown
                         units: rad/s
-                        default: 10
                     SD_GenSpdCornerFreq:
                         type: number
                         description: Cutoff Frequency for first order low-pass filter for generator speed for shutdown
@@ -1254,9 +1307,16 @@ properties:
                         type: array
                         items:
                             type: number
-                        description: Pitch angle offsets for each blade (array with length of 3)
+                        description: Pitch angle offsets for each blade (array with length of 3), only used if PF_Mode = 1
                         units: rad
                         default: [0,0,0]
+                    PF_TimeStuck:
+                        type: array
+                        items:
+                            type: number
+                        description: Time pitch actuator becomes stuck at last value for each blade (array with length of 3), only used if PF_Mode = 2
+                        units: seconds
+                        default: [9999,9999,9999]
                     CC_Group_N:
                         type: number
                         description: Number of cable control groups
