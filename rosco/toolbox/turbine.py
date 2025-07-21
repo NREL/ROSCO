@@ -598,10 +598,7 @@ class Turbine():
         self.twist = theta
         
         if self.fast.fst_vt['Fst']['CompElast'] ==1:
-            if type(self.fast.fst_vt['ElastoDynBlade']) == list:
-                self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade'][0]['BldFlDmp1']/100
-            else:
-                self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade']['BldFlDmp1']/100
+            self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade'][0]['BldFlDmp1']/100
         elif self.fast.fst_vt['Fst']['CompElast'] ==2:
             self.bld_flapwise_damp = self.fast.fst_vt['BeamDynBlade'][0]['mu5']
         
