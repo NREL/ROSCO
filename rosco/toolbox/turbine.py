@@ -26,10 +26,8 @@ from openfast_io import FileTools
 try:
     import weis.aeroelasticse
     use_weis = True
-    print('Using weis.aeroelasticse in rosco.toolbox...')
 except:
     use_weis = False
-    print('Using ofTools in rosco.toolbox...')
 
 
 # Some useful constants
@@ -59,7 +57,6 @@ class Turbine():
     load_from_ccblade
     load_from_txt
     generate_rotperf_fast
-    write_rotor_performance
 
     Parameters:
     -----------
@@ -274,6 +271,8 @@ class Turbine():
         # Define operational TSR
         if not self.TSR_operational:
             self.TSR_operational = self.Cp.TSR_opt
+        # Compute operational Cp (may not be optimal if TSR_operational set by user)
+        self.Cp_operational = self.Cp.interp_surface(self.Cp.pitch_opt, self.TSR_operational)
 
         # Pull out some floating-related data
         try:
@@ -293,7 +292,6 @@ class Turbine():
                   Dictionary containing fast model details - defined using from InputReader_OpenFAST (distributed as a part of AeroelasticSE)
 
         '''
-        from wisdem.ccblade.ccblade import CCAirfoil, CCBlade
 
         print('Loading rotor performance data from CC-Blade.')
 
@@ -304,8 +302,8 @@ class Turbine():
             self.load_blade_info()
         
         # Generate the look-up tables, mesh the grid and flatten the arrays for cc_rotor aerodynamic analysis
-        TSR_initial = np.arange(2, 15,0.5)
-        pitch_initial = np.arange(-5,31,1.)
+        TSR_initial = np.arange(0.5, 25, 0.5)
+        pitch_initial = np.arange(-5, 31, 1.)
         pitch_initial_rad = pitch_initial * deg2rad
         ws_array = np.ones_like(TSR_initial) * self.v_rated # evaluate at rated wind speed
         omega_array = (TSR_initial * ws_array / self.rotor_radius) * RadSec2rpm
@@ -336,7 +334,6 @@ class Turbine():
         self.Ct_table = Ct 
         self.Cq_table = Cq
 
-    
     def generate_rotperf_fast(self, openfast_path, FAST_runDirectory=None, run_BeamDyn=False,
                               debug_level=1, run_type='multi'):
         '''
@@ -622,7 +619,7 @@ class RotorPerformance():
     TSR_initial : array_like (rad)
                     An [n x 1] or [1 x n] array containing tip-speed ratios corresponding to  performance_table 
     '''
-    def __init__(self,performance_table, pitch_initial_rad, TSR_initial):
+    def __init__(self, performance_table, pitch_initial_rad, TSR_initial):
 
         # Store performance data tables
         self.performance_table = performance_table          # Table containing rotor performance data, i.e. Cp, Ct, Cq
@@ -635,27 +632,39 @@ class RotorPerformance():
         # "Optimal" below rated TSR and blade pitch (for Cp) - note this may be limited by resolution of Cp-surface
         self.max = np.amax(performance_table)
         self.max_ind = np.where(performance_table == np.amax(performance_table))
-        self.pitch_opt = pitch_initial_rad[self.max_ind[1]]
-        # --- Find TSR ---
-        # Make finer mesh for Tip speed ratios at "optimal" blade pitch angle, do a simple lookup. 
-        #       -- nja: this seems to work a little better than interpolating
 
-        # Find the 1D performance table when pitch is at the maximum part of the Cx surface:
-        performance_beta_max = np.ndarray.flatten(performance_table[:,self.max_ind[1][-1]]) # performance metric at the last maximizing pitch angle
-        
-        # If there is more than one max pitch angle:
+        # Throw a warning if there is more than one max pitch angle
         if len(self.max_ind[1]) > 1:
             print('rosco.toolbox Warning: repeated maximum values in a performance table and the last one @ pitch = {} rad. was taken...'.format(self.pitch_opt[-1]))
 
-        # Find TSR that maximizes Cx at fine pitch
-        # - TSR to satisfy: max( Cx(TSR, \beta_fine) ) = TSR_opt
-        TSR_fine_ind = np.linspace(TSR_initial[0],TSR_initial[-1],int(TSR_initial[-1] - TSR_initial[0])*100) # Range of TSRs to interpolate accross
-        f_TSR = interpolate.interp1d(TSR_initial,TSR_initial,bounds_error='False',kind='quadratic')          # interpolate function for Cp(tsr) values
-        TSR_fine = f_TSR(TSR_fine_ind) # TSRs at fine pitch
-        f_performance = interpolate.interp1d(TSR_initial,performance_beta_max,bounds_error='False',kind='quadratic')    # interpolate function for Cx(tsr) values
-        performance_fine = f_performance(TSR_fine_ind) # Cx values at fine pitch
-        performance_max_ind = np.where(performance_fine == np.max(performance_fine)) # Find max performance at fine pitch
-        self.TSR_opt = float(TSR_fine[performance_max_ind[0]][0])  # TSR to maximize Cx at fine pitch
+        # Refine optimal point using smooth interpolation -- gives more precise estimates than coarse grid
+        # Select region around maximizing TSR and blade pitch
+        TSR_max_ind = self.max_ind[0][-1]
+        pitch_max_ind = self.max_ind[1][-1]
+        ind_search_num = 3
+        TSR_search_ind = [np.max([0, TSR_max_ind - ind_search_num]), np.min([TSR_max_ind + ind_search_num, len(self.TSR_initial)-1])]
+        pitch_search_ind = [np.max([0, pitch_max_ind - ind_search_num]), np.min([pitch_max_ind + ind_search_num, len(self.pitch_initial_rad)-1])]
+        TSR_search_range = range(TSR_search_ind[0], TSR_search_ind[1]+1)
+        pitch_search_range = range(pitch_search_ind[0], pitch_search_ind[1]+1)
+
+        print('rosco.toolbox: Refining maximum performance estimate...')
+
+        # Generate finer mesh in the proximity of maximizer
+        fine_mesh_scale = 20
+        TSR_fine = np.linspace(self.TSR_initial[TSR_search_ind[0]], self.TSR_initial[TSR_search_ind[1]], np.diff(TSR_search_ind)[0] * fine_mesh_scale)
+        pitch_fine = np.linspace(self.pitch_initial_rad[pitch_search_ind[0]], self.pitch_initial_rad[pitch_search_ind[1]], np.diff(pitch_search_ind)[0] * fine_mesh_scale)
+        pitch_fine_mesh, TSR_fine_mesh = np.meshgrid(pitch_fine, TSR_fine) # Construct mesh grids of fine data to interpolate performance surface
+        performance_fine = interpolate.interpn([TSR_initial[TSR_search_range], pitch_initial_rad[pitch_search_range]], \
+                                               self.performance_table[TSR_search_range, :][:, pitch_search_range], \
+                                               np.array([TSR_fine_mesh, pitch_fine_mesh]).T, \
+                                               bounds_error='False', method='cubic') # Cubic spline interpolation over finer mesh data
+
+        # Save optimal performance, TSR, and pitch
+        self.performance_opt = np.max(performance_fine) # Maximal Cx on fine grid
+        performance_max_ind = np.where(performance_fine == self.performance_opt) # Find maximizer
+        self.TSR_opt = float(TSR_fine[performance_max_ind[0][0]]) # If multiple maximizers, pick lowest TSR
+        self.pitch_opt = float(pitch_fine[performance_max_ind[1][-1]]) # If multiple maximizers, pick highest pitch
+
 
     def interp_surface(self,pitch,TSR):
         '''

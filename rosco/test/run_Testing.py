@@ -7,7 +7,7 @@ import glob
 import ROSCO_testing
 from rosco import discon_lib_path
 
-os.system("taskset -p 0xffffffffffff %d" % os.getpid())
+# os.system("taskset -p 0xffffffffffff %d" % os.getpid())
 
 
 def run_testing(turbine2test, testtype, rosco_binaries=[], discon_files=[], **kwargs):
@@ -85,10 +85,11 @@ if __name__ == "__main__":
 
     # Setup ROSCO testing parameters
     rt_kwargs = {} 
-    rt_kwargs['runDir']     = os.path.join('/scratch/dzalkind/ROSCO_testing','version2.3.0')        # directory for FAST simulations
+    rt_kwargs['runDir']     = os.path.join('/projects/ssc/dzalkind/outputs','v210')        # directory for FAST simulations
+    rt_kwargs['runDir']     = os.path.join('/scratch/dzalkind/ROSCO-main/outputs','v210_ws_restart_0_filt0d1')        # directory for FAST simulations
     rt_kwargs['namebase']   = 'heavy_test'     # Base name for FAST files 
-    rt_kwargs['FAST_exe']   = '/home/dzalkind/Tools/openfast-main/install/bin/openfast'       # OpenFAST executable path
-    rt_kwargs['wind_dir']   = os.path.join('/scratch/dzalkind/ROSCO_testing','wind','IEA-15_heavy')       # OpenFAST executable path
+    rt_kwargs['FAST_exe']   = '/projects/weis/dzalkind/openfast-versions/openfast-main/build_rosco/glue-codes/openfast/openfast'       # OpenFAST executable path
+    rt_kwargs['wind_dir']   = '/projects/ssc/dzalkind/outputs/wind'       # OpenFAST executable path
     rt_kwargs['Turbsim_exe']= 'turbsim'    # Turbsim executable path
     rt_kwargs['FAST_ver']   = 'OpenFAST'            # FAST version
     rt_kwargs['debug_level']= 2                     # debug level. 0 - no outputs, 1 - minimal outputs, 2 - all outputs
@@ -98,7 +99,7 @@ if __name__ == "__main__":
     rt_kwargs['mpi_comm_map_down'] = []             # core mapping for MPI
     rt_kwargs['outfile_fmt'] = 2                    # 1 = .txt, 2 = binary, 3 = both
     # rt_kwargs['comp_dir']   = '/projects/ssc/dzalkind/ROSCO/ROSCO_testing/version2.2.0'                    # 1 = .txt, 2 = binary, 3 = both
-    rt_kwargs['comp_dir']   = '/scratch/dzalkind/ROSCO_testing/pr_46'                    # 1 = .txt, 2 = binary, 3 = both
+    rt_kwargs['comp_dir']   =  os.path.join('/scratch/dzalkind/ROSCO-main/outputs/v297')                    # 1 = .txt, 2 = binary, 3 = both
     
 
     # ---- Define test type ----
@@ -109,5 +110,5 @@ if __name__ == "__main__":
     discon_files = []   # Differently named DISCON.IN files to compare
 
     # Run testing
-    run_testing(turbine2test, testtype, rosco_binaries=discon_lib_path,
+    run_testing(turbine2test, testtype, rosco_binaries=[discon_lib_path],
                 discon_files=discon_files, **rt_kwargs)

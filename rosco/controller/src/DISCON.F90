@@ -101,13 +101,21 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
     IF (CntrPar%ZMQ_Mode > 0) THEN
         CALL UpdateZeroMQ(LocalVar, CntrPar, ErrVar)
     ENDIF
-    
+    IF (CntrPar%SD_Mode > 0) THEN
+        CALL Shutdown(LocalVar, CntrPar, objInst,ErrVar)
+    ENDIF
     CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
+    CALL PowerControlSetpoints(CntrPar, LocalVar, objInst, DebugVar, ErrVar)  ! Everything before the pitch, torque set points are computeed
+    IF (CntrPar%SU_Mode > 0) THEN
+        CALL Startup(LocalVar, CntrPar, objInst,ErrVar)
+    ENDIF
     CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
     CALL StateMachine(CntrPar, LocalVar)
     CALL SetpointSmoother(LocalVar, CntrPar, objInst)
     CALL VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
-    CALL PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
+    IF (CntrPar%PC_ControlMode > 0) THEN
+        CALL PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
+    END IF
     
     IF (CntrPar%Y_ControlMode > 0) THEN
         CALL YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
@@ -127,12 +135,14 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
         CALL StructuralControl(avrSWAP,CntrPar,LocalVar, objInst, ErrVar)
     END IF
     
-    IF ( CntrPar%LoggingLevel > 0 ) THEN
-        CALL Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, SIZE(avcOUTNAME))
-    END IF 
+
 ELSEIF ((LocalVar%iStatus == -1) .AND. (CntrPar%ZMQ_Mode > 0)) THEN
         CALL UpdateZeroMQ(LocalVar, CntrPar, ErrVar)
 END IF
+
+IF ( CntrPar%LoggingLevel > 0 ) THEN
+    CALL Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, SIZE(avcOUTNAME))
+END IF 
 
 
 ! Add RoutineName to error message

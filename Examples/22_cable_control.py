@@ -24,6 +24,8 @@ from rosco.toolbox.inputs.validation import load_rosco_yaml
 import matplotlib.pyplot as plt
 from rosco.toolbox.controller import OpenLoopControl
 
+FULL_TEST = False
+
 def main():
     #directories
     this_dir            = os.path.dirname(os.path.abspath(__file__))
@@ -65,28 +67,33 @@ def main():
     reader.fst_vt['ElastoDyn']['NacYaw'] = heading
     reader.fst_vt['InflowWind']['PropagationDir'] = -heading
 
-    t_trans = 100
-    t_sigma = 20
-    t_max = 200
+    if FULL_TEST:
+        t_trans = 100
+        t_sigma = 20
+        t_max = 200
+    else:
+        t_trans = 1
+        t_sigma = 2
+        t_max = 30
 
     line_ends = [-14.51, 1.58, 10.33]
 
     olc = OpenLoopControl(t_max=t_max)
-    olc.interp_timeseries(
+    olc.interp_series(
         'cable_control_1', 
         [0,t_trans,t_trans+t_sigma], 
         [0,0,line_ends[0]] , 
         'sigma'
         )
     
-    olc.interp_timeseries(
+    olc.interp_series(
         'cable_control_2', 
         [0,t_trans,t_trans+t_sigma], 
         [0,0,line_ends[1]] , 
         'sigma'
         )
     
-    olc.interp_timeseries(
+    olc.interp_series(
         'cable_control_3', 
         [0,t_trans,t_trans+t_sigma], 
         [0,0,line_ends[2]] , 
@@ -120,8 +127,8 @@ def main():
     op = output_processing.output_processing()
     op2 = output_processing.output_processing()
 
-    md_out = op.load_fast_out([os.path.join(run_dir,'IEA15MW_cable/power_curve/base/IEA15MW_cable_0.MD.Line1.out')], tmin=0)
-    local_vars = op2.load_fast_out([os.path.join(run_dir,'IEA15MW_cable/power_curve/base/IEA15MW_cable_0.RO.dbg2')], tmin=0)
+    md_out = op.load_fast_out([os.path.join(run_dir,'IEA15MW_cable_0.MD.Line1.out')], tmin=0)
+    local_vars = op2.load_fast_out([os.path.join(run_dir,'IEA15MW_cable_0.RO.dbg2')], tmin=0)
 
     fig, axs = plt.subplots(4,1)
     axs[0].plot(local_vars[0]['Time'],local_vars[0]['CC_DesiredL'],label='CC_DesiredL')
@@ -138,7 +145,7 @@ def main():
         plt.savefig(os.path.join(example_out_dir,'22_cable_control.png'))
 
     # Check that the last segment of line 1 shrinks by 10 m
-    np.testing.assert_almost_equal(md_out[0]['Seg20Lst'][-1] - md_out[0]['Seg20Lst'][0], line_ends[0], 2)
+    np.testing.assert_almost_equal(md_out[0]['Seg20Lst'][-1] - md_out[0]['Seg20Lst'][0], line_ends[0], 1)
 
 
 

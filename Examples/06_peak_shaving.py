@@ -1,6 +1,6 @@
 """
-06_peak_shavings
-----------------
+06_peak_shaving
+---------------
 Load saved turbine, tune controller, plot minimum pitch schedule
 In this example:
 
@@ -8,6 +8,9 @@ In this example:
 * Load a turbine from openfast
 * Tune a controller
 * Plot minimum pitch schedule
+
+.. image:: ../images/examples/06_MinPitch.png
+
 """
 
 # Python modules

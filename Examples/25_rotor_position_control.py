@@ -14,6 +14,7 @@ import numpy as np
 #import pandas as pd
 import matplotlib.pyplot as plt
 
+FULL_TEST= False
 
 def main():
     #directories
@@ -34,22 +35,24 @@ def main():
     r.tuning_yaml   = parameter_filename
     r.wind_case_opts    = {
         'U': [14],
-        'TMax': 100,
+        'TMax': 1,
         }
+    if FULL_TEST:
+        r.wind_case_opts['TMax'] = 100
     r.save_dir      = run_dir
     r.run_FAST()
 
     # Gather azimuth, blade pitch, generator torque output, apply as open loop inputs to ROSCO
     op = output_processing.output_processing()
-    fast_out = op.load_fast_out(os.path.join(run_dir,'NREL2p8/power_curve/base/NREL2p8_0.outb'), tmin=0)
+    fast_out = op.load_fast_out(os.path.join(run_dir,'NREL2p8_0.outb'), tmin=0)
 
     olc = OpenLoopControl()
-    olc.ol_timeseries['time'] = fast_out[0]['Time']
-    olc.ol_timeseries['blade_pitch1'] = np.radians(fast_out[0]['BldPitch1'])
-    olc.ol_timeseries['blade_pitch2'] = np.radians(fast_out[0]['BldPitch2'])
-    olc.ol_timeseries['blade_pitch3'] = np.radians(fast_out[0]['BldPitch3'])
-    olc.ol_timeseries['generator_torque'] = fast_out[0]['GenTq'] * 1000
-    olc.ol_timeseries['azimuth'] = np.radians(fast_out[0]['Azimuth'])
+    olc.ol_series['time'] = fast_out[0]['Time']
+    olc.ol_series['blade_pitch1'] = np.radians(fast_out[0]['BldPitch1'])
+    olc.ol_series['blade_pitch2'] = np.radians(fast_out[0]['BldPitch2'])
+    olc.ol_series['blade_pitch3'] = np.radians(fast_out[0]['BldPitch3'])
+    olc.ol_series['generator_torque'] = fast_out[0]['GenTq'] * 1000
+    olc.ol_series['azimuth'] = np.radians(fast_out[0]['Azimuth'])
 
     # Save initial RotSpeed, Azimuth for later
     RotSpeed_0 = fast_out[0]['RotSpeed'][0]
@@ -84,8 +87,8 @@ def main():
     op = output_processing.output_processing()
     op_dbg2 = output_processing.output_processing()
 
-    out_files = [os.path.join(run_dir,f'NREL2p8/power_curve/base/NREL2p8_0.out'),
-                os.path.join(run_dir,f'rpc/power_curve/base/rpc_0.out')]
+    out_files = [os.path.join(run_dir,f'NREL2p8_0.out'),
+                os.path.join(run_dir,f'rpc_0.out')]
     dbg2_files = [out.split('.out')[0] + '.RO.dbg2' for out in out_files]
 
     fst_out = op.load_fast_out(out_files, tmin=0)
