@@ -313,7 +313,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{}        ! AWC_freq           - Frequency(s) of forcing mode(s) [Hz]\n'.format(write_array(rosco_vt['AWC_freq'],'<6.4f')))
     file.write('{}        ! AWC_amp            - Pitch amplitude(s) of individual forcing mode(s) [deg]\n'.format(write_array(rosco_vt['AWC_amp'],'<6.4f')))
     file.write('{}        ! AWC_clockangle     - Initial angle(s) of forcing mode(s) [deg]\n'.format(write_array(rosco_vt['AWC_clockangle'],'<6.4f')))
-    file.write('{}        ! AWC_phaseoffset 	 - Azimuth offset in the Coleman transformation [deg]\n'.format(float(rosco_vt['AWC_phaseoffset'],'<6.4f')))
+    file.write('{:<014.5f}        ! AWC_phaseoffset 	 - Azimuth offset in the Coleman transformation [deg]\n'.format(float(rosco_vt['AWC_phaseoffset'])))
     file.write('{}        ! AWC_CntrGains           - KP and KI/KR gain of the active wake controller [-]\n'.format(write_array(rosco_vt['AWC_CntrGains'],'<6.4f')))
     file.write('\n')
     file.write('!------- External Controller Interface -----------------------------------------------------\n')
