@@ -1544,6 +1544,12 @@ LocalVariables:
       <<: *complex
       description: Complex angle for each blade, sum of modes?
       size: 3
+    TiltMean:
+      <<: *real
+      description: Mean tilt blade moment [Nm]
+    YawMean:
+      <<: *real
+      description: Mean yaw blade moment [Nm]
     ZMQ_ID:
       <<: *integer
       description: 0000 - 9999, Identifier of the rosco, used for zeromq interface only
@@ -1609,6 +1615,9 @@ ObjectInstances:
   instPI:
     <<: *integer  
     description: PI controller instance
+  instRes:
+    <<: *integer  
+    description: PR controller instance
   instRL:
     <<: *integer
     description: Rate limiter instance

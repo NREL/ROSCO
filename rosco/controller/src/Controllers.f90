@@ -803,7 +803,7 @@ CONTAINS
 
             IF (CntrPar%AWC_harmonic(1) == 0) THEN
                 ! Calculate mean moments, subtract later to get zero-mean tilt and yaw
-                CntrPar%TiltMean = CntrPar%TiltMean + FixedFrameM(1)
+                LocalVar%TiltMean = LocalVar%TiltMean + FixedFrameM(1)
                 StartTime = 1/CntrPar%AWC_freq(1)
             ENDIF
 
@@ -811,7 +811,7 @@ CONTAINS
             IF (LocalVar%Time .GT. StartTime) THEN
                 DO Imode = 1,CntrPar%AWC_NumModes
                     Error(Imode) = CntrPar%AWC_amp(Imode)*sin(LocalVar%Time*2*PI*CntrPar%AWC_freq(Imode) + CntrPar%AWC_clockangle(Imode)*D2R) &
-                                        + (FixedFrameM(Imode) - CntrPar%TiltMean/(LocalVar%n_DT+1))
+                                        + (FixedFrameM(Imode) - LocalVar%TiltMean/(LocalVar%n_DT+1))
 
                     IF (CntrPar%AWC_Mode == 4) THEN
                         AWC_TiltYaw(Imode) = ResController(Error(Imode), CntrPar%AWC_CntrGains(1), CntrPar%AWC_CntrGains(2), CntrPar%AWC_freq(Imode), & 
@@ -837,7 +837,7 @@ CONTAINS
 
             ! DEBUG VARIABLES
             DebugVar%axisTilt_1P = AWC_TiltYaw(1)
-            DebugVar%axisYaw_1P = -FixedFrameM(1) + CntrPar%TiltMean/(LocalVar%n_DT+1)
+            DebugVar%axisYaw_1P = -FixedFrameM(1) + LocalVar%TiltMean/(LocalVar%n_DT+1)
             DebugVar%axisTilt_2P = CntrPar%AWC_amp(1)*sin(LocalVar%Time*2*PI*CntrPar%AWC_freq(1) + CntrPar%AWC_clockangle(1)*D2R)
             DebugVar%axisYaw_2P = Error(1)
 
@@ -849,12 +849,12 @@ CONTAINS
             CALL ColemanTransform(LocalVar%rootMOOPF, LocalVar%Azimuth, CntrPar%AWC_harmonic(1), FixedFrameM(1), FixedFrameM(2))
             
             ! Calculate mean tilt and yaw moments to subtract
-            CntrPar%TiltMean = CntrPar%TiltMean + FixedFrameM(1)
-            CntrPar%YawMean = CntrPar%YawMean + FixedFrameM(2)
+            LocalVar%TiltMean = LocalVar%TiltMean + FixedFrameM(1)
+            LocalVar%YawMean = LocalVar%YawMean + FixedFrameM(2)
 
             ! Calculate error with zero-mean moments
-            Error(1) = CntrPar%AWC_amp(1) + sin(StrAzimuth + CntrPar%AWC_clockangle(1)*D2R)*(FixedFrameM(1) - CntrPar%TiltMean/(LocalVar%n_DT+1)) &
-                        + sin(StrAzimuth + CntrPar%AWC_clockangle(2)*D2R)*(FixedFrameM(2) - CntrPar%YawMean/(LocalVar%n_DT+1)) 
+            Error(1) = CntrPar%AWC_amp(1) + sin(StrAzimuth + CntrPar%AWC_clockangle(1)*D2R)*(FixedFrameM(1) - LocalVar%TiltMean/(LocalVar%n_DT+1)) &
+                        + sin(StrAzimuth + CntrPar%AWC_clockangle(2)*D2R)*(FixedFrameM(2) - LocalVar%YawMean/(LocalVar%n_DT+1)) 
 
             ! PI Control
             IF (LocalVar%Time .GT. 1/CntrPar%AWC_freq(1)) THEN
@@ -873,7 +873,7 @@ CONTAINS
 
             ! DEBUG VARIABLES
             DebugVar%axisTilt_1P = sin(StrAzimuth + CntrPar%AWC_clockangle(1)*D2R)*AWC_TiltYaw(1)
-            DebugVar%axisYaw_1P = -FixedFrameM(1) + CntrPar%TiltMean/(LocalVar%n_DT+1)
+            DebugVar%axisYaw_1P = -FixedFrameM(1) + LocalVar%TiltMean/(LocalVar%n_DT+1)
             DebugVar%axisTilt_2P = CntrPar%AWC_amp(1)*sin(StrAzimuth + CntrPar%AWC_clockangle(1)*D2R)
             DebugVar%axisYaw_2P = Error(1)
 
