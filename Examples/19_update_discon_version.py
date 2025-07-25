@@ -29,7 +29,7 @@ def main():
     # Try using updated DISCON
 
     shutil.copyfile(
-        os.path.join(this_dir,'example_inputs','Cp_Ct_Cq.IEA15MW.txt'),
+        os.path.join(this_dir,'Test_Cases', 'IEA-15-240-RWT', 'IEA-15-240-RWT', 'Cp_Ct_Cq.IEA15MW.txt'),
         os.path.join(this_dir,'examples_out','Cp_Ct_Cq.IEA15MW.txt')
     )  # Copy Cp table for testing 
 
