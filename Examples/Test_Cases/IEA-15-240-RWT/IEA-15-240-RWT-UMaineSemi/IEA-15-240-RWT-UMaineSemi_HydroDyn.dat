@@ -66,26 +66,42 @@ AxCoefID  AxCd     AxCa     AxCp    AxFDMod   AxVnCOff  AxFDLoFSc
 0                      NJoints     - Number of joints (-)   [must be exactly 0 or at least 2]
   JointID     Jointxi     Jointyi     Jointzi    JointAxID  JointOvrlp    [JointOvrlp= 0: do nothing at joint, 1: eliminate overlaps by calculating super member]
     (-)         (m)         (m)         (m)         (-)      (switch)  
----------------------- MEMBER CROSS-SECTION PROPERTIES -------------------------
-0           NPropSets   - Number of member property sets (-)
+---------------------- CYLINDRICAL MEMBER CROSS-SECTION PROPERTIES -------------------------
+0           NPropSetsCyl   - Number of member property sets (-)
  PropSetID     PropD     PropThck  
     (-)         (m)         (m)    
----------------------- SIMPLE HYDRODYNAMIC COEFFICIENTS (model 1) --------------
+---------------------- RECTANGULAR MEMBER CROSS-SECTION PROPERTIES -------------------------
+0           NPropSetsRec   - Number of member property sets (-)
+ PropSetID     PropD     PropThck  
+    (-)         (m)         (m)    
+---------------------- SIMPLE CYLINDRICAL-MEMBER HYDRODYNAMIC COEFFICIENTS (model 1) --------------
      SimplCd    SimplCdMG    SimplCa    SimplCaMG    SimplCp    SimplCpMG   SimplAxCd  SimplAxCdMG   SimplAxCa  SimplAxCaMG  SimplAxCp   SimplAxCpMG    SimplCb    SimplCbMG
        (-)         (-)         (-)         (-)         (-)         (-)         (-)         (-)         (-)         (-)         (-)         (-)            (-)         (-)
         0.0         0.0         0.0         0.0         0.0         0.0         0.0        0.00        0.00         0.0         0.0         0.0            0.0         0.0
----------------------- DEPTH-BASED HYDRODYNAMIC COEFFICIENTS (model 2) ---------
-             0   NCoefDpth       - Number of depth-dependent coefficients (-)
+---------------------- SIMPLE RECTANGULAR-MEMBER HYDRODYNAMIC COEFFICIENTS (model 1) --------------
+     SimplCdA    SimplCdAMG    SimplCdB    SimplCdBMG    SimplCaA    SimplCaAMG    SimplCaB    SimplCaBMG    SimplCp    SimplCpMG   SimplAxCd  SimplAxCdMG   SimplAxCa  SimplAxCaMG  SimplAxCp   SimplAxCpMG  SimplCb  SimplCbMG
+       (-)         (-)           (-)         (-)           (-)         (-)           (-)         (-)           (-)         (-)         (-)         (-)          (-)         (-)         (-)         (-)          (-)       (-)
+       0.0         0.0           0.0         0.0           0.0         0.0           0.0         0.0           0.0         0.0         0.0         0.0          0.0         0.0         0.0         0.0          0.0       0.0
+---------------------- DEPTH-BASED CYLINDRICAL-MEMBER HYDRODYNAMIC COEFFICIENTS (model 2) ---------
+             0   NCoefDpthCyl    - Number of depth-dependent cylindrical member coefficients (-)
 Dpth      DpthCd   DpthCdMG   DpthCa   DpthCaMG       DpthCp   DpthCpMG   DpthAxCd   DpthAxCdMG   DpthAxCa   DpthAxCaMG   DpthAxCp   DpthAxCpMG   DpthCb   DpthCbMG
 (m)       (-)      (-)        (-)      (-)            (-)      (-)        (-)        (-)          (-)        (-)          (-)        (-)           (-)      (-)
----------------------- MEMBER-BASED HYDRODYNAMIC COEFFICIENTS (model 3) --------
-             0   NCoefMembers       - Number of member-based coefficients (-)
+---------------------- DEPTH-BASED RECTANGULAR-MEMBER HYDRODYNAMIC COEFFICIENTS (model 2) ---------
+             0   NCoefDpthRec    - Number of depth-dependent rectangular member coefficients (-)
+Dpth    DpthCdA   DpthCdAMG    DpthCdB   DpthCdBMG   DpthCaA   DpthCaAMG   DpthCaB   DpthCaBMG     DpthCp   DpthCpMG   DpthAxCd   DpthAxCdMG   DpthAxCa   DpthAxCaMG   DpthAxCp   DpthAxCpMG   DpthCb   DpthCbMG
+(m)       (-)       (-)          (-)       (-)         (-)       (-)        (-)        (-)          (-)        (-)       (-)        (-)          (-)        (-)          (-)        (-)          (-)      (-)
+---------------------- MEMBER-BASED CYLINDRICAL-MEMBER HYDRODYNAMIC COEFFICIENTS (model 3) --------
+             0   NCoefMembersCyl    - Number of member-based cylindrical member coefficients (-)
 MemberID    MemberCd1     MemberCd2    MemberCdMG1   MemberCdMG2    MemberCa1     MemberCa2    MemberCaMG1   MemberCaMG2    MemberCp1     MemberCp2    MemberCpMG1   MemberCpMG2   MemberAxCd1   MemberAxCd2  MemberAxCdMG1 MemberAxCdMG2  MemberAxCa1   MemberAxCa2  MemberAxCaMG1 MemberAxCaMG2  MemberAxCp1  MemberAxCp2   MemberAxCpMG1   MemberAxCpMG2    MemberCb1     MemberCb2    MemberCbMG1   MemberCbMG2
    (-)         (-)           (-)           (-)           (-)           (-)           (-)           (-)           (-)           (-)           (-)           (-)           (-)           (-)           (-)           (-)           (-)           (-)           (-)           (-)           (-)           (-)           (-)           (-)           (-)              (-)           (-)           (-)           (-)
+---------------------- MEMBER-BASED RECTANGULAR-MEMBER HYDRODYNAMIC COEFFICIENTS (model 3) --------
+            0   NCoefMembersRec - Number of member-based rectangular member coefficients (-)
+MemberID    MemberCdA1     MemberCdA2    MemberCdAMG1   MemberCdAMG2    MemberCdB1     MemberCdB2    MemberCdBMG1   MemberCdBMG2    MemberCaA1     MemberCaA2    MemberCaAMG1   MemberCaAMG2    MemberCaB1     MemberCaB2    MemberCaBMG1   MemberCaBMG2    MemberCp1     MemberCp2    MemberCpMG1   MemberCpMG2   MemberAxCd1   MemberAxCd2  MemberAxCdMG1 MemberAxCdMG2  MemberAxCa1   MemberAxCa2  MemberAxCaMG1 MemberAxCaMG2  MemberAxCp1  MemberAxCp2   MemberAxCpMG1   MemberAxCpMG2   MemberCb1     MemberCb2    MemberCbMG1   MemberCbMG2
+   (-)         (-)            (-)           (-)            (-)             (-)            (-)           (-)            (-)             (-)            (-)           (-)            (-)             (-)            (-)           (-)            (-)             (-)           (-)          (-)           (-)           (-)           (-)          (-)           (-)            (-)           (-)          (-)           (-)              (-)           (-)          (-)           (-)            (-)           (-)          (-)           (-)
 -------------------- MEMBERS -------------------------------------------------
 0           NMembers    - Number of members (-)
- MemberID    MJointID1   MJointID2  MPropSetID1 MPropSetID2  MDivSize    MCoefMod   MHstLMod  PropPot     [MCoefMod=1: use simple coeff table, 2: use depth-based coeff table, 3: use member-based coeff table] [ PropPot/=0 if member is modeled with potential-flow theory]
-    (-)         (-)         (-)         (-)         (-)         (m)      (switch)   (switch)  (flag)   
+ MemberID    MJointID1   MJointID2  MPropSetID1 MPropSetID2  MSecGeom    MSpinOrient   MDivSize    MCoefMod   MHstLMod  PropPot     [MCoefMod=1: use simple coeff table, 2: use depth-based coeff table, 3: use member-based coeff table] [ PropPot/=0 if member is modeled with potential-flow theory]
+    (-)         (-)         (-)         (-)         (-)         (switch)       (deg)        (m)      (switch)   (switch)  (flag)   
 ---------------------- FILLED MEMBERS ------------------------------------------
              0   NFillGroups     - Number of filled member groups (-) [If FillDens = DEFAULT, then FillDens = WtrDens; FillFSLoc is related to MSL2SWL]
 FillNumM FillMList             FillFSLoc     FillDens
@@ -108,17 +124,4 @@ False            OutAll         - Output all user-specified member and joint loa
 "ES11.4e2"       OutFmt         - Output format for numerical results (quoted string) [not checked for validity!]
 "A11"            OutSFmt        - Output format for header strings (quoted string) [not checked for validity!]
 ---------------------- OUTPUT CHANNELS -----------------------------------------
-"Wave1Elev"               - Wave elevation at the platform reference point (  0,  0)
-"WavesF1xi" 
-"WavesF1zi" 
-"WavesM1yi" 
-"WavesF2xi" 
-"WavesF2zi" 
-"WavesM2yi"      
-"WavesF2xi"
-"WavesF2yi"
-"WavesF2zi"
-"WavesM2xi"
-"WavesM2yi"
-"WavesM2zi" 
 END of output channels and end of file. (the word "END" must appear in the first 3 columns of this line)   
