@@ -682,6 +682,29 @@ CONTAINS
                 LocalVar%SD_Trigger = 4
             ENDIF 
         ENDIF
+
+        IF (CntrPar%SD_Method == 1) THEN
+            ! State machine for shutdown stages
+            
+            IF (LocalVar%SD_Stage == 0) THEN
+                ! Normal operation, check for shutdown trigger
+                IF (LocalVar%SD_Trigger > 0) THEN
+                    LocalVar%SD_Stage = 1 ! First shutdown stage
+                    LocalVar%SD_StageStartTime = LocalVar%Time
+                ENDIF
+
+            ELSE ! Stage > 0
+                ! Shutdown stage, check for shutdown completion
+                IF (LocalVar%Time >= LocalVar%SD_StageStartTime + CntrPar%SD_Stage_Time(LocalVar%SD_Stage)) THEN
+                    LocalVar%SD_Stage = LocalVar%SD_Stage + 1 ! Next shutdown stage
+                    LocalVar%SD_StageStartTime = LocalVar%Time
+                ENDIF
+
+            ENDIF
+        ENDIF
+
+
+
         
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN

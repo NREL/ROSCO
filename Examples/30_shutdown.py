@@ -70,8 +70,11 @@ def main():
     controller_params["SD_Mode"] = 1
     controller_params["DISCON"]["SD_EnablePitch"] = 1
     controller_params["DISCON"]["SD_MaxPit"] = 30*deg2rad
-    controller_params["DISCON"]["SD_MaxPitchRate"] = 0.0348
-    controller_params["DISCON"]["SD_MaxTorqueRate"] = 4500000
+    controller_params["DISCON"]["SD_Stage_N"] = 2
+    controller_params["DISCON"]["SD_Stage_Time"] = [10, 1000]    
+    controller_params["DISCON"]["SD_MaxPitchRate"] = [0.0348/1.5, 2*0.0348]
+    controller_params["DISCON"]["SD_MaxTorqueRate"] = [4500000, 4500000]
+    controller_params["DISCON"]["PC_MaxRat"] = 4*0.0348
 
     # simulation set up
     r = run_FAST_ROSCO()
@@ -89,7 +92,7 @@ def main():
 
     t_max = 90
 
-    run_dir = os.path.join(example_out_dir, "30_shutdown_demo/1_pitch")
+    run_dir = os.path.join(example_out_dir, "30_shutdown_demo/2_multirate")
 
     # Wind case
     r.wind_case_fcn = cl.ramp

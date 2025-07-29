@@ -149,8 +149,10 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: SD_GenSpdCornerFreq         ! Cutoff Frequency for first order low-pass filter for generator speed for shutdown, [rad/s]
     REAL(DbKi)                    :: SD_Time                     ! Shutdown time, [s]
     INTEGER(IntKi)                :: SD_Method                   ! Shutdown method {1 - Reduce generator torque and increase blade pitch}, [-]
-    REAL(DbKi)                    :: SD_MaxTorqueRate            ! Maximum torque rate for shutdown, [Nm/s]
-    REAL(DbKi)                    :: SD_MaxPitchRate             ! Maximum pitch rate used for shutdown, [rad/s]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: SD_MaxTorqueRate            ! Maximum torque rate for shutdown, [Nm/s]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: SD_MaxPitchRate             ! Maximum pitch rate used for shutdown, [rad/s]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: SD_Stage_Time               ! Array containing the time to spend in each shutdown stage [s]
+    INTEGER(IntKi)                :: SD_Stage_N                  ! Number of shutdown stages (should equal number of values in SD_MaxPitchRate and SD_MaxTorqueRate) [-]
     INTEGER(IntKi)                :: Fl_Mode                     ! Floating specific feedback mode {0 - no nacelle velocity feedback, 1 - nacelle velocity feedback}
     INTEGER(IntKi)                :: Fl_n                        ! Number of Fl_Kp for gain scheduling
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: Fl_Kp                       ! Nacelle velocity proportional feedback gain [s]
@@ -412,6 +414,8 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: SD_BlPitchF                 ! Blade pitch signal filtered for shutdown
     REAL(DbKi)                    :: SD_NacVaneF                 ! Nacelle vane signal filtered for shutdown
     REAL(DbKi)                    :: SD_GenSpeedF                ! Generator speed signal filtered for shutdown
+    INTEGER(IntKi)                :: SD_Stage                    ! Current stage of shutdown procedure (0- Shutdown not active, 1- First pitch/torque rate, 2,3,...)
+    REAL(DbKi)                    :: SD_StageStartTime           ! Time at which the current shutdown stage started
     REAL(DbKi)                    :: GenTq_SD                    ! Electrical generator torque command for shutdown, [Nm].
     REAL(DbKi)                    :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None

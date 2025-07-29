@@ -263,9 +263,11 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<014.5f}      ! SD_MaxGenSpd           - Maximum generator speed to initiate shutdown, [rad/s]\n'.format(rosco_vt['SD_MaxGenSpd']))
     file.write('{:<014.5f}      ! SD_GenSpdCornerFreq    - Cutoff Frequency for first order low-pass filter for generator speed for shutdown, [rad/s] \n'.format(rosco_vt['SD_GenSpdCornerFreq']))
     file.write('{:<014.5f}      ! SD_Time                - Shutdown time, [s]\n'.format(rosco_vt['SD_Time']))
-    file.write('{0:<12d}        ! SD_Method              - Shutdown method {{1: Reduce generator torque and increase blade pitch}}, [-]\n'.format(int(rosco_vt['SD_Method'])))
-    file.write('{:<014.5f}      ! SD_MaxTorqueRate       - Maximum torque rate for shutdown, [Nm/s]\n'.format(rosco_vt['SD_MaxTorqueRate']))
-    file.write('{:<014.5f}      ! SD_MaxPitchRate        - Maximum pitch rate used for shutdown, [rad/s]\n'.format(rosco_vt['SD_MaxPitchRate']))
+    file.write('{:<12d}        ! SD_Method              - {}\n'.format(int(rosco_vt['SD_Method']), input_descriptions['SD_Method']))
+    file.write('{:<12d}        ! SD_Stage_N              - {}\n'.format(int(rosco_vt['SD_Stage_N']), input_descriptions['SD_Stage_N']))
+    file.write('{:<16}      ! SD_Stage_Time      - {}\n'.format(write_array(rosco_vt['SD_Stage_Time'],'<6.4f'), input_descriptions['SD_Stage_Time']))
+    file.write('{:<16}      ! SD_MaxTorqueRate   - {}\n'.format(write_array(rosco_vt['SD_MaxTorqueRate'],'<6.4f'), input_descriptions['SD_MaxTorqueRate']))
+    file.write('{:<16}      ! SD_MaxPitchRate    - {}\n'.format(write_array(rosco_vt['SD_MaxPitchRate'],'<6.4f'), input_descriptions['SD_MaxPitchRate']))
     file.write('\n')
     file.write('!------- Floating -----------------------------------------------------------\n')
     if rosco_vt['Fl_Mode'] == 2:
@@ -654,8 +656,10 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['SD_GenSpdCornerFreq']  = controller.f_sd_genspdcornerfreq
     DISCON_dict['SD_Time']              = 9999
     DISCON_dict['SD_Method']            = 1
-    DISCON_dict['SD_MaxTorqueRate']     = 0.05 * turbine.max_torque_rate
-    DISCON_dict['SD_MaxPitchRate']      = 0.125 * turbine.max_pitch_rate
+    DISCON_dict['SD_Stage_N']           = 1
+    DISCON_dict['SD_Stage_Time']        = [1000] # should be be enough time for the single stage shutdown
+    DISCON_dict['SD_MaxTorqueRate']     = [0.05 * turbine.max_torque_rate]
+    DISCON_dict['SD_MaxPitchRate']      = [0.125 * turbine.max_pitch_rate]
     # ------- Floating -------
     DISCON_dict['Fl_n']             = len(controller.Kp_float)
     DISCON_dict['Fl_Kp']            = controller.Kp_float

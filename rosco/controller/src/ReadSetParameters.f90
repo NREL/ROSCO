@@ -562,8 +562,10 @@ CONTAINS
         CALL ParseInput(FileLines,  'SD_GenSpdCornerFreq',   CntrPar%SD_GenSpdCornerFreq,  accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'SD_Time',               CntrPar%SD_Time,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'SD_Method',             CntrPar%SD_Method,    accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
-        CALL ParseInput(FileLines,  'SD_MaxTorqueRate',      CntrPar%SD_MaxTorqueRate,   accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
-        CALL ParseInput(FileLines,  'SD_MaxPitchRate',       CntrPar%SD_MaxPitchRate,    accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_Stage_N',            CntrPar%SD_Stage_N,    accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseAry(FileLines,    'SD_Stage_Time',         CntrPar%SD_Stage_Time,      CntrPar%SD_Stage_N,   accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseAry(FileLines,    'SD_MaxTorqueRate',      CntrPar%SD_MaxTorqueRate,   CntrPar%SD_Stage_N,   accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseAry(FileLines,    'SD_MaxPitchRate',       CntrPar%SD_MaxPitchRate,    CntrPar%SD_Stage_N,   accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ FLOATING ------------
@@ -1529,15 +1531,16 @@ CONTAINS
             ENDIF
 
             ! SD_MaxPitchRate
-            IF (CntrPar%SD_MaxPitchRate > CntrPar%PC_MaxRat) THEN
+            IF (MAXVAL(CntrPar%SD_MaxPitchRate) > CntrPar%PC_MaxRat) THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'SD_MaxPitchRate should be less or equal to PC_MaxRat.'
+                ErrVar%ErrMsg  = 'SD_MaxPitchRate(s) should be less or equal to PC_MaxRat.'
             ENDIF
 
+                
             ! SD_MaxTorqueRate
-            IF (CntrPar%SD_MaxTorqueRate > CntrPar%VS_MaxRat) THEN
+            IF (MAXVAL(CntrPar%SD_MaxTorqueRate) > CntrPar%VS_MaxRat) THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'SD_MaxTorqueRate should be less or equal to VS_MaxRat.'
+                ErrVar%ErrMsg  = 'SD_MaxTorqueRate(s) should be less or equal to VS_MaxRat.'
             ENDIF
         ENDIF
 

@@ -1193,18 +1193,30 @@ properties:
                         default: 9999
                     SD_Method:
                         type: number
-                        description: Shutdown method {1- Reduce generator torque and increase blade pitch}
+                        description: Shutdown method {1- Reduce generator torque and increase blade pitch in timed stages}
                         minimum: 1
                         maximum: 1
                         default: 1
                     SD_MaxTorqueRate:
-                        type: number
+                        type: array
+                        items:
+                            type: number
                         description: Maximum torque rate for shutdown
                         units: Nm/s
                     SD_MaxPitchRate:
-                        type: number
+                        type: array
+                        items:
+                            type: number
                         description: Maximum pitch rate used for shutdown
                         units: rad/s
+                    SD_Stage_Time:
+                        type: array
+                        items:
+                            type: number
+                        description: Array containing the time to spend in each shutdown stage [s]
+                    SD_Stage_N:
+                        type: number
+                        description: Number of shutdown stages (should equal number of values in SD_MaxPitchRate and SD_MaxTorqueRate) [-]
                     Fl_n:
                         type: number
                         description: Number of Fl_Kp gains in gain scheduling, optional with default of 1
