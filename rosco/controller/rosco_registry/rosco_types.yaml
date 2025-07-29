@@ -738,7 +738,6 @@ ControlParameters:
       description: AWC clocking angle [deg]
     AWC_phaseoffset:
       <<: *real
-      allocatable: True
       description: AWC azimuth offset for Coleman transform [deg]
     AWC_CntrGains:
       <<: *real
