@@ -54,6 +54,10 @@ def main():
       'both_dir': True,
       'vert_shear': 0.2
       }
+  
+  if not FULL_TEST:
+    r.wind_case_opts['t_start'] = 1
+    r.wind_case_opts['t_end'] = 2
   r.case_inputs = case_inputs
   r.save_dir      = run_dir
   r.rosco_dir     = rosco_dir
