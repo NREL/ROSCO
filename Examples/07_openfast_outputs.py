@@ -1,14 +1,14 @@
 """
 07_openfast_outputs
 -------------------
-Plot some OpenFAST output data
-In this example:
+Demonstrate the ROSCO routines for reading OpenFAST I/O files.
+Nearly all the figures in the example documentation rely on a version of these scripts, which can also be used to load ROSCO *.dbg* files, including
 
-* Load openfast output data
-* Trim the time series
-* Plot some available channels
+ # .dbg files output basic ROSCO internal variables, like the inputs and outputs to the wind speed estimator
+ # .dbg2 files output all the ROSCO LocalVariables.  If the variable is an array, only the first entry is recorded.
+ # .dbg3 files output the avrSWAP array at each timestep that is transfered between ROSCO and the multi-physics solver
 
-Note: need to run openfast model in 'Test_Cases/5MW_Land_DLL_WTurb/' to plot
+Note: this example relies on the previous running of the OpenFAST model in 'Test_Cases/NREL-5MW/' to plot.
 """
 
 # Python Modules
