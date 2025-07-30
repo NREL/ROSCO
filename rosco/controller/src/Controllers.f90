@@ -149,9 +149,9 @@ CONTAINS
             LocalVar%PitCom_SD = LocalVar%PitCom
         ! If shutdown is not triggered, PitCom_SD tracks PitCom.
         ELSE
-            IF (CntrPar%SD_Method == 1) THEN    !Only SD_Method==1 supported for now 
+            IF (CntrPar%SD_Method == 1 .OR. CntrPar%SD_Method == 2) THEN
                 DO K = 1,LocalVar%NumBl
-                    LocalVar%PitCom_SD(K) = LocalVar%PitCom_SD(K) + CntrPar%SD_MaxPitchRate(LocalVar%SD_Stage)*LocalVar%DT
+                    LocalVar%PitCom_SD(K) = LocalVar%PitCom_SD(K) + LocalVar%SD_MaxPitchRate*LocalVar%DT
                 END DO
             ENDIF
             LocalVar%PitCom = LocalVar%PitCom_SD
@@ -305,8 +305,8 @@ CONTAINS
         IF (LocalVar%SD_Trigger == 0) THEN
             LocalVar%GenTq_SD = LocalVar%GenTq
         ELSE 
-            IF (CntrPar%SD_Method == 1) THEN    !Only SD_Method==1 supported for now 
-                LocalVar%GenTq_SD = LocalVar%GenTq_SD - CntrPar%SD_MaxTorqueRate(LocalVar%SD_Stage)*LocalVar%DT
+            IF (CntrPar%SD_Method == 1 .OR. CntrPar%SD_Method == 2) THEN
+                LocalVar%GenTq_SD = LocalVar%GenTq_SD - LocalVar%SD_MaxTorqueRate*LocalVar%DT
                 LocalVar%GenTq_SD = saturate(LocalVar%GenTq_SD, CntrPar%VS_MinTq, CntrPar%VS_MaxTq)
             ENDIF
             LocalVar%GenTq = LocalVar%GenTq_SD

@@ -170,6 +170,8 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%SD_GenSpeedF
         WRITE( Un, IOSTAT=ErrStat) LocalVar%SD_Stage
         WRITE( Un, IOSTAT=ErrStat) LocalVar%SD_StageStartTime
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%SD_MaxPitchRate
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%SD_MaxTorqueRate
         WRITE( Un, IOSTAT=ErrStat) LocalVar%GenTq_SD
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Fl_PitCom
         WRITE( Un, IOSTAT=ErrStat) LocalVar%NACIMU_FA_AccF
@@ -508,6 +510,8 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%SD_GenSpeedF
         READ( Un, IOSTAT=ErrStat) LocalVar%SD_Stage
         READ( Un, IOSTAT=ErrStat) LocalVar%SD_StageStartTime
+        READ( Un, IOSTAT=ErrStat) LocalVar%SD_MaxPitchRate
+        READ( Un, IOSTAT=ErrStat) LocalVar%SD_MaxTorqueRate
         READ( Un, IOSTAT=ErrStat) LocalVar%GenTq_SD
         READ( Un, IOSTAT=ErrStat) LocalVar%Fl_PitCom
         READ( Un, IOSTAT=ErrStat) LocalVar%NACIMU_FA_AccF
@@ -719,7 +723,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
 
     REAL(DbKi), ALLOCATABLE         :: DebugOutData(:)
  
-    CHARACTER(15), DIMENSION(154)      :: LocalVarOutStrings
+    CHARACTER(15), DIMENSION(156)      :: LocalVarOutStrings
     REAL(DbKi), ALLOCATABLE         :: LocalVarOutData(:)
  
     nDebugOuts = 26
@@ -764,7 +768,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       '[N/A]', '[N/A]', '[N/A]', '[N/A]', '[rad/s]', & 
                                       '[deg]', '[deg]', '[deg]', '[N/A]', '[rad/s]', & 
                                       '[rad/s]']
-    nLocalVars = 154
+    nLocalVars = 156
     Allocate(LocalVarOutData(nLocalVars))
     LocalVarOutData(1) = LocalVar%iStatus
     LocalVarOutData(2) = LocalVar%AlreadyInitialized
@@ -878,48 +882,50 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(110) = LocalVar%SD_GenSpeedF
     LocalVarOutData(111) = LocalVar%SD_Stage
     LocalVarOutData(112) = LocalVar%SD_StageStartTime
-    LocalVarOutData(113) = LocalVar%GenTq_SD
-    LocalVarOutData(114) = LocalVar%Fl_PitCom
-    LocalVarOutData(115) = LocalVar%NACIMU_FA_AccF
-    LocalVarOutData(116) = LocalVar%FA_AccF
-    LocalVarOutData(117) = LocalVar%FA_Hist
-    LocalVarOutData(118) = LocalVar%TRA_LastRefSpd
-    LocalVarOutData(119) = LocalVar%VS_RefSpeed
-    LocalVarOutData(120) = LocalVar%PtfmTDX
-    LocalVarOutData(121) = LocalVar%PtfmTDY
-    LocalVarOutData(122) = LocalVar%PtfmTDZ
-    LocalVarOutData(123) = LocalVar%PtfmRDX
-    LocalVarOutData(124) = LocalVar%PtfmRDY
-    LocalVarOutData(125) = LocalVar%PtfmRDZ
-    LocalVarOutData(126) = LocalVar%PtfmTVX
-    LocalVarOutData(127) = LocalVar%PtfmTVY
-    LocalVarOutData(128) = LocalVar%PtfmTVZ
-    LocalVarOutData(129) = LocalVar%PtfmRVX
-    LocalVarOutData(130) = LocalVar%PtfmRVY
-    LocalVarOutData(131) = LocalVar%PtfmRVZ
-    LocalVarOutData(132) = LocalVar%PtfmTAX
-    LocalVarOutData(133) = LocalVar%PtfmTAY
-    LocalVarOutData(134) = LocalVar%PtfmTAZ
-    LocalVarOutData(135) = LocalVar%PtfmRAX
-    LocalVarOutData(136) = LocalVar%PtfmRAY
-    LocalVarOutData(137) = LocalVar%PtfmRAZ
-    LocalVarOutData(138) = LocalVar%CC_DesiredL(1)
-    LocalVarOutData(139) = LocalVar%CC_ActuatedL(1)
-    LocalVarOutData(140) = LocalVar%CC_ActuatedDL(1)
-    LocalVarOutData(141) = LocalVar%StC_Input(1)
-    LocalVarOutData(142) = LocalVar%Flp_Angle(1)
-    LocalVarOutData(143) = LocalVar%RootMyb_Last(1)
-    LocalVarOutData(144) = LocalVar%ACC_INFILE_SIZE
-    LocalVarOutData(145) = LocalVar%AWC_complexangle(1)
-    LocalVarOutData(146) = LocalVar%TiltMean
-    LocalVarOutData(147) = LocalVar%YawMean
-    LocalVarOutData(148) = LocalVar%ZMQ_ID
-    LocalVarOutData(149) = LocalVar%ZMQ_YawOffset
-    LocalVarOutData(150) = LocalVar%ZMQ_TorqueOffset
-    LocalVarOutData(151) = LocalVar%ZMQ_PitOffset(1)
-    LocalVarOutData(152) = LocalVar%ZMQ_R_Speed
-    LocalVarOutData(153) = LocalVar%ZMQ_R_Torque
-    LocalVarOutData(154) = LocalVar%ZMQ_R_Pitch
+    LocalVarOutData(113) = LocalVar%SD_MaxPitchRate
+    LocalVarOutData(114) = LocalVar%SD_MaxTorqueRate
+    LocalVarOutData(115) = LocalVar%GenTq_SD
+    LocalVarOutData(116) = LocalVar%Fl_PitCom
+    LocalVarOutData(117) = LocalVar%NACIMU_FA_AccF
+    LocalVarOutData(118) = LocalVar%FA_AccF
+    LocalVarOutData(119) = LocalVar%FA_Hist
+    LocalVarOutData(120) = LocalVar%TRA_LastRefSpd
+    LocalVarOutData(121) = LocalVar%VS_RefSpeed
+    LocalVarOutData(122) = LocalVar%PtfmTDX
+    LocalVarOutData(123) = LocalVar%PtfmTDY
+    LocalVarOutData(124) = LocalVar%PtfmTDZ
+    LocalVarOutData(125) = LocalVar%PtfmRDX
+    LocalVarOutData(126) = LocalVar%PtfmRDY
+    LocalVarOutData(127) = LocalVar%PtfmRDZ
+    LocalVarOutData(128) = LocalVar%PtfmTVX
+    LocalVarOutData(129) = LocalVar%PtfmTVY
+    LocalVarOutData(130) = LocalVar%PtfmTVZ
+    LocalVarOutData(131) = LocalVar%PtfmRVX
+    LocalVarOutData(132) = LocalVar%PtfmRVY
+    LocalVarOutData(133) = LocalVar%PtfmRVZ
+    LocalVarOutData(134) = LocalVar%PtfmTAX
+    LocalVarOutData(135) = LocalVar%PtfmTAY
+    LocalVarOutData(136) = LocalVar%PtfmTAZ
+    LocalVarOutData(137) = LocalVar%PtfmRAX
+    LocalVarOutData(138) = LocalVar%PtfmRAY
+    LocalVarOutData(139) = LocalVar%PtfmRAZ
+    LocalVarOutData(140) = LocalVar%CC_DesiredL(1)
+    LocalVarOutData(141) = LocalVar%CC_ActuatedL(1)
+    LocalVarOutData(142) = LocalVar%CC_ActuatedDL(1)
+    LocalVarOutData(143) = LocalVar%StC_Input(1)
+    LocalVarOutData(144) = LocalVar%Flp_Angle(1)
+    LocalVarOutData(145) = LocalVar%RootMyb_Last(1)
+    LocalVarOutData(146) = LocalVar%ACC_INFILE_SIZE
+    LocalVarOutData(147) = LocalVar%AWC_complexangle(1)
+    LocalVarOutData(148) = LocalVar%TiltMean
+    LocalVarOutData(149) = LocalVar%YawMean
+    LocalVarOutData(150) = LocalVar%ZMQ_ID
+    LocalVarOutData(151) = LocalVar%ZMQ_YawOffset
+    LocalVarOutData(152) = LocalVar%ZMQ_TorqueOffset
+    LocalVarOutData(153) = LocalVar%ZMQ_PitOffset(1)
+    LocalVarOutData(154) = LocalVar%ZMQ_R_Speed
+    LocalVarOutData(155) = LocalVar%ZMQ_R_Torque
+    LocalVarOutData(156) = LocalVar%ZMQ_R_Pitch
 
     LocalVarOutStrings(1) = 'iStatus'
     LocalVarOutStrings(2) = 'AlreadyInitialized'
@@ -1033,48 +1039,50 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutStrings(110) = 'SD_GenSpeedF'
     LocalVarOutStrings(111) = 'SD_Stage'
     LocalVarOutStrings(112) = 'SD_StageStartTime'
-    LocalVarOutStrings(113) = 'GenTq_SD'
-    LocalVarOutStrings(114) = 'Fl_PitCom'
-    LocalVarOutStrings(115) = 'NACIMU_FA_AccF'
-    LocalVarOutStrings(116) = 'FA_AccF'
-    LocalVarOutStrings(117) = 'FA_Hist'
-    LocalVarOutStrings(118) = 'TRA_LastRefSpd'
-    LocalVarOutStrings(119) = 'VS_RefSpeed'
-    LocalVarOutStrings(120) = 'PtfmTDX'
-    LocalVarOutStrings(121) = 'PtfmTDY'
-    LocalVarOutStrings(122) = 'PtfmTDZ'
-    LocalVarOutStrings(123) = 'PtfmRDX'
-    LocalVarOutStrings(124) = 'PtfmRDY'
-    LocalVarOutStrings(125) = 'PtfmRDZ'
-    LocalVarOutStrings(126) = 'PtfmTVX'
-    LocalVarOutStrings(127) = 'PtfmTVY'
-    LocalVarOutStrings(128) = 'PtfmTVZ'
-    LocalVarOutStrings(129) = 'PtfmRVX'
-    LocalVarOutStrings(130) = 'PtfmRVY'
-    LocalVarOutStrings(131) = 'PtfmRVZ'
-    LocalVarOutStrings(132) = 'PtfmTAX'
-    LocalVarOutStrings(133) = 'PtfmTAY'
-    LocalVarOutStrings(134) = 'PtfmTAZ'
-    LocalVarOutStrings(135) = 'PtfmRAX'
-    LocalVarOutStrings(136) = 'PtfmRAY'
-    LocalVarOutStrings(137) = 'PtfmRAZ'
-    LocalVarOutStrings(138) = 'CC_DesiredL'
-    LocalVarOutStrings(139) = 'CC_ActuatedL'
-    LocalVarOutStrings(140) = 'CC_ActuatedDL'
-    LocalVarOutStrings(141) = 'StC_Input'
-    LocalVarOutStrings(142) = 'Flp_Angle'
-    LocalVarOutStrings(143) = 'RootMyb_Last'
-    LocalVarOutStrings(144) = 'ACC_INFILE_SIZE'
-    LocalVarOutStrings(145) = 'AWC_complexangle'
-    LocalVarOutStrings(146) = 'TiltMean'
-    LocalVarOutStrings(147) = 'YawMean'
-    LocalVarOutStrings(148) = 'ZMQ_ID'
-    LocalVarOutStrings(149) = 'ZMQ_YawOffset'
-    LocalVarOutStrings(150) = 'ZMQ_TorqueOffset'
-    LocalVarOutStrings(151) = 'ZMQ_PitOffset'
-    LocalVarOutStrings(152) = 'ZMQ_R_Speed'
-    LocalVarOutStrings(153) = 'ZMQ_R_Torque'
-    LocalVarOutStrings(154) = 'ZMQ_R_Pitch'
+    LocalVarOutStrings(113) = 'SD_MaxPitchRate'
+    LocalVarOutStrings(114) = 'SD_MaxTorqueRate'
+    LocalVarOutStrings(115) = 'GenTq_SD'
+    LocalVarOutStrings(116) = 'Fl_PitCom'
+    LocalVarOutStrings(117) = 'NACIMU_FA_AccF'
+    LocalVarOutStrings(118) = 'FA_AccF'
+    LocalVarOutStrings(119) = 'FA_Hist'
+    LocalVarOutStrings(120) = 'TRA_LastRefSpd'
+    LocalVarOutStrings(121) = 'VS_RefSpeed'
+    LocalVarOutStrings(122) = 'PtfmTDX'
+    LocalVarOutStrings(123) = 'PtfmTDY'
+    LocalVarOutStrings(124) = 'PtfmTDZ'
+    LocalVarOutStrings(125) = 'PtfmRDX'
+    LocalVarOutStrings(126) = 'PtfmRDY'
+    LocalVarOutStrings(127) = 'PtfmRDZ'
+    LocalVarOutStrings(128) = 'PtfmTVX'
+    LocalVarOutStrings(129) = 'PtfmTVY'
+    LocalVarOutStrings(130) = 'PtfmTVZ'
+    LocalVarOutStrings(131) = 'PtfmRVX'
+    LocalVarOutStrings(132) = 'PtfmRVY'
+    LocalVarOutStrings(133) = 'PtfmRVZ'
+    LocalVarOutStrings(134) = 'PtfmTAX'
+    LocalVarOutStrings(135) = 'PtfmTAY'
+    LocalVarOutStrings(136) = 'PtfmTAZ'
+    LocalVarOutStrings(137) = 'PtfmRAX'
+    LocalVarOutStrings(138) = 'PtfmRAY'
+    LocalVarOutStrings(139) = 'PtfmRAZ'
+    LocalVarOutStrings(140) = 'CC_DesiredL'
+    LocalVarOutStrings(141) = 'CC_ActuatedL'
+    LocalVarOutStrings(142) = 'CC_ActuatedDL'
+    LocalVarOutStrings(143) = 'StC_Input'
+    LocalVarOutStrings(144) = 'Flp_Angle'
+    LocalVarOutStrings(145) = 'RootMyb_Last'
+    LocalVarOutStrings(146) = 'ACC_INFILE_SIZE'
+    LocalVarOutStrings(147) = 'AWC_complexangle'
+    LocalVarOutStrings(148) = 'TiltMean'
+    LocalVarOutStrings(149) = 'YawMean'
+    LocalVarOutStrings(150) = 'ZMQ_ID'
+    LocalVarOutStrings(151) = 'ZMQ_YawOffset'
+    LocalVarOutStrings(152) = 'ZMQ_TorqueOffset'
+    LocalVarOutStrings(153) = 'ZMQ_PitOffset'
+    LocalVarOutStrings(154) = 'ZMQ_R_Speed'
+    LocalVarOutStrings(155) = 'ZMQ_R_Torque'
+    LocalVarOutStrings(156) = 'ZMQ_R_Pitch'
     ! Initialize debug file
     IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN ! .TRUE. if we're on the first call to the DLL
         IF (CntrPar%LoggingLevel > 0) THEN
@@ -1089,8 +1097,8 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
             CALL GetNewUnit(UnDb2, ErrVar)
             OPEN(unit=UnDb2, FILE=TRIM(RootName)//'.RO.dbg2')
             WRITE(UnDb2, *)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)
-            WRITE(UnDb2, '(155(a20,TR5:))') 'Time',   LocalVarOutStrings
-            WRITE(UnDb2, '(155(a20,TR5:))')
+            WRITE(UnDb2, '(157(a20,TR5:))') 'Time',   LocalVarOutStrings
+            WRITE(UnDb2, '(157(a20,TR5:))')
         END IF
 
         IF (CntrPar%LoggingLevel > 2) THEN
@@ -1153,7 +1161,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     END DO
     
     ! Write debug files
-    FmtDat = "(F20.5,TR5,154(ES20.5E2,TR5:))"   ! The format of the debugging data
+    FmtDat = "(F20.5,TR5,156(ES20.5E2,TR5:))"   ! The format of the debugging data
     IF ( MOD(LocalVar%n_DT, CntrPar%n_DT_Out) == 0) THEN
         IF((CntrPar%LoggingLevel > 0) .AND. (LocalVar%iStatus .ge. 0)) THEN
             WRITE (UnDb, TRIM(FmtDat))  LocalVar%Time, DebugOutData

@@ -151,6 +151,7 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: SD_Method                   ! Shutdown method {1 - Reduce generator torque and increase blade pitch}, [-]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: SD_MaxTorqueRate            ! Maximum torque rate for shutdown, [Nm/s]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: SD_MaxPitchRate             ! Maximum pitch rate used for shutdown, [rad/s]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: SD_Stage_Pitch              ! Array containing the pitch angle to reach in each shutdown stage [rad]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: SD_Stage_Time               ! Array containing the time to spend in each shutdown stage [s]
     INTEGER(IntKi)                :: SD_Stage_N                  ! Number of shutdown stages (should equal number of values in SD_MaxPitchRate and SD_MaxTorqueRate) [-]
     INTEGER(IntKi)                :: Fl_Mode                     ! Floating specific feedback mode {0 - no nacelle velocity feedback, 1 - nacelle velocity feedback}
@@ -416,6 +417,8 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: SD_GenSpeedF                ! Generator speed signal filtered for shutdown
     INTEGER(IntKi)                :: SD_Stage                    ! Current stage of shutdown procedure (0- Shutdown not active, 1- First pitch/torque rate, 2,3,...)
     REAL(DbKi)                    :: SD_StageStartTime           ! Time at which the current shutdown stage started
+    REAL(DbKi)                    :: SD_MaxPitchRate             ! Maximum pitch rate during current shutdown stage [rad/s]
+    REAL(DbKi)                    :: SD_MaxTorqueRate            ! Maximum torque rate during current shutdown stage [Nm/s]
     REAL(DbKi)                    :: GenTq_SD                    ! Electrical generator torque command for shutdown, [Nm].
     REAL(DbKi)                    :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None

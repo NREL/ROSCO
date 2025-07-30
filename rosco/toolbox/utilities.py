@@ -266,6 +266,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<12d}        ! SD_Method              - {}\n'.format(int(rosco_vt['SD_Method']), input_descriptions['SD_Method']))
     file.write('{:<12d}        ! SD_Stage_N              - {}\n'.format(int(rosco_vt['SD_Stage_N']), input_descriptions['SD_Stage_N']))
     file.write('{:<16}      ! SD_Stage_Time      - {}\n'.format(write_array(rosco_vt['SD_Stage_Time'],'<6.4f'), input_descriptions['SD_Stage_Time']))
+    file.write('{:<16}      ! SD_Stage_Pitch     - {}\n'.format(write_array(rosco_vt['SD_Stage_Pitch'],'<6.4f'), input_descriptions['SD_Stage_Pitch']))
     file.write('{:<16}      ! SD_MaxTorqueRate   - {}\n'.format(write_array(rosco_vt['SD_MaxTorqueRate'],'<6.4f'), input_descriptions['SD_MaxTorqueRate']))
     file.write('{:<16}      ! SD_MaxPitchRate    - {}\n'.format(write_array(rosco_vt['SD_MaxPitchRate'],'<6.4f'), input_descriptions['SD_MaxPitchRate']))
     file.write('\n')
@@ -658,6 +659,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['SD_Method']            = 1
     DISCON_dict['SD_Stage_N']           = 1
     DISCON_dict['SD_Stage_Time']        = [1000] # should be be enough time for the single stage shutdown
+    DISCON_dict['SD_Stage_Pitch']       = [np.radians(90.0)] # should be be enough time for the single stage shutdown
     DISCON_dict['SD_MaxTorqueRate']     = [0.05 * turbine.max_torque_rate]
     DISCON_dict['SD_MaxPitchRate']      = [0.125 * turbine.max_pitch_rate]
     # ------- Floating -------

@@ -561,6 +561,10 @@ ControlParameters:
       <<: *real
       allocatable: True
       description: Maximum pitch rate used for shutdown, [rad/s]
+    SD_Stage_Pitch:
+      <<: *real
+      allocatable: True
+      description: Array containing the pitch angle to reach in each shutdown stage [rad]
     SD_Stage_Time:
       <<: *real
       allocatable: True
@@ -1450,6 +1454,12 @@ LocalVariables:
     SD_StageStartTime:
       <<: *real
       description: Time at which the current shutdown stage started
+    SD_MaxPitchRate:
+      <<: *real
+      description: Maximum pitch rate during current shutdown stage [rad/s]
+    SD_MaxTorqueRate:
+      <<: *real
+      description: Maximum torque rate during current shutdown stage [Nm/s]
     GenTq_SD:                        
       <<: *real 
       description: Electrical generator torque command for shutdown, [Nm].
