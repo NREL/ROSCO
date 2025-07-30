@@ -120,7 +120,7 @@ A complete list of examples is given below:
 .. automodule:: 16_external_dll
 .. automodule:: 17a_zeromq_simple
 .. automodule:: 17b_zeromq_multi_openfast
-.. automodule:: 17c_zeromq_ff
+.. automodule:: 17c_zeromq_fastfarm
 .. automodule:: 18_pitch_faults
 .. automodule:: 19_update_discon_version
 .. automodule:: 20_active_wake_control

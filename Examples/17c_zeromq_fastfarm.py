@@ -1,7 +1,7 @@
 """
-17c_zeromq_ff
--------------
-Run FAST.Farm simulation and communication with ZeroMQ.
+17c_zeromq_fastfarm
+-------------------
+Run FAST.Farm simulation and execute communication with ZeroMQ.
 """
 
 import os
@@ -16,7 +16,7 @@ from rosco.toolbox.control_interface import wfc_zmq_server
 from rosco import discon_lib_path as lib_name
 from rosco.toolbox.ofTools.fast_io import output_processing
 
-
+TIME_CHECK = 30
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 EXAMPLE_OUT_DIR = os.path.join(THIS_DIR, "examples_out")
 os.makedirs(EXAMPLE_OUT_DIR, exist_ok=True)
@@ -50,7 +50,7 @@ def main():
         EXAMPLE_OUT_DIR,
         "17c_FASTFarm.T2.RO.dbg2",
     )
-    local_vars2 = op2.load_fast_out(debug_file1, tmin=0)
+    local_vars2 = op2.load_fast_out(debug_file2, tmin=0)
 
     _, axs = plt.subplots(2, 1)
     axs[0].plot(local_vars1[0]["Time"], local_vars1[0]["ZMQ_YawOffset"])
@@ -60,6 +60,17 @@ def main():
         plt.show()
     else:
         plt.savefig(os.path.join(EXAMPLE_OUT_DIR, "17c_FASTFarm_ZMQ_Setpoints.png"))
+    
+    # Spot check input at time = 30 sec.
+    ind1_30 = local_vars1[0]["Time"] == TIME_CHECK
+    ind2_30 = local_vars2[0]["Time"] == TIME_CHECK
+
+    np.testing.assert_almost_equal(
+        local_vars1[0]["ZMQ_YawOffset"][ind1_30], DESIRED_YAW_OFFSET[0]
+    )
+    np.testing.assert_almost_equal(
+        local_vars2[0]["ZMQ_YawOffset"][ind2_30], DESIRED_YAW_OFFSET[1]
+    )
 
 
 def run_zmq(logfile=None):
