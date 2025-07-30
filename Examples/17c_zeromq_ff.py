@@ -7,13 +7,59 @@ Run FAST.Farm simulation and communication with ZeroMQ.
 import os
 import numpy as np
 import multiprocessing as mp
+import subprocess
+import shutil
+import matplotlib.pyplot as plt
+from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
+from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
 from rosco.toolbox.control_interface import wfc_zmq_server
+from rosco import discon_lib_path as lib_name
+from rosco.toolbox.ofTools.fast_io import output_processing
 
 
-this_dir = os.path.dirname(os.path.abspath(__file__))
-example_out_dir = os.path.join(this_dir, "examples_out")
-os.makedirs(example_out_dir, exist_ok=True)
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+EXAMPLE_OUT_DIR = os.path.join(THIS_DIR, "examples_out")
+os.makedirs(EXAMPLE_OUT_DIR, exist_ok=True)
 DESIRED_YAW_OFFSET = [-10, 10]
+
+
+def main():
+    sim_openfast_1()
+    sim_openfast_2()
+
+    logfile = os.path.join(EXAMPLE_OUT_DIR, os.path.splitext(os.path.basename(__file__))[0] + ".log")
+    p0 = mp.Process(target=run_zmq, args=(logfile,))
+    p1 = mp.Process(target=run_FF)
+
+    p0.start()
+    p1.start()
+
+    p0.join()
+    p1.join()
+    
+    # Check that info is passed to ROSCO for first simulation
+    op1 = output_processing.output_processing()
+    debug_file1 = os.path.join(
+        EXAMPLE_OUT_DIR,
+        "17c_FASTFarm.T1.RO.dbg2",
+    )
+    local_vars1 = op1.load_fast_out(debug_file1, tmin=0)
+    
+    op2 = output_processing.output_processing()
+    debug_file2 = os.path.join(
+        EXAMPLE_OUT_DIR,
+        "17c_FASTFarm.T2.RO.dbg2",
+    )
+    local_vars2 = op2.load_fast_out(debug_file1, tmin=0)
+
+    _, axs = plt.subplots(2, 1)
+    axs[0].plot(local_vars1[0]["Time"], local_vars1[0]["ZMQ_YawOffset"])
+    axs[1].plot(local_vars2[0]["Time"], local_vars2[0]["ZMQ_YawOffset"])
+
+    if False:
+        plt.show()
+    else:
+        plt.savefig(os.path.join(EXAMPLE_OUT_DIR, "17c_FASTFarm_ZMQ_Setpoints.png"))
 
 
 def run_zmq(logfile=None):
@@ -21,16 +67,16 @@ def run_zmq(logfile=None):
 
     # Start the server at the following address
     network_address = "tcp://*:5555"
-    server = wfc_zmq_server(network_address, timeout=60.0, verbose=True, logfile=logfile)
+    server = wfc_zmq_server(network_address, timeout=60.0, verbose=False, logfile=logfile)
 
     # Provide the wind farm control algorithm as the wfc_controller method of the server
-    server.wfc_controller = wfc_controller
+    server.wfc_controller = wfc_controller()
 
     # Run the server to receive measurements and send setpoints
     server.runserver()
 
 
-def wfc_controller(id, current_time, measurements):
+class wfc_controller():
     """
     Users needs to define this function to implement wind farm controller.
     The user defined function should take as argument the turbine id, the
@@ -41,40 +87,88 @@ def wfc_controller(id, current_time, measurements):
     should be overwriten with this fuction, otherwise, an exception is raised and
     the simulation stops.
     """
-    if current_time <= 10.0:
-        YawOffset = 0.0
-        col_pitch_command = 0.0
-    else:
-        col_pitch_command = np.deg2rad(2) * np.sin(0.1 * current_time) + np.deg2rad(2) # Implement dynamic induction control
-        if id == 1:
-            YawOffset = DESIRED_YAW_OFFSET[0]
+    
+    def __init__(self):
+        return None
+    
+    def update_setpoints(self, id, current_time, measurements):
+        if current_time <= 20.0:
+            YawOffset = 0.0
         else:
-            YawOffset = DESIRED_YAW_OFFSET[1]
+            if id == 1:
+                YawOffset = DESIRED_YAW_OFFSET[0]
+            else:
+                YawOffset = DESIRED_YAW_OFFSET[1]
 
 
-    setpoints = {}
-    setpoints["ZMQ_YawOffset"] = YawOffset
-    setpoints['ZMQ_PitOffset(1)'] = col_pitch_command
-    setpoints['ZMQ_PitOffset(2)'] = col_pitch_command
-    setpoints['ZMQ_PitOffset(3)'] = col_pitch_command
-    return setpoints
+        setpoints = {}
+        setpoints["ZMQ_YawOffset"] = YawOffset
+        return setpoints
+
+def sim_openfast_1():
+    """Run the first OpenFAST simulation with ZeroMQ enabled"""
+    r = run_FAST_ROSCO()
+    r.tuning_yaml = "NREL5MW.yaml"
+    r.wind_case_fcn = cl.power_curve
+    r.wind_case_opts = {
+        "U": [8],
+        "TMax": 25,
+    }
+    run_dir = os.path.join(EXAMPLE_OUT_DIR, "17c_FASTFarm_OF1")
+    r.controller_params = {}
+    r.controller_params["LoggingLevel"] = 2
+    r.controller_params["DISCON"] = {}
+    r.controller_params["DISCON"]["ZMQ_Mode"] = 1
+    r.controller_params["DISCON"]["ZMQ_ID"] = 1
+  
+    # Use a copy of the discon library for each set of OpenFAST files
+    copy_lib = os.path.join(EXAMPLE_OUT_DIR, "17c_FASTFarm_OF1",os.path.basename(lib_name))
+    r.rosco_dll =  copy_lib
+
+    r.save_dir = run_dir
+    r.execute_fast = False    # execute_fast is set to False to avoid running OpenFAST directly, as we will run it through FAST.Farm
+    r.run_FAST()
+    
+    # Copy the discon library
+    shutil.copyfile(lib_name, copy_lib)
+
+
+def sim_openfast_2():
+    """Run the second OpenFAST simulation with ZeroMQ enabled"""
+    r = run_FAST_ROSCO()
+    r.tuning_yaml = "NREL5MW.yaml"
+    r.wind_case_fcn = cl.power_curve
+    r.wind_case_opts = {
+        "U": [8],
+        "TMax": 25,
+    }
+    run_dir = os.path.join(EXAMPLE_OUT_DIR, "17c_FASTFarm_OF2")
+    r.save_dir = run_dir
+    r.controller_params = {}
+    r.controller_params["DISCON"] = {}
+    r.controller_params["LoggingLevel"] = 2
+    r.controller_params["DISCON"]["ZMQ_Mode"] = 1
+    r.controller_params["DISCON"]["ZMQ_ID"] = 2
+    
+    # Use a copy of the discon library for each set of OpenFAST files
+    copy_lib = os.path.join(EXAMPLE_OUT_DIR, "17c_FASTFarm_OF2",os.path.basename(lib_name))
+    r.rosco_dll =  copy_lib
+    
+    r.execute_fast = False    # execute_fast is set to False to avoid running OpenFAST directly, as we will run it through FAST.Farm
+    r.run_FAST()
+
+    # Copy the discon library
+    shutil.copyfile(lib_name, copy_lib)
 
 
 def run_FF():
-    fstf_file = ""
-    if not fstf_file:
-        raise Exception("FAST.Farm input file must be provided in the variable 'fstf_file'")
-    FF_cmd = "FAST.Farm " + fstf_file
-    os.system(FF_cmd)
+    fstf_file=os.path.join(EXAMPLE_OUT_DIR, "17c_FASTFarm.fstf")
+    shutil.copyfile(os.path.join(THIS_DIR,"example_inputs","FASTFarm.fstf"), fstf_file)
+    shutil.copyfile(os.path.join(THIS_DIR,"example_inputs","FASTFarm_IW.dat"), os.path.join(EXAMPLE_OUT_DIR, "17c_FASTFarm_IW.dat"))
+
+    # Run FAST.Farm with the specified fstf file
+    subprocess.run(["FAST.Farm",fstf_file], check=True)
 
 
 if __name__ == "__main__":
-    logfile = os.path.join( example_out_dir, os.path.splitext(os.path.basename(__file__))[0] + ".log")
-    p0 = mp.Process(target=run_zmq, args=(logfile,))
-    p1 = mp.Process(target=run_FF)
-
-    p0.start()
-    p1.start()
-
-    p0.join()
-    p1.join()
+    main()
