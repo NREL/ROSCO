@@ -1,7 +1,26 @@
 """
 17c_zeromq_fastfarm
 -------------------
-Run FAST.Farm simulation and execute communication with ZeroMQ.
+This example demonstrates the wind farm controls capability of ROSCO
+using ZeroMQ based communication with a FAST.Farm simulation.
+
+Note that in order to use the wind farm control capability of ROSCO,
+the :code:`ZMQ_Mode` must be set to 1 and unique identifiers must be
+set under :code:`ZMQ_ID` for each turbine in the :code.
+Wind farm level controller should be defined under a class called
+:code:`wfc_controller` which should implement a method called :code:`update_setpoints`.
+This method should take as arguments the unique turbine identifier, the current
+time and measurements, and return the setpoints for the particular turbine.
+Please see, the file :code:`rosco/controller/rosco_registry/wfc_interface.yaml`
+for the list of available measurements and setpoints.
+A ZeroMQ server and FAST.Farm simulation are run in parallel as separate processes.
+The :code:`wfc_controller` property of the server must be set to the 
+:code:`wfc_controller` class containing the wind farm controller logic.
+Note that FAST.Farm requires separate ROSCO libraries for each set of OpenFAST files.
+The nacelle yaw positions outputs of the two turbines in the wind farm are shown below.
+    
+.. image:: ../images/examples/17c_fastfarm_yaw_demo.png
+
 """
 
 import os
@@ -20,12 +39,12 @@ TIME_CHECK = 30
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 EXAMPLE_OUT_DIR = os.path.join(THIS_DIR, "examples_out")
 os.makedirs(EXAMPLE_OUT_DIR, exist_ok=True)
-DESIRED_YAW_OFFSET = [-10, 10]
+DESIRED_YAW_OFFSET = [-20, 20]
 
 
 def main():
-    sim_openfast_1()
-    sim_openfast_2()
+    write_openfast_1()
+    write_openfast_2()
 
     logfile = os.path.join(EXAMPLE_OUT_DIR, os.path.splitext(os.path.basename(__file__))[0] + ".log")
     p0 = mp.Process(target=run_zmq, args=(logfile,))
@@ -103,7 +122,7 @@ class wfc_controller():
         return None
     
     def update_setpoints(self, id, current_time, measurements):
-        if current_time <= 20.0:
+        if current_time <= 10.0:
             YawOffset = 0.0
         else:
             if id == 1:
@@ -116,7 +135,7 @@ class wfc_controller():
         setpoints["ZMQ_YawOffset"] = YawOffset
         return setpoints
 
-def sim_openfast_1():
+def write_openfast_1():
     """Run the first OpenFAST simulation with ZeroMQ enabled"""
     r = run_FAST_ROSCO()
     r.tuning_yaml = "NREL5MW.yaml"
@@ -131,20 +150,23 @@ def sim_openfast_1():
     r.controller_params["DISCON"] = {}
     r.controller_params["DISCON"]["ZMQ_Mode"] = 1
     r.controller_params["DISCON"]["ZMQ_ID"] = 1
+    r.controller_params["DISCON"]["Y_ControlMode"] = 1
+    r.case_inputs = {}
+    r.case_inputs[("ServoDyn","TYCOn")]      = {'vals':[0], 'group':0}
   
     # Use a copy of the discon library for each set of OpenFAST files
     copy_lib = os.path.join(EXAMPLE_OUT_DIR, "17c_FASTFarm_OF1",os.path.basename(lib_name))
     r.rosco_dll =  copy_lib
 
     r.save_dir = run_dir
-    r.execute_fast = False    # execute_fast is set to False to avoid running OpenFAST directly, as we will run it through FAST.Farm
+    r.execute_fast = False    # execute_fast is set to False to avoid running OpenFAST directly, as simulation will be run using FAST.Farm
     r.run_FAST()
     
     # Copy the discon library
     shutil.copyfile(lib_name, copy_lib)
 
 
-def sim_openfast_2():
+def write_openfast_2():
     """Run the second OpenFAST simulation with ZeroMQ enabled"""
     r = run_FAST_ROSCO()
     r.tuning_yaml = "NREL5MW.yaml"
@@ -160,12 +182,15 @@ def sim_openfast_2():
     r.controller_params["LoggingLevel"] = 2
     r.controller_params["DISCON"]["ZMQ_Mode"] = 1
     r.controller_params["DISCON"]["ZMQ_ID"] = 2
+    r.controller_params["DISCON"]["Y_ControlMode"] = 1
+    r.case_inputs = {}
+    r.case_inputs[("ServoDyn","TYCOn")]      = {'vals':[0], 'group':0}
     
     # Use a copy of the discon library for each set of OpenFAST files
     copy_lib = os.path.join(EXAMPLE_OUT_DIR, "17c_FASTFarm_OF2",os.path.basename(lib_name))
     r.rosco_dll =  copy_lib
     
-    r.execute_fast = False    # execute_fast is set to False to avoid running OpenFAST directly, as we will run it through FAST.Farm
+    r.execute_fast = False    # execute_fast is set to False to avoid running OpenFAST directly, as simulation will be run using FAST.Farm
     r.run_FAST()
 
     # Copy the discon library
