@@ -57,6 +57,26 @@ Once you have added or modified code, submit a pull request via the GitHub inter
 This will automatically go through all of the tests in the repo to make sure everything is functioning properly.
 The main developers of ROSCO will then merge in the request or provide feedback on how to improve the contribution.
 
+Adding Inputs to ROSCO
+----------------------
+
+ROSCO controller
+^^^^^^^^^^^^^^^^
+- **Add control parameters to the registry:** See the `rosco_types.yaml <https://github.com/NREL/ROSCO/blob/main/rosco/controller/rosco_registry/rosco_types.yaml#L76>`_ file.
+    - Any ``LocalVariables`` that you want to log are also in the registry: see `here <https://github.com/NREL/ROSCO/blob/main/rosco/controller/rosco_registry/rosco_types.yaml#L923>`_.
+    - The convention is that ``LocalVariables`` update every timestep, whereas ``ControlParameters`` do not change.
+- **Regenerate Fortran variable declarations and logging automatically:** Run the registry script to regenerate ``ROSCO_Types.f90`` and ``ROSCO_IO.f90``: `write_registry.py <https://github.com/NREL/ROSCO/blob/main/rosco/controller/rosco_registry/write_registry.py>`_.
+- **Parse inputs in Fortran:** Update ``ReadSetParameters``: see `ReadSetParameters.f90 <https://github.com/NREL/ROSCO/blob/main/rosco/controller/src/ReadSetParameters.f90#L346>`_.
+
+ROSCO toolbox
+^^^^^^^^^^^^^
+- **Add to the DISCON schema:** Update `toolbox_schema.yaml <https://github.com/NREL/ROSCO/blob/main/rosco/toolbox/inputs/toolbox_schema.yaml#L545>`_.
+- **Add to the DISCON file writer:** Update `utilities.py <https://github.com/NREL/ROSCO/blob/main/rosco/toolbox/utilities.py#L43>`_.
+
+Update DISCON inputs
+^^^^^^^^^^^^^^^^^^^^
+- See the script: `update_rosco_discons.py <https://github.com/NREL/ROSCO/blob/main/Examples/Test_Cases/update_rosco_discons.py>`_
+
 Updating the ROSCO API (Changing Input Files)
 ---------------------------------------------
 Any API changes should result in the following changes:

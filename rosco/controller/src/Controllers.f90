@@ -742,7 +742,7 @@ CONTAINS
         REAL(DbKi), DIMENSION(2)   :: Error = [0.0, 0.0]               ! Error in transformed tilt and yaw signals
         REAL(DbKi), DIMENSION(2)   :: FixedFrameM                      ! Measured tilt moment
         REAL(DbKi)                 :: StrAzimuth                       ! Strouhal transformed "azimuth" angle
-        REAL(DbKi)                 :: StartTime                        ! Start time of closed-loop AWC
+        REAL(DbKi)                 :: StartTime = 0.0                  ! Start time of closed-loop AWC
 
 
         ! Compute the AWC pitch settings, complex number approach
@@ -797,7 +797,7 @@ CONTAINS
         ! Closed-loop PI / PR controller
         ELSEIF ((CntrPar%AWC_Mode == 3) .OR. (CntrPar%AWC_Mode == 4)) THEN
 
-            !! For now, only works with AWC_NumModes=2
+            !! If AWC_harmonic > 0, use AWC_NumModes=2
         
             CALL ColemanTransform(LocalVar%rootMOOPF, LocalVar%Azimuth, CntrPar%AWC_harmonic(1), FixedFrameM(1), FixedFrameM(2))
 
@@ -807,7 +807,6 @@ CONTAINS
                 StartTime = 1/CntrPar%AWC_freq(1)
             ENDIF
 
-            ! !!! ADD KP and KI here later, and make startup more fancy
             IF (LocalVar%Time .GT. StartTime) THEN
                 DO Imode = 1,CntrPar%AWC_NumModes
                     Error(Imode) = CntrPar%AWC_amp(Imode)*sin(LocalVar%Time*2*PI*CntrPar%AWC_freq(Imode) + CntrPar%AWC_clockangle(Imode)*D2R) &
