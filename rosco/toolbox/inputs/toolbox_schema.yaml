@@ -1343,9 +1343,9 @@ properties:
                     AWC_Mode:
                         type: number
                         minimum: 0
-                        maximum: 2
+                        maximum: 5
                         default: 0
-                        description: Active wake control mode {0 - not used, 1 - complex number method, 2 - Coleman transformation method}
+                        description: Active wake control mode {0 - not used, 1 - complex number method, 2 - Coleman transformation method, 3 to 5 - Closed-loop AWC}
                     AWC_NumModes:
                         type: number
                         description: Number of AWC modes
@@ -1384,6 +1384,17 @@ properties:
                         description: AWC clock angle [deg]
                         units: deg
                         default: [0]
+                    AWC_phaseoffset:
+                        type: number
+                        description: Azimuth offset in the Coleman transformation [deg]
+                        units: deg
+                        default: 0
+                    AWC_CntrGains:
+                        type: array
+                        items:
+                            type: number
+                        description: KP and KI/KR gain of the active wake controller [-]
+                        default: [0.0, 0.0]
                     ZMQ_CommAddress:
                         type: string
                         description: Communication address for ZMQ server, (e.g. "tcp://localhost:5555")

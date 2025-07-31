@@ -21,6 +21,7 @@ all_scripts = [
     '16_external_dll',
     '17a_zeromq_simple',  # only runs on unix in CI
     '17b_zeromq_multi_openfast',  # only runs on unix in CI
+    '17c_zeromq_fastfarm',  # only runs on unix in CI
     '18_pitch_faults',
     '19_update_discon_version', 
     '20_active_wake_control',   

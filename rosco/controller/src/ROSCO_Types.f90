@@ -194,10 +194,12 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: AWC_Mode                    ! Active wake control mode [0 - unused, 1 - complex number method, 2 - Coleman transform method]
     INTEGER(IntKi)                :: AWC_NumModes                ! AWC- Number of modes to include [-]
     INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: AWC_n                       ! AWC azimuthal mode [-]
-    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: AWC_harmonic                ! AWC AWC Coleman transform harmonic [-]
+    INTEGER(IntKi), DIMENSION(:), ALLOCATABLE     :: AWC_harmonic                ! AWC Coleman transform harmonic [-]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_freq                    ! AWC frequency [Hz]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_amp                     ! AWC amplitude [deg]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_clockangle              ! AWC clocking angle [deg]
+    REAL(DbKi)                    :: AWC_phaseoffset             ! AWC azimuth offset for Coleman transform [deg]
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: AWC_CntrGains               ! AWC KP and KI/KR gain of the controller [-]
     INTEGER(IntKi)                :: PF_Mode                     ! Pitch actuator fault mode {0 - not used, 1 - offsets on one or more blades}
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PF_Offsets                  ! Pitch actuator fault offsets for blade 1-3 [rad/s]
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PF_TimeStuck                ! Time for pitch actuator fault to be stuck for blade 1-3 [s]
@@ -290,6 +292,13 @@ TYPE, PUBLIC :: piParams
     REAL(DbKi), DIMENSION(99)     :: ITermLast2                  ! Previous integrator term - second integrator
     REAL(DbKi), DIMENSION(99)     :: ELast                       ! Previous error term for derivative
 END TYPE piParams
+
+TYPE, PUBLIC :: resParams
+    REAL(DbKi), DIMENSION(99)     :: res_OutputSignalLast1       ! Previous output signal
+    REAL(DbKi), DIMENSION(99)     :: res_OutputSignalLast2       ! Previous output signal - second integrator
+    REAL(DbKi), DIMENSION(99)     :: res_InputSignalLast1        ! Previous input signal
+    REAL(DbKi), DIMENSION(99)     :: res_InputSignalLast2        ! Previous input signal - second integrator
+END TYPE resParams
 
 TYPE, PUBLIC :: LocalVariables
     INTEGER(IntKi)                :: iStatus                     ! Initialization status
@@ -438,6 +447,8 @@ TYPE, PUBLIC :: LocalVariables
     CHARACTER, DIMENSION(:), ALLOCATABLE     :: ACC_INFILE                  ! Parameter input filename
     LOGICAL                       :: restart                     ! Restart flag
     COMPLEX(DbKi)                 :: AWC_complexangle(3)         ! Complex angle for each blade, sum of modes?
+    REAL(DbKi)                    :: TiltMean                    ! Mean tilt blade moment [Nm]
+    REAL(DbKi)                    :: YawMean                     ! Mean yaw blade moment [Nm]
     INTEGER(IntKi)                :: ZMQ_ID                      ! 0000 - 9999, Identifier of the rosco, used for zeromq interface only
     REAL(DbKi)                    :: ZMQ_YawOffset               ! Yaw offset command, [rad]
     REAL(DbKi)                    :: ZMQ_TorqueOffset            ! Torque offset command, [Nm]
@@ -448,6 +459,7 @@ TYPE, PUBLIC :: LocalVariables
     TYPE(WE)                      :: WE                          ! Wind speed estimator parameters derived type
     TYPE(FilterParameters)        :: FP                          ! Filter parameters derived type
     TYPE(piParams)                :: piP                         ! PI parameters derived type
+    TYPE(resParams)               :: resP                        ! PR parameters derived type
     TYPE(rlParams)                :: rlP                         ! Rate limiter parameters derived type
 END TYPE LocalVariables
 
@@ -459,6 +471,7 @@ TYPE, PUBLIC :: ObjectInstances
     INTEGER(IntKi)                :: instNotchSlopes             ! Notch filter slopes instance
     INTEGER(IntKi)                :: instNotch                   ! Notch filter instance
     INTEGER(IntKi)                :: instPI                      ! PI controller instance
+    INTEGER(IntKi)                :: instRes                     ! PR controller instance
     INTEGER(IntKi)                :: instRL                      ! Rate limiter instance
 END TYPE ObjectInstances
 

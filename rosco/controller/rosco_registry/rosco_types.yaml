@@ -723,7 +723,7 @@ ControlParameters:
     AWC_harmonic:
       <<: *integer
       allocatable: True
-      description: AWC AWC Coleman transform harmonic [-]
+      description: AWC Coleman transform harmonic [-]
     AWC_freq:
       <<: *real
       allocatable: True
@@ -736,6 +736,13 @@ ControlParameters:
       <<: *real
       allocatable: True
       description: AWC clocking angle [deg]
+    AWC_phaseoffset:
+      <<: *real
+      description: AWC azimuth offset for Coleman transform [deg]
+    AWC_CntrGains:
+      <<: *real
+      allocatable: True
+      description: AWC KP and KI/KR gain of the controller [-]
 
     # Pitch actuator error
     PF_Mode:
@@ -1062,6 +1069,24 @@ piParams:
       <<: *real
       dimension: (99)
       description: Previous error term for derivative
+
+resParams:
+    res_OutputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Previous output signal
+    res_OutputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Previous output signal - second integrator
+    res_InputSignalLast1:
+      <<: *real
+      dimension: (99)
+      description: Previous input signal
+    res_InputSignalLast2:
+      <<: *real
+      dimension: (99)
+      description: Previous input signal - second integrator
 
 LocalVariables:
     iStatus: 
@@ -1518,6 +1543,12 @@ LocalVariables:
       <<: *complex
       description: Complex angle for each blade, sum of modes?
       size: 3
+    TiltMean:
+      <<: *real
+      description: Mean tilt blade moment [Nm]
+    YawMean:
+      <<: *real
+      description: Mean yaw blade moment [Nm]
     ZMQ_ID:
       <<: *integer
       description: 0000 - 9999, Identifier of the rosco, used for zeromq interface only
@@ -1552,6 +1583,10 @@ LocalVariables:
       <<: *derived_type
       id: piParams
       description: PI parameters derived type
+    resP:
+      <<: *derived_type
+      id: resParams
+      description: PR parameters derived type
     rlP:
       <<: *derived_type
       id: rlParams
@@ -1579,6 +1614,9 @@ ObjectInstances:
   instPI:
     <<: *integer  
     description: PI controller instance
+  instRes:
+    <<: *integer  
+    description: PR controller instance
   instRL:
     <<: *integer
     description: Rate limiter instance

@@ -67,7 +67,7 @@ _build
 # Binaries
 *.dylib
 *.so
-*.dll
+*.dll.*
 *.bts
 
 # Other
