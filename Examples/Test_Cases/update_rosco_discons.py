@@ -11,6 +11,7 @@ if __name__=="__main__":
     # paths relative to Tune_Case/ and Test_Case/
     map_rel = {
         'NREL5MW.yaml': 'NREL-5MW/DISCON.IN',
+        '../Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT-Monopile/IEA-15-240-RWT-Monopile_ROSCO.yaml': 'IEA-15-240-RWT/IEA-15-240-RWT-Monopile/IEA-15-240-RWT-Monopile_DISCON.IN',
         'IEA15MW.yaml': 'IEA-15-240-RWT/IEA-15-240-RWT-UMaineSemi/IEA-15-240-RWT-UMaineSemi_DISCON.IN',
         'BAR.yaml':     'BAR_10/BAR_10_DISCON.IN',
         'NREL2p8.yaml': 'NREL_2p8_127/NREL-2p8-127_DISCON.IN',

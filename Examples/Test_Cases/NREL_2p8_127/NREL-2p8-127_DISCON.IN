@@ -221,6 +221,8 @@
 0.0500              ! AWC_freq           - Frequency(s) of forcing mode(s) [Hz]
 1.0000              ! AWC_amp            - Pitch amplitude(s) of individual forcing mode(s) [deg]
 0.0000              ! AWC_clockangle     - Initial angle(s) of forcing mode(s) [deg]
+0.000000000000        ! AWC_phaseoffset 	 - Azimuth offset in the Coleman transformation [deg]
+0.0000 0.0000         ! AWC_CntrGains           - KP and KI/KR gain of the active wake controller [-]
 
 !------- External Controller Interface -----------------------------------------------------
 "unused"            ! DLL_FileName        - Name/location of the dynamic library in the Bladed-DLL format
