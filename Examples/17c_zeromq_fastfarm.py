@@ -20,7 +20,7 @@ TIME_CHECK = 30
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 EXAMPLE_OUT_DIR = os.path.join(THIS_DIR, "examples_out")
 os.makedirs(EXAMPLE_OUT_DIR, exist_ok=True)
-DESIRED_YAW_OFFSET = [-10, 10]
+DESIRED_YAW_OFFSET = [-30, 30]
 
 
 def main():
@@ -131,6 +131,8 @@ def sim_openfast_1():
     r.controller_params["DISCON"] = {}
     r.controller_params["DISCON"]["ZMQ_Mode"] = 1
     r.controller_params["DISCON"]["ZMQ_ID"] = 1
+    r.controller_params["DISCON"]["Y_ControlMode"] = 1
+    r.controller_params["ServoDyn"]["TYCOn"] = 0
   
     # Use a copy of the discon library for each set of OpenFAST files
     copy_lib = os.path.join(EXAMPLE_OUT_DIR, "17c_FASTFarm_OF1",os.path.basename(lib_name))
@@ -160,6 +162,8 @@ def sim_openfast_2():
     r.controller_params["LoggingLevel"] = 2
     r.controller_params["DISCON"]["ZMQ_Mode"] = 1
     r.controller_params["DISCON"]["ZMQ_ID"] = 2
+    r.controller_params["DISCON"]["Y_ControlMode"] = 1
+    r.controller_params["ServoDyn"]["TYCOn"] = 0
     
     # Use a copy of the discon library for each set of OpenFAST files
     copy_lib = os.path.join(EXAMPLE_OUT_DIR, "17c_FASTFarm_OF2",os.path.basename(lib_name))

@@ -19,7 +19,7 @@ False              ChkWndFiles        - Check all the ambient wind files for dat
 --- AMBIENT WIND: INFLOWWIND MODULE --- [used only for Mod_AmbWind=2 or 3]
 3.0                DT_Low             - Time step for low -resolution wind data interpolation; will be used as the global FAST.Farm time step (s) [>0.0]
 0.1                DT_High            - Time step for high-resolution wind data interpolation (s) [>0.0]
-213                NX_Low             - Number  of low -resolution spatial nodes in X direction for wind data interpolation (-) [>=2]
+113                NX_Low             - Number  of low -resolution spatial nodes in X direction for wind data interpolation (-) [>=2]
 81                 NY_Low             - Number  of low -resolution spatial nodes in Y direction for wind data interpolation (-) [>=2]
 30                 NZ_Low             - Number  of low -resolution spatial nodes in Z direction for wind data interpolation (-) [>=2]
 -100               X0_Low             - Origin  of low -resolution spatial nodes in X direction for wind data interpolation (m)
