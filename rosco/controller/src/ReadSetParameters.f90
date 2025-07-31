@@ -52,7 +52,8 @@ CONTAINS
         LocalVar%rootMOOP(2)        = avrSWAP(31)
         LocalVar%rootMOOP(3)        = avrSWAP(32)
         LocalVar%NacHeading         = avrSWAP(37) * R2D
-        LocalVar%FA_Acc             = avrSWAP(53)
+        LocalVar%FA_Acc_TT          = avrSWAP(53)  ! This is the acceleration of the tower top in the non-rotating frame
+        LocalVar%SS_Acc_TT          = avrSWAP(54)  ! This is the acceleration of the tower top in the non-rotating frame
         LocalVar%NacIMU_FA_Acc      = avrSWAP(83)
         LocalVar%Azimuth            = avrSWAP(60)
         LocalVar%NumBl              = NINT(avrSWAP(61))
@@ -124,6 +125,10 @@ CONTAINS
         ELSE
             LocalVar%restart = .False.
         ENDIF
+
+        ! FA_Acc_TT is in the non-rotating tower-top frame, so we need to convert it to the rotating (nacelle) frame of reference
+        LocalVar%FA_Acc_Nac = LocalVar%FA_Acc_TT * COS(LocalVar%NacHeading * D2R) + LocalVar%SS_Acc_TT * SIN(LocalVar%NacHeading * D2R)
+
 
         ! Increment timestep counter
         IF (LocalVar%iStatus == 0 .AND. LocalVar%Time == 0) THEN

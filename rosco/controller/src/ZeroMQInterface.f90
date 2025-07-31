@@ -46,7 +46,7 @@ CONTAINS
             turbine_measurements(12) = LocalVar%rootMOOP(1)
             turbine_measurements(13) = LocalVar%rootMOOP(2)
             turbine_measurements(14) = LocalVar%rootMOOP(3)
-            turbine_measurements(15) = LocalVar%FA_Acc
+            turbine_measurements(15) = LocalVar%FA_Acc_TT
             turbine_measurements(16) = LocalVar%NacIMU_FA_Acc
             turbine_measurements(17) = LocalVar%Azimuth
 

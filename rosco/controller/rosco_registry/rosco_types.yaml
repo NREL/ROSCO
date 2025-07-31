@@ -1175,9 +1175,15 @@ LocalVariables:
     NumBl: 
       <<: *integer 
       description: Number of blades [-]
-    FA_Acc:                       
+    FA_Acc_TT:                       
       <<: *real 
-      description: Tower fore-aft acceleration [m/s^2]
+      description: Tower fore-aft acceleration [m/s^2], in fixed tower-top reference frame
+    SS_Acc_TT:                       
+      <<: *real 
+      description: Tower side-to-side acceleration [m/s^2]
+    FA_Acc_Nac:                       
+      <<: *real 
+      description: Tower fore-aft acceleration [m/s^2] in nacelle reference frame
     NacIMU_FA_Acc:                       
       <<: *real 
       description: Tower fore-aft acceleration [rad/s^2]
@@ -1445,6 +1451,7 @@ LocalVariables:
       <<: *real 
     FA_AccF:
       <<: *real 
+      description: Filtered fore-aft acceleration in rotation frame, ready for control
     FA_Hist:
       <<: *integer 
       description: Hysteresis state for tower resonance avoidance.

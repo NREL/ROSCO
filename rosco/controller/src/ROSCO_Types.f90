@@ -328,7 +328,9 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: GenTqAz                     ! Gen torque command due to azimuth error
     REAL(DbKi)                    :: AzBuffer(2)                 ! Current and last rotor aziumuth angles [rad]
     INTEGER(IntKi)                :: NumBl                       ! Number of blades [-]
-    REAL(DbKi)                    :: FA_Acc                      ! Tower fore-aft acceleration [m/s^2]
+    REAL(DbKi)                    :: FA_Acc_TT                   ! Tower fore-aft acceleration [m/s^2], in fixed tower-top reference frame
+    REAL(DbKi)                    :: SS_Acc_TT                   ! Tower side-to-side acceleration [m/s^2]
+    REAL(DbKi)                    :: FA_Acc_Nac                  ! Tower fore-aft acceleration [m/s^2] in nacelle reference frame
     REAL(DbKi)                    :: NacIMU_FA_Acc               ! Tower fore-aft acceleration [rad/s^2]
     REAL(DbKi)                    :: FA_AccHPF                   ! High-pass filtered fore-aft acceleration [m/s^2]
     REAL(DbKi)                    :: FA_AccHPFI                  ! Tower velocity, high-pass filtered and integrated fore-aft acceleration [m/s]
@@ -415,7 +417,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: GenTq_SD                    ! Electrical generator torque command for shutdown, [Nm].
     REAL(DbKi)                    :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None
-    REAL(DbKi)                    :: FA_AccF                     ! None
+    REAL(DbKi)                    :: FA_AccF                     ! Filtered fore-aft acceleration in rotation frame, ready for control
     INTEGER(IntKi)                :: FA_Hist                     ! Hysteresis state for tower resonance avoidance.
     REAL(DbKi)                    :: TRA_LastRefSpd              ! Last reference generator speed
     REAL(DbKi)                    :: VS_RefSpeed                 ! Torque controller reference speed
