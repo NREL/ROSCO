@@ -73,7 +73,7 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%FA_Acc_TT
         WRITE( Un, IOSTAT=ErrStat) LocalVar%SS_Acc_TT
         WRITE( Un, IOSTAT=ErrStat) LocalVar%FA_Acc_Nac
-        WRITE( Un, IOSTAT=ErrStat) LocalVar%NacIMU_FA_Acc
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%NacIMU_FA_RAcc
         WRITE( Un, IOSTAT=ErrStat) LocalVar%FA_AccHPF
         WRITE( Un, IOSTAT=ErrStat) LocalVar%FA_AccHPFI
         WRITE( Un, IOSTAT=ErrStat) LocalVar%FA_PitCom(1)
@@ -411,7 +411,7 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%FA_Acc_TT
         READ( Un, IOSTAT=ErrStat) LocalVar%SS_Acc_TT
         READ( Un, IOSTAT=ErrStat) LocalVar%FA_Acc_Nac
-        READ( Un, IOSTAT=ErrStat) LocalVar%NacIMU_FA_Acc
+        READ( Un, IOSTAT=ErrStat) LocalVar%NacIMU_FA_RAcc
         READ( Un, IOSTAT=ErrStat) LocalVar%FA_AccHPF
         READ( Un, IOSTAT=ErrStat) LocalVar%FA_AccHPFI
         READ( Un, IOSTAT=ErrStat) LocalVar%FA_PitCom(1)
@@ -795,7 +795,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(27) = LocalVar%FA_Acc_TT
     LocalVarOutData(28) = LocalVar%SS_Acc_TT
     LocalVarOutData(29) = LocalVar%FA_Acc_Nac
-    LocalVarOutData(30) = LocalVar%NacIMU_FA_Acc
+    LocalVarOutData(30) = LocalVar%NacIMU_FA_RAcc
     LocalVarOutData(31) = LocalVar%FA_AccHPF
     LocalVarOutData(32) = LocalVar%FA_AccHPFI
     LocalVarOutData(33) = LocalVar%FA_PitCom(1)
@@ -950,7 +950,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutStrings(27) = 'FA_Acc_TT'
     LocalVarOutStrings(28) = 'SS_Acc_TT'
     LocalVarOutStrings(29) = 'FA_Acc_Nac'
-    LocalVarOutStrings(30) = 'NacIMU_FA_Acc'
+    LocalVarOutStrings(30) = 'NacIMU_FA_RAcc'
     LocalVarOutStrings(31) = 'FA_AccHPF'
     LocalVarOutStrings(32) = 'FA_AccHPFI'
     LocalVarOutStrings(33) = 'FA_PitCom'

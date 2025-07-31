@@ -331,7 +331,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: FA_Acc_TT                   ! Tower fore-aft acceleration [m/s^2], in fixed tower-top reference frame
     REAL(DbKi)                    :: SS_Acc_TT                   ! Tower side-to-side acceleration [m/s^2]
     REAL(DbKi)                    :: FA_Acc_Nac                  ! Tower fore-aft acceleration [m/s^2] in nacelle reference frame
-    REAL(DbKi)                    :: NacIMU_FA_Acc               ! Tower fore-aft acceleration [rad/s^2]
+    REAL(DbKi)                    :: NacIMU_FA_RAcc              ! Tower fore-aft acceleration [rad/s^2]
     REAL(DbKi)                    :: FA_AccHPF                   ! High-pass filtered fore-aft acceleration [m/s^2]
     REAL(DbKi)                    :: FA_AccHPFI                  ! Tower velocity, high-pass filtered and integrated fore-aft acceleration [m/s]
     REAL(DbKi)                    :: FA_PitCom(3)                ! Tower fore-aft vibration damping pitch contribution [rad]
@@ -497,7 +497,7 @@ TYPE, PUBLIC :: DebugVariables
     REAL(DbKi)                    :: PC_PICommand                ! Commanded collective pitch from pitch PI controller [rad]
     REAL(DbKi)                    :: GenSpeedF                   ! Filtered generator speed [rad/s]
     REAL(DbKi)                    :: RotSpeedF                   ! Filtered rotor speed [rad/s]
-    REAL(DbKi)                    :: NacIMU_FA_AccF              ! Filtered NacIMU_FA_Acc [rad/s]
+    REAL(DbKi)                    :: NacIMU_FA_AccF              ! Filtered NacIMU_FA_RAcc [rad/s]
     REAL(DbKi)                    :: FA_AccF                     ! Filtered FA_Acc [m/s]
     REAL(DbKi)                    :: Fl_PitCom                   ! Floating contribution to the pitch command [rad]
     REAL(DbKi)                    :: PC_MinPit                   ! Minimum blade pitch angle [rad]

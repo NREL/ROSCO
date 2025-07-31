@@ -1184,7 +1184,7 @@ LocalVariables:
     FA_Acc_Nac:                       
       <<: *real 
       description: Tower fore-aft acceleration [m/s^2] in nacelle reference frame
-    NacIMU_FA_Acc:                       
+    NacIMU_FA_RAcc:                       
       <<: *real 
       description: Tower fore-aft acceleration [rad/s^2]
     FA_AccHPF:                    
@@ -1689,7 +1689,7 @@ DebugVariables:
     description: Filtered rotor speed [rad/s]
   NacIMU_FA_AccF:
     <<: *real
-    description: Filtered NacIMU_FA_Acc [rad/s]
+    description: Filtered NacIMU_FA_RAcc [rad/s]
   FA_AccF:
     <<: *real
     description: Filtered FA_Acc [m/s]

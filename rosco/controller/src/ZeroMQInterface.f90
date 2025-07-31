@@ -47,7 +47,7 @@ CONTAINS
             turbine_measurements(13) = LocalVar%rootMOOP(2)
             turbine_measurements(14) = LocalVar%rootMOOP(3)
             turbine_measurements(15) = LocalVar%FA_Acc_TT
-            turbine_measurements(16) = LocalVar%NacIMU_FA_Acc
+            turbine_measurements(16) = LocalVar%NacIMU_FA_RAcc
             turbine_measurements(17) = LocalVar%Azimuth
 
             write (zmq_address, '(A,A)') TRIM(CntrPar%ZMQ_CommAddress), C_NULL_CHAR

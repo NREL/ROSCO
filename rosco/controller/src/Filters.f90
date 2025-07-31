@@ -363,12 +363,12 @@ CONTAINS
         ! Filtering the tower fore-aft acceleration signal 
         ! Force to start at 0
         IF (LocalVar%iStatus == 0 .AND. LocalVar%Time == 0) THEN
-            LocalVar%NacIMU_FA_Acc = 0
+            LocalVar%NacIMU_FA_RAcc = 0
             LocalVar%FA_Acc_Nac = 0
         ENDIF 
 
         ! Low pass
-        LocalVar%NacIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
+        LocalVar%NacIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_RAcc, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
         LocalVar%FA_AccF = SecLPFilter(LocalVar%FA_Acc_Nac, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
         
         ! High pass

@@ -52,9 +52,9 @@ CONTAINS
         LocalVar%rootMOOP(2)        = avrSWAP(31)
         LocalVar%rootMOOP(3)        = avrSWAP(32)
         LocalVar%NacHeading         = avrSWAP(37) * R2D
-        LocalVar%FA_Acc_TT          = avrSWAP(53)  ! This is the acceleration of the tower top in the non-rotating frame
-        LocalVar%SS_Acc_TT          = avrSWAP(54)  ! This is the acceleration of the tower top in the non-rotating frame
-        LocalVar%NacIMU_FA_Acc      = avrSWAP(83)
+        LocalVar%FA_Acc_TT          = avrSWAP(53)  ! This is the translational acceleration of the tower top in the non-rotating frame
+        LocalVar%SS_Acc_TT          = avrSWAP(54)  ! This is the translational acceleration of the tower top in the non-rotating frame
+        LocalVar%NacIMU_FA_RAcc      = avrSWAP(83)  ! This is the rotational aceleration of the nacelle in the shaft frame
         LocalVar%Azimuth            = avrSWAP(60)
         LocalVar%NumBl              = NINT(avrSWAP(61))
 

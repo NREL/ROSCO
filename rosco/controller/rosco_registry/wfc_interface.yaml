@@ -14,7 +14,7 @@ measurements: [
   rootMOOP(2),
   rootMOOP(3),
   FA_Acc_TT,
-  NacIMU_FA_Acc,
+  NacIMU_FA_RAcc,
   Azimuth,
   ]
 
