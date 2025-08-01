@@ -384,7 +384,6 @@ CONTAINS
         ! Allocate Variables
         REAL(DbKi), SAVE :: NacVaneOffset                          ! For offset control
         INTEGER, SAVE :: YawState                               ! Yawing left(-1), right(1), or stopped(0)
-        REAL(DbKi)       :: WindDir                                ! Instantaneous wind dind direction, equal to turbine nacelle heading plus the measured vane angle (deg)
         REAL(DbKi)       :: WindDirPlusOffset                     ! Instantaneous wind direction minus the assigned vane offset (deg)
         REAL(DbKi)       :: WindDirPlusOffsetCosF                 ! Time-filtered x-component of WindDirPlusOffset (deg)
         REAL(DbKi)       :: WindDirPlusOffsetSinF                 ! Time-filtered y-component of WindDirPlusOffset (deg)
@@ -398,8 +397,8 @@ CONTAINS
         IF (CntrPar%Y_ControlMode == 1) THEN
 
             ! Compass wind directions in degrees
-            WindDir = wrap_360(LocalVar%NacHeading + LocalVar%NacVane)
-            
+            LocalVar%WindDir = wrap_180(LocalVar%NacHeading + LocalVar%NacVane)
+
             ! Initialize
             IF (LocalVar%iStatus == 0) THEN
                 YawState = 0
@@ -414,7 +413,7 @@ CONTAINS
             ENDIF
 
             ! Update filtered wind direction
-            WindDirPlusOffset = wrap_180(WindDir + NacVaneOffset) ! (deg)
+            WindDirPlusOffset = wrap_180(LocalVar%WindDir + NacVaneOffset) ! (deg)
             WindDirPlusOffsetCosF = LPFilter(cos(WindDirPlusOffset*D2R), LocalVar%DT, CntrPar%F_YawErr, LocalVar%FP, LocalVar%iStatus, .FALSE., objInst%instLPF) ! (-)
             WindDirPlusOffsetSinF = LPFilter(sin(WindDirPlusOffset*D2R), LocalVar%DT, CntrPar%F_YawErr, LocalVar%FP, LocalVar%iStatus, .FALSE., objInst%instLPF) ! (-)
             NacHeadingTarget = wrap_180(atan2(WindDirPlusOffsetSinF, WindDirPlusOffsetCosF) * R2D) ! (deg)
@@ -438,7 +437,6 @@ CONTAINS
                     YawState = 0 
                 ELSE
                     ! persist
-                    LocalVar%NacHeading = wrap_360(LocalVar%NacHeading + CntrPar%Y_Rate*LocalVar%DT)
                     YawRateCom = CntrPar%Y_Rate
                     YawState = 1 
                 ENDIF
@@ -450,7 +448,6 @@ CONTAINS
                     YawState = 0 
                 ELSE
                     ! persist
-                    LocalVar%NacHeading = wrap_360(LocalVar%NacHeading - CntrPar%Y_Rate*LocalVar%DT)
                     YawRateCom = -CntrPar%Y_Rate
                     YawState = -1 
                 ENDIF

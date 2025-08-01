@@ -1132,6 +1132,9 @@ LocalVariables:
     NacVaneF: 
       <<: *real 
       description:  Filtered nacelle vane angle [deg]
+    WindDir:
+      <<: *real 
+      description: Compassed wind direction, accounting for nacelle heading [deg]
     HorWindV: 
       <<: *real 
       description: Hub height wind speed m/s

@@ -315,6 +315,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: NacHeading                  ! Nacelle heading of the turbine w.r.t. north [deg]
     REAL(DbKi)                    :: NacVane                     ! Nacelle vane angle [deg]
     REAL(DbKi)                    :: NacVaneF                    ! Filtered nacelle vane angle [deg]
+    REAL(DbKi)                    :: WindDir                     ! Compassed wind direction, accounting for nacelle heading [deg]
     REAL(DbKi)                    :: HorWindV                    ! Hub height wind speed m/s
     REAL(DbKi)                    :: HorWindV_F                  ! Filtered hub height wind speed m/s
     REAL(DbKi)                    :: rootMOOP(3)                 ! Blade root bending moment [Nm]
