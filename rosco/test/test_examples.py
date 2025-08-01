@@ -37,6 +37,7 @@ all_scripts = [
     '30_shutdown',
     '31_fixed_pitch_mhk',
     '32_startup',
+    '33_yaw_control',
     'update_rosco_discons',     
 ]
 
