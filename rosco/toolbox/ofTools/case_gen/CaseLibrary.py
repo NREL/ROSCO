@@ -392,6 +392,57 @@ def ramp(**wind_case_opts):
     return case_inputs
 
 
+def direction_change(**wind_case_opts):
+    U           = wind_case_opts.get('U',[8.])
+    dir_start   = wind_case_opts.get('dir_start',[0.])
+    dir_end     = wind_case_opts.get('dir_end',[180.])
+    t_start     = wind_case_opts.get('t_start',[100.])
+    t_end       = wind_case_opts.get('t_end',[400.])
+    TMax        = wind_case_opts.get('TMax',t_end)
+
+    # Check if all inputs are lists
+    if not isinstance(U, list):
+        U = [U]
+    if not isinstance(dir_start, list):
+        dir_start = [dir_start]
+    if not isinstance(dir_end, list):
+        dir_end = [dir_end]
+    if not isinstance(t_start, list):
+        t_start = [t_start]
+    if not isinstance(t_end, list):
+        t_end = [t_end]
+    if not isinstance(TMax, list):
+        TMax = [TMax]
+
+    # Check sizes
+    if not (len(U) == len(dir_start) == len(dir_end) == len(t_start) == len(t_end) == len(TMax)) :
+        raise ValueError('All input arrays must have the same length')
+    
+    hh_filenames = []
+
+    # Make Default step wind object
+    for i in range(len(U)):
+
+        hh_wind = HH_WindFile()
+        hh_wind.TMax = TMax[i]
+        hh_wind.filename = os.path.join(wind_case_opts['run_dir'],f'direction_change_{i}.hh')
+
+        hh_wind.time    = [0, t_start[i], t_end[i], TMax[i]]
+        hh_wind.wind_speed  = [U[i], U[i], U[i], U[i]]
+        hh_wind.wind_dir    = [dir_start[i], dir_start[i], dir_end[i], dir_end[i]]
+
+        hh_wind.resample()
+        hh_wind.write()
+        hh_filenames.append(hh_wind.filename)
+
+    case_inputs = base_op_case()
+    case_inputs[("Fst","TMax")] = {'vals':TMax, 'group':1}
+    case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
+    case_inputs[("InflowWind","FileName_Uni")] = {'vals':hh_filenames, 'group':1}
+
+    return case_inputs
+
+
 
     
 ##############################################################################################

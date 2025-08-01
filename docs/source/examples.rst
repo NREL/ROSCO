@@ -136,3 +136,4 @@ A complete list of examples is given below:
 .. automodule:: 30_shutdown
 .. automodule:: 31_fixed_pitch_mhk
 .. automodule:: 32_startup
+.. automodule:: 33_yaw_control
