@@ -79,6 +79,8 @@ def main():
         "TMax": [200, 200],
     }
     if not FULL_TEST:
+        r.wind_case_opts["t_start"] = [.5, .5]
+        r.wind_case_opts["t_end"] = [1.5, 1.5]
         r.wind_case_opts["TMax"] = [2,2]
 
     # Run simulation
