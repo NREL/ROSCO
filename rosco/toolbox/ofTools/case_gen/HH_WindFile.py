@@ -138,7 +138,7 @@ if __name__ == "__main__":
     hh_step = HH_StepFile()
 
     hh_step.t_step  = 400
-    hh_step.t_max   = 800
+    hh_step.TMax   = 800
     hh_step.u_start = 10
     hh_step.u_end   = 11
     hh_step.update()

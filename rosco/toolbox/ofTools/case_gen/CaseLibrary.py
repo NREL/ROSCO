@@ -1,8 +1,6 @@
-import os, yaml
+import os
 import numpy as np
 
-from rosco.toolbox.ofTools.case_gen.CaseGen_General import CaseGen_General
-from rosco.toolbox.ofTools.case_gen.CaseGen_IEC import CaseGen_IEC
 from rosco.toolbox.ofTools.case_gen.HH_WindFile import HH_StepFile, HH_WindFile
 
 # ROSCO 
@@ -139,10 +137,7 @@ def power_curve(**wind_case_opts):
     else: # default
         # Run conditions
         U = np.arange(4,14.5,.5).tolist()
-        U = np.linspace(3,25,num=16)
-
-    if 'T_max' in wind_case_opts:
-        T_max = wind_case_opts['T_max']
+        U = np.linspace(3,25,num=16).tolist()
 
 
     case_inputs = base_op_case()
