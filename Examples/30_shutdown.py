@@ -10,6 +10,10 @@ ROSCO allows for four shutdown trigger options:
 - generator speed exceeds a threshold
 - Shutdown at a predefined time
 
+There are two methods of shutdown:
+1. Timed stages (``SD_Method`` = 1): The user specifies a pitch (``SD_MaxPitchRate``) and torque (``SD_MaxTorqueRate``) rate for each stage, and the stage lasts for a specified time (``SD_Stage_Time``).
+2. Pitch-based stages (``SD_Method`` = 2): The user specifies a pitch and torque rate for each stage, and the stage lasts until the pitch is above the specified thresholds (``SD_Stage_Pitch``).
+
 
 Pitch Threshold Demo
 ````````````````````
@@ -72,8 +76,8 @@ def main():
     controller_params["DISCON"]["SD_MaxPit"] = 30*deg2rad
     controller_params["DISCON"]["SD_Method"] = 2
     controller_params["DISCON"]["SD_Stage_N"] = 3
-    # controller_params["DISCON"]["SD_Stage_Time"] = [10, 1000]    
-    controller_params["DISCON"]["SD_Stage_Pitch"] = [np.radians(10), np.radians(20), np.radians(40)]  # Time in seconds for each stage
+    controller_params["DISCON"]["SD_StageTime"] = [10, 1000]    
+    controller_params["DISCON"]["SD_StagePitch"] = [np.radians(10), np.radians(20), np.radians(40)]  # Time in seconds for each stage
     controller_params["DISCON"]["SD_MaxPitchRate"] = [0.0348/1.5, 0.0348, 2*0.0348]
     controller_params["DISCON"]["SD_MaxTorqueRate"] = [4500000, 4500000, 4500000]
     controller_params["DISCON"]["PC_MaxRat"] = 4*0.0348
@@ -120,7 +124,7 @@ def main():
     cases = {}
     cases["Baseline"] = ["Wind1VelX", "BldPitch1", "GenTq", "RotSpeed", "GenPwr"]
     fast_out = output_processing.output_processing()
-    fastout = fast_out.load_fast_out(outfile)
+    fast_out.load_fast_out(outfile)
     fast_out.plot_fast_out(cases=cases, showplot=False)
 
     plt.savefig(os.path.join(example_out_dir, "30_shutdown.png"))

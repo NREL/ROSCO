@@ -1192,7 +1192,7 @@ properties:
                         default: 9999
                     SD_Method:
                         type: number
-                        description: Shutdown method {1- Reduce generator torque and increase blade pitch in timed stages (SD_Stage_Time), 2- stages depend on pitch angle (SD_Stage_Pitch)}
+                        description: Shutdown method {1- Reduce generator torque and increase blade pitch in timed stages (SD_StageTime), 2- stages depend on pitch angle (SD_StagePitch)}
                         minimum: 1
                         maximum: 2
                         default: 1
@@ -1208,16 +1208,16 @@ properties:
                             type: number
                         description: Maximum pitch rate used for shutdown
                         units: rad/s
-                    SD_Stage_Time:
+                    SD_StageTime:
                         type: array
                         items:
                             type: number
                         description: Array containing the time to spend in each shutdown stage [s]
-                    SD_Stage_Pitch:
+                    SD_StagePitch:
                         type: array
                         items:
                             type: number
-                        description: Array with pitch angles to reach in each shutdown stage. If the pitch < SD_Stage_Pitch[i], the SD_Stage = i.  If pitch > SD_Stage_Pitch[SD_Stage_N], the maximum rates are used. [rad]
+                        description: Array with pitch angles to reach in each shutdown stage. If the pitch < SD_StagePitch[i], the SD_Stage = i.  If pitch > SD_StagePitch[SD_Stage_N], the maximum rates are used. [rad]
                     SD_Stage_N:
                         type: number
                         description: Number of shutdown stages (should equal number of values in SD_MaxPitchRate and SD_MaxTorqueRate) [-]

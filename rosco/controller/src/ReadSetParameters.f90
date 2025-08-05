@@ -568,8 +568,8 @@ CONTAINS
         CALL ParseInput(FileLines,  'SD_Time',               CntrPar%SD_Time,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'SD_Method',             CntrPar%SD_Method,    accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'SD_Stage_N',            CntrPar%SD_Stage_N,    accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
-        CALL ParseAry(FileLines,    'SD_Stage_Time',         CntrPar%SD_Stage_Time,      CntrPar%SD_Stage_N,   accINFILE(1),   ErrVar, CntrPar%SD_Method .NE. 1, UnEc)
-        CALL ParseAry(FileLines,    'SD_Stage_Pitch',         CntrPar%SD_Stage_Pitch,      CntrPar%SD_Stage_N,   accINFILE(1),   ErrVar, CntrPar%SD_Method .NE. 2, UnEc)
+        CALL ParseAry(FileLines,    'SD_StageTime',         CntrPar%SD_StageTime,      CntrPar%SD_Stage_N,   accINFILE(1),   ErrVar, CntrPar%SD_Method .NE. 1, UnEc)
+        CALL ParseAry(FileLines,    'SD_StagePitch',         CntrPar%SD_StagePitch,      CntrPar%SD_Stage_N,   accINFILE(1),   ErrVar, CntrPar%SD_Method .NE. 2, UnEc)
         CALL ParseAry(FileLines,    'SD_MaxTorqueRate',      CntrPar%SD_MaxTorqueRate,   CntrPar%SD_Stage_N,   accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
         CALL ParseAry(FileLines,    'SD_MaxPitchRate',       CntrPar%SD_MaxPitchRate,    CntrPar%SD_Stage_N,   accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN

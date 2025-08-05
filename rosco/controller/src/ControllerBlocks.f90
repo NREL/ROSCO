@@ -701,7 +701,7 @@ CONTAINS
 
             ELSE ! Stage > 0
                 ! Shutdown stage
-                IF (LocalVar%Time >= LocalVar%SD_StageStartTime + CntrPar%SD_Stage_Time(LocalVar%SD_Stage)) THEN
+                IF (LocalVar%Time >= LocalVar%SD_StageStartTime + CntrPar%SD_StageTime(LocalVar%SD_Stage)) THEN
                     LocalVar%SD_Stage = LocalVar%SD_Stage + 1 ! Next shutdown stage
                     LocalVar%SD_StageStartTime = LocalVar%Time
                 ENDIF
@@ -730,7 +730,7 @@ CONTAINS
                 
                 ! Figure out what stage we are in
                 DO I_Stage = 1, CntrPar%SD_Stage_N
-                    IF (LocalVar%BlPitchCMeas >= CntrPar%SD_Stage_Pitch(I_Stage)) THEN
+                    IF (LocalVar%BlPitchCMeas >= CntrPar%SD_StagePitch(I_Stage)) THEN
                         LocalVar%SD_Stage = I_Stage + 1
                     ENDIF
                 ENDDO

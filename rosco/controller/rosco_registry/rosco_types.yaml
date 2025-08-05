@@ -561,11 +561,11 @@ ControlParameters:
       <<: *real
       allocatable: True
       description: Maximum pitch rate used for shutdown, [rad/s]
-    SD_Stage_Pitch:
+    SD_StagePitch:
       <<: *real
       allocatable: True
       description: Array containing the pitch angle to reach in each shutdown stage [rad]
-    SD_Stage_Time:
+    SD_StageTime:
       <<: *real
       allocatable: True
       description: Array containing the time to spend in each shutdown stage [s]
