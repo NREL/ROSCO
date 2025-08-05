@@ -61,7 +61,6 @@ os.makedirs(example_out_dir, exist_ok=True)
 
 FULL_TEST = False
 
-
 def main():
     # Input yaml and output directory
     parameter_filename = os.path.join(this_dir, "Tune_Cases/IEA15MW.yaml")
@@ -107,6 +106,14 @@ def main():
         "t_start": 10,
         "t_end": 120,
     }
+    
+    # Shorter test for CI
+    if not FULL_TEST:
+        r.wind_case_opts["TMax"] = 1
+        r.wind_case_opts["t_start"] = 0.1
+        r.wind_case_opts["t_end"] = 0.2
+        r.wind_case_opts["U_end"] = 28
+
     r.case_inputs[("ElastoDyn", "BlPitch1")] = {"vals": [20.0], "group": 0}
     r.case_inputs[("ElastoDyn", "BlPitch2")] = {"vals": [20.0], "group": 0}
     r.case_inputs[("ElastoDyn", "BlPitch3")] = {"vals": [20.0], "group": 0}
