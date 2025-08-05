@@ -11,7 +11,6 @@ all_scripts = [
     '05_openfast_sim',
     '06_peak_shaving',
     '07_openfast_outputs',
-    '08_run_turbsim',
     '09_distributed_aero',
     '10_linear_params',
     '11_robust_tuning',

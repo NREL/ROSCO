@@ -80,7 +80,6 @@ Several example scripts are set up to quickly simulate ROSCO with OpenFAST:
 
 * :code:`05_openfast_sim.py` loads a turbine, tunes a controller, and runs an OpenFAST simulation
 * :code:`07_openfast_outputs.py` loads the OpenFAST output files and plots the results
-* :code:`08_run_turbsim.py` runs TurbSim, for generating turbulent wind inputs
 * :code:`14_open_loop_control.py` runs an OpenFAST simulation with ROSCO providing open loop control inputs
 
 
@@ -110,7 +109,6 @@ A complete list of examples is given below:
 .. automodule:: 05_openfast_sim
 .. automodule:: 06_peak_shaving
 .. automodule:: 07_openfast_outputs
-.. automodule:: 08_run_turbsim
 .. automodule:: 09_distributed_aero
 .. automodule:: 10_linear_params
 .. automodule:: 11_robust_tuning
