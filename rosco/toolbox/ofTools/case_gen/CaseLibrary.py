@@ -166,7 +166,7 @@ def simp_step(**wind_case_opts):
 
     # Make Default step wind object
     hh_step = HH_StepFile()
-    hh_step.t_max = TMax
+    hh_step.TMax = TMax
     hh_step.t_step = T_step
     hh_step.wind_directory = wind_case_opts['wind_dir']
 
@@ -193,47 +193,6 @@ def simp_step(**wind_case_opts):
 
     return case_inputs
 
-def single_steps(discon_file,runDir, namebase,rosco_dll=''):
-    # Set up cases for FIW-JIP project
-    # 3.x in controller tuning register
-
-    # Default Runtime
-    T_max   = 800.
-
-    # Step Wind Setup
-
-    # Make Default step wind object
-    hh_step = HH_StepFile()
-    hh_step.t_max = T_max
-    hh_step.t_step = 400
-    hh_step.wind_directory = runDir
-
-    # Run conditions
-    U = np.arange(4,24,1).tolist()
-    step_wind_files = []
-
-    for u in U:
-        # Step up
-        hh_step.u_start = u
-        hh_step.u_end   = u+1
-        hh_step.update()
-        hh_step.write()
-
-        step_wind_files.append(hh_step.filename)
-
-        # Step down
-        hh_step.u_start = u+1
-        hh_step.u_end   = u
-        hh_step.update()
-        hh_step.write()
-
-        step_wind_files.append(hh_step.filename)
-
-    case_inputs = base_op_case()
-
-    # wind inflow
-    case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
-    case_inputs[("InflowWind","FileName_Uni")] = {'vals':step_wind_files, 'group':1}
 
 def steps(**wind_case_opts):
     # Muliple steps in same simulation at time, wind breakpoints, this function adds zero-order hold, 100 seconds to end
@@ -254,10 +213,10 @@ def steps(**wind_case_opts):
     else:
         U_0 = U[0]
 
-    if 'T_max' in wind_case_opts:
-        T_max = wind_case_opts['T_max']
+    if 'TMax' in wind_case_opts:
+        TMax = wind_case_opts['TMax']
     else:
-        T_max = tt[-1] + 100
+        TMax = tt[-1] + 100
 
     if len(tt) != len(U):
         raise Exception('steps: len(tt) and len(U) must be the same')
@@ -265,7 +224,7 @@ def steps(**wind_case_opts):
 
     # Make Default step wind object
     hh_wind = HH_WindFile()
-    hh_wind.t_max = T_max
+    hh_wind.TMax = TMax
     hh_wind.filename = os.path.join(wind_case_opts['run_dir'],'steps.hh')
 
     # Step Wind Setup
@@ -291,7 +250,7 @@ def steps(**wind_case_opts):
     hh_wind.write()
     case_inputs = base_op_case()
 
-    case_inputs[("Fst","TMax")] = {'vals':[T_max], 'group':0}
+    case_inputs[("Fst","TMax")] = {'vals':[TMax], 'group':0}
 
 
     # wind inflow
@@ -363,7 +322,7 @@ def ramp(**wind_case_opts):
 
     # Make Default step wind object
     hh_wind = HH_WindFile()
-    hh_wind.t_max = t_end
+    hh_wind.TMax = t_end
     hh_wind.filename = os.path.join(wind_case_opts['run_dir'],'ramp.hh')
 
     # Step Wind Setup
