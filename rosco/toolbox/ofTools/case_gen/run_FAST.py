@@ -64,6 +64,7 @@ class run_FAST_ROSCO():
         self.tune_case_dir  = ''
         self.rosco_dir      = ''
         self.save_dir       = ''
+        self.execute_fast   = True
 
     def run_FAST(self):
 
@@ -191,6 +192,7 @@ class run_FAST_ROSCO():
             fastBatch.case_name_list    = case_name_list
             fastBatch.FAST_exe          = self.openfast_exe
             fastBatch.use_exe           = True
+            fastBatch.execute_fast      = self.execute_fast
 
             if MPI:
                 fastBatch.run_mpi(comm_map_down)

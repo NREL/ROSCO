@@ -11,7 +11,6 @@ all_scripts = [
     '05_openfast_sim',
     '06_peak_shaving',
     '07_openfast_outputs',
-    '08_run_turbsim',
     '09_distributed_aero',
     '10_linear_params',
     '11_robust_tuning',
@@ -21,6 +20,7 @@ all_scripts = [
     '16_external_dll',
     '17a_zeromq_simple',  # only runs on unix in CI
     '17b_zeromq_multi_openfast',  # only runs on unix in CI
+    '17c_zeromq_fastfarm',  # only runs on unix in CI
     '18_pitch_faults',
     '19_update_discon_version', 
     '20_active_wake_control',   
@@ -36,6 +36,7 @@ all_scripts = [
     '30_shutdown',
     '31_fixed_pitch_mhk',
     '32_startup',
+    '33_yaw_control',
     'update_rosco_discons',     
 ]
 

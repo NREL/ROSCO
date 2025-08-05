@@ -751,7 +751,6 @@ ControlParameters:
       description: AWC clocking angle [deg]
     AWC_phaseoffset:
       <<: *real
-      allocatable: True
       description: AWC azimuth offset for Coleman transform [deg]
     AWC_CntrGains:
       <<: *real
@@ -1146,6 +1145,9 @@ LocalVariables:
     NacVaneF: 
       <<: *real 
       description:  Filtered nacelle vane angle [deg]
+    WindDir:
+      <<: *real 
+      description: Compassed wind direction, accounting for nacelle heading [deg]
     HorWindV: 
       <<: *real 
       description: Hub height wind speed m/s
@@ -1189,10 +1191,16 @@ LocalVariables:
     NumBl: 
       <<: *integer 
       description: Number of blades [-]
-    FA_Acc:                       
+    FA_Acc_TT:                       
       <<: *real 
-      description: Tower fore-aft acceleration [m/s^2]
-    NacIMU_FA_Acc:                       
+      description: Tower fore-aft acceleration [m/s^2], in fixed tower-top reference frame
+    SS_Acc_TT:                       
+      <<: *real 
+      description: Tower side-to-side acceleration [m/s^2], in fixed tower-top reference frame
+    FA_Acc_Nac:                       
+      <<: *real 
+      description: Tower fore-aft acceleration [m/s^2] in nacelle reference frame
+    NacIMU_FA_RAcc:                       
       <<: *real 
       description: Tower fore-aft acceleration [rad/s^2]
     FA_AccHPF:                    
@@ -1471,6 +1479,7 @@ LocalVariables:
       <<: *real 
     FA_AccF:
       <<: *real 
+      description: Filtered fore-aft acceleration in rotation frame, ready for control
     FA_Hist:
       <<: *integer 
       description: Hysteresis state for tower resonance avoidance.
@@ -1708,7 +1717,7 @@ DebugVariables:
     description: Filtered rotor speed [rad/s]
   NacIMU_FA_AccF:
     <<: *real
-    description: Filtered NacIMU_FA_Acc [rad/s]
+    description: Filtered NacIMU_FA_RAcc [rad/s]
   FA_AccF:
     <<: *real
     description: Filtered FA_Acc [m/s]

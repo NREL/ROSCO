@@ -19,8 +19,8 @@ MODULE Constants
     INTEGER, PARAMETER                  :: IntKi            = C_INT               !< Default kind for integer numbers
     
     REAL(DbKi), PARAMETER               :: RPS2RPM          = 9.5492966           ! Factor to convert radians per second to revolutions per minute.
-    REAL(DbKi), PARAMETER               :: R2D              = 57.295780           ! Factor to convert radians to degrees.
-    REAL(DbKi), PARAMETER               :: D2R              = 0.0175              ! Factor to convert degrees to radians.
+    REAL(DbKi), PARAMETER               :: R2D              = 57.2957795130       ! Factor to convert radians to degrees.
+    REAL(DbKi), PARAMETER               :: D2R              = 0.01745329251       ! Factor to convert degrees to radians.
     REAL(DbKi), PARAMETER               :: PI               = 3.14159265359       ! Mathematical constant pi
     INTEGER(IntKi), PARAMETER           :: NP_1             = 1                   ! First rotational harmonic
     INTEGER(IntKi), PARAMETER           :: NP_2             = 2                   ! Second rotational harmonic
