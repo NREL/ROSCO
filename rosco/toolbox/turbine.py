@@ -191,13 +191,6 @@ class Turbine():
         else:
             fast.fst_vt['ServoDyn']['GenEff'] = 100.        # gen efficency defined in percent in ServoDyn
     
-        
-        if fast.fst_vt['Fst']['CompHydro'] == 1: # SubDyn not yet implimented
-            hd_file = os.path.normpath(os.path.join(fast.FAST_directory, fast.fst_vt['Fst']['HydroFile']))
-            fast.read_HydroDyn(hd_file)
-
-        # fast.read_AeroDyn()
-        # fast.execute()
 
         # Use Performance tables if defined, otherwise use defaults
         if txt_filename:
@@ -273,13 +266,6 @@ class Turbine():
             self.TSR_operational = self.Cp.TSR_opt
         # Compute operational Cp (may not be optimal if TSR_operational set by user)
         self.Cp_operational = self.Cp.interp_surface(self.Cp.pitch_opt, self.TSR_operational)
-
-        # Pull out some floating-related data
-        try:
-            wave_tp = fast.fst_vt['HydroDyn']['WaveTp'] 
-            self.wave_peak_period = 1/wave_tp       # Will work if HydroDyn exists and a peak period is defined...
-        except:
-            self.wave_peak_period = 0.0             # Set as 0.0 when HydroDyn doesn't exist (fixed bottom)
 
     # Load rotor performance data from CCBlade 
     def load_from_ccblade(self):

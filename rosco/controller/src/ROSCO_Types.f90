@@ -315,6 +315,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: NacHeading                  ! Nacelle heading of the turbine w.r.t. north [deg]
     REAL(DbKi)                    :: NacVane                     ! Nacelle vane angle [deg]
     REAL(DbKi)                    :: NacVaneF                    ! Filtered nacelle vane angle [deg]
+    REAL(DbKi)                    :: WindDir                     ! Compassed wind direction, accounting for nacelle heading [deg]
     REAL(DbKi)                    :: HorWindV                    ! Hub height wind speed m/s
     REAL(DbKi)                    :: HorWindV_F                  ! Filtered hub height wind speed m/s
     REAL(DbKi)                    :: rootMOOP(3)                 ! Blade root bending moment [Nm]
@@ -328,8 +329,10 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: GenTqAz                     ! Gen torque command due to azimuth error
     REAL(DbKi)                    :: AzBuffer(2)                 ! Current and last rotor aziumuth angles [rad]
     INTEGER(IntKi)                :: NumBl                       ! Number of blades [-]
-    REAL(DbKi)                    :: FA_Acc                      ! Tower fore-aft acceleration [m/s^2]
-    REAL(DbKi)                    :: NacIMU_FA_Acc               ! Tower fore-aft acceleration [rad/s^2]
+    REAL(DbKi)                    :: FA_Acc_TT                   ! Tower fore-aft acceleration [m/s^2], in fixed tower-top reference frame
+    REAL(DbKi)                    :: SS_Acc_TT                   ! Tower side-to-side acceleration [m/s^2], in fixed tower-top reference frame
+    REAL(DbKi)                    :: FA_Acc_Nac                  ! Tower fore-aft acceleration [m/s^2] in nacelle reference frame
+    REAL(DbKi)                    :: NacIMU_FA_RAcc              ! Tower fore-aft acceleration [rad/s^2]
     REAL(DbKi)                    :: FA_AccHPF                   ! High-pass filtered fore-aft acceleration [m/s^2]
     REAL(DbKi)                    :: FA_AccHPFI                  ! Tower velocity, high-pass filtered and integrated fore-aft acceleration [m/s]
     REAL(DbKi)                    :: FA_PitCom(3)                ! Tower fore-aft vibration damping pitch contribution [rad]
@@ -415,7 +418,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: GenTq_SD                    ! Electrical generator torque command for shutdown, [Nm].
     REAL(DbKi)                    :: Fl_PitCom                   ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(DbKi)                    :: NACIMU_FA_AccF              ! None
-    REAL(DbKi)                    :: FA_AccF                     ! None
+    REAL(DbKi)                    :: FA_AccF                     ! Filtered fore-aft acceleration in rotation frame, ready for control
     INTEGER(IntKi)                :: FA_Hist                     ! Hysteresis state for tower resonance avoidance.
     REAL(DbKi)                    :: TRA_LastRefSpd              ! Last reference generator speed
     REAL(DbKi)                    :: VS_RefSpeed                 ! Torque controller reference speed
@@ -495,7 +498,7 @@ TYPE, PUBLIC :: DebugVariables
     REAL(DbKi)                    :: PC_PICommand                ! Commanded collective pitch from pitch PI controller [rad]
     REAL(DbKi)                    :: GenSpeedF                   ! Filtered generator speed [rad/s]
     REAL(DbKi)                    :: RotSpeedF                   ! Filtered rotor speed [rad/s]
-    REAL(DbKi)                    :: NacIMU_FA_AccF              ! Filtered NacIMU_FA_Acc [rad/s]
+    REAL(DbKi)                    :: NacIMU_FA_AccF              ! Filtered NacIMU_FA_RAcc [rad/s]
     REAL(DbKi)                    :: FA_AccF                     ! Filtered FA_Acc [m/s]
     REAL(DbKi)                    :: Fl_PitCom                   ! Floating contribution to the pitch command [rad]
     REAL(DbKi)                    :: PC_MinPit                   ! Minimum blade pitch angle [rad]

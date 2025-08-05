@@ -1,8 +1,6 @@
-import os, yaml
+import os
 import numpy as np
 
-from rosco.toolbox.ofTools.case_gen.CaseGen_General import CaseGen_General
-from rosco.toolbox.ofTools.case_gen.CaseGen_IEC import CaseGen_IEC
 from rosco.toolbox.ofTools.case_gen.HH_WindFile import HH_StepFile, HH_WindFile
 
 # ROSCO 
@@ -139,10 +137,7 @@ def power_curve(**wind_case_opts):
     else: # default
         # Run conditions
         U = np.arange(4,14.5,.5).tolist()
-        U = np.linspace(3,25,num=16)
-
-    if 'T_max' in wind_case_opts:
-        T_max = wind_case_opts['T_max']
+        U = np.linspace(3,25,num=16).tolist()
 
 
     case_inputs = base_op_case()
@@ -171,7 +166,7 @@ def simp_step(**wind_case_opts):
 
     # Make Default step wind object
     hh_step = HH_StepFile()
-    hh_step.t_max = TMax
+    hh_step.TMax = TMax
     hh_step.t_step = T_step
     hh_step.wind_directory = wind_case_opts['wind_dir']
 
@@ -198,47 +193,6 @@ def simp_step(**wind_case_opts):
 
     return case_inputs
 
-def single_steps(discon_file,runDir, namebase,rosco_dll=''):
-    # Set up cases for FIW-JIP project
-    # 3.x in controller tuning register
-
-    # Default Runtime
-    T_max   = 800.
-
-    # Step Wind Setup
-
-    # Make Default step wind object
-    hh_step = HH_StepFile()
-    hh_step.t_max = T_max
-    hh_step.t_step = 400
-    hh_step.wind_directory = runDir
-
-    # Run conditions
-    U = np.arange(4,24,1).tolist()
-    step_wind_files = []
-
-    for u in U:
-        # Step up
-        hh_step.u_start = u
-        hh_step.u_end   = u+1
-        hh_step.update()
-        hh_step.write()
-
-        step_wind_files.append(hh_step.filename)
-
-        # Step down
-        hh_step.u_start = u+1
-        hh_step.u_end   = u
-        hh_step.update()
-        hh_step.write()
-
-        step_wind_files.append(hh_step.filename)
-
-    case_inputs = base_op_case()
-
-    # wind inflow
-    case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
-    case_inputs[("InflowWind","FileName_Uni")] = {'vals':step_wind_files, 'group':1}
 
 def steps(**wind_case_opts):
     # Muliple steps in same simulation at time, wind breakpoints, this function adds zero-order hold, 100 seconds to end
@@ -259,10 +213,10 @@ def steps(**wind_case_opts):
     else:
         U_0 = U[0]
 
-    if 'T_max' in wind_case_opts:
-        T_max = wind_case_opts['T_max']
+    if 'TMax' in wind_case_opts:
+        TMax = wind_case_opts['TMax']
     else:
-        T_max = tt[-1] + 100
+        TMax = tt[-1] + 100
 
     if len(tt) != len(U):
         raise Exception('steps: len(tt) and len(U) must be the same')
@@ -270,7 +224,7 @@ def steps(**wind_case_opts):
 
     # Make Default step wind object
     hh_wind = HH_WindFile()
-    hh_wind.t_max = T_max
+    hh_wind.TMax = TMax
     hh_wind.filename = os.path.join(wind_case_opts['run_dir'],'steps.hh')
 
     # Step Wind Setup
@@ -296,7 +250,7 @@ def steps(**wind_case_opts):
     hh_wind.write()
     case_inputs = base_op_case()
 
-    case_inputs[("Fst","TMax")] = {'vals':[T_max], 'group':0}
+    case_inputs[("Fst","TMax")] = {'vals':[TMax], 'group':0}
 
 
     # wind inflow
@@ -368,7 +322,7 @@ def ramp(**wind_case_opts):
 
     # Make Default step wind object
     hh_wind = HH_WindFile()
-    hh_wind.t_max = t_end
+    hh_wind.TMax = t_end
     hh_wind.filename = os.path.join(wind_case_opts['run_dir'],'ramp.hh')
 
     # Step Wind Setup
@@ -388,6 +342,57 @@ def ramp(**wind_case_opts):
     case_inputs[("Fst","TMax")] = {'vals':[t_end], 'group':0}
     case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
     case_inputs[("InflowWind","FileName_Uni")] = {'vals':[hh_wind.filename], 'group':0}
+
+    return case_inputs
+
+
+def direction_change(**wind_case_opts):
+    U           = wind_case_opts.get('U',[8.])
+    dir_start   = wind_case_opts.get('dir_start',[0.])
+    dir_end     = wind_case_opts.get('dir_end',[180.])
+    t_start     = wind_case_opts.get('t_start',[100.])
+    t_end       = wind_case_opts.get('t_end',[400.])
+    TMax        = wind_case_opts.get('TMax',t_end)
+
+    # Check if all inputs are lists
+    if not isinstance(U, list):
+        U = [U]
+    if not isinstance(dir_start, list):
+        dir_start = [dir_start]
+    if not isinstance(dir_end, list):
+        dir_end = [dir_end]
+    if not isinstance(t_start, list):
+        t_start = [t_start]
+    if not isinstance(t_end, list):
+        t_end = [t_end]
+    if not isinstance(TMax, list):
+        TMax = [TMax]
+
+    # Check sizes
+    if not (len(U) == len(dir_start) == len(dir_end) == len(t_start) == len(t_end) == len(TMax)) :
+        raise ValueError('All input arrays must have the same length')
+    
+    hh_filenames = []
+
+    # Make Default step wind object
+    for i in range(len(U)):
+
+        hh_wind = HH_WindFile()
+        hh_wind.TMax = TMax[i]
+        hh_wind.filename = os.path.join(wind_case_opts['run_dir'],f'direction_change_{i}.hh')
+
+        hh_wind.time    = [0, t_start[i], t_end[i], TMax[i]]
+        hh_wind.wind_speed  = [U[i], U[i], U[i], U[i]]
+        hh_wind.wind_dir    = [dir_start[i], dir_start[i], dir_end[i], dir_end[i]]
+
+        hh_wind.resample()
+        hh_wind.write()
+        hh_filenames.append(hh_wind.filename)
+
+    case_inputs = base_op_case()
+    case_inputs[("Fst","TMax")] = {'vals':TMax, 'group':1}
+    case_inputs[("InflowWind","WindType")] = {'vals':[2], 'group':0}
+    case_inputs[("InflowWind","FileName_Uni")] = {'vals':hh_filenames, 'group':1}
 
     return case_inputs
 
