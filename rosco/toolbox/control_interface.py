@@ -210,13 +210,13 @@ class ControllerInterface:
         self.avrSWAP[26] = turbine_state["ws"]
         self.avrSWAP[36] = turbine_state["Yaw_fromNorth"]
         try:
-            self.avrSWAP[82] = turbine_state["NacIMU_FA_Acc"]
+            self.avrSWAP[82] = turbine_state["NacIMU_FA_RAcc"]
         except KeyError:
             self.avrSWAP[82] = 0
 
         # pass translational acceleration
         try:
-            self.avrSWAP[52] = turbine_state['FA_Acc']
+            self.avrSWAP[52] = turbine_state['FA_Acc_TT']
         except KeyError:
             self.avrSWAP[52] = 0
 
