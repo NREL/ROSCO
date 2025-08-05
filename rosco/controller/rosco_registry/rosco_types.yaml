@@ -1183,7 +1183,7 @@ LocalVariables:
       description: Tower fore-aft acceleration [m/s^2], in fixed tower-top reference frame
     SS_Acc_TT:                       
       <<: *real 
-      description: Tower side-to-side acceleration [m/s^2]
+      description: Tower side-to-side acceleration [m/s^2], in fixed tower-top reference frame
     FA_Acc_Nac:                       
       <<: *real 
       description: Tower fore-aft acceleration [m/s^2] in nacelle reference frame

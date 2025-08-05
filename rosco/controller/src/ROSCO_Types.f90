@@ -330,7 +330,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: AzBuffer(2)                 ! Current and last rotor aziumuth angles [rad]
     INTEGER(IntKi)                :: NumBl                       ! Number of blades [-]
     REAL(DbKi)                    :: FA_Acc_TT                   ! Tower fore-aft acceleration [m/s^2], in fixed tower-top reference frame
-    REAL(DbKi)                    :: SS_Acc_TT                   ! Tower side-to-side acceleration [m/s^2]
+    REAL(DbKi)                    :: SS_Acc_TT                   ! Tower side-to-side acceleration [m/s^2], in fixed tower-top reference frame
     REAL(DbKi)                    :: FA_Acc_Nac                  ! Tower fore-aft acceleration [m/s^2] in nacelle reference frame
     REAL(DbKi)                    :: NacIMU_FA_RAcc              ! Tower fore-aft acceleration [rad/s^2]
     REAL(DbKi)                    :: FA_AccHPF                   ! High-pass filtered fore-aft acceleration [m/s^2]
