@@ -77,8 +77,8 @@ def main():
     controller_params["DISCON"]["SD_Method"] = 2
     controller_params["DISCON"]["SD_Stage_N"] = 3
     controller_params["DISCON"]["SD_StageTime"] = [10, 1000]    
-    controller_params["DISCON"]["SD_StagePitch"] = [np.radians(10), np.radians(20), np.radians(40)]  # Time in seconds for each stage
-    controller_params["DISCON"]["SD_MaxPitchRate"] = [0.0348/1.5, 0.0348, 2*0.0348]
+    controller_params["DISCON"]["SD_StagePitch"] = [np.radians(40), np.radians(60), np.radians(90)]  # Time in seconds for each stage
+    controller_params["DISCON"]["SD_MaxPitchRate"] = [2*0.0348, 0.0348, 0.0348/2]
     controller_params["DISCON"]["SD_MaxTorqueRate"] = [4500000, 4500000, 4500000]
     controller_params["DISCON"]["PC_MaxRat"] = 4*0.0348
 
@@ -96,7 +96,6 @@ def main():
     r.case_inputs[("ElastoDyn", "PtfmYDOF")] = {"vals": ["False"], "group": 0}
 
 
-    t_max = 90
 
     run_dir = os.path.join(example_out_dir, "30_shutdown_demo/4_set_pitch_bps")
 
@@ -106,7 +105,7 @@ def main():
         "U_start": 25,
         "U_end": 50,
         "t_start": 10,
-        "t_end": t_max,
+        "t_end": 120,
     }
     r.case_inputs[("ElastoDyn", "BlPitch1")] = {"vals": [20.0], "group": 0}
     r.case_inputs[("ElastoDyn", "BlPitch2")] = {"vals": [20.0], "group": 0}
