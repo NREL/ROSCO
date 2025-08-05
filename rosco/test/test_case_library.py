@@ -34,7 +34,7 @@ class UnitTesting(unittest.TestCase):
 
 
         r.tuning_yaml = 'NREL5MW.yaml'
-        r.save_dir    = os.path.join(os.path.dirname(__file__),'case_testing')
+        r.save_dir    = os.path.join(os.path.dirname(__file__),'outputs','case_testing')
 
         # Steady state wind (can do mulitple wind speeds)
         r.wind_case_fcn = cl.power_curve

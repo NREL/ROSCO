@@ -28,7 +28,7 @@ class RegressionTesting(unittest.TestCase):
     def test_restart(self):
         this_dir = os.path.dirname(os.path.abspath(__file__))
         rosco_dir = os.path.dirname( os.path.dirname(this_dir) )
-        test_out_dir = os.path.join(this_dir, 'test_out')
+        test_out_dir = os.path.join(this_dir, 'outputs', 'restart')
 
         # Load yaml file (Open Loop Case)
         tune_directory = os.path.join(rosco_dir,'Examples','Tune_Cases')
