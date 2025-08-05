@@ -1187,7 +1187,7 @@ properties:
                         default: 0.41888
                     SD_Time:
                         type: number
-                        description: Shutdown time
+                        description: Shutdown time [s]
                         units: s
                         default: 9999
                     SD_Method:
@@ -1200,13 +1200,13 @@ properties:
                         type: array
                         items:
                             type: number
-                        description: Maximum torque rate for shutdown
+                        description: Maximum torque rate for shutdown [Nm/s]
                         units: Nm/s
                     SD_MaxPitchRate:
                         type: array
                         items:
                             type: number
-                        description: Maximum pitch rate used for shutdown
+                        description: Maximum pitch rate used for shutdown [rad/s]
                         units: rad/s
                     SD_StageTime:
                         type: array
@@ -1217,7 +1217,7 @@ properties:
                         type: array
                         items:
                             type: number
-                        description: Array with pitch angles to reach in each shutdown stage. If the pitch < SD_StagePitch[i], the SD_Stage = i.  If pitch > SD_StagePitch[SD_Stage_N], the maximum rates are used. [rad]
+                        description: Array with pitch angles to reach in each shutdown stage [rad]. If the pitch < SD_StagePitch[i], the SD_Stage = i.  If pitch > SD_StagePitch[SD_Stage_N], the maximum rates are used.
                     SD_Stage_N:
                         type: number
                         description: Number of shutdown stages (should equal number of values in SD_MaxPitchRate and SD_MaxTorqueRate) [-]

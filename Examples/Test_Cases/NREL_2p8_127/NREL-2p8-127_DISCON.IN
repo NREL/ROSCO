@@ -178,9 +178,9 @@
 1                   ! SD_Method              - Shutdown method {1- Reduce generator torque and increase blade pitch in timed stages (SD_StageTime), 2- stages depend on pitch angle (SD_StagePitch)}
 1                   ! SD_Stage_N             - Number of shutdown stages (should equal number of values in SD_MaxPitchRate and SD_MaxTorqueRate) [-]
 1000.0000           ! SD_StageTime           - Array containing the time to spend in each shutdown stage [s]
-1.5708              ! SD_StagePitch          - Array with pitch angles to reach in each shutdown stage. If the pitch < SD_StagePitch[i], the SD_Stage = i.  If pitch > SD_StagePitch[SD_Stage_N], the maximum rates are used. [rad]
-1100.0000           ! SD_MaxTorqueRate       - Maximum torque rate for shutdown
-0.0218              ! SD_MaxPitchRate        - Maximum pitch rate used for shutdown
+1.5708              ! SD_StagePitch          - Array with pitch angles to reach in each shutdown stage [rad]. If the pitch < SD_StagePitch[i], the SD_Stage = i.  If pitch > SD_StagePitch[SD_Stage_N], the maximum rates are used.
+1100.0000           ! SD_MaxTorqueRate       - Maximum torque rate for shutdown [Nm/s]
+0.0218              ! SD_MaxPitchRate        - Maximum pitch rate used for shutdown [rad/s]
 
 !------- Floating -----------------------------------------------------------
 1                   ! Fl_n              - Number of Fl_Kp gains in gain scheduling, optional with default of 1
