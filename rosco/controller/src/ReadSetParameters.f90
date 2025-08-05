@@ -1539,14 +1539,35 @@ CONTAINS
             ! SD_MaxPitchRate
             IF (MAXVAL(CntrPar%SD_MaxPitchRate) > CntrPar%PC_MaxRat) THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'SD_MaxPitchRate(s) should be less or equal to PC_MaxRat.'
+                ErrVar%ErrMsg  = 'SD_MaxPitchRate(s) should be less than or equal to PC_MaxRat.'
             ENDIF
 
                 
             ! SD_MaxTorqueRate
             IF (MAXVAL(CntrPar%SD_MaxTorqueRate) > CntrPar%VS_MaxRat) THEN
                 ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'SD_MaxTorqueRate(s) should be less or equal to VS_MaxRat.'
+                ErrVar%ErrMsg  = 'SD_MaxTorqueRate(s) should be less than or equal to VS_MaxRat.'
+            ENDIF
+
+            IF (CntrPar%SD_Stage_N < 1) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SD_Stage_N must be greater than or equal to 1.'
+            ENDIF
+
+            IF (CntrPar%SD_Method == 1) THEN
+                ! SD_StageTime must be greater than zero
+                IF ( MINVAL(CntrPar%SD_StageTime) < 0.0) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg  = 'SD_StageTime(s) must be greater than or equal to zero.'
+                ENDIF
+
+            ELSEIF (CntrPar%SD_Method == 2) THEN
+                ! SD_StagePitch must be increasing
+                IF (.NOT. NonDecreasing(CntrPar%SD_StagePitch)) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg  = 'SD_StagePitch must be non-decreasing.'
+                ENDIF
+
             ENDIF
         ENDIF
 
