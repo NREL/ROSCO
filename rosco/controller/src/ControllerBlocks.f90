@@ -699,17 +699,19 @@ CONTAINS
                 LocalVar%SD_MaxPitchRate    = 0 
                 LocalVar%SD_MaxTorqueRate   = 0 
 
-            ELSE ! Stage > 0
+            ELSEIF (LocalVar%SD_Stage .LE. CntrPar%SD_Stage_N) THEN
+                LocalVar%SD_MaxPitchRate    = CntrPar%SD_MaxPitchRate(LocalVar%SD_Stage)
+                LocalVar%SD_MaxTorqueRate   = CntrPar%SD_MaxTorqueRate(LocalVar%SD_Stage)
+                
                 ! Shutdown stage
                 IF (LocalVar%Time >= LocalVar%SD_StageStartTime + CntrPar%SD_StageTime(LocalVar%SD_Stage)) THEN
                     LocalVar%SD_Stage = LocalVar%SD_Stage + 1 ! Next shutdown stage
                     LocalVar%SD_StageStartTime = LocalVar%Time
-                ENDIF
-                
-                ! Set maximum pitch and torque rates
-                LocalVar%SD_MaxPitchRate    = CntrPar%SD_MaxPitchRate(LocalVar%SD_Stage)
-                LocalVar%SD_MaxTorqueRate   = CntrPar%SD_MaxTorqueRate(LocalVar%SD_Stage)
+                ENDIF                
 
+            ELSE  ! Stage > CntrPar%SD_Stage_N
+                LocalVar%SD_MaxPitchRate    = CntrPar%PC_MaxRat
+                LocalVar%SD_MaxTorqueRate   = CntrPar%VS_MaxRat
             ENDIF
        
         ! Shutdown method 2: stage depends on blade pitch (LocalVar%BlPitchCMeas)
