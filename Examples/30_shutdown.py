@@ -75,8 +75,8 @@ def main():
     controller_params["DISCON"]["SD_MaxPit"] = 30*deg2rad
     controller_params["DISCON"]["SD_Method"] = 2
     controller_params["DISCON"]["SD_Stage_N"] = 3
-    controller_params["DISCON"]["SD_StageTime"] = [10, 1000]    
-    controller_params["DISCON"]["SD_StagePitch"] = [np.radians(40), np.radians(60), np.radians(90)]  # Time in seconds for each stage
+    controller_params["DISCON"]["SD_StageTime"] = [10, 1000]    # Only used in SD_Method 1. 
+    controller_params["DISCON"]["SD_StagePitch"] = [np.radians(40), np.radians(60), np.radians(90)]  
     controller_params["DISCON"]["SD_MaxPitchRate"] = [2*0.0348, 0.0348, 0.0348/2]
     controller_params["DISCON"]["SD_MaxTorqueRate"] = [4500000, 4500000, 4500000]
     controller_params["DISCON"]["PC_MaxRat"] = 4*0.0348
