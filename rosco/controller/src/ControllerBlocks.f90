@@ -649,6 +649,7 @@ CONTAINS
         CHARACTER(*),               PARAMETER           :: RoutineName = 'Shutdown'
         REAL(DbKi)       :: SD_NacVaneCosF                 ! Time-filtered x-component of NacVane (deg)
         REAL(DbKi)       :: SD_NacVaneSinF                 ! Time-filtered y-component of NacVane (deg)
+        INTEGER(IntKi)   :: I_Stage                         ! Loop variable for shutdown stages
 
         !Initialize shutdown trigger variable
         IF (LocalVar%iStatus == 0) THEN
@@ -682,6 +683,74 @@ CONTAINS
                 LocalVar%SD_Trigger = 4
             ENDIF 
         ENDIF
+
+        ! Method 1: stage depends on time
+        IF (CntrPar%SD_Method == 1) THEN
+            ! State machine for shutdown stages
+            
+            IF (LocalVar%SD_Stage == 0) THEN
+                ! Normal operation, check for shutdown trigger
+                IF (LocalVar%SD_Trigger > 0) THEN
+                    LocalVar%SD_Stage = 1 ! First shutdown stage
+                    LocalVar%SD_StageStartTime = LocalVar%Time
+                ENDIF
+                
+                ! Set maximum pitch and torque rates (for completeness)
+                LocalVar%SD_MaxPitchRate    = 0 
+                LocalVar%SD_MaxTorqueRate   = 0 
+
+            ELSEIF (LocalVar%SD_Stage .LE. CntrPar%SD_Stage_N) THEN
+                LocalVar%SD_MaxPitchRate    = CntrPar%SD_MaxPitchRate(LocalVar%SD_Stage)
+                LocalVar%SD_MaxTorqueRate   = CntrPar%SD_MaxTorqueRate(LocalVar%SD_Stage)
+                
+                ! Shutdown stage
+                IF (LocalVar%Time >= LocalVar%SD_StageStartTime + CntrPar%SD_StageTime(LocalVar%SD_Stage)) THEN
+                    LocalVar%SD_Stage = LocalVar%SD_Stage + 1 ! Next shutdown stage
+                    LocalVar%SD_StageStartTime = LocalVar%Time
+                ENDIF                
+
+            ELSE  ! Stage > CntrPar%SD_Stage_N
+                LocalVar%SD_MaxPitchRate    = CntrPar%PC_MaxRat
+                LocalVar%SD_MaxTorqueRate   = CntrPar%VS_MaxRat
+            ENDIF
+       
+        ! Shutdown method 2: stage depends on blade pitch (LocalVar%BlPitchCMeas)
+        ELSEIF (CntrPar%SD_Method == 2) THEN
+            ! State machine for shutdown stages
+            
+            IF (LocalVar%SD_Stage == 0) THEN
+                ! Normal operation, check for shutdown trigger
+                IF (LocalVar%SD_Trigger > 0) THEN
+                    LocalVar%SD_Stage = 1 ! First shutdown stage
+                ENDIF
+                
+                ! Set maximum pitch and torque rates (for completeness)
+                LocalVar%SD_MaxPitchRate    = 0 
+                LocalVar%SD_MaxTorqueRate   = 0 
+
+            ELSE ! Stage > 0
+                
+                ! Figure out what stage we are in
+                DO I_Stage = 1, CntrPar%SD_Stage_N
+                    IF (LocalVar%BlPitchCMeas >= CntrPar%SD_StagePitch(I_Stage)) THEN
+                        LocalVar%SD_Stage = I_Stage + 1
+                    ENDIF
+                ENDDO
+                
+                ! Set maximum pitch and torque rates
+                IF (LocalVar%SD_Stage > CntrPar%SD_Stage_N) THEN
+                    LocalVar%SD_MaxPitchRate    = CntrPar%PC_MaxRat
+                    LocalVar%SD_MaxTorqueRate   = CntrPar%VS_MaxRat
+                ELSE
+                    LocalVar%SD_MaxPitchRate    = CntrPar%SD_MaxPitchRate(LocalVar%SD_Stage)
+                    LocalVar%SD_MaxTorqueRate   = CntrPar%SD_MaxTorqueRate(LocalVar%SD_Stage)
+                ENDIF 
+
+            ENDIF
+        ENDIF
+
+
+
         
         ! Add RoutineName to error message
         IF (ErrVar%aviFAIL < 0) THEN

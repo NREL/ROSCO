@@ -1187,23 +1187,40 @@ properties:
                         default: 0.41888
                     SD_Time:
                         type: number
-                        description: Shutdown time
+                        description: Shutdown time [s]
                         units: s
                         default: 9999
                     SD_Method:
                         type: number
-                        description: Shutdown method {1- Reduce generator torque and increase blade pitch}
+                        description: Shutdown method {1- Reduce generator torque and increase blade pitch in timed stages (SD_StageTime), 2- stages depend on pitch angle (SD_StagePitch)}
                         minimum: 1
-                        maximum: 1
+                        maximum: 2
                         default: 1
                     SD_MaxTorqueRate:
-                        type: number
-                        description: Maximum torque rate for shutdown
+                        type: array
+                        items:
+                            type: number
+                        description: Maximum torque rate for shutdown [Nm/s]
                         units: Nm/s
                     SD_MaxPitchRate:
-                        type: number
-                        description: Maximum pitch rate used for shutdown
+                        type: array
+                        items:
+                            type: number
+                        description: Maximum pitch rate used for shutdown [rad/s]
                         units: rad/s
+                    SD_StageTime:
+                        type: array
+                        items:
+                            type: number
+                        description: Array containing the time to spend in each shutdown stage [s]
+                    SD_StagePitch:
+                        type: array
+                        items:
+                            type: number
+                        description: Array with pitch angles to reach in each shutdown stage [rad]. If the pitch < SD_StagePitch[i], the SD_Stage = i.  If pitch > SD_StagePitch[SD_Stage_N], the maximum rates are used.
+                    SD_Stage_N:
+                        type: number
+                        description: Number of shutdown stages (should equal number of values in SD_MaxPitchRate and SD_MaxTorqueRate) [-]
                     Fl_n:
                         type: number
                         description: Number of Fl_Kp gains in gain scheduling, optional with default of 1

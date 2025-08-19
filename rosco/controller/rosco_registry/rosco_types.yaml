@@ -555,10 +555,23 @@ ControlParameters:
       description: Shutdown method {1 - Reduce generator torque and increase blade pitch}, [-]
     SD_MaxTorqueRate:
       <<: *real
+      allocatable: True
       description: Maximum torque rate for shutdown, [Nm/s]
     SD_MaxPitchRate:
       <<: *real
+      allocatable: True
       description: Maximum pitch rate used for shutdown, [rad/s]
+    SD_StagePitch:
+      <<: *real
+      allocatable: True
+      description: Array containing the pitch angle to reach in each shutdown stage [rad]
+    SD_StageTime:
+      <<: *real
+      allocatable: True
+      description: Array containing the time to spend in each shutdown stage [s]
+    SD_Stage_N:
+      <<: *integer
+      description: Number of shutdown stages (should equal number of values in SD_MaxPitchRate and SD_MaxTorqueRate) [-]
     
     # Floating
     Fl_Mode:
@@ -1444,6 +1457,18 @@ LocalVariables:
     SD_GenSpeedF:
       <<: *real
       description: Generator speed signal filtered for shutdown
+    SD_Stage:
+      <<: *integer
+      description: Current stage of shutdown procedure (0- Shutdown not active, 1- First pitch/torque rate, 2,3,...)
+    SD_StageStartTime:
+      <<: *real
+      description: Time at which the current shutdown stage started
+    SD_MaxPitchRate:
+      <<: *real
+      description: Maximum pitch rate during current shutdown stage [rad/s]
+    SD_MaxTorqueRate:
+      <<: *real
+      description: Maximum torque rate during current shutdown stage [Nm/s]
     GenTq_SD:                        
       <<: *real 
       description: Electrical generator torque command for shutdown, [Nm].
