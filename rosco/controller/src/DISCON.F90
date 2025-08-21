@@ -92,7 +92,9 @@ IF (CntrPar%Ext_Mode > 0 .AND. ErrVar%aviFAIL >= 0) THEN
 END IF
 
 ! Filter signals
-CALL PreFilterMeasuredSignals(CntrPar, LocalVar, DebugVar, objInst, ErrVar)
+IF (ErrVar%aviFAIL >= 0) THEN
+    CALL PreFilterMeasuredSignals(CntrPar, LocalVar, DebugVar, objInst, ErrVar)
+ENDIF
 
 IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAIL >= 0))  THEN  ! Only compute control calculations if no error has occurred and we are not on the last time step
     IF ((LocalVar%iStatus == -8) .AND. (ErrVar%aviFAIL >= 0))  THEN ! Write restart files
@@ -140,7 +142,7 @@ ELSEIF ((LocalVar%iStatus == -1) .AND. (CntrPar%ZMQ_Mode > 0)) THEN
         CALL UpdateZeroMQ(LocalVar, CntrPar, ErrVar)
 END IF
 
-IF ( CntrPar%LoggingLevel > 0 ) THEN
+IF ((CntrPar%LoggingLevel > 0) .AND. (ErrVar%aviFAIL >= 0)) THEN
     CALL Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, SIZE(avcOUTNAME))
 END IF 
 
