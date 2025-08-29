@@ -59,10 +59,10 @@ CONTAINS
         END IF
         
         ! Compute (interpolate) the gains based on previously commanded blade pitch angles and lookup table:
-        LocalVar%PC_KP = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KP, LocalVar%BlPitchCMeas, ErrVar) ! Proportional gain
-        LocalVar%PC_KI = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KI, LocalVar%BlPitchCMeas, ErrVar) ! Integral gain
-        LocalVar%PC_KD = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KD, LocalVar%BlPitchCMeas, ErrVar) ! Derivative gain
-        LocalVar%PC_TF = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_TF, LocalVar%BlPitchCMeas, ErrVar) ! TF gains (derivative filter) !NJA - need to clarify
+        LocalVar%PC_KP = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KP, LocalVar%BlPitchCMeasF, ErrVar) ! Proportional gain
+        LocalVar%PC_KI = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KI, LocalVar%BlPitchCMeasF, ErrVar) ! Integral gain
+        LocalVar%PC_KD = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_KD, LocalVar%BlPitchCMeasF, ErrVar) ! Derivative gain
+        LocalVar%PC_TF = interp1d(CntrPar%PC_GS_angles, CntrPar%PC_GS_TF, LocalVar%BlPitchCMeasF, ErrVar) ! TF gains (derivative filter) !NJA - need to clarify
         
         ! Compute the collective pitch command associated with the proportional and integral gains:
         LocalVar%PC_PitComT = PIController(LocalVar%PC_SpdErr, LocalVar%PC_KP, LocalVar%PC_KI, LocalVar%PC_MinPit, LocalVar%PC_MaxPit, LocalVar%DT, LocalVar%BlPitch(1), LocalVar%piP, LocalVar%restart, objInst%instPI)
