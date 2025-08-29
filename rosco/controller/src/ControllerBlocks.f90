@@ -238,7 +238,7 @@ CONTAINS
             END IF
             
             ! --- Torque control state machine ---
-            IF (LocalVar%PC_PitComT >= LocalVar%VS_Rgn3Pitch) THEN       
+            IF (LocalVar%BlPitchCMeas >= LocalVar%VS_Rgn3Pitch) THEN       
                 IF (CntrPar%VS_ConstPower == VS_Mode_ConstPwr) THEN                   ! Region 3
                     LocalVar%VS_State = VS_State_Region_3_ConstPwr ! Constant power tracking
                 ELSE 
@@ -506,7 +506,7 @@ CONTAINS
         IF ( CntrPar%SS_Mode == 1) THEN
             ! Find setpoint shift amount
             R_Total = LocalVar%PRC_R_Speed * LocalVar%PRC_R_Torque * LocalVar%PRC_R_Pitch
-            DelOmega = ((LocalVar%PC_PitComT - LocalVar%PC_MinPit)/0.524) * CntrPar%SS_VSGain - ((CntrPar%VS_RtPwr * R_Total - LocalVar%VS_LastGenPwr))/CntrPar%VS_RtPwr * CntrPar%SS_PCGain ! Normalize to 30 degrees for now
+            DelOmega = ((LocalVar%BlPitchCMeas - LocalVar%PC_MinPit)/0.524) * CntrPar%SS_VSGain - ((CntrPar%VS_RtPwr * R_Total - LocalVar%VS_LastGenPwr))/CntrPar%VS_RtPwr * CntrPar%SS_PCGain ! Normalize to 30 degrees for now
             DelOmega = DelOmega * CntrPar%PC_RefSpd
             ! Filter
             LocalVar%SS_DelOmegaF = LPFilter(DelOmega, LocalVar%DT, CntrPar%F_SSCornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF) 
@@ -658,7 +658,7 @@ CONTAINS
         
 
         ! Filter pitch signal
-        LocalVar%SD_BlPitchF = LPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%SD_PitchCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+        LocalVar%SD_BlPitchF = LPFilter(LocalVar%BlPitchCMeas, LocalVar%DT, CntrPar%SD_PitchCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
         ! Filter generator speed
         LocalVar%SD_GenSpeedF = LPFilter(LocalVar%Genspeed, LocalVar%DT, CntrPar%SD_GenSpdCornerFreq, LocalVar%FP,LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
 

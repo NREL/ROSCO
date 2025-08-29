@@ -106,7 +106,7 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%PC_MinPit
         WRITE( Un, IOSTAT=ErrStat) LocalVar%PC_PitComT
         WRITE( Un, IOSTAT=ErrStat) LocalVar%PC_PitComT_Last
-        WRITE( Un, IOSTAT=ErrStat) LocalVar%PC_PitComTF
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%BlPitchCMeasF
         WRITE( Un, IOSTAT=ErrStat) LocalVar%PC_PitComT_IPC(1)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%PC_PitComT_IPC(2)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%PC_PitComT_IPC(3)
@@ -449,7 +449,7 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%PC_MinPit
         READ( Un, IOSTAT=ErrStat) LocalVar%PC_PitComT
         READ( Un, IOSTAT=ErrStat) LocalVar%PC_PitComT_Last
-        READ( Un, IOSTAT=ErrStat) LocalVar%PC_PitComTF
+        READ( Un, IOSTAT=ErrStat) LocalVar%BlPitchCMeasF
         READ( Un, IOSTAT=ErrStat) LocalVar%PC_PitComT_IPC(1)
         READ( Un, IOSTAT=ErrStat) LocalVar%PC_PitComT_IPC(2)
         READ( Un, IOSTAT=ErrStat) LocalVar%PC_PitComT_IPC(3)
@@ -834,7 +834,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(56) = LocalVar%PC_MinPit
     LocalVarOutData(57) = LocalVar%PC_PitComT
     LocalVarOutData(58) = LocalVar%PC_PitComT_Last
-    LocalVarOutData(59) = LocalVar%PC_PitComTF
+    LocalVarOutData(59) = LocalVar%BlPitchCMeasF
     LocalVarOutData(60) = LocalVar%PC_PitComT_IPC(1)
     LocalVarOutData(61) = LocalVar%PC_PwrErr
     LocalVarOutData(62) = LocalVar%PC_SpdErr
@@ -994,7 +994,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutStrings(56) = 'PC_MinPit'
     LocalVarOutStrings(57) = 'PC_PitComT'
     LocalVarOutStrings(58) = 'PC_PitComT_Last'
-    LocalVarOutStrings(59) = 'PC_PitComTF'
+    LocalVarOutStrings(59) = 'BlPitchCMeasF'
     LocalVarOutStrings(60) = 'PC_PitComT_IPC'
     LocalVarOutStrings(61) = 'PC_PwrErr'
     LocalVarOutStrings(62) = 'PC_SpdErr'

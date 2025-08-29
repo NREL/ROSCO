@@ -1286,9 +1286,9 @@ LocalVariables:
     PC_PitComT_Last:                   
       <<: *real 
       description: Last total command pitch based on the sum of the proportional and integral terms [rad].
-    PC_PitComTF:                   
+    BlPitchCMeasF:                   
       <<: *real 
-      description: Filtered Total command pitch based on the sum of the proportional and integral terms [rad].
+      description: Filtered collective pitch read from turbine/simulator [rad].
     PC_PitComT_IPC:
       <<: *real 
       description: Total command pitch based on the sum of the proportional and integral terms, including IPC term [rad].
