@@ -181,7 +181,6 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<14.5e}      ! VS_KP				- Proportional gain for generator PI torque controller [-]. (Only used in the transitional 2.5 region if VS_ControlMode =/ 2)\n'.format(rosco_vt['VS_KP']))
     file.write('{:<14.5e}      ! VS_KI				- Integral gain for generator PI torque controller [s]. (Only used in the transitional 2.5 region if VS_ControlMode =/ 2)\n'.format(rosco_vt['VS_KI']))
     file.write('{:<14.5f}      ! VS_TSRopt		    - {}\n'.format(float(rosco_vt['VS_TSRopt']),input_descriptions['VS_TSRopt']))
-    file.write('{:<14.5f}      ! VS_PwrFiltF		- {}\n'.format(float(rosco_vt['VS_PwrFiltF']),input_descriptions['VS_PwrFiltF']))
     file.write('\n')
     file.write('!------- FIXED PITCH REGION 3 TORQUE CONTROL ------------------------------------------------\n')
     file.write('{:<11d}         ! VS_FBP_n          - Number of gain-scheduling table entries\n'.format(int(rosco_vt['VS_FBP_n'])))
