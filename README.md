@@ -31,6 +31,17 @@ All relevant documentation about the ROSCO toolbox and ROSCO controller can be f
 ## Issues and Discussion
 If you find issues with any of the code that resides in this repository, it is encouraged for you to open a [GitHub issue](https://github.com/NREL/ROSCO/issues). If you have general questions or comments regarding the code, please start a [discussion via GitHub](https://github.com/NREL/ROSCO/discussions). We encourage you to use these resources for all ROSCO-related questions and comments, rather than other resources such as the FAST forums. This helps us keep ROSCO-related items centralized, and provides a singular place for the community to look when they have questions that might arise. Please keep in mind that we will do our very best to respond in a timely manner, but may take a few days to get back to you if you catch us during a busy time. 
 
+## Compatibility
+The ROSCO control library should be compatible with any multi-physics simulator that uses the Bladed-style ``avrSWAP``; this includes any version of OpenFAST.
+OpenFAST (after version 3.5.0) has an extended avrSWAP with additional sensors and actuators that can be enabled in the DISCON.IN file using ``Ext_Interface``.  
+Simulators other than OpenFAST should have ``Ext_Interface`` set to 0.
+
+The python-based ROSCO toolbox for tuning control inputs reads an OpenFAST input file during that process. 
+The ``openfast-io`` package is now used for input file reading and writing.  
+The currently compatible version can be found in the ``environment.yml`` file.
+OpenFAST inputs used in the controller tuning process should be consistent with that version.
+
+
 ## Contributing
 If it wasn't obvious from _open-source_ being in the title of the tool-set, this is an open-source code base that we would love for the community to contribute to. If you find yourself fixing any bugs, writing new routines, or even making small typo changes, please submit a [pull request](https://github.com/NREL/ROSCO/pulls). 
 
