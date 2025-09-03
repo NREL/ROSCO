@@ -478,7 +478,11 @@ CONTAINS
         CALL ParseInput(FileLines,  'VS_TSRopt',    CntrPar%VS_TSRopt,                  accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 2, UnEc)
         CALL ParseInput(FileLines,  'VS_ConstPower_n',     CntrPar%VS_ConstPower_n,     accINFILE(1), ErrVar, .TRUE., UnEc)
         IF (CntrPar%VS_ConstPower_n == 0) CntrPar%VS_ConstPower_n = 1   ! Default is 1
-        CALL ParseAry(FileLines,    'VS_ConstPower_alpha', CntrPar%VS_ConstPower_alpha, CntrPar%VS_ConstPower_n, accINFILE(1), ErrVar, CntrPar%VS_ConstPower .NE. 1, UnEc)
+        CALL ParseAry(FileLines,    'VS_ConstPower_alpha', CntrPar%VS_ConstPower_alpha, CntrPar%VS_ConstPower_n, accINFILE(1), ErrVar, .TRUE., UnEc)
+        IF (SUM(ABS(CntrPar%VS_ConstPower_alpha)) == 0) THEN
+            PRINT *, 'ROSCO Warning: Setting VS_ConstPower_alpha to default of 1.0 for all entries.'
+            CntrPar%VS_ConstPower_alpha = 1.0
+        ENDIF
         CALL ParseAry(FileLines,    'VS_ConstPower_U',     CntrPar%VS_ConstPower_U,     CntrPar%VS_ConstPower_n, accINFILE(1), ErrVar, CntrPar%VS_ConstPower_n == 1, UnEc)  ! Allow default if only one parameter
         IF (ErrVar%aviFAIL < 0) RETURN
 
@@ -1336,7 +1340,12 @@ CONTAINS
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'VS_TSRopt must be greater than zero.'
         ENDIF
-        
+
+        IF ((MINVAL(CntrPar%VS_ConstPower_alpha) < 0.0) .OR. (MAXVAL(CntrPar%VS_ConstPower_alpha) > 1.0)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'VS_ConstPower_alpha must be between 0.0 and 1.0.'
+        ENDIF
+
         !------- SETPOINT SMOOTHER ---------------------------------------------
 
         ! SS_VSGain
