@@ -21,13 +21,13 @@ import pandas as pd
 from rosco.toolbox.utilities import load_from_txt
 
 # Load OpenFAST readers
+from openfast_io import FileTools
+
 try:
     import weis.aeroelasticse
     use_weis = True
-    print('Using weis.aeroelasticse in rosco.toolbox...')
 except:
     use_weis = False
-    print('Using ofTools in rosco.toolbox...')
 
 
 # Some useful constants
@@ -57,7 +57,6 @@ class Turbine():
     load_from_ccblade
     load_from_txt
     generate_rotperf_fast
-    write_rotor_performance
 
     Parameters:
     -----------
@@ -154,11 +153,11 @@ class Turbine():
             txt_filename: str, optional
                           filename for *.txt, only used if rot_source='txt'
         """
-        # Use weis if it exists
-        if use_weis:
-            from weis.aeroelasticse.FAST_reader import InputReader_OpenFAST
-        else:
-            from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+        # # Use weis if it exists
+        # if use_weis:
+        from openfast_io.FAST_reader import InputReader_OpenFAST # moving import here to avoid circular import
+        # else:
+        #     from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
 
         # Load OpenFAST model using the FAST_reader
         print('Loading FAST model: %s ' % FAST_InputFile)
@@ -171,26 +170,27 @@ class Turbine():
 
         # file
         ed_file = os.path.join(fast.FAST_directory, fast.fst_vt['Fst']['EDFile'])
-
         fast.read_ElastoDyn(ed_file)
         ed_blade_file = os.path.join(os.path.dirname(ed_file), fast.fst_vt['ElastoDyn']['BldFile1'])
-        fast.read_ElastoDynBlade(ed_blade_file)
+        
+        if fast.fst_vt['Fst']['CompElast'] ==1:
+            fast.read_ElastoDynBlade(ed_blade_file)
+        elif fast.fst_vt['Fst']['CompElast'] ==2:
+            bd_file = os.path.join(fast.FAST_directory, fast.fst_vt['Fst']['BDBldFile(1)'])
+            fast.read_BeamDyn(bd_file)
+            bd_blade_file = os.path.join(os.path.dirname(bd_file), fast.fst_vt['BeamDyn'][0]['BldFile'])
+            fast.read_BeamDynBlade(bd_blade_file)
+        else:
+            Warning('No ElastoDyn or BeamDyn files were provided')
 
-        fast.read_AeroDyn15()
+        fast.read_AeroDyn()
 
         if fast.fst_vt['Fst']['CompServo']:
             fast.read_ServoDyn()
             fast.read_DISCON_in()
         else:
-            fast.fst_vt['ServoDyn']['GenEff'] = 1.0
+            fast.fst_vt['ServoDyn']['GenEff'] = 100.        # gen efficency defined in percent in ServoDyn
     
-        
-        if fast.fst_vt['Fst']['CompHydro'] == 1: # SubDyn not yet implimented
-            hd_file = os.path.normpath(os.path.join(fast.FAST_directory, fast.fst_vt['Fst']['HydroFile']))
-            fast.read_HydroDyn(hd_file)
-
-        # fast.read_AeroDyn15()
-        # fast.execute()
 
         # Use Performance tables if defined, otherwise use defaults
         if txt_filename:
@@ -208,18 +208,18 @@ class Turbine():
         self.shearExp           = 0.2  #NOTE: HARD CODED 
         
         # Fluid density
-        if 'default' in str(fast.fst_vt['AeroDyn15']['AirDens']):
+        if 'default' in str(fast.fst_vt['AeroDyn']['AirDens']):
             if fast.fst_vt['Fst']['MHK']:
-                fast.fst_vt['AeroDyn15']['AirDens'] = fast.fst_vt['Fst']['WtrDens']
+                fast.fst_vt['AeroDyn']['AirDens'] = fast.fst_vt['Fst']['WtrDens']
             else:
-                fast.fst_vt['AeroDyn15']['AirDens'] = fast.fst_vt['Fst']['AirDens']
-        self.rho                = fast.fst_vt['AeroDyn15']['AirDens']
+                fast.fst_vt['AeroDyn']['AirDens'] = fast.fst_vt['Fst']['AirDens']
+        self.rho                = fast.fst_vt['AeroDyn']['AirDens']
 
         # Kinematic viscosity
-        if 'default' in str(fast.fst_vt['AeroDyn15']['KinVisc']):
-            fast.fst_vt['AeroDyn15']['KinVisc'] = fast.fst_vt['Fst']['KinVisc']
+        if 'default' in str(fast.fst_vt['AeroDyn']['KinVisc']):
+            fast.fst_vt['AeroDyn']['KinVisc'] = fast.fst_vt['Fst']['KinVisc']
             
-        self.mu                 = fast.fst_vt['AeroDyn15']['KinVisc']
+        self.mu                 = fast.fst_vt['AeroDyn']['KinVisc']
         self.Ng                 = fast.fst_vt['ElastoDyn']['GBRatio']
         self.GenEff             = fast.fst_vt['ServoDyn']['GenEff']
         self.GBoxEff            = fast.fst_vt['ElastoDyn']['GBoxEff']
@@ -269,18 +269,13 @@ class Turbine():
         # Define operational TSR
         if not self.TSR_operational:
             self.TSR_operational = self.Cp.TSR_opt
-
-        # Pull out some floating-related data
-        try:
-            wave_tp = fast.fst_vt['HydroDyn']['WaveTp'] 
-            self.wave_peak_period = 1/wave_tp       # Will work if HydroDyn exists and a peak period is defined...
-        except:
-            self.wave_peak_period = 0.0             # Set as 0.0 when HydroDyn doesn't exist (fixed bottom)
+        # Compute operational Cp (may not be optimal if TSR_operational set by user)
+        self.Cp_operational = self.Cp.interp_surface(self.Cp.pitch_opt, self.TSR_operational)
 
     # Load rotor performance data from CCBlade 
     def load_from_ccblade(self):
         '''
-        Loads rotor performance information by running cc-blade aerodynamic analysis. Designed to work with Aerodyn15 blade input files. 
+        Loads rotor performance information by running cc-blade aerodynamic analysis. Designed to work with AeroDyn blade input files. 
 
         Parameters:
         -----------
@@ -288,7 +283,6 @@ class Turbine():
                   Dictionary containing fast model details - defined using from InputReader_OpenFAST (distributed as a part of AeroelasticSE)
 
         '''
-        from wisdem.ccblade.ccblade import CCAirfoil, CCBlade
 
         print('Loading rotor performance data from CC-Blade.')
 
@@ -299,8 +293,8 @@ class Turbine():
             self.load_blade_info()
         
         # Generate the look-up tables, mesh the grid and flatten the arrays for cc_rotor aerodynamic analysis
-        TSR_initial = np.arange(2, 15,0.5)
-        pitch_initial = np.arange(-5,31,1.)
+        TSR_initial = np.arange(0.5, 25, 0.5)
+        pitch_initial = np.arange(-5, 31, 1.)
         pitch_initial_rad = pitch_initial * deg2rad
         ws_array = np.ones_like(TSR_initial) * self.v_rated # evaluate at rated wind speed
         omega_array = (TSR_initial * ws_array / self.rotor_radius) * RadSec2rpm
@@ -331,7 +325,6 @@ class Turbine():
         self.Ct_table = Ct 
         self.Cq_table = Cq
 
-    
     def generate_rotperf_fast(self, openfast_path, FAST_runDirectory=None, run_BeamDyn=False,
                               debug_level=1, run_type='multi'):
         '''
@@ -354,10 +347,8 @@ class Turbine():
         '''
         if use_weis:
             from weis.aeroelasticse import runFAST_pywrapper, CaseGen_General
-            from weis.aeroelasticse.Util import FileTools
         else:
             from rosco.toolbox.ofTools.case_gen import runFAST_pywrapper, CaseGen_General
-            from rosco.toolbox.ofTools.util import FileTools
         # Load pCrunch tools
         from pCrunch import Processing
 
@@ -382,10 +373,10 @@ class Turbine():
             case_inputs[('Fst','CompElast')] = {'vals': [1], 'group': 0}
         case_inputs[('Fst', 'OutFileFmt')] = {'vals': [2], 'group': 0}
 
-        # AeroDyn15
-        case_inputs[('AeroDyn15', 'WakeMod')] = {'vals': [1], 'group': 0}
-        case_inputs[('AeroDyn15', 'AfAeroMod')] = {'vals': [1], 'group': 0}
-        case_inputs[('AeroDyn15', 'TwrPotent')] = {'vals': [0], 'group': 0}
+        # AeroDyn
+        case_inputs[('AeroDyn', 'WakeMod')] = {'vals': [1], 'group': 0}
+        case_inputs[('AeroDyn', 'AfAeroMod')] = {'vals': [1], 'group': 0}
+        case_inputs[('AeroDyn', 'TwrPotent')] = {'vals': [0], 'group': 0}
         
         # ElastoDyn
         case_inputs[('ElastoDyn', 'FlapDOF1')] = {'vals': ['True'], 'group': 0}
@@ -457,7 +448,7 @@ class Turbine():
             "LSSGagFza", "RotTorq", "LSSGagMya", "LSSGagMza", 
             # ServoDyn
             "GenPwr", "GenTq",
-            # AeroDyn15
+            # AeroDyn
             "RtArea", "RtVAvgxh", "B1N3Clrnc", "B2N3Clrnc", "B3N3Clrnc",
             "RtFldCp", 'RtFldCq', 'RtFldCt', 'RtTSR', # NECESSARY
             # InflowWind
@@ -538,23 +529,23 @@ class Turbine():
         -----------
             self - note: needs to contain fast input file info provided by load_from_fast.
         '''
-        if use_weis:
-            from weis.aeroelasticse.FAST_reader import InputReader_OpenFAST
-        else:
-            from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+        # if use_weis:
+        from openfast_io.FAST_reader import InputReader_OpenFAST
+        # else:
+        #     from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
         from wisdem.ccblade.ccblade import CCAirfoil, CCBlade
 
         # Create CC-Blade Rotor
         r0 = np.array(self.fast.fst_vt['AeroDynBlade']['BlSpn']) 
         chord = np.array(self.fast.fst_vt['AeroDynBlade']['BlChord'])
         theta = np.array(self.fast.fst_vt['AeroDynBlade']['BlTwist'])
-        # -- Adjust for Aerodyn15
+        # -- Adjust for AeroDyn
         r = r0 + self.Rhub
         af_idx = np.array(self.fast.fst_vt['AeroDynBlade']['BlAFID']).astype(int) - 1 #Reset to 0 index
 
         # Read OpenFAST Airfoil data, assumes AeroDyn > v15.03 and associated polars > v1.01
         af_dict = {}
-        for i, section in enumerate(self.fast.fst_vt['AeroDyn15']['af_data']):
+        for i, section in enumerate(self.fast.fst_vt['AeroDyn']['af_data']):
             if section[0]['NumTabs'] > 1:  # sections with multiple airfoil tables
                 reynolds_ref = self.turbine_params['reynolds_ref']
                 if reynolds_ref:  # default is 0
@@ -589,12 +580,16 @@ class Turbine():
                         precone=-self.precone, tilt=-self.tilt, yaw=self.yaw, shearExp=self.shearExp, hubHt=self.hubHt, nSector=nSector)
 
         # Save some additional blade data 
-        self.af_data = self.fast.fst_vt['AeroDyn15']['af_data']
+        self.af_data = self.fast.fst_vt['AeroDyn']['af_data']
         self.span = r 
         self.chord = chord
         self.twist = theta
-        self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade']['BldFlDmp1']/100
-
+        
+        if self.fast.fst_vt['Fst']['CompElast'] ==1:
+            self.bld_flapwise_damp = self.fast.fst_vt['ElastoDynBlade'][0]['BldFlDmp1']/100
+        elif self.fast.fst_vt['Fst']['CompElast'] ==2:
+            self.bld_flapwise_damp = self.fast.fst_vt['BeamDynBlade'][0]['mu5']
+        
 class RotorPerformance():
     '''
     Class RotorPerformance used to find details from rotor performance 
@@ -615,7 +610,7 @@ class RotorPerformance():
     TSR_initial : array_like (rad)
                     An [n x 1] or [1 x n] array containing tip-speed ratios corresponding to  performance_table 
     '''
-    def __init__(self,performance_table, pitch_initial_rad, TSR_initial):
+    def __init__(self, performance_table, pitch_initial_rad, TSR_initial):
 
         # Store performance data tables
         self.performance_table = performance_table          # Table containing rotor performance data, i.e. Cp, Ct, Cq
@@ -628,27 +623,39 @@ class RotorPerformance():
         # "Optimal" below rated TSR and blade pitch (for Cp) - note this may be limited by resolution of Cp-surface
         self.max = np.amax(performance_table)
         self.max_ind = np.where(performance_table == np.amax(performance_table))
-        self.pitch_opt = pitch_initial_rad[self.max_ind[1]]
-        # --- Find TSR ---
-        # Make finer mesh for Tip speed ratios at "optimal" blade pitch angle, do a simple lookup. 
-        #       -- nja: this seems to work a little better than interpolating
 
-        # Find the 1D performance table when pitch is at the maximum part of the Cx surface:
-        performance_beta_max = np.ndarray.flatten(performance_table[:,self.max_ind[1][-1]]) # performance metric at the last maximizing pitch angle
-        
-        # If there is more than one max pitch angle:
+        # Throw a warning if there is more than one max pitch angle
         if len(self.max_ind[1]) > 1:
             print('rosco.toolbox Warning: repeated maximum values in a performance table and the last one @ pitch = {} rad. was taken...'.format(self.pitch_opt[-1]))
 
-        # Find TSR that maximizes Cx at fine pitch
-        # - TSR to satisfy: max( Cx(TSR, \beta_fine) ) = TSR_opt
-        TSR_fine_ind = np.linspace(TSR_initial[0],TSR_initial[-1],int(TSR_initial[-1] - TSR_initial[0])*100) # Range of TSRs to interpolate accross
-        f_TSR = interpolate.interp1d(TSR_initial,TSR_initial,bounds_error='False',kind='quadratic')          # interpolate function for Cp(tsr) values
-        TSR_fine = f_TSR(TSR_fine_ind) # TSRs at fine pitch
-        f_performance = interpolate.interp1d(TSR_initial,performance_beta_max,bounds_error='False',kind='quadratic')    # interpolate function for Cx(tsr) values
-        performance_fine = f_performance(TSR_fine_ind) # Cx values at fine pitch
-        performance_max_ind = np.where(performance_fine == np.max(performance_fine)) # Find max performance at fine pitch
-        self.TSR_opt = float(TSR_fine[performance_max_ind[0]][0])  # TSR to maximize Cx at fine pitch
+        # Refine optimal point using smooth interpolation -- gives more precise estimates than coarse grid
+        # Select region around maximizing TSR and blade pitch
+        TSR_max_ind = self.max_ind[0][-1]
+        pitch_max_ind = self.max_ind[1][-1]
+        ind_search_num = 3
+        TSR_search_ind = [np.max([0, TSR_max_ind - ind_search_num]), np.min([TSR_max_ind + ind_search_num, len(self.TSR_initial)-1])]
+        pitch_search_ind = [np.max([0, pitch_max_ind - ind_search_num]), np.min([pitch_max_ind + ind_search_num, len(self.pitch_initial_rad)-1])]
+        TSR_search_range = range(TSR_search_ind[0], TSR_search_ind[1]+1)
+        pitch_search_range = range(pitch_search_ind[0], pitch_search_ind[1]+1)
+
+        print('rosco.toolbox: Refining maximum performance estimate...')
+
+        # Generate finer mesh in the proximity of maximizer
+        fine_mesh_scale = 20
+        TSR_fine = np.linspace(self.TSR_initial[TSR_search_ind[0]], self.TSR_initial[TSR_search_ind[1]], np.diff(TSR_search_ind)[0] * fine_mesh_scale)
+        pitch_fine = np.linspace(self.pitch_initial_rad[pitch_search_ind[0]], self.pitch_initial_rad[pitch_search_ind[1]], np.diff(pitch_search_ind)[0] * fine_mesh_scale)
+        pitch_fine_mesh, TSR_fine_mesh = np.meshgrid(pitch_fine, TSR_fine) # Construct mesh grids of fine data to interpolate performance surface
+        performance_fine = interpolate.interpn([TSR_initial[TSR_search_range], pitch_initial_rad[pitch_search_range]], \
+                                               self.performance_table[TSR_search_range, :][:, pitch_search_range], \
+                                               np.array([TSR_fine_mesh, pitch_fine_mesh]).T, \
+                                               bounds_error='False', method='cubic') # Cubic spline interpolation over finer mesh data
+
+        # Save optimal performance, TSR, and pitch
+        self.performance_opt = np.max(performance_fine) # Maximal Cx on fine grid
+        performance_max_ind = np.where(performance_fine == self.performance_opt) # Find maximizer
+        self.TSR_opt = float(TSR_fine[performance_max_ind[0][0]]) # If multiple maximizers, pick lowest TSR
+        self.pitch_opt = float(pitch_fine[performance_max_ind[1][-1]]) # If multiple maximizers, pick highest pitch
+
 
     def interp_surface(self,pitch,TSR):
         '''
@@ -663,9 +670,9 @@ class RotorPerformance():
         '''
         
         # Form the interpolant functions which can look up any arbitrary location on rotor performance surface
-        interp_fun = interpolate.interp2d(
-            self.pitch_initial_rad, self.TSR_initial, self.performance_table, kind='cubic')
-        return interp_fun(pitch,TSR)
+        interp_fun = interpolate.RectBivariateSpline(
+            self.pitch_initial_rad, self.TSR_initial, self.performance_table.T)
+        return np.squeeze(interp_fun(pitch,TSR).T)
 
     def interp_gradient(self,pitch,TSR):
         '''
@@ -684,11 +691,11 @@ class RotorPerformance():
                           [1 x 2] array coresponding to gradient in pitch and TSR directions, respectively
         '''
         # Form the interpolant functions to find gradient at any arbitrary location on rotor performance surface
-        dCP_beta_interp = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.gradient_pitch, kind='linear')
-        dCP_TSR_interp = interpolate.interp2d(self.pitch_initial_rad, self.TSR_initial, self.gradient_TSR, kind='linear')
+        dCP_beta_interp = interpolate.RectBivariateSpline(self.pitch_initial_rad, self.TSR_initial, self.gradient_pitch.T)
+        dCP_TSR_interp = interpolate.RectBivariateSpline(self.pitch_initial_rad, self.TSR_initial, self.gradient_TSR.T)
 
         # grad.shape output as (2,) numpy array, equivalent to (pitch-direction,TSR-direction)
-        grad = np.array([dCP_beta_interp(pitch,TSR), dCP_TSR_interp(pitch,TSR)])
+        grad = np.array([dCP_beta_interp(pitch,TSR).T, dCP_TSR_interp(pitch,TSR).T])
         return np.ndarray.flatten(grad)
     
     def plot_performance(self):

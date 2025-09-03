@@ -78,10 +78,12 @@ IF ( (NINT(avrSWAP(1)) == -9) .AND. (aviFAIL >= 0))  THEN ! Read restart files
 END IF
 
 ! Read avrSWAP array into derived types/variables
-CALL ReadAvrSWAP(avrSWAP, LocalVar, CntrPar)
+CALL ReadAvrSWAP(avrSWAP, LocalVar, CntrPar, ErrVar)
 
 ! Set Control Parameters
-CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, RootName, ErrVar)
+IF (ErrVar%aviFAIL >= 0) THEN
+    CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, RootName, ErrVar)
+ENDIF
 
 ! Call external controller, if desired
 IF (CntrPar%Ext_Mode > 0 .AND. ErrVar%aviFAIL >= 0) THEN
@@ -90,7 +92,9 @@ IF (CntrPar%Ext_Mode > 0 .AND. ErrVar%aviFAIL >= 0) THEN
 END IF
 
 ! Filter signals
-CALL PreFilterMeasuredSignals(CntrPar, LocalVar, DebugVar, objInst, ErrVar)
+IF (ErrVar%aviFAIL >= 0) THEN
+    CALL PreFilterMeasuredSignals(CntrPar, LocalVar, DebugVar, objInst, ErrVar)
+ENDIF
 
 IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAIL >= 0))  THEN  ! Only compute control calculations if no error has occurred and we are not on the last time step
     IF ((LocalVar%iStatus == -8) .AND. (ErrVar%aviFAIL >= 0))  THEN ! Write restart files
@@ -99,13 +103,21 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
     IF (CntrPar%ZMQ_Mode > 0) THEN
         CALL UpdateZeroMQ(LocalVar, CntrPar, ErrVar)
     ENDIF
-    
+    IF (CntrPar%SD_Mode > 0) THEN
+        CALL Shutdown(LocalVar, CntrPar, objInst,ErrVar)
+    ENDIF
     CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
+    CALL PowerControlSetpoints(CntrPar, LocalVar, objInst, DebugVar, ErrVar)  ! Everything before the pitch, torque set points are computeed
+    IF (CntrPar%SU_Mode > 0) THEN
+        CALL Startup(LocalVar, CntrPar, objInst,ErrVar)
+    ENDIF
     CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
     CALL StateMachine(CntrPar, LocalVar)
     CALL SetpointSmoother(LocalVar, CntrPar, objInst)
     CALL VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
-    CALL PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
+    IF (CntrPar%PC_ControlMode > 0) THEN
+        CALL PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
+    END IF
     
     IF (CntrPar%Y_ControlMode > 0) THEN
         CALL YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
@@ -125,12 +137,14 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
         CALL StructuralControl(avrSWAP,CntrPar,LocalVar, objInst, ErrVar)
     END IF
     
-    IF ( CntrPar%LoggingLevel > 0 ) THEN
-        CALL Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, SIZE(avcOUTNAME))
-    END IF 
+
 ELSEIF ((LocalVar%iStatus == -1) .AND. (CntrPar%ZMQ_Mode > 0)) THEN
         CALL UpdateZeroMQ(LocalVar, CntrPar, ErrVar)
 END IF
+
+IF ((CntrPar%LoggingLevel > 0) .AND. (ErrVar%aviFAIL >= 0)) THEN
+    CALL Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, SIZE(avcOUTNAME))
+END IF 
 
 
 ! Add RoutineName to error message

@@ -20,6 +20,7 @@ from ctypes import (
     create_string_buffer,
     c_int32,
     c_void_p,
+    wintypes,
 )
 import numpy as np
 import platform
@@ -74,6 +75,7 @@ class ControllerInterface:
         self.char_buffer = 500
         self.avr_size = 500
         self.sim_name = "simDEBUG"
+        self.pitch = 0 # option to provid initial blade pitch value
 
         # Set kwargs, like DT
         for k, w in kwargs.items():
@@ -89,7 +91,7 @@ class ControllerInterface:
 
     def init_discon(self):
         # Initialize
-        self.pitch = 0
+        
         self.torque = 0
         # -- discon
         self.discon = cdll.LoadLibrary(self.lib_name)
@@ -104,9 +106,9 @@ class ControllerInterface:
         self.avrSWAP[26] = 10  # HARD CODE initial wind speed = 10 m/s
 
         # Blade pitch initial conditions
-        self.avrSWAP[3] = 0 * np.deg2rad(1)
-        self.avrSWAP[32] = 0 * np.deg2rad(1)
-        self.avrSWAP[33] = 0 * np.deg2rad(1)
+        self.avrSWAP[3] = self.pitch * np.deg2rad(1)
+        self.avrSWAP[32] = self.pitch * np.deg2rad(1)
+        self.avrSWAP[33] = self.pitch * np.deg2rad(1)
 
         self.avrSWAP[27] = 1  # IPC
 
@@ -208,9 +210,15 @@ class ControllerInterface:
         self.avrSWAP[26] = turbine_state["ws"]
         self.avrSWAP[36] = turbine_state["Yaw_fromNorth"]
         try:
-            self.avrSWAP[82] = turbine_state["NacIMU_FA_Acc"]
+            self.avrSWAP[82] = turbine_state["NacIMU_FA_RAcc"]
         except KeyError:
             self.avrSWAP[82] = 0
+
+        # pass translational acceleration
+        try:
+            self.avrSWAP[52] = turbine_state['FA_Acc_TT']
+        except KeyError:
+            self.avrSWAP[52] = 0
 
         # call controller
         self.call_discon()
@@ -251,6 +259,7 @@ class ControllerInterface:
 
         if OS == "Windows":  # pragma: Windows
             try:
+                ctypes.windll.kernel32.FreeLibrary.argtypes = [wintypes.HMODULE]
                 _dlclose = ctypes.windll.kernel32.FreeLibrary
                 dlclose = lambda handle: 0 if _dlclose(handle) else 1
             except:
@@ -418,11 +427,11 @@ class wfc_zmq_server:
         logger.debug(
             f"Asking wfc_controller for setpoints at time = {current_time} for id = {id}"
         )
-        setpoints = self.wfc_controller(id, current_time, measurements)
+        setpoints = self.wfc_controller.update_setpoints(id, current_time, measurements)
         logger.info(f"Received setpoints {setpoints} from wfc_controller for time = {current_time} and id = {id}")
 
-        for s in self.wfc_interface["setpoints"]:
-            self.connections.setpoints[id][s] = setpoints.get(s, 0)
+        for i, s in enumerate(self.wfc_interface["setpoints"]):
+            self.connections.setpoints[id][s] = setpoints.get(s, self.wfc_interface['setpoints_default'][i])
             logger.debug(f'Set setpoint {s} in the connections list to {setpoints.get(s,0)} for id = {id}')
 
     def wfc_controller(self, id, current_time, measurements):

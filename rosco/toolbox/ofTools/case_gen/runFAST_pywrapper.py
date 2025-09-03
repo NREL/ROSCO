@@ -8,9 +8,11 @@ from __future__ import print_function
 import os, platform
 import multiprocessing as mp
 
-from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
-from rosco.toolbox.ofTools.fast_io.FAST_writer import InputWriter_OpenFAST
+from openfast_io.FAST_reader import InputReader_OpenFAST
+from openfast_io.FAST_writer import InputWriter_OpenFAST
 from rosco.toolbox.ofTools.fast_io.FAST_wrapper import FAST_wrapper
+import time
+
 
 # TODO: import weis and use library, import pCrunch and re-enable post-processing features available here
 
@@ -72,6 +74,7 @@ class runFAST_pywrapper(object):
         self.la                 = None # Will be initialized on first run through
         self.allow_fails        = False
         self.fail_value         = 9999
+        self.execute_fast       = True
         
         self.overwrite_outfiles = True   # True: existing output files will be overwritten, False: if output file with the same name already exists, OpenFAST WILL NOT RUN; This is primarily included for code debugging with OpenFAST in the loop or for specific Optimization Workflows where OpenFAST is to be run periodically instead of for every objective function anaylsis
 
@@ -123,6 +126,8 @@ class runFAST_pywrapper(object):
             writer.FAST_yamlfile = self.FAST_yamlfile_out
             writer.write_yaml()
 
+        time.sleep(2)
+
         # Make sure pCrunch is ready
         # self.init_crunch()
             
@@ -153,31 +158,32 @@ class runFAST_pywrapper(object):
             # if not self.keep_time: output_dict = None
 
         else: # use executable
-            wrapper = FAST_wrapper()
+            if self.execute_fast:
+                wrapper = FAST_wrapper()
 
-            # Run FAST
-            wrapper.FAST_exe = self.FAST_exe
-            wrapper.FAST_InputFile = os.path.split(writer.FAST_InputFileOut)[1]
-            wrapper.FAST_directory = os.path.split(writer.FAST_InputFileOut)[0]
+                # Run FAST
+                wrapper.FAST_exe = self.FAST_exe
+                wrapper.FAST_InputFile = os.path.split(writer.FAST_InputFileOut)[1]
+                wrapper.FAST_directory = os.path.split(writer.FAST_InputFileOut)[0]
 
-            wrapper.allow_fails = self.allow_fails
-            wrapper.fail_value  = self.fail_value
+                wrapper.allow_fails = self.allow_fails
+                wrapper.fail_value  = self.fail_value
 
-            FAST_Output     = os.path.join(wrapper.FAST_directory, wrapper.FAST_InputFile[:-3]+'outb')
-            FAST_Output_txt = os.path.join(wrapper.FAST_directory, wrapper.FAST_InputFile[:-3]+'out')
+                FAST_Output     = os.path.join(wrapper.FAST_directory, wrapper.FAST_InputFile[:-3]+'outb')
+                FAST_Output_txt = os.path.join(wrapper.FAST_directory, wrapper.FAST_InputFile[:-3]+'out')
 
-            #check if OpenFAST is set not to overwrite existing output files, TODO: move this further up in the workflow for minor computation savings
-            if self.overwrite_outfiles or (not self.overwrite_outfiles and not (os.path.exists(FAST_Output) or os.path.exists(FAST_Output_txt))):
-                failed = wrapper.execute()
-                if failed:
-                    print('OpenFAST Failed! Please check the run logs.')
-                    if self.allow_fails:
-                        print(f'OpenFAST failures are allowed. All outputs set to {self.fail_value}')
-                    else:
-                        raise Exception('OpenFAST Failed! Please check the run logs.')
-            else:
-                failed = False
-                print('OpenFAST not executed: Output file "%s" already exists. To overwrite this output file, set "overwrite_outfiles = True".'%FAST_Output)
+                #check if OpenFAST is set not to overwrite existing output files, TODO: move this further up in the workflow for minor computation savings
+                if self.overwrite_outfiles or (not self.overwrite_outfiles and not (os.path.exists(FAST_Output) or os.path.exists(FAST_Output_txt))):
+                    failed = wrapper.execute()
+                    if failed:
+                        print('OpenFAST Failed! Please check the run logs.')
+                        if self.allow_fails:
+                            print(f'OpenFAST failures are allowed. All outputs set to {self.fail_value}')
+                        else:
+                            raise Exception('OpenFAST Failed! Please check the run logs.')
+                else:
+                    failed = False
+                    print('OpenFAST not executed: Output file "%s" already exists. To overwrite this output file, set "overwrite_outfiles = True".'%FAST_Output)
 
             # if not failed:
             #     if os.path.exists(FAST_Output):
@@ -256,6 +262,7 @@ class runFAST_pywrapper_batch(object):
         self.fail_value         = 9999
         
         self.post               = None
+        self.execute_fast       = True
 
     # def init_crunch(self):
     #     if self.la is None:
@@ -293,6 +300,7 @@ class runFAST_pywrapper_batch(object):
             # case_data['magnitude_channels'] = self.magnitude_channels
             # case_data['fatigue_channels']   = self.fatigue_channels
             case_data['post']               = self.post
+            case_data['execute_fast']       = self.execute_fast
 
             case_data_all.append(case_data)
 
@@ -422,7 +430,7 @@ def evaluate(indict):
     known_keys = ['case', 'case_name', 'FAST_exe', 'FAST_lib', 'FAST_runDirectory',
                   'FAST_InputFile', 'FAST_directory', 'read_yaml', 'FAST_yamlfile_in', 'fst_vt',
                   'write_yaml', 'FAST_yamlfile_out', 'channels', 'overwrite_outfiles', 'keep_time',
-                  'goodman','magnitude_channels','fatigue_channels','post','use_exe','allow_fails','fail_value']
+                  'goodman','magnitude_channels','fatigue_channels','post','use_exe','allow_fails','fail_value','execute_fast']
     
     fast = runFAST_pywrapper()
     for k in indict:

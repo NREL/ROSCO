@@ -12,7 +12,7 @@ CONTAINS
         TYPE(ErrorVariables),    INTENT(INOUT) :: ErrVar
 
         character(256) :: zmq_address
-        real(C_DOUBLE) :: setpoints(5)
+        real(C_DOUBLE) :: setpoints(8)
         real(C_DOUBLE) :: turbine_measurements(17)
         CHARACTER(*), PARAMETER                 :: RoutineName = 'UpdateZeroMQ'
 
@@ -24,7 +24,7 @@ CONTAINS
                 implicit none
                 character(C_CHAR), intent(out) :: zmq_address(*)
                 real(C_DOUBLE) :: measurements(17)
-                real(C_DOUBLE) :: setpoints(5)
+                real(C_DOUBLE) :: setpoints(8)
             end subroutine zmq_client
         end interface
 #endif
@@ -46,8 +46,8 @@ CONTAINS
             turbine_measurements(12) = LocalVar%rootMOOP(1)
             turbine_measurements(13) = LocalVar%rootMOOP(2)
             turbine_measurements(14) = LocalVar%rootMOOP(3)
-            turbine_measurements(15) = LocalVar%FA_Acc
-            turbine_measurements(16) = LocalVar%NacIMU_FA_Acc
+            turbine_measurements(15) = LocalVar%FA_Acc_TT
+            turbine_measurements(16) = LocalVar%NacIMU_FA_RAcc
             turbine_measurements(17) = LocalVar%Azimuth
 
             write (zmq_address, '(A,A)') TRIM(CntrPar%ZMQ_CommAddress), C_NULL_CHAR
@@ -73,6 +73,9 @@ CONTAINS
             LocalVar%ZMQ_PitOffset(1) = setpoints(3)
             LocalVar%ZMQ_PitOffset(2) = setpoints(4)
             LocalVar%ZMQ_PitOffset(3) = setpoints(5)
+            LocalVar%ZMQ_R_Speed = setpoints(6)
+            LocalVar%ZMQ_R_Torque = setpoints(7)
+            LocalVar%ZMQ_R_Pitch = setpoints(8)
             
         ENDIF
 

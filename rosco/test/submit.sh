@@ -6,7 +6,8 @@
 #SBATCH --ntasks-per-node=36
 #SBATCH --mail-user dzalkind@nrel.gov
 #SBATCH --mail-type BEGIN,END,FAIL
-#SBATCH --output=output.%j.out
+#SBATCH --output=logs/output.%j.out
+#SBATCH --qos=high
 #SBATCH --partition=debug
 
 nDV=1 # Number of design variables (x2 for central difference)
@@ -16,13 +17,18 @@ nC=$((nDV + nDV * nOF)) # Number of cores needed. Make sure to request an approp
 
 # module load conda
 # conda activate rt-env
-source activate /home/dzalkind/.conda-envs/rosco-env
+# source activate /home/dzalkind/.conda-envs/rosco-env
+source /home/dzalkind/.bashrc
+conda activate /kfs3/scratch/dzalkind/envs/rosco-scratch
 # which python
 
 # module purge
 # module load conda
 # module load comp-intel intel-mpi mkl
 
+module list
 
-mpirun -n 36 python run_Testing.py
+
+# mpirun -n 36 python run_Testing.py
+python run_Testing.py
 #  python weis_driver.py

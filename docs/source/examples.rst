@@ -80,7 +80,6 @@ Several example scripts are set up to quickly simulate ROSCO with OpenFAST:
 
 * :code:`05_openfast_sim.py` loads a turbine, tunes a controller, and runs an OpenFAST simulation
 * :code:`07_openfast_outputs.py` loads the OpenFAST output files and plots the results
-* :code:`08_run_turbsim.py` runs TurbSim, for generating turbulent wind inputs
 * :code:`14_open_loop_control.py` runs an OpenFAST simulation with ROSCO providing open loop control inputs
 
 
@@ -98,3 +97,41 @@ By setting :code:`testtype`, the user can run a variety of tests:
 
 Setting the :code:`turbine2test` allows the user to test either the IEA-15MW with the UMaine floating semisubmersible or the NREL-5MW reference onshore turbine.
 
+
+List of Examples
+----------------
+A complete list of examples is given below:
+
+.. automodule:: 01_turbine_model
+.. automodule:: 02_ccblade
+.. automodule:: 03_tune_controller
+.. automodule:: 04_simple_sim
+.. automodule:: 05_openfast_sim
+.. automodule:: 06_peak_shaving
+.. automodule:: 07_openfast_outputs
+.. automodule:: 09_distributed_aero
+.. automodule:: 10_linear_params
+.. automodule:: 11_robust_tuning
+.. automodule:: 12_tune_ipc
+.. automodule:: 14_open_loop_control
+.. automodule:: 15_pass_through
+.. automodule:: 16_external_dll
+.. automodule:: 17a_zeromq_simple
+.. automodule:: 17b_zeromq_multi_openfast
+.. automodule:: 17c_zeromq_fastfarm
+.. automodule:: 18_pitch_faults
+.. automodule:: 19_update_discon_version
+.. automodule:: 20_active_wake_control
+.. automodule:: 21_optional_inputs
+.. automodule:: 22_cable_control
+.. automodule:: 23_structural_control
+.. automodule:: 24_floating_feedback
+.. automodule:: 25_rotor_position_control
+.. automodule:: 26_marine_hydro
+.. automodule:: 27_soft_cut_out
+.. automodule:: 28_tower_resonance
+.. automodule:: 29_power_control
+.. automodule:: 30_shutdown
+.. automodule:: 31_fixed_pitch_mhk
+.. automodule:: 32_startup
+.. automodule:: 33_yaw_control

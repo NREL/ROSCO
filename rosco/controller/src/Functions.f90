@@ -29,7 +29,6 @@
 MODULE Functions
 
 USE Constants
-USE Filters
 
 IMPLICIT NONE
 
@@ -91,154 +90,7 @@ CONTAINS
 
     END FUNCTION ratelimit
 
-    !-------------------------------------------------------------------------------------------------------------------------------
-    REAL(DbKi) FUNCTION PIController(error, kp, ki, minValue, maxValue, DT, I0, piP, reset, inst)
-        USE ROSCO_Types, ONLY : piParams
 
-    ! PI controller, with output saturation
-
-        IMPLICIT NONE
-        ! Allocate Inputs
-        REAL(DbKi),    INTENT(IN)         :: error
-        REAL(DbKi),    INTENT(IN)         :: kp
-        REAL(DbKi),    INTENT(IN)         :: ki
-        REAL(DbKi),    INTENT(IN)         :: minValue
-        REAL(DbKi),    INTENT(IN)         :: maxValue
-        REAL(DbKi),    INTENT(IN)         :: DT
-        INTEGER(IntKi), INTENT(INOUT)      :: inst
-        REAL(DbKi),    INTENT(IN)         :: I0
-        TYPE(piParams), INTENT(INOUT)  :: piP
-        LOGICAL,    INTENT(IN)         :: reset     
-        ! Allocate local variables
-        INTEGER(IntKi)                      :: i                                            ! Counter for making arrays
-        REAL(DbKi)                         :: PTerm                                        ! Proportional term
-
-        ! Initialize persistent variables/arrays, and set inital condition for integrator term
-        IF (reset) THEN
-            piP%ITerm(inst) = I0
-            piP%ITermLast(inst) = I0
-            
-            PIController = I0
-        ELSE
-            PTerm = kp*error
-            piP%ITerm(inst) = piP%ITerm(inst) + DT*ki*error
-            piP%ITerm(inst) = saturate(piP%ITerm(inst), minValue, maxValue)
-            PIController = saturate(PTerm + piP%ITerm(inst), minValue, maxValue)
-        
-            piP%ITermLast(inst) = piP%ITerm(inst)
-        END IF
-        inst = inst + 1
-        
-    END FUNCTION PIController
-
-
-!-------------------------------------------------------------------------------------------------------------------------------
-    REAL(DbKi) FUNCTION PIDController(error, kp, ki, kd, tf, minValue, maxValue, DT, I0, piP, reset, objInst, LocalVar)
-        USE ROSCO_Types, ONLY : piParams, LocalVariables, ObjectInstances
-
-    ! PI controller, with output saturation
-
-        IMPLICIT NONE
-        ! Allocate Inputs
-        REAL(DbKi),    INTENT(IN)         :: error
-        REAL(DbKi),    INTENT(IN)         :: kp
-        REAL(DbKi),    INTENT(IN)         :: ki
-        REAL(DbKi),    INTENT(IN)         :: kd
-        REAL(DbKi),    INTENT(IN)         :: tf
-        REAL(DbKi),    INTENT(IN)         :: minValue
-        REAL(DbKi),    INTENT(IN)         :: maxValue
-        REAL(DbKi),    INTENT(IN)         :: DT
-        TYPE(ObjectInstances),      INTENT(INOUT)   :: objInst  ! all object instances (PI, filters used here)
-        TYPE(LocalVariables),       INTENT(INOUT)   :: LocalVar
-
-        REAL(DbKi),    INTENT(IN)           :: I0
-        TYPE(piParams), INTENT(INOUT)       :: piP
-        LOGICAL,    INTENT(IN)              :: reset     
-        
-        ! Allocate local variables
-        INTEGER(IntKi)                      :: i                                            ! Counter for making arrays
-        REAL(DbKi)                          :: PTerm, DTerm                                 ! Proportional, deriv. terms
-        REAL(DbKi)                          :: EFilt                    ! Filtered error for derivative
-
-        ! Always filter error
-        EFilt = LPFilter(error, DT, tf, LocalVar%FP, LocalVar%iStatus, reset, objInst%instLPF)
-
-        ! Initialize persistent variables/arrays, and set inital condition for integrator term
-        IF (reset) THEN
-            piP%ITerm(objInst%instPI) = I0
-            piP%ITermLast(objInst%instPI) = I0
-            piP%ELast(objInst%instPI) = 0.0_DbKi
-            PIDController = I0
-        ELSE
-            ! Proportional
-            PTerm = kp*error
-            
-            ! Integrate and saturate
-            piP%ITerm(objInst%instPI) = piP%ITerm(objInst%instPI) + DT*ki*error
-            piP%ITerm(objInst%instPI) = saturate(piP%ITerm(objInst%instPI), minValue, maxValue)
-
-            ! Derivative (filtered)
-            DTerm = kd * (EFilt - piP%ELast(objInst%instPI)) / DT
-            
-            ! Saturate all
-            PIDController = saturate(PTerm + piP%ITerm(objInst%instPI) + DTerm, minValue, maxValue)
-        
-            ! Save lasts
-            piP%ITermLast(objInst%instPI) = piP%ITerm(objInst%instPI)
-            piP%ELast(objInst%instPI) = EFilt
-        END IF
-        objInst%instPI = objInst%instPI + 1
-        
-    END FUNCTION PIDController
-
-!-------------------------------------------------------------------------------------------------------------------------------
-    REAL(DbKi) FUNCTION PIIController(error, error2, kp, ki, ki2, minValue, maxValue, DT, I0, piP, reset, inst)
-    ! PI controller, with output saturation. 
-    ! Added error2 term for additional integral control input
-        USE ROSCO_Types, ONLY : piParams
-        
-        IMPLICIT NONE
-        ! Allocate Inputs
-        REAL(DbKi), INTENT(IN)         :: error
-        REAL(DbKi), INTENT(IN)         :: error2
-        REAL(DbKi), INTENT(IN)         :: kp
-        REAL(DbKi), INTENT(IN)         :: ki2
-        REAL(DbKi), INTENT(IN)         :: ki
-        REAL(DbKi), INTENT(IN)         :: minValue
-        REAL(DbKi), INTENT(IN)         :: maxValue
-        REAL(DbKi), INTENT(IN)         :: DT
-        INTEGER(IntKi), INTENT(INOUT)   :: inst
-        REAL(DbKi), INTENT(IN)         :: I0
-        TYPE(piParams), INTENT(INOUT) :: piP
-        LOGICAL, INTENT(IN)         :: reset     
-        ! Allocate local variables
-        INTEGER(IntKi)                      :: i                                            ! Counter for making arrays
-        REAL(DbKi)                         :: PTerm                                        ! Proportional term
-
-        ! Initialize persistent variables/arrays, and set inital condition for integrator term
-        IF (reset) THEN
-            piP%ITerm(inst) = I0
-            piP%ITermLast(inst) = I0
-            piP%ITerm2(inst) = I0
-            piP%ITermLast2(inst) = I0
-            
-            PIIController = I0
-        ELSE
-            PTerm = kp*error
-            piP%ITerm(inst) = piP%ITerm(inst) + DT*ki*error
-            piP%ITerm2(inst) = piP%ITerm2(inst) + DT*ki2*error2
-            piP%ITerm(inst) = saturate(piP%ITerm(inst), minValue, maxValue)
-            piP%ITerm2(inst) = saturate(piP%ITerm2(inst), minValue, maxValue)
-            PIIController = PTerm + piP%ITerm(inst) + piP%ITerm2(inst)
-            PIIController = saturate(PIIController, minValue, maxValue)
-        
-            piP%ITermLast(inst) = piP%ITerm(inst)
-        END IF
-        inst = inst + 1
-        
-    END FUNCTION PIIController
-
-!-------------------------------------------------------------------------------------------------------------------------------
     REAL(DbKi) FUNCTION interp1d(xData, yData, xq, ErrVar)
     ! interp1d 1-D interpolation (table lookup), xData should be strictly increasing
         
@@ -575,12 +427,14 @@ CONTAINS
         REAL(DbKi) :: RotorArea
         REAL(DbKi) :: Cp
         REAL(DbKi) :: Lambda
+        REAL(DbKi) :: WindSpeed
 
         CHARACTER(*), PARAMETER                 :: RoutineName = 'AeroDynTorque'
 
         ! Find Torque
         RotorArea = PI*CntrPar%WE_BladeRadius**2
-        Lambda = RotSpeed*CntrPar%WE_BladeRadius/LocalVar%WE_Vw
+        WindSpeed = MAX(LocalVar%WE_Vw,EPSILON(1.0_DbKi))
+        Lambda = RotSpeed*CntrPar%WE_BladeRadius/WindSpeed
 
         ! Compute Cp
         Cp = interp2d(PerfData%Beta_vec,PerfData%TSR_vec,PerfData%Cp_mat, BldPitch*R2D, Lambda, ErrVar)
@@ -595,7 +449,7 @@ CONTAINS
         
     END FUNCTION AeroDynTorque
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION wrap_180(x) 
+    REAL(DbKi) FUNCTION wrap_180(x) 
     ! Function modifies input angle, x, such that -180<=x<=180, preventing windup
         REAL(DbKi), INTENT(IN) :: x         ! angle, degrees
 
@@ -609,7 +463,7 @@ CONTAINS
 
     END FUNCTION wrap_180
 !-------------------------------------------------------------------------------------------------------------------------------
-    REAL FUNCTION wrap_360(x) 
+    REAL(DbKi) FUNCTION wrap_360(x) 
     ! Function modifies input angle, x, such that 0<=x<=360, preventing windup
         REAL(DbKi), INTENT(IN) :: x         ! angle, degrees
 

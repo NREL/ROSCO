@@ -4,9 +4,9 @@
 # ------------------------------ OpenFAST PATH DEFINITIONS ------------------------------
 path_params:
   FAST_InputFile: 'IEA-15-240-RWT-UMaineSemi.fst'                                                                # Name of *.fst file
-  FAST_directory: '../Test_Cases/IEA-15-240-RWT-UMaineSemi'                     # Main OpenFAST model directory, where the *.fst lives 
+  FAST_directory: '../Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT-UMaineSemi'                     # Main OpenFAST model directory, where the *.fst lives 
   # Optional (but suggested...)
-  rotor_performance_filename:  '../Test_Cases/IEA-15-240-RWT-UMaineSemi/Cp_Ct_Cq.IEA15MW.txt'
+  rotor_performance_filename:  '../Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Cp_Ct_Cq.IEA15MW.txt'
 
 # -------------------------------- TURBINE PARAMETERS ----------------------------------- 
 turbine_params:
@@ -55,4 +55,7 @@ controller_params:
   PA_CornerFreq:      1.5708                  # Pitch actuator natural frequency [rad/s]
   PA_Damping:         0.707                  # Pitch actuator natural frequency [rad/s]
   rgn2k_factor:       0.85926
+
+  DISCON:
+    IPC_KI: [1.2e-11, 0]
 

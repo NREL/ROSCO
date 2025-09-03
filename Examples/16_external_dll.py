@@ -1,11 +1,9 @@
-'''
------------ 16_external_dll --------------
+"""
+16_external_dll
+---------------
 Run openfast with ROSCO and external control interface
--------------------------------------
-
 IEA-15MW will call NREL-5MW controller and read control inputs
-
-'''
+"""
 
 import os, platform
 from rosco import discon_lib_path as lib_name
@@ -14,14 +12,12 @@ from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 import shutil
 
 
-#directories
-this_dir            = os.path.dirname(os.path.abspath(__file__))
-rosco_dir           = os.path.dirname(this_dir)
-example_out_dir     = os.path.join(this_dir,'examples_out')
-os.makedirs(example_out_dir,exist_ok=True)
-
-
 def main():
+    #directories
+    this_dir            = os.path.dirname(os.path.abspath(__file__))
+    rosco_dir           = os.path.dirname(this_dir)
+    example_out_dir     = os.path.join(this_dir,'examples_out')
+    os.makedirs(example_out_dir,exist_ok=True)
     
     # Make copy of libdiscon
     ext = lib_name.split('.')[-1]

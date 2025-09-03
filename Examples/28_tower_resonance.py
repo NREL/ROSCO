@@ -1,32 +1,27 @@
-'''
------------ 28_tower_resonance ------------------------
+"""
+28_tower_resonance
+------------------
 Demonstrate tower resonance avoidance controller
------------------------------------------------
-
 Set up and run simulation with tower resonance avoidance
-
-'''
+"""
 
 import os
 from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
 from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 #from rosco.toolbox.ofTools.fast_io import output_processing
-from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+from openfast_io.FAST_reader import InputReader_OpenFAST
 from rosco.toolbox.inputs.validation import load_rosco_yaml
 
 import numpy as np
 
-rpm2RadSec = 2.0*(np.pi)/60.0
-
-
-#directories
-this_dir            = os.path.dirname(os.path.abspath(__file__))
-rosco_dir           = os.path.dirname(this_dir)
-example_out_dir     = os.path.join(this_dir,'examples_out')
-os.makedirs(example_out_dir,exist_ok=True)
-
-
 def main():
+    rpm2RadSec = 2.0*(np.pi)/60.0
+
+    #directories
+    this_dir            = os.path.dirname(os.path.abspath(__file__))
+    rosco_dir           = os.path.dirname(this_dir)
+    example_out_dir     = os.path.join(this_dir,'examples_out')
+    os.makedirs(example_out_dir,exist_ok=True)
 
     # Input yaml and output directory
     parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW.yaml')
@@ -70,7 +65,7 @@ def main():
     # Ramp: good demo of functionality, short for CI
     r.wind_case_fcn = cl.ramp  
     r.wind_case_opts    = {
-        'U_start': 4,  # from 10 to 15 m/s
+        'U_start': 0,  # from 10 to 15 m/s
         'U_end': 10,
         't_start': 100,
         't_end': 300

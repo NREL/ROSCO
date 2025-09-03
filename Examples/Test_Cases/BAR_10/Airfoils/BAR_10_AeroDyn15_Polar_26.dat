@@ -7,12 +7,12 @@ DEFAULT                  InterpOrd   ! Interpolation order to use for quasi-stea
 1                        NonDimArea  ! The non-dimensional area of the airfoil (area/chord^2) (set to 1.0 if unsure or unneeded)
 @"AF26_Coords.txt"       NumCoords   ! The number of coordinates in the airfoil shape file. Set to zero if coordinates not included.
 AF26_BL.txt              BL_file     ! The file name including the boundary layer characteristics of the profile. Ignored if the aeroacoustic module is not called.
-1                        NumTabs     ! Number of airfoil tables in this file.  Each table must have lines for Re and Ctrl.
+1                        NumTabs     ! Number of airfoil tables in this file.  Each table must have lines for Re and UserProp.
 ! ------------------------------------------------------------------------------
 ! data for table 1 
 ! ------------------------------------------------------------------------------
 6.963015                 Re          ! Reynolds number in millions
-0                        Ctrl        ! Control setting (must be 0 for current AirfoilInfo)
+0                        UserProp        ! Control setting (must be 0 for current AirfoilInfo)
 True                     InclUAdata  ! Is unsteady aerodynamics data included in this table? If TRUE, then include 30 UA coefficients below this line
 !........................................
 -2.894377                alpha0      ! 0-lift angle of attack, depends on airfoil.

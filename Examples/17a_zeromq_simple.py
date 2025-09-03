@@ -1,11 +1,11 @@
-'''
------------ 17_zeromq_interface --------------
-Run ROSCO using the ROSCO toolbox control interface and execute communication with ZeroMQ
--------------------------------------
+"""
+17a_zeromq_simple
+--------------------
+Run ROSCO using the ROSCO toolbox control interface and execute communication with ZeroMQ.
 
 A demonstrator for ZeroMQ communication. Instead of using ROSCO with with control interface, 
 one could call ROSCO from OpenFAST, and communicate with ZeroMQ through that.
-'''
+this_dir"""
 
 
 import os
@@ -22,28 +22,53 @@ from rosco.toolbox.ofTools.fast_io import output_processing
 import numpy as np
 import multiprocessing as mp
 
+# Directories
+THIS_DIR            = os.path.dirname(os.path.abspath(__file__))
+EXAMPLE_OUT_DIR     = os.path.join(THIS_DIR,'examples_out')
+os.makedirs(EXAMPLE_OUT_DIR,exist_ok=True)
+
+# Controller parameters
 TIME_CHECK = 30
 DESIRED_YAW_OFFSET = 20
 DESIRED_PITCH_OFFSET = np.deg2rad(2) * np.sin(0.1 * TIME_CHECK) + np.deg2rad(2)
 
-#directories
-this_dir            = os.path.dirname(os.path.abspath(__file__))
-rosco_dir           = os.path.dirname(this_dir)
-example_out_dir     = os.path.join(this_dir,'examples_out')
-os.makedirs(example_out_dir,exist_ok=True)
+def main():
+    logfile = os.path.join(EXAMPLE_OUT_DIR,os.path.splitext(os.path.basename(__file__))[0]+'.log')
+    p1 = mp.Process(target=run_zmq,args=(logfile,))
+    p1.start()
+    p2 = mp.Process(target=sim_rosco)
+    p2.start()
+    p1.join()
+    p2.join()
+
 
 def run_zmq(logfile=None):
     # Start the server at the following address
     network_address = "tcp://*:5555"
     server = wfc_zmq_server(network_address, timeout=60.0, verbose=False, logfile=logfile)
 
-    # Provide the wind farm control algorithm as the wfc_controller method of the server
-    server.wfc_controller = wfc_controller
+    # Provide the wind farm control algorithm as the wfc_controller subclass of the server
+    server.wfc_controller = wfc_controller()
 
     # Run the server to receive measurements and send setpoints
     server.runserver()
     
-def wfc_controller(id,current_time,measurements):
+class wfc_controller():
+    """
+    Users needs to define this class to implement wind farm controller.
+    This class should contain a method named update_setpoints that 
+    should take as argument the turbine id, the current time and current
+    measurements and return the setpoints for the particular turbine for 
+    the current time. It should ouput the setpoints as a dictionary whose
+    keys should be as defined in wfc_zmq_server.wfc_interface. 
+    The wfc_controller subclass of the wfc_zmq_server should be overwriten
+    with this class, otherwise, an exception is raised and the simulation stops.
+    """
+   
+    def __init__(self):
+        return None
+    
+    def update_setpoints(self, id,current_time,measurements):
         if current_time <= 10.0:
             yaw_setpoint = 0.0
         else:
@@ -62,12 +87,14 @@ def wfc_controller(id,current_time,measurements):
         setpoints['ZMQ_PitOffset(1)'] = col_pitch_command
         setpoints['ZMQ_PitOffset(2)'] = col_pitch_command
         setpoints['ZMQ_PitOffset(3)'] = col_pitch_command
+
         return setpoints
+
 
 def sim_rosco():
     # Load yaml file
-    this_dir = os.path.dirname(os.path.abspath(__file__))
-    tune_dir = os.path.join(this_dir, 'Tune_Cases')
+    THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+    tune_dir = os.path.join(THIS_DIR, 'Tune_Cases')
     parameter_filename = os.path.join(tune_dir, 'NREL5MW.yaml')
     inps = load_rosco_yaml(parameter_filename)
     path_params = inps['path_params']
@@ -81,7 +108,7 @@ def sim_rosco():
 
     # # Load turbine model from saved pickle
     turbine = ROSCO_turbine.Turbine
-    turbine = turbine.load(os.path.join(example_out_dir, '01_NREL5MW_saved.p'))
+    turbine = turbine.load(os.path.join(EXAMPLE_OUT_DIR, '01_NREL5MW_saved.p'))
 
     # Load turbine data from OpenFAST and rotor performance text file
     cp_filename = os.path.join(
@@ -98,7 +125,7 @@ def sim_rosco():
     controller.tune_controller(turbine)
 
     # Write parameter input file
-    sim_dir = os.path.join(example_out_dir,'17_ZeroMQ')
+    sim_dir = os.path.join(EXAMPLE_OUT_DIR,'17_ZeroMQ')
     os.makedirs(sim_dir,exist_ok=True)
     param_filename = os.path.join(sim_dir, 'DISCON_zmq.IN')
     write_DISCON(
@@ -137,7 +164,7 @@ def sim_rosco():
     if False:
         plt.show()
     else:
-        plt.savefig(os.path.join(example_out_dir, '17_NREL5MW_ZMQ.png'))
+        plt.savefig(os.path.join(EXAMPLE_OUT_DIR, '17_NREL5MW_ZMQ.png'))
 
     # Check that info is passed to ROSCO
     op = output_processing.output_processing()
@@ -149,7 +176,7 @@ def sim_rosco():
     if False:
         plt.show()
     else:
-        plt.savefig(os.path.join(example_out_dir, '17_NREL5MW_ZMQ_Setpoints.png'))
+        plt.savefig(os.path.join(EXAMPLE_OUT_DIR, '17_NREL5MW_ZMQ_Setpoints.png'))
 
     # Spot check input at time = 30 sec.
     ind_30 = local_vars[0]['Time'] == TIME_CHECK
@@ -157,10 +184,4 @@ def sim_rosco():
     np.testing.assert_almost_equal(local_vars[0]['ZMQ_PitOffset'][ind_30], DESIRED_PITCH_OFFSET, decimal=3)
 
 if __name__ == "__main__":
-    logfile = os.path.join(example_out_dir,os.path.splitext(os.path.basename(__file__))[0]+'.log')
-    p1 = mp.Process(target=run_zmq,args=(logfile,))
-    p1.start()
-    p2 = mp.Process(target=sim_rosco)
-    p2.start()
-    p1.join()
-    p2.join()
+    main()

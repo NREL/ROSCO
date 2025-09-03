@@ -4,9 +4,9 @@
 # ------------------------------ OpenFAST PATH DEFINITIONS ------------------------------
 path_params:
   FAST_InputFile: 'IEA-15-240-RWT-UMaineSemi.fst'                                                                # Name of *.fst file
-  FAST_directory: '../Test_Cases/IEA-15-240-RWT-UMaineSemi'                     # Main OpenFAST model directory, where the *.fst lives 
+  FAST_directory: '../Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT-UMaineSemi'                     # Main OpenFAST model directory, where the *.fst lives 
   # Optional (but suggested...)
-  rotor_performance_filename:  '../Test_Cases/IEA-15-240-RWT-UMaineSemi/Cp_Ct_Cq.IEA15MW.txt'
+  rotor_performance_filename:  '../Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Cp_Ct_Cq.IEA15MW.txt'
 
 # -------------------------------- TURBINE PARAMETERS ----------------------------------- 
 turbine_params:
@@ -55,7 +55,7 @@ controller_params:
 
 linmodel_tuning:
   type: 'robust'                      # Type of level 2 based tuning - robust gain scheduling (robust) or simulation based optimization (simulation)
-  linfile_path: '../Test_Cases/IEA-15-240-RWT-UMaineSemi/linearizations' # Path to OpenFAST linearization (.lin) files, if they exist 
+  linfile_path: '../Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT-UMaineSemi/linearizations' # Path to OpenFAST linearization (.lin) files, if they exist 
   linfile_root: 'lin'                                            # Root name of OpenFAST linearization (.lin) files, if they exist 
   lintune_outpath: 'lintune_outfiles' # Path for outputs from linear model-based analysis
   load_parallel: True                 # Load linearization files in parallel (True/False)

@@ -43,6 +43,11 @@ The ROSCO Toolbox Tuning File
 ------------------------------
 A yaml_ formatted input file is used for the standard ROSCO toolbox tuning process. This file contains the necessary inputs for the ROSCO toolbox to load an OpenFAST input file deck and tune the ROSCO controller. It can be found here: :ref:`rt_tuning_yaml`.
 
+A detailed account of the inputs is automatically generated from the rosco toolbox_schema.yaml file, which is located in the :code:`rosco/toolbox/inputs` folder:
+
+.. raw:: html
+   :file: ../_static/toolbox_doc.html
+
 Matlab_Toolbox
 ...............
 A simulink implementation of the ROSCO controller is included in the Matlab Toolbox. Some requisite MATLAB utility scripts are also included.

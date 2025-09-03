@@ -152,7 +152,7 @@ class CaseGen_IEC():
             _, V_e50, V_e1, V_50, V_1   = iecwind_ex.EWM(0.)
 
             if dlc == 1.4:
-                case_inputs_i[("AeroDyn15","AFAeroMod")]= {'vals':[1], 'group':0}
+                case_inputs_i[("AeroDyn","AFAeroMod")]= {'vals':[1], 'group':0}
 
 
             if dlc == 5.1:
@@ -294,7 +294,7 @@ class CaseGen_IEC():
             if ("Fst","TMax") not in case_inputs_i:
                 case_inputs_i[("Fst","TMax")] = {'vals':[TMax], 'group':0}
             case_inputs_i[("InflowWind","WindType")] = {'vals':WindFile_type_out, 'group':1}
-            case_inputs_i[("InflowWind","Filename_Uni")] = {'vals':WindFile_out, 'group':1}
+            case_inputs_i[("InflowWind","FileName_Uni")] = {'vals':WindFile_out, 'group':1}
             case_inputs_i[("InflowWind","FileName_BTS")] = {'vals':WindFile_out, 'group':1}
             case_inputs_i[("InflowWind","RefLength")] = {'vals':[self.D], 'group':0}
 
@@ -366,8 +366,7 @@ class CaseGen_IEC():
         change_vars = [('IEC', 'DLC')] + change_vars
         [matrix_row.insert(0, dlc) for dlc, matrix_row in zip(dlc_list,matrix_out)]
 
-        if not os.path.exists(self.run_dir):
-            os.makedirs(self.run_dir)
+        os.makedirs(self.run_dir,exist_ok=True)
 
         save_case_matrix(matrix_out, change_vars, self.run_dir)
         save_case_matrix_yaml(matrix_out, change_vars, self.run_dir, case_names_all)

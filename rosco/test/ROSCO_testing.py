@@ -18,7 +18,7 @@ import platform
 import multiprocessing as mp
 
 from rosco import discon_lib_path
-from rosco.toolbox.ofTools.fast_io.FAST_reader import InputReader_OpenFAST
+from openfast_io.FAST_reader import InputReader_OpenFAST
 from rosco.toolbox.ofTools.case_gen.CaseGen_IEC import CaseGen_IEC
 from rosco.toolbox.ofTools.case_gen.runFAST_pywrapper import runFAST_pywrapper_batch
 from matplotlib.backends.backend_pdf import PdfPages #, FigureCanvasPdf
@@ -38,7 +38,7 @@ class ROSCO_testing():
 
 
         # Setup simulation parameters
-        self.runDir = os.path.join(this_dir, 'testing' )   # directory to run simulations in
+        self.runDir = os.path.join(this_dir, 'outputs','ROSCO_testing' )   # directory to run simulations in
         self.wind_dir = None
         self.namebase = 'ROtest'    # root name for output simulations
         self.FAST_exe = 'openfast_single'       # name of openfast executable (may need full path)
@@ -176,20 +176,20 @@ class ROSCO_testing():
         case_inputs[('ServoDyn', 'DLL_FileName')] = {'vals': [self.rosco_path], 'group': 0}
         case_inputs[('ServoDyn', 'DLL_DT')] = {'vals': ['"default"'], 'group': 0}
 
-        case_inputs[("AeroDyn15", "WakeMod")] = {'vals': [1], 'group': 0}
-        case_inputs[("AeroDyn15", "AFAeroMod")] = {'vals': [2], 'group': 0}
-        case_inputs[("AeroDyn15", "TwrPotent")] = {'vals': [0], 'group': 0}
-        case_inputs[("AeroDyn15", "TwrShadow")] = {'vals': ['False'], 'group': 0}
-        case_inputs[("AeroDyn15", "TwrAero")] = {'vals': ['False'], 'group': 0}
-        case_inputs[("AeroDyn15", "SkewMod")] = {'vals': [1], 'group': 0}
-        case_inputs[("AeroDyn15", "TipLoss")] = {'vals': ['True'], 'group': 0}
-        case_inputs[("AeroDyn15", "HubLoss")] = {'vals': ['True'], 'group': 0}
-        case_inputs[("AeroDyn15", "TanInd")] = {'vals': ['True'], 'group': 0}
-        case_inputs[("AeroDyn15", "AIDrag")] = {'vals': ['True'], 'group': 0}
-        case_inputs[("AeroDyn15", "TIDrag")] = {'vals': ['True'], 'group': 0}
-        case_inputs[("AeroDyn15", "IndToler")] = {'vals': [1.e-5], 'group': 0}
-        case_inputs[("AeroDyn15", "MaxIter")] = {'vals': [5000], 'group': 0}
-        case_inputs[("AeroDyn15", "UseBlCm")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn", "WakeMod")] = {'vals': [1], 'group': 0}
+        case_inputs[("AeroDyn", "AFAeroMod")] = {'vals': [2], 'group': 0}
+        case_inputs[("AeroDyn", "TwrPotent")] = {'vals': [0], 'group': 0}
+        case_inputs[("AeroDyn", "TwrShadow")] = {'vals': ['False'], 'group': 0}
+        case_inputs[("AeroDyn", "TwrAero")] = {'vals': ['False'], 'group': 0}
+        case_inputs[("AeroDyn", "SkewMod")] = {'vals': [1], 'group': 0}
+        case_inputs[("AeroDyn", "TipLoss")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn", "HubLoss")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn", "TanInd")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn", "AIDrag")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn", "TIDrag")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn", "IndToler")] = {'vals': [1.e-5], 'group': 0}
+        case_inputs[("AeroDyn", "MaxIter")] = {'vals': [5000], 'group': 0}
+        case_inputs[("AeroDyn", "UseBlCm")] = {'vals': ['True'], 'group': 0}
 
         if more_case_inputs:
             case_inputs.update(more_case_inputs)
@@ -338,20 +338,20 @@ class ROSCO_testing():
         case_inputs[('ServoDyn', 'SpdGenOn')] = {'vals': [0.], 'group': 0}
         case_inputs[('ServoDyn', 'DLL_FileName')] = {'vals': [self.rosco_path], 'group': 0}
 
-        case_inputs[("AeroDyn15", "WakeMod")] = {'vals': [1], 'group': 0}
-        case_inputs[("AeroDyn15", "AFAeroMod")] = {'vals': [1], 'group': 0}
-        case_inputs[("AeroDyn15", "TwrPotent")] = {'vals': [0], 'group': 0}
-        case_inputs[("AeroDyn15", "TwrShadow")] = {'vals': ['False'], 'group': 0}
-        case_inputs[("AeroDyn15", "TwrAero")] = {'vals': ['False'], 'group': 0}
-        case_inputs[("AeroDyn15", "SkewMod")] = {'vals': [1], 'group': 0}
-        case_inputs[("AeroDyn15", "TipLoss")] = {'vals': ['True'], 'group': 0}
-        case_inputs[("AeroDyn15", "HubLoss")] = {'vals': ['True'], 'group': 0}
-        case_inputs[("AeroDyn15", "TanInd")] = {'vals': ['True'], 'group': 0}
-        case_inputs[("AeroDyn15", "AIDrag")] = {'vals': ['True'], 'group': 0}
-        case_inputs[("AeroDyn15", "TIDrag")] = {'vals': ['True'], 'group': 0}
-        case_inputs[("AeroDyn15", "IndToler")] = {'vals': [1.e-5], 'group': 0}
-        case_inputs[("AeroDyn15", "MaxIter")] = {'vals': [5000], 'group': 0}
-        case_inputs[("AeroDyn15", "UseBlCm")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn", "WakeMod")] = {'vals': [1], 'group': 0}
+        case_inputs[("AeroDyn", "AFAeroMod")] = {'vals': [1], 'group': 0}
+        case_inputs[("AeroDyn", "TwrPotent")] = {'vals': [0], 'group': 0}
+        case_inputs[("AeroDyn", "TwrShadow")] = {'vals': ['False'], 'group': 0}
+        case_inputs[("AeroDyn", "TwrAero")] = {'vals': ['False'], 'group': 0}
+        case_inputs[("AeroDyn", "SkewMod")] = {'vals': [1], 'group': 0}
+        case_inputs[("AeroDyn", "TipLoss")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn", "HubLoss")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn", "TanInd")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn", "AIDrag")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn", "TIDrag")] = {'vals': ['True'], 'group': 0}
+        case_inputs[("AeroDyn", "IndToler")] = {'vals': [1.e-5], 'group': 0}
+        case_inputs[("AeroDyn", "MaxIter")] = {'vals': [5000], 'group': 0}
+        case_inputs[("AeroDyn", "UseBlCm")] = {'vals': ['True'], 'group': 0}
 
         if self.FAST_InputFile == 'IEA-15-240-RWT-UMaineSemi.fst':
             case_inputs[("HydroDyn", "WaveMod")] = {'vals': [2], 'group': 0}
@@ -568,7 +568,7 @@ if __name__=='__main__':
     # Setup turbine
     rt.Turbine_Class = 'I'
     rt.Turbulence_Class = 'B'
-    rt.FAST_directory = os.path.join(rosco_root, 'Examples','Test_Cases','IEA-15-240-RWT-UMaineSemi')
+    rt.FAST_directory = os.path.join(rosco_root, 'Examples','Test_Cases','IEA-15-240-RWT','IEA-15-240-RWT-UMaineSemi')
     rt.FAST_InputFile = 'IEA-15-240-RWT-UMaineSemi.fst'
 
     # Additional inputs 

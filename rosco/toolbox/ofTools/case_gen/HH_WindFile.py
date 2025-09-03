@@ -23,7 +23,7 @@ class HH_WindFile(object):
         self.wind_type  = 'step'   # wind file type: 'step' supported
         self.dt         = 0.05    # wind time step
         self.filename   = self.wind_type + '.wnd'  # Path to fst directory files
-        self.T_max      = 600
+        self.TMax       = 600
 
         # set default wind input (step)
         self.time           = [0,300,300+self.dt,600]
@@ -45,26 +45,19 @@ class HH_WindFile(object):
         super(HH_WindFile, self).__init__()
 
     def resample(self):
-        # Using time index, check if constant, otherwise throw a warning
-        if len(set(self.wind_dir)) != 1:   # all same
-            print('ROSCO Warning: all wind_dir elements not equal in resample')
-        if len(set(self.vert_speed)) != 1:   # all same
-            print('ROSCO Warning: all vert_speed elements not equal in resample')
-        if len(set(self.horiz_shear)) != 1:   # all same
-            print('ROSCO Warning: all horiz_shear elements not equal in resample')
-        if len(set(self.vert_shear)) != 1:   # all same
-            print('ROSCO Warning: all vert_shear elements not equal in resample')
-        if len(set(self.linv_shear)) != 1:   # all same
-            print('ROSCO Warning: all linv_shear elements not equal in resample')
-        if len(set(self.gust_speed)) != 1:   # all same
-            print('ROSCO Warning: all gust_speed elements not equal in resample')
-
-        self.wind_dir       = len(self.time) * [self.wind_dir[0]]
-        self.vert_speed     = len(self.time) * [self.vert_speed[0]]
-        self.horiz_shear    = len(self.time) * [self.horiz_shear[0]]
-        self.vert_shear     = len(self.time) * [self.vert_shear[0]]
-        self.linv_shear     = len(self.time) * [self.linv_shear[0]]
-        self.gust_speed     = len(self.time) * [self.gust_speed[0]]
+        # If constant, resample based on time index
+        if len(set(self.wind_dir)) == 1:   # all same
+            self.wind_dir       = len(self.time) * [self.wind_dir[0]]
+        if len(set(self.vert_speed)) == 1:   # all same
+            self.vert_speed     = len(self.time) * [self.vert_speed[0]]
+        if len(set(self.horiz_shear)) == 1:   # all same
+            self.horiz_shear    = len(self.time) * [self.horiz_shear[0]]
+        if len(set(self.vert_shear)) == 1:   # all same
+            self.vert_shear     = len(self.time) * [self.vert_shear[0]]
+        if len(set(self.linv_shear)) == 1:   # all same
+            self.linv_shear     = len(self.time) * [self.linv_shear[0]]
+        if len(set(self.gust_speed)) == 1:   # all same
+            self.gust_speed     = len(self.time) * [self.gust_speed[0]]
 
 
     def write(self):
@@ -89,7 +82,7 @@ class HH_StepFile(HH_WindFile):
         self.u_start    = 10
         self.u_end      = 14
         self.t_step     = 300
-        self.t_max      = 600
+        self.TMax      = 600
         self.dt         = 0.05
 
         self.wind_type          = 'step'   # wind file type: 'step' supported
@@ -102,7 +95,7 @@ class HH_StepFile(HH_WindFile):
         self.filename   = os.path.join(self.wind_directory,'{}_{:.1f}_{:.1f}.wnd'.format(self.wind_type,self.u_start,self.u_end))
 
         # set default wind input (step)
-        self.time           = [0,self.t_step,self.t_step+self.dt,self.t_max]
+        self.time           = [0,self.t_step,self.t_step+self.dt,self.TMax]
         self.wind_speed     = [self.u_start,self.u_start,self.u_end,self.u_end]
         self.wind_dir       = [0] * len(self.time)
         self.vert_speed     = [0] * len(self.time)
@@ -145,7 +138,7 @@ if __name__ == "__main__":
     hh_step = HH_StepFile()
 
     hh_step.t_step  = 400
-    hh_step.t_max   = 800
+    hh_step.TMax   = 800
     hh_step.u_start = 10
     hh_step.u_end   = 11
     hh_step.update()

@@ -23,17 +23,35 @@ Steps for the installation of the complete rosco toolset are:
     conda create -y --name rosco-env python=3.10 # (Create a new environment named "rosco-env" that contains Python 3.8)
     conda activate rosco-env # (Activate your "rosco-env" environment)
 
+    # Windows users sometimes get an error related to the SSL configuration; in this case, use
+    # Be sure to execute commands in an anaconda terminal rather than the windows command prompt
+    conda config --set ssl_verify no
+
+    # Install necessary compilers
+    conda install -y gfortran gcc libpython m2-pkg-config  # windows
+    conda install compilers                     # unix
+
+
+    # If you intend to use ZeroMQ
+    brew install zeromq  # mac
+    sudo apt install libzmq3-dev libzmq5 libczmq-dev libczmq4  # linux
+
 2. Clone and Install the ROSCO toolbox with ROSCO controller
     
 .. code-block:: bash
 
     git clone https://github.com/NREL/ROSCO.git
     cd ROSCO
-    pip install -e .
+    pip install -e . --no-deps
 
 This step creates the rosco controller binary (:code:`libdiscon.so` (Linux), :code:`libdiscon.dylib` (Mac), or :code:`libdisscon.dll` (Windows)`) in the directory :code:`ROSCO/rosco/lib` and installs the python toolbox in the conda environment in the develop mode.
 
+3.  If for some reason the pip-based installation does not work, the conda environment can be created using
 
+.. code-block:: bash
+
+    conda env update --file environment.yml
+    pip install -e . --no-deps
 
 .. _rosco_controller:
 
@@ -120,6 +138,7 @@ On Mac/Linux, standard compilers are generally available without any additional 
 
 .. code-block:: bash
 
+    conda uninstall gcc gfortran  # if you previously installed via pip above
     conda install m2w64-toolchain libpython
     conda install cmake make  # if Windows users would like to install these in anaconda environment
 

@@ -17,6 +17,7 @@ MODULE ReadSetParameters
 
     USE Constants
     USE Functions
+    USE Filters
     USE SysSubs
     USE ROSCO_Helpers
     IMPLICIT NONE
@@ -25,12 +26,13 @@ MODULE ReadSetParameters
 CONTAINS
  ! -----------------------------------------------------------------------------------
     ! Read avrSWAP array passed from ServoDyn    
-    SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar, CntrPar)
+    SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar, CntrPar, ErrVar)
         USE ROSCO_Types, ONLY : LocalVariables
 
         REAL(ReKi), INTENT(INOUT) :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
         TYPE(ControlParameters), INTENT(IN) :: CntrPar
+        TYPE(ErrorVariables), INTENT(INOUT) :: ErrVar
 
         ! Allocate Variables:
         INTEGER(IntKi)                                  :: K         ! Index used for looping through blades.
@@ -50,8 +52,9 @@ CONTAINS
         LocalVar%rootMOOP(2)        = avrSWAP(31)
         LocalVar%rootMOOP(3)        = avrSWAP(32)
         LocalVar%NacHeading         = avrSWAP(37) * R2D
-        LocalVar%FA_Acc             = avrSWAP(53)
-        LocalVar%NacIMU_FA_Acc      = avrSWAP(83)
+        LocalVar%FA_Acc_TT          = avrSWAP(53)  ! This is the translational acceleration of the tower top in the non-rotating frame
+        LocalVar%SS_Acc_TT          = avrSWAP(54)  ! This is the translational acceleration of the tower top in the non-rotating frame
+        LocalVar%NacIMU_FA_RAcc      = avrSWAP(83)  ! This is the rotational aceleration of the nacelle in the shaft frame
         LocalVar%Azimuth            = avrSWAP(60)
         LocalVar%NumBl              = NINT(avrSWAP(61))
 
@@ -79,9 +82,18 @@ CONTAINS
 
         ENDIF
 
-        ! GenTemp = avrSWAP(1026)
 
-        ! WRITE(1000,*) LocalVar%GenSpeed*RPS2RPM, GenTemp
+        ! Check that we haven't already loaded this dynamic library
+        IF (LocalVar%iStatus == 0) THEN
+            IF (LocalVar%AlreadyInitialized == 0) THEN
+                LocalVar%AlreadyInitialized = 1
+            ELSE
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'ERROR: This ROSCO dynamic library has already been loaded.'
+                RETURN
+            ENDIF
+        ENDIF
+
 
         
 
@@ -113,6 +125,10 @@ CONTAINS
         ELSE
             LocalVar%restart = .False.
         ENDIF
+
+        ! FA_Acc_TT is in the non-rotating tower-top frame, so we need to convert it to the rotating (nacelle) frame of reference
+        LocalVar%FA_Acc_Nac = LocalVar%FA_Acc_TT * COS(LocalVar%NacHeading * D2R) + LocalVar%SS_Acc_TT * SIN(LocalVar%NacHeading * D2R)
+
 
         ! Increment timestep counter
         IF (LocalVar%iStatus == 0 .AND. LocalVar%Time == 0) THEN
@@ -165,6 +181,7 @@ CONTAINS
         objInst%instNotchSlopes = 1
         objInst%instNotch       = 1
         objInst%instPI          = 1
+        objInst%instRes         = 1
         objInst%instRL          = 1
         
         ! Set unused outputs to zero (See Appendix A of Bladed User's Guide):
@@ -217,26 +234,33 @@ CONTAINS
             ! Wind speed estimator initialization
             LocalVar%WE_Vw      = LocalVar%HorWindV
             LocalVar%WE_VwI     = LocalVar%WE_Vw - CntrPar%WE_Gamma*LocalVar%RotSpeed
+            LocalVar%WE_Op      = 1
+            LocalVar%WE_Op_Last = 1
             
             ! Setpoint Smoother initialization to zero
             LocalVar%SS_DelOmegaF = 0
 
-            ! Generator Torque at K omega^2 or rated
-            IF (LocalVar%GenSpeed > 0.98 * CntrPar%PC_RefSpd) THEN
-                LocalVar%GenTq = CntrPar%VS_RtTq
+            IF (CntrPar%VS_FBP == VS_FBP_Variable_Pitch) THEN
+                ! Generator Torque at K omega^2 or rated
+                IF (LocalVar%GenSpeed > 0.98 * CntrPar%PC_RefSpd) THEN
+                    LocalVar%GenTq = CntrPar%VS_RtTq
+                ELSE
+                    LocalVar%GenTq = min(CntrPar%VS_RtTq, CntrPar%VS_Rgn2K*LocalVar%GenSpeed*LocalVar%GenSpeed)
+                ENDIF
             ELSE
-                LocalVar%GenTq = min(CntrPar%VS_RtTq, CntrPar%VS_Rgn2K*LocalVar%GenSpeed*LocalVar%GenSpeed)
-            ENDIF            
-            LocalVar%VS_LastGenTrq = LocalVar%GenTq       
+                ! Set torque initial condition based on operating schedule at current wind speed
+                LocalVar%GenTq = interp1d(CntrPar%VS_FBP_U, CntrPar%VS_FBP_Tau, LocalVar%HorWindV, ErrVar)
+            ENDIF
+            LocalVar%VS_LastGenTrq = LocalVar%GenTq
             LocalVar%VS_MaxTq      = CntrPar%VS_MaxTq
-            LocalVar%VS_GenPwr     = LocalVar%GenTq * LocalVar%GenSpeed
+            LocalVar%VS_GenPwr     = LocalVar%GenTq * LocalVar%GenSpeed * CntrPar%VS_GenEff/100.0
             
             ! Initialize variables
             LocalVar%CC_DesiredL = 0
             LocalVar%CC_ActuatedL = 0
             LocalVar%CC_ActuatedDL = 0
             LocalVar%StC_Input = 0
-            
+
             LocalVar%ZMQ_YawOffset = 0
             LocalVar%ZMQ_PitOffset = 0
             LocalVar%ZMQ_ID = CntrPar%ZMQ_ID
@@ -251,6 +275,22 @@ CONTAINS
 
 
         ENDIF
+
+        ! Initialize other values on each timestep
+        
+        ! Open Loop index
+        IF (CntrPar%OL_BP_Mode == 0) THEN
+            LocalVar%OL_Index = LocalVar%Time
+
+        ELSE
+            ! Wind speed, OL_BP_Mode = 1
+            LocalVar%OL_Index = LocalVar%WE_Vw
+            IF (CntrPar%OL_BP_FiltFreq > 0) THEN
+                LocalVar%OL_Index = LPFilter(LocalVar%WE_Vw, LocalVar%DT,CntrPar%OL_BP_FiltFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+            ENDIF
+
+        ENDIF
+
     END SUBROUTINE SetParameters
     
     ! -----------------------------------------------------------------------------------
@@ -342,13 +382,15 @@ CONTAINS
         CALL ParseInput(FileLines,'F_LPFType',       CntrPar%F_LPFType,         accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'IPC_ControlMode', CntrPar%IPC_ControlMode,   accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'VS_ControlMode',  CntrPar%VS_ControlMode,    accINFILE(1), ErrVar, UnEc=UnEc)
-        CALL ParseInput(FileLines,'VS_ConstPower',   CntrPar%VS_ConstPower,     accINFILE(1), ErrVar, .TRUE., UnEc=UnEc)  ! Default is 0
+        CALL ParseInput(FileLines,'VS_ConstPower',   CntrPar%VS_ConstPower,     accINFILE(1), ErrVar, .TRUE., UnEc=UnEc) ! Default is 0
+        CALL ParseInput(FileLines,'VS_FBP',          CntrPar%VS_FBP,            accINFILE(1), ErrVar, .TRUE., UnEc=UnEc) ! Default is 0
         CALL ParseInput(FileLines,'PC_ControlMode',  CntrPar%PC_ControlMode,    accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'Y_ControlMode',   CntrPar%Y_ControlMode,     accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'SS_Mode',         CntrPar%SS_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'PRC_Mode',        CntrPar%PRC_Mode,          accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'WE_Mode',         CntrPar%WE_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'PS_Mode',         CntrPar%PS_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'SU_Mode',         CntrPar%SU_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'SD_Mode',         CntrPar%SD_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'Fl_Mode',         CntrPar%Fl_Mode,           accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'FlTq_Mode',       CntrPar%FlTq_Mode,         accINFILE(1), ErrVar, UnEc=UnEc)
@@ -381,6 +423,7 @@ CONTAINS
         CALL ParseAry(  FileLines,  'F_FlTqCornerFreq',     CntrPar%F_FlTqCornerFreq,   2,                       accINFILE(1), ErrVar, CntrPar%FlTq_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'F_FlHighPassFreq',     CntrPar%F_FlHighPassFreq,                            accINFILE(1), ErrVar, CntrPar%Fl_Mode == 0 .AND. CntrPar%FlTq_Mode == 0, UnEc)
         CALL ParseAry(  FileLines,  'F_FlpCornerFreq',      CntrPar%F_FlpCornerFreq,    2,                       accINFILE(1), ErrVar, CntrPar%Flp_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'F_VSRefSpdCornerFreq', CntrPar%F_VSRefSpdCornerFreq,                        accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 2, UnEc)
 
         ! Optional filter inds
         IF (CntrPar%F_GenSpdNotch_N > 0) THEN
@@ -433,11 +476,17 @@ CONTAINS
         CALL ParseAry(  FileLines,  'VS_KP',        CntrPar%VS_KP,      CntrPar%VS_n,   accINFILE(1), ErrVar, .FALSE., UnEc)
         CALL ParseAry(  FileLines,  'VS_KI',        CntrPar%VS_KI,      CntrPar%VS_n,   accINFILE(1), ErrVar, .FALSE., UnEc)
         CALL ParseInput(FileLines,  'VS_TSRopt',    CntrPar%VS_TSRopt,                  accINFILE(1), ErrVar, CntrPar%VS_ControlMode < 2, UnEc)
-        CALL ParseInput(FileLines,  'VS_PwrFiltF',  CntrPar%VS_PwrFiltF,                accINFILE(1), ErrVar, CntrPar%VS_ControlMode .NE. 3, UnEc)
         CALL ParseInput(FileLines,  'VS_ConstPower_n',     CntrPar%VS_ConstPower_n,     accINFILE(1), ErrVar, .TRUE., UnEc)
         IF (CntrPar%VS_ConstPower_n == 0) CntrPar%VS_ConstPower_n = 1   ! Default is 1
         CALL ParseAry(FileLines,    'VS_ConstPower_alpha', CntrPar%VS_ConstPower_alpha, CntrPar%VS_ConstPower_n, accINFILE(1), ErrVar, CntrPar%VS_ConstPower .NE. 1, UnEc)
         CALL ParseAry(FileLines,    'VS_ConstPower_U',     CntrPar%VS_ConstPower_U,     CntrPar%VS_ConstPower_n, accINFILE(1), ErrVar, CntrPar%VS_ConstPower_n == 1, UnEc)  ! Allow default if only one parameter
+        IF (ErrVar%aviFAIL < 0) RETURN
+
+        !------------ Fixed-Pitch Region 3 Control ------------
+        CALL ParseInput(FileLines,  'VS_FBP_n',       CntrPar%VS_FBP_n,                          accINFILE(1), ErrVar, CntrPar%VS_FBP == VS_FBP_Variable_Pitch, UnEc)
+        CALL ParseAry(  FileLines,  'VS_FBP_U',       CntrPar%VS_FBP_U,        CntrPar%VS_FBP_n, accINFILE(1), ErrVar, CntrPar%VS_FBP == VS_FBP_Variable_Pitch, UnEc)
+        CALL ParseAry(  FileLines,  'VS_FBP_Omega',   CntrPar%VS_FBP_Omega,    CntrPar%VS_FBP_n, accINFILE(1), ErrVar, CntrPar%VS_FBP == VS_FBP_Variable_Pitch, UnEc)
+        CALL ParseAry(  FileLines,  'VS_FBP_Tau',     CntrPar%VS_FBP_Tau,      CntrPar%VS_FBP_n, accINFILE(1), ErrVar, CntrPar%VS_FBP == VS_FBP_Variable_Pitch, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------- Setpoint Smoother --------------------------------
@@ -446,6 +495,13 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ POWER REFERENCE TRACKING SETPOINTS --------------
+        CALL ParseInput(FileLines,  'PRC_Comm',         CntrPar%PRC_Comm,                                   accINFILE(1), ErrVar, CntrPar%PRC_Mode .NE. 1, UnEc)
+        CALL ParseInput(FileLines,  'PRC_R_Torque',     CntrPar%PRC_R_Torque,                               accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 2) .OR. (CntrPar%PRC_Comm .NE. PRC_Comm_Constant), UnEc)
+        CALL ParseInput(FileLines,  'PRC_R_Speed',      CntrPar%PRC_R_Speed,                                accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 2) .OR. (CntrPar%PRC_Comm .NE. PRC_Comm_Constant), UnEc)
+        CALL ParseInput(FileLines,  'PRC_R_Pitch',      CntrPar%PRC_R_Pitch,                                accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 2) .OR. (CntrPar%PRC_Comm .NE. PRC_Comm_Constant), UnEc)
+        CALL ParseInput(FileLines,  'PRC_Table_n',      CntrPar%PRC_Table_n,                                accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 2) .OR. (CntrPar%PRC_R_Pitch == 1.0), UnEc)
+        CALL ParseAry(FileLines,    'PRC_R_Table',      CntrPar%PRC_R_Table,        CntrPar%PRC_Table_n,    accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 2) .OR. (CntrPar%PRC_R_Pitch == 1.0), UnEc)
+        CALL ParseAry(FileLines,    'PRC_Pitch_Table',  CntrPar%PRC_Pitch_Table,    CntrPar%PRC_Table_n,    accINFILE(1), ErrVar, (CntrPar%PRC_Mode .NE. 2) .OR. (CntrPar%PRC_R_Pitch == 1.0), UnEc)
         CALL ParseInput(FileLines,  'PRC_n',            CntrPar%PRC_n,                            accINFILE(1), ErrVar,   CntrPar%PRC_Mode == 0)
         CALL ParseInput(FileLines,  'PRC_LPF_Freq',     CntrPar%PRC_LPF_Freq,                     accINFILE(1), ErrVar,   CntrPar%PRC_Mode == 0)
         CALL ParseAry(  FileLines,  'PRC_WindSpeeds',   CntrPar%PRC_WindSpeeds,   CntrPar%PRC_n,  accINFILE(1), ErrVar,   CntrPar%PRC_Mode == 0)
@@ -492,10 +548,36 @@ CONTAINS
         CALL ParseAry(  FileLines,  'PS_WindSpeeds',    CntrPar%PS_WindSpeeds,      CntrPar%PS_BldPitchMin_N,   accINFILE(1), ErrVar, CntrPar%PS_Mode == 0, UnEc)
         CALL ParseAry(  FileLines,  'PS_BldPitchMin',   CntrPar%PS_BldPitchMin,     CntrPar%PS_BldPitchMin_N,   accINFILE(1), ErrVar, CntrPar%PS_Mode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
+        
+        !------------ STARTUP ------------
+        CALL ParseInput(FileLines,  'SU_StartTime',             CntrPar%SU_StartTime,                                           accINFILE(1),   ErrVar, CntrPar%SU_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SU_FW_MinDuration',        CntrPar%SU_FW_MinDuration,                                      accINFILE(1),   ErrVar, CntrPar%SU_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SU_RotorSpeedThresh',      CntrPar%SU_RotorSpeedThresh,                                    accINFILE(1),   ErrVar, CntrPar%SU_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SU_RotorSpeedCornerFreq',  CntrPar%SU_RotorSpeedCornerFreq,                                accINFILE(1),   ErrVar, CntrPar%SU_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SU_LoadStages_N',          CntrPar%SU_LoadStages_N,                                        accINFILE(1),   ErrVar, CntrPar%SU_Mode == 0, UnEc)
+        CALL ParseAry(FileLines,    'SU_LoadStages',            CntrPar%SU_LoadStages,              CntrPar%SU_LoadStages_N,    accINFILE(1),   ErrVar, CntrPar%SU_LoadStages_N == 0, UnEc)
+        CALL ParseAry(FileLines,    'SU_LoadRampDuration',      CntrPar%SU_LoadRampDuration,        CntrPar%SU_LoadStages_N,    accINFILE(1),   ErrVar, CntrPar%SU_LoadStages_N == 0, UnEc)
+        CALL ParseAry(FileLines,    'SU_LoadHoldDuration',      CntrPar%SU_LoadHoldDuration,        CntrPar%SU_LoadStages_N,    accINFILE(1),   ErrVar, CntrPar%SU_LoadStages_N == 0, UnEc)
 
         !------------ SHUTDOWN ------------
-        CALL ParseInput(FileLines,  'SD_MaxPit',        CntrPar%SD_MaxPit,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
-        CALL ParseInput(FileLines,  'SD_CornerFreq',    CntrPar%SD_CornerFreq,  accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_TimeActivate',       CntrPar%SD_TimeActivate,  accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_EnablePitch',        CntrPar%SD_EnablePitch,   accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_EnableYawError',     CntrPar%SD_EnableYawError,accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_EnableGenSpeed',     CntrPar%SD_EnableGenSpeed,accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_EnableTime',         CntrPar%SD_EnableTime,    accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_MaxPit',             CntrPar%SD_MaxPit,        accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_PitchCornerFreq',    CntrPar%SD_PitchCornerFreq,   accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_MaxYawError',        CntrPar%SD_MaxYawError,       accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_YawErrorCornerFreq', CntrPar%SD_YawErrorCornerFreq,accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_MaxGenSpd',          CntrPar%SD_MaxGenSpd,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_GenSpdCornerFreq',   CntrPar%SD_GenSpdCornerFreq,  accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_Time',               CntrPar%SD_Time,      accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_Method',             CntrPar%SD_Method,    accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'SD_Stage_N',            CntrPar%SD_Stage_N,    accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseAry(FileLines,    'SD_StageTime',         CntrPar%SD_StageTime,      CntrPar%SD_Stage_N,   accINFILE(1),   ErrVar, CntrPar%SD_Method .NE. 1, UnEc)
+        CALL ParseAry(FileLines,    'SD_StagePitch',         CntrPar%SD_StagePitch,      CntrPar%SD_Stage_N,   accINFILE(1),   ErrVar, CntrPar%SD_Method .NE. 2, UnEc)
+        CALL ParseAry(FileLines,    'SD_MaxTorqueRate',      CntrPar%SD_MaxTorqueRate,   CntrPar%SD_Stage_N,   accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
+        CALL ParseAry(FileLines,    'SD_MaxPitchRate',       CntrPar%SD_MaxPitchRate,    CntrPar%SD_Stage_N,   accINFILE(1),   ErrVar, CntrPar%SD_Mode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ FLOATING ------------
@@ -516,11 +598,16 @@ CONTAINS
         !------------ Open loop input ------------
         ! Indices can be left 0 by default, checked later
         CALL ParseInput(FileLines, 'OL_Filename',       CntrPar%OL_Filename,            accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0,   UnEc)
+        CALL ParseInput(FileLines, 'OL_BP_Mode',        CntrPar%OL_BP_Mode,             accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0,   UnEc)
+        CALL ParseInput(FileLines, 'OL_BP_FiltFreq',    CntrPar%OL_BP_FiltFreq,         accINFILE(1),   ErrVar, CntrPar%OL_Mode == 0,   UnEc)
         CALL ParseInput(FileLines, 'Ind_Breakpoint',    CntrPar%Ind_Breakpoint,         accINFILE(1),   ErrVar,                         UnEc=UnEc)
         CALL ParseAry(  FileLines, 'Ind_BldPitch',      CntrPar%Ind_BldPitch,       3,  accINFILE(1),   ErrVar,                         UnEc=UnEc)
         CALL ParseInput(FileLines, 'Ind_GenTq',         CntrPar%Ind_GenTq,              accINFILE(1),   ErrVar,                         UnEc=UnEc)
         CALL ParseInput(FileLines, 'Ind_YawRate',       CntrPar%Ind_YawRate,            accINFILE(1),   ErrVar,                         UnEc=UnEc)
         CALL ParseInput(FileLines, 'Ind_Azimuth',       CntrPar%Ind_Azimuth,            accINFILE(1),   ErrVar, CntrPar%OL_Mode .NE. 2, UnEc=UnEc)
+        CALL ParseInput(FileLines, 'Ind_R_Speed',       CntrPar%Ind_R_Speed,            accINFILE(1),   ErrVar, CntrPar%OL_Mode .NE. 2, UnEc=UnEc)
+        CALL ParseInput(FileLines, 'Ind_R_Torque',      CntrPar%Ind_R_Torque,           accINFILE(1),   ErrVar, CntrPar%OL_Mode .NE. 2, UnEc=UnEc)
+        CALL ParseInput(FileLines, 'Ind_R_Pitch',       CntrPar%Ind_R_Pitch,            accINFILE(1),   ErrVar, CntrPar%OL_Mode .NE. 2, UnEc=UnEc)
         CALL ParseAry(  FileLines, 'RP_Gains',          CntrPar%RP_Gains,           4,  accINFILE(1),   ErrVar, CntrPar%OL_Mode .NE. 2, UnEc=UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
@@ -530,7 +617,8 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ Pitch Actuator Faults ------------
-        CALL ParseAry(FileLines,    'PF_Offsets',   CntrPar%PF_Offsets,     3, accINFILE(1),    ErrVar, CntrPar%PF_Mode == 0, UnEc)
+        CALL ParseAry(FileLines,    'PF_Offsets',   CntrPar%PF_Offsets,     3,  accINFILE(1),    ErrVar, CntrPar%PF_Mode .NE. 1, UnEc)
+        CALL ParseAry(FileLines,    'PF_TimeStuck', CntrPar%PF_TimeStuck,   3,  accINFILE(1),    ErrVar, CntrPar%PF_Mode .NE. 2, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ AWC input ------------
@@ -540,6 +628,8 @@ CONTAINS
         CALL ParseAry(  FileLines, 'AWC_freq',        CntrPar%AWC_freq,       CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
         CALL ParseAry(  FileLines, 'AWC_amp',         CntrPar%AWC_amp,        CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
         CALL ParseAry(  FileLines, 'AWC_clockangle',  CntrPar%AWC_clockangle, CntrPar%AWC_NumModes,   accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
+        CALL ParseInput(FileLines, 'AWC_phaseoffset', CntrPar%AWC_phaseoffset,                        accINFILE(1), ErrVar, CntrPar%AWC_Mode == 0, UnEc)
+        CALL ParseAry(  FileLines, 'AWC_CntrGains',   CntrPar%AWC_CntrGains,  2,                      accINFILE(1), ErrVar, CntrPar%AWC_Mode < 3, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ External control interface ------------
@@ -642,6 +732,27 @@ CONTAINS
                 END IF
             ENDIF
 
+            IF (CntrPar%Ind_R_Speed > 0) THEN
+                IF (CntrPar%OL_Mode == 1) THEN
+                    OL_String   = TRIM(OL_String)//' R_Speed '
+                    OL_Count    = OL_Count + 1
+                END IF
+            ENDIF
+
+            IF (CntrPar%Ind_R_Torque > 0) THEN
+                IF (CntrPar%OL_Mode == 1) THEN
+                    OL_String   = TRIM(OL_String)//' R_Torque '
+                    OL_Count    = OL_Count + 1
+                END IF
+            ENDIF
+
+            IF (CntrPar%Ind_R_Pitch > 0) THEN
+                IF (CntrPar%OL_Mode == 1) THEN
+                    OL_String   = TRIM(OL_String)//' R_Pitch '
+                    OL_Count    = OL_Count + 1
+                END IF
+            ENDIF
+
             N_OL_Cables = 0
             IF (ANY(CntrPar%Ind_CableControl > 0)) THEN
                 DO I = 1,SIZE(CntrPar%Ind_CableControl)
@@ -702,6 +813,18 @@ CONTAINS
             IF (CntrPar%Ind_Azimuth > 0) THEN
                 CntrPar%OL_Azimuth = Unwrap(CntrPar%OL_Channels(:,CntrPar%Ind_Azimuth),ErrVar)
             ENDIF
+
+            IF (CntrPar%Ind_R_Speed > 0) THEN
+                CntrPar%OL_R_Speed = CntrPar%OL_Channels(:,CntrPar%Ind_R_Speed)
+            ENDIF
+
+            IF (CntrPar%Ind_R_Torque > 0) THEN
+                CntrPar%OL_R_Torque = CntrPar%OL_Channels(:,CntrPar%Ind_R_Torque)
+            ENDIF
+
+            IF (CntrPar%Ind_R_Pitch > 0) THEN
+                CntrPar%OL_R_Pitch = CntrPar%OL_Channels(:,CntrPar%Ind_R_Pitch)
+            ENDIF
             
             IF (ANY(CntrPar%Ind_CableControl > 0)) THEN
                 ALLOCATE(CntrPar%OL_CableControl(N_OL_Cables,SIZE(CntrPar%OL_Channels,DIM=1)))
@@ -760,8 +883,8 @@ CONTAINS
 
         CurLine = 1
         CALL GetNewUnit(UnPerfParameters, ErrVar)
-        OPEN(unit=UnPerfParameters, file=TRIM(CntrPar%PerfFileName), status='old', action='read') ! Should put input file into DISCON.IN
-        
+        OPEN(unit=UnPerfParameters, file=TRIM(CntrPar%PerfFileName), status='old', action='read')
+                
         ! ----------------------- Axis Definitions ------------------------
         CALL ReadEmptyLine(UnPerfParameters,CurLine)
         CALL ReadEmptyLine(UnPerfParameters,CurLine)
@@ -895,15 +1018,35 @@ CONTAINS
         ENDIF
 
         ! VS_ControlMode
-        IF ((CntrPar%VS_ControlMode < 0) .OR. (CntrPar%VS_ControlMode > 3)) THEN
+        IF ((CntrPar%VS_ControlMode < 0) .OR. (CntrPar%VS_ControlMode > 4)) THEN
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'VS_ControlMode must be 0, 1, 2, or 3.'
+            ErrVar%ErrMsg  = 'VS_ControlMode must be between 0 and 4.'
         ENDIF
 
         ! VS_ConstPower
         IF ((CntrPar%VS_ConstPower < 0) .OR. (CntrPar%VS_ConstPower > 1)) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'VS_ConstPower must be 0 or 1.'
+        ENDIF
+
+        ! VS_FBP
+        IF ((CntrPar%VS_FBP < 0) .OR. (CntrPar%VS_FBP > 3)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'VS_FBP must be between 0 and 3.'
+        ENDIF
+        IF ((CntrPar%VS_FBP > 0) .AND. (CntrPar%PC_ControlMode > 0)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'VS_FBP and PC_ControlMode cannot both be greater than 0.'
+        ENDIF
+
+        IF ((CntrPar%VS_FBP > 0) .AND. (CntrPar%PRC_Mode > 0)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'Fixed blade pitch control (VS_FBP) and power reference control (PRC_Mode) cannot both be enabled.'
+        ENDIF
+
+        IF ((CntrPar%VS_FBP > 0) .AND. (CntrPar%VS_ConstPower > 0)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'Fixed blade pitch control (VS_FBP) and constant power torque control (VS_ConstPower) cannot both be enabled.'
         ENDIF
 
         ! PC_ControlMode
@@ -939,6 +1082,12 @@ CONTAINS
         IF ((CntrPar%PS_Mode < 0) .OR. (CntrPar%PS_Mode > 3)) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'PS_Mode must be 0 or 1.'
+        ENDIF
+        
+        ! SU_Mode
+        IF ((CntrPar%SU_Mode < 0) .OR. (CntrPar%SD_Mode > 1)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'SU_Mode must be 0 or 1.'
         ENDIF
 
         ! SD_Mode
@@ -1073,7 +1222,7 @@ CONTAINS
         ENDIF
 
         ! PC_GS_angles
-        IF (.NOT. NonDecreasing(CntrPar%PC_GS_angles)) THEN
+        IF (CntrPar%PC_ControlMode .NE. 0 .AND. .NOT. NonDecreasing(CntrPar%PC_GS_angles)) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'PC_GS_angles must be non-decreasing'
         ENDIF
@@ -1202,8 +1351,42 @@ CONTAINS
             ErrVar%ErrMsg  = 'SS_PCGain must be greater than zero.'
         ENDIF
 
-        IF (CntrPar%PRC_Mode > 0) THEN
-            PRINT *, "Note: PRC Mode = ", CntrPar%PRC_Mode, ", which will ignore VS_RefSpeed, VS_TSRopt, and PC_RefSpeed"
+        IF ((CntrPar%PRC_Mode < 0) .OR. (CntrPar%PRC_Mode > 2)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'PRC_Mode must be 0, 1, or 2.'
+        ENDIF
+
+        IF (CntrPar%PRC_Mode == 2) THEN
+            PRINT *, "Note: PRC Mode = ", CntrPar%PRC_Mode, ", which will affect VS_RefSpeed, VS_TSRopt, and PC_RefSpeed"
+
+            IF (CntrPar%PRC_Comm == 0) THEN
+                IF (CntrPar%PRC_R_Pitch < 0) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg  = 'PRC_R_Pitch must be greater than or equal to zero.'
+                ENDIF
+
+                IF (CntrPar%PRC_R_Speed < 0) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg  = 'PRC_R_Speed must be greater than or equal to zero.'
+                ENDIF
+
+                IF (CntrPar%PRC_R_Torque < 0) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg  = 'PRC_R_Torque must be greater than or equal to zero.'
+                ENDIF
+
+            ENDIF
+
+            IF ((CntrPar%PRC_Comm == 1) .AND. (CntrPar%OL_Mode .NE. 1)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'OL_Mode must be 1 to use open loop inputs for power control (PRC_Comm = 1).'
+            ENDIF
+
+            IF ((CntrPar%PRC_Comm == 2) .AND. (CntrPar%ZMQ_Mode .NE. 1)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'ZMQ_Mode must be 1 to use ZeroMQ inputs for power control (PRC_Comm = 2).'
+            ENDIF
+
         ENDIF
         
         !------- WIND SPEED ESTIMATOR ---------------------------------------------
@@ -1298,7 +1481,7 @@ CONTAINS
                 ErrVar%ErrMsg  = 'TRA_RateLimit must be greater than 0.'
             END IF
 
-            IF ( .NOT. ((CntrPar%VS_ControlMode == 2) .OR. (CntrPar%VS_ControlMode == 3) )) THEN
+            IF ( .NOT. ((CntrPar%VS_ControlMode == VS_Mode_WSE_TSR) .OR. (CntrPar%VS_ControlMode == VS_Mode_Power_TSR) )) THEN
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg  = 'VS_ControlMode must be 2 or 3 to use frequency avoidance control.'
             END IF
@@ -1327,6 +1510,95 @@ CONTAINS
 
         ENDIF
 
+        ! --- Startup ---
+        IF (CntrPar%SU_Mode > 0) THEN
+
+            ! SU_FW_MinDuration
+            IF (CntrPar%SU_FW_MinDuration < 0.0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SU_FW_MinDuration must be greater than zero.'
+            ENDIF
+
+            ! SU_RotorSpeedThresh
+            IF (CntrPar%SU_RotorSpeedThresh < 0.0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SU_RotorSpeedThresh must be greater than zero.'
+            ENDIF
+            
+            ! SU_RotorSpeedCornerFreq
+            IF (CntrPar%SU_RotorSpeedCornerFreq < 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'SU_RotorSpeedCornerFreq must be greater than or equal to 0.'
+            ENDIF
+            
+            ! SU_LoadStages_N
+            IF (CntrPar%SU_LoadStages_N < 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'SU_LoadStages_N must be greater than or equal to 0.'
+            ENDIF
+
+            ! SU_LoadStages
+            IF (ANY(CntrPar%SU_LoadStages < 0)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SU_LoadStages must be positive.'
+            ENDIF
+
+            ! SU_LoadRampDuration
+            IF (ANY(CntrPar%SU_LoadRampDuration < 0)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SU_LoadRampDuration must be positive.'
+            ENDIF
+
+            ! SU_LoadHoldDuration
+            IF (ANY(CntrPar%SU_LoadHoldDuration < 0)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SU_LoadHoldDuration must be positive.'
+            ENDIF
+        ENDIF
+
+        ! --- Shutdown ---
+        IF (CntrPar%SD_Mode > 0) THEN
+        
+            ! SD_Method
+            IF (CntrPar%SD_Method < 1 .OR. CntrPar%SD_Method > 2) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SD_Method must be 1 or 2.'
+            ENDIF
+
+            ! SD_MaxPitchRate
+            IF (MAXVAL(CntrPar%SD_MaxPitchRate) > CntrPar%PC_MaxRat) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SD_MaxPitchRate(s) should be less than or equal to PC_MaxRat.'
+            ENDIF
+
+                
+            ! SD_MaxTorqueRate
+            IF (MAXVAL(CntrPar%SD_MaxTorqueRate) > CntrPar%VS_MaxRat) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SD_MaxTorqueRate(s) should be less than or equal to VS_MaxRat.'
+            ENDIF
+
+            IF (CntrPar%SD_Stage_N < 1) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg  = 'SD_Stage_N must be greater than or equal to 1.'
+            ENDIF
+
+            IF (CntrPar%SD_Method == 1) THEN
+                ! SD_StageTime must be greater than zero
+                IF ( MINVAL(CntrPar%SD_StageTime) < 0.0) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg  = 'SD_StageTime(s) must be greater than or equal to zero.'
+                ENDIF
+
+            ELSEIF (CntrPar%SD_Method == 2) THEN
+                ! SD_StagePitch must be increasing
+                IF (.NOT. NonDecreasing(CntrPar%SD_StagePitch)) THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg  = 'SD_StagePitch must be non-decreasing.'
+                ENDIF
+
+            ENDIF
+        ENDIF
 
         ! --- Open loop control ---
         IF (CntrPar%OL_Mode > 0) THEN
@@ -1334,7 +1606,10 @@ CONTAINS
             ALLOCATE(All_OL_Indices(5))   ! Will need to increase to 5 when IPC
             All_OL_Indices =    (/CntrPar%Ind_BldPitch, & 
                                 CntrPar%Ind_GenTq, &
-                                CntrPar%Ind_YawRate/)
+                                CntrPar%Ind_YawRate, &
+                                CntrPar%Ind_R_Speed, &
+                                CntrPar%Ind_R_Torque, &
+                                CntrPar%Ind_R_Pitch/)
 
             DO I = 1,SIZE(CntrPar%Ind_CableControl)
                 Call AddToList(All_OL_Indices, CntrPar%Ind_CableControl(I))           
@@ -1380,6 +1655,20 @@ CONTAINS
                 ErrVar%ErrMsg = 'CC_Mode must be 2 if using open loop struct control via Ind_StructControl'
             ENDIF
 
+            IF ((CntrPar%OL_BP_Mode < 0) .OR. (CntrPar%OL_BP_Mode > 1)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'OL_BP_Mode must be 0 or 1.'
+            ENDIF
+
+            IF (CntrPar%OL_BP_FiltFreq < 0) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'OL_BP_FiltFreq must be greater than or equal to 0.'
+            ENDIF
+
+            IF ((CntrPar%OL_BP_Mode == 1) .AND. (CntrPar%OL_Mode == 2)) THEN
+                ErrVar%aviFAIL = -1
+                ErrVar%ErrMsg = 'Rotor position control (OL_Mode = 2) is not compatible with wind speed breakpoints (OL_BP_Mode = 1)'
+            ENDIF
 
         ENDIF
 
@@ -1416,10 +1705,6 @@ CONTAINS
                 IF (CntrPar%AWC_freq(Imode) < 0.0) THEN
                     ErrVar%aviFAIL = -1
                     ErrVar%ErrMsg = 'AWC_freq cannot be less than 0'
-                END IF
-                IF (CntrPar%AWC_amp(Imode) < 0.0) THEN
-                    ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg = 'AWC_amp cannot be less than 0'
                 END IF
             END DO
             IF (CntrPar%AWC_Mode == 1) THEN
@@ -1526,6 +1811,11 @@ CONTAINS
         IF (NINT(avrSWAP(28)) == 0 .AND. (CntrPar%PF_Mode == 1)) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'Pitch offset fault enabled (PF_Mode = 1), but Ptch_Cntrl in ServoDyn has a value of 0. Set it to 1 for individual pitch control.'
+        ENDIF
+
+        IF (NINT(avrSWAP(28)) == 0 .AND. (CntrPar%AWC_Mode > 1)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'AWC enabled, but Ptch_Cntrl in ServoDyn has a value of 0. Set it to 1 for individual pitch control.'
         ENDIF
 
         ! DT

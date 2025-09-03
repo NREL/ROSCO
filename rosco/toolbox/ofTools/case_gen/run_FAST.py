@@ -22,13 +22,13 @@ from rosco.toolbox import turbine as ROSCO_turbine
 try:
     from weis.aeroelasticse.runFAST_pywrapper   import runFAST_pywrapper_batch
     in_weis = True
-except Exception:
+except Exception as e:
     from rosco.toolbox.ofTools.case_gen.runFAST_pywrapper   import runFAST_pywrapper_batch
     in_weis = False
 #from rosco.toolbox.ofTools.case_gen.CaseGen_IEC         import CaseGen_IEC
 from rosco.toolbox.ofTools.case_gen.CaseGen_General     import CaseGen_General
 from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
-from wisdem.commonse.mpi_tools              import MPI
+from openmdao.utils.mpi              import MPI
 
 # Globals
 this_dir        = os.path.dirname(os.path.abspath(__file__))
@@ -48,7 +48,7 @@ class run_FAST_ROSCO():
 
         # Set default parameters
         self.tuning_yaml        = 'IEA15MW.yaml'
-        self.wind_case_fcn      = cl.power_curve
+        self.wind_case_fcn      = None
         self.wind_case_opts     = {}
         self.control_sweep_opts = {}
         self.control_sweep_fcn  = None
@@ -64,6 +64,7 @@ class run_FAST_ROSCO():
         self.tune_case_dir  = ''
         self.rosco_dir      = ''
         self.save_dir       = ''
+        self.execute_fast   = True
 
     def run_FAST(self):
 
@@ -89,7 +90,7 @@ class run_FAST_ROSCO():
         if not self.base_name:
             self.base_name = os.path.split(self.tuning_yaml)[-1].split('.')[0]
         
-        run_dir = os.path.join(self.save_dir,self.base_name,self.wind_case_fcn.__name__,sweep_name)
+        run_dir = self.save_dir
 
         
         # Start with tuning yaml definition of controller
@@ -127,14 +128,15 @@ class run_FAST_ROSCO():
 
         # Apply all discon variables as case inputs
         discon_vt = ROSCO_utilities.DISCON_dict(turbine, controller, txt_filename=cp_filename)
-        control_base_case = {}
+        case_inputs = {}
         for discon_input in discon_vt:
-            control_base_case[('DISCON_in',discon_input)] = {'vals': [discon_vt[discon_input]], 'group': 0}
+            case_inputs[('DISCON_in',discon_input)] = {'vals': [discon_vt[discon_input]], 'group': 0}
 
         # Set up wind case
         self.wind_case_opts['run_dir'] = run_dir
-        case_inputs = self.wind_case_fcn(**self.wind_case_opts)
-        case_inputs.update(control_base_case)
+        if self.wind_case_fcn:
+            wind_case_inputs = self.wind_case_fcn(**self.wind_case_opts)
+            case_inputs.update(wind_case_inputs)
 
         if not self.rosco_dll:
             self.rosco_dll = discon_lib_path
@@ -160,7 +162,7 @@ class run_FAST_ROSCO():
 
         # Management of parallelization, leave in for now
         if MPI:
-            from wisdem.commonse.mpi_tools import map_comm_heirarchical, subprocessor_loop, subprocessor_stop
+            from rosco.toolbox.ofTools.util.mpi_tools import map_comm_heirarchical, subprocessor_loop, subprocessor_stop
             n_OF_runs = len(case_list)
 
             available_cores = MPI.COMM_WORLD.Get_size()
@@ -190,6 +192,7 @@ class run_FAST_ROSCO():
             fastBatch.case_name_list    = case_name_list
             fastBatch.FAST_exe          = self.openfast_exe
             fastBatch.use_exe           = True
+            fastBatch.execute_fast      = self.execute_fast
 
             if MPI:
                 fastBatch.run_mpi(comm_map_down)

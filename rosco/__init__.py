@@ -12,7 +12,7 @@ else:
 rosco_dir = os.path.dirname( os.path.abspath(__file__) )
 libname = "libdiscon"
 
-lib_path = [os.path.join(rosco_dir, "lib", libname+lib_ext), # pip installs (regular and editable)
+lib_path = [os.path.join(rosco_dir, "lib", libname+lib_ext), # pip installs (regular and editable), `make install` also puts it here
             os.path.join(os.path.dirname( os.path.dirname( rosco_dir )), "local", "lib", libname+lib_ext), # WEIS library
             os.path.join(os.path.dirname( sysconfig.get_path('stdlib') ), libname+lib_ext), # conda installs
             os.path.join(os.path.dirname( sysconfig.get_path('stdlib') ), "lib", libname+lib_ext), # conda installs

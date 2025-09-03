@@ -19,4 +19,7 @@ dependencies:
   - scipy
   - sphinx_rtd_theme
   - treon
-  - wisdem
+  - wisdem >=3.16
+  - zeromq
+  - openfast=4.1
+  - openfast-io=4.1
