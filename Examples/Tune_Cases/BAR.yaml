@@ -35,6 +35,7 @@ controller_params:
   PS_Mode:            1                       # Peak shaving mode {0: no peak shaving, 1: implement peak shaving}
   SD_Mode:            0                       # Shutdown mode {0: no shutdown procedure, 1: pitch to max pitch at shutdown}
   Fl_Mode:            0                       # Floating specific feedback mode {0: no nacelle velocity feedback, 1: nacelle velocity feedback}
+  FlTq_Mode:          0                       # Floating specific feedback mode to torque {0: no nacelle velocity feedback to torque, 1: nacelle velocity feedback to torque}
   Flp_Mode:           2                       # Flap control mode {0: no flap control, 1: steady state flap angle, 2: Proportional flap control}
   # Controller parameters 
   U_pc:               [12]
