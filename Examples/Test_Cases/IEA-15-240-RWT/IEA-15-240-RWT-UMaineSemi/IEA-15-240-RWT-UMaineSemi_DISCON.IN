@@ -1,14 +1,14 @@
 ! Controller parameter input file for the IEA-15-240-RWT-UMaineSemi wind turbine
-!    - File written using ROSCO version 2.10.0 controller tuning logic on 09/04/25
+!    - File written using ROSCO version 2.10.0 controller tuning logic on 09/08/25
 
 !------- SIMULATION CONTROL ------------------------------------------------------------
 2                   ! LoggingLevel		- 0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)
-0                   ! DT_Out    		  - (Time step to output .dbg* files, or 0 to match sampling period of OpenFAST)
+0                   ! DT_Out    		  - Time step to output .dbg* files, or 0 to match sampling period of OpenFAST
 1                   ! Ext_Interface		- (0 - use standard bladed interface, 1 - Use the extened DLL interface introduced in OpenFAST 3.5.0.)
 0                   ! Echo		        - (0 - no Echo, 1 - Echo input data to <RootName>.echo)
 
 !------- CONTROLLER FLAGS -------------------------------------------------
-2                   ! F_LPFType       - (1: first-order low-pass filter, 2: second-order low-pass filter), [rad/s] (currently filters generator speed and pitch control signals
+2                   ! F_LPFType       - 1: first-order low-pass filter, 2: second-order low-pass filter, [rad/s] (currently filters generator speed and pitch control signals
 0                   ! IPC_ControlMode - Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) (0: off, 1: 1P reductions, 2: 1P+2P reductions)
 2                   ! VS_ControlMode  - Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking, 4- Torque-based TSR Tracking)
 0                   ! VS_ConstPower   - Do constant power torque control, where above rated torque varies, 0 for constant torque)
@@ -84,7 +84,7 @@
 2.17654e+07         ! VS_MaxTq			- Maximum generator torque in Region 3 (HSS side), [Nm].
 0.00000e+00         ! VS_MinTq			- Minimum generator torque (HSS side), [Nm].
 0.52360             ! VS_MinOMSpd		- Minimum generator speed [rad/s]
-3.04442e+07         ! VS_Rgn2K		- Generator torque constant in Region 2 (HSS side). Only used in VS_ControlMode = 1,3,4
+3.28052e+07         ! VS_Rgn2K		- Generator torque constant in Region 2 (HSS side). Only used in VS_ControlMode = 1,3,4
 1.50000e+07         ! VS_RtPwr			- Wind turbine rated power [W]
 1.97868e+07         ! VS_RtTq			- Rated torque, [Nm].
 0.79168             ! VS_RefSpd			- Rated generator speed [rad/s]
@@ -110,7 +110,7 @@
 1.00000             ! PRC_R_Pitch   - Constant power rating through changing the fine pitch angle, used if PRC_Mode = 2, PRC_Comm = 0, default is 1, effective below rated [-]
 20                  ! PRC_Table_n   - Number of elements in PRC_R to _Pitch table.  Used if PRC_Mode = 1.
 0.0000       0.0526       0.1053       0.1579       0.2105       0.2632       0.3158       0.3684       0.4211       0.4737       0.5263       0.5789       0.6316       0.6842       0.7368       0.7895       0.8421       0.8947       0.9474       1.0000            ! PRC_R_Table   - Table of turbine rating versus fine pitch (PRC_Pitch_Table), length should be PRC_Table_n, default is 1 [-].  Used if PRC_Mode = 1.
-0.2229       0.2158       0.2086       0.2011       0.1935       0.1857       0.1776       0.1692       0.1606       0.1515       0.1422       0.1323       0.1221       0.1113       0.0997       0.0872       0.0736       0.0581       0.0387       0.0000            ! PRC_Pitch_Table   - Table of fine pitch versus PRC_R_Table, length should be PRC_Table_n [rad].  Used if PRC_Mode = 1.
+0.2276       0.2203       0.2127       0.2050       0.1970       0.1888       0.1803       0.1716       0.1625       0.1531       0.1434       0.1331       0.1224       0.1113       0.0992       0.0863       0.0722       0.0561       0.0362       0.0000            ! PRC_Pitch_Table   - Table of fine pitch versus PRC_R_Table, length should be PRC_Table_n [rad].  Used if PRC_Mode = 1.
 2                   ! PRC_n			    -  Number of elements in PRC_WindSpeeds and PRC_GenSpeeds array
 0.07854             ! PRC_LPF_Freq   - Frequency of the low pass filter on the wind speed estimate used to set PRC_GenSpeeds [rad/s]
 3.0000       25.0000           ! PRC_WindSpeeds   - Array of wind speeds used in rotor speed vs. wind speed lookup table [m/s]
