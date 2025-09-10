@@ -1,6 +1,8 @@
 --- #  ---------------------NREL Generic controller tuning input file -------------------
     # Written for use with ROSCO_Toolbox tuning procedures
     # Turbine: RM1 Marine Turbine
+    # NOTE: The comments describing inputs in this file are not maintained.  
+    # The most up-to-date descriptions can be found in the ROSCO documentation: https://rosco.readthedocs.io/en/latest/source/toolbox_input.html
 # ------------------------------ OpenFAST PATH DEFINITIONS ------------------------------
 path_params:
   FAST_InputFile: 'MHK_RM1_Floating.fst'                                                                # Name of *.fst file
