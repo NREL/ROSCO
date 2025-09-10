@@ -1,6 +1,8 @@
 #  --------------------- ROSCO controller tuning input file -------------------
     # Written for use with ROSCO_Toolbox tuning procedures
     # Turbine: IEA 15MW Reference Wind Turbine
+    # NOTE: The comments describing inputs in this file are not maintained.  
+    # The most up-to-date descriptions can be found in the ROSCO documentation: https://rosco.readthedocs.io/en/latest/source/toolbox_input.html
 # ------------------------------ OpenFAST PATH DEFINITIONS ------------------------------
 path_params:
   FAST_InputFile: 'IEA-15-240-RWT-UMaineSemi.fst'                                                                # Name of *.fst file
@@ -54,4 +56,7 @@ controller_params:
   PA_CornerFreq:      1.5708                  # Pitch actuator natural frequency [rad/s]
   PA_Damping:         0.707                  # Pitch actuator natural frequency [rad/s]
   rgn2k_factor:       0.85926
+
+  DISCON:
+    IPC_KI: [1.2e-11, 0]
 

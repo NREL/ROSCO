@@ -2,6 +2,7 @@ import os, copy, operator
 import numpy as np
 import yaml
 from functools import reduce
+from wisdem.inputs.validation         import simple_types
 try:
     import ruamel_yaml as ry
 except:
@@ -14,35 +15,6 @@ except:
 Common utilites for handling the text I/O for using AeroelasticSE
 """
 
-def remove_numpy(fst_vt):
-    # recursively move through nested dictionary, remove numpy data types
-    # for formatting dictionaries before writing to yaml files
-
-    def get_dict(vartree, branch):
-        return reduce(operator.getitem, branch, vartree)
-
-    def loop_dict(vartree, branch):
-        for var in vartree.keys():
-            branch_i = copy.copy(branch)
-            branch_i.append(var)
-            if type(vartree[var]) is dict:
-                loop_dict(vartree[var], branch_i)
-            else:
-                data_type = type(get_dict(fst_vt, branch_i[:-1])[branch_i[-1]])
-                
-                if data_type in [np.int_, np.intc, np.intp, np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32, np.uint64]:
-                    get_dict(fst_vt, branch_i[:-1])[branch_i[-1]] = int(get_dict(fst_vt, branch_i[:-1])[branch_i[-1]])
-                elif data_type in [np.single, np.double, np.longdouble, np.csingle, np.cdouble, np.float16, np.float32, np.float64, np.complex64, np.complex128]:
-                    get_dict(fst_vt, branch_i[:-1])[branch_i[-1]] = float(get_dict(fst_vt, branch_i[:-1])[branch_i[-1]])
-                elif data_type in [np.bool_]:
-                    get_dict(fst_vt, branch_i[:-1])[branch_i[-1]] = bool(get_dict(fst_vt, branch_i[:-1])[branch_i[-1]])
-                elif data_type in [np.ndarray]:
-                    get_dict(fst_vt, branch_i[:-1])[branch_i[-1]] = get_dict(fst_vt, branch_i[:-1])[branch_i[-1]].tolist()
-
-    # set fast variables to update values
-    loop_dict(fst_vt, [])
-
-    return fst_vt
 
 def convert_str(val):
     # string parsing tool
@@ -119,7 +91,7 @@ def save_yaml(outdir, fname, data_out):
         os.makedirs(outdir)
     fname = os.path.join(outdir, fname)
 
-    data_out = remove_numpy(data_out)
+    data_out = simple_types(data_out)
 
     f = open(fname, "w")
     yaml=ry.YAML()

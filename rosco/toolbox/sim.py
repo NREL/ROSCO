@@ -113,15 +113,14 @@ class Sim():
             # Update the turbine state
             #       -- 1DOF model: rotor speed and generator speed (scaled by Ng)
             aero_torque[i] = 0.5 * self.turbine.rho * (np.pi * R**3) * (cp/tsr) * ws**2
-            rot_speed[i] = rot_speed[i-1] + (dt/self.turbine.J)*(aero_torque[i]
-                                                                 * self.turbine.GenEff/100 - self.turbine.Ng * gen_torque[i-1])
+            rot_speed[i] = rot_speed[i-1] + (dt/self.turbine.J)*(aero_torque[i] - self.turbine.Ng * gen_torque[i-1] / (self.turbine.GBoxEff/100))
             gen_speed[i] = rot_speed[i] * self.turbine.Ng
             #       -- Simple nacelle model
             nac_yawerr[i] = wd - nac_yaw[i-1]
 
             # populate turbine state dictionary
             turbine_state = {}
-            if i < len(t_array):
+            if i < len(t_array)-1:
                 turbine_state['iStatus'] = 1
             else:
                 turbine_state['iStatus'] = -1

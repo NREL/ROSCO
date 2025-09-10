@@ -34,6 +34,7 @@ Source code for ROSCO toolset can be found in this `github repository <https://g
    source/rosco_toolbox.rst
    source/api_change.rst
    source/toolbox_input.rst
+   source/marine_hydro.rst
    source/how_to_contribute_code.rst
    source/ROSCO_instructions_for_Bladed.rst
 

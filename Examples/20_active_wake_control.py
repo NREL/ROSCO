@@ -3,7 +3,7 @@
 ----------------------
 Run openfast with ROSCO and active wake control
 Set up and run simulation with AWC, check outputs
-Active wake control (AWC) with blade pitching is implemented in this example with two approaches as detailed below:
+Active wake control (AWC) with blade pitching is implemented in this example with two approaches as detailed in the python script.
 """
 # -----------------------------------------------
 # AWC_Mode = 1: Normal mode method:
@@ -142,6 +142,66 @@ Active wake control (AWC) with blade pitching is implemented in this example wit
 #             AWC_clockangle(2) = 2*AWC_clockangle(1)
             
 #         For more information on this control strategy, the user is referred to [2].
+
+# -----------------------------------------------
+# AWC_Mode = 3: Closed-loop PI control:
+# -----------------------------------------------
+# This method uses closed-loop PI control to determine the blade pitch based on out-of-plane bending moments.
+# Details on this method can be found in Frederik, 2025 [3]. 
+
+# Setting this method up works with much of the same input settings as AWC_Mode = 2. 
+# It is strongly recommended to use AWC_NumModes = 2 for IPC-based AWM, and AWC_NumModes = 1 for collective pitch AWM (pulse/DIC).
+# AWC_harmonic, AWC_freq, and AWC_clockangle can be used in the same way as described for mode 2.
+
+# Note that the blade pitch and blade moments are inversely correlated. To accomodate this difference and make results with the same AWC_clockangle comparable
+# between the open-loop and closed-loop modes, the implemented closed-loop (blade moment) reference has a 180 degree phase offset compared to the open-loop 
+# (blade pitch) reference, i.e.:
+
+# Tilt_moment_reference = AWC_amp(1) * sin(2 * pi * AWC_freq(1) * time + AWC_clockangle(1) + pi)
+# Yaw_moment_reference  = AWC_amp(2) * sin(2 * pi * AWC_freq(2) * time + AWC_clockangle(2) + pi)
+
+# AWC_amp now describes the amplitude of the blade bending moments, not the pitch angle, and should therefore be chosen much larger (typically in the 1e6-1e7 range).
+
+# Two new inputs are added: AWC_phaseoffset and AWC_CntrGains
+# AWC_phaseoffset (scalar) defines the azimuth offset that optimally decouples the tilt and yaw moments, see, e.g., [3], [4].
+# AWC_CntrGains (vector size 2) defines the controller gains, Kp and Ki, respectively. As a starting point, these can be chosen
+# the same or similar to the controller gains of 1P IPC for load reduction (IPC_KP and IPC_KI).
+
+# When AWC_harmonic = 0, this mode has a startup period of 1/AWC_freq(1), in which no AWC is applied.
+# This is to allow for the mean tilt and yaw moment to obtain an undisturbed measurement over a full period.
+
+# -----------------------------------------------
+# AWC_Mode = 4: Closed-loop PR control:
+# -----------------------------------------------
+# This method uses closed-loop proportional-resonant (PR) control to determine the blade pitch based on out-of-plane bending moments.
+# Details on this method can be found in Frederik, 2025 [3]. 
+# Details on PR controllers can be found in Zmood, 1999 [5].
+
+# See mode 3 for input guidance. 
+# The input parameters can be set in exactly the same way. 
+# The second entry of AWC_CntrGains now represents the resonant gain Kr.
+
+# -----------------------------------------------
+# AWC_Mode = 5: Closed-loop Strouhal transform control:
+# -----------------------------------------------
+# This method ONLY WORKS FOR THE HELIX APPROACH.
+# It uses an additional transformation on the fixed frame moments to project the loads to the so-called Strouhal frame.
+# In the Strouhal frame, the periodic component is removed, leaving a constant moment, the helix moment, which is regulated to the desired
+# blade moment amplitude of the helix approach.
+
+# The Strouhal transformation is defined as:
+
+# helix_moment = sin(2*pi*AWC_freq(1)*time + AWC_clockangle(1) ) * (tilt_moment - mean(tilt_moment) ) 
+#                        + sin(2*pi*AWC_freq(2)*time + AWC_clockangle(2) ) * (yaw_moment - mean(yaw_moment) )
+
+# Note that although the user can define different AWC_freq for the tilt and yaw moments, this method only works if AWC_freq(1) = AWC_freq(2)
+# Furthermore, abs(AWC_clockangle(1) - AWC_clockangle(2)) should always be 90 degrees--a prerequisite for the helix approach.
+
+# In the Strouhal frame, the helix moment is regulated using a single PI controller, and its gains are defined through AWC_CntrGains as
+# described for mode 3.
+
+# This mode has a startup period of 1/AWC_freq(1), in which no AWC is applied.
+# This is to allow for the mean tilt and yaw moment to obtain an undisturbed measurement over a full period.
         
 # -----------------------------------------------
 
@@ -151,6 +211,11 @@ Active wake control (AWC) with blade pitching is implemented in this example wit
 # References:
 # [1] - Batchelor, G. K., and A. E. Gill. "Analysis of the stability of axisymmetric jets." Journal of fluid mechanics 14.4 (1962): 529-551.
 # [2] - Frederik, Joeri A., et al. "The helix approach: Using dynamic individual pitch control to enhance wake mixing in wind farms." Wind Energy 23.8 (2020): 1739-1751.
+# [3] - Frederik, Joeri A., "Closed-loop wind turbine controllers for active wake mixing strategies." Pre-print (2025).
+# [4] - Mulders, Sebastiaan P., et al. "Analysis and optimal individual pitch control decoupling by inclusion of an azimuth offset in the multiblade coordinate transformation." 
+#           Wind Energy 22.3 (2019): 341-359.
+# [5] - Zmood, Daniel Nahum, Donald Grahame Holmes, and Gerwich Bode. "Frequency domain analysis of three phase linear current regulators." Conference Record of the 1999 IEEE 
+#           Industry Applications Conference. Thirty-Fourth IAS Annual Meeting (Cat. No. 99CH36370). Vol. 2. IEEE, 1999.
 
 
 import os
@@ -158,11 +223,16 @@ from rosco.toolbox.ofTools.case_gen.run_FAST import run_FAST_ROSCO
 from rosco.toolbox.ofTools.case_gen import CaseLibrary as cl
 #from rosco.toolbox.ofTools.fast_io import output_processing
 from rosco.toolbox.utilities import read_DISCON #, DISCON_dict
-#import numpy as np
+# import numpy as np
+
+
+FULL_TEST = False
 
 def main():
     # Choose your implementation method
     AWC_Mode 			= 1 		# 1 for SNL implementation, 2 for Coleman Transformation implementation
+                                    # 3 for closed-loop PI, 4 for closed-loop PR
+                                    # 5 for closed-loop Strouhal transformed (only works for helix)
 
 
     #directories
@@ -195,19 +265,42 @@ def main():
     elif AWC_Mode == 2:
         control_base_case[('DISCON_in','AWC_Mode')] = {'vals': [0,2,2,2,2,2], 'group': 2}
         control_base_case[('DISCON_in','AWC_NumModes')] = {'vals': [1,1,2,2,2,2], 'group': 2}
-        control_base_case[('DISCON_in','AWC_harmonic')] = {'vals': [[0],[0],[1,1],[1,1],[1,1], [1,1]], 'group': 2}
-        control_base_case[('DISCON_in','AWC_freq')] = {'vals': [[0],[0.05],[0.05,0.05],[0.05,0.05],[0.05,0.05], [0.05,0.05]], 'group': 2}
-        control_base_case[('DISCON_in','AWC_amp')] = {'vals': [[0],[2.5],[2.5,2.5],[2.5,2.5],[2.5,0.0], [0.0,2.5]], 'group': 2}
-        control_base_case[('DISCON_in','AWC_clockangle')] = {'vals': [[0],[0],[0,-90],[0,90],[0,0], [180,180]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_harmonic')] = {'vals': [[0],[0],[1,1],[1,1],[1,1],[1,1]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_freq')] = {'vals': [[0],[0.05],[0.05,0.05],[0.05,0.05],[0.05,0.05],[0.05,0.05]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_amp')] = {'vals': [[0],[2.5],[2.5,2.5],[2.5,2.5],[2.5,0.0],[0.0,2.5]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_clockangle')] = {'vals': [[0],[0],[0,-90],[0,90],[0,0],[180,180]], 'group': 2}
+    elif (AWC_Mode == 3) or (AWC_Mode == 4):
+        control_base_case[('DISCON_in','AWC_Mode')] = {'vals': [0,AWC_Mode,AWC_Mode,AWC_Mode,AWC_Mode,AWC_Mode], 'group': 2}
+        control_base_case[('DISCON_in','AWC_NumModes')] = {'vals': [1,2,2,2,2,2], 'group': 2}
+        control_base_case[('DISCON_in','AWC_harmonic')] = {'vals': [[0],[0],[1,1],[1,1],[1,1],[1,1]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_freq')] = {'vals': [[0],[0.05],[0.05,0.05],[0.05,0.05],[0.05,0.05],[0.05,0.05]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_amp')] = {'vals': [[0],[2e6],[1e6,1e6],[1e6,1e6],[1e6,0.0],[0.0,1e6]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_clockangle')] = {'vals': [[0],[0],[0,-90],[0,90],[0,0],[180,180]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_phaseoffset')] = {'vals': [20,20,20,20,20,20], 'group': 2}
+        control_base_case[('DISCON_in','AWC_CntrGains')] = {'vals': [[1e-10,2e-9],[1e-10,2e-9],[1e-10,2e-9],[1e-10,2e-9],[1e-10,2e-9],[1e-10,2e-9]], 'group': 2}
+    elif AWC_Mode == 5:
+        control_base_case[('DISCON_in','AWC_Mode')] = {'vals': [0,5,5], 'group': 2}
+        control_base_case[('DISCON_in','AWC_NumModes')] = {'vals': [1,2,2], 'group': 2}
+        control_base_case[('DISCON_in','AWC_harmonic')] = {'vals': [[0],[1,1],[1,1]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_freq')] = {'vals': [[0],[0.05,0.05],[0.05,0.05]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_amp')] = {'vals': [[0],[1e6,1e6],[1e6,1e6]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_clockangle')] = {'vals': [[0],[0,-90],[0,90]], 'group': 2}
+        control_base_case[('DISCON_in','AWC_phaseoffset')] = {'vals': [20,20,20], 'group': 2}
+        control_base_case[('DISCON_in','AWC_CntrGains')] = {'vals': [[1e-10,2e-9],[1e-10,2e-9],[1e-10,2e-9]], 'group': 2}
+
     
     # simulation set up
     r = run_FAST_ROSCO()
     r.tuning_yaml   = parameter_filename
     r.wind_case_fcn = cl.power_curve  # single step wind input
     r.wind_case_opts    = {
-        'U': [14],  # from 10 to 15 m/s
-        'TMax': 100,
+        'U': [8],  # choose below-rated wind speed
+        'TMax': 300,
         }
+    
+    if not FULL_TEST:
+        r.wind_case_opts['TMax'] = 1  # for quick testing, use a short simulation time
+
     r.case_inputs = control_base_case
     r.case_inputs[("ServoDyn","Ptch_Cntrl")] = {'vals':[1], 'group':0}  # Individual pitch control must be enabled in ServoDyn
     r.save_dir      = run_dir

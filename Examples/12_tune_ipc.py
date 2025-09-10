@@ -34,6 +34,13 @@ def main():
   case_inputs[('ServoDyn','Ptch_Cntrl')]   = {'vals': [1], 'group': 0}
   case_inputs[('DISCON_in','IPC_SatMode')]   = {'vals': [0,1,2,3], 'group': 1}
   
+  if FULL_TEST:
+    t_start = 100
+    t_end = 400
+  else:
+    t_start = 1
+    t_end = 2
+
 
   # simulation set up
   r = run_FAST_ROSCO()
@@ -42,8 +49,8 @@ def main():
   r.wind_case_opts    = {
       'U_start': 11,  # from 10 to 15 m/s
       'U_end': 9,
-      't_start': 100,
-      't_end': 400,
+      't_start': t_start,
+      't_end': t_end,
       'both_dir': True,
       'vert_shear': 0.2
       }
@@ -62,7 +69,7 @@ def main():
   cases = {}
   cases['Baseline'] = ['Wind1VelX', 'BldPitch1', 'RootMyc1', 'RotSpeed']
 
-  out_files = [os.path.join(example_out_dir,example_name,f'NREL2p8/ramp/base/NREL2p8_{i_case}.outb') for i_case in range(4)]
+  out_files = [os.path.join(example_out_dir,example_name,f'NREL2p8_{i_case}.outb') for i_case in range(4)]
   op = output_processing.output_processing()
   fastout = op.load_fast_out(out_files, tmin=0)
   fig, ax = op.plot_fast_out(cases=cases,showplot=False)
