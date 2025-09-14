@@ -44,13 +44,16 @@ def main():
     controller_params['PS_Mode'] = 0
     controller_params['PA_Mode'] = 2  
     controller_params['vs_minspd'] = 0.    # Reduce minimum rotor speed so that saturation does not interfere with exclusion
-    controller_params['VS_ControlMode'] = 3.   
+    controller_params['VS_ControlMode'] = 3.#2.#3.ö yorumdakiler orjinal değer 
     
     # TRA parameters
     controller_params['DISCON'] = {}
-    controller_params['DISCON']['TRA_ExclSpeed'] = 4.75 * rpm2RadSec
-    controller_params['DISCON']['TRA_ExclBand'] = 1 * rpm2RadSec
-    controller_params['DISCON']['TRA_RateLimit'] = 0.7916800 / 100
+    controller_params['DISCON']['TRA_ExclSpeed'] = 4.75 * rpm2RadSec#0#4.75 * rpm2RadSec ö yorumdakiler orjinal değer
+    controller_params['DISCON']['TRA_ExclBand'] = 1 * rpm2RadSec#0#1 * rpm2RadSec ö yorumdakiler orjinal değer
+    controller_params['DISCON']['TRA_RateLimit'] = 0.7916800 / 100#0#0.7916800 / 100 ö yorumdakiler orjinal değer
+
+    #controller_params['DISCON']['VS_MinOMSpd'] = 0.523600000000 #sil
+    #controller_params['DISCON']['VS_Rgn2K'] = 37722980.13131 #sil
 
     #controller_params['DISCON']['SS_VSGain'] = 1 #Chaning Values
 
@@ -80,13 +83,25 @@ def main():
     # # turbulence
     r.wind_case_fcn = cl.turb_bts  
     r.wind_case_opts    = {
-         'TMax': 2480,  # from 10 to 15 m/s
+         'TMax': 720,  # from 10 to 15 m/s
          #     'wind_filenames': ['/Users/dzalkind/Downloads/heavy_test_1ETM_U6.000000_Seed603.0.bts'],
          #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/TurbSim9.bts'],
-         #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U11.000000_Seed1501552846.0_DLC1.1_11ms_720s.bts'],
+         'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U11.000000_Seed1501552846.0_DLC1.1_11ms_720s.bts'],
+         #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U18.000000_Seed1501552846.0.bts'],
+         #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U20.000000_Seed1501552846.0.bts'],
+         #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U22.000000_Seed1501552846.0.bts'],
+         #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U24.000000_Seed1501552846.0.bts'],
+         #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U26.000000_Seed1501552846.0.bts'],
+         #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U28.000000_Seed1501552846.0.bts'],
+         #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U30.000000_Seed1501552846.0.bts'],
          #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U11.000000_Seed488200390.0-DLL1.1_11ms_720sn_Seed2.bts'],
-         'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U11.000000_Seed1501552846.0-DLC1.1_11ms_2500sn_Seed1yeni.bts'],
+         #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U11.000000_Seed1501552846.0-DLC1.1_11ms_2500sn_Seed1yeni.bts'],
+         #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U8.000000_Seed1501552846.0-DLC 1.1-720sn.bts'],
+         #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U15.000000_Seed1501552846.0-DLC 1.1-720sn.bts'],
+         #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U9.000000_Seed1501552846.0.bts'],
+         #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U14.000000_Seed1501552846.0.bts'],
          }
+    #BU DOSYA HPC'de OLACAK BURAYI OKU. BU YAZIYI OKUYORSAN BU VERSİYON HPC' DE DEMEKTİR.
 
     # Run with and without AEPS algorithm
     r.control_sweep_fcn = cl.sweep_yaml_input
@@ -100,7 +115,7 @@ def main():
     r.rosco_dir     = rosco_dir
     r.case_inputs = {}
     r.rosco_dll = "C:/Users/musah/ROSCO/rosco/controller/build/libdiscon.dll"
-    r.n_cores = 2
+    r.n_cores = 1
     r.run_FAST()
 
 

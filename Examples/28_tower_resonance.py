@@ -45,6 +45,7 @@ def main():
     
     # Set DISCON input dynamically through yaml/dict
     controller_params = {}
+    controller_params['ASO_Mode'] = 0  
     controller_params['TRA_Mode'] = 2    
     controller_params['vs_minspd'] = 0.    # Reduce minimum rotor speed so that saturation does not interfere with exclusion
     controller_params['VS_ControlMode'] = 3.   
@@ -63,20 +64,20 @@ def main():
     # A few different cases highlight TRA
     
     # Ramp: good demo of functionality, short for CI
-    r.wind_case_fcn = cl.ramp  
-    r.wind_case_opts    = {
-        'U_start': 0,  # from 10 to 15 m/s
-        'U_end': 10,
-        't_start': 100,
-        't_end': 300
-        }
+    #r.wind_case_fcn = cl.ramp  
+    #r.wind_case_opts    = {
+    #    'U_start': 0,  # from 10 to 15 m/s
+    #    'U_end': 10,
+    #    't_start': 100,
+    #    't_end': 300,
+    #    }
 
     # # steady
-    # r.wind_case_fcn = cl.power_curve  
-    # r.wind_case_opts    = {
-    #     'U': 6.5,  # from 10 to 15 m/s
-    #     'TMax': 400,
-    #     }
+    r.wind_case_fcn = cl.power_curve  
+    r.wind_case_opts    = {
+         'U': 6.5,  # from 10 to 15 m/s
+         'TMax': 400,
+         }
     
     # # turbulence
     # r.wind_case_fcn = cl.turb_bts  
@@ -89,6 +90,7 @@ def main():
     r.control_sweep_fcn = cl.sweep_yaml_input
     r.control_sweep_opts = {
             'control_param': 'TRA_Mode',
+            #'param_values': [0]
             'param_values': [0,1]
         }
     
@@ -96,7 +98,8 @@ def main():
     r.save_dir      = run_dir
     r.rosco_dir     = rosco_dir
     r.case_inputs = {}
-    r.n_cores = 2
+    r.rosco_dll = "C:/Users/musah/ROSCO/rosco/controller/build/libdiscon.dll"
+    r.n_cores = 1
     r.run_FAST()
 
 

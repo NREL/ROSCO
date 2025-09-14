@@ -1,0 +1,8 @@
+/home/runner/miniconda3/envs/test/lib/libdiscon.so
+
+
+C:/Users/musah/ROSCO/Examples/DISCON.IN
+
+discondan aldım aşagıdakini
+
+C:\Users\musah\ROSCO\Examples\Test_Cases\IEA-15-240-RWT\Cp_Ct_Cq.IEA15MW.txt

@@ -62,3 +62,5 @@ controller_params:
   e_dp:               0.035                 # AEPS design parameter for effective avoidance
   PreDf_Thrst:        1.5                   # AEPS Pre-Defined Thrust Limit [MN]
 
+  #BU DOSYA HPC'de OLACAK BURAYI OKU. BU YAZIYI OKUYORSAN BU VERSİYON HPC' DE DEMEKTİR.
+
