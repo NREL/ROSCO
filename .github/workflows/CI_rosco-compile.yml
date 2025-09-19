@@ -17,7 +17,7 @@ jobs:
             fail-fast: false #true
             matrix:
                 os: ["ubuntu-latest", "macOS-latest", "windows-latest"] #mac-13 intel, mac-14 arm
-                python-version: ["3.11", "3.12"]
+                python-version: ["3.11", "3.12", "3.13"]
 
         steps:
             - name: Setup GNU Fortran
@@ -56,10 +56,10 @@ jobs:
                   brew install zeromq
                   
             - name: checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
 
             - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v5
+              uses: actions/setup-python@v6
               id: cp
               with:
                   python-version: ${{ matrix.python-version }}
@@ -109,7 +109,7 @@ jobs:
             fail-fast: false #true
             matrix:
                 os: ["ubuntu-latest", "macOS-13", "macOS-14", "windows-latest"] #mac-13 intel, mac-14 arm
-                python-version: ["3.11", "3.12"]
+                python-version: ["3.11", "3.12", "3.13"]
 
         steps:
             - name: checkout repository
