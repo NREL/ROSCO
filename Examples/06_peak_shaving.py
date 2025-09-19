@@ -12,7 +12,7 @@ The ``ps_percent`` input (to the tuning yaml) is the fraction of the allowed thr
 For example, if the maximum thrust is 1e5 N, and we want to limite the maximum thrust to 8e4 N, ``ps_percent`` = 0.8.
 Note that "percent" is a bit of a misnomer.
 
-For PS_Mode = 2, the minimum pitch limit is calculated to maximize the Cp surface in below rated; this usually results in a non-zero pitch at low wind speeds.  
+For PS_Mode = 2, the minimum pitch limit is calculated to maximize the Cp surface in below rated; this usually results in a non-zero pitch at low wind speeds.
 For large rotors, sometimes a minimum rotor speed is enforced to avoid resonance between the rotor period and the tower natural frequency; this results in a non-constant TSR across the below-rated operating points.
 In this case, different pitch angles will be required to maximize Cp.
 
@@ -20,7 +20,7 @@ For PS_Mode = 3, both the thrust limiting and the power maximizing tuning routin
 This example demonstrates PS_Mode = 3 as follows, compared to the steady state blade pitch operating points of the turbine.
 The ROSCO toolbox uses Cp and Ct tables to compute these inputs to the ROSCO controller.
 
-.. figure:: /source/figures/06_MinPitch.png
+.. figure:: ../images/examples/06_MinPitch.png
    :align: center
    :width: 70%
 
@@ -29,9 +29,9 @@ The ROSCO toolbox uses Cp and Ct tables to compute these inputs to the ROSCO con
 # Figure copy: cp ../Examples/examples_out/06_MinPitch.png source/figures/
 
 # Python modules
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 import os
-# ROSCO toolbox modules 
+# ROSCO toolbox modules
 from rosco.toolbox import controller as ROSCO_controller
 from rosco.toolbox import turbine as ROSCO_turbine
 from rosco.toolbox.inputs.validation import load_rosco_yaml
@@ -43,7 +43,7 @@ def main():
     if not os.path.isdir(example_out_dir):
         os.makedirs(example_out_dir)
 
-    # Load yaml file 
+    # Load yaml file
     parameter_filename = os.path.join(tune_dir,'NREL5MW.yaml')
     inps = load_rosco_yaml(parameter_filename)
     path_params         = inps['path_params']
@@ -64,7 +64,7 @@ def main():
         os.path.join(tune_dir,path_params['FAST_directory']),
         rot_source='txt',txt_filename=os.path.join(tune_dir,path_params['rotor_performance_filename'])
         )
-    # Tune controller 
+    # Tune controller
     controller.tune_controller(turbine)
 
     # Plot minimum pitch schedule

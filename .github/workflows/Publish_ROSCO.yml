@@ -20,7 +20,7 @@ jobs:
         uses: docker/setup-qemu-action@v3
         with:
           platforms: all
-        
+
       - name: Setup GNU Fortran
         if: false == contains( matrix.os, 'windows')
         uses: fortran-lang/setup-fortran@v1
@@ -31,7 +31,7 @@ jobs:
         uses: rlalik/setup-cpp-compiler@master
         with:
           compiler: clang
-          
+
       - name: Install mingw-w64 on Windows
         if: contains( matrix.os, 'windows')
         uses: msys2/setup-msys2@v2
@@ -43,17 +43,17 @@ jobs:
             mingw-w64-x86_64-zeromq
             mingw-w64-x86_64-cmake
             mingw-w64-x86_64-pkg-config
-              
+
       - name: Install zeromq ubuntu
         if: contains( matrix.os, 'ubuntu')
         run: |
             sudo apt install libzmq3-dev libzmq5 libczmq-dev libczmq4
-              
+
       - name: Install zeromq mac
         if: contains( matrix.os, 'mac')
         run: |
             brew install zeromq
-            
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -96,7 +96,7 @@ jobs:
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
-          
+
   build_sdist:
     name: Build source distribution
     runs-on: ubuntu-latest

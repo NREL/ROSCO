@@ -45,14 +45,13 @@ classifiers = [  # Optional
 
 dependencies = [
   "control",
-  "numpy<2.0",
+  "numpy",
   "matplotlib",
   "scipy",
   "pandas",
   "pyparsing",
   "pyYAML",
   "pyzmq",
-  "treon",
   "wisdem",
   "ruamel.yaml",
   "openfast_io",
@@ -68,7 +67,7 @@ dependencies = [
 # projects.
 [project.optional-dependencies] # Optional
 dev = ["cmake"]
-test = ["pytest"]
+test = ["pytest","treon"]
 
 # List URLs that are relevant to your project
 #
