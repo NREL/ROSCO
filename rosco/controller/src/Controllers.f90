@@ -240,11 +240,7 @@ CONTAINS
         IF (CntrPar%VS_FBP == VS_FBP_Variable_Pitch) THEN
             ! Variable pitch mode
             IF (CntrPar%VS_ConstPower == VS_Mode_ConstPwr) THEN
-<<<<<<< HEAD
-                LocalVar%VS_MaxTq = min(LocalVar%VS_ConstPwr_GenTq * LocalVar%PRC_R_Torque, CntrPar%VS_MaxTq)
-=======
                 LocalVar%VS_MaxTq = min(LocalVar%VS_ConstPwr_GenTq, CntrPar%VS_MaxTq)
->>>>>>> main
             ELSE
                 LocalVar%VS_MaxTq = CntrPar%VS_RtTq * LocalVar%PRC_R_Torque
             END IF
