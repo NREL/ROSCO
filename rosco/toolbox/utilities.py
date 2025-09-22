@@ -24,6 +24,7 @@ list_check
 """
 import datetime
 import os
+import ast
 import numpy as np
 import subprocess
 import rosco.toolbox
@@ -89,43 +90,43 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('!    - File written using ROSCO version {} controller tuning logic on {}\n'.format(rosco.toolbox.__version__, now.strftime('%m/%d/%y')))
     file.write('\n')
     file.write('!------- SIMULATION CONTROL ------------------------------------------------------------\n')
-    file.write('{0:<12d}        ! LoggingLevel		- {{0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)}}\n'.format(int(rosco_vt['LoggingLevel'])))
-    file.write('{}                   ! DT_Out    		  - {{Time step to output .dbg* files, or 0 to match sampling period of OpenFAST}}\n'.format(rosco_vt['DT_Out']))
+    file.write('{0:<12d}        ! LoggingLevel		- 0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)\n'.format(int(rosco_vt['LoggingLevel'])))
+    file.write('{}                   ! DT_Out    		  - Time step to output .dbg* files, or 0 to match sampling period of OpenFAST\n'.format(rosco_vt['DT_Out']))
     file.write('{:<11d}         ! Ext_Interface		- ({})\n'.format(int(rosco_vt['Ext_Interface']), input_descriptions['Ext_Interface']))
     file.write('{:<11d}         ! Echo		        - ({})\n'.format(int(rosco_vt['Echo']), input_descriptions['Echo']))
     file.write('\n')
     file.write('!------- CONTROLLER FLAGS -------------------------------------------------\n')
-    file.write('{0:<12d}        ! F_LPFType       - (1: first-order low-pass filter, 2: second-order low-pass filter), [rad/s] (currently filters generator speed and pitch control signals\n'.format(int(rosco_vt['F_LPFType'])))
-    file.write('{0:<12d}        ! IPC_ControlMode - Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {{0: off, 1: 1P reductions, 2: 1P+2P reductions}}\n'.format(int(rosco_vt['IPC_ControlMode'])))
-    file.write('{0:<12d}        ! VS_ControlMode  - Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking, 4- Torque-based TSR Tracking)}}\n'.format(int(rosco_vt['VS_ControlMode'])))
-    file.write('{0:<12d}        ! VS_ConstPower   - Do constant power torque control, where above rated torque varies, 0 for constant torque}}\n'.format(int(rosco_vt['VS_ConstPower'])))
+    file.write('{0:<12d}        ! F_LPFType       - 1: first-order low-pass filter, 2: second-order low-pass filter, [rad/s] (currently filters generator speed and pitch control signals\n'.format(int(rosco_vt['F_LPFType'])))
+    file.write('{0:<12d}        ! IPC_ControlMode - Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) (0: off, 1: 1P reductions, 2: 1P+2P reductions)\n'.format(int(rosco_vt['IPC_ControlMode'])))
+    file.write('{0:<12d}        ! VS_ControlMode  - Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking, 4- Torque-based TSR Tracking)\n'.format(int(rosco_vt['VS_ControlMode'])))
+    file.write('{0:<12d}        ! VS_ConstPower   - Do constant power torque control, where above rated torque varies, 0 for constant torque)\n'.format(int(rosco_vt['VS_ConstPower'])))
     file.write('{0:<12d}        ! VS_FBP          - Fixed blade pitch configuration mode (0- variable pitch (disabled), 1- constant power overspeed, 2- WSE-lookup reference tracking, 3- torque-lookup reference tracking)\n'.format(int(rosco_vt['VS_FBP'])))
-    file.write('{0:<12d}        ! PC_ControlMode  - Blade pitch control mode {{0: No pitch, fix to fine pitch, 1: active PI blade pitch control}}\n'.format(int(rosco_vt['PC_ControlMode'])))
-    file.write('{0:<12d}        ! Y_ControlMode   - Yaw control mode {{0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}}\n'.format(int(rosco_vt['Y_ControlMode'])))
-    file.write('{0:<12d}        ! SS_Mode         - Setpoint Smoother mode {{0: no setpoint smoothing, 1: introduce setpoint smoothing}}\n'.format(int(rosco_vt['SS_Mode'])))
-    file.write('{0:<12d}        ! PRC_Mode        - Power reference tracking mode{{0: power control disabled, 1: lookup table from wind speed to generator speed setpoints, 2: change speed, torque, pitch to control power}}\n'.format(int(rosco_vt['PRC_Mode'])))
-    file.write('{0:<12d}        ! WE_Mode         - Wind speed estimator mode {{0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator, 2: Extended Kalman Filter}}\n'.format(int(rosco_vt['WE_Mode'])))
-    file.write('{0:<12d}        ! PS_Mode         - Pitch saturation mode {{0: no pitch saturation, 1: implement pitch saturation}}\n'.format(int(rosco_vt['PS_Mode'])))
-    file.write('{0:<12d}        ! SU_Mode         - Startup mode {{0: no startup procedure, 1: startup enabled}}\n'.format(int(rosco_vt['SU_Mode'])))
-    file.write('{0:<12d}        ! SD_Mode         - Shutdown mode {{0: no shutdown procedure, 1: shutdown enabled}}\n'.format(int(rosco_vt['SD_Mode'])))
-    file.write('{0:<12d}        ! Fl_Mode         - Floating specific feedback mode {{0: no nacelle velocity feedback, 1: feed back translational velocity, 2: feed back rotational veloicty}}\n'.format(int(rosco_vt['Fl_Mode'])))
+    file.write('{0:<12d}        ! PC_ControlMode  - Blade pitch control mode (0: No pitch, fix to fine pitch, 1: active PI blade pitch control)\n'.format(int(rosco_vt['PC_ControlMode'])))
+    file.write('{0:<12d}        ! Y_ControlMode   - Yaw control mode (0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC)\n'.format(int(rosco_vt['Y_ControlMode'])))
+    file.write('{0:<12d}        ! SS_Mode         - Setpoint Smoother mode (0: no setpoint smoothing, 1: introduce setpoint smoothing)\n'.format(int(rosco_vt['SS_Mode'])))
+    file.write('{0:<12d}        ! PRC_Mode        - Power reference tracking mode (0: power control disabled, 1: lookup table from wind speed to generator speed setpoints, 2: change speed, torque, pitch to control power)\n'.format(int(rosco_vt['PRC_Mode'])))
+    file.write('{0:<12d}        ! WE_Mode         - Wind speed estimator mode (0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator, 2: Extended Kalman Filter)\n'.format(int(rosco_vt['WE_Mode'])))
+    file.write('{0:<12d}        ! PS_Mode         - Pitch saturation mode (0: no pitch saturation, 1: implement pitch saturation)\n'.format(int(rosco_vt['PS_Mode'])))
+    file.write('{0:<12d}        ! SU_Mode         - Startup mode (0: no startup procedure, 1: startup enabled)\n'.format(int(rosco_vt['SU_Mode'])))
+    file.write('{0:<12d}        ! SD_Mode         - Shutdown mode (0: no shutdown procedure, 1: shutdown enabled)\n'.format(int(rosco_vt['SD_Mode'])))
+    file.write('{0:<12d}        ! Fl_Mode         - Floating specific feedback mode (0: no nacelle velocity feedback, 1: feed back translational velocity, 2: feed back rotational velocity)\n'.format(int(rosco_vt['Fl_Mode'])))
     file.write('{0:<12d}        ! FlTq_Mode       - Floating specific feedback mode to generator torque {{0: no nacelle velocity feedback, 1: feed back translational velocity, 2: feed back rotational veloicty}}\n'.format(int(rosco_vt['FlTq_Mode'])))
     file.write('{:<12d}        ! TD_Mode         - {}\n'.format(int(rosco_vt['TD_Mode']),mode_descriptions['TD_Mode']))
     file.write('{:<12d}        ! TRA_Mode        - {}\n'.format(int(rosco_vt['TRA_Mode']),mode_descriptions['TRA_Mode']))
-    file.write('{0:<12d}        ! Flp_Mode        - Flap control mode {{0: no flap control, 1: steady state flap angle, 2: Proportional flap control, 2: Cyclic (1P) flap control}}\n'.format(int(rosco_vt['Flp_Mode'])))
-    file.write('{0:<12d}        ! OL_Mode         - Open loop control mode {{0: no open loop control, 1: open loop control vs. time, 2: rotor position control}}\n'.format(int(rosco_vt['OL_Mode'])))
-    file.write('{0:<12d}        ! PA_Mode         - Pitch actuator mode {{0 - not used, 1 - first order filter, 2 - second order filter}}\n'.format(int(rosco_vt['PA_Mode'])))
-    file.write('{0:<12d}        ! PF_Mode         - Pitch fault mode {{0 - not used, 1 - constant offset on one or more blades}}\n'.format(int(rosco_vt['PF_Mode'])))
-    file.write('{0:<12d}        ! AWC_Mode        - Active wake control {{0 - not used, 1 - complex number method, 2 - Coleman transform method}}\n'.format(int(rosco_vt['AWC_Mode'])))
-    file.write('{0:<12d}        ! Ext_Mode        - External control mode {{0 - not used, 1 - call external dynamic library}}\n'.format(int(rosco_vt['Ext_Mode'])))
-    file.write('{0:<12d}        ! ZMQ_Mode        - Fuse ZeroMQ interface {{0: unused, 1: Yaw Control}}\n'.format(int(rosco_vt['ZMQ_Mode'])))
+    file.write('{0:<12d}        ! Flp_Mode        - Flap control mode (0: no flap control, 1: steady state flap angle, 2: Proportional flap control, 2: Cyclic (1P) flap control)\n'.format(int(rosco_vt['Flp_Mode'])))
+    file.write('{0:<12d}        ! OL_Mode         - Open loop control mode (0: no open loop control, 1: open loop control vs. time, 2: rotor position control)\n'.format(int(rosco_vt['OL_Mode'])))
+    file.write('{0:<12d}        ! PA_Mode         - Pitch actuator mode (0 - not used, 1 - first order filter, 2 - second order filter)\n'.format(int(rosco_vt['PA_Mode'])))
+    file.write('{0:<12d}        ! PF_Mode         - Pitch fault mode (0 - not used, 1 - constant offset on one or more blades)\n'.format(int(rosco_vt['PF_Mode'])))
+    file.write('{0:<12d}        ! AWC_Mode        - Active wake control (0 - not used, 1 - complex number method, 2 - Coleman transform method)\n'.format(int(rosco_vt['AWC_Mode'])))
+    file.write('{0:<12d}        ! Ext_Mode        - External control mode (0 - not used, 1 - call external dynamic library)\n'.format(int(rosco_vt['Ext_Mode'])))
+    file.write('{0:<12d}        ! ZMQ_Mode        - Fuse ZeroMQ interface (0: unused, 1: Yaw Control)\n'.format(int(rosco_vt['ZMQ_Mode'])))
     file.write('{:<12d}        ! CC_Mode         - {}\n'.format(int(rosco_vt['CC_Mode']),mode_descriptions['CC_Mode']))
     file.write('{:<12d}        ! StC_Mode        - {}\n'.format(int(rosco_vt['StC_Mode']),mode_descriptions['StC_Mode']))
 
     file.write('\n')
     file.write('!------- FILTERS ----------------------------------------------------------\n') 
     file.write('{:<13.5f}       ! F_LPFCornerFreq	  - Corner frequency (-3dB point) in the low-pass filters, [rad/s]\n'.format(rosco_vt['F_LPFCornerFreq'])) 
-    file.write('{:<13.5f}       ! F_LPFDamping		  - Damping coefficient {{used only when F_FilterType = 2}} [-]\n'.format(rosco_vt['F_LPFDamping']))
+    file.write('{:<13.5f}       ! F_LPFDamping		  - Damping coefficient (used only when F_FilterType = 2) [-]\n'.format(rosco_vt['F_LPFDamping']))
     file.write('{:<12d}        ! F_NumNotchFilts   - {}\n'.format(int(rosco_vt["F_NumNotchFilts"]), input_descriptions["F_NumNotchFilts"]))
     file.write('{}        ! F_NotchFreqs      - {}\n'.format(write_array(rosco_vt["F_NotchFreqs"]), input_descriptions["F_NotchFreqs"]))
     file.write('{}        ! F_NotchBetaNum    - {}\n'.format(write_array(rosco_vt['F_NotchBetaNum']), input_descriptions["F_NotchBetaNum"]))
@@ -166,7 +167,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{}! IPC_KP			- Proportional gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions, [-]\n'.format(write_array(rosco_vt['IPC_KP'],'<12.3e')))
     file.write('{}! IPC_KI			- Integral gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions, [-]\n'.format(write_array(rosco_vt['IPC_KI'],'<12.3e')))
     file.write('{}! IPC_aziOffset		- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. \n'.format(write_array(rosco_vt['IPC_aziOffset'],'<12.3f')))
-    file.write('{:<13.1f}       ! IPC_CornerFreqAct - Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal {{0: Disable}}, [rad/s]\n'.format(rosco_vt['IPC_CornerFreqAct']))
+    file.write('{:<13.1f}       ! IPC_CornerFreqAct - Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal (0: Disable), [rad/s]\n'.format(rosco_vt['IPC_CornerFreqAct']))
     file.write('\n')
     file.write('!------- VS TORQUE CONTROL ------------------------------------------------\n')
     file.write('{:<14.5f}      ! VS_GenEff			- Generator efficiency mechanical power -> electrical power, [should match the efficiency defined in the generator properties!], [%]\n'.format(rosco_vt['VS_GenEff']))
@@ -794,7 +795,7 @@ def list_check(x, return_bool=True):
 
 def write_array(array,format='<.4f',line_width=12):
     if isinstance(array, str):
-        array = eval(array)
+        array = ast.literal_eval(array)
     elif not hasattr(array,'__len__'):  #not an array
         array = [array]
 

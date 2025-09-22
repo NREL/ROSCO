@@ -20,7 +20,7 @@ For PS_Mode = 3, both the thrust limiting and the power maximizing tuning routin
 This example demonstrates PS_Mode = 3 as follows, compared to the steady state blade pitch operating points of the turbine.
 The ROSCO toolbox uses Cp and Ct tables to compute these inputs to the ROSCO controller.
 
-.. figure:: /source/figures/06_MinPitch.png
+.. figure:: ../images/examples/06_MinPitch.png
    :align: center
    :width: 70%
 

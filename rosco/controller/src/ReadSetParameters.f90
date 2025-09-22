@@ -1089,7 +1089,7 @@ CONTAINS
         ENDIF
         
         ! SU_Mode
-        IF ((CntrPar%SU_Mode < 0) .OR. (CntrPar%SD_Mode > 1)) THEN
+        IF ((CntrPar%SU_Mode < 0) .OR. (CntrPar%SU_Mode > 1)) THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'SU_Mode must be 0 or 1.'
         ENDIF

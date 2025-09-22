@@ -236,13 +236,13 @@ CONTAINS
         ! Pre-compute generator torque values for K*Omega^2 and constant power
         LocalVar%VS_KOmega2_GenTq = CntrPar%VS_Rgn2K*LocalVar%GenSpeedF*LocalVar%GenSpeedF
         LocalVar%Alpha_ConstPower = interp1d(CntrPar%VS_ConstPower_U, CntrPar%VS_ConstPower_alpha, LocalVar%WE_Vw_F, ErrVar)       ! Schedule based on WSE (could use filtered blade pitch instead)
-        LocalVar%VS_ConstPwr_GenTq = (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0)) / (CntrPar%PC_RefSpd + LocalVar%Alpha_ConstPower * (LocalVar%GenSpeedF - CntrPar%PC_RefSpd))
+        LocalVar%VS_ConstPwr_GenTq = (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0)) / (CntrPar%PC_RefSpd + LocalVar%Alpha_ConstPower * (LocalVar%GenSpeedF - CntrPar%PC_RefSpd))  * LocalVar%PRC_R_Torque
 
         ! Determine maximum torque saturation limit, VS_MaxTq
         IF (CntrPar%VS_FBP == VS_FBP_Variable_Pitch) THEN 
             ! Variable pitch mode        
             IF (CntrPar%VS_ConstPower == VS_Mode_ConstPwr) THEN
-                LocalVar%VS_MaxTq = min(LocalVar%VS_ConstPwr_GenTq * LocalVar%PRC_R_Torque, CntrPar%VS_MaxTq)
+                LocalVar%VS_MaxTq = min(LocalVar%VS_ConstPwr_GenTq, CntrPar%VS_MaxTq)
             ELSE
                 LocalVar%VS_MaxTq = CntrPar%VS_RtTq * LocalVar%PRC_R_Torque
             END IF
