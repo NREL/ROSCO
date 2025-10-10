@@ -64,6 +64,7 @@ class Controller():
         self.SU_Mode            = controller_params['SU_Mode']
         self.SD_Mode            = controller_params['SD_Mode']
         self.Fl_Mode            = controller_params['Fl_Mode']
+        self.FlTq_Mode          = controller_params['FlTq_Mode']
         self.TD_Mode            = controller_params['TD_Mode']
         self.TRA_Mode           = controller_params['TRA_Mode']
         self.Flp_Mode           = controller_params['Flp_Mode']
@@ -92,6 +93,8 @@ class Controller():
         self.ps_percent         = controller_params['ps_percent']
         self.WS_GS_n            = controller_params['WS_GS_n']
         self.PC_GS_n            = controller_params['PC_GS_n']
+        self.VS_ConstPower_alpha   = controller_params['VS_ConstPower_alpha']
+        self.VS_ConstPower_U    = controller_params['VS_ConstPower_U']
         self.flp_maxpit         = controller_params['flp_maxpit']
         self.Kp_ipc1p           = controller_params['IPC_Kp1p']
         self.Ki_ipc1p           = controller_params['IPC_Ki1p']
@@ -126,7 +129,7 @@ class Controller():
                 raise Exception(
                     'rosco.toolbox:controller: flp_kp_norm and flp_tau must be set if Flp_Mode > 0')
 
-        if self.Fl_Mode > 0:
+        if self.Fl_Mode > 0 or self.FlTq_Mode > 0:
             if 'twr_freq' in controller_params and 'ptfm_freq' in controller_params:
                 self.twr_freq   = controller_params['twr_freq']
                 self.ptfm_freq  = controller_params['ptfm_freq']
@@ -139,12 +142,20 @@ class Controller():
             else:
                 self.Kp_float = np.array([0])
 
+            if 'Kp_floatTq' in controller_params:
+                self.Kp_floatTq = controller_params['Kp_floatTq']
+            else:
+                self.Kp_floatTq = np.array([0])
+
             self.tune_Fl = controller_params['tune_Fl']
+            self.tune_FlTq = controller_params['tune_FlTq']
 
 
         else:
             self.twr_freq   = 0
             self.ptfm_freq  = 0
+            self.ptfm_inertia  = 0
+            
 
         # Use critical damping if LPFType = 2
         if controller_params['F_LPFType'] == 2:
@@ -409,12 +420,18 @@ class Controller():
             A = dtau_domega/J
         else:                            # Constant power above rated
             A = dtau_domega/J 
-            A[-len(v_above_rated)+1:] += Ng**2/J * turbine.rated_power/(Ng**2*rated_rotor_speed**2)
+            # A[-len(v_above_rated)+1:] += Ng**2/J * turbine.rated_power/(Ng**2*rated_rotor_speed**2)
+            if self.interp_type == 'sigma':  # sigma interpolation
+                alpha_cp = multi_sigma(v_above_rated[1:], self.VS_ConstPower_U, self.VS_ConstPower_alpha)
+            else:   # standard scipy interpolation types
+                interp_alpha_cp = interpolate.interp1d(self.VS_ConstPower_U, self.VS_ConstPower_alpha, kind=self.interp_type, bounds_error=False, fill_value='extrapolate')
+                alpha_cp = interp_alpha_cp(v_above_rated[1:])
+            A[-len(v_above_rated)+1:] += alpha_cp * Ng**2/J * turbine.rated_power/(Ng**2*rated_rotor_speed**2)
         B_tau = -Ng**2/J              # Torque input  
         B_beta = dtau_dbeta/J         # Blade pitch input 
 
         # Wind Disturbance Input
-        dtau_dv = (0.5 * rho * Ar * 1/rated_rotor_speed) * (dCp_dTSR*dlambda_dv*v**3 + Cp_op*3*v**2) 
+        dtau_dv = (0.5 * rho * Ar * 1/(TSR_op*v/R)) * (dCp_dTSR*dlambda_dv*v**3 + Cp_op*3*v**2) 
         B_wind = dtau_dv/J # wind speed input - currently unused 
 
 
@@ -474,8 +491,6 @@ class Controller():
         self.v              = v                                  # Wind speed (m/s)
         self.v_above_rated  = v_above_rated
         self.v_below_rated  = v_below_rated
-        # Mod by A. Wright
-        self.v_for_gs       = v[-len(v_above_rated)+1:]
 		# end
         self.pitch_op       = pitch_op
         self.pitch_op_pc    = pitch_op[-len(v_above_rated)+1:]
@@ -525,6 +540,8 @@ class Controller():
         self.controller_params['DISCON']['PRC_Pitch_Table'] = pitch_R
 
         # --- Floating feedback term ---
+        self.U_Fl = np.array([0.0]) # Will be overwritten if either floating feedback mode is active
+        self.U_FlTq = np.array([0.0]) # Will be overwritten if either floating feedback mode is active
 
         if self.Fl_Mode >= 1: # Floating feedback
 
@@ -533,33 +550,121 @@ class Controller():
             if self.U_Fl:  # default is [], only have one Fl_Kp
                 if type(self.U_Fl) == str:
                     if self.U_Fl == 'all':  
-                        # Mod by A. Wright: get the array of Kp_float values at the values of v-above rated (see self.v_for_gs calculated around line 344).
-                        self.U_Fl = self.v_for_gs
+                        self.U_Fl = self.v_above_rated
+                        
+                        # Make Fl_alpha the same size if only one value given
+                        if len(self.controller_params['Fl_alpha']) == 1:
+                            self.controller_params['Fl_alpha'] = [self.controller_params['Fl_alpha'][0]] * len(self.U_Fl)
                     else:
                         raise Exception("Invalid entry in controller_params for U_Fl, please see schema")
             else:
-                self.U_Fl = np.array([turbine.v_rated * (1.05)])
-
+                self.U_Fl = np.array([turbine.v_rated * (1.05)]) # Default value is what is scheduled at v_rated + 5%
 
             # If we haven't set Kp_float as a control parameter, we tune it automatically here
             if self.tune_Fl:
-                Kp_float = (dtau_dv/dtau_dbeta) * Ng 
-                if self.Fl_Mode == 2:
-                    Kp_float *= turbine.TowerHt      
-                f_kp     = interpolate.interp1d(v,Kp_float)
-                self.Kp_float = f_kp(self.U_Fl)   # get Kp at v_rated + 0.5 m/s
+                if self.tune_Fl == 1: # "Parallel" compensation tuning
+                    self.Fl_alpha = self.controller_params['Fl_alpha']
+                    if len(self.Fl_alpha) != len(self.U_Fl):
+                        raise Exception('The sizes of Fl_alpha and U_Fl are not equal, please check your controller_params')
+
+                    f_alpha_comp  = interpolate.interp1d(self.U_Fl, self.Fl_alpha, fill_value=(self.Fl_alpha[0], self.Fl_alpha[-1]), bounds_error=False)
+                    Kp_float = (dtau_dv/dtau_dbeta) * Ng
+                    Kp_float *= f_alpha_comp(v)
+
+                    if self.Fl_Mode == 2:
+                        Kp_float *= turbine.TowerHt # Multiply by tower height because we are compensating for torque from fore-aft rotation
+
+                elif self.tune_Fl == 2:
+                    self.Fl_Dzeta = self.controller_params['Fl_Dzeta']
+                    if len(self.Fl_Dzeta) != len(self.U_Fl):
+                        raise Exception('The sizes of Fl_Dzeta and U_Fl are not equal, please check your controller_params')
+
+                    try:
+                        self.ptfm_inertia = self.controller_params['ptfm_inertia']
+                        # if self.Fl_Mode == 1:
+                        #     self.ptfm_inertia = self.controller_params['ptfm_inertia']
+                        # elif self.Fl_Mode == 2:
+                        #     self.ptfm_inertia = self.controller_params['ptfm_mass']
+                    except:
+                        try:
+                            if self.Fl_Mode == 1:
+                                self.ptfm_inertia = turbine.ED_mass
+                            elif self.Fl_Mode == 2:
+                                self.ptfm_inertia = turbine.ED_pitch_inertia
+
+                            if self.ptfm_inertia == 0.0:
+                                raise Exception('rosco.toolbox:controller: ptfm_inertia found to be zero, either set nonzero value in toolbox input or check ElastoDyn')
+                        except:
+                            raise Exception('rosco.toolbox:controller: ptfm_inertia must be set if Fl_Mode > 0 and tune_Fl == 2')
+                    f_Dzeta  = interpolate.interp1d(self.U_Fl, self.Fl_Dzeta, fill_value=(self.Fl_Dzeta[0], self.Fl_Dzeta[-1]), bounds_error=False)
+                    Kp_float = (2 * self.ptfm_freq * self.ptfm_inertia / Pi_beta) * f_Dzeta(v)
+
+                    if self.Fl_Mode == 2:
+                        Kp_float /= turbine.TowerHt # Divide by tower length because we are adding thrust moment
+
+                f_kp     = interpolate.interp1d(v, Kp_float, bounds_error=False, fill_value=(Kp_float[0], Kp_float[-1]))
+                self.Kp_float = f_kp(self.U_Fl)     # get Kp at scheduled wind speeds
 
             # Make arrays if not
             if not np.shape(self.Kp_float):
                 self.Kp_float = np.array([self.Kp_float])
             if not np.shape(self.U_Fl):
                 self.U_Fl = np.array([self.U_Fl])
-            
+
             # Check size of Kp_float and U_Fl
             if len(self.Kp_float) != len(self.U_Fl):
                 raise Exception('The sizes of Kp_float and U_Fl are not equal, please check your controller_params')
 
+            # Turn on the notch filter if floating and not already on
+            if not self.F_NotchType:
+                self.F_NotchType = 2
 
+            # And check for .yaml input inconsistencies
+            if self.twr_freq == 0.0 or self.ptfm_freq == 0.0:
+                print('WARNING: twr_freq and ptfm_freq should be defined for floating turbine control!!')
+
+        else:
+            self.Kp_float = np.array([0.0])
+
+        if self.FlTq_Mode >= 1: # Generator torque floating feedback
+
+            # Wind speed gain scheduling
+            self.U_FlTq = self.controller_params['U_FlTq']
+            if self.U_FlTq:  # default is [], only have one Fl_Kp
+                if type(self.U_FlTq) == str:
+                    if self.U_FlTq == 'all':  
+                        self.U_FlTq = self.v_above_rated
+                        # Make FlTq_alpha the same size if only one value given
+                        if len(self.controller_params['FlTq_alpha']) == 1:
+                            self.controller_params['FlTq_alpha'] = [self.controller_params['FlTq_alpha'][0]] * len(self.U_Fl)
+                    else:
+                        raise Exception("Invalid entry in controller_params for U_FlTq, please see schema")
+            else:
+                self.U_FlTq = np.array([turbine.v_rated * (1.05)])
+
+            self.FlTq_alpha = self.controller_params['FlTq_alpha']
+            if len(self.FlTq_alpha) != len(self.U_FlTq):
+                raise Exception('The sizes of FlTq_alpha and U_FlTq are not equal, please check your controller_params')
+
+            # If we haven't set Kp_floatTq as a control parameter, we tune it automatically here
+            if self.tune_FlTq:
+                f_alpha_comp = interpolate.interp1d(self.U_FlTq, self.FlTq_alpha, fill_value=(self.FlTq_alpha[0], self.FlTq_alpha[-1]), bounds_error=False)
+                Kp_floatTq = dtau_dv # * Ng / Ng
+                Kp_floatTq *= f_alpha_comp(v)
+                if self.FlTq_Mode == 2:
+                    Kp_floatTq *= turbine.TowerHt
+                f_kp     = interpolate.interp1d(v,Kp_floatTq)
+                self.Kp_floatTq = f_kp(self.U_FlTq)
+
+            # Make arrays if not
+            if not np.shape(self.Kp_floatTq):
+                self.Kp_floatTq = np.array([self.Kp_floatTq])
+            if not np.shape(self.U_FlTq):
+                self.U_FlTq = np.array([self.U_FlTq])
+
+            # Check size of Kp_floatTq and U_FlTq
+            if len(self.Kp_floatTq) != len(self.U_FlTq):
+                raise Exception('The sizes of Kp_floatTq and U_FlTq are not equal, please check your controller_params')
 
             # Turn on the notch filter if floating and not already on
             if not self.F_NotchType:
@@ -570,8 +675,20 @@ class Controller():
                 print('WARNING: twr_freq and ptfm_freq should be defined for floating turbine control!!')
             
         else:
-            self.Kp_float = np.array([0.0])
-            self.U_Fl = np.array([0.0])
+            self.Kp_floatTq = np.array([0.0])
+
+        # Ensure lengths are correct, if not then repeat the last value until they are
+        if len(self.Kp_float) < len(self.U_Fl):
+            self.Kp_float = np.append(self.Kp_float, np.repeat(self.Kp_float[-1], len(self.U_Fl) - len(self.Kp_float)))
+        if len(self.Kp_floatTq) < len(self.U_FlTq):
+            self.Kp_floatTq = np.append(self.Kp_floatTq, np.repeat(self.Kp_floatTq[-1], len(self.U_FlTq) - len(self.Kp_floatTq)))
+
+
+        # # If using both blade pitch and generator torque for parallel compensation, then share the load equally
+        # # DBS: In future work, have tuning options to allow the user to choose how to manage this exchange
+        # if self.Fl_Mode > 0 and self.FlTq_Mode > 0:
+        #     self.Kp_float = self.Kp_float / 2.0
+        #     self.KpTq_float = self.KpTq_float / 2.0
         
         # Flap actuation 
         if self.Flp_Mode >= 1:

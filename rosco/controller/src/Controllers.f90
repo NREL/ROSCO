@@ -209,7 +209,7 @@ CONTAINS
         ENDIF
     END SUBROUTINE PitchControl
 !-------------------------------------------------------------------------------------------------------------------------------  
-    SUBROUTINE VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
+    SUBROUTINE VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
     ! Generator torque controller
     !       VS_State = VS_State_Error             (0), Error state, for debugging purposes, GenTq = VS_RtTq
     !       VS_State = VS_State_Region_1_5        (1), Region 1(.5) operation, torque control to keep the rotor at cut-in speed towards the Cp-max operational curve
@@ -224,6 +224,7 @@ CONTAINS
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
         TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
+        TYPE(DebugVariables),       INTENT(INOUT)       :: DebugVar
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
 
         CHARACTER(*),               PARAMETER           :: RoutineName = 'VariableSpeedControl'
@@ -234,7 +235,8 @@ CONTAINS
 
         ! Pre-compute generator torque values for K*Omega^2 and constant power
         LocalVar%VS_KOmega2_GenTq = CntrPar%VS_Rgn2K*LocalVar%GenSpeedF*LocalVar%GenSpeedF
-        LocalVar%VS_ConstPwr_GenTq = (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0))/LocalVar%GenSpeedF * LocalVar%PRC_R_Torque
+        LocalVar%Alpha_ConstPower = interp1d(CntrPar%VS_ConstPower_U, CntrPar%VS_ConstPower_alpha, LocalVar%WE_Vw_F, ErrVar)       ! Schedule based on WSE (could use filtered blade pitch instead)
+        LocalVar%VS_ConstPwr_GenTq = (CntrPar%VS_RtPwr/(CntrPar%VS_GenEff/100.0)) / (CntrPar%PC_RefSpd + LocalVar%Alpha_ConstPower * (LocalVar%GenSpeedF - CntrPar%PC_RefSpd))  * LocalVar%PRC_R_Torque
 
         ! Determine maximum torque saturation limit, VS_MaxTq
         IF (CntrPar%VS_FBP == VS_FBP_Variable_Pitch) THEN 
@@ -310,6 +312,13 @@ CONTAINS
                 LocalVar%GenTq_SD = saturate(LocalVar%GenTq_SD, CntrPar%VS_MinTq, CntrPar%VS_MaxTq)
             ENDIF
             LocalVar%GenTq = LocalVar%GenTq_SD
+        ENDIF
+
+        ! Add floating feedback to torque signal
+        IF (CntrPar%FlTq_Mode > 0) THEN
+            LocalVar%Fl_TqCom = FloatingFeedbackTq(LocalVar, CntrPar, objInst, ErrVar)
+            DebugVar%FL_TqCom = LocalVar%Fl_TqCom
+            LocalVar%GenTq    = LocalVar%GenTq + LocalVar%Fl_TqCom
         ENDIF
 
         ! Saturate based on most stringent defined maximum
@@ -587,26 +596,26 @@ CONTAINS
         ! Fore-aft damping controller, reducing the tower fore-aft vibrations using pitch
 
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
-        
+
         ! Local variables
         INTEGER(IntKi) :: K    ! Integer used to loop through turbine blades
 
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
-        
+
         ! Body
         LocalVar%FA_AccHPFI = PIController(LocalVar%FA_AccHPF, 0.0_DbKi, CntrPar%FA_KI, -CntrPar%FA_IntSat, CntrPar%FA_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
-        
+
         ! Store the fore-aft pitch contribution to LocalVar data type
         DO K = 1,LocalVar%NumBl
             LocalVar%FA_PitCom(K) = LocalVar%FA_AccHPFI
         END DO
-        
+
     END SUBROUTINE ForeAftDamping
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL(DbKi) FUNCTION FloatingFeedback(LocalVar, CntrPar, objInst, ErrVar) 
-    ! FloatingFeedback defines a minimum blade pitch angle based on a lookup table provided by DISON.IN
+    ! FloatingFeedback computes a feedback signal from nacelle fore-aft velocity to blade pitch
     !       Fl_Mode = 0, No feedback
     !       Fl_Mode = 1, Proportional feedback of nacelle velocity (translational)
     !       Fl_Mode = 2, Proportional feedback of nacelle velocity (rotational)
@@ -635,6 +644,41 @@ CONTAINS
         END IF
 
     END FUNCTION FloatingFeedback
+!-------------------------------------------------------------------------------------------------------------------------------
+    REAL(DbKi) FUNCTION FloatingFeedbackTq(LocalVar, CntrPar, objInst, ErrVar) 
+    ! FloatingFeedbackGenTq computes a feedback signal from nacelle fore-aft velocity to generator torque
+    !       Fl_Mode = 0, No feedback
+    !       Fl_Mode = 1, Proportional feedback of nacelle velocity (translational)
+    !       Fl_Mode = 2, Proportional feedback of nacelle velocity (rotational)
+        USE ROSCO_Types, ONLY : LocalVariables, ControlParameters, ObjectInstances, ErrorVariables
+        IMPLICIT NONE
+        ! Inputs
+        TYPE(ControlParameters), INTENT(IN)     :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar 
+        TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
+        TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
+        ! Allocate Variables 
+        REAL(DbKi)                      :: FA_vel ! Tower fore-aft velocity [m/s]
+        REAL(DbKi)                      :: NacIMU_FA_vel ! Tower fore-aft pitching velocity [rad/s]
+        REAL(DbKi)                      :: FlTq_sat_lim ! +/- saturation limit for torque floating feedback signal
+
+        ! Gain scheduling
+        LocalVar%Kp_FloatTq = interp1d(CntrPar%Fl_U,CntrPar%FlTq_Kp,LocalVar%WE_Vw_F,ErrVar)       ! Schedule based on WSE
+
+        ! Define FlTq saturation limit (TODO make this based on the actual parameter)
+        FlTq_sat_lim = CntrPar%VS_RtTq * 2.0_DbKi
+        
+        ! Calculate floating contribution to pitch command
+        FA_vel = PIController(LocalVar%FA_AccFTq, 0.0_DbKi, 1.0_DbKi, -FlTq_sat_lim, FlTq_sat_lim, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
+        NacIMU_FA_vel = PIController(LocalVar%NacIMU_FA_AccFTq, 0.0_DbKi, 1.0_DbKi, -FlTq_sat_lim, FlTq_sat_lim, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
+! Mod made by A. Wright: use the gain scheduled value of KPfloat in the floating fb equ's below (instead of the old value of CntrPar%Fl_Kp), for either value of CntrPar%Fl_Mode...        
+        if (CntrPar%FlTq_Mode == 1) THEN
+            FloatingFeedbackTq = (0.0_DbKi - FA_vel) * LocalVar%Kp_FloatTq ! Mod made by A. Wright: use the gain scheduled value of KPfloat in the floating fb equ's below (instead of the old value of CntrPar%Fl_Kp), for either value of CntrPar%Fl_Mode...
+        ELSEIF (CntrPar%FlTq_Mode == 2) THEN
+            FloatingFeedbackTq = (0.0_DbKi - NacIMU_FA_vel) * LocalVar%Kp_FloatTq ! Mod made by A. Wright: use the gain scheduled value of KPfloat in the floating fb equ's below (instead of the old value of CntrPar%Fl_Kp), for either value of CntrPar%Fl_Mode...
+        END IF
+
+    END FUNCTION FloatingFeedbackTq
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE FlapControl(avrSWAP, CntrPar, LocalVar, objInst)
         ! Yaw rate controller

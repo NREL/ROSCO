@@ -39,6 +39,7 @@ controller_params:
   PS_Mode:            3                     # Pitch saturation mode {0: no pitch saturation, 1: peak shaving, 2: Cp-maximizing pitch saturation, 3: peak shaving and Cp-maximizing pitch saturation}
   SD_Mode:            0                     # Shutdown mode {0: no shutdown procedure, 1: pitch to max pitch at shutdown}
   Fl_Mode:            2                     # Floating specific feedback mode {0: no nacelle velocity feedback, 1: nacelle velocity feedback}
+  FlTq_Mode:          0                     # Floating specific feedback mode to torque {0: no nacelle velocity feedback to torque, 1: nacelle velocity feedback to torque}
   Flp_Mode:           0                     # Flap control mode {0: no flap control, 1: steady state flap angle, 2: Proportional flap control}
   PA_Mode:            2                     # Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
   StC_Mode:            2

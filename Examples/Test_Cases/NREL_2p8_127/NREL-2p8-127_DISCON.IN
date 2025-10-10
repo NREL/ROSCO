@@ -1,5 +1,5 @@
 ! Controller parameter input file for the NREL-2p8-127 wind turbine
-!    - File written using ROSCO version 2.10.0 controller tuning logic on 09/08/25
+!    - File written using ROSCO version 2.11.0 controller tuning logic on 09/22/25
 
 !------- SIMULATION CONTROL ------------------------------------------------------------
 2                   ! LoggingLevel		- 0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)
@@ -10,8 +10,8 @@
 !------- CONTROLLER FLAGS -------------------------------------------------
 1                   ! F_LPFType       - 1: first-order low-pass filter, 2: second-order low-pass filter, [rad/s] (currently filters generator speed and pitch control signals
 1                   ! IPC_ControlMode - Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) (0: off, 1: 1P reductions, 2: 1P+2P reductions)
-3                   ! VS_ControlMode  - Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking, 4- Torque-based TSR Tracking)
-0                   ! VS_ConstPower   - Do constant power torque control, where above rated torque varies, 0 for constant torque)
+2                   ! VS_ControlMode  - Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking, 4- Torque-based TSR Tracking)
+1                   ! VS_ConstPower   - Do constant power torque control, where above rated torque varies, 0 for constant torque)
 0                   ! VS_FBP          - Fixed blade pitch configuration mode (0- variable pitch (disabled), 1- constant power overspeed, 2- WSE-lookup reference tracking, 3- torque-lookup reference tracking)
 1                   ! PC_ControlMode  - Blade pitch control mode (0: No pitch, fix to fine pitch, 1: active PI blade pitch control)
 0                   ! Y_ControlMode   - Yaw control mode (0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC)
@@ -22,6 +22,7 @@
 0                   ! SU_Mode         - Startup mode (0: no startup procedure, 1: startup enabled)
 0                   ! SD_Mode         - Shutdown mode (0: no shutdown procedure, 1: shutdown enabled)
 0                   ! Fl_Mode         - Floating specific feedback mode (0: no nacelle velocity feedback, 1: feed back translational velocity, 2: feed back rotational velocity)
+0                   ! FlTq_Mode       - Floating specific feedback mode to generator torque {0: no nacelle velocity feedback, 1: feed back translational velocity, 2: feed back rotational veloicty}
 0                   ! TD_Mode         - Tower damper mode (0- no tower damper, 1- feed back translational nacelle accelleration to pitch angle
 0                   ! TRA_Mode        - Tower resonance avoidance mode (0- no tower resonsnace avoidance, 1- use torque control setpoints to avoid a specific frequency
 0                   ! Flp_Mode        - Flap control mode (0: no flap control, 1: steady state flap angle, 2: Proportional flap control, 2: Cyclic (1P) flap control)
@@ -49,6 +50,7 @@
 0.20944             ! F_WECornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s].
 0.17952             ! F_YawErr          - Low pass filter corner frequency for yaw controller [rad/s].
 0.0000   1.0000     ! F_FlCornerFreq    - Natural frequency and damping in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s, -].
+0.0000   1.0000     ! F_FlTqCornerFreq  - Natural frequency and damping in the second order low pass filter of the tower-top fore-aft motion for generator torque floating feedback control [rad/s, -].
 0.01042             ! F_FlHighPassFreq  - Natural frequency of first-order high-pass filter for nacelle fore-aft motion [rad/s].
 0.0000  1.0000      ! F_FlpCornerFreq   - Corner frequency and damping in the second order low pass filter of the blade root bending moment for flap control
 0.20944             ! F_VSRefSpdCornerFreq		- Corner frequency (-3dB point) in the first order low pass filter of the generator speed reference used for TSR tracking torque control [rad/s].
@@ -56,7 +58,7 @@
 !------- BLADE PITCH CONTROL ----------------------------------------------
 30                  ! PC_GS_n			- Amount of gain-scheduling table entries
 0.076        0.105        0.127        0.148        0.165        0.182        0.197        0.212        0.226        0.239        0.252        0.264        0.277        0.288        0.300        0.311        0.322        0.332        0.343        0.353        0.363        0.373        0.383        0.392        0.402        0.411        0.421        0.429        0.438        0.446                      ! PC_GS_angles	    - Gain-schedule table: pitch angles [rad].
--2.324e-02   -2.087e-02   -1.888e-02   -1.720e-02   -1.575e-02   -1.449e-02   -1.339e-02   -1.241e-02   -1.154e-02   -1.076e-02   -1.006e-02   -9.426e-03   -8.848e-03   -8.320e-03   -7.835e-03   -7.388e-03   -6.976e-03   -6.594e-03   -6.238e-03   -5.908e-03   -5.599e-03   -5.310e-03   -5.038e-03   -4.783e-03   -4.543e-03   -4.317e-03   -4.103e-03   -3.901e-03   -3.709e-03   -3.527e-03                 ! PC_GS_KP		- Gain-schedule table: pitch controller kp gains [s].
+-2.437e-02   -2.190e-02   -1.983e-02   -1.807e-02   -1.656e-02   -1.525e-02   -1.410e-02   -1.308e-02   -1.218e-02   -1.137e-02   -1.063e-02   -9.971e-03   -9.369e-03   -8.818e-03   -8.312e-03   -7.847e-03   -7.417e-03   -7.019e-03   -6.648e-03   -6.304e-03   -5.982e-03   -5.680e-03   -5.397e-03   -5.132e-03   -4.882e-03   -4.646e-03   -4.423e-03   -4.212e-03   -4.012e-03   -3.822e-03                 ! PC_GS_KP		- Gain-schedule table: pitch controller kp gains [s].
 -8.020e-04   -7.307e-04   -6.710e-04   -6.203e-04   -5.767e-04   -5.389e-04   -5.057e-04   -4.764e-04   -4.503e-04   -4.269e-04   -4.058e-04   -3.867e-04   -3.693e-04   -3.534e-04   -3.388e-04   -3.254e-04   -3.130e-04   -3.015e-04   -2.908e-04   -2.809e-04   -2.716e-04   -2.629e-04   -2.547e-04   -2.471e-04   -2.399e-04   -2.331e-04   -2.266e-04   -2.205e-04   -2.148e-04   -2.093e-04                 ! PC_GS_KI		- Gain-schedule table: pitch controller ki gains [-].
 0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00                  ! PC_GS_KD			- Gain-schedule table: pitch controller kd gains
 0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00    0.000e+00                  ! PC_GS_TF			- Gain-schedule table: pitch controller tf gains (derivative filter)
@@ -92,6 +94,9 @@
 -5.99592e+02        ! VS_KP				- Proportional gain for generator PI torque controller [-]. (Only used in the transitional 2.5 region if VS_ControlMode =/ 2)
 -8.53230e+01        ! VS_KI				- Integral gain for generator PI torque controller [s]. (Only used in the transitional 2.5 region if VS_ControlMode =/ 2)
 8.20700             ! VS_TSRopt		    - Power-maximizing region 2 tip-speed-ratio. Only used in VS_ControlMode = 2.
+1                   ! VS_ConstPower_n   - Number of VS_ConstPower_alpha gains in gain scheduling, optional with default of 1
+1.0000              ! VS_ConstPower_alpha - Detuning parameter for the constant power feedback loop [-]. (Only used if VS_ConstPower = 1)
+12.0000             ! VS_ConstPower_U     - Wind speeds for scheduling VS_ConstPower_alpha, optional if VS_ConstPower_alpha is single value [m/s]
 
 !------- FIXED PITCH REGION 3 TORQUE CONTROL ------------------------------------------------
 60                  ! VS_FBP_n          - Number of gain-scheduling table entries
@@ -128,7 +133,7 @@
 30      30          ! PerfTableSize     - Size of rotor performance tables, first number refers to number of blade pitch angles, second number referse to number of tip-speed ratios
 60                  ! WE_FOPoles_N      - Number of first-order system poles used in EKF
 3.000        3.290        3.579        3.869        4.159        4.448        4.738        5.028        5.317        5.607        5.897        6.186        6.476        6.766        7.055        7.345        7.634        7.924        8.214        8.503        8.793        9.083        9.372        9.662        9.952        10.241       10.531       10.821       11.110       11.400       11.853       12.307       12.760       13.213       13.667       14.120       14.573       15.027       15.480       15.933       16.387       16.840       17.293       17.747       18.200       18.653       19.107       19.560       20.013       20.467       20.920       21.373       21.827       22.280       22.733       23.187       23.640       24.093       24.547       25.000                     ! WE_FOPoles_v      - Wind speeds corresponding to first-order system poles [m/s]
--1.232e-02   -1.351e-02   -1.469e-02   -1.588e-02   -1.707e-02   -1.826e-02   -1.945e-02   -2.064e-02   -2.183e-02   -2.302e-02   -2.421e-02   -2.540e-02   -2.659e-02   -2.777e-02   -2.896e-02   -3.015e-02   -3.134e-02   -3.253e-02   -3.372e-02   -3.491e-02   -3.610e-02   -3.729e-02   -3.848e-02   -3.967e-02   -3.891e-02   -3.499e-02   -2.999e-02   -2.413e-02   -1.727e-02   -8.985e-03   -2.245e-02   -2.706e-02   -3.109e-02   -3.713e-02   -4.210e-02   -4.857e-02   -5.396e-02   -6.079e-02   -6.631e-02   -7.261e-02   -7.985e-02   -8.612e-02   -9.375e-02   -1.015e-01   -1.090e-01   -1.168e-01   -1.240e-01   -1.323e-01   -1.413e-01   -1.498e-01   -1.587e-01   -1.693e-01   -1.784e-01   -1.869e-01   -1.968e-01   -2.078e-01   -2.180e-01   -2.267e-01   -2.362e-01   -2.452e-01                 ! WE_FOPoles        - First order system poles [1/s]
+-1.232e-02   -1.351e-02   -1.469e-02   -1.588e-02   -1.707e-02   -1.826e-02   -1.945e-02   -2.064e-02   -2.183e-02   -2.302e-02   -2.421e-02   -2.540e-02   -2.659e-02   -2.777e-02   -2.896e-02   -3.015e-02   -3.134e-02   -3.253e-02   -3.372e-02   -3.491e-02   -3.610e-02   -3.729e-02   -3.848e-02   -3.967e-02   -3.891e-02   -3.499e-02   -2.999e-02   -2.413e-02   -1.727e-02   -8.985e-03   3.834e-03    -7.758e-04   -4.804e-03   -1.084e-02   -1.581e-02   -2.229e-02   -2.767e-02   -3.451e-02   -4.002e-02   -4.633e-02   -5.357e-02   -5.984e-02   -6.746e-02   -7.523e-02   -8.267e-02   -9.052e-02   -9.773e-02   -1.060e-01   -1.150e-01   -1.235e-01   -1.324e-01   -1.430e-01   -1.521e-01   -1.606e-01   -1.705e-01   -1.815e-01   -1.917e-01   -2.004e-01   -2.099e-01   -2.189e-01                 ! WE_FOPoles        - First order system poles [1/s]
 
 !------- YAW CONTROL ------------------------------------------------------
 0.00000             ! Y_uSwitch		- Wind speed to switch between Y_ErrThresh. If zero, only the second value of Y_ErrThresh is used [m/s]
@@ -184,7 +189,8 @@
 
 !------- Floating -----------------------------------------------------------
 1                   ! Fl_n              - Number of Fl_Kp gains in gain scheduling, optional with default of 1
-0.0000              ! Fl_Kp             - Nacelle velocity proportional feedback gain [s]
+0.0000              ! Fl_Kp             - Nacelle velocity proportional feedback gain to blade pitch [s]
+0.0000              ! FlTq_Kp           - Nacelle velocity proportional feedback gain to generator torque [s]
 0.0000              ! Fl_U              - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
 
 !------- FLAP ACTUATION -----------------------------------------------------

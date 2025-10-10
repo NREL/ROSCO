@@ -1,5 +1,5 @@
 ! Controller parameter input file for the BAR_10 wind turbine
-!    - File written using ROSCO version 2.10.0 controller tuning logic on 09/08/25
+!    - File written using ROSCO version 2.11.0 controller tuning logic on 09/22/25
 
 !------- SIMULATION CONTROL ------------------------------------------------------------
 1                   ! LoggingLevel		- 0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)
@@ -22,6 +22,7 @@
 0                   ! SU_Mode         - Startup mode (0: no startup procedure, 1: startup enabled)
 0                   ! SD_Mode         - Shutdown mode (0: no shutdown procedure, 1: shutdown enabled)
 0                   ! Fl_Mode         - Floating specific feedback mode (0: no nacelle velocity feedback, 1: feed back translational velocity, 2: feed back rotational velocity)
+0                   ! FlTq_Mode       - Floating specific feedback mode to generator torque {0: no nacelle velocity feedback, 1: feed back translational velocity, 2: feed back rotational veloicty}
 0                   ! TD_Mode         - Tower damper mode (0- no tower damper, 1- feed back translational nacelle accelleration to pitch angle
 0                   ! TRA_Mode        - Tower resonance avoidance mode (0- no tower resonsnace avoidance, 1- use torque control setpoints to avoid a specific frequency
 2                   ! Flp_Mode        - Flap control mode (0: no flap control, 1: steady state flap angle, 2: Proportional flap control, 2: Cyclic (1P) flap control)
@@ -49,6 +50,7 @@
 0.20944             ! F_WECornerFreq    - Corner frequency (-3dB point) in the first order low pass filter for the wind speed estimate [rad/s].
 0.17952             ! F_YawErr          - Low pass filter corner frequency for yaw controller [rad/s].
 0.0000   1.0000     ! F_FlCornerFreq    - Natural frequency and damping in the second order low pass filter of the tower-top fore-aft motion for floating feedback control [rad/s, -].
+0.0000   1.0000     ! F_FlTqCornerFreq  - Natural frequency and damping in the second order low pass filter of the tower-top fore-aft motion for generator torque floating feedback control [rad/s, -].
 0.01042             ! F_FlHighPassFreq  - Natural frequency of first-order high-pass filter for nacelle fore-aft motion [rad/s].
 7.8480  1.0000      ! F_FlpCornerFreq   - Corner frequency and damping in the second order low pass filter of the blade root bending moment for flap control
 0.20944             ! F_VSRefSpdCornerFreq		- Corner frequency (-3dB point) in the first order low pass filter of the generator speed reference used for TSR tracking torque control [rad/s].
@@ -92,6 +94,9 @@
 -2.41226e+03        ! VS_KP				- Proportional gain for generator PI torque controller [-]. (Only used in the transitional 2.5 region if VS_ControlMode =/ 2)
 -3.32357e+02        ! VS_KI				- Integral gain for generator PI torque controller [s]. (Only used in the transitional 2.5 region if VS_ControlMode =/ 2)
 10.00000            ! VS_TSRopt		    - Power-maximizing region 2 tip-speed-ratio. Only used in VS_ControlMode = 2.
+1                   ! VS_ConstPower_n   - Number of VS_ConstPower_alpha gains in gain scheduling, optional with default of 1
+1.0000              ! VS_ConstPower_alpha - Detuning parameter for the constant power feedback loop [-]. (Only used if VS_ConstPower = 1)
+12.0000             ! VS_ConstPower_U     - Wind speeds for scheduling VS_ConstPower_alpha, optional if VS_ConstPower_alpha is single value [m/s]
 
 !------- FIXED PITCH REGION 3 TORQUE CONTROL ------------------------------------------------
 60                  ! VS_FBP_n          - Number of gain-scheduling table entries
@@ -184,7 +189,8 @@
 
 !------- Floating -----------------------------------------------------------
 1                   ! Fl_n              - Number of Fl_Kp gains in gain scheduling, optional with default of 1
-0.0000              ! Fl_Kp             - Nacelle velocity proportional feedback gain [s]
+0.0000              ! Fl_Kp             - Nacelle velocity proportional feedback gain to blade pitch [s]
+0.0000              ! FlTq_Kp           - Nacelle velocity proportional feedback gain to generator torque [s]
 0.0000              ! Fl_U              - Wind speeds for scheduling Fl_Kp, optional if Fl_Kp is single value [m/s]
 
 !------- FLAP ACTUATION -----------------------------------------------------

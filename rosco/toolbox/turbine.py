@@ -236,6 +236,11 @@ class Turbine():
         self.rated_torque = self.rated_power/(self.GenEff/100*self.rated_rotor_speed*self.Ng)
         self.rotor_radius = self.TipRad
 
+        # Platform parameters
+        self.ED_mass          = fast.fst_vt['ElastoDyn']['HubMass'] + fast.fst_vt['ElastoDyn']['NacMass']  + fast.fst_vt['ElastoDyn']['YawBrMass']  + fast.fst_vt['ElastoDyn']['PtfmMass'] 
+        # DBS: Add tip-brake mass components?
+        self.ED_pitch_inertia = fast.fst_vt['ElastoDyn']['PtfmPIner']
+
         # Load blade information
         self.load_blade_info()
 
