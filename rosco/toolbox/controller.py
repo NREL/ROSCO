@@ -491,8 +491,6 @@ class Controller():
         self.v              = v                                  # Wind speed (m/s)
         self.v_above_rated  = v_above_rated
         self.v_below_rated  = v_below_rated
-        # Mod by A. Wright
-        self.v_for_gs       = v[-len(v_above_rated)+1:]
 		# end
         self.pitch_op       = pitch_op
         self.pitch_op_pc    = pitch_op[-len(v_above_rated)+1:]
@@ -552,8 +550,11 @@ class Controller():
             if self.U_Fl:  # default is [], only have one Fl_Kp
                 if type(self.U_Fl) == str:
                     if self.U_Fl == 'all':  
-                        # Mod by A. Wright: get the array of Kp_float values at the values of v-above rated (see self.v_for_gs calculated around line 344).
-                        self.U_Fl = self.v_for_gs
+                        self.U_Fl = self.v_above_rated
+                        
+                        # Make Fl_alpha the same size if only one value given
+                        if len(self.controller_params['Fl_alpha']) == 1:
+                            self.controller_params['Fl_alpha'] = [self.controller_params['Fl_alpha'][0]] * len(self.U_Fl)
                     else:
                         raise Exception("Invalid entry in controller_params for U_Fl, please see schema")
             else:
@@ -632,8 +633,10 @@ class Controller():
             if self.U_FlTq:  # default is [], only have one Fl_Kp
                 if type(self.U_FlTq) == str:
                     if self.U_FlTq == 'all':  
-                        # Mod by A. Wright: get the array of Kp_float values at the values of v-above rated (see self.v_for_gs calculated around line 344).
-                        self.U_FlTq = self.v_for_gs
+                        self.U_FlTq = self.v_above_rated
+                        # Make FlTq_alpha the same size if only one value given
+                        if len(self.controller_params['FlTq_alpha']) == 1:
+                            self.controller_params['FlTq_alpha'] = [self.controller_params['FlTq_alpha'][0]] * len(self.U_Fl)
                     else:
                         raise Exception("Invalid entry in controller_params for U_FlTq, please see schema")
             else:
