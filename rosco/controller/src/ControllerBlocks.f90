@@ -193,9 +193,17 @@ CONTAINS
                         end do
                     end do
 
+                    ! Apply sigmoid to each element
+                    do i = 1, 3
+                        do j = 1, 2
+                            del((i-1)*2 + j) = 1.0_DbKi / (1.0_DbKi + exp(-del((i-1)*2 + j)))
+                        end do
+                    end do
+                   
                     ! Compute the Derivative of Weight
                     do i = 1, n                        
-                        dWeght_dt(i) = CntrPar%gamma * (del(i) * LocalVar%T_err * P - k * Weght(i) * LocalVar%T_err)
+                        !dWeght_dt(i) = CntrPar%gamma * (del(i) * LocalVar%T_err * P - k * Weght(i) * LocalVar%T_err)
+                        dWeght_dt(i) = CntrPar%gamma * (del(i) * LocalVar%T_err * P - k * Weght(i) * abs(LocalVar%T_err))
                     end do
 
                     ! Update Weght using Euler's method
@@ -226,7 +234,9 @@ CONTAINS
                     if (CntrPar%ASO_Mode == 0) then
                        LocalVar%Del_Beta = 0
 
-                    else if (CntrPar%ASO_Mode == 1) then
+                    !else if (CntrPar%ASO_Mode == 1) then
+                    !else if ((CntrPar%ASO_Mode == 1) and (LocalVar%time >= 80)) then
+                    else if (CntrPar%ASO_Mode == 1 .and. LocalVar%time >= 80) then
 
                        ! Detecting the Excessive Thrust Force and Generating Extra Blade Pitch Output
                        !if (LocalVar%We_Vw - LocalVar%Uenv >= 0) then
@@ -236,12 +246,22 @@ CONTAINS
                           
                        else 
                            LocalVar%Del_Beta = 0
-                       end if                           
+                       end if   
+                                                           
+                    else if (CntrPar%ASO_Mode == 2) then                                       
                     
-                    else if (CntrPar%ASO_Mode == 2) then
+                       if (LocalVar%Thrst - CntrPar%PreDf_Thrst >= -0.05*CntrPar%PreDf_Thrst) then
+                            LocalVar%Del_Beta = CntrPar%e_dp * abs(LocalVar%Thrst - (CntrPar%PreDf_Thrst-0.05*CntrPar%PreDf_Thrst))                       
+                       else 
+                           LocalVar%Del_Beta = 0
+                       end if
+
+                    else if (CntrPar%ASO_Mode == 3) then
+
                         print *, "Design ASCOS system"
-                    end if             
-                   
+
+                    end if     
+                                        
                     ! Envelope wind speed calculation                  
                     Es = 0.01      ! Uenv tolerance                    
                     LocalVar%Uold = LocalVar%Uenv

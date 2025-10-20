@@ -256,8 +256,8 @@ controller_params
 
 :code:`ASO_Mode` : Float
 
-    Adaptive safe operation (0- no safe operation, 1- AEPS system is on, 
-    2- ASCOS system is on)
+    Adaptive safe operation (0- no safe operation, 1- AEPS system is on, 2- BEPS system is on
+    3- ASCOS system is on)
 
     *Default* = 0
 
@@ -776,8 +776,8 @@ These are pass-through parameters for the DISCON.IN file.  Use with caution. Do 
     2- Proportional flap control)
 
 :code:`ASO_Mode` : Float
-    Adaptive safe operation (0- no safe operation, 1- AEPS system is on, 
-    2- ASCOS system is on)
+    Adaptive safe operation (0- no safe operation, 1- AEPS system is on, 2- BEPS system is on
+    3- ASCOS system is on)
 
 :code:`OL_Mode` : Float
     Open loop control mode (0 - no open-loop control, 1 - direct open

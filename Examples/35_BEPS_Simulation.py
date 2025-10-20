@@ -1,8 +1,11 @@
 """
-29_IEA15MW_AEPS_Simulation
+35_BEPS_Simulation
 ------------------
-Demonstrate tower resonance avoidance controller
-Set up and run simulation with tower resonance avoidance
+Basic Envelope Protection System (BEPS) for Wind Turbines
+This example demonstrates a basic Envelope Protection System for wind turbines. Compared to the AEPS system in Example 34, this system does not include any Neural Network or Observer and can be considered a simplified version.
+As in AEPS, an eps_percent parameter is defined in this algorithm, and the predefined thrust limit is calculated based on the turbine’s maximum thrust using this parameter. The offset between the predefined thrust limit (PreDf_Thrst) and the turbine thrust (Thrst) is used to calculate an avoidance signal through a limit avoidance design parameter, e_dp. This avoidance signal is then applied to modify the blade pitch controller output, i.e., the blade pitch reference, collectively increasing the blade pitch angles when the turbine approaches the limit. This avoidance action allows the turbine to operate safely within the defined thrust limit.
+The BEPS system generates an avoidance signal when the turbine thrust approaches within five percent of the predefined limit, accounting for the delay in blade pitch response after the avoidance signal is applied. In this system, the user only needs to tune the limit avoidance design parameter, e_dp. A value around 0.5 or less might be choosen for this parameter. A high value might cause oscillation in simulations.
+
 """
 
 import os
@@ -24,8 +27,8 @@ def main():
     os.makedirs(example_out_dir,exist_ok=True)
 
     # Input yaml and output directory
-    parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW_AEPS.yaml')
-    run_dir = os.path.join(example_out_dir,'29_IEA15MW_AEPS_Simulation')
+    parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW_BEPS.yaml')
+    run_dir = os.path.join(example_out_dir,'35_BEPS_Simulation')
     os.makedirs(run_dir,exist_ok=True)
 
     # Read initial input file
@@ -35,56 +38,23 @@ def main():
     reader = InputReader_OpenFAST()
     reader.FAST_InputFile = path_params['FAST_InputFile']
     reader.FAST_directory = os.path.join(this_dir,'Tune_Cases',path_params['FAST_directory'])
-    # reader.FAST_directory = '/Users/dzalkind/Tools/ROSCO1/Test_Cases/ptfm_control_archive/IEA-15-240-RWT-UMaineSemi_ballast'
     reader.execute()
   
     # Set DISCON input dynamically through yaml/dict
-    controller_params = {}
-    #controller_params['ASO_Mode'] = 2    
+    controller_params = {}     
     controller_params['PS_Mode'] = 0
     controller_params['PA_Mode'] = 2  
-    controller_params['vs_minspd'] = 0.    # Reduce minimum rotor speed so that saturation does not interfere with exclusion
-    controller_params['VS_ControlMode'] = 3.#2.#3.ö yorumdakiler orjinal değer 
+    controller_params['VS_ControlMode'] = 2.
     
-    # TRA parameters
-    controller_params['DISCON'] = {}
-    controller_params['DISCON']['TRA_ExclSpeed'] = 4.75 * rpm2RadSec#0#4.75 * rpm2RadSec ö yorumdakiler orjinal değer
-    controller_params['DISCON']['TRA_ExclBand'] = 1 * rpm2RadSec#0#1 * rpm2RadSec ö yorumdakiler orjinal değer
-    controller_params['DISCON']['TRA_RateLimit'] = 0.7916800 / 100#0#0.7916800 / 100 ö yorumdakiler orjinal değer
-
-    #controller_params['DISCON']['VS_MinOMSpd'] = 0.523600000000 #sil
-    #controller_params['DISCON']['VS_Rgn2K'] = 37722980.13131 #sil
-
-    #controller_params['DISCON']['SS_VSGain'] = 1 #Chaning Values
-
     # simulation set up
     r = run_FAST_ROSCO()
     r.tuning_yaml   = parameter_filename
     
-    # Wind case
-    # A few different cases highlight TRA
-    
-    # Ramp: good demo of functionality, short for CI
-    #r.wind_case_fcn = cl.ramp  
-    #r.wind_case_opts    = {
-    #    'U_start': 0,  # from 10 to 15 m/s
-    #    'U_end': 10,
-    #    't_start': 100,
-    #    't_end': 300,
-    #    }
-
-    # # steady
-    #r.wind_case_fcn = cl.power_curve  
-    #r.wind_case_opts    = {
-    #     'U': 10,  # from 10 to 15 m/s
-    #     'TMax': 400,
-    #     }
-    
-    # # turbulence
+    # Wind case: turbulence
     r.wind_case_fcn = cl.turb_bts  
     r.wind_case_opts    = {
          'TMax': 720,  # from 10 to 15 m/s
-         #     'wind_filenames': ['/Users/dzalkind/Downloads/heavy_test_1ETM_U6.000000_Seed603.0.bts'],
+         #'wind_filenames': ['/Users/dzalkind/Downloads/heavy_test_1ETM_U6.000000_Seed603.0.bts'],
          #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/TurbSim9.bts'],
          'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U11.000000_Seed1501552846.0_DLC1.1_11ms_720s.bts'],
          #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U18.000000_Seed1501552846.0.bts'],
@@ -101,13 +71,12 @@ def main():
          #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U9.000000_Seed1501552846.0.bts'],
          #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U14.000000_Seed1501552846.0.bts'],
          }
-    #BU DOSYA HPC'de OLACAK BURAYI OKU. BU YAZIYI OKUYORSAN BU VERSİYON HPC' DE DEMEKTİR.
 
     # Run with and without AEPS algorithm
     r.control_sweep_fcn = cl.sweep_yaml_input
     r.control_sweep_opts = {
             'control_param':'ASO_Mode',
-            'param_values': [0,1] #Run with ASO model equal to 0 and 1, respectively.
+            'param_values': [0,2] #Run with ASO mode equal to 0 and 2, respectively.
         }
     
     r.controller_params = controller_params

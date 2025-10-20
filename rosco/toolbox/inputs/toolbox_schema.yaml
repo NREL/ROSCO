@@ -202,7 +202,7 @@ properties:
                 minimum: 0
                 maximum: 2
                 default: 1
-                description: Safe Operation Mode (0- no safe operation, 1- AEPS is on, 2- ASCOS is on)
+                description: Safe Operation Mode (0- no safe operation, 1- AEPS system is on, 2- BEPS system is on, 3- ASCOS system is on)
             PwC_Mode:           
                 type: number
                 minimum: 0
@@ -335,23 +335,25 @@ properties:
                 default: 0.8
                 maximum: 1
                 unit: rad
+            eps_percent:          
+                description: AEPS design parameter for effective avoidance
+                type: number
+                default: 0.8
+                maximum: 1
             Kc:          
                 description: AEPS Observer Gain
                 type: number
-                default: 50
-                maximum: 90
+                default: 5
                 unit: no unit
             gamma:          
                 description: AEPS Learning Rate
                 type: number
-                default: 25
-                maximum: 200
+                default: 10
                 unit: no unit
             e_dp:          
                 description: AEPS design parameter for effective avoidance
                 type: number
-                default: 0.16
-                maximum: 5
+                default: 0.032
                 unit: no unit
             PreDf_Thrst:          
                 description: AEPS Pre-Defined Thrust Limit [MN]

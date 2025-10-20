@@ -970,9 +970,9 @@ CONTAINS
         ENDIF
 
         ! ASO_Mode
-        IF ((CntrPar%ASO_Mode < 0) .OR. (CntrPar%ASO_Mode > 2)) THEN
+        IF ((CntrPar%ASO_Mode < 0) .OR. (CntrPar%ASO_Mode > 3)) THEN
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'ASO_Mode must be 0, 1, 2.'
+            ErrVar%ErrMsg  = 'ASO_Mode must be 0, 1, 2, 3.'
         ENDIF
 
         IF ((CntrPar%IPC_ControlMode > 0) .AND. (CntrPar%Flp_Mode > 0)) THEN

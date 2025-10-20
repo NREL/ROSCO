@@ -54,5 +54,3 @@ controller_params:
   PA_CornerFreq:      1.5708                  # Pitch actuator natural frequency [rad/s]
   PA_Damping:         0.707                  # Pitch actuator natural frequency [rad/s]
   rgn2k_factor:       0.85926
-
-  eps_percent:        0.8                   # Percent Peak Reduction  [%, <= 1 ], {default = 80%}

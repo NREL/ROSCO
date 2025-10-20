@@ -485,7 +485,7 @@ ControlParameters:
 
     ASO_Mode:
       <<: *integer
-      description: Adaptive safe operation {0 - no safe operation, 1 - AEPS system is on, 2 - ASCOS system is on }
+      description: Adaptive safe operation {0- no safe operation, 1- AEPS system is on, 2- BEPS system is on, 3- ASCOS system is on }
     Kc:
       <<: *real
       description: AEPS Observer Gain

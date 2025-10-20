@@ -401,8 +401,10 @@ class Controller():
         if self.ASO_Mode == 0:  # AEPS
             self.eps.adaptive_safe_operation(self, turbine)
         elif self.ASO_Mode == 1:  # AEPS
-            self.eps.adaptive_safe_operation(self, turbine)     
-        elif self.ASO_Mode == 2: # ASCOS
+            self.eps.adaptive_safe_operation(self, turbine)
+        elif self.ASO_Mode == 2:  # BEPS
+            self.eps.adaptive_safe_operation(self, turbine)      
+        elif self.ASO_Mode == 3:  # ASCOS
             #raise Exception("Design ASCOS System")
             self.eps.adaptive_safe_operation(self, turbine)
         

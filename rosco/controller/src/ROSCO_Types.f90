@@ -124,7 +124,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: Flp_Kp                      ! PI flap control proportional gain
     REAL(DbKi)                    :: Flp_Ki                      ! PI flap control integral gain
     REAL(DbKi)                    :: Flp_MaxPit                  ! Maximum (and minimum) flap pitch angle [rad]
-    INTEGER(IntKi)                :: ASO_Mode                    ! Adaptive safe operation {0 - no safe operation, 1 - AEPS system is on, 2 - ASCOS system is on }
+    INTEGER(IntKi)                :: ASO_Mode                    ! Adaptive safe operation {0- no safe operation, 1- AEPS system is on, 2- BEPS system is on, 3- ASCOS system is on }
     REAL(DbKi)                    :: Kc                          ! AEPS Observer Gain
     REAL(DbKi)                    :: gamma                       ! AEPS Learning Rate
     REAL(DbKi)                    :: e_dp                        ! AEPS design parameter for effective avoidance

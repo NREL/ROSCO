@@ -15,7 +15,7 @@ turbine_params:
   v_min:              3.                    # Cut-in wind speed [m/s] 
   v_rated:            10.74                 # Rated wind speed [m/s]
   v_max:              25.0                  # Cut-out wind speed [m/s], -- Does not need to be exact (JUST ASSUME FOR NOW)
-  max_pitch_rate:     0.0349 #0.01                # Maximum blade pitch rate [rad/s]
+  max_pitch_rate:     0.0349                # Maximum blade pitch rate [rad/s]
   max_torque_rate:    4500000.              # Maximum torque rate [Nm/s], {~1/4 VS_RtTq/s}
   rated_power:        15000000.             # Rated Power [W]
   bld_edgewise_freq:  4.0324                # Blade edgewise first natural frequency [rad/s]
@@ -38,7 +38,7 @@ controller_params:
   SD_Mode:            0                     # Shutdown mode {0: no shutdown procedure, 1: pitch to max pitch at shutdown}
   Fl_Mode:            2                     # Floating specific feedback mode {0: no nacelle velocity feedback, 1: nacelle velocity feedback}
   Flp_Mode:           0                     # Flap control mode {0: no flap control, 1: steady state flap angle, 2: Proportional flap control}
-  ASO_Mode:           1                     # Adaptive safe operation {0: no safe operation, 1: AEPS system is on, 2: ASCOS system is on }
+  ASO_Mode:           1                     # Adaptive safe operation {0- no safe operation, 1- AEPS system is on, 2- BEPS system is on, 3- ASCOS system is on }
   PA_Mode:            2                     # Pitch actuator mode {0 - not used, 1 - first order filter, 2 - second order filter}
   # Controller parameters       
   # U_pc:               [14]
@@ -55,12 +55,11 @@ controller_params:
   PA_CornerFreq:      1.5708                # Pitch actuator natural frequency [rad/s]
   PA_Damping:         0.707                 # Pitch actuator natural frequency [rad/s]
   rgn2k_factor:       0.85926
-  #Adaptive Safe Operation (AEPS)
+  #Adaptive Safe Operation 
+  #AEPS Parameters 
   eps_percent:        0.8                   # Percent Peak Reduction  [%, <= 1 ], {default = 80%}
-  Kc:                 5                     # AEPS Observer Gain 
-  gamma:              10                    # AEPS Learning Rate 
-  e_dp:               0.035                 # AEPS design parameter for effective avoidance
-  PreDf_Thrst:        1.5                   # AEPS Pre-Defined Thrust Limit [MN]
+  Kc:                 2                     # AEPS Observer Gain 
+  gamma:              2400                    # AEPS Learning Rate 
+  e_dp:               0.032                 # AEPS design parameter for effective avoidance
 
-  #BU DOSYA HPC'de OLACAK BURAYI OKU. BU YAZIYI OKUYORSAN BU VERSİYON HPC' DE DEMEKTİR.
 
