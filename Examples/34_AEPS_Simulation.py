@@ -13,7 +13,7 @@ Sahin, M., Yavrucuk, I., Adaptive envelope protection control of wind turbines u
 
 Current AEPS Design and Implementation
 
-In the current implementation, different from the above reference, thrust and wind speed estimates, and filtered rotor speed are used in AEPS rather than their actual values. In addition, since blade pitch response exhibits a lag when AEPS applies an avoidance signal, the system is activated earlier: when the actual wind speed approaches the calculated envelope wind speed. Also, a squashing function is used before the NN inputs.
+In the current implementation, different from the above reference, thrust and wind speed estimates, and filtered rotor speed are used in AEPS rather than their actual values. In addition, since blade pitch response exhibits a lag when AEPS applies an avoidance signal, the system is activated earlier: when the actual wind speed approaches the calculated envelope wind speed. Also, a squashing function is used for the NN inputs.
 Finally, the predefined thrust force is calculated based on the maximum thrust force of the turbine using an eps_percent parameter. When the user selects an eps_percent value and activates the AEPS system (ASO = 1), the algorithm determines whether the turbine will operate under excessive thrust conditions and changes the blade pitch controller output, only when necessary, thereby keeping the thrust force within the selected limit.
 
 AEPS Tuning Procedure
@@ -24,9 +24,9 @@ The AEPS implementation is realized such that the user can tune the following th
 •	e-modification term gain (k)
 •	Effective limit avoidance parameter (e_dp)
 AEPS tuning can be started with selecting the observer gain (Kc) and neural network (NN) learning rate (Γ) when AEPS is disabled (ASO = 0). The key purpose is to obtain an AEPS-predicted thrust force (Thrst_est) that is very close to the turbine thrust force (Thrst). The designer can compare these two parameters (Thrst_est and Thrst). For ease of comparison, the designer can also check the error between them (T_error = Thrst – Thrst_est), which should be close to zero.
-Greater emphasis can be first placed on tuning the observer gain Kc, which controls the convergence rate of the algorithm. Values such as 2, 3, 4, 5, 10, and so on can be tested, with the goal of minimizing T_error. Once a suitable Kc is chosen, the NN learning rate Γ can be adjusted to further reduce the error. The e-modification term gain is usually a small number such as 0.01, 0.02, etc. Nevertheless, it might take higher values such as 0.5, or 1.
+Greater emphasis can be first placed on tuning the observer gain Kc, which controls the convergence rate of the algorithm. Values such as 2, 3, 4, 5 and so on can be tested, with the goal of minimizing T_error. Once a suitable Kc is chosen, the NN learning rate Γ can be adjusted to further reduce the error. The e-modification term gain (ke) is usually a small number such as 0.01, 0.02, etc. Nevertheless, it might take higher values such as 0.5, or 1. Small numbers such as 0.02 are recommended for ke.
 The learning rate Γ determines how quickly the neural network adapts to turbine operating conditions, i.e., predicting the turbine thrust force. A higher learning rate Γ results in faster learning but high oscillations in the AEPS-predicted thrust force. Once adaptation is achieved, the AEPS-predicted thrust (Thrst_est) should closely track the turbine thrust force (Thrst). Here, it should be also noted that the adaptation/learning is satisfied for a range of these tuning values. Therefore, the designer should decide all of these values based on the satisfied error.
-When the observer gain, learning rate and e-modification term gain are tuned as desired, AEPS can be activated (ASO = 1) to tune the effective limit avoidance parameter (e_dp). This parameter is highly sensitive to the turbine actuator. If the actuator model changes, e_dp may need to be re-tuned. It is also experinced that choosing a high value for e_dp might cause oscillations in simulations.
+When the observer gain, learning rate and e-modification term gain are tuned as desired, AEPS can be activated (ASO = 1) to tune the effective limit avoidance parameter (e_dp). This parameter is highly sensitive to the turbine actuator. If the actuator model changes, e_dp may need to be re-tuned. It should be tuned such that the turbine thrust stays within the predefined thrust limit value. It should be kept in mind that choosing a high value for e_dp might cause oscillations in simulations.
 Finally, if desired, after AEPS activation, the designer may fine-tune the observer gain and learning rate, again by comparing AEPS-predicted thrust with the turbine thrust and monitoring the resulting error and also the limit avoidance parameter, e_dp by checking the turbine thrust force whether staying within the limit or riding the turbine approximately at the limit.
 
 """
@@ -79,7 +79,7 @@ def main():
          'TMax': 720,  # from 10 to 15 m/s
          #'wind_filenames': ['/Users/dzalkind/Downloads/heavy_test_1ETM_U6.000000_Seed603.0.bts'],
          #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/TurbSim9.bts'],
-         #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U11.000000_Seed1501552846.0_DLC1.1_11ms_720s.bts'],
+         'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U11.000000_Seed1501552846.0_DLC1.1_11ms_720s.bts'],
          #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U18.000000_Seed1501552846.0.bts'],
          #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U20.000000_Seed1501552846.0.bts'],
          #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U22.000000_Seed1501552846.0.bts'],
@@ -90,7 +90,7 @@ def main():
          #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U30.000000_Seed1501552846.0.bts'],
          #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U32.000000_Seed1501552846.0.bts'],
          #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U33.000000_Seed1501552846.0.bts'],
-         'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U34.000000_Seed1501552846.0.bts'],
+         #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U34.000000_Seed1501552846.0.bts'],
          #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U40.000000_Seed1501552846.0.bts'],
          #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U11.000000_Seed488200390.0-DLL1.1_11ms_720sn_Seed2.bts'],
          #'wind_filenames': ['C:/Users/musah/ROSCO/Examples/Test_Cases/IEA-15-240-RWT/IEA-15-240-RWT/Wind/testbench_NTM_U11.000000_Seed1501552846.0-DLC1.1_11ms_2500sn_Seed1yeni.bts'],

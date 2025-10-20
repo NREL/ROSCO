@@ -343,12 +343,20 @@ properties:
             Kc:          
                 description: AEPS Observer Gain
                 type: number
-                default: 5
+                default: 2
+                minimum: 1
                 unit: no unit
             gamma:          
                 description: AEPS Learning Rate
                 type: number
-                default: 10
+                default: 2800
+                unit: no unit
+            ke:          
+                description: AEPS e-modification term gain
+                type: number
+                default: 0.02
+                minimum: 0
+                maximum: 1
                 unit: no unit
             e_dp:          
                 description: AEPS design parameter for effective avoidance
@@ -359,7 +367,6 @@ properties:
                 description: AEPS Pre-Defined Thrust Limit [MN]
                 type: number
                 default: 1.75
-                maximum: 2.4
                 unit: no unit
             sd_maxpit:           
                 description: Maximum blade pitch angle to initiate shutdown [rad], {default = 40 deg.}

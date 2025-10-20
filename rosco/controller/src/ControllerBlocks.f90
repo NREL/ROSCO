@@ -134,22 +134,18 @@ CONTAINS
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
             
         INTEGER, PARAMETER :: n = 6            ! Dimension of the vector: Weght and del
-        REAL(DbKi) :: k = 0.02                 ! e-modification term
         REAL(DbKi) :: T_err                    ! Thrust Prediction Error
         REAL(DbKi) :: P                        ! Solution of Lyapunov Equation
         REAL(DbKi) :: a_s =-0.2401             ! Approximate value for a
         REAL(DbKi) :: b_s = 0.0175             ! Approximate value for b
         REAL(DbKi) :: RotSpeed                 ! Rotor Speed [rad], locally
-        REAL(DbKi) :: Thrst                    ! Turbine Thrust [N], locally
+        REAL(DbKi) :: Thrst                    ! Turbine Thrust [MN], locally
         REAL(DbKi) :: Uenv                     ! Envelope Wind Speed		
         REAL(DbKi) :: Delta                    ! Neural Network Output
         REAL(DbKi) :: Thrst_es                 ! Thrust Estimate
         REAL(DbKi) :: Pre_Thrst_es             ! Previous Time Step Thrust Estimate
         REAL(DbKi) :: Thrst_es_dt              ! Derivative of Thrust Estimate
-        REAL(DbKi) :: Del_Beta                 ! Adaptive Envelope Protection System (AEPS) output, (Extra Blade Pitch Angle)
-        REAL(DbKi) :: dp                       ! AEPS Decreasing Avoidance Design Parameter
-        REAL(DbKi) :: K_uc                     ! Unit Conversion Constant (10^6)
-        REAL(DbKi) :: Thrstt                   ! Unit Converted Thrust (MN)
+        REAL(DbKi) :: Del_Beta                 ! Adaptive Envelope Protection System (AEPS) output, (Extra Blade Pitch Angle)        
         REAL(DbKi) :: Weght(n), del(n)         ! Vectors for Neural Network (NN) Weights and del
         REAL(DbKi) :: dWeght_dt(n)             ! Derivative of NN Weights          
         INTEGER    :: m, i, j
@@ -202,8 +198,7 @@ CONTAINS
                    
                     ! Compute the Derivative of Weight
                     do i = 1, n                        
-                        !dWeght_dt(i) = CntrPar%gamma * (del(i) * LocalVar%T_err * P - k * Weght(i) * LocalVar%T_err)
-                        dWeght_dt(i) = CntrPar%gamma * (del(i) * LocalVar%T_err * P - k * Weght(i) * abs(LocalVar%T_err))
+                        dWeght_dt(i) = CntrPar%gamma * (del(i) * LocalVar%T_err * P - CntrPar%ke * Weght(i) * abs(LocalVar%T_err))
                     end do
 
                     ! Update Weght using Euler's method

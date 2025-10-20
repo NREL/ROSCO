@@ -59,7 +59,8 @@ controller_params:
   #AEPS Parameters 
   eps_percent:        0.8                   # Percent Peak Reduction  [%, <= 1 ], {default = 80%}
   Kc:                 2                     # AEPS Observer Gain 
-  gamma:              2400                    # AEPS Learning Rate 
+  gamma:              2400                  # AEPS Learning Rate
+  ke:                 0.02                  # AEPS e-modification term gain
   e_dp:               0.032                 # AEPS design parameter for effective avoidance
 
 
