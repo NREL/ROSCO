@@ -36,8 +36,8 @@ def main():
     #  --- Comment,uncomment, create, and change these as desired...
     cases = {}
     cases['Baseline'] = ['Wind1VelX', 'BldPitch1', 'GenTq', 'RotSpeed']
-    #cases['Rotor'] = ['BldPitch1', 'GenTq', 'GenPwr']
-    #cases['Platform Motion'] = ['PtfmSurge', 'PtfmSway', 'PtfmHeave', 'PtfmPitch','PtfmRoll','PtfmYaw']
+    # cases['Rotor'] = ['BldPitch1', 'GenTq', 'GenPwr']
+    # cases['Platform Motion'] = ['PtfmSurge', 'PtfmSway', 'PtfmHeave', 'PtfmPitch','PtfmRoll','PtfmYaw']
 
 
     # Instantiate fast_IO
