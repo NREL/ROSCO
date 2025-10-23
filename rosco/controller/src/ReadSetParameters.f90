@@ -459,7 +459,11 @@ CONTAINS
         !------------ADAPTIVE SAFE OPERATION (AEPS)-----------------
         CALL ParseInput(FileLines,  'Kc',            CntrPar%Kc,                                   accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'gamma',         CntrPar%gamma,                                accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'ke',            CntrPar%ke,                                   accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'Um',            CntrPar%Um,                                   accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'Tm',            CntrPar%Tm,                                   accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'e_dp',          CntrPar%e_dp,                                 accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  't_act',         CntrPar%t_act,                                accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'PreDf_Thrst',   CntrPar%PreDf_Thrst,                          accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
 
         !------------ WIND SPEED ESTIMATOR CONTANTS --------------

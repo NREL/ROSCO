@@ -424,22 +424,42 @@ controller_params
 :code:`Kc` : Float
     AEPS Observer Gain
 
-    *Default* = 50    *Maximum* = 70 
+    *Default* = 2    *Minimum* = 1
 
 :code:`gamma` : Float
     AEPS Learning Rate
 
-    *Default* = 20    *Maximum* = 150 
+    *Default* = 2400  
+
+:code:`ke` : Float
+    AEPS e-modification term gain
+
+    *Default* = 0.02 
+
+:code:`Um` : Float
+    Wind margin for AEPS avoidance
+
+    *Default* = 1.0 
+
+:code:`Tm` : Float
+    Thrust margin for BEBS avoidance [%]
+
+    *Default* = 0.05
 
 :code:`e_dp` : Float
+    AEPS/BEPS design parameter for effective avoidance
+
+    *Default* = 0.032
+
+:code:`t_act` : Float
     AEPS design parameter for effective avoidance
 
-    *Default* = 0.1    *Maximum* = 5 
+    *Default* = 80 *Minimum* = 5
 
 :code:`PreDf_Thrst` : Float
     AEPS Pre-Defined Thrust Limit [MN]
 
-    *Default* = 0.5    *Maximum* = 5 
+    *Default* = 2.04356174e+00    
 
 :code:`sd_maxpit` : Float, rad
     Maximum blade pitch angle to initiate shutdown [rad], {default =

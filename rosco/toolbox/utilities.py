@@ -193,7 +193,11 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('!------- ADAPTIVE SAFE OPERATION--------------------------------------\n')
     file.write('{:<014.8e}      ! Kc               - AEPS Observer Gain\n'.format(rosco_vt['Kc']))
     file.write('{:<014.8e}      ! gamma            - AEPS Learning Rate\n'.format(rosco_vt['gamma']))
+    file.write('{:<014.8e}      ! ke               - AEPS e-modification term gain\n'.format(rosco_vt['ke']))
+    file.write('{:<014.8e}      ! Um               - Wind margin for AEPS avoidance\n'.format(rosco_vt['Um']))
+    file.write('{:<014.8e}      ! Tm               - Thrust margin for BEBS avoidance [%]\n'.format(rosco_vt['Tm']))
     file.write('{:<014.8e}      ! e_dp             - AEPS/BEPS design parameter for effective avoidance\n'.format(rosco_vt['e_dp']))
+    file.write('{:<014.8e}      ! t_act            - AEPS activation time for avoidance\n'.format(rosco_vt['t_act']))
     file.write('{:<014.8e}      ! PreDf_Thrst      - Pre-Defined Thrust Limit [MN]\n'.format(rosco_vt['PreDf_Thrst']))
     file.write('\n')
     file.write('!------- WIND SPEED ESTIMATOR ---------------------------------------------\n')
@@ -571,7 +575,11 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     # -------- ADAPTIVE SAFE OPERATION --------
     DISCON_dict['Kc'] = controller.Kc
     DISCON_dict['gamma'] = controller.gamma
+    DISCON_dict['ke'] = controller.ke
+    DISCON_dict['Um'] = controller.Um
+    DISCON_dict['Tm'] = controller.Tm
     DISCON_dict['e_dp'] = controller.e_dp
+    DISCON_dict['t_act'] = controller.t_act
     DISCON_dict['PreDf_Thrst'] = controller.PreDf_Thrst
     
     # ------- WIND SPEED ESTIMATOR -------

@@ -82,11 +82,14 @@ class Controller():
         self.omega_vs = controller_params['omega_vs']
         self.interp_type = controller_params['interp_type']
 
-        #Adaptive Safe Operation (AEPS)
+        #Adaptive Safe Operation
         self.Kc = controller_params['Kc']
         self.gamma = controller_params['gamma']
+        self.ke = controller_params['ke']
+        self.Um = controller_params['Um']
+        self.Tm = controller_params['Tm']
         self.e_dp = controller_params['e_dp']
-        #self.PreDf_Thrst = controller_params['PreDf_Thrst']
+        self.t_act = controller_params['t_act']
         self.Thrst_Limit= controller_params['PreDf_Thrst']
         
         # Parameters

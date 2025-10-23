@@ -128,7 +128,10 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: Kc                          ! AEPS Observer Gain
     REAL(DbKi)                    :: gamma                       ! AEPS Learning Rate
     REAL(DbKi)                    :: ke                          ! AEPS e-modification term gain
-    REAL(DbKi)                    :: e_dp                        ! AEPS design parameter for effective avoidance
+    REAL(DbKi)                    :: Um                          ! Wind margin for AEPS avoidance
+    REAL(DbKi)                    :: Tm                          ! Thrust margin for BEBS avoidance [%]
+    REAL(DbKi)                    :: e_dp                        ! AEPS/BEPS design parameter for effective avoidance
+    REAL(DbKi)                    :: t_act                       ! AEPS activation time for avoidance
     REAL(DbKi)                    :: PreDf_Thrst                 ! AEPS Pre-Defined Thrust Limit [MN]
     CHARACTER(1024)               :: OL_Filename                 ! Input file with open loop timeseries
     INTEGER(IntKi)                :: OL_Mode                     ! Open loop control mode {0 - no open loop control, 1 - open loop control vs. time, 2 - open loop control vs. wind speed}

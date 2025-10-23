@@ -229,15 +229,13 @@ CONTAINS
                     if (CntrPar%ASO_Mode == 0) then
                        LocalVar%Del_Beta = 0
 
-                    !else if (CntrPar%ASO_Mode == 1) then
-                    !else if ((CntrPar%ASO_Mode == 1) and (LocalVar%time >= 80)) then
-                    else if (CntrPar%ASO_Mode == 1 .and. LocalVar%time >= 80) then
+                    else if (CntrPar%ASO_Mode == 1 .and. LocalVar%time >= CntrPar%t_act) then
 
                        ! Detecting the Excessive Thrust Force and Generating Extra Blade Pitch Output
                        !if (LocalVar%We_Vw - LocalVar%Uenv >= 0) then
-                       if (LocalVar%We_Vw - LocalVar%Uenv >= -1.0) then  
+                       if (LocalVar%We_Vw - LocalVar%Uenv >= -CntrPar%Um) then  
                            !LocalVar%Del_Beta = CntrPar%e_dp * (LocalVar%We_Vw - LocalVar%Uenv)                                                                                            
-                           LocalVar%Del_Beta = CntrPar%e_dp * abs(LocalVar%We_Vw - (LocalVar%Uenv-1.0))                                                  
+                           LocalVar%Del_Beta = CntrPar%e_dp * abs(LocalVar%We_Vw - (LocalVar%Uenv-CntrPar%Um))                                                  
                           
                        else 
                            LocalVar%Del_Beta = 0
@@ -245,8 +243,8 @@ CONTAINS
                                                            
                     else if (CntrPar%ASO_Mode == 2) then                                       
                     
-                       if (LocalVar%Thrst - CntrPar%PreDf_Thrst >= -0.05*CntrPar%PreDf_Thrst) then
-                            LocalVar%Del_Beta = CntrPar%e_dp * abs(LocalVar%Thrst - (CntrPar%PreDf_Thrst-0.05*CntrPar%PreDf_Thrst))                       
+                       if (LocalVar%Thrst - CntrPar%PreDf_Thrst >= -CntrPar%Tm*CntrPar%PreDf_Thrst) then
+                            LocalVar%Del_Beta = CntrPar%e_dp * abs(LocalVar%Thrst - (CntrPar%PreDf_Thrst-CntrPar%Tm*CntrPar%PreDf_Thrst))                       
                        else 
                            LocalVar%Del_Beta = 0
                        end if

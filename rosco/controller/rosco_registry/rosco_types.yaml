@@ -495,9 +495,18 @@ ControlParameters:
     ke:
       <<: *real
       description: AEPS e-modification term gain
+    Um:
+      <<: *real
+      description: Wind margin for AEPS avoidance
+    Tm:
+      <<: *real
+      description: Thrust margin for BEBS avoidance [%]
     e_dp:
       <<: *real
-      description: AEPS design parameter for effective avoidance 
+      description: AEPS/BEPS design parameter for effective avoidance     
+    t_act:
+      <<: *real
+      description: AEPS activation time for avoidance
     PreDf_Thrst:
       <<: *real
       description: AEPS Pre-Defined Thrust Limit [MN] 

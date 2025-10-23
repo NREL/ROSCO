@@ -358,11 +358,25 @@ properties:
                 minimum: 0
                 maximum: 1
                 unit: no unit
+            Um:          
+                description: Wind margin for AEPS avoidance
+                type: number
+                default: 1.0
+                unit: m/s
+            Tm:          
+                description: Thrust margin for BEBS avoidance [%]
+                type: number
+                default: 0.05
             e_dp:          
-                description: AEPS design parameter for effective avoidance
+                description: AEPS/BEPS design parameter for effective avoidance
                 type: number
                 default: 0.032
                 unit: no unit
+            t_act:          
+                description: AEPS activation time for avoidance
+                type: number
+                default: 80
+                unit: s
             PreDf_Thrst:          
                 description: AEPS Pre-Defined Thrust Limit [MN]
                 type: number

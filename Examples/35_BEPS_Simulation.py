@@ -2,9 +2,13 @@
 35_BEPS_Simulation
 ------------------
 Basic Envelope Protection System (BEPS) for Wind Turbines
-This example demonstrates a basic Envelope Protection System for wind turbines. Compared to the AEPS system in Example 34, this system does not include any Neural Network or Observer and can be considered a simplified version.
-As in AEPS, an eps_percent parameter is defined in this algorithm, and the predefined thrust limit is calculated based on the turbine’s maximum thrust using this parameter. The offset between the predefined thrust limit (PreDf_Thrst) and the turbine thrust (Thrst) is used to calculate an avoidance signal through a limit avoidance design parameter, e_dp. This avoidance signal is then applied to modify the blade pitch controller output, i.e., the blade pitch reference, collectively increasing the blade pitch angles when the turbine approaches the limit. This avoidance action allows the turbine to operate safely within the defined thrust limit.
-The BEPS system generates an avoidance signal when the turbine thrust approaches within five percent of the predefined limit, accounting for the delay in blade pitch response after the avoidance signal is applied. In this system, the user only needs to tune the limit avoidance design parameter, e_dp. A value around 0.5 or less might be choosen for this parameter. A high value might cause oscillation in simulations.
+This example demonstrates a Basic Envelope Protection System for wind turbines. It presents simulation results with the BEPS system disabled (ASO = 0) and enabled (ASO = 2). Compared to the AEPS system in Example 34, this system does not include any Neural Network or Observer components and can be considered a simplified version.
+As in AEPS, an eps_percent parameter is defined in this algorithm, and the predefined thrust limit is calculated based on the turbine’s maximum thrust using this parameter. The offset between the predefined thrust limit (PreDf_Thrst) and the estimated turbine thrust (Thrst) is used to calculate an avoidance signal through a limit avoidance design parameter, e_dp. This avoidance signal is then applied to modify the blade pitch controller output, i.e., the blade pitch reference, collectively increasing the blade pitch angles when the turbine approaches the thrust limit. This avoidance action allows the turbine to operate safely within the defined thrust limit.
+The BEPS system starts generating an avoidance signal when the estimated turbine thrust approaches within a specified percentage (Tm) of the predefined thrust limit, accounting for the lag in blade pitch response when the avoidance signal is applied. 
+
+BEPS Tuning Procedure
+
+In this system, the user needs to tune the limit avoidance design parameter, e_dp. A value around 0.5 or less might be choosen for this parameter as higher values might cause oscillation in simulations. Another paramater to tune might be thrust margin parameter Tm, which is defined in percent and indicates how close the estimated turbine thrust is to the predefined thrust limit. The parameter Tm just decides when BEPS starts generating the avoidance signal and helps compensate for the lag in blade pitch response by applying the avoidance signal earlier to keep the turbine within the limit.
 
 """
 
