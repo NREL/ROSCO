@@ -213,9 +213,9 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<14.5e}      ! ke               - AEPS e-modification term gain\n'.format(rosco_vt['ke']))
     file.write('{:<14.5e}      ! Um               - Wind margin for AEPS avoidance\n'.format(rosco_vt['Um']))
     file.write('{:<14.5e}      ! Tm               - Thrust margin for BEBS avoidance [%]\n'.format(rosco_vt['Tm']))
-    file.write('{:<14.5e}      ! e_dp             - AEPS/BEPS design parameter for effective avoidance\n'.format(rosco_vt['e_dp']))
-    file.write('{:<14.5e}      ! t_act            - AEPS activation time for avoidance\n'.format(rosco_vt['t_act']))
-    file.write('{:<14.5e}      ! PreDf_Thrst      - Pre-Defined Thrust Limit [MN]\n'.format(rosco_vt['PreDf_Thrst']))
+    file.write('{:<14.5e}      ! ASO_ThrustGain             - AEPS/BEPS design parameter for effective avoidance\n'.format(rosco_vt['ASO_ThrustGain']))
+    file.write('{:<14.5e}      ! ASO_StartTime            - AEPS activation time for avoidance\n'.format(rosco_vt['ASO_StartTime']))
+    file.write('{:<14.5e}      ! ASO_ThrustLim      - Pre-Defined Thrust Limit [MN]\n'.format(rosco_vt['ASO_ThrustLim']))
     file.write('\n')
     file.write('!------- WIND SPEED ESTIMATOR ---------------------------------------------\n')
     file.write('{:<13.3f}       ! WE_BladeRadius	- Blade length (distance from hub center to blade tip), [m]\n'.format(rosco_vt['WE_BladeRadius']))
@@ -635,9 +635,9 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['ke'] = controller.ke
     DISCON_dict['Um'] = controller.Um
     DISCON_dict['Tm'] = controller.Tm
-    DISCON_dict['e_dp'] = controller.e_dp
-    DISCON_dict['t_act'] = controller.t_act
-    DISCON_dict['PreDf_Thrst'] = controller.PreDf_Thrst
+    DISCON_dict['ASO_ThrustGain'] = controller.ASO_ThrustGain
+    DISCON_dict['ASO_StartTime'] = controller.ASO_StartTime
+    DISCON_dict['ASO_ThrustLim'] = controller.ASO_ThrustLim
     
     # ------- WIND SPEED ESTIMATOR -------
     DISCON_dict['WE_BladeRadius']	= turbine.rotor_radius

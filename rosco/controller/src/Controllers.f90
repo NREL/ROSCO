@@ -100,7 +100,7 @@ CONTAINS
 
         ! AdaptiveEnvelopeProtectionSystem
         IF (CntrPar%ASO_Mode > 0) THEN
-            LocalVar%PC_PitComT = LocalVar%PC_PitComT + LocalVar%Del_Beta
+            LocalVar%PC_PitComT = LocalVar%PC_PitComT + LocalVar%ASO_PitchOffset
         ENDIF
        
         

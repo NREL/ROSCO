@@ -59,9 +59,9 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%rootMOOPF(1)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%rootMOOPF(2)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%rootMOOPF(3)
-        WRITE( Un, IOSTAT=ErrStat) LocalVar%Thrst
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%ASO_ThrustEst
         WRITE( Un, IOSTAT=ErrStat) LocalVar%ThrstN
-        WRITE( Un, IOSTAT=ErrStat) LocalVar%Thrst_es
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%ASO_ThrustNN
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Thrst_esN
         WRITE( Un, IOSTAT=ErrStat) LocalVar%T_err
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Tdot
@@ -69,7 +69,7 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Uenv
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Uold
         WRITE( Un, IOSTAT=ErrStat) LocalVar%Delta
-        WRITE( Un, IOSTAT=ErrStat) LocalVar%Del_Beta
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%ASO_PitchOffset
         WRITE( Un, IOSTAT=ErrStat) LocalVar%BlPitch(1)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%BlPitch(2)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%BlPitch(3)
@@ -414,9 +414,9 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%rootMOOPF(1)
         READ( Un, IOSTAT=ErrStat) LocalVar%rootMOOPF(2)
         READ( Un, IOSTAT=ErrStat) LocalVar%rootMOOPF(3)
-        READ( Un, IOSTAT=ErrStat) LocalVar%Thrst
+        READ( Un, IOSTAT=ErrStat) LocalVar%ASO_ThrustEst
         READ( Un, IOSTAT=ErrStat) LocalVar%ThrstN
-        READ( Un, IOSTAT=ErrStat) LocalVar%Thrst_es
+        READ( Un, IOSTAT=ErrStat) LocalVar%ASO_ThrustNN
         READ( Un, IOSTAT=ErrStat) LocalVar%Thrst_esN
         READ( Un, IOSTAT=ErrStat) LocalVar%T_err
         READ( Un, IOSTAT=ErrStat) LocalVar%Tdot
@@ -424,7 +424,7 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%Uenv
         READ( Un, IOSTAT=ErrStat) LocalVar%Uold
         READ( Un, IOSTAT=ErrStat) LocalVar%Delta
-        READ( Un, IOSTAT=ErrStat) LocalVar%Del_Beta
+        READ( Un, IOSTAT=ErrStat) LocalVar%ASO_PitchOffset
         READ( Un, IOSTAT=ErrStat) LocalVar%BlPitch(1)
         READ( Un, IOSTAT=ErrStat) LocalVar%BlPitch(2)
         READ( Un, IOSTAT=ErrStat) LocalVar%BlPitch(3)
@@ -818,9 +818,9 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(16) = LocalVar%HorWindV_F
     LocalVarOutData(17) = LocalVar%rootMOOP(1)
     LocalVarOutData(18) = LocalVar%rootMOOPF(1)
-    LocalVarOutData(19) = LocalVar%Thrst
+    LocalVarOutData(19) = LocalVar%ASO_ThrustEst
     LocalVarOutData(20) = LocalVar%ThrstN
-    LocalVarOutData(21) = LocalVar%Thrst_es
+    LocalVarOutData(21) = LocalVar%ASO_ThrustNN
     LocalVarOutData(22) = LocalVar%Thrst_esN
     LocalVarOutData(23) = LocalVar%T_err
     LocalVarOutData(24) = LocalVar%Tdot
@@ -828,7 +828,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(26) = LocalVar%Uenv
     LocalVarOutData(27) = LocalVar%Uold
     LocalVarOutData(28) = LocalVar%Delta
-    LocalVarOutData(29) = LocalVar%Del_Beta
+    LocalVarOutData(29) = LocalVar%ASO_PitchOffset
     LocalVarOutData(30) = LocalVar%BlPitch(1)
     LocalVarOutData(31) = LocalVar%BlPitchCMeas
     LocalVarOutData(32) = LocalVar%Azimuth
@@ -990,9 +990,9 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutStrings(16) = 'HorWindV_F'
     LocalVarOutStrings(17) = 'rootMOOP'
     LocalVarOutStrings(18) = 'rootMOOPF'
-    LocalVarOutStrings(19) = 'Thrst'
+    LocalVarOutStrings(19) = 'ASO_ThrustEst'
     LocalVarOutStrings(20) = 'ThrstN'
-    LocalVarOutStrings(21) = 'Thrst_es'
+    LocalVarOutStrings(21) = 'ASO_ThrustNN'
     LocalVarOutStrings(22) = 'Thrst_esN'
     LocalVarOutStrings(23) = 'T_err'
     LocalVarOutStrings(24) = 'Tdot'
@@ -1000,7 +1000,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutStrings(26) = 'Uenv'
     LocalVarOutStrings(27) = 'Uold'
     LocalVarOutStrings(28) = 'Delta'
-    LocalVarOutStrings(29) = 'Del_Beta'
+    LocalVarOutStrings(29) = 'ASO_PitchOffset'
     LocalVarOutStrings(30) = 'BlPitch'
     LocalVarOutStrings(31) = 'BlPitchCMeas'
     LocalVarOutStrings(32) = 'Azimuth'

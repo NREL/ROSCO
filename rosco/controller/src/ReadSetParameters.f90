@@ -508,9 +508,9 @@ CONTAINS
         CALL ParseInput(FileLines,  'ke',            CntrPar%ke,                                   accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'Um',            CntrPar%Um,                                   accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'Tm',            CntrPar%Tm,                                   accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
-        CALL ParseInput(FileLines,  'e_dp',          CntrPar%e_dp,                                 accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
-        CALL ParseInput(FileLines,  't_act',         CntrPar%t_act,                                accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
-        CALL ParseInput(FileLines,  'PreDf_Thrst',   CntrPar%PreDf_Thrst,                          accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'ASO_ThrustGain',          CntrPar%ASO_ThrustGain,                                 accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'ASO_StartTime',         CntrPar%ASO_StartTime,                                accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'ASO_ThrustLim',   CntrPar%ASO_ThrustLim,                          accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
 
         !------------ WIND SPEED ESTIMATOR CONTANTS --------------
         CALL ParseInput(FileLines,  'WE_BladeRadius',   CntrPar%WE_BladeRadius,                         accINFILE(1), ErrVar, .FALSE., UnEc)

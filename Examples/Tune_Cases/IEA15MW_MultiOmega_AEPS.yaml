@@ -59,6 +59,6 @@ controller_params:
   #Adaptive Safe Operation (AEPS)
   Kc:                 50                    # AEPS Observer Gain
   gamma:              25                    # AEPS Learning Rate
-  e_dp:               0.16                  # AEPS design parameter for effective avoidance
-  PreDf_Thrst:        2.0435617420821 #1.75                  # AEPS Pre-Defined Thrust Limit [MN]
+  ASO_ThrustGain:               0.16                  # AEPS design parameter for effective avoidance
+  ASO_ThrustLim:        2.0435617420821 #1.75                  # AEPS Pre-Defined Thrust Limit [MN]
 

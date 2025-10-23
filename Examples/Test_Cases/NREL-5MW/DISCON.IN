@@ -123,9 +123,9 @@
 2.00000e-02         ! ke               - AEPS e-modification term gain
 1.00000e+00         ! Um               - Wind margin for AEPS avoidance
 5.00000e-02         ! Tm               - Thrust margin for BEBS avoidance [%]
-3.20000e-02         ! e_dp             - AEPS/BEPS design parameter for effective avoidance
-8.00000e+01         ! t_act            - AEPS activation time for avoidance
-5.88920e-01         ! PreDf_Thrst      - Pre-Defined Thrust Limit [MN]
+3.20000e-02         ! ASO_ThrustGain             - AEPS/BEPS design parameter for effective avoidance
+8.00000e+01         ! ASO_StartTime            - AEPS activation time for avoidance
+5.88920e-01         ! ASO_ThrustLim      - Pre-Defined Thrust Limit [MN]
 
 !------- WIND SPEED ESTIMATOR ---------------------------------------------
 63.000              ! WE_BladeRadius	- Blade length (distance from hub center to blade tip), [m]

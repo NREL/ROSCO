@@ -50,6 +50,6 @@ controller_params:
   ps_percent:         0.80                  # Percent peak shaving  [%, <= 1 ], {default = 80%}
   Kc:                 50                    # AEPS Observer Gain
   gamma:              25                   # AEPS Learning Rate
-  e_dp:               2.5                  # AEPS design parameter for effective avoidance
-  PreDf_Thrst:        0.5                  # AEPS Pre-Defined Thrust Limit [MN]
+  ASO_ThrustGain:               2.5                  # AEPS design parameter for effective avoidance
+  ASO_ThrustLim:        0.5                  # AEPS Pre-Defined Thrust Limit [MN]
   sd_maxpit:          0.4363                # Maximum blade pitch angle to initiate shutdown [rad], {default = bld pitch at v_max}

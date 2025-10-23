@@ -378,17 +378,17 @@ properties:
                 description: Thrust margin for BEBS avoidance [%]
                 type: number
                 default: 0.05
-            e_dp:          
+            ASO_ThrustGain:          
                 description: AEPS/BEPS design parameter for effective avoidance
                 type: number
                 default: 0.032
                 unit: no unit
-            t_act:          
+            ASO_StartTime:          
                 description: AEPS activation time for avoidance
                 type: number
                 default: 80
                 unit: s
-            PreDf_Thrst:          
+            ASO_ThrustLim:          
                 description: AEPS Pre-Defined Thrust Limit [MN]
                 type: number
                 default: 1.75

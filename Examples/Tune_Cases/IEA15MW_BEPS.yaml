@@ -59,7 +59,7 @@ controller_params:
   #BEPS Parameters 
   eps_percent:        0.8                   # Percent Peak Reduction  [%, <= 1 ], {default = 80%}
   Tm:                 0.05                  # Thrust margin for BEBS avoidance [%]
-  e_dp:               0.4                   # BEPS design parameter for effective avoidance
+  ASO_ThrustGain:               0.4                   # BEPS design parameter for effective avoidance
     
   
 

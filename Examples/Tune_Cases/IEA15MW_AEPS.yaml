@@ -64,6 +64,6 @@ controller_params:
   gamma:              2400                  # AEPS Learning Rate
   ke:                 0.02                  # AEPS e-modification term gain
   Um:                 1.0                   # Wind margin for AEPS avoidance
-  e_dp:               0.032                 # AEPS design parameter for effective avoidance
-  t_act:              80                    # AEPS activation time for avoidance
+  ASO_ThrustGain:               0.032                 # AEPS design parameter for effective avoidance
+  ASO_StartTime:              80                    # AEPS activation time for avoidance
 

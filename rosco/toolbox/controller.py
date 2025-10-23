@@ -91,9 +91,9 @@ class Controller():
         self.ke = controller_params['ke']
         self.Um = controller_params['Um']
         self.Tm = controller_params['Tm']
-        self.e_dp = controller_params['e_dp']
-        self.t_act = controller_params['t_act']
-        self.Thrst_Limit= controller_params['PreDf_Thrst']
+        self.ASO_ThrustGain = controller_params['ASO_ThrustGain']
+        self.ASO_StartTime = controller_params['ASO_StartTime']
+        self.Thrst_Limit= controller_params['ASO_ThrustLim']
         
         # Parameters
         
@@ -524,7 +524,7 @@ class Controller():
             self.ps.min_pitch_saturation(self,turbine)
 
         #--- Adaptive safe operation ---
-        self.PreDf_Thrst=self.Thrst_Limit
+        self.ASO_ThrustLim=self.Thrst_Limit
         self.eps = ControllerBlocks()
 
         if self.ASO_Mode > 0:  # AEPS
@@ -761,7 +761,7 @@ class ControllerBlocks():
 
         # Define minimum max thrust and initialize pitch_min
         Tmax = controller.ps_percent * np.max(T)
-        #PreDf_Thrst=controller.eps_percent*np.max(T)
+        #ASO_ThrustLim=controller.eps_percent*np.max(T)
         pitch_min = np.ones(len(controller.pitch_op)) * controller.min_pitch
 
         # Modify pitch_min if max thrust exceeds limits
@@ -811,12 +811,12 @@ class ControllerBlocks():
         T = 0.5 * rho * A * controller.v**2 * Ct_op
 
         # Calculate the Thrust Limit based on eps_percent 
-        #PreDf_Thrst=controller.eps_percent*np.max(T)
+        #ASO_ThrustLim=controller.eps_percent*np.max(T)
         Thrst_Limit=controller.eps_percent*np.max(T)
 
         # Save to controller object
-        controller.PreDf_Thrst = Thrst_Limit/10**6
-        #self.PreDf_Thrst=Thrst_Limit
+        controller.ASO_ThrustLim = Thrst_Limit/10**6
+        #self.ASO_ThrustLim=Thrst_Limit
 
     def min_pitch_saturation(self, controller, turbine):
         '''
