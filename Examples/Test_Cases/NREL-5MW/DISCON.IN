@@ -1,5 +1,5 @@
 ! Controller parameter input file for the NREL-5MW wind turbine
-!    - File written using ROSCO version 2.10.0 controller tuning logic on 09/08/25
+!    - File written using ROSCO version 2.10.1 controller tuning logic on 10/23/25
 
 !------- SIMULATION CONTROL ------------------------------------------------------------
 1                   ! LoggingLevel		- 0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)
@@ -25,6 +25,7 @@
 0                   ! TD_Mode         - Tower damper mode (0- no tower damper, 1- feed back translational nacelle accelleration to pitch angle
 0                   ! TRA_Mode        - Tower resonance avoidance mode (0- no tower resonsnace avoidance, 1- use torque control setpoints to avoid a specific frequency
 0                   ! Flp_Mode        - Flap control mode (0: no flap control, 1: steady state flap angle, 2: Proportional flap control, 2: Cyclic (1P) flap control)
+1                   ! ASO_Mode        - Adaptive safe operation {0- no safe operation, 1- AEPS system is on, 2- BEPS system is on, 3- ASCOS system is on }
 0                   ! OL_Mode         - Open loop control mode (0: no open loop control, 1: open loop control vs. time, 2: rotor position control)
 0                   ! PA_Mode         - Pitch actuator mode (0 - not used, 1 - first order filter, 2 - second order filter)
 0                   ! PF_Mode         - Pitch fault mode (0 - not used, 1 - constant offset on one or more blades)
@@ -115,6 +116,16 @@
 0.07854             ! PRC_LPF_Freq   - Frequency of the low pass filter on the wind speed estimate used to set PRC_GenSpeeds [rad/s]
 3.0000       25.0000           ! PRC_WindSpeeds   - Array of wind speeds used in rotor speed vs. wind speed lookup table [m/s]
 7.9168e-01   7.9168e-01         ! PRC_GenSpeeds   - Array of generator speeds corresponding to PRC_WindSpeeds [rad/s]
+
+!------- ADAPTIVE SAFE OPERATION--------------------------------------
+2.00000e+00         ! Kc               - AEPS Observer Gain
+2.80000e+03         ! gamma            - AEPS Learning Rate
+2.00000e-02         ! ke               - AEPS e-modification term gain
+1.00000e+00         ! Um               - Wind margin for AEPS avoidance
+5.00000e-02         ! Tm               - Thrust margin for BEBS avoidance [%]
+3.20000e-02         ! e_dp             - AEPS/BEPS design parameter for effective avoidance
+8.00000e+01         ! t_act            - AEPS activation time for avoidance
+5.88920e-01         ! PreDf_Thrst      - Pre-Defined Thrust Limit [MN]
 
 !------- WIND SPEED ESTIMATOR ---------------------------------------------
 63.000              ! WE_BladeRadius	- Blade length (distance from hub center to blade tip), [m]
