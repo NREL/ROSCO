@@ -38,7 +38,7 @@ class ROSCO_testing():
 
 
         # Setup simulation parameters
-        self.runDir = os.path.join(this_dir, 'testing' )   # directory to run simulations in
+        self.runDir = os.path.join(this_dir, 'outputs','ROSCO_testing' )   # directory to run simulations in
         self.wind_dir = None
         self.namebase = 'ROtest'    # root name for output simulations
         self.FAST_exe = 'openfast_single'       # name of openfast executable (may need full path)

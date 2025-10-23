@@ -7,7 +7,7 @@ Standard ROSCO Workflow
 
 
 .. _fig-RT:
-.. figure:: /source/figures/ROSCOFramework.svg
+.. figure:: /images/ROSCOFramework.svg
    :align: center
    :width: 90%
 

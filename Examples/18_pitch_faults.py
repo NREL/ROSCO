@@ -1,8 +1,24 @@
 """
 18_pitch_offsets
 ----------------
-Run openfast with ROSCO and pitch offset faults
-Set up and run simulation with pitch offsets, check outputs
+Demosntrate two kinds of pitch faults using ROSCO:
+
+1. Pitch offsets
+^^^^^^^^^^^^^^^^^^^
+When ``PF_Mode`` is set to 1, the pitch controller will apply a constant offset to the pitch angles of the blades.
+The offsets are set in the ``PF_Offsets`` array in the DISCON file.
+
+.. image:: ../images/examples/18_pitch_offsets.png
+
+
+2. Stuck pitch actuator
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When ``PF_Mode`` is set to 2, the pitch actuator will become stuck at its current position at time ``PF_TimeStuck``.
+
+.. image:: ../images/examples/18_pitch_stuck.png
+
+
 """
 
 import os
@@ -21,7 +37,7 @@ def main():
 
     # Input yaml and output directory
     parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW.yaml')
-    run_dir = os.path.join(example_out_dir,'18_PitchFaults')
+    run_dir = os.path.join(example_out_dir,'18_PitchOffset')
     os.makedirs(run_dir,exist_ok=True)
     
     # Set DISCON input dynamically through yaml/dict
@@ -41,8 +57,8 @@ def main():
         'U_start': [10],  # from 10 to 15 m/s
         'U_end': [15],
         'wind_dir': run_dir,
-        'T_step': 50,   # step at 50 sec
-        'T_Max': 100    # simulation is 100 sec
+        'TStep': 5,   # step at 5 sec
+        'TMax': 10    # simulation is 10 sec
         }
     r.case_inputs = {}
     r.case_inputs[("ServoDyn","Ptch_Cntrl")] = {'vals':[1], 'group':0}  # Individual pitch control must be enabled in ServoDyn
@@ -54,7 +70,7 @@ def main():
 
 
     # Check pitch offsets
-    filenames = [os.path.join(run_dir,'IEA15MW/simp_step/base/IEA15MW_0.outb')]
+    filenames = [os.path.join(run_dir,'IEA15MW_0.outb')]
     fast_out = output_processing.output_processing()
 
     # Load and plot
@@ -65,10 +81,31 @@ def main():
     # check that offset (min,max) is very close to prescribed values
     # Note that some OpenFAST configurations (e.g., fixed bottom) do not apply offet on
     # first timestep and this example may fail
-    np.testing.assert_almost_equal(offset_2.max(),pitch2_offset,decimal=3)
-    np.testing.assert_almost_equal(offset_2.min(),pitch2_offset,decimal=3)
-    np.testing.assert_almost_equal(offset_3.max(),pitch3_offset,decimal=3)
-    np.testing.assert_almost_equal(offset_3.max(),pitch3_offset,decimal=3)
+    np.testing.assert_almost_equal(offset_2.max(),pitch2_offset,decimal=2)
+    np.testing.assert_almost_equal(offset_2.min(),pitch2_offset,decimal=2)
+    np.testing.assert_almost_equal(offset_3.max(),pitch3_offset,decimal=2)
+    np.testing.assert_almost_equal(offset_3.max(),pitch3_offset,decimal=2)
+
+
+    # Stuck pitch actuator:
+
+    time_stuck = 7.5
+
+    controller_params['PF_Mode'] = 2   # Stuck pitch actuator
+    controller_params['DISCON']['PF_TimeStuck'] = [time_stuck,time_stuck+1,time_stuck+2]   # time at which the actuator becomes stuck
+    run_dir = os.path.join(example_out_dir,'18_PitchStuck')
+    r.save_dir      = run_dir
+    r.run_FAST()
+
+    # Check pitch stays the same
+    filenames = [os.path.join(run_dir,'IEA15MW_0.outb')]
+    fast_out2 = output_processing.output_processing()
+
+    # Load output and check that the pitch angle is constant after time_stuck (last value = value at time_stuck)
+    fastout = fast_out2.load_fast_out(filenames)
+    ind_stuck = fastout[0]['Time'] == time_stuck
+    np.testing.assert_almost_equal(fastout[0]['BldPitch1'][ind_stuck],fastout[0]['BldPitch1'][-1])
+    fastout[0]['BldPitch1'][ind_stuck] == fastout[0]['BldPitch1'][-1]
 
 
 

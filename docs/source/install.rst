@@ -138,6 +138,7 @@ On Mac/Linux, standard compilers are generally available without any additional 
 
 .. code-block:: bash
 
+    conda uninstall gcc gfortran  # if you previously installed via pip above
     conda install m2w64-toolchain libpython
     conda install cmake make  # if Windows users would like to install these in anaconda environment
 

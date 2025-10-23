@@ -22,6 +22,7 @@
 MODULE Filters
 !...............................................................................................................................
     USE Constants
+    USE Functions
     IMPLICIT NONE
 
 CONTAINS
@@ -335,6 +336,8 @@ CONTAINS
         TYPE(ErrorVariables),   INTENT(INOUT)       :: ErrVar
         INTEGER(IntKi) :: K  ! Integer used to loop through turbine blades
         INTEGER(IntKi) :: n  ! Integer used to loop through notch filters
+        REAL(DbKi)       :: NacVaneCosF                 ! Time-filtered x-component of NacVane (deg)
+        REAL(DbKi)       :: NacVaneSinF                 ! Time-filtered y-component of NacVane (deg)
 
         ! If there's an error, don't even try to run
         IF (ErrVar%aviFAIL < 0) THEN
@@ -362,13 +365,13 @@ CONTAINS
         ! Filtering the tower fore-aft acceleration signal 
         ! Force to start at 0
         IF (LocalVar%iStatus == 0 .AND. LocalVar%Time == 0) THEN
-            LocalVar%NacIMU_FA_Acc = 0
-            LocalVar%FA_Acc = 0
+            LocalVar%NacIMU_FA_RAcc = 0
+            LocalVar%FA_Acc_Nac = 0
         ENDIF 
 
         ! Low pass
-        LocalVar%NacIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
-        LocalVar%FA_AccF = SecLPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
+        LocalVar%NacIMU_FA_AccF = SecLPFilter(LocalVar%NacIMU_FA_RAcc, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
+        LocalVar%FA_AccF = SecLPFilter(LocalVar%FA_Acc_Nac, LocalVar%DT, CntrPar%F_FlCornerFreq(1), CntrPar%F_FlCornerFreq(2), LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF) ! Fixed Damping
         
         ! High pass
         LocalVar%NacIMU_FA_AccF = HPFilter(LocalVar%NacIMU_FA_AccF, LocalVar%DT, CntrPar%F_FlHighPassFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF) 
@@ -391,7 +394,7 @@ CONTAINS
         
         ! FA acc for ForeAft damping, condition matches whether it's used in Controllers.f90
         IF (CntrPar%TD_Mode > 0) THEN
-            LocalVar%FA_AccHPF = HPFilter(LocalVar%FA_Acc, LocalVar%DT, CntrPar%FA_HPFCornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF)
+            LocalVar%FA_AccHPF = HPFilter(LocalVar%FA_Acc_Nac, LocalVar%DT, CntrPar%FA_HPFCornerFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instHPF)
         ENDIF
         
         ! Filter Wind Speed Estimator Signal
@@ -421,7 +424,12 @@ CONTAINS
 
         ! Control commands (used by WSE, mostly)
         LocalVar%VS_LastGenTrqF = SecLPFilter(LocalVar%VS_LastGenTrq, LocalVar%DT, CntrPar%F_LPFCornerFreq, 0.7_DbKi, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF)
-        LocalVar%PC_PitComTF    = SecLPFilter(LocalVar%PC_PitComT, LocalVar%DT, CntrPar%F_LPFCornerFreq*0.25, 0.7_DbKi, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF)
+        LocalVar%BlPitchCMeasF    = SecLPFilter(LocalVar%BlPitchCMeas, LocalVar%DT, CntrPar%F_LPFCornerFreq*0.25, 0.7_DbKi, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF)
+
+        ! Wind vane signal
+        NacVaneCosF = LPFilter(cos(LocalVar%NacVane*D2R), LocalVar%DT, CntrPar%F_YawErr, LocalVar%FP, LocalVar%iStatus, .FALSE., objInst%instLPF) ! (-)
+        NacVaneSinF = LPFilter(sin(LocalVar%NacVane*D2R), LocalVar%DT, CntrPar%F_YawErr, LocalVar%FP, LocalVar%iStatus, .FALSE., objInst%instLPF) ! (-)
+        LocalVar%NacVaneF = wrap_180(atan2(NacVaneSinF, NacVaneCosF) * R2D) ! (deg)
 
         ! Debug Variables
         DebugVar%GenSpeedF = LocalVar%GenSpeedF

@@ -23,6 +23,7 @@ from rosco.toolbox import controller as ROSCO_controller
 from rosco.toolbox.ofTools.fast_io import output_processing
 import matplotlib.pyplot as plt
 
+FULL_TEST = False
 
 def main():
     #directories
@@ -110,9 +111,13 @@ def main():
     r.wind_case_opts    = {
         'U_start': [13],
         'U_end': [16],
-        'TMax': 100,
-        'TStep': 50,
+        'TMax': 10,
+        'TStep': 5,
         }
+    if FULL_TEST:
+        r.wind_case_opts['TMax'] = 100
+        r.wind_case_opts['TStep'] = 50
+        
     r.case_inputs       = case_inputs
     r.save_dir          = run_dir
     r.rosco_dir         = rosco_dir
@@ -123,9 +128,9 @@ def main():
     op_dbg = output_processing.output_processing()
     op_dbg2 = output_processing.output_processing()
 
-    out_files = [os.path.join(run_dir,f'IEA15MW/simp_step/base/IEA15MW_{i_case}.outb') for i_case in range(4)]
-    dbg_files = [os.path.join(run_dir,f'IEA15MW/simp_step/base/IEA15MW_{i_case}.RO.dbg') for i_case in range(4)]
-    dbg2_files = [os.path.join(run_dir,f'IEA15MW/simp_step/base/IEA15MW_{i_case}.RO.dbg2') for i_case in range(4)]
+    out_files = [os.path.join(run_dir,f'IEA15MW_{i_case}.outb') for i_case in range(4)]
+    dbg_files = [os.path.join(run_dir,f'IEA15MW_{i_case}.RO.dbg') for i_case in range(4)]
+    dbg2_files = [os.path.join(run_dir,f'IEA15MW_{i_case}.RO.dbg2') for i_case in range(4)]
 
     fst_out = op.load_fast_out(out_files, tmin=0)
     debug_vars = op_dbg.load_fast_out(dbg_files, tmin=0)

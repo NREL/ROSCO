@@ -23,7 +23,7 @@ void delete_blank_spaces_in_string(char *s)
 int zmq_client (
     char *zmq_address,
     double measurements[17],
-    double setpoints[5]
+    double setpoints[8]
 )
 {
     int num_measurements = 17;  // Number of setpoints and measurements, respectively, and float precision (character length)
@@ -60,7 +60,7 @@ int zmq_client (
 
     // Print the string
     if (verbose == 1) {
-        printf ("zmq_client.c: string_to_ssc: %s…\n", string_to_ssc);
+        printf ("zmq_client.c: string_to_ssc: %sâ€¦\n", string_to_ssc);
     }
 
     // Core ZeroMQ communication: receive data and send back signals
