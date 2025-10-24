@@ -107,6 +107,9 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
         CALL Shutdown(LocalVar, CntrPar, objInst,ErrVar)
     ENDIF
     CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
+    IF (CntrPar%ASO_Mode > 0) THEN
+        CALL AdaptiveEnvelopeProtectionSystem(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
+    END IF
     CALL PowerControlSetpoints(CntrPar, LocalVar, objInst, DebugVar, ErrVar)  ! Everything before the pitch, torque set points are computeed
     IF (CntrPar%SU_Mode > 0) THEN
         CALL Startup(LocalVar, CntrPar, objInst,ErrVar)
@@ -114,7 +117,6 @@ IF (((LocalVar%iStatus >= 0) .OR. (LocalVar%iStatus <= -8)) .AND. (ErrVar%aviFAI
     CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
     CALL StateMachine(CntrPar, LocalVar)
     CALL SetpointSmoother(LocalVar, CntrPar, objInst)
-    CALL AdaptiveEnvelopeProtectionSystem(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
     CALL VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst, ErrVar)
     IF (CntrPar%PC_ControlMode > 0) THEN
         CALL PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)

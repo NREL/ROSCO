@@ -1377,6 +1377,12 @@ properties:
                         type: string
                         description: Name of procedure in DLL to be called
                         default: DISCON
+                    ASO_UseNN:
+                        type: number
+                        description: Use neural net to estimate thrust (0 - no, 1 - yes)
+                        minimum: 0
+                        maximum: 1
+                        default: 0
                     PF_Offsets:
                         type: array
                         items:

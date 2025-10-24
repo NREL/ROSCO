@@ -635,6 +635,9 @@ ControlParameters:
     ASO_ThrustLim:
       <<: *real
       description: AEPS Pre-Defined Thrust Limit [MN] 
+    ASO_UseNN:
+      <<: *integer
+      description: AEPS Use Neural Network for thrust estimation {0- No, 1- Yes}
     
     # Open-loop Control
     OL_Filename:

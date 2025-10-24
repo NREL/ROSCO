@@ -248,11 +248,15 @@ CONTAINS
 
             ENDIF
 			
-                ! NOTE: Calculation of the Thrust (Estimate) of the controlled turbine is realized under the subroutine of WindSpeedEstimator
+                    ! NOTE: Calculation of the Thrust (Estimate) of the controlled turbine is realized under the subroutine of WindSpeedEstimator
             
-                ! Adaptive EPS Algorithm Starts from Here
+                    ! Adaptive EPS Algorithm Starts from Here
 
-                P = 0.5 / CntrPar%Kc ! Solution of Lyapunov Equation (-K)'*P+P*(-K)=-I
+                LocalVar%ASO_PitchOffset = 0.0_DbKi  ! Initialize the extra pitch angle output  
+
+                if (CntrPar%ASO_UseNN > 0) THEN
+
+                    P = 0.5 / CntrPar%Kc ! Solution of Lyapunov Equation (-K)'*P+P*(-K)=-I
                 
                     ! Kronecker product calculation (del = D1 ⊗ D2)
                     bias = 1.0                    
@@ -272,7 +276,7 @@ CONTAINS
                             del((i-1)*2 + j) = 1.0_DbKi / (1.0_DbKi + exp(-del((i-1)*2 + j)))
                         end do
                     end do
-                   
+                
                     ! Compute the Derivative of Weight
                     do i = 1, n                        
                         dWeght_dt(i) = CntrPar%gamma * (del(i) * LocalVar%T_err * P - CntrPar%ke * Weght(i) * abs(LocalVar%T_err))
@@ -288,7 +292,7 @@ CONTAINS
 
                     ! Compute the Derivative of Thrust estimate (ASO_ThrustNN)                    
                     Thrst_es_dt = a_s * LocalVar%ASO_ThrustNN + b_s * LocalVar%We_Vw + LocalVar%Delta + CntrPar%Kc * LocalVar%T_err                  
-                                      
+                                    
                     ! Update ASO_ThrustNN using Euler's method
                     LocalVar%ASO_ThrustNN = LocalVar%ASO_ThrustNN + Thrst_es_dt * LocalVar%DT !ASO_ThrustNN in Mega Newton
                     LocalVar%Thrst_esN=LocalVar%ASO_ThrustNN * (10**6) !ASO_ThrustNN in Newton
@@ -298,40 +302,11 @@ CONTAINS
 
                     ! Calculate the Adaptation                    
                     LocalVar%Adp = LocalVar%Delta + CntrPar%Kc * LocalVar%T_err
-                   
+                
                     ! Calculate the Derivative of Thrust Estimate
                     Pre_Thrst_es = LocalVar%ASO_ThrustNN - Thrst_es_dt * LocalVar%DT
                     LocalVar%Tdot = (LocalVar%ASO_ThrustNN - Pre_Thrst_es) / LocalVar%DT
 
-                    if (CntrPar%ASO_Mode == 0) then
-                       LocalVar%ASO_PitchOffset = 0
-
-                    else if (CntrPar%ASO_Mode == 1 .and. LocalVar%time >= CntrPar%ASO_StartTime) then
-
-                       ! Detecting the Excessive Thrust Force and Generating Extra Blade Pitch Output
-                       !if (LocalVar%We_Vw - LocalVar%Uenv >= 0) then
-                       if (LocalVar%We_Vw - LocalVar%Uenv >= -CntrPar%Um) then  
-                           !LocalVar%ASO_PitchOffset = CntrPar%ASO_ThrustGain * (LocalVar%We_Vw - LocalVar%Uenv)                                                                                            
-                           LocalVar%ASO_PitchOffset = CntrPar%ASO_ThrustGain * abs(LocalVar%We_Vw - (LocalVar%Uenv-CntrPar%Um))                                                  
-                          
-                       else 
-                           LocalVar%ASO_PitchOffset = 0
-                       end if   
-                                                           
-                    else if (CntrPar%ASO_Mode == 2) then                                       
-                    
-                       if (LocalVar%ASO_ThrustEst - CntrPar%ASO_ThrustLim >= -CntrPar%Tm*CntrPar%ASO_ThrustLim) then
-                            LocalVar%ASO_PitchOffset = CntrPar%ASO_ThrustGain * abs(LocalVar%ASO_ThrustEst - (CntrPar%ASO_ThrustLim-CntrPar%Tm*CntrPar%ASO_ThrustLim))                       
-                       else 
-                           LocalVar%ASO_PitchOffset = 0
-                       end if
-
-                    else if (CntrPar%ASO_Mode == 3) then
-
-                        print *, "Design ASCOS system"
-
-                    end if     
-                                        
                     ! Envelope wind speed calculation                  
                     Es = 0.01      ! Uenv tolerance                    
                     LocalVar%Uold = LocalVar%Uenv
@@ -345,7 +320,30 @@ CONTAINS
                         LocalVar%Uold = LocalVar%Uenv
                         m = m + 1
                         
-                    end do                                                       
+                    end do         
+
+                    if (LocalVar%time >= CntrPar%ASO_StartTime) then
+
+                       ! Detecting the Excessive Thrust Force and Generating Extra Blade Pitch Output
+                       !if (LocalVar%We_Vw - LocalVar%Uenv >= 0) then
+                       if (LocalVar%We_Vw - LocalVar%Uenv >= -CntrPar%Um) then  
+                           !LocalVar%ASO_PitchOffset = CntrPar%ASO_ThrustGain * (LocalVar%We_Vw - LocalVar%Uenv)                                                                                            
+                           LocalVar%ASO_PitchOffset = CntrPar%ASO_ThrustGain * abs(LocalVar%We_Vw - (LocalVar%Uenv-CntrPar%Um))    
+                           
+                       endif
+                    endif
+                
+                else ! Use plain thrust esimate from WSE
+
+                    if ((LocalVar%time >= CntrPar%ASO_StartTime) .AND. (LocalVar%ASO_ThrustEst > CntrPar%ASO_ThrustLim * (1 - CntrPar%Tm))) then
+                        LocalVar%ASO_PitchOffset = CntrPar%ASO_ThrustGain * abs(LocalVar%ASO_ThrustEst - (CntrPar%ASO_ThrustLim-CntrPar%Tm*CntrPar%ASO_ThrustLim))
+                    else
+                        LocalVar%ASO_PitchOffset = 0
+                    end if
+
+                endif
+                                        
+                                              
                                                         
                 ! Adaptive EPS Algorithm Ends Here
 
