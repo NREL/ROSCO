@@ -588,7 +588,6 @@ CONTAINS
                 Ct_op = max(0.0,Ct_op)
                                 
                 ! Calculate the Thrust Estimate of the controlled turbine                
-                LocalVar%ThrstN=0.5 *CntrPar%WE_RhoAir * (LocalVar%WE_Vw**2) * PI * (CntrPar%WE_BladeRadius**2) * Ct_op !Estimated Thrust using CT surface (Newton)
                 LocalVar%ASO_ThrustEst=0.5 * 0.000001 *CntrPar%WE_RhoAir * (LocalVar%WE_Vw**2) * PI * (CntrPar%WE_BladeRadius**2) * Ct_op !Estimated Thrust using CT surface (Mega Newton)
               
                 ! Update Jacobian
