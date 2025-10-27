@@ -57,13 +57,17 @@ controller_params:
   PA_CornerFreq:      1.5708                # Pitch actuator natural frequency [rad/s]
   PA_Damping:         0.707                 # Pitch actuator natural frequency [rad/s]
   rgn2k_factor:       0.85926
-  #Adaptive Safe Operation 
-  #AEPS Parameters 
-  eps_percent:        0.8                   # Percent Peak Reduction  [%, <= 1 ], {default = 80%}
+  #Adaptive Safe Operation
+  #AEPS Parameters
+  eps_percent:        0.8                   # AEPS/BEPS Percent Peak Reduction  [%, <= 1 ], {default = 80%}
   Kc:                 2                     # AEPS Observer Gain 
   gamma:              2400                  # AEPS Learning Rate
   ke:                 0.02                  # AEPS e-modification term gain
   Um:                 1.0                   # Wind margin for AEPS avoidance
   ASO_WindGain:       0.032                 # AEPS design parameter for effective avoidance
-  ASO_StartTime:      80                    # AEPS activation time for avoidance
+  ASO_StartTime:      80                    # AEPS/BEPS activation time for avoidance
+  #BEPS Parameters
+  Tm:                 0.05                  # Thrust margin for BEBS avoidance [%]
+  ASO_ThrustGain:     0.4                   # BEPS design parameter for effective avoidance
+
 

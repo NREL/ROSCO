@@ -66,7 +66,7 @@ def main():
   
     # Set DISCON input dynamically through yaml/dict
     controller_params = {}     
-    # controller_params['PS_Mode'] = 3    # review this
+    # controller_params['PS_Mode'] = 3    # review this. (I used this just as 0 and 1, 0 means Peak Shaving is off, 1 is Peak Shaving is on. I didnt select 3 or 2). 
     controller_params['ps_percent'] = .95
     controller_params['ASO_Mode'] = 1
     controller_params['PA_Mode'] = 2  

@@ -214,8 +214,9 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<14.5e}      ! Um               - Wind margin for AEPS avoidance\n'.format(rosco_vt['Um']))
     file.write('{:<14.5f}      ! Tm               - Fraction to reduce thrust margin [-]\n'.format(rosco_vt['Tm']))
     file.write('{:<11d}        ! ASO_UseNN        - {}\n'.format(rosco_vt['ASO_UseNN'], input_descriptions['ASO_UseNN']))
-    file.write('{:<14.5e}      ! ASO_ThrustGain             - AEPS/BEPS design parameter for effective avoidance\n'.format(rosco_vt['ASO_ThrustGain']))
-    file.write('{:<14.5e}      ! ASO_StartTime            - AEPS activation time for avoidance\n'.format(rosco_vt['ASO_StartTime']))
+    file.write('{:<14.5e}      ! ASO_WindGain             - AEPS design parameter for effective avoidance\n'.format(rosco_vt['ASO_WindGain']))
+    file.write('{:<14.5e}      ! ASO_ThrustGain             - BEPS design parameter for effective avoidance\n'.format(rosco_vt['ASO_ThrustGain']))
+    file.write('{:<14.5e}      ! ASO_StartTime            - AEPS/BEPS activation time for avoidance\n'.format(rosco_vt['ASO_StartTime']))
     file.write('{:<14.5e}      ! ASO_ThrustLim      - Pre-Defined Thrust Limit [MN]\n'.format(rosco_vt['ASO_ThrustLim']))
     file.write('\n')
     file.write('!------- WIND SPEED ESTIMATOR ---------------------------------------------\n')
@@ -636,6 +637,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['ke'] = controller.ke
     DISCON_dict['Um'] = controller.Um
     DISCON_dict['Tm'] = controller.Tm
+    DISCON_dict['ASO_WindGain'] = controller.ASO_WindGain
     DISCON_dict['ASO_ThrustGain'] = controller.ASO_ThrustGain
     DISCON_dict['ASO_StartTime'] = controller.ASO_StartTime
     DISCON_dict['ASO_ThrustLim'] = controller.ASO_ThrustLim

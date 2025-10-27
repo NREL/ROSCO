@@ -626,12 +626,15 @@ ControlParameters:
     Tm:
       <<: *real
       description: Thrust margin for BEBS avoidance [%]
+    ASO_WindGain:
+      <<: *real
+      description: AEPS design parameter for effective avoidance
     ASO_ThrustGain:
       <<: *real
-      description: AEPS/BEPS design parameter for effective avoidance     
+      description: BEPS design parameter for effective avoidance     
     ASO_StartTime:
       <<: *real
-      description: AEPS activation time for avoidance
+      description: AEPS/BEPS activation time for avoidance
     ASO_ThrustLim:
       <<: *real
       description: AEPS Pre-Defined Thrust Limit [MN] 

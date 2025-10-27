@@ -509,6 +509,7 @@ CONTAINS
         CALL ParseInput(FileLines,  'Um',            CntrPar%Um,                                   accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'Tm',            CntrPar%Tm,                                   accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'ASO_UseNN',          CntrPar%ASO_UseNN,                                 accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
+        CALL ParseInput(FileLines,  'ASO_WindGain',          CntrPar%ASO_WindGain,                                 accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'ASO_ThrustGain',          CntrPar%ASO_ThrustGain,                                 accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'ASO_StartTime',         CntrPar%ASO_StartTime,                                accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)
         CALL ParseInput(FileLines,  'ASO_ThrustLim',   CntrPar%ASO_ThrustLim,                          accINFILE(1), ErrVar,   CntrPar%ASO_Mode == 0, UnEc)

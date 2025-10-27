@@ -91,6 +91,7 @@ class Controller():
         self.ke = controller_params['ke']
         self.Um = controller_params['Um']
         self.Tm = controller_params['Tm']
+        self.ASO_WindGain = controller_params['ASO_WindGain']
         self.ASO_ThrustGain = controller_params['ASO_ThrustGain']
         self.ASO_StartTime = controller_params['ASO_StartTime']
         self.Thrst_Limit= controller_params['ASO_ThrustLim']

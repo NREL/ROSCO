@@ -347,7 +347,7 @@ properties:
                 maximum: 1
                 unit: rad
             eps_percent:          
-                description: AEPS design parameter for effective avoidance
+                description: AEPS/BEPS design parameter for effective avoidance
                 type: number
                 default: 0.8
                 maximum: 1
@@ -377,14 +377,19 @@ properties:
             Tm:          
                 description: Thrust margin for BEBS avoidance [%]
                 type: number
-                default: 0.05
-            ASO_ThrustGain:          
-                description: AEPS/BEPS design parameter for effective avoidance
+                default: 0.05            
+            ASO_WindGain:          
+                description: AEPS design parameter for effective avoidance
                 type: number
                 default: 0.032
                 unit: no unit
+            ASO_ThrustGain:          
+                description: BEPS design parameter for effective avoidance
+                type: number
+                default: 0.4
+                unit: no unit
             ASO_StartTime:          
-                description: AEPS activation time for avoidance
+                description: AEPS/BEPS activation time for avoidance
                 type: number
                 default: 80
                 unit: s

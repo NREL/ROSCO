@@ -216,16 +216,17 @@ CONTAINS
         REAL(DbKi) :: a_s =-0.2401             ! Approximate value for a
         REAL(DbKi) :: b_s = 0.0175             ! Approximate value for b
         REAL(DbKi) :: RotSpeed                 ! Rotor Speed [rad], locally
-        REAL(DbKi) :: ASO_ThrustEst                    ! Turbine Thrust [MN], locally
+        REAL(DbKi) :: ASO_ThrustEst            ! Turbine Thrust [MN], locally
         REAL(DbKi) :: Uenv                     ! Envelope Wind Speed		
         REAL(DbKi) :: Delta                    ! Neural Network Output
-        REAL(DbKi) :: ASO_ThrustNN                 ! Thrust Estimate
+        REAL(DbKi) :: ASO_ThrustNN             ! Thrust Estimate
         REAL(DbKi) :: Pre_Thrst_es             ! Previous Time Step Thrust Estimate
         REAL(DbKi) :: Thrst_es_dt              ! Derivative of Thrust Estimate
-        REAL(DbKi) :: ASO_PitchOffset                 ! Adaptive Envelope Protection System (AEPS) output, (Extra Blade Pitch Angle)        
+        REAL(DbKi) :: ASO_PitchOffset          ! Adaptive Envelope Protection System (AEPS) output, (Extra Blade Pitch Angle)        
         REAL(DbKi) :: Weght(n), del(n)         ! Vectors for Neural Network (NN) Weights and del
         REAL(DbKi) :: dWeght_dt(n)             ! Derivative of NN Weights          
         INTEGER    :: m, i, j
+        INTEGER    :: Max_Iter                 ! Number of Maximum Iteration for Calculating Envelope Wind Speed, Uenv
         REAL(DbKi) :: Adp, Tdot                ! Adaptation Output, Derivative of Thrust Estimate
         REAL(DbKi) :: D1(3), D2(2), bias, Uold, Ea, Es
                 
@@ -311,26 +312,34 @@ CONTAINS
                     Es = 0.01      ! Uenv tolerance                    
                     LocalVar%Uold = LocalVar%Uenv
                     m = 0          ! Iteration counter
+                    Max_Iter = 25   ! Maximum allowed iterations
 
                     ! Iteration loop for calculating Envelope Wind Speed, Uenv
-                    do while (Ea > Es)
+                    !do while (Ea > Es)
+                    do while (Ea > Es .AND. m < Max_Iter)
                         
                         LocalVar%Uenv = -(1.0 / b_s) * (a_s * CntrPar%ASO_ThrustLim + LocalVar%Adp - LocalVar%Tdot)
                         Ea = abs((LocalVar%Uenv - LocalVar%Uold) / LocalVar%Uenv)
                         LocalVar%Uold = LocalVar%Uenv
                         m = m + 1
                         
-                    end do         
+                    end do 
+
+                    ! Warning if loop did not converge
+                    if (Ea > Es) then
+                    write(*,*) 'Warning: AEPS Uenv iteration did not converge after ', Max_Iter, ' iterations.'
+                    end if        
 
                     if (LocalVar%time >= CntrPar%ASO_StartTime) then
 
                        ! Detecting the Excessive Thrust Force and Generating Extra Blade Pitch Output
                        !if (LocalVar%We_Vw - LocalVar%Uenv >= 0) then
                        if (LocalVar%We_Vw - LocalVar%Uenv >= -CntrPar%Um) then  
-                           !LocalVar%ASO_PitchOffset = CntrPar%ASO_ThrustGain * (LocalVar%We_Vw - LocalVar%Uenv)                                                                                            
-                           LocalVar%ASO_PitchOffset = CntrPar%ASO_ThrustGain * abs(LocalVar%We_Vw - (LocalVar%Uenv-CntrPar%Um))    
-                           
-                       endif
+                           !LocalVar%ASO_PitchOffset = CntrPar%ASO_WindGain * (LocalVar%We_Vw - LocalVar%Uenv)                                                                                            
+                           LocalVar%ASO_PitchOffset = CntrPar%ASO_WindGain * abs(LocalVar%We_Vw - (LocalVar%Uenv-CntrPar%Um))    
+                        else
+                        LocalVar%ASO_PitchOffset = 0
+                        endif
                     endif
                 
                 else ! Use plain thrust esimate from WSE
