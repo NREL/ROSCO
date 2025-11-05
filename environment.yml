@@ -5,7 +5,6 @@ channels:
 dependencies:
   - cmake
   - cmake-build-extension
-  - control
   - make
   - matplotlib
   - ninja
@@ -23,3 +22,5 @@ dependencies:
   - zeromq
   - openfast=4.1
   - openfast-io=4.1
+  - pip:
+    - control
