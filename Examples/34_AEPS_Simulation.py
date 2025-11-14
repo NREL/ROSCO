@@ -52,7 +52,7 @@ def main():
 
     # Input yaml and output directory
     parameter_filename = os.path.join(this_dir,'Tune_Cases/IEA15MW_AEPS.yaml')
-    run_dir = os.path.join(example_out_dir,'34_AEPS_Simulation/9_sweep_lim')
+    run_dir = os.path.join(example_out_dir,'34_AEPS_Simulation/10_check_nn')
     os.makedirs(run_dir,exist_ok=True)
 
     # Read initial input file
@@ -73,6 +73,7 @@ def main():
     controller_params['VS_ControlMode'] = 2
     controller_params['DISCON'] = {}
     controller_params['DISCON']['ASO_ThrustGain'] = 0.4
+    controller_params['DISCON']['ASO_UseNN'] = 1
     
     # simulation set up
     r = run_FAST_ROSCO()
@@ -86,18 +87,18 @@ def main():
          }
 
     # Run with and without AEPS algorithm
-    r.control_sweep_fcn = cl.sweep_yaml_input
-    r.control_sweep_opts = {
-            'control_param':'eps_percent',
-            'param_values': [0.7, 0.8, 0.9, 1.0] #Run with ASO mode equal to 0 and 1, respectively.
-        }
+    # r.control_sweep_fcn = cl.sweep_yaml_input
+    # r.control_sweep_opts = {
+    #         'control_param':'eps_percent',
+    #         'param_values': [0.7, 0.8, 0.9, 1.0] #Run with ASO mode equal to 0 and 1, respectively.
+    #     }
     
     r.controller_params = controller_params
     r.save_dir      = run_dir
     r.rosco_dir     = rosco_dir
     r.case_inputs = {}
     # r.rosco_dll = "C:/Users/musah/ROSCO/rosco/controller/build/libdiscon.dll"
-    r.n_cores = 4
+    r.n_cores = 1
     r.run_FAST()
 
 
