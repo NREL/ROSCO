@@ -25,25 +25,34 @@ from rosco.toolbox import turbine as ROSCO_turbine
 from rosco.toolbox.utilities import write_DISCON
 from rosco.toolbox.inputs.validation import load_rosco_yaml
 
+this_dir = os.path.dirname(os.path.abspath(__file__))
+tune_dir =  os.path.join(this_dir,'Tune_Cases')
+example_out_dir = os.path.join(this_dir,'examples_out')
+os.makedirs(example_out_dir, exist_ok=True)
+
 def main():
+    # Inputs: tuning yaml (will point to openfast model file)
+    parameter_filename = os.path.join(tune_dir,'IEA15MW.yaml')
+    
+    # Output: controller DISCON input file
+    param_file = os.path.join(example_out_dir,'IEA15MW_DISCON.IN')
+    
     # Load yaml file 
-    this_dir = os.path.dirname(os.path.abspath(__file__))
-    tune_dir =  os.path.join(this_dir,'Tune_Cases')
-    parameter_filename = os.path.join(tune_dir,'NREL5MW.yaml')
     inps = load_rosco_yaml(parameter_filename)
     path_params         = inps['path_params']
     turbine_params      = inps['turbine_params']
     controller_params   = inps['controller_params']
+    yaml_dir = os.path.dirname(parameter_filename)
 
     # Instantiate turbine, controller, and file processing classes
     turbine         = ROSCO_turbine.Turbine(turbine_params)
     controller      = ROSCO_controller.Controller(controller_params)
 
     # Load turbine data from OpenFAST and rotor performance text file
-    cp_filename = os.path.join(tune_dir,path_params['rotor_performance_filename'])
+    cp_filename = os.path.join(yaml_dir,path_params['rotor_performance_filename'])
     turbine.load_from_fast(
         path_params['FAST_InputFile'],
-        os.path.join(tune_dir,path_params['FAST_directory']),
+        os.path.join(yaml_dir,path_params['FAST_directory']),
         rot_source='txt',txt_filename= cp_filename
         )
 
@@ -51,12 +60,11 @@ def main():
     controller.tune_controller(turbine)
 
     # Write parameter input file
-    example_out_dir = os.path.join(this_dir,'examples_out')
-    param_file = os.path.join(example_out_dir,'03_DISCON.IN')
-    write_DISCON(turbine,controller,
-    param_file=param_file, 
-    txt_filename=cp_filename
-    )
+    write_DISCON(
+        turbine,controller,
+        param_file=param_file, 
+        txt_filename=cp_filename
+        )
 
     # Plot gain schedule
     fig, ax = plt.subplots(2,2,constrained_layout=True,sharex=True)
@@ -76,9 +84,7 @@ def main():
     ax[3].set_ylabel('Integral Gain')
 
     plt.suptitle('Pitch Controller Gains')
-
-    if not os.path.isdir(example_out_dir):
-        os.makedirs(example_out_dir)
+        
 
     if False:
         plt.show()
