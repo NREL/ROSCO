@@ -46,6 +46,7 @@ def main():
 
     # Load yaml file 
     parameter_filename = os.path.join(tune_dir,'NREL5MW.yaml')
+    yaml_dir = os.path.dirname(parameter_filename)
 
     inps = load_rosco_yaml(parameter_filename)
     path_params         = inps['path_params']
@@ -77,7 +78,7 @@ def main():
     ax.set_xlabel('Wind speed (m/s)')
     ax.set_ylabel('Blade pitch (deg)')
 
-    if True:
+    if False:
         plt.show()
     else:
         plt.savefig(os.path.join(example_out_dir,'06_MinPitch.png'))
