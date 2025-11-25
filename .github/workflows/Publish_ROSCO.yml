@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-13, macos-14, macos-15]
+        os: [ubuntu-latest, windows-latest, macos-14, macos-15]
 
     steps:
       - name: Set up QEMU
@@ -63,14 +63,6 @@ jobs:
         env:
           CC: ${{ steps.install_cc.outputs.cc }}
           CXX: ${{ steps.install_cc.outputs.cxx }}
-
-      - name: Build wheels mac-13
-        if: contains( matrix.os, 'macos-13')
-        uses: pypa/cibuildwheel@v2.23.3
-        env:
-          CC: ${{ steps.install_cc.outputs.cc }}
-          CXX: ${{ steps.install_cc.outputs.cxx }}
-          CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET="13.0"
 
       - name: Build wheels mac-14
         if: contains( matrix.os, 'macos-14')
