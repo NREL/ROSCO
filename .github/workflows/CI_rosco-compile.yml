@@ -108,7 +108,7 @@ jobs:
         strategy:
             fail-fast: false #true
             matrix:
-                os: ["ubuntu-latest", "macOS-13", "macOS-14", "windows-latest"] #mac-13 intel, mac-14 arm
+                os: ["ubuntu-latest", "macOS-14", "macOS-latest", "windows-latest"] #mac-13 intel, mac-14 arm
                 python-version: ["3.11", "3.12"]
 
         steps:
