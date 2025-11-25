@@ -33,7 +33,6 @@ def main():
     
     # Output: rotor performance text file
     txt_filename = os.path.join(example_out_dir,'02_Cp_Ct_Cq.Ex03.txt')
-    txt_filename = os.path.join(example_out_dir,'IEA15MW_Cp_Ct_Cq.txt')
     
     # Initialize parameter dictionaries
     turbine_params = {}
