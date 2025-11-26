@@ -236,71 +236,71 @@ TYPE, PUBLIC :: WE
 END TYPE WE
 
 TYPE, PUBLIC :: FilterParameters
-    REAL(DbKi), DIMENSION(99)     :: lpf1_a1                     ! First order filter - Denominator coefficient 1
-    REAL(DbKi), DIMENSION(99)     :: lpf1_a0                     ! First order filter - Denominator coefficient 0
-    REAL(DbKi), DIMENSION(99)     :: lpf1_b1                     ! First order filter - Numerator coefficient 1
-    REAL(DbKi), DIMENSION(99)     :: lpf1_b0                     ! First order filter - Numerator coefficient 0
-    REAL(DbKi), DIMENSION(99)     :: lpf1_InputSignalLast        ! First order filter - Previous input
-    REAL(DbKi), DIMENSION(99)     :: lpf1_OutputSignalLast       ! First order filter - Previous output
-    REAL(DbKi), DIMENSION(99)     :: lpf2_a2                     ! Second order filter - Denominator coefficient 2
-    REAL(DbKi), DIMENSION(99)     :: lpf2_a1                     ! Second order filter - Denominator coefficient 1
-    REAL(DbKi), DIMENSION(99)     :: lpf2_a0                     ! Second order filter - Denominator coefficient 0
-    REAL(DbKi), DIMENSION(99)     :: lpf2_b2                     ! Second order filter - Numerator coefficient 2
-    REAL(DbKi), DIMENSION(99)     :: lpf2_b1                     ! Second order filter - Numerator coefficient 1
-    REAL(DbKi), DIMENSION(99)     :: lpf2_b0                     ! Second order filter - Numerator coefficient 0
-    REAL(DbKi), DIMENSION(99)     :: lpf2_InputSignalLast2       ! Second order filter - Previous input 2
-    REAL(DbKi), DIMENSION(99)     :: lpf2_OutputSignalLast2      ! Second order filter - Previous output 2
-    REAL(DbKi), DIMENSION(99)     :: lpf2_InputSignalLast1       ! Second order filter - Previous input 1
-    REAL(DbKi), DIMENSION(99)     :: lpf2_OutputSignalLast1      ! Second order filter - Previous output 1
-    REAL(DbKi), DIMENSION(99)     :: lpfV_a2                     ! Second order filter - Denominator coefficient 1
-    REAL(DbKi), DIMENSION(99)     :: lpfV_a1                     ! Second order filter - Denominator coefficient 1
-    REAL(DbKi), DIMENSION(99)     :: lpfV_a0                     ! Second order filter - Denominator coefficient 0
-    REAL(DbKi), DIMENSION(99)     :: lpfV_b2                     ! Second order filter - Numerator coefficient 2
-    REAL(DbKi), DIMENSION(99)     :: lpfV_b1                     ! Second order filter - Numerator coefficient 1
-    REAL(DbKi), DIMENSION(99)     :: lpfV_b0                     ! Second order filter - Numerator coefficient 0
-    REAL(DbKi), DIMENSION(99)     :: lpfV_InputSignalLast2       ! Second order filter - Previous input 2
-    REAL(DbKi), DIMENSION(99)     :: lpfV_OutputSignalLast2      ! Second order filter - Previous output 2
-    REAL(DbKi), DIMENSION(99)     :: lpfV_InputSignalLast1       ! Second order filter - Previous input 1
-    REAL(DbKi), DIMENSION(99)     :: lpfV_OutputSignalLast1      ! Second order filter - Previous output 1
-    REAL(DbKi), DIMENSION(99)     :: hpf_InputSignalLast         ! High pass filter - Previous output 1
-    REAL(DbKi), DIMENSION(99)     :: hpf_OutputSignalLast        ! High pass filter - Previous output 1
-    REAL(DbKi), DIMENSION(99)     :: nfs_OutputSignalLast1       ! Notch filter slopes previous output 1
-    REAL(DbKi), DIMENSION(99)     :: nfs_OutputSignalLast2       ! Notch filter slopes previous output 2
-    REAL(DbKi), DIMENSION(99)     :: nfs_InputSignalLast1        ! Notch filter slopes previous input 1
-    REAL(DbKi), DIMENSION(99)     :: nfs_InputSignalLast2        ! Notch filter slopes previous input 1
-    REAL(DbKi), DIMENSION(99)     :: nfs_b2                      ! Notch filter slopes numerator coefficient 2
-    REAL(DbKi), DIMENSION(99)     :: nfs_b0                      ! Notch filter slopes numerator coefficient 0
-    REAL(DbKi), DIMENSION(99)     :: nfs_a2                      ! Notch filter slopes denominator coefficient 2
-    REAL(DbKi), DIMENSION(99)     :: nfs_a1                      ! Notch filter slopes denominator coefficient 1
-    REAL(DbKi), DIMENSION(99)     :: nfs_a0                      ! Notch filter slopes denominator coefficient 0
-    REAL(DbKi), DIMENSION(99)     :: nf_OutputSignalLast1        ! Notch filter previous output 1
-    REAL(DbKi), DIMENSION(99)     :: nf_OutputSignalLast2        ! Notch filter previous output 2
-    REAL(DbKi), DIMENSION(99)     :: nf_InputSignalLast1         ! Notch filter previous input 1
-    REAL(DbKi), DIMENSION(99)     :: nf_InputSignalLast2         ! Notch filter previous input 2
-    REAL(DbKi), DIMENSION(99)     :: nf_b2                       ! Notch filter numerator coefficient 2
-    REAL(DbKi), DIMENSION(99)     :: nf_b1                       ! Notch filter numerator coefficient 1
-    REAL(DbKi), DIMENSION(99)     :: nf_b0                       ! Notch filter numerator coefficient 0
-    REAL(DbKi), DIMENSION(99)     :: nf_a1                       ! Notch filter denominator coefficient 1
-    REAL(DbKi), DIMENSION(99)     :: nf_a0                       ! Notch filter denominator coefficient 0
+    REAL(DbKi), DIMENSION(1024)     :: lpf1_a1                     ! First order filter - Denominator coefficient 1
+    REAL(DbKi), DIMENSION(1024)     :: lpf1_a0                     ! First order filter - Denominator coefficient 0
+    REAL(DbKi), DIMENSION(1024)     :: lpf1_b1                     ! First order filter - Numerator coefficient 1
+    REAL(DbKi), DIMENSION(1024)     :: lpf1_b0                     ! First order filter - Numerator coefficient 0
+    REAL(DbKi), DIMENSION(1024)     :: lpf1_InputSignalLast        ! First order filter - Previous input
+    REAL(DbKi), DIMENSION(1024)     :: lpf1_OutputSignalLast       ! First order filter - Previous output
+    REAL(DbKi), DIMENSION(1024)     :: lpf2_a2                     ! Second order filter - Denominator coefficient 2
+    REAL(DbKi), DIMENSION(1024)     :: lpf2_a1                     ! Second order filter - Denominator coefficient 1
+    REAL(DbKi), DIMENSION(1024)     :: lpf2_a0                     ! Second order filter - Denominator coefficient 0
+    REAL(DbKi), DIMENSION(1024)     :: lpf2_b2                     ! Second order filter - Numerator coefficient 2
+    REAL(DbKi), DIMENSION(1024)     :: lpf2_b1                     ! Second order filter - Numerator coefficient 1
+    REAL(DbKi), DIMENSION(1024)     :: lpf2_b0                     ! Second order filter - Numerator coefficient 0
+    REAL(DbKi), DIMENSION(1024)     :: lpf2_InputSignalLast2       ! Second order filter - Previous input 2
+    REAL(DbKi), DIMENSION(1024)     :: lpf2_OutputSignalLast2      ! Second order filter - Previous output 2
+    REAL(DbKi), DIMENSION(1024)     :: lpf2_InputSignalLast1       ! Second order filter - Previous input 1
+    REAL(DbKi), DIMENSION(1024)     :: lpf2_OutputSignalLast1      ! Second order filter - Previous output 1
+    REAL(DbKi), DIMENSION(1024)     :: lpfV_a2                     ! Second order filter - Denominator coefficient 1
+    REAL(DbKi), DIMENSION(1024)     :: lpfV_a1                     ! Second order filter - Denominator coefficient 1
+    REAL(DbKi), DIMENSION(1024)     :: lpfV_a0                     ! Second order filter - Denominator coefficient 0
+    REAL(DbKi), DIMENSION(1024)     :: lpfV_b2                     ! Second order filter - Numerator coefficient 2
+    REAL(DbKi), DIMENSION(1024)     :: lpfV_b1                     ! Second order filter - Numerator coefficient 1
+    REAL(DbKi), DIMENSION(1024)     :: lpfV_b0                     ! Second order filter - Numerator coefficient 0
+    REAL(DbKi), DIMENSION(1024)     :: lpfV_InputSignalLast2       ! Second order filter - Previous input 2
+    REAL(DbKi), DIMENSION(1024)     :: lpfV_OutputSignalLast2      ! Second order filter - Previous output 2
+    REAL(DbKi), DIMENSION(1024)     :: lpfV_InputSignalLast1       ! Second order filter - Previous input 1
+    REAL(DbKi), DIMENSION(1024)     :: lpfV_OutputSignalLast1      ! Second order filter - Previous output 1
+    REAL(DbKi), DIMENSION(1024)     :: hpf_InputSignalLast         ! High pass filter - Previous output 1
+    REAL(DbKi), DIMENSION(1024)     :: hpf_OutputSignalLast        ! High pass filter - Previous output 1
+    REAL(DbKi), DIMENSION(1024)     :: nfs_OutputSignalLast1       ! Notch filter slopes previous output 1
+    REAL(DbKi), DIMENSION(1024)     :: nfs_OutputSignalLast2       ! Notch filter slopes previous output 2
+    REAL(DbKi), DIMENSION(1024)     :: nfs_InputSignalLast1        ! Notch filter slopes previous input 1
+    REAL(DbKi), DIMENSION(1024)     :: nfs_InputSignalLast2        ! Notch filter slopes previous input 1
+    REAL(DbKi), DIMENSION(1024)     :: nfs_b2                      ! Notch filter slopes numerator coefficient 2
+    REAL(DbKi), DIMENSION(1024)     :: nfs_b0                      ! Notch filter slopes numerator coefficient 0
+    REAL(DbKi), DIMENSION(1024)     :: nfs_a2                      ! Notch filter slopes denominator coefficient 2
+    REAL(DbKi), DIMENSION(1024)     :: nfs_a1                      ! Notch filter slopes denominator coefficient 1
+    REAL(DbKi), DIMENSION(1024)     :: nfs_a0                      ! Notch filter slopes denominator coefficient 0
+    REAL(DbKi), DIMENSION(1024)     :: nf_OutputSignalLast1        ! Notch filter previous output 1
+    REAL(DbKi), DIMENSION(1024)     :: nf_OutputSignalLast2        ! Notch filter previous output 2
+    REAL(DbKi), DIMENSION(1024)     :: nf_InputSignalLast1         ! Notch filter previous input 1
+    REAL(DbKi), DIMENSION(1024)     :: nf_InputSignalLast2         ! Notch filter previous input 2
+    REAL(DbKi), DIMENSION(1024)     :: nf_b2                       ! Notch filter numerator coefficient 2
+    REAL(DbKi), DIMENSION(1024)     :: nf_b1                       ! Notch filter numerator coefficient 1
+    REAL(DbKi), DIMENSION(1024)     :: nf_b0                       ! Notch filter numerator coefficient 0
+    REAL(DbKi), DIMENSION(1024)     :: nf_a1                       ! Notch filter denominator coefficient 1
+    REAL(DbKi), DIMENSION(1024)     :: nf_a0                       ! Notch filter denominator coefficient 0
 END TYPE FilterParameters
 
 TYPE, PUBLIC :: rlParams
-    REAL(DbKi), DIMENSION(99)     :: LastSignal                  ! Last input signal
+    REAL(DbKi), DIMENSION(1024)     :: LastSignal                  ! Last input signal
 END TYPE rlParams
 
 TYPE, PUBLIC :: piParams
-    REAL(DbKi), DIMENSION(99)     :: ITerm                       ! Integrator term
-    REAL(DbKi), DIMENSION(99)     :: ITermLast                   ! Previous integrator term
-    REAL(DbKi), DIMENSION(99)     :: ITerm2                      ! Integrator term - second integrator
-    REAL(DbKi), DIMENSION(99)     :: ITermLast2                  ! Previous integrator term - second integrator
-    REAL(DbKi), DIMENSION(99)     :: ELast                       ! Previous error term for derivative
+    REAL(DbKi), DIMENSION(1024)     :: ITerm                       ! Integrator term
+    REAL(DbKi), DIMENSION(1024)     :: ITermLast                   ! Previous integrator term
+    REAL(DbKi), DIMENSION(1024)     :: ITerm2                      ! Integrator term - second integrator
+    REAL(DbKi), DIMENSION(1024)     :: ITermLast2                  ! Previous integrator term - second integrator
+    REAL(DbKi), DIMENSION(1024)     :: ELast                       ! Previous error term for derivative
 END TYPE piParams
 
 TYPE, PUBLIC :: resParams
-    REAL(DbKi), DIMENSION(99)     :: res_OutputSignalLast1       ! Previous output signal
-    REAL(DbKi), DIMENSION(99)     :: res_OutputSignalLast2       ! Previous output signal - second integrator
-    REAL(DbKi), DIMENSION(99)     :: res_InputSignalLast1        ! Previous input signal
-    REAL(DbKi), DIMENSION(99)     :: res_InputSignalLast2        ! Previous input signal - second integrator
+    REAL(DbKi), DIMENSION(1024)     :: res_OutputSignalLast1       ! Previous output signal
+    REAL(DbKi), DIMENSION(1024)     :: res_OutputSignalLast2       ! Previous output signal - second integrator
+    REAL(DbKi), DIMENSION(1024)     :: res_InputSignalLast1        ! Previous input signal
+    REAL(DbKi), DIMENSION(1024)     :: res_InputSignalLast2        ! Previous input signal - second integrator
 END TYPE resParams
 
 TYPE, PUBLIC :: LocalVariables

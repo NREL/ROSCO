@@ -803,7 +803,7 @@ CONTAINS
         IF (LocalVar%FA_Hist > 0) THEN
             LocalVar%VS_RefSpd_TRA = LocalVar%TRA_LastRefSpd
         ELSE
-            LocalVar%VS_RefSpd_TRA = LocalVar%VS_RefSpd
+            LocalVar%VS_RefSpd_TRA = VS_RefSpeed_LSS
         END IF
 
         ! Save last reference speed       

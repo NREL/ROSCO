@@ -872,233 +872,233 @@ WE:
 FilterParameters:
     lpf1_a1:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: First order filter - Denominator coefficient 1
     lpf1_a0:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: First order filter - Denominator coefficient 0
     lpf1_b1:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: First order filter - Numerator coefficient 1
     lpf1_b0:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: First order filter - Numerator coefficient 0
     lpf1_InputSignalLast:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: First order filter - Previous input
     lpf1_OutputSignalLast:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: First order filter - Previous output
     lpf2_a2:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Second order filter - Denominator coefficient 2
     lpf2_a1:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Second order filter - Denominator coefficient 1
     lpf2_a0:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Second order filter - Denominator coefficient 0
     lpf2_b2:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Second order filter - Numerator coefficient 2
     lpf2_b1:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Second order filter - Numerator coefficient 1
     lpf2_b0:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Second order filter - Numerator coefficient 0
     lpf2_InputSignalLast2:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Second order filter - Previous input 2
     lpf2_OutputSignalLast2:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Second order filter - Previous output 2
     lpf2_InputSignalLast1:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Second order filter - Previous input 1 
     lpf2_OutputSignalLast1:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Second order filter - Previous output 1
     lpfV_a2:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Second order filter - Denominator coefficient 1
     lpfV_a1:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Second order filter - Denominator coefficient 1
     lpfV_a0:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Second order filter - Denominator coefficient 0
     lpfV_b2:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Second order filter - Numerator coefficient 2
     lpfV_b1:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Second order filter - Numerator coefficient 1
     lpfV_b0:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Second order filter - Numerator coefficient 0
     lpfV_InputSignalLast2:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Second order filter - Previous input 2
     lpfV_OutputSignalLast2:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Second order filter - Previous output 2
     lpfV_InputSignalLast1:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Second order filter - Previous input 1 
     lpfV_OutputSignalLast1:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Second order filter - Previous output 1
     hpf_InputSignalLast:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: High pass filter - Previous output 1
     hpf_OutputSignalLast:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: High pass filter - Previous output 1
     nfs_OutputSignalLast1:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Notch filter slopes previous output 1
     nfs_OutputSignalLast2:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Notch filter slopes previous output 2
     nfs_InputSignalLast1:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Notch filter slopes previous input 1
     nfs_InputSignalLast2:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Notch filter slopes previous input 1
     nfs_b2:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Notch filter slopes numerator coefficient 2
     nfs_b0:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Notch filter slopes numerator coefficient 0
     nfs_a2:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Notch filter slopes denominator coefficient 2
     nfs_a1:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Notch filter slopes denominator coefficient 1
     nfs_a0:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Notch filter slopes denominator coefficient 0
     nf_OutputSignalLast1:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Notch filter previous output 1
     nf_OutputSignalLast2:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Notch filter previous output 2
     nf_InputSignalLast1:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Notch filter previous input 1
     nf_InputSignalLast2:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Notch filter previous input 2
     nf_b2:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Notch filter numerator coefficient 2
     nf_b1:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Notch filter numerator coefficient 1
     nf_b0:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Notch filter numerator coefficient 0
     nf_a1:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Notch filter denominator coefficient 1
     nf_a0:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Notch filter denominator coefficient 0  
 
 rlParams:
     LastSignal:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Last input signal
 
 piParams:
     ITerm:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Integrator term
     ITermLast:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Previous integrator term
     ITerm2:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Integrator term - second integrator
     ITermLast2:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Previous integrator term - second integrator
     ELast:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Previous error term for derivative
 
 resParams:
     res_OutputSignalLast1:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Previous output signal
     res_OutputSignalLast2:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Previous output signal - second integrator
     res_InputSignalLast1:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Previous input signal
     res_InputSignalLast2:
       <<: *real
-      dimension: (99)
+      dimension: (1024)
       description: Previous input signal - second integrator
 
 LocalVariables:

@@ -1,5 +1,5 @@
 ! Controller parameter input file for the NREL-5MW wind turbine
-!    - File written using ROSCO version 2.10.0 controller tuning logic on 09/08/25
+!    - File written using ROSCO version 2.10.1 controller tuning logic on 11/26/25
 
 !------- SIMULATION CONTROL ------------------------------------------------------------
 1                   ! LoggingLevel		- 0: write no debug files, 1: write standard output .dbg-file, 2: LoggingLevel 1 + ROSCO LocalVars (.dbg2) 3: LoggingLevel 2 + complete avrSWAP-array (.dbg3)
@@ -101,7 +101,7 @@
 
 !------- SETPOINT SMOOTHER ---------------------------------------------
 1.00000             ! SS_VSGain         - Variable speed torque controller setpoint smoother gain, [-].
-0.00100             ! SS_PCGain         - Collective pitch controller setpoint smoother gain, [-].
+0.05000             ! SS_PCGain         - Collective pitch controller setpoint smoother gain, [-].
 
 !------- POWER REFERENCE TRACKING --------------------------------------
 0                   ! PRC_Comm   - Power reference communication mode when PRC_Mode = 2, 0- use constant DISCON inputs, 1- use open loop inputs, 2- use ZMQ inputs
@@ -163,7 +163,7 @@
 200.0000 100.0000         ! SU_LoadHoldDuration  - Array containing duration to hold the partial loads during startup [s]
 
 !------- SHUTDOWN -----------------------------------------------------------
-0                   ! SD_TimeActivate        - Time to acitvate shutdown modes, [s]
+0                   ! SD_TimeActivate        - Time to acitvate shutdown modes; no shutdown events will occur before this time. [s]
 0                   ! SD_EnablePitch         - Shutdown when collective blade pitch exceeds a threshold, [-]
 0                   ! SD_EnableYawError      - Shutdown when yaw error exceeds a threshold, [-]
 0                   ! SD_EnableGenSpeed      - Shutdown when generator speed exceeds a threshold, [-]

@@ -253,7 +253,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{}        ! SU_LoadHoldDuration  - {}\n'.format(write_array(rosco_vt["SU_LoadHoldDuration"]), input_descriptions["SU_LoadHoldDuration"]))
     file.write('\n')
     file.write('!------- SHUTDOWN -----------------------------------------------------------\n')
-    file.write('{0:<12d}        ! SD_TimeActivate        - Time to acitvate shutdown modes, [s]\n'.format(int(rosco_vt['SD_TimeActivate'])))
+    file.write('{0:<12d}        ! SD_TimeActivate        - Time to acitvate shutdown modes; no shutdown events will occur before this time. [s]\n'.format(int(rosco_vt['SD_TimeActivate'])))
     file.write('{0:<12d}        ! SD_EnablePitch         - Shutdown when collective blade pitch exceeds a threshold, [-]\n'.format(int(rosco_vt['SD_EnablePitch'])))
     file.write('{0:<12d}        ! SD_EnableYawError      - Shutdown when yaw error exceeds a threshold, [-]\n'.format(int(rosco_vt['SD_EnableYawError'])))
     file.write('{0:<12d}        ! SD_EnableGenSpeed      - Shutdown when generator speed exceeds a threshold, [-]\n'.format(int(rosco_vt['SD_EnableGenSpeed'])))
@@ -599,7 +599,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['VS_Rgn2K']			= controller.vs_rgn2K
     DISCON_dict['VS_RtPwr']			= turbine.rated_power
     DISCON_dict['VS_RtTq']			= turbine.rated_torque
-    DISCON_dict['VS_RefSpd']		= controller.vs_refspd
+    DISCON_dict['VS_RefSpd']		= controller.vs_refspd * (1 - controller.controller_params['ss_separation'])
     DISCON_dict['VS_n']				= 1
     DISCON_dict['VS_KP']			= controller.vs_gain_schedule.Kp[-1]
     DISCON_dict['VS_KI']			= controller.vs_gain_schedule.Ki[-1]

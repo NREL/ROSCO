@@ -31,6 +31,7 @@ The ROSCO toolbox uses Cp and Ct tables to compute these inputs to the ROSCO con
 # Python modules
 import matplotlib.pyplot as plt 
 import os
+import numpy as np
 # ROSCO toolbox modules 
 from rosco.toolbox import controller as ROSCO_controller
 from rosco.toolbox import turbine as ROSCO_turbine
@@ -45,6 +46,8 @@ def main():
 
     # Load yaml file 
     parameter_filename = os.path.join(tune_dir,'NREL5MW.yaml')
+    yaml_dir = os.path.dirname(parameter_filename)
+
     inps = load_rosco_yaml(parameter_filename)
     path_params         = inps['path_params']
     turbine_params      = inps['turbine_params']
@@ -61,19 +64,19 @@ def main():
     # Load turbine data from OpenFAST and rotor performance text file
     turbine.load_from_fast(
         path_params['FAST_InputFile'],
-        os.path.join(tune_dir,path_params['FAST_directory']),
-        rot_source='txt',txt_filename=os.path.join(tune_dir,path_params['rotor_performance_filename'])
+        os.path.join(yaml_dir,path_params['FAST_directory']),
+        rot_source='txt',txt_filename=os.path.join(yaml_dir,path_params['rotor_performance_filename'])
         )
     # Tune controller 
     controller.tune_controller(turbine)
 
     # Plot minimum pitch schedule
     fig, ax = plt.subplots(1,1)
-    ax.plot(controller.v, controller.pitch_op,label='Steady State Operation')
-    ax.plot(controller.v, controller.ps_min_bld_pitch, label='Minimum Pitch Schedule')
+    ax.plot(controller.v, np.degrees(controller.pitch_op), label='Steady State Operation')
+    ax.plot(controller.v, np.degrees(controller.ps_min_bld_pitch), label='Minimum Pitch Schedule')
     ax.legend()
     ax.set_xlabel('Wind speed (m/s)')
-    ax.set_ylabel('Blade pitch (rad)')
+    ax.set_ylabel('Blade pitch (deg)')
 
     if False:
         plt.show()

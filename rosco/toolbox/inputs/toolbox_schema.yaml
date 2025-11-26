@@ -332,8 +332,12 @@ properties:
             ss_pcgain:           
                 description: Pitch controller setpoint smoother gain bias percentage  [%, <= 1 ], {default = 0.1%}
                 type: number
-                default: 0.001
+                default: 0.05
                 unit: rad
+            ss_separation:
+                description: Decrease torque control gain by this amount (fraction)
+                type: number
+                default: 0.0
             ps_percent:          
                 description: Percent peak shaving  [%, <= 1 ], {default = 80%}
                 type: number
