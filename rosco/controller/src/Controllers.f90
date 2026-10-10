@@ -509,6 +509,7 @@ CONTAINS
         ! Pass rootMOOPs through the Coleman transform to get the tilt and yaw moment axis
         CALL ColemanTransform(LocalVar%rootMOOPF, LocalVar%Azimuth, NP_1, LocalVar%axisTilt_1P, LocalVar%axisYaw_1P)
         CALL ColemanTransform(LocalVar%rootMOOPF, LocalVar%Azimuth, NP_2, LocalVar%axisTilt_2P, LocalVar%axisYaw_2P)
+        LocalVar%axisYawF_2P = LocalVar%axisYaw_2P
 
         ! High-pass filter the MBC yaw component and filter yaw alignment error, and compute the yaw-by-IPC contribution
         IF (CntrPar%Y_ControlMode == 2) THEN
